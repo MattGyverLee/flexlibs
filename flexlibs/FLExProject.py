@@ -583,6 +583,17 @@ class FLExProject (object):
         # MultiUnicodeAccessor
         form = ITsString(entry.CitationForm.get_String(WSHandle)).Text
         return form or u""
+        
+    def LexiconGetAlternateForm(self, entry, languageTagOrHandle=None):
+        """
+        Returns the Alternate form for the entry in the Default Vernacular WS
+        or other WS as specified by languageTagOrHandle.
+        """
+        WSHandle = self.__WSHandleVernacular(languageTagOrHandle)
+
+        # MultiUnicodeAccessor
+        form = ITsString(entry.AlternateFormsOS.Form.get_String(WSHandle)).Text
+        return form or u""
 
         
     def LexiconGetPublishInCount(self, entry):
