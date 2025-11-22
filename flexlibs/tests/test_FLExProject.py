@@ -5,46 +5,47 @@ import unittest
 import logging
 logging.basicConfig(filename='flexlibs.log', filemode='w', level=logging.DEBUG)
 
-from flexlibs import FLExInit
-from flexlibs.FLExProject import FLExProject, GetProjectNames
+from flexlibs import FLExInitialize, FLExCleanup
+from flexlibs import FLExProject, AllProjectNames
 
 class TestFLExProject(unittest.TestCase):
     @classmethod
-    def setUpClass(cls):
-        FLExInit.Initialize()
-        cls.project = FLExProject()
+    def setUpClass(self):
+        FLExInitialize()
 
     @classmethod
-    def tearDownClass(cls):
-        FLExInit.Cleanup()
+    def tearDownClass(self):
+        FLExCleanup()
 
-    def test_GetProjectNames(self):
-        self.assertIsInstance(GetProjectNames(), list)
+    def test_AllProjectNames(self):
+        self.assertIsInstance(AllProjectNames(), list)
 
     def test_OpenProject(self):
         fp = FLExProject()
-        projectName = GetProjectNames()[0]
+        # Grab the first project in the list
+        projectName = AllProjectNames()[0]
         try:
             fp.OpenProject(projectName,
                            writeEnabled = False)
         except Exception as e:
-            del fp
             self.fail("Exception opening project %s:\n%s" % 
                         (projectName, e.message))
+        fp.CloseProject()
 
     def test_ReadLexicon(self):
         fp = FLExProject()
-        projectName = GetProjectNames()[0]
+        projectName = AllProjectNames()[0]
         try:
             fp.OpenProject(projectName,
                            writeEnabled = False)
         except Exception as e:
-            del fp
             self.fail("Exception opening project %s" % projectName)
 
         # Traverse the whole lexicon
         for lexEntry in fp.LexiconAllEntries():
             self.assertIsInstance(fp.LexiconGetHeadword(lexEntry), str)
+
+        fp.CloseProject()
 
 
 

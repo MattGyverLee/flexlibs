@@ -1,33 +1,59 @@
 flexlibs
 ========
 
-flexlibs is a library for accessing FieldWorks Language Explorer (FLEx) [1]_ projects.
+flexlibs is a library for accessing FieldWorks Language Explorer 
+(FLEx) [1]_ projects.
 
 flexlibs handles the necessary initialisation of the FLEx engine, and 
 provides a class (FLExProject) for opening a FLEx project and working 
 with its contents.
 
+For the GUI application that runs Python scripts/plugins
+on FLEx databases see FLExTools [2]_, which is built on flexlibs.
+
 
 Requirements
 ------------
-flexlibs supports Python 2.7, 3.5, 3.6, and 3.7.
 
-Python for .NET [2]_ version 2.0.0 or greater is required. For Python 3.7, pythonnet must currently be checked out and compiled from source (master branch).
+Python 3.8 - 3.13.
 
-FieldWorks Language Explorer 9.0.4 beta or higher.
+Python for .NET [3]_ version 3.0.3+.
 
-Python 2.7 requires the future package (``pip install future``)
+FieldWorks Language Explorer 9.0.17 - 9.3.1.
+
 
 32-bit vs 64-bit
 ^^^^^^^^^^^^^^^^
-The Python architecture must match that of FieldWorks. I.e. Install 32-bit Python for 32-bit Fieldworks, and 64-bit Python for 64-bit Fieldworks.
+The Python architecture must match that of FieldWorks. I.e. Install 
+32-bit Python for 32-bit Fieldworks, and 64-bit Python for 64-bit 
+Fieldworks.
 
 Installation
 ------------
 Run:
-pip install git+https://github.com/cdfarrow/flexlibs
+``pip install flexlibs``
+
+Usage
+-----
+
+.. code-block:: python
+
+
+  import flexlibs
+  flexlibs.FLExInitialize()
+  p = flexlibs.FLExProject()
+  p.OpenProject('parser-experiments')
+  p.GetPartsOfSpeech()
+  # ['Adverb', 'Noun', 'Pro-form', 'Pronoun', 'Verb', 'Copulative verb', 'Ditransitive verb', 'Intransitive verb', 'Transitive verb', 'Coordinating connective']
+
+  # The API documentation is an HTML file
+  os.startfile(flexlibs.APIHelpFile)
+  ...
+  p.CloseProject()
+  flexlibs.FLExCleanup()
 
 --------------
 
 .. [1] https://software.sil.org/fieldworks/
-.. [2] https://github.com/pythonnet/pythonnet
+.. [2] https://github.com/cdfarrow/flextools/wiki/
+.. [3] https://github.com/pythonnet/pythonnet/wiki

@@ -10,10 +10,8 @@
 #             (ITsString doesn't work in IRONPython)
 #             FieldWorks Version 9
 #
-#   Copyright Craig Farrow, 2008 - 2018
+#   Copyright Craig Farrow, 2008 - 2022
 #
-from __future__ import print_function
-from builtins import str
 
 import os
 
@@ -31,11 +29,6 @@ clr.AddReference("SIL.Core.Desktop")
 clr.AddReference("SIL.LCModel")
 clr.AddReference("SIL.LCModel.Core")
 
-# workaround to redirect reference to version 11 of dll
-# dll is from FLEx 9.0.7 
-dll_path = os.path.join(os.path.dirname(__file__),
-                        r"Newtonsoft.Json.dll")
-clr.AddReference(dll_path)
 
 # Classes needed for loading the Cache
 from SIL.LCModel import LcmCache, LcmSettings, LcmFileHelper
@@ -52,10 +45,10 @@ from SIL.FieldWorks.FwCoreDlgs import ChooseLangProjectDialog
 
 #--- Globals --------------------------------------------------------
 
-CellarStringTypes  = (CellarPropertyType.String, )
-CellarUnicodeTypes = (CellarPropertyType.MultiUnicode,
-                      CellarPropertyType.MultiString)
-
+CellarStringTypes      = {CellarPropertyType.String, }
+CellarMultiStringTypes = {CellarPropertyType.MultiUnicode,
+                          CellarPropertyType.MultiString}
+CellarAllStringTypes   = CellarStringTypes | CellarMultiStringTypes
 #-----------------------------------------------------------
 
 def GetListOfProjects():
@@ -64,23 +57,25 @@ def GetListOfProjects():
     projectsPath = FwDirectoryFinder.ProjectsDirectory
     objs = os.listdir(str(projectsPath))
     projectList = []
-    for f in objs:
-        if os.path.isdir(os.path.join(projectsPath, f)):
-            projectList.append(f)
+    for dirname in objs:
+        # FieldWorks can leave ghost directories, so we test 
+        # for the fwdata file, not just the directory. (Issue #48)
+        suffix = LcmFileHelper.ksFwDataXmlFileExtension 
+        if os.path.isfile(os.path.join(projectsPath, 
+                                       dirname, 
+                                       dirname+suffix)):
+            projectList.append(dirname)
     return sorted(projectList)
 
 #-----------------------------------------------------------
 
-def OpenProject(projectName, writeEnabled = False):
+def OpenProject(projectName):
     """
     Open a FieldWorks project.
 
     projectName:
         - Either the full path including ".fwdata" suffix, or
         - The name only, opened from the default project location.
-
-    writeEnabled : (Awaiting FW support for a read-only mode so that
-                    FW doesn't have to be closed for read-only operations.)
     """
 
     projectFileName = LcmFileHelper.GetXmlDataFileName(projectName)
