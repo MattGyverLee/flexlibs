@@ -313,7 +313,7 @@ class FLExProject (object):
             ...     project.POS.SetAbbreviation(verb, "V")
         """
         if not hasattr(self, '_pos_ops'):
-            from .Grammar.POSOperations import POSOperations
+            from .POSOperations import POSOperations
             self._pos_ops = POSOperations(self)
         return self._pos_ops
 
@@ -339,7 +339,7 @@ class FLExProject (object):
             >>> project.LexEntry.SetCitationForm(entry, "run")
         """
         if not hasattr(self, '_lexentry_ops'):
-            from .Lexicon.LexEntryOperations import LexEntryOperations
+            from .LexEntryOperations import LexEntryOperations
             self._lexentry_ops = LexEntryOperations(self)
         return self._lexentry_ops
 
@@ -363,7 +363,7 @@ class FLExProject (object):
             >>> project.Texts.SetName(text, "Genesis Chapter 1")
         """
         if not hasattr(self, '_text_ops'):
-            from .TextsWords.TextOperations import TextOperations
+            from .TextOperations import TextOperations
             self._text_ops = TextOperations(self)
         return self._text_ops
 
@@ -388,7 +388,7 @@ class FLExProject (object):
             >>> project.Wordforms.SetSpellingStatus(wf, SpellingStatusStates.CORRECT)
         """
         if not hasattr(self, '_wordform_ops'):
-            from .TextsWords.WordformOperations import WordformOperations
+            from .WordformOperations import WordformOperations
             self._wordform_ops = WordformOperations(self)
         return self._wordform_ops
 
@@ -421,7 +421,7 @@ class FLExProject (object):
             >>> project.WfiAnalyses.ApproveAnalysis(new_analysis)
         """
         if not hasattr(self, '_wfianalysis_ops'):
-            from .TextsWords.WfiAnalysisOperations import WfiAnalysisOperations
+            from .WfiAnalysisOperations import WfiAnalysisOperations
             self._wfianalysis_ops = WfiAnalysisOperations(self)
         return self._wfianalysis_ops
 
@@ -448,7 +448,7 @@ class FLExProject (object):
             >>> style = project.Paragraphs.GetStyleName(para)
         """
         if not hasattr(self, '_paragraph_ops'):
-            from .TextsWords.ParagraphOperations import ParagraphOperations
+            from .ParagraphOperations import ParagraphOperations
             self._paragraph_ops = ParagraphOperations(self)
         return self._paragraph_ops
 
@@ -474,7 +474,7 @@ class FLExProject (object):
             >>> project.Segments.SetLiteralTranslation(segment, "In-the beginning...")
         """
         if not hasattr(self, '_segment_ops'):
-            from .TextsWords.SegmentOperations import SegmentOperations
+            from .SegmentOperations import SegmentOperations
             self._segment_ops = SegmentOperations(self)
         return self._segment_ops
 
@@ -505,7 +505,7 @@ class FLExProject (object):
             ...     print("Consonant phoneme")
         """
         if not hasattr(self, '_phoneme_ops'):
-            from .Grammar.PhonemeOperations import PhonemeOperations
+            from .PhonemeOperations import PhonemeOperations
             self._phoneme_ops = PhonemeOperations(self)
         return self._phoneme_ops
 
@@ -531,7 +531,7 @@ class FLExProject (object):
             >>> project.NaturalClasses.AddPhoneme(nc, phoneme_b)
         """
         if not hasattr(self, '_naturalclass_ops'):
-            from .Grammar.NaturalClassOperations import NaturalClassOperations
+            from .NaturalClassOperations import NaturalClassOperations
             self._naturalclass_ops = NaturalClassOperations(self)
         return self._naturalclass_ops
 
@@ -555,7 +555,7 @@ class FLExProject (object):
             >>> env = project.Environments.Create("Between vowels", "V_V")
         """
         if not hasattr(self, '_environment_ops'):
-            from .Grammar.EnvironmentOperations import EnvironmentOperations
+            from .EnvironmentOperations import EnvironmentOperations
             self._environment_ops = EnvironmentOperations(self)
         return self._environment_ops
 
@@ -579,7 +579,7 @@ class FLExProject (object):
             >>> allo = project.Allomorphs.Create(entry, "-ed")
         """
         if not hasattr(self, '_allomorph_ops'):
-            from .Lexicon.AllomorphOperations import AllomorphOperations
+            from .AllomorphOperations import AllomorphOperations
             self._allomorph_ops = AllomorphOperations(self)
         return self._allomorph_ops
 
@@ -603,7 +603,7 @@ class FLExProject (object):
             >>> rule = project.MorphRules.Create("Plural formation", "Lexical")
         """
         if not hasattr(self, '_morphrule_ops'):
-            from .Grammar.MorphRuleOperations import MorphRuleOperations
+            from .MorphRuleOperations import MorphRuleOperations
             self._morphrule_ops = MorphRuleOperations(self)
         return self._morphrule_ops
 
@@ -628,7 +628,7 @@ class FLExProject (object):
             ...     print(f"Feature: {name}")
         """
         if not hasattr(self, '_inflectionfeature_ops'):
-            from .Grammar.InflectionFeatureOperations import InflectionFeatureOperations
+            from .InflectionFeatureOperations import InflectionFeatureOperations
             self._inflectionfeature_ops = InflectionFeatureOperations(self)
         return self._inflectionfeature_ops
 
@@ -651,7 +651,7 @@ class FLExProject (object):
             >>> gc = project.GramCat.Create("Transitive")
         """
         if not hasattr(self, '_gramcat_ops'):
-            from .Grammar.GramCatOperations import GramCatOperations
+            from .GramCatOperations import GramCatOperations
             self._gramcat_ops = GramCatOperations(self)
         return self._gramcat_ops
 
@@ -680,7 +680,7 @@ class FLExProject (object):
             >>> project.PhonRules.SetRightContext(rule, vowels)
         """
         if not hasattr(self, '_phonrule_ops'):
-            from .Grammar.PhonologicalRuleOperations import PhonologicalRuleOperations
+            from .PhonologicalRuleOperations import PhonologicalRuleOperations
             self._phonrule_ops = PhonologicalRuleOperations(self)
         return self._phonrule_ops
 
@@ -710,7 +710,7 @@ class FLExProject (object):
             ...     project.Senses.AddSemanticDomain(sense, domains[0])
         """
         if not hasattr(self, '_sense_ops'):
-            from .Lexicon.LexSenseOperations import LexSenseOperations
+            from .LexSenseOperations import LexSenseOperations
             self._sense_ops = LexSenseOperations(self)
         return self._sense_ops
 
@@ -739,7 +739,7 @@ class FLExProject (object):
             >>> project.Examples.SetReference(example, "Corpus A:123")
         """
         if not hasattr(self, '_example_ops'):
-            from .Lexicon.ExampleOperations import ExampleOperations
+            from .ExampleOperations import ExampleOperations
             self._example_ops = ExampleOperations(self)
         return self._example_ops
 
@@ -776,7 +776,7 @@ class FLExProject (object):
             ...     print(f"Related to {len(targets)} items")
         """
         if not hasattr(self, '_lexref_ops'):
-            from .Lexicon.LexReferenceOperations import LexReferenceOperations
+            from .LexReferenceOperations import LexReferenceOperations
             self._lexref_ops = LexReferenceOperations(self)
         return self._lexref_ops
 
@@ -812,7 +812,7 @@ class FLExProject (object):
             ...             project.Reversal.AddSense(entry, senses[0])
         """
         if not hasattr(self, '_reversal_ops'):
-            from .Lexicon.ReversalOperations import ReversalOperations
+            from .ReversalOperations import ReversalOperations
             self._reversal_ops = ReversalOperations(self)
         return self._reversal_ops
 
@@ -842,7 +842,7 @@ class FLExProject (object):
             >>> custom = project.SemanticDomains.Create("Technology", "900")
         """
         if not hasattr(self, '_semantic_domain_ops'):
-            from .Lexicon.SemanticDomainOperations import SemanticDomainOperations
+            from .SemanticDomainOperations import SemanticDomainOperations
             self._semantic_domain_ops = SemanticDomainOperations(self)
         return self._semantic_domain_ops
 
@@ -871,7 +871,7 @@ class FLExProject (object):
             >>> print(f"Audio files: {len(media)}")
         """
         if not hasattr(self, '_pronunciation_ops'):
-            from .Lexicon.PronunciationOperations import PronunciationOperations
+            from .PronunciationOperations import PronunciationOperations
             self._pronunciation_ops = PronunciationOperations(self)
         return self._pronunciation_ops
 
@@ -908,7 +908,7 @@ class FLExProject (object):
             >>> project.Variants.AddComponentLexeme(variant_ref, go_entry)
         """
         if not hasattr(self, '_variant_ops'):
-            from .Lexicon.VariantOperations import VariantOperations
+            from .VariantOperations import VariantOperations
             self._variant_ops = VariantOperations(self)
         return self._variant_ops
 
@@ -937,7 +937,7 @@ class FLExProject (object):
             ...     print(f"{source}: {form} ({gloss})")
         """
         if not hasattr(self, '_etymology_ops'):
-            from .Lexicon.EtymologyOperations import EtymologyOperations
+            from .EtymologyOperations import EtymologyOperations
             self._etymology_ops = EtymologyOperations(self)
         return self._etymology_ops
 
@@ -979,7 +979,7 @@ class FLExProject (object):
             ...     project.PossibilityLists.MoveItem(folktale, None)  # Move to top
         """
         if not hasattr(self, '_possibilitylist_ops'):
-            from .Lists.PossibilityListOperations import PossibilityListOperations
+            from .PossibilityListOperations import PossibilityListOperations
             self._possibilitylist_ops = PossibilityListOperations(self)
         return self._possibilitylist_ops
 
@@ -1012,7 +1012,7 @@ class FLExProject (object):
             >>> project.CustomFields.AddListValue(sense, "Regions", "North")
         """
         if not hasattr(self, '_customfield_ops'):
-            from .System.CustomFieldOperations import CustomFieldOperations
+            from .CustomFieldOperations import CustomFieldOperations
             self._customfield_ops = CustomFieldOperations(self)
         return self._customfield_ops
 
@@ -1041,7 +1041,7 @@ class FLExProject (object):
             ...     project.WritingSystems.SetRightToLeft("ar", True)
         """
         if not hasattr(self, '_writingsystem_ops'):
-            from .System.WritingSystemOperations import WritingSystemOperations
+            from .WritingSystemOperations import WritingSystemOperations
             self._writingsystem_ops = WritingSystemOperations(self)
         return self._writingsystem_ops
 
@@ -1073,7 +1073,7 @@ class FLExProject (object):
             ...     print(f"Unapproved: {form}")
         """
         if not hasattr(self, '_wfianalysis_ops'):
-            from .TextsWords.WfiAnalysisOperations import WfiAnalysisOperations
+            from .WfiAnalysisOperations import WfiAnalysisOperations
             self._wfianalysis_ops = WfiAnalysisOperations(self)
         return self._wfianalysis_ops
 
@@ -1101,7 +1101,7 @@ class FLExProject (object):
             ...         print(f"Gloss: {form}")
         """
         if not hasattr(self, '_wfigloss_ops'):
-            from .TextsWords.WfiGlossOperations import WfiGlossOperations
+            from .WfiGlossOperations import WfiGlossOperations
             self._wfigloss_ops = WfiGlossOperations(self)
         return self._wfigloss_ops
 
@@ -1131,7 +1131,7 @@ class FLExProject (object):
             ...     print(f"Morpheme: {form}")
         """
         if not hasattr(self, '_wfimorphbundle_ops'):
-            from .TextsWords.WfiMorphBundleOperations import WfiMorphBundleOperations
+            from .WfiMorphBundleOperations import WfiMorphBundleOperations
             self._wfimorphbundle_ops = WfiMorphBundleOperations(self)
         return self._wfimorphbundle_ops
 
@@ -1160,7 +1160,7 @@ class FLExProject (object):
             >>> print(f"Found {len(orphans)} orphaned files")
         """
         if not hasattr(self, '_media_ops'):
-            from .TextsWords.MediaOperations import MediaOperations
+            from .MediaOperations import MediaOperations
             self._media_ops = MediaOperations(self)
         return self._media_ops
 
@@ -1187,7 +1187,7 @@ class FLExProject (object):
             ...     print(f"Note: {content} ({len(replies)} replies)")
         """
         if not hasattr(self, '_note_ops'):
-            from .Notebook.NoteOperations import NoteOperations
+            from .NoteOperations import NoteOperations
             self._note_ops = NoteOperations(self)
         return self._note_ops
 
@@ -1218,7 +1218,7 @@ class FLExProject (object):
             >>> json_str = project.Filters.ExportFilter(filter_obj)
         """
         if not hasattr(self, '_filter_ops'):
-            from .TextsWords.FilterOperations import FilterOperations
+            from .FilterOperations import FilterOperations
             self._filter_ops = FilterOperations(self)
         return self._filter_ops
 
@@ -1246,7 +1246,7 @@ class FLExProject (object):
             ...     print(f"Chart: {name} ({len(rows)} rows)")
         """
         if not hasattr(self, '_discourse_ops'):
-            from .TextsWords.DiscourseOperations import DiscourseOperations
+            from .DiscourseOperations import DiscourseOperations
             self._discourse_ops = DiscourseOperations(self)
         return self._discourse_ops
 
@@ -1278,7 +1278,7 @@ class FLExProject (object):
             ...     print(f"{name}: {email}")
         """
         if not hasattr(self, '_person_ops'):
-            from .Notebook.PersonOperations import PersonOperations
+            from .PersonOperations import PersonOperations
             self._person_ops = PersonOperations(self)
         return self._person_ops
 
@@ -1308,7 +1308,7 @@ class FLExProject (object):
             ...     print(f"{name}: {coords}")
         """
         if not hasattr(self, '_location_ops'):
-            from .Notebook.LocationOperations import LocationOperations
+            from .LocationOperations import LocationOperations
             self._location_ops = LocationOperations(self)
         return self._location_ops
 
@@ -1343,7 +1343,7 @@ class FLExProject (object):
             ...     print(f"{code}: {name}")
         """
         if not hasattr(self, '_anthropology_ops'):
-            from .Notebook.AnthropologyOperations import AnthropologyOperations
+            from .AnthropologyOperations import AnthropologyOperations
             self._anthropology_ops = AnthropologyOperations(self)
         return self._anthropology_ops
 
@@ -1369,7 +1369,7 @@ class FLExProject (object):
             >>> project.ProjectSettings.SetDefaultFontSize("en", 14)
         """
         if not hasattr(self, '_projectsettings_ops'):
-            from .System.ProjectSettingsOperations import ProjectSettingsOperations
+            from .ProjectSettingsOperations import ProjectSettingsOperations
             self._projectsettings_ops = ProjectSettingsOperations(self)
         return self._projectsettings_ops
 
@@ -1395,7 +1395,7 @@ class FLExProject (object):
             ...     print(f"{name} (default: {is_default})")
         """
         if not hasattr(self, '_publication_ops'):
-            from .Lists.PublicationOperations import PublicationOperations
+            from .PublicationOperations import PublicationOperations
             self._publication_ops = PublicationOperations(self)
         return self._publication_ops
 
@@ -1425,7 +1425,7 @@ class FLExProject (object):
             ...         print(f"Parser: {name} v{version}")
         """
         if not hasattr(self, '_agent_ops'):
-            from .Lists.AgentOperations import AgentOperations
+            from .AgentOperations import AgentOperations
             self._agent_ops = AgentOperations(self)
         return self._agent_ops
 
@@ -1450,7 +1450,7 @@ class FLExProject (object):
             ...     "Confirmed by native speaker", "en")
         """
         if not hasattr(self, '_confidence_ops'):
-            from .Lists.ConfidenceOperations import ConfidenceOperations
+            from .ConfidenceOperations import ConfidenceOperations
             self._confidence_ops = ConfidenceOperations(self)
         return self._confidence_ops
 
@@ -1477,7 +1477,7 @@ class FLExProject (object):
             ...     print(f"Overlay: {name}")
         """
         if not hasattr(self, '_overlay_ops'):
-            from .Lists.OverlayOperations import OverlayOperations
+            from .OverlayOperations import OverlayOperations
             self._overlay_ops = OverlayOperations(self)
         return self._overlay_ops
 
@@ -1504,7 +1504,7 @@ class FLExProject (object):
             ...     print(f"{name} ({abbr})")
         """
         if not hasattr(self, '_translationtype_ops'):
-            from .Lists.TranslationTypeOperations import TranslationTypeOperations
+            from .TranslationTypeOperations import TranslationTypeOperations
             self._translationtype_ops = TranslationTypeOperations(self)
         return self._translationtype_ops
 
@@ -1529,7 +1529,7 @@ class FLExProject (object):
             >>> project.AnnotationDefs.SetUserCanCreate(note_type, True)
         """
         if not hasattr(self, '_annotationdef_ops'):
-            from .System.AnnotationDefOperations import AnnotationDefOperations
+            from .AnnotationDefOperations import AnnotationDefOperations
             self._annotationdef_ops = AnnotationDefOperations(self)
         return self._annotationdef_ops
 
@@ -1559,7 +1559,7 @@ class FLExProject (object):
             ...     print(f"{name}: {status}")
         """
         if not hasattr(self, '_check_ops'):
-            from .System.CheckOperations import CheckOperations
+            from .CheckOperations import CheckOperations
             self._check_ops = CheckOperations(self)
         return self._check_ops
 
@@ -1593,7 +1593,7 @@ class FLExProject (object):
             ...     print(f"{title} ({date})")
         """
         if not hasattr(self, '_datanotebook_ops'):
-            from .Notebook.DataNotebookOperations import DataNotebookOperations
+            from .DataNotebookOperations import DataNotebookOperations
             self._datanotebook_ops = DataNotebookOperations(self)
         return self._datanotebook_ops
 

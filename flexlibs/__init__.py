@@ -38,182 +38,188 @@ from .code.FLExProject import (
     )
 
 # Advanced Operations (v2.0+)
-from .code.POSOperations import (
+
+# Grammar Operations
+from .code.Grammar.POSOperations import (
     POSOperations,
     )
 
-from .code.LexEntryOperations import (
+from .code.Grammar.PhonemeOperations import (
+    PhonemeOperations,
+    )
+
+from .code.Grammar.NaturalClassOperations import (
+    NaturalClassOperations,
+    )
+
+from .code.Grammar.EnvironmentOperations import (
+    EnvironmentOperations,
+    )
+
+from .code.Grammar.MorphRuleOperations import (
+    MorphRuleOperations,
+    )
+
+from .code.Grammar.InflectionFeatureOperations import (
+    InflectionFeatureOperations,
+    )
+
+from .code.Grammar.GramCatOperations import (
+    GramCatOperations,
+    )
+
+from .code.Grammar.PhonologicalRuleOperations import (
+    PhonologicalRuleOperations,
+    )
+
+# Lexicon Operations
+from .code.Lexicon.LexEntryOperations import (
     LexEntryOperations,
     )
 
-from .code.TextOperations import (
+from .code.Lexicon.LexSenseOperations import (
+    LexSenseOperations,
+    )
+
+from .code.Lexicon.ExampleOperations import (
+    ExampleOperations,
+    )
+
+from .code.Lexicon.LexReferenceOperations import (
+    LexReferenceOperations,
+    )
+
+from .code.Lexicon.VariantOperations import (
+    VariantOperations,
+    )
+
+from .code.Lexicon.PronunciationOperations import (
+    PronunciationOperations,
+    )
+
+from .code.Lexicon.SemanticDomainOperations import (
+    SemanticDomainOperations,
+    )
+
+from .code.Lexicon.ReversalOperations import (
+    ReversalOperations,
+    )
+
+from .code.Lexicon.EtymologyOperations import (
+    EtymologyOperations,
+    )
+
+from .code.Lexicon.AllomorphOperations import (
+    AllomorphOperations,
+    )
+
+# TextsWords Operations
+from .code.TextsWords.TextOperations import (
     TextOperations,
     )
 
-from .code.WordformOperations import (
+from .code.TextsWords.WordformOperations import (
     WordformOperations,
     SpellingStatusStates,
     )
 
-from .code.WfiAnalysisOperations import (
+from .code.TextsWords.WfiAnalysisOperations import (
     WfiAnalysisOperations,
     ApprovalStatusTypes,
     )
 
-from .code.ParagraphOperations import (
+from .code.TextsWords.ParagraphOperations import (
     ParagraphOperations,
     )
 
-from .code.SegmentOperations import (
+from .code.TextsWords.SegmentOperations import (
     SegmentOperations,
     )
 
-from .code.PhonemeOperations import (
-    PhonemeOperations,
-    )
-
-from .code.NaturalClassOperations import (
-    NaturalClassOperations,
-    )
-
-from .code.EnvironmentOperations import (
-    EnvironmentOperations,
-    )
-
-from .code.AllomorphOperations import (
-    AllomorphOperations,
-    )
-
-from .code.MorphRuleOperations import (
-    MorphRuleOperations,
-    )
-
-from .code.InflectionFeatureOperations import (
-    InflectionFeatureOperations,
-    )
-
-from .code.GramCatOperations import (
-    GramCatOperations,
-    )
-
-from .code.PhonologicalRuleOperations import (
-    PhonologicalRuleOperations,
-    )
-
-from .code.LexEntryOperations import (
-    LexEntryOperations,
-    )
-
-from .code.LexSenseOperations import (
-    LexSenseOperations,
-    )
-
-from .code.ExampleOperations import (
-    ExampleOperations,
-    )
-
-from .code.LexReferenceOperations import (
-    LexReferenceOperations,
-    )
-
-from .code.VariantOperations import (
-    VariantOperations,
-    )
-
-from .code.PronunciationOperations import (
-    PronunciationOperations,
-    )
-
-from .code.SemanticDomainOperations import (
-    SemanticDomainOperations,
-    )
-
-from .code.ReversalOperations import (
-    ReversalOperations,
-    )
-
-from .code.EtymologyOperations import (
-    EtymologyOperations,
-    )
-
-from .code.WritingSystemOperations import (
-    WritingSystemOperations,
-    )
-
-from .code.WfiAnalysisOperations import (
-    WfiAnalysisOperations,
-    ApprovalStatusTypes,
-    )
-
-from .code.WfiGlossOperations import (
+from .code.TextsWords.WfiGlossOperations import (
     WfiGlossOperations,
     )
 
-from .code.WfiMorphBundleOperations import (
+from .code.TextsWords.WfiMorphBundleOperations import (
     WfiMorphBundleOperations,
     )
 
-from .code.MediaOperations import (
+from .code.TextsWords.MediaOperations import (
     MediaOperations,
     MediaType,
     )
 
-from .code.NoteOperations import (
-    NoteOperations,
-    )
-
-from .code.FilterOperations import (
+from .code.TextsWords.FilterOperations import (
     FilterOperations,
     )
 
-from .code.DiscourseOperations import (
+from .code.TextsWords.DiscourseOperations import (
     DiscourseOperations,
     )
 
-from .code.PersonOperations import (
+# Notebook Operations
+from .code.Notebook.NoteOperations import (
+    NoteOperations,
+    )
+
+from .code.Notebook.PersonOperations import (
     PersonOperations,
     )
 
-from .code.LocationOperations import (
+from .code.Notebook.LocationOperations import (
     LocationOperations,
     )
 
-from .code.AnthropologyOperations import (
+from .code.Notebook.AnthropologyOperations import (
     AnthropologyOperations,
     )
 
-from .code.ProjectSettingsOperations import (
-    ProjectSettingsOperations,
+from .code.Notebook.DataNotebookOperations import (
+    DataNotebookOperations,
     )
 
-from .code.PublicationOperations import (
+# Lists Operations
+from .code.Lists.PublicationOperations import (
     PublicationOperations,
     )
 
-from .code.AgentOperations import (
+from .code.Lists.AgentOperations import (
     AgentOperations,
     )
 
-from .code.ConfidenceOperations import (
+from .code.Lists.ConfidenceOperations import (
     ConfidenceOperations,
     )
 
-from .code.OverlayOperations import (
+from .code.Lists.OverlayOperations import (
     OverlayOperations,
     )
 
-from .code.TranslationTypeOperations import (
+from .code.Lists.TranslationTypeOperations import (
     TranslationTypeOperations,
     )
 
-from .code.AnnotationDefOperations import (
+from .code.Lists.PossibilityListOperations import (
+    PossibilityListOperations,
+    )
+
+# System Operations
+from .code.System.WritingSystemOperations import (
+    WritingSystemOperations,
+    )
+
+from .code.System.ProjectSettingsOperations import (
+    ProjectSettingsOperations,
+    )
+
+from .code.System.AnnotationDefOperations import (
     AnnotationDefOperations,
     )
 
-from .code.CheckOperations import (
+from .code.System.CheckOperations import (
     CheckOperations,
     )
 
-from .code.DataNotebookOperations import (
-    DataNotebookOperations,
+from .code.System.CustomFieldOperations import (
+    CustomFieldOperations,
     )
