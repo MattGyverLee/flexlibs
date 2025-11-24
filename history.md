@@ -6,6 +6,61 @@ None
 
 ## History
 
+### 2.0.0 - 24 Nov 2025
+
+**Major Release: Comprehensive CRUD Operations**
+
+This release introduces a complete set of Operations classes providing intuitive, object-oriented access to all major FLEx data types. The new API significantly expands flexlibs capabilities while maintaining full backward compatibility with v1.x code.
+
+**New Features:**
+
++ **44 Operations Classes** providing 793+ methods organized into 6 topic areas:
+    + **Grammar** (8 classes): POSOperations, PhonemeOperations, GramCatOperations, NaturalClassOperations, EnvironmentOperations, PhonologicalRuleOperations, MorphRuleOperations, InflectionFeatureOperations
+    + **Lexicon** (10 classes): LexEntryOperations, LexSenseOperations, ExampleOperations, PronunciationOperations, VariantOperations, AllomorphOperations, EtymologyOperations, LexReferenceOperations, ReversalOperations, SemanticDomainOperations
+    + **Texts & Words** (10 classes): TextOperations, ParagraphOperations, SegmentOperations, WordformOperations, WfiAnalysisOperations, WfiGlossOperations, WfiMorphBundleOperations, MediaOperations, FilterOperations, DiscourseOperations
+    + **Notebook** (5 classes): DataNotebookOperations, NoteOperations, PersonOperations, LocationOperations, AnthropologyOperations
+    + **Lists** (6 classes): PossibilityListOperations, PublicationOperations, TranslationTypeOperations, OverlayOperations, ConfidenceOperations, AgentOperations
+    + **System** (5 classes): WritingSystemOperations, CustomFieldOperations, ProjectSettingsOperations, AnnotationDefOperations, CheckOperations
+
++ **Organized Code Structure**: Operations files organized into topic folders matching FLEx's architecture:
+    + `flexlibs/code/Grammar/`
+    + `flexlibs/code/Lexicon/`
+    + `flexlibs/code/TextsWords/`
+    + `flexlibs/code/Notebook/`
+    + `flexlibs/code/Lists/`
+    + `flexlibs/code/System/`
+
++ **CRUD Operations**: Each Operations class provides comprehensive Create, Read, Update, and Delete methods for its data type
+
++ **Lazy Loading**: Operations classes are instantiated only when accessed via FLExProject properties (e.g., `project.POS`, `project.LexEntry`, `project.Texts`)
+
++ **Full Backward Compatibility**: All v1.x API methods remain available and unchanged. Existing code will continue to work without modification.
+
+**Example Usage:**
+
+```python
+import flexlibs
+
+flexlibs.FLExInitialize()
+project = flexlibs.FLExProject()
+project.OpenProject('MyProject', writeEnabled=True)
+
+# Create a lexical entry with the new API
+entry = project.LexEntry.Create("run", "stem")
+sense = project.LexEntry.AddSense(entry, "to move rapidly on foot")
+project.Senses.SetGloss(sense, "run", "en")
+
+# Old v1.x API still works
+allEntries = project.LexiconAllEntries()
+
+project.CloseProject()
+flexlibs.FLExCleanup()
+```
+
+**Breaking Changes:**
+
+None. This release maintains 100% backward compatibility with v1.x.
+
 ### 1.2.8 - 10 Sep 2025
 
 + FLExProject functions:
