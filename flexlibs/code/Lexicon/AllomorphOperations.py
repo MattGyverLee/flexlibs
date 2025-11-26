@@ -180,8 +180,15 @@ class AllomorphOperations:
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the new allomorph using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(IMoStemAllomorphFactory)
+        factory = self.project.project.ServiceLocator.GetService(IMoStemAllomorphFactory)
         allomorph = factory.Create()
+
+        # Add to entry (must be done before setting properties)
+        # If no lexeme form, set as lexeme, else add as alternate
+        if not entry.LexemeFormOA:
+            entry.LexemeFormOA = allomorph
+        else:
+            entry.AlternateFormsOS.Add(allomorph)
 
         # Set form
         mkstr = TsStringUtils.MakeString(form, wsHandle)
@@ -189,12 +196,6 @@ class AllomorphOperations:
 
         # Set morph type
         allomorph.MorphTypeRA = morphType
-
-        # Add to entry - if no lexeme form, set as lexeme, else add as alternate
-        if not entry.LexemeFormOA:
-            entry.LexemeFormOA = allomorph
-        else:
-            entry.AlternateFormsOS.Add(allomorph)
 
         return allomorph
 

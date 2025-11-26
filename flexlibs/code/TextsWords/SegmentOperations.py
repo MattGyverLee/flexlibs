@@ -507,7 +507,7 @@ class SegmentOperations:
         ws = self.__WSHandleVern(wsHandle)
 
         # Create the new segment using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(ISegmentFactory)
+        factory = self.project.project.ServiceLocator.GetService(ISegmentFactory)
         segment = factory.Create()
 
         # Add to paragraph's segments collection
@@ -668,7 +668,7 @@ class SegmentOperations:
         segment_index = segments_list.index(segment_obj)
 
         # Create factory for new segments
-        factory = self.project.project.ServiceLocator.GetInstance(ISegmentFactory)
+        factory = self.project.project.ServiceLocator.GetService(ISegmentFactory)
 
         # Create first segment
         first_segment = factory.Create()
@@ -765,7 +765,7 @@ class SegmentOperations:
         merged_text = f"{text1} {text2}"
 
         # Create merged segment
-        factory = self.project.project.ServiceLocator.GetInstance(ISegmentFactory)
+        factory = self.project.project.ServiceLocator.GetService(ISegmentFactory)
         merged_segment = factory.Create()
         mkstr = TsStringUtils.MakeString(merged_text, ws)
         merged_segment.BaselineText.set_String(ws, mkstr)
@@ -1146,7 +1146,7 @@ class SegmentOperations:
         if not sentences:
             sentences = [para_text]
 
-        factory = self.project.project.ServiceLocator.GetInstance(ISegmentFactory)
+        factory = self.project.project.ServiceLocator.GetService(ISegmentFactory)
         offset = 0
 
         for sentence_text in sentences:

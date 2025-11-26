@@ -251,8 +251,13 @@ class LexReferenceOperations:
         wsHandle = self.__WSHandleAnalysis(wsHandle)
 
         # Create the new reference type using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(ILexRefTypeFactory)
+        factory = self.project.project.ServiceLocator.GetService(ILexRefTypeFactory)
         new_ref_type = factory.Create()
+
+        # Add to project's lexical relation types (must be done before setting properties)
+        ref_types_list = self.project.lexDB.ReferencesOA
+        if ref_types_list:
+            ref_types_list.PossibilitiesOS.Add(new_ref_type)
 
         # Set the name
         mkstr = TsStringUtils.MakeString(name, wsHandle)
@@ -265,15 +270,10 @@ class LexReferenceOperations:
         if reverse_name and mapping_value == LexRefMappingTypes.ASYMMETRIC:
             rev_mkstr = TsStringUtils.MakeString(reverse_name, wsHandle)
             new_ref_type.ReverseName.set_String(wsHandle, rev_mkstr)
-
-        # Add to project's lexical relation types
-        ref_types_list = self.project.lexDB.ReferencesOA
-        if ref_types_list:
-            ref_types_list.PossibilitiesOS.Add(new_ref_type)
         else:
             # Create the reference list if it doesn't exist
             from SIL.LCModel import ICmPossibilityListFactory
-            list_factory = self.project.project.ServiceLocator.GetInstance(
+            list_factory = self.project.project.ServiceLocator.GetService(
                 ICmPossibilityListFactory
             )
             new_list = list_factory.Create()
@@ -764,15 +764,15 @@ class LexReferenceOperations:
             )
 
         # Create the new reference using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(ILexReferenceFactory)
+        factory = self.project.project.ServiceLocator.GetService(ILexReferenceFactory)
         new_ref = factory.Create()
+
+        # Add reference to the type's members (must be done before setting properties)
+        ref_type.MembersOC.Add(new_ref)
 
         # Add targets to the reference
         for target in resolved_targets:
             new_ref.TargetsRS.Add(target)
-
-        # Add reference to the type's members
-        ref_type.MembersOC.Add(new_ref)
 
         return new_ref
 

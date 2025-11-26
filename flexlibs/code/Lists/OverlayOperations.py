@@ -16,8 +16,6 @@ clr.AddReference("System")
 import System
 
 from SIL.LCModel import (
-    IConstChart,
-    IConstChartRow,
     IDsConstChart,
     IDsConstChartFactory,
     ICmPossibility,
@@ -289,14 +287,10 @@ class OverlayOperations:
 
         # Create the overlay using the appropriate factory
         # Overlays are typically implemented as possibilities in the chart template
-        factory = self.project.project.ServiceLocator.GetInstance(ICmPossibilityFactory)
+        factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
         overlay = factory.Create()
 
-        # Set the overlay name
-        name_str = TsStringUtils.MakeString(name, wsHandle)
-        overlay.Name.set_String(wsHandle, name_str)
-
-        # Add to the chart's template column possibilities
+        # Add to the chart's template column possibilities (must be done before setting properties)
         if hasattr(chart_obj, 'TemplateRA'):
             template = chart_obj.TemplateRA
             if template and hasattr(template, 'ColumnsPossibilitiesOC'):
@@ -307,6 +301,10 @@ class OverlayOperations:
                 raise FP_ParameterError("Chart template not configured for overlays")
         else:
             raise FP_ParameterError("Chart does not support overlays")
+
+        # Set the overlay name
+        name_str = TsStringUtils.MakeString(name, wsHandle)
+        overlay.Name.set_String(wsHandle, name_str)
 
         return overlay
 

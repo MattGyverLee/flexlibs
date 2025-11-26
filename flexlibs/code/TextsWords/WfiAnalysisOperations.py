@@ -236,7 +236,7 @@ class WfiAnalysisOperations:
         wordform = self.__GetWordformObject(wordform_or_hvo)
 
         # Create the analysis using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(IWfiAnalysisFactory)
+        factory = self.project.project.ServiceLocator.GetService(IWfiAnalysisFactory)
         new_analysis = factory.Create()
 
         # Add to wordform's analysis collection
@@ -486,7 +486,7 @@ class WfiAnalysisOperations:
 
         # Create new evaluation if needed
         if existing_evaluation is None:
-            factory = self.project.project.ServiceLocator.GetInstance(ICmAgentEvaluationFactory)
+            factory = self.project.project.ServiceLocator.GetService(ICmAgentEvaluationFactory)
             evaluation = factory.Create()
             evaluation.Agent = agent
             analysis.EvaluationsRC.Add(evaluation)
@@ -833,15 +833,15 @@ class WfiAnalysisOperations:
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the gloss using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(IWfiGlossFactory)
+        factory = self.project.project.ServiceLocator.GetService(IWfiGlossFactory)
         new_gloss = factory.Create()
+
+        # Add to analysis's meanings collection (must be done before setting properties)
+        analysis.MeaningsOC.Add(new_gloss)
 
         # Set the gloss text
         mkstr = TsStringUtils.MakeString(gloss_text, wsHandle)
         new_gloss.Form.set_String(wsHandle, mkstr)
-
-        # Add to analysis's meanings collection
-        analysis.MeaningsOC.Add(new_gloss)
 
         return new_gloss
 

@@ -173,7 +173,7 @@ class PhonemeOperations:
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the new phoneme using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(IPhPhonemeFactory)
+        factory = self.project.project.ServiceLocator.GetService(IPhPhonemeFactory)
         new_phoneme = factory.Create()
 
         # Set representation
@@ -652,15 +652,15 @@ class PhonemeOperations:
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the new code using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(IPhCodeFactory)
+        factory = self.project.project.ServiceLocator.GetService(IPhCodeFactory)
         code = factory.Create()
+
+        # Add to phoneme's codes (must be done before setting properties)
+        phoneme.CodesOS.Add(code)
 
         # Set representation
         mkstr = TsStringUtils.MakeString(representation, wsHandle)
         code.Representation.set_String(wsHandle, mkstr)
-
-        # Add to phoneme's codes
-        phoneme.CodesOS.Add(code)
 
         return code
 

@@ -201,8 +201,12 @@ class NaturalClassOperations:
         wsHandle = self.project.project.DefaultAnalWs
 
         # Create the new natural class using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(IPhNCSegmentsFactory)
+        factory = self.project.project.ServiceLocator.GetService(IPhNCSegmentsFactory)
         nc = factory.Create()
+
+        # Add to the natural classes collection (must be done before setting properties)
+        phon_data = self.project.lp.PhonologicalDataOA
+        phon_data.NaturalClassesOS.Add(nc)
 
         # Set name
         mkstr_name = TsStringUtils.MakeString(name, wsHandle)
@@ -212,10 +216,6 @@ class NaturalClassOperations:
         if abbreviation:
             mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
             nc.Abbreviation.set_String(wsHandle, mkstr_abbr)
-
-        # Add to the natural classes collection
-        phon_data = self.project.lp.PhonologicalDataOA
-        phon_data.NaturalClassesOS.Add(nc)
 
         return nc
 

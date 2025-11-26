@@ -208,10 +208,13 @@ class PublicationOperations:
             raise FP_ParameterError("Publication types list not found in project")
 
         # Create the new publication using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(
+        factory = self.project.project.ServiceLocator.GetService(
             ICmPossibilityFactory
         )
         new_pub = factory.Create()
+
+        # Add to publications list (must be done before setting properties)
+        pub_list.PossibilitiesOS.Add(new_pub)
 
         # Set name
         mkstr_name = TsStringUtils.MakeString(name, wsHandle)
@@ -219,9 +222,6 @@ class PublicationOperations:
 
         # Set creation date
         new_pub.DateCreated = DateTime.Now
-
-        # Add to publications list
-        pub_list.PossibilitiesOS.Add(new_pub)
 
         return new_pub
 
@@ -1094,10 +1094,14 @@ class PublicationOperations:
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the new division using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(
+        factory = self.project.project.ServiceLocator.GetService(
             ICmPossibilityFactory
         )
         new_division = factory.Create()
+
+        # Add to publication's sub-possibilities (must be done before setting properties)
+        if hasattr(publication, 'SubPossibilitiesOS'):
+            publication.SubPossibilitiesOS.Add(new_division)
 
         # Set name
         mkstr_name = TsStringUtils.MakeString(division_name, wsHandle)
@@ -1105,10 +1109,6 @@ class PublicationOperations:
 
         # Set creation date
         new_division.DateCreated = DateTime.Now
-
-        # Add to publication's sub-possibilities
-        if hasattr(publication, 'SubPossibilitiesOS'):
-            publication.SubPossibilitiesOS.Add(new_division)
 
         return new_division
 

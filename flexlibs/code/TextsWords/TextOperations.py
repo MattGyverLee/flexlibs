@@ -152,7 +152,7 @@ class TextOperations:
             raise FP_ParameterError(f"A text with the name '{name}' already exists.")
 
         # Create the text object
-        text_factory = self.project.project.ServiceLocator.GetInstance(ITextFactory)
+        text_factory = self.project.project.ServiceLocator.GetService(ITextFactory)
         new_text = text_factory.Create()
 
         # Add to the texts collection
@@ -164,7 +164,7 @@ class TextOperations:
         new_text.Name.set_String(wsHandle, name_str)
 
         # Create the contents (StText)
-        sttext_factory = self.project.project.ServiceLocator.GetInstance(IStTextFactory)
+        sttext_factory = self.project.project.ServiceLocator.GetService(IStTextFactory)
         contents = sttext_factory.Create()
         new_text.ContentsOA = contents
 
@@ -637,7 +637,7 @@ class TextOperations:
 
         # Create media container if needed
         if not text_obj.MediaFilesOA:
-            folder_factory = self.project.project.ServiceLocator.GetInstance(ICmFolderFactory)
+            folder_factory = self.project.project.ServiceLocator.GetService(ICmFolderFactory)
             container = folder_factory.Create()
             text_obj.MediaFilesOA = container
 
@@ -650,7 +650,7 @@ class TextOperations:
         )
 
         # Create ICmMedia object
-        media_factory = self.project.project.ServiceLocator.GetInstance(ICmMediaFactory)
+        media_factory = self.project.project.ServiceLocator.GetService(ICmMediaFactory)
         media = media_factory.Create()
 
         # Link the ICmFile to ICmMedia

@@ -204,8 +204,11 @@ class CheckOperations:
         check_list = self._GetOrCreateCheckList()
 
         # Create the new check type using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(ICmPossibilityFactory)
+        factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
         new_check = factory.Create()
+
+        # Add to check list (must be done before setting properties)
+        check_list.PossibilitiesOS.Add(new_check)
 
         # Set name
         mkstr = TsStringUtils.MakeString(name, wsHandle)
@@ -215,9 +218,6 @@ class CheckOperations:
         if description:
             desc_str = TsStringUtils.MakeString(description, wsHandle)
             new_check.Description.set_String(wsHandle, desc_str)
-
-        # Add to check list
-        check_list.PossibilitiesOS.Add(new_check)
 
         # Initialize as disabled by default
         self._check_enabled[new_check.Guid] = False

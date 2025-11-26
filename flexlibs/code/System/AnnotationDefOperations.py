@@ -20,7 +20,6 @@ from SIL.LCModel import (
     ICmAnnotationDefnRepository,
     ICmAnnotationDefnFactory,
     ICmPossibility,
-    CmAnnotationType,
 )
 from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
@@ -210,22 +209,14 @@ class AnnotationDefOperations:
         wsHandle = self.__WSHandle(wsHandle)
 
         # Get the factory
-        factory = self.project.project.ServiceLocator.GetInstance(
+        factory = self.project.project.ServiceLocator.GetService(
             ICmAnnotationDefnFactory
         )
 
         # Create the annotation definition
         anno_def = factory.Create()
 
-        # Set the name
-        mkstr = TsStringUtils.MakeString(name, wsHandle)
-        anno_def.Name.set_String(wsHandle, mkstr)
-
-        # Set the annotation type
-        if hasattr(anno_def, 'AnnotationType'):
-            anno_def.AnnotationType = int(annotation_type)
-
-        # Add to the annotation definitions list
+        # Add to the annotation definitions list (must be done before setting properties)
         anno_list = self.project.lp.AnnotationDefsOA
         if anno_list:
             if parent:
@@ -235,6 +226,14 @@ class AnnotationDefOperations:
             else:
                 # Add as top-level possibility
                 anno_list.PossibilitiesOS.Add(anno_def)
+
+        # Set the name
+        mkstr = TsStringUtils.MakeString(name, wsHandle)
+        anno_def.Name.set_String(wsHandle, mkstr)
+
+        # Set the annotation type
+        if hasattr(anno_def, 'AnnotationType'):
+            anno_def.AnnotationType = int(annotation_type)
 
         return anno_def
 

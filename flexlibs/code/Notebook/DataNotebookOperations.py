@@ -213,7 +213,7 @@ class DataNotebookOperations:
         See Also:
             Create, Find, GetSubRecords, FindByDate
         """
-        repos = self.project.project.ServiceLocator.GetInstance(IRnResearchNbkRepository)
+        repos = self.project.project.ServiceLocator.GetService(IRnResearchNbkRepository)
         for record in repos.AllInstances():
             # Only yield top-level records (those without an owner that's also a record)
             try:
@@ -289,8 +289,8 @@ class DataNotebookOperations:
         wsHandle = self.__WSHandle(wsHandle)
 
         # Get the research notebook repository
-        repos = self.project.project.ServiceLocator.GetInstance(IRnResearchNbkRepository)
-        factory = self.project.project.ServiceLocator.GetInstance(IRnGenericRecFactory)
+        repos = self.project.project.ServiceLocator.GetService(IRnResearchNbkRepository)
+        factory = self.project.project.ServiceLocator.GetService(IRnGenericRecFactory)
 
         # Create the record in the RecordsOC collection
         self.project.project.UndoableUnitOfWorkHelper.Do(
@@ -364,7 +364,7 @@ class DataNotebookOperations:
         record = self.__GetRecordObject(record_or_hvo)
 
         # Get the repository and remove the record
-        repos = self.project.project.ServiceLocator.GetInstance(IRnResearchNbkRepository)
+        repos = self.project.project.ServiceLocator.GetService(IRnResearchNbkRepository)
 
         self.project.project.UndoableUnitOfWorkHelper.Do(
             "Delete Notebook Record",
@@ -1198,7 +1198,7 @@ class DataNotebookOperations:
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the sub-record
-        factory = self.project.project.ServiceLocator.GetInstance(IRnGenericRecFactory)
+        factory = self.project.project.ServiceLocator.GetService(IRnGenericRecFactory)
 
         self.project.project.UndoableUnitOfWorkHelper.Do(
             "Create Sub-Record",

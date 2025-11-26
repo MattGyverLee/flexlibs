@@ -172,15 +172,15 @@ class ExampleOperations:
         wsHandle = self.__WSHandleVern(wsHandle)
 
         # Create the new example using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(ILexExampleSentenceFactory)
+        factory = self.project.project.ServiceLocator.GetService(ILexExampleSentenceFactory)
         example = factory.Create()
+
+        # Add to sense's examples collection (must be done before setting properties)
+        sense.ExamplesOS.Add(example)
 
         # Set example text
         mkstr = TsStringUtils.MakeString(example_text, wsHandle)
         example.Example.set_String(wsHandle, mkstr)
-
-        # Add to sense's examples collection
-        sense.ExamplesOS.Add(example)
 
         return example
 
@@ -539,7 +539,7 @@ class ExampleOperations:
 
         if translation is None:
             # Create new translation
-            factory = self.project.project.ServiceLocator.GetInstance(ICmTranslationFactory)
+            factory = self.project.project.ServiceLocator.GetService(ICmTranslationFactory)
             translation = factory.Create()
             example.TranslationsOC.Add(translation)
 

@@ -195,17 +195,17 @@ class ConfidenceOperations:
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the new confidence level using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(
+        factory = self.project.project.ServiceLocator.GetService(
             ICmPossibilityFactory
         )
         new_level = factory.Create()
 
+        # Add to the confidence levels list (must be done before setting properties)
+        confidence_list.PossibilitiesOS.Add(new_level)
+
         # Set name
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         new_level.Name.set_String(wsHandle, mkstr)
-
-        # Add to the confidence levels list
-        confidence_list.PossibilitiesOS.Add(new_level)
 
         return new_level
 

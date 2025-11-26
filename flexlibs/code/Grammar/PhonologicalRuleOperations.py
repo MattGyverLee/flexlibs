@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 # Import FLEx LCM types
 from SIL.LCModel import (
-    IPhPhonRuleFactory,
+    IPhRegularRuleFactory,  # Fixed: was IPhPhonRuleFactory
     IPhSegRuleRHSFactory,
     IPhSegmentRuleFactory,
     IPhSimpleContextNCFactory,
@@ -167,8 +167,15 @@ class PhonologicalRuleOperations:
         wsHandle = self.project.project.DefaultAnalWs
 
         # Create the new phonological rule using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(IPhPhonRuleFactory)
+        factory = self.project.project.ServiceLocator.GetService(IPhRegularRuleFactory)
         new_rule = factory.Create()
+
+        # Add to the phonological rules collection (must be done before setting properties)
+        phon_data = self.project.lp.PhonologicalDataOA
+        if not phon_data:
+            raise FP_ParameterError("Project has no phonological data defined")
+
+        phon_data.PhonRulesOS.Add(new_rule)
 
         # Set name
         mkstr_name = TsStringUtils.MakeString(name, wsHandle)
@@ -178,13 +185,6 @@ class PhonologicalRuleOperations:
         if description:
             mkstr_desc = TsStringUtils.MakeString(description, wsHandle)
             new_rule.Description.set_String(wsHandle, mkstr_desc)
-
-        # Add to the phonological rules collection
-        phon_data = self.project.lp.PhonologicalDataOA
-        if not phon_data:
-            raise FP_ParameterError("Project has no phonological data defined")
-
-        phon_data.PhonRulesOS.Add(new_rule)
 
         return new_rule
 
@@ -646,7 +646,7 @@ class PhonologicalRuleOperations:
         # which contains the input specification
         if hasattr(rule, 'StrucDescOS') and rule.StrucDescOS.Count == 0:
             # Create a segment rule for the input
-            seg_factory = self.project.project.ServiceLocator.GetInstance(IPhSimpleContextSegFactory)
+            seg_factory = self.project.project.ServiceLocator.GetService(IPhSimpleContextSegFactory)
             input_context = seg_factory.Create()
             rule.StrucDescOS.Add(input_context)
 
@@ -700,7 +700,7 @@ class PhonologicalRuleOperations:
 
         # Create RHS (right-hand side) for output if needed
         if hasattr(rule, 'RightHandSidesOS') and rule.RightHandSidesOS.Count == 0:
-            rhs_factory = self.project.project.ServiceLocator.GetInstance(IPhSegRuleRHSFactory)
+            rhs_factory = self.project.project.ServiceLocator.GetService(IPhSegRuleRHSFactory)
             rhs = rhs_factory.Create()
             rule.RightHandSidesOS.Add(rhs)
 
@@ -709,7 +709,7 @@ class PhonologicalRuleOperations:
             rhs = rule.RightHandSidesOS[0]
             if hasattr(rhs, 'StrucChangeOS') and hasattr(phoneme_or_class, 'Hvo'):
                 # Add to structural change specification
-                seg_factory = self.project.project.ServiceLocator.GetInstance(IPhSimpleContextSegFactory)
+                seg_factory = self.project.project.ServiceLocator.GetService(IPhSimpleContextSegFactory)
                 output_seg = seg_factory.Create()
                 output_seg.FeatureStructureRA = phoneme_or_class
                 rhs.StrucChangeOS.Add(output_seg)
@@ -762,7 +762,7 @@ class PhonologicalRuleOperations:
                     input_context.LeftContextOA = None
                 else:
                     # Create context specification
-                    ctx_factory = self.project.project.ServiceLocator.GetInstance(IPhSimpleContextSegFactory)
+                    ctx_factory = self.project.project.ServiceLocator.GetService(IPhSimpleContextSegFactory)
                     left_ctx = ctx_factory.Create()
                     left_ctx.FeatureStructureRA = context_item
                     input_context.LeftContextOA = left_ctx
@@ -816,7 +816,7 @@ class PhonologicalRuleOperations:
                     input_context.RightContextOA = None
                 else:
                     # Create context specification
-                    ctx_factory = self.project.project.ServiceLocator.GetInstance(IPhSimpleContextSegFactory)
+                    ctx_factory = self.project.project.ServiceLocator.GetService(IPhSimpleContextSegFactory)
                     right_ctx = ctx_factory.Create()
                     right_ctx.FeatureStructureRA = context_item
                     input_context.RightContextOA = right_ctx

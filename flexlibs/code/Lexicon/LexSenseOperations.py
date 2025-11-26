@@ -175,15 +175,15 @@ class LexSenseOperations:
         wsHandle = self.__WSHandleAnalysis(wsHandle)
 
         # Create the new sense using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(ILexSenseFactory)
+        factory = self.project.project.ServiceLocator.GetService(ILexSenseFactory)
         new_sense = factory.Create()
+
+        # Add to entry (must be done before setting properties)
+        entry.SensesOS.Add(new_sense)
 
         # Set gloss
         mkstr = TsStringUtils.MakeString(gloss, wsHandle)
         new_sense.Gloss.set_String(wsHandle, mkstr)
-
-        # Add to entry
-        entry.SensesOS.Add(new_sense)
 
         return new_sense
 
@@ -584,14 +584,14 @@ class LexSenseOperations:
             else:
                 # If existing MSA is not a stem MSA, create new one
                 from SIL.LCModel import IMoStemMsaFactory
-                factory = self.project.project.ServiceLocator.GetInstance(IMoStemMsaFactory)
+                factory = self.project.project.ServiceLocator.GetService(IMoStemMsaFactory)
                 new_msa = factory.Create()
                 new_msa.PartOfSpeechRA = pos_obj
                 sense.MorphoSyntaxAnalysisRA = new_msa
         else:
             # Create new stem MSA
             from SIL.LCModel import IMoStemMsaFactory
-            factory = self.project.project.ServiceLocator.GetInstance(IMoStemMsaFactory)
+            factory = self.project.project.ServiceLocator.GetService(IMoStemMsaFactory)
             msa = factory.Create()
             msa.PartOfSpeechRA = pos_obj
             sense.MorphoSyntaxAnalysisRA = msa
@@ -927,17 +927,17 @@ class LexSenseOperations:
         wsHandle = self.__WSHandleVernacular(wsHandle)
 
         # Create the new example using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(
+        factory = self.project.project.ServiceLocator.GetService(
             ILexExampleSentenceFactory
         )
         new_example = factory.Create()
 
+        # Add to sense (must be done before setting properties)
+        sense.ExamplesOS.Add(new_example)
+
         # Set example text
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         new_example.Example.set_String(wsHandle, mkstr)
-
-        # Add to sense
-        sense.ExamplesOS.Add(new_example)
 
         return new_example
 
@@ -1031,15 +1031,15 @@ class LexSenseOperations:
         wsHandle = self.__WSHandleAnalysis(wsHandle)
 
         # Create the new subsense using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(ILexSenseFactory)
+        factory = self.project.project.ServiceLocator.GetService(ILexSenseFactory)
         new_subsense = factory.Create()
+
+        # Add to parent sense (must be done before setting properties)
+        parent_sense.SensesOS.Add(new_subsense)
 
         # Set gloss
         mkstr = TsStringUtils.MakeString(gloss, wsHandle)
         new_subsense.Gloss.set_String(wsHandle, mkstr)
-
-        # Add to parent sense
-        parent_sense.SensesOS.Add(new_subsense)
 
         return new_subsense
 

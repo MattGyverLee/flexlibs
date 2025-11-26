@@ -20,7 +20,7 @@ from SIL.LCModel import (
     IMoInflClassFactory,
     IFsFeatStruc,
     IFsFeatStrucFactory,
-    IFsFeatureDefn,
+    IFsFeatDefn,  # Fixed: was IFsFeatureDefn
     IFsComplexFeature,
     IFsComplexFeatureFactory,
 )
@@ -173,17 +173,17 @@ class InflectionFeatureOperations:
         wsHandle = self.project.project.DefaultAnalWs
 
         # Create the new inflection class using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(IMoInflClassFactory)
+        factory = self.project.project.ServiceLocator.GetService(IMoInflClassFactory)
         new_ic = factory.Create()
+
+        # Add to the inflection classes list (must be done before setting properties)
+        morph_data = self.project.lp.MorphologicalDataOA
+        if morph_data.ProdRestrictOA:
+            morph_data.ProdRestrictOA.PossibilitiesOS.Add(new_ic)
 
         # Set name
         mkstr_name = TsStringUtils.MakeString(name, wsHandle)
         new_ic.Name.set_String(wsHandle, mkstr_name)
-
-        # Add to the inflection classes list
-        morph_data = self.project.lp.MorphologicalDataOA
-        if morph_data.ProdRestrictOA:
-            morph_data.ProdRestrictOA.PossibilitiesOS.Add(new_ic)
 
         return new_ic
 
@@ -378,7 +378,7 @@ class InflectionFeatureOperations:
             raise FP_ReadOnlyError()
 
         # Create the new feature structure using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(IFsFeatStrucFactory)
+        factory = self.project.project.ServiceLocator.GetService(IFsFeatStrucFactory)
         new_fs = factory.Create()
 
         return new_fs
@@ -513,17 +513,17 @@ class InflectionFeatureOperations:
 
         # Create the new feature using the factory
         # Using complex feature factory as it's the most common type
-        factory = self.project.project.ServiceLocator.GetInstance(IFsComplexFeatureFactory)
+        factory = self.project.project.ServiceLocator.GetService(IFsComplexFeatureFactory)
         new_feature = factory.Create()
+
+        # Add to the feature system (must be done before setting properties)
+        feature_system = self.project.lp.MsFeatureSystemOA
+        if feature_system:
+            feature_system.FeaturesOS.Add(new_feature)
 
         # Set name
         mkstr_name = TsStringUtils.MakeString(name, wsHandle)
         new_feature.Name.set_String(wsHandle, mkstr_name)
-
-        # Add to the feature system
-        feature_system = self.project.lp.MsFeatureSystemOA
-        if feature_system:
-            feature_system.FeaturesOS.Add(new_feature)
 
         return new_feature
 

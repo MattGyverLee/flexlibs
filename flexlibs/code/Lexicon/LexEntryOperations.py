@@ -177,11 +177,11 @@ class LexEntryOperations:
             )
 
         # Create the new entry using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(ILexEntryFactory)
+        factory = self.project.project.ServiceLocator.GetService(ILexEntryFactory)
         new_entry = factory.Create()
 
         # Create the lexeme form allomorph
-        allomorph_factory = self.project.project.ServiceLocator.GetInstance(
+        allomorph_factory = self.project.project.ServiceLocator.GetService(
             IMoStemAllomorphFactory
         )
         lexeme_form_obj = allomorph_factory.Create()
@@ -1049,15 +1049,15 @@ class LexEntryOperations:
         wsHandle = self.__WSHandleAnalysis(wsHandle)
 
         # Create the new sense using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(ILexSenseFactory)
+        factory = self.project.project.ServiceLocator.GetService(ILexSenseFactory)
         new_sense = factory.Create()
+
+        # Add to entry's sense list (must be done before setting properties)
+        entry.SensesOS.Add(new_sense)
 
         # Set the gloss
         mkstr = TsStringUtils.MakeString(gloss, wsHandle)
         new_sense.Gloss.set_String(wsHandle, mkstr)
-
-        # Add to entry's sense list
-        entry.SensesOS.Add(new_sense)
 
         return new_sense
 

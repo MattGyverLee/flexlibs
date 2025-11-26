@@ -291,17 +291,17 @@ class ReversalOperations:
         wsHandle = self.__WSHandleAnalysis(ws)
 
         # Create the new reversal entry using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(
+        factory = self.project.project.ServiceLocator.GetService(
             IReversalIndexEntryFactory
         )
         new_entry = factory.Create()
 
+        # Add entry to reversal index (must be done before setting properties)
+        reversal_index.EntriesOC.Add(new_entry)
+
         # Set the reversal form text
         mkstr = TsStringUtils.MakeString(form, wsHandle)
         new_entry.ReversalForm.set_String(wsHandle, mkstr)
-
-        # Add entry to reversal index
-        reversal_index.EntriesOC.Add(new_entry)
 
         return new_entry
 
@@ -857,17 +857,17 @@ class ReversalOperations:
         wsHandle = self.__WSHandleAnalysis(ws)
 
         # Create the new reversal entry using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(
+        factory = self.project.project.ServiceLocator.GetService(
             IReversalIndexEntryFactory
         )
         new_subentry = factory.Create()
 
+        # Add subentry to parent's subentries collection (must be done before setting properties)
+        parent_entry.SubentriesOS.Add(new_subentry)
+
         # Set the reversal form text
         mkstr = TsStringUtils.MakeString(form, wsHandle)
         new_subentry.ReversalForm.set_String(wsHandle, mkstr)
-
-        # Add subentry to parent's subentries collection
-        parent_entry.SubentriesOS.Add(new_subentry)
 
         return new_subentry
 

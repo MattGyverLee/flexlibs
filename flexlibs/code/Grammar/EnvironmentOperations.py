@@ -154,8 +154,12 @@ class EnvironmentOperations:
         wsHandle = self.project.project.DefaultAnalWs
 
         # Create the new environment using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(IPhEnvironmentFactory)
+        factory = self.project.project.ServiceLocator.GetService(IPhEnvironmentFactory)
         new_env = factory.Create()
+
+        # Add to the environments list (must be done before setting properties)
+        phon_data = self.project.lp.PhonologicalDataOA
+        phon_data.EnvironmentsOS.Add(new_env)
 
         # Set name
         mkstr_name = TsStringUtils.MakeString(name, wsHandle)
@@ -165,10 +169,6 @@ class EnvironmentOperations:
         if description:
             mkstr_desc = TsStringUtils.MakeString(description, wsHandle)
             new_env.Description.set_String(wsHandle, mkstr_desc)
-
-        # Add to the environments list
-        phon_data = self.project.lp.PhonologicalDataOA
-        phon_data.EnvironmentsOS.Add(new_env)
 
         return new_env
 

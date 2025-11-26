@@ -171,15 +171,15 @@ class PersonOperations:
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the new person using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(ICmPersonFactory)
+        factory = self.project.project.ServiceLocator.GetService(ICmPersonFactory)
         new_person = factory.Create()
+
+        # Add person to the language project's people collection (must be done before setting properties)
+        self.project.lp.PeopleOC.Add(new_person)
 
         # Set the name
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         new_person.Name.set_String(wsHandle, mkstr)
-
-        # Add person to the language project's people collection
-        self.project.lp.PeopleOC.Add(new_person)
 
         return new_person
 

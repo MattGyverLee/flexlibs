@@ -173,15 +173,15 @@ class AgentOperations:
         wsHandle = self.__WSHandleAnalysis(wsHandle)
 
         # Create the new agent using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(ICmAgentFactory)
+        factory = self.project.project.ServiceLocator.GetService(ICmAgentFactory)
         new_agent = factory.Create()
+
+        # Add agent to the language project's agents collection (must be done before setting properties)
+        self.project.lp.AnalyzingAgentsOC.Add(new_agent)
 
         # Set the name
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         new_agent.Name.set_String(wsHandle, mkstr)
-
-        # Add agent to the language project's agents collection
-        self.project.lp.AnalyzingAgentsOC.Add(new_agent)
 
         return new_agent
 

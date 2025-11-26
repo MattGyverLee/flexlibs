@@ -181,7 +181,7 @@ class ParagraphOperations:
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the new paragraph using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(IStTxtParaFactory)
+        factory = self.project.project.ServiceLocator.GetService(IStTxtParaFactory)
         para = factory.Create()
 
         # Add to text's paragraphs collection
@@ -526,7 +526,7 @@ class ParagraphOperations:
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the new paragraph using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(IStTxtParaFactory)
+        factory = self.project.project.ServiceLocator.GetService(IStTxtParaFactory)
         para = factory.Create()
 
         # Insert at the specified index

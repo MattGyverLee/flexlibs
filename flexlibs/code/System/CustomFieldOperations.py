@@ -50,7 +50,7 @@ from ..FLExProject import (
 )
 
 # Import FLExLCM types
-from . import FLExLCM
+from .. import FLExLCM  # Fixed: was "from ." (wrong path)
 
 
 class CustomFieldOperations:

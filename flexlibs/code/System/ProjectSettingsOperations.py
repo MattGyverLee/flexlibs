@@ -20,7 +20,7 @@ from SIL.LCModel import (
 )
 from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
-from SIL.WritingSystems import IWritingSystemDefinition
+from SIL.WritingSystems import WritingSystemDefinition  # Fixed: was IWritingSystemDefinition
 
 # Import flexlibs exceptions
 from ..FLExProject import (

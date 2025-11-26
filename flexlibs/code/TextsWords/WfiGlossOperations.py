@@ -196,15 +196,15 @@ class WfiGlossOperations:
         wsHandle = self.__WSHandle(wsHandle)
 
         # Get the factory and create the gloss
-        factory = self.project.project.ServiceLocator.GetInstance(IWfiGlossFactory)
+        factory = self.project.project.ServiceLocator.GetService(IWfiGlossFactory)
         new_gloss = factory.Create()
+
+        # Add to analysis's Meanings collection (must be done before setting properties)
+        analysis.MeaningsOC.Add(new_gloss)
 
         # Set the form
         mkstr = TsStringUtils.MakeString(form, wsHandle)
         new_gloss.Form.set_String(wsHandle, mkstr)
-
-        # Add to analysis's Meanings collection
-        analysis.MeaningsOC.Add(new_gloss)
 
         return new_gloss
 
@@ -849,8 +849,11 @@ class WfiGlossOperations:
             target_analysis = target_analysis_or_hvo
 
         # Create new gloss
-        factory = self.project.project.ServiceLocator.GetInstance(IWfiGlossFactory)
+        factory = self.project.project.ServiceLocator.GetService(IWfiGlossFactory)
         new_gloss = factory.Create()
+
+        # Add to target analysis (must be done before setting properties)
+        target_analysis.MeaningsOC.Add(new_gloss)
 
         # Copy all forms
         for ws in source_gloss.Form.AvailableWritingSystemIds:
@@ -858,9 +861,6 @@ class WfiGlossOperations:
             if form_text:
                 mkstr = TsStringUtils.MakeString(form_text, ws)
                 new_gloss.Form.set_String(ws, mkstr)
-
-        # Add to target analysis
-        target_analysis.MeaningsOC.Add(new_gloss)
 
         return new_gloss
 

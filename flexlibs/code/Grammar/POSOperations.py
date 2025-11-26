@@ -159,8 +159,12 @@ class POSOperations:
         wsHandle = self.project.project.DefaultAnalWs
 
         # Create the new POS using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(IPartOfSpeechFactory)
+        factory = self.project.project.ServiceLocator.GetService(IPartOfSpeechFactory)
         new_pos = factory.Create()
+
+        # Add to the POS list (must be done before setting properties)
+        pos_list = self.project.lp.PartsOfSpeechOA
+        pos_list.PossibilitiesOS.Add(new_pos)
 
         # Set name and abbreviation
         mkstr_name = TsStringUtils.MakeString(name, wsHandle)
@@ -172,10 +176,6 @@ class POSOperations:
         # Set catalog source ID if provided
         if catalogSourceId:
             new_pos.CatalogSourceId = catalogSourceId
-
-        # Add to the POS list
-        pos_list = self.project.lp.PartsOfSpeechOA
-        pos_list.PossibilitiesOS.Add(new_pos)
 
         return new_pos
 
@@ -553,8 +553,11 @@ class POSOperations:
         wsHandle = self.project.project.DefaultAnalWs
 
         # Create the subcategory using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(IPartOfSpeechFactory)
+        factory = self.project.project.ServiceLocator.GetService(IPartOfSpeechFactory)
         subcat = factory.Create()
+
+        # Add to parent's SubPossibilitiesOS (must be done before setting properties)
+        pos.SubPossibilitiesOS.Add(subcat)
 
         # Set name and abbreviation
         mkstr_name = TsStringUtils.MakeString(name, wsHandle)
@@ -562,9 +565,6 @@ class POSOperations:
 
         mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
         subcat.Abbreviation.set_String(wsHandle, mkstr_abbr)
-
-        # Add to parent's SubPossibilitiesOS
-        pos.SubPossibilitiesOS.Add(subcat)
 
         return subcat
 
@@ -768,7 +768,7 @@ class POSOperations:
 
         # Search all lexical entries
         count = 0
-        entry_repo = self.project.project.ServiceLocator.GetInstance(ILexEntryRepository)
+        entry_repo = self.project.project.ServiceLocator.GetService(ILexEntryRepository)
         for entry in entry_repo.AllInstances():
             # Check if entry has a primary morph type and if it matches this POS
             for morph in entry.AllAllomorphs:

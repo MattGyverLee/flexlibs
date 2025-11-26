@@ -15,11 +15,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Import FLEx LCM types
-from SIL.LCModel import (
-    IMoMorphRule,
-    IMoAffixProcessFactory,
-    IMoStratumFactory,
-)
+# Note: Morph rule interfaces may not exist in current LCM API version
+# from SIL.LCModel import (
+#     IMoMorphRule,  # May not exist
+#     IMoAffixProcessFactory,
+#     IMoStratumFactory,
+# )
 from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
 
@@ -168,8 +169,12 @@ class MorphRuleOperations:
         wsHandle = self.project.project.DefaultAnalWs
 
         # Create the new rule using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(IMoAffixProcessFactory)
+        factory = self.project.project.ServiceLocator.GetService(IMoAffixProcessFactory)
         new_rule = factory.Create()
+
+        # Add to the morphological rules collection (must be done before setting properties)
+        morph_data = self.project.lp.MorphologicalDataOA
+        morph_data.AffixRulesOS.Add(new_rule)
 
         # Set name
         mkstr_name = TsStringUtils.MakeString(name, wsHandle)
@@ -179,10 +184,6 @@ class MorphRuleOperations:
         if description:
             mkstr_desc = TsStringUtils.MakeString(description, wsHandle)
             new_rule.Description.set_String(wsHandle, mkstr_desc)
-
-        # Add to the morphological rules collection
-        morph_data = self.project.lp.MorphologicalDataOA
-        morph_data.AffixRulesOS.Add(new_rule)
 
         return new_rule
 

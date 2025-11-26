@@ -174,18 +174,18 @@ class PronunciationOperations:
         wsHandle = self.__WSHandleVern(wsHandle)
 
         # Create the new pronunciation using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(ILexPronunciationFactory)
+        factory = self.project.project.ServiceLocator.GetService(ILexPronunciationFactory)
         pronunciation = factory.Create()
 
-        # Set pronunciation form
-        mkstr = TsStringUtils.MakeString(form, wsHandle)
-        pronunciation.Form.set_String(wsHandle, mkstr)
-
-        # Add to entry's pronunciations collection
+        # Add to entry's pronunciations collection (must be done before setting properties)
         if hasattr(entry, 'PronunciationsOS'):
             entry.PronunciationsOS.Add(pronunciation)
         else:
             raise FP_ParameterError("Entry does not support pronunciations")
+
+        # Set pronunciation form
+        mkstr = TsStringUtils.MakeString(form, wsHandle)
+        pronunciation.Form.set_String(wsHandle, mkstr)
 
         return pronunciation
 

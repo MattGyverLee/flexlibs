@@ -189,8 +189,11 @@ class EtymologyOperations:
         wsHandle = self.__WSHandleAnalysis(ws)
 
         # Create the new etymology using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(ILexEtymologyFactory)
+        factory = self.project.project.ServiceLocator.GetService(ILexEtymologyFactory)
         new_etymology = factory.Create()
+
+        # Add to entry's etymology collection (must be done before setting properties)
+        entry.EtymologyOS.Add(new_etymology)
 
         # Set optional fields if provided
         if source:
@@ -204,9 +207,6 @@ class EtymologyOperations:
         if gloss:
             mkstr = TsStringUtils.MakeString(gloss, wsHandle)
             new_etymology.Gloss.set_String(wsHandle, mkstr)
-
-        # Add to entry's etymology collection
-        entry.EtymologyOS.Add(new_etymology)
 
         return new_etymology
 

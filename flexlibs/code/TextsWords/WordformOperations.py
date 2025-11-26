@@ -152,16 +152,16 @@ class WordformOperations:
         wsHandle = self.__WSHandle(wsHandle)
 
         # Get the factory and create the wordform
-        factory = self.project.project.ServiceLocator.GetInstance(IWfiWordformFactory)
+        factory = self.project.project.ServiceLocator.GetService(IWfiWordformFactory)
         new_wf = factory.Create()
+
+        # Add to wordform inventory (must be done before setting properties)
+        wordform_inventory = self.project.lp.WordformInventoryOA
+        wordform_inventory.WordformsOC.Add(new_wf)
 
         # Set the form
         mkstr = TsStringUtils.MakeString(form, wsHandle)
         new_wf.Form.set_String(wsHandle, mkstr)
-
-        # Add to wordform inventory
-        wordform_inventory = self.project.lp.WordformInventoryOA
-        wordform_inventory.WordformsOC.Add(new_wf)
 
         return new_wf
 

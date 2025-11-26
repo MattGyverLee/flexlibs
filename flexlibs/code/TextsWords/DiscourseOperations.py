@@ -16,10 +16,10 @@ clr.AddReference("System")
 import System
 
 from SIL.LCModel import (
-    IConstChart,
-    IConstChartFactory,
+    IDsConstChart,  # Fixed: was IConstChart
+    IDsConstChartFactory,  # Fixed: was IConstChartFactory
     IDsChart,
-    IDiscourseData,
+    IDsDiscourseData,  # Fixed: was IDiscourseData
     IConstChartRow,
     IConstChartRowFactory,
     IConstChartWordGroup,
@@ -163,9 +163,9 @@ class DiscourseOperations:
         if isinstance(chart_or_hvo, int):
             try:
                 obj = self.project.Object(chart_or_hvo)
-                # Try to cast to IConstChart first (most common)
+                # Try to cast to IDsConstChart first (most common)
                 try:
-                    return IConstChart(obj)
+                    return IDsConstChart(obj)
                 except:
                     # Fall back to IDsChart for discourse charts
                     return IDsChart(obj)
@@ -321,7 +321,7 @@ class DiscourseOperations:
             raise FP_ParameterError("Text has no StText contents")
 
         # Create the chart using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(IConstChartFactory)
+        factory = self.project.project.ServiceLocator.GetService(IConstChartFactory)
         chart = factory.Create()
 
         # Add to the text's chart collection
@@ -684,7 +684,7 @@ class DiscourseOperations:
         chart_obj = self.__GetChartObject(chart_or_hvo)
 
         # Create the new row using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(IConstChartRowFactory)
+        factory = self.project.project.ServiceLocator.GetService(IConstChartRowFactory)
         row = factory.Create()
 
         # Add to chart's row collection

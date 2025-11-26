@@ -808,7 +808,7 @@ class SemanticDomainOperations:
 
         # Search all senses for this domain
         senses = []
-        sense_repo = self.project.project.ServiceLocator.GetInstance(ILexSenseRepository)
+        sense_repo = self.project.project.ServiceLocator.GetService(ILexSenseRepository)
 
         for sense in sense_repo.AllInstances():
             # Check if this sense has this domain in its SemanticDomainsRC
@@ -861,7 +861,7 @@ class SemanticDomainOperations:
 
         # Count senses
         count = 0
-        sense_repo = self.project.project.ServiceLocator.GetInstance(ILexSenseRepository)
+        sense_repo = self.project.project.ServiceLocator.GetService(ILexSenseRepository)
 
         for sense in sense_repo.AllInstances():
             if domain in sense.SemanticDomainsRC:
@@ -939,10 +939,18 @@ class SemanticDomainOperations:
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the new domain using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(
+        factory = self.project.project.ServiceLocator.GetService(
             ICmSemanticDomainFactory
         )
         new_domain = factory.Create()
+
+        # Add to parent or top-level list (must be done before setting properties)
+        if parent:
+            parent_obj = self.__ResolveObject(parent)
+            parent_obj.SubPossibilitiesOS.Add(new_domain)
+        else:
+            domain_list = self.project.lp.SemanticDomainListOA
+            domain_list.PossibilitiesOS.Add(new_domain)
 
         # Set name
         mkstr_name = TsStringUtils.MakeString(name, wsHandle)
@@ -951,14 +959,6 @@ class SemanticDomainOperations:
         # Set abbreviation (domain number)
         mkstr_num = TsStringUtils.MakeString(number, wsHandle)
         new_domain.Abbreviation.set_String(wsHandle, mkstr_num)
-
-        # Add to parent or top-level list
-        if parent:
-            parent_obj = self.__ResolveObject(parent)
-            parent_obj.SubPossibilitiesOS.Add(new_domain)
-        else:
-            domain_list = self.project.lp.SemanticDomainListOA
-            domain_list.PossibilitiesOS.Add(new_domain)
 
         return new_domain
 

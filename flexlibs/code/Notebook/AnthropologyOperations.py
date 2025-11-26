@@ -281,7 +281,7 @@ class AnthropologyOperations:
         # Ensure anthropology list exists
         if not self.project.lp.AnthroListOA:
             from SIL.LCModel import ICmPossibilityListFactory
-            list_factory = self.project.project.ServiceLocator.GetInstance(ICmPossibilityListFactory)
+            list_factory = self.project.project.ServiceLocator.GetService(ICmPossibilityListFactory)
             anthro_list = list_factory.Create()
             self.project.lp.AnthroListOA = anthro_list
         else:
@@ -291,8 +291,11 @@ class AnthropologyOperations:
         wsHandle = self.project.project.DefaultAnalWs
 
         # Create the new item using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(ICmAnthroItemFactory)
+        factory = self.project.project.ServiceLocator.GetService(ICmAnthroItemFactory)
         new_item = factory.Create()
+
+        # Add to the anthropology list (must be done before setting properties)
+        anthro_list.PossibilitiesOS.Add(new_item)
 
         # Set name
         mkstr_name = TsStringUtils.MakeString(name, wsHandle)
@@ -306,9 +309,6 @@ class AnthropologyOperations:
         # Set OCM code if provided
         if anthro_code:
             new_item.AnthroCode = anthro_code
-
-        # Add to the anthropology list
-        anthro_list.PossibilitiesOS.Add(new_item)
 
         return new_item
 
@@ -383,8 +383,11 @@ class AnthropologyOperations:
         wsHandle = self.project.project.DefaultAnalWs
 
         # Create the new item using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(ICmAnthroItemFactory)
+        factory = self.project.project.ServiceLocator.GetService(ICmAnthroItemFactory)
         new_item = factory.Create()
+
+        # Add to parent's subitems (must be done before setting properties)
+        parent.SubPossibilitiesOS.Add(new_item)
 
         # Set name
         mkstr_name = TsStringUtils.MakeString(name, wsHandle)
@@ -398,9 +401,6 @@ class AnthropologyOperations:
         # Set OCM code if provided
         if anthro_code:
             new_item.AnthroCode = anthro_code
-
-        # Add to parent's subitems
-        parent.SubPossibilitiesOS.Add(new_item)
 
         return new_item
 

@@ -203,10 +203,13 @@ class LocationOperations:
             raise FP_ParameterError("Locations list not found in project")
 
         # Create the new location using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(
+        factory = self.project.project.ServiceLocator.GetService(
             ICmLocationFactory
         )
         new_location = factory.Create()
+
+        # Add to top-level list (must be done before setting properties)
+        location_list.PossibilitiesOS.Add(new_location)
 
         # Set name
         mkstr_name = TsStringUtils.MakeString(name, wsHandle)
@@ -219,9 +222,6 @@ class LocationOperations:
 
         # Set creation date
         new_location.DateCreated = DateTime.Now
-
-        # Add to top-level list
-        location_list.PossibilitiesOS.Add(new_location)
 
         return new_location
 
@@ -1183,10 +1183,13 @@ class LocationOperations:
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the new location using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(
+        factory = self.project.project.ServiceLocator.GetService(
             ICmLocationFactory
         )
         new_location = factory.Create()
+
+        # Add to parent's sublocations (must be done before setting properties)
+        parent.SubPossibilitiesOS.Add(new_location)
 
         # Set name
         mkstr_name = TsStringUtils.MakeString(name, wsHandle)
@@ -1199,9 +1202,6 @@ class LocationOperations:
 
         # Set creation date
         new_location.DateCreated = DateTime.Now
-
-        # Add to parent's sublocations
-        parent.SubPossibilitiesOS.Add(new_location)
 
         return new_location
 

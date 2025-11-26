@@ -189,9 +189,21 @@ class TranslationTypeOperations:
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the new translation type using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(
+        factory = self.project.project.ServiceLocator.GetService(
             ICmPossibilityFactory)
         new_type = factory.Create()
+
+        # Add to the translation tags list (must be done before setting properties)
+        trans_list = self.project.lp.TranslationTagsOA
+        if trans_list is None:
+            # Create translation tags list if it doesn't exist
+            from SIL.LCModel import ICmPossibilityListFactory
+            list_factory = self.project.project.ServiceLocator.GetService(
+                ICmPossibilityListFactory)
+            trans_list = list_factory.Create()
+            self.project.lp.TranslationTagsOA = trans_list
+
+        trans_list.PossibilitiesOS.Add(new_type)
 
         # Set name and abbreviation
         mkstr_name = TsStringUtils.MakeString(name, wsHandle)
@@ -199,18 +211,6 @@ class TranslationTypeOperations:
 
         mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
         new_type.Abbreviation.set_String(wsHandle, mkstr_abbr)
-
-        # Add to the translation tags list
-        trans_list = self.project.lp.TranslationTagsOA
-        if trans_list is None:
-            # Create translation tags list if it doesn't exist
-            from SIL.LCModel import ICmPossibilityListFactory
-            list_factory = self.project.project.ServiceLocator.GetInstance(
-                ICmPossibilityListFactory)
-            trans_list = list_factory.Create()
-            self.project.lp.TranslationTagsOA = trans_list
-
-        trans_list.PossibilitiesOS.Add(new_type)
 
         return new_type
 

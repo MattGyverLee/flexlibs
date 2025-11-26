@@ -386,7 +386,7 @@ class VariantOperations:
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the entry reference
-        factory = self.project.project.ServiceLocator.GetInstance(ILexEntryRefFactory)
+        factory = self.project.project.ServiceLocator.GetService(ILexEntryRefFactory)
         entry_ref = factory.Create()
 
         # Set as variant type (RefType = 0)

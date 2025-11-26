@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 from SIL.LCModel import SpecialWritingSystemCodes
 from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
-from SIL.WritingSystems import IWritingSystemDefinition
+from SIL.WritingSystems import WritingSystemDefinition  # Fixed: was IWritingSystemDefinition
 
 # Import flexlibs exceptions
 from ..FLExProject import (

@@ -178,7 +178,7 @@ class WfiMorphBundleOperations:
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
         # Create the new morph bundle using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(IWfiMorphBundleFactory)
+        factory = self.project.project.ServiceLocator.GetService(IWfiMorphBundleFactory)
         bundle = factory.Create()
 
         # Add to analysis's morph bundles collection

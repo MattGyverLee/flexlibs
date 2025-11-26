@@ -180,7 +180,7 @@ class MediaOperations:
         wsHandle = self.__WSHandle(wsHandle)
 
         # Get the factory and create the media file
-        factory = self.project.project.ServiceLocator.GetInstance(ICmFileFactory)
+        factory = self.project.project.ServiceLocator.GetService(ICmFileFactory)
         new_media = factory.Create()
 
         # Set the internal path

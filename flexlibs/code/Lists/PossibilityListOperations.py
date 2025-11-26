@@ -537,16 +537,12 @@ class PossibilityListOperations:
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the new possibility using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(
+        factory = self.project.project.ServiceLocator.GetService(
             ICmPossibilityFactory
         )
         new_item = factory.Create()
 
-        # Set name
-        mkstr = TsStringUtils.MakeString(name, wsHandle)
-        new_item.Name.set_String(wsHandle, mkstr)
-
-        # Add to parent or top-level list
+        # Add to parent or top-level list (must be done before setting properties)
         if parent:
             parent_obj = self.__ResolveItem(parent)
             # Verify parent belongs to the same list
@@ -558,6 +554,10 @@ class PossibilityListOperations:
             parent_obj.SubPossibilitiesOS.Add(new_item)
         else:
             poss_list.PossibilitiesOS.Add(new_item)
+
+        # Set name
+        mkstr = TsStringUtils.MakeString(name, wsHandle)
+        new_item.Name.set_String(wsHandle, mkstr)
 
         return new_item
 

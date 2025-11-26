@@ -167,20 +167,20 @@ class GramCatOperations:
         wsHandle = self.project.project.DefaultAnalWs
 
         # Create the new category using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(ICmPossibilityFactory)
+        factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
         new_cat = factory.Create()
 
-        # Set name
-        mkstr_name = TsStringUtils.MakeString(name, wsHandle)
-        new_cat.Name.set_String(wsHandle, mkstr_name)
-
-        # Add to parent's subcategories or to top-level TypesOC
+        # Add to parent's subcategories or to top-level TypesOC (must be done before setting properties)
         if parent:
             parent_obj = self.__ResolveObject(parent)
             parent_obj.SubPossibilitiesOS.Add(new_cat)
         else:
             feature_system = self.project.lp.MsFeatureSystemOA
             feature_system.TypesOC.Add(new_cat)
+
+        # Set name
+        mkstr_name = TsStringUtils.MakeString(name, wsHandle)
+        new_cat.Name.set_String(wsHandle, mkstr_name)
 
         return new_cat
 

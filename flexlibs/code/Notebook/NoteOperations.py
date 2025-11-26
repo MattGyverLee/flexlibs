@@ -122,7 +122,7 @@ class NoteOperations:
             raise FP_NullParameterError()
 
         # Get the annotation repository
-        anno_repos = self.project.project.ServiceLocator.GetInstance(
+        anno_repos = self.project.project.ServiceLocator.GetService(
             ICmBaseAnnotation
         ).Repository
 
@@ -190,10 +190,14 @@ class NoteOperations:
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the annotation using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(
+        factory = self.project.project.ServiceLocator.GetService(
             ICmBaseAnnotationFactory
         )
         note = factory.Create()
+
+        # Add to the annotations collection (must be done before setting properties)
+        if hasattr(owner_object, 'AnnotationsOS'):
+            owner_object.AnnotationsOS.Add(note)
 
         # Set the content
         mkstr = TsStringUtils.MakeString(content, wsHandle)
@@ -205,10 +209,6 @@ class NoteOperations:
 
         # Set creation date
         note.DateCreated = DateTime.Now
-
-        # Add to the annotations collection
-        if hasattr(owner_object, 'AnnotationsOS'):
-            owner_object.AnnotationsOS.Add(note)
 
         return note
 
@@ -783,10 +783,14 @@ class NoteOperations:
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the reply annotation using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(
+        factory = self.project.project.ServiceLocator.GetService(
             ICmBaseAnnotationFactory
         )
         reply = factory.Create()
+
+        # Add as reply to parent note (must be done before setting properties)
+        if hasattr(parent_note, 'RepliesOS'):
+            parent_note.RepliesOS.Add(reply)
 
         # Set the content
         mkstr = TsStringUtils.MakeString(content, wsHandle)
@@ -794,10 +798,6 @@ class NoteOperations:
 
         # Set creation date
         reply.DateCreated = DateTime.Now
-
-        # Add as reply to parent note
-        if hasattr(parent_note, 'RepliesOS'):
-            parent_note.RepliesOS.Add(reply)
 
         return reply
 
