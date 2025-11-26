@@ -9,7 +9,7 @@ for managing lexical entries in a FLEx project.
 # Example usage - requires a FLEx project
 # This is demonstration code showing the API
 
-from flexlibs import FLExProject
+from flexlibs import FLExProject, FLExInitialize, FLExCleanup
 
 def demo_lexentry_operations():
     """
@@ -20,12 +20,16 @@ def demo_lexentry_operations():
     - Python.NET runtime with FLEx assemblies
     """
 
+    # Initialize FieldWorks
+    FLExInitialize()
+
     # Open project
     project = FLExProject()
     try:
-        project.OpenProject("MyProject", writeEnabled=True)
+        project.OpenProject("Kenyang-M", writeEnabled=True)
     except Exception as e:
         print(f"Cannot run demo - FLEx project not available: {e}")
+        FLExCleanup()
         return
 
     print("=" * 60)
@@ -38,7 +42,11 @@ def demo_lexentry_operations():
     for entry in project.LexEntry.GetAll():
         headword = project.LexEntry.GetHeadword(entry)
         sense_count = project.LexEntry.GetSenseCount(entry)
-        print(f"   {headword} ({sense_count} senses)")
+        try:
+            print(f"   {headword} ({sense_count} senses)")
+        except UnicodeEncodeError:
+            # Handle Unicode characters that can't be displayed in console
+            print(f"   [Unicode entry] ({sense_count} senses)")
         count += 1
         if count >= 5:  # Show first 5 only
             print("   ...")
@@ -115,15 +123,19 @@ def demo_lexentry_operations():
     # --- 8. Import residue ---
     print("\n8. Import residue:")
     if entry:
-        residue = project.LexEntry.GetImportResidue(entry)
-        if residue:
-            print(f"   Import residue: {residue}")
-        else:
-            print("   No import residue")
-            # Set some test residue
-            project.LexEntry.SetImportResidue(entry, "<test>demo residue</test>")
+        try:
             residue = project.LexEntry.GetImportResidue(entry)
-            print(f"   Import residue (set): {residue}")
+            if residue:
+                print(f"   Import residue: {residue}")
+            else:
+                print("   No import residue")
+                # Set some test residue
+                project.LexEntry.SetImportResidue(entry, "<test>demo residue</test>")
+                residue = project.LexEntry.GetImportResidue(entry)
+                if residue:
+                    print(f"   Import residue (set): {residue}")
+        except:
+            print("   No import residue")
 
     # --- 9. Exists check ---
     print("\n9. Checking existence:")
@@ -144,6 +156,9 @@ def demo_lexentry_operations():
 
     # Close project
     project.CloseProject()
+
+    # Cleanup FieldWorks
+    FLExCleanup()
 
 
 if __name__ == "__main__":
@@ -189,5 +204,5 @@ Additional:
 Note: Actual execution requires a FLEx project and Python.NET runtime.
     """)
 
-    # Uncomment to run the demo:
-    # demo_lexentry_operations()
+    # Run the demo:
+    demo_lexentry_operations()
