@@ -1,0 +1,241 @@
+name: Monitor Upstream LibLCM API Changes
+
+# Lightweight monitoring of liblcm API changes without requiring full FLEx installation
+# This workflow tracks API surface changes that might affect flexlibs
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+  workflow_dispatch:
+    inputs:
+      liblcm_ref:
+        description: 'LibLCM commit/branch/tag to analyze'
+        required: false
+        default: 'master'
+
+jobs:
+  monitor-api:
+    name: Monitor LibLCM API Surface
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout flexlibs
+        uses: actions/checkout@v4
+        with:
+          path: flexlibs
+
+      - name: Checkout upstream liblcm
+        uses: actions/checkout@v4
+        with:
+          repository: sillsdev/liblcm
+          ref: ${{ github.event.inputs.liblcm_ref || 'master' }}
+          path: liblcm
+          fetch-depth: 10  # Get some history for comparison
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Analyze API changes
+        id: analyze
+        shell: bash
+        run: |
+          cd liblcm
+
+          # Get latest commit info
+          COMMIT_SHA=$(git rev-parse HEAD)
+          COMMIT_DATE=$(git log -1 --format=%ci)
+          COMMIT_MSG=$(git log -1 --format=%s)
+          COMMIT_AUTHOR=$(git log -1 --format=%an)
+
+          echo "commit_sha=$COMMIT_SHA" >> $GITHUB_OUTPUT
+          echo "commit_date=$COMMIT_DATE" >> $GITHUB_OUTPUT
+          echo "commit_msg=$COMMIT_MSG" >> $GITHUB_OUTPUT
+          echo "commit_author=$COMMIT_AUTHOR" >> $GITHUB_OUTPUT
+
+          echo "Latest upstream commit: $COMMIT_SHA"
+          echo "Date: $COMMIT_DATE"
+          echo "Author: $COMMIT_AUTHOR"
+          echo "Message: $COMMIT_MSG"
+
+          # Check for significant changes in public APIs
+          echo "## Files Changed in Recent Commits" > api_changes.md
+          git log -5 --oneline >> api_changes.md
+          echo "" >> api_changes.md
+
+          # Look for changes in key interface files
+          echo "## Recent Changes to Public APIs" >> api_changes.md
+          git diff HEAD~5..HEAD --stat -- "*.cs" | grep -i "LCM\|Interface\|Public" >> api_changes.md || echo "No API changes detected" >> api_changes.md
+
+      - name: Check flexlibs references to liblcm
+        shell: bash
+        run: |
+          cd flexlibs
+
+          echo "## FlexLibs Dependencies on LibLCM" > ../liblcm_deps.md
+          echo "" >> ../liblcm_deps.md
+          echo "### .NET Assemblies Referenced:" >> ../liblcm_deps.md
+
+          # Extract all clr.AddReference calls related to LCM
+          grep -r "clr.AddReference" --include="*.py" . | \
+            grep -i "LCM\|FieldWorks\|FW\|SIL" | \
+            sort -u >> ../liblcm_deps.md || echo "None found" >> ../liblcm_deps.md
+
+          echo "" >> ../liblcm_deps.md
+          echo "### Classes/Namespaces Imported:" >> ../liblcm_deps.md
+
+          # Extract imports from SIL namespaces
+          grep -r "from SIL" --include="*.py" . | \
+            sort -u >> ../liblcm_deps.md || echo "None found" >> ../liblcm_deps.md
+
+      - name: Compare with previous snapshot
+        id: compare
+        continue-on-error: true
+        shell: bash
+        run: |
+          cd liblcm
+
+          # Create API surface snapshot
+          echo "Creating API surface snapshot..."
+
+          # Count public interfaces, classes, methods
+          find . -name "*.cs" -type f | wc -l > api_snapshot.txt
+          echo "C# Files: $(cat api_snapshot.txt)"
+
+          # Extract public class/interface declarations
+          grep -r "public class\|public interface" --include="*.cs" . | \
+            wc -l >> api_snapshot.txt
+
+          # Look for deprecated attributes
+          DEPRECATED_COUNT=$(grep -r "\[Obsolete\]" --include="*.cs" . | wc -l || echo 0)
+          echo "Deprecated items: $DEPRECATED_COUNT" >> api_snapshot.txt
+
+          echo "snapshot_created=true" >> $GITHUB_OUTPUT
+
+      - name: Create monitoring report
+        shell: bash
+        run: |
+          cat > monitoring_report.md << 'EOF'
+          # LibLCM Upstream Monitoring Report
+
+          ## Latest Upstream Commit
+          - **SHA**: `${{ steps.analyze.outputs.commit_sha }}`
+          - **Date**: ${{ steps.analyze.outputs.commit_date }}
+          - **Author**: ${{ steps.analyze.outputs.commit_author }}
+          - **Message**: ${{ steps.analyze.outputs.commit_msg }}
+
+          ## API Changes
+          EOF
+
+          cat liblcm/api_changes.md >> monitoring_report.md
+
+          cat >> monitoring_report.md << 'EOF'
+
+          ## FlexLibs Dependencies
+          EOF
+
+          cat liblcm_deps.md >> monitoring_report.md
+
+          cat >> monitoring_report.md << 'EOF'
+
+          ## Recommendations
+
+          - Review recent commits: https://github.com/sillsdev/liblcm/commits/master
+          - Check for breaking changes in namespaces used by flexlibs
+          - Monitor for new FLEx releases that incorporate these changes
+
+          ---
+          *Generated automatically by upstream API monitor*
+          EOF
+
+      - name: Upload monitoring report
+        uses: actions/upload-artifact@v4
+        with:
+          name: upstream-monitoring-report-${{ steps.analyze.outputs.commit_sha }}
+          path: monitoring_report.md
+          retention-days: 90
+
+      - name: Post summary
+        shell: bash
+        run: |
+          echo "# Upstream LibLCM Monitoring Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          cat monitoring_report.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Check for potential breaking changes
+        id: breaking_check
+        shell: bash
+        run: |
+          cd liblcm
+
+          # Look for keywords that might indicate breaking changes
+          BREAKING_KEYWORDS="breaking|removed|deprecated|obsolete|renamed|replaced"
+
+          RECENT_COMMITS=$(git log -20 --oneline)
+          POTENTIAL_BREAKING=$(echo "$RECENT_COMMITS" | grep -iE "$BREAKING_KEYWORDS" || echo "")
+
+          if [ -n "$POTENTIAL_BREAKING" ]; then
+            echo "potential_breaking=true" >> $GITHUB_OUTPUT
+            echo "## ⚠️ Potential Breaking Changes Detected" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "$POTENTIAL_BREAKING" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "potential_breaking=false" >> $GITHUB_OUTPUT
+            echo "✅ No obvious breaking changes in recent commit messages" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Create issue for potential breaking changes
+        if: steps.breaking_check.outputs.potential_breaking == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const commitSha = '${{ steps.analyze.outputs.commit_sha }}';
+            const commitMsg = '${{ steps.analyze.outputs.commit_msg }}';
+
+            // Check if issue already exists for this commit
+            const existingIssues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: ['upstream-watch']
+            });
+
+            const issueExists = existingIssues.data.some(issue =>
+              issue.body && issue.body.includes(commitSha.substring(0, 7))
+            );
+
+            if (!issueExists) {
+              const body = `## Potential Breaking Changes in Upstream LibLCM
+
+            Automated monitoring detected potential breaking changes in the upstream repository.
+
+            ### Commit Details
+            - **SHA**: [\`${commitSha.substring(0, 7)}\`](https://github.com/sillsdev/liblcm/commit/${commitSha})
+            - **Message**: ${commitMsg}
+            - **View changes**: [Compare on GitHub](https://github.com/sillsdev/liblcm/commits/master)
+
+            ### Action Required
+            1. Review the upstream commits for actual breaking changes
+            2. Check if any changes affect flexlibs' API usage
+            3. Monitor for new FieldWorks releases
+            4. Test flexlibs compatibility when new FLEx version is available
+
+            ### Monitoring Report
+            See the [workflow artifacts](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for detailed analysis.
+
+            ---
+            *This is a watch notification - not necessarily a confirmed breaking change*`;
+
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `Upstream watch: Potential breaking changes detected`,
+                body: body,
+                labels: ['upstream-watch', 'needs-review']
+              });
+            }

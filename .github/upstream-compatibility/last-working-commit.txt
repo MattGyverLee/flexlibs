@@ -1,0 +1,6 @@
+# This file tracks the last known working commit from upstream sillsdev/liblcm
+# It is automatically updated by the upstream-compatibility-check workflow
+# Format: Single line containing the full commit SHA
+
+# Initial value - will be updated after first successful test run
+unknown

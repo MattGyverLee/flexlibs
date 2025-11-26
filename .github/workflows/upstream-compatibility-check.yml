@@ -1,0 +1,272 @@
+name: Upstream LibLCM Compatibility Check
+
+# This workflow monitors the upstream liblcm repository for breaking changes
+# by running flexlibs tests against the latest FieldWorks/liblcm builds
+
+on:
+  schedule:
+    # Run weekly on Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+
+  workflow_dispatch:
+    inputs:
+      liblcm_branch:
+        description: 'LibLCM branch to test against'
+        required: false
+        default: 'master'
+      fieldworks_version:
+        description: 'Specific FLEx version to test (e.g., 9.1.22, 9.2.0)'
+        required: false
+        default: 'latest'
+      create_issue_on_failure:
+        description: 'Create GitHub issue if tests fail'
+        required: false
+        default: 'true'
+
+env:
+  PYTHON_VERSION: '3.11'
+  # Track last known working upstream commit
+  LAST_WORKING_COMMIT_FILE: '.github/upstream-compatibility/last-working-commit.txt'
+
+jobs:
+  check-upstream:
+    name: Test against upstream liblcm
+    runs-on: windows-latest
+
+    strategy:
+      matrix:
+        # Test against multiple Python versions that flexlibs supports
+        python-version: ['3.8', '3.11', '3.13']
+        # Could expand to test against multiple FLEx versions
+        # flex-version: ['9.1', '9.2', '9.3']
+
+    steps:
+      - name: Checkout flexlibs
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: 'x64'  # or 'x86' for 32-bit
+
+      - name: Get latest upstream liblcm info
+        id: upstream
+        shell: powershell
+        run: |
+          # Fetch latest commit info from upstream liblcm
+          $owner = "sillsdev"
+          $repo = "liblcm"
+          $branch = "${{ github.event.inputs.liblcm_branch || 'master' }}"
+
+          $apiUrl = "https://api.github.com/repos/$owner/$repo/commits/$branch"
+          $response = Invoke-RestMethod -Uri $apiUrl -Headers @{
+            "Accept" = "application/vnd.github.v3+json"
+            "User-Agent" = "flexlibs-ci"
+          }
+
+          $latestCommit = $response.sha
+          $commitDate = $response.commit.author.date
+          $commitMessage = $response.commit.message.Split("`n")[0]
+
+          echo "commit_sha=$latestCommit" >> $env:GITHUB_OUTPUT
+          echo "commit_date=$commitDate" >> $env:GITHUB_OUTPUT
+          echo "commit_message=$commitMessage" >> $env:GITHUB_OUTPUT
+
+          Write-Host "Latest upstream commit: $latestCommit"
+          Write-Host "Date: $commitDate"
+          Write-Host "Message: $commitMessage"
+
+      - name: Check if already tested
+        id: check_tested
+        shell: powershell
+        run: |
+          $commitFile = "${{ env.LAST_WORKING_COMMIT_FILE }}"
+          $currentCommit = "${{ steps.upstream.outputs.commit_sha }}"
+
+          if (Test-Path $commitFile) {
+            $lastTested = Get-Content $commitFile -Raw
+            $lastTested = $lastTested.Trim()
+
+            if ($lastTested -eq $currentCommit) {
+              echo "skip_tests=true" >> $env:GITHUB_OUTPUT
+              Write-Host "Already tested against commit $currentCommit"
+            } else {
+              echo "skip_tests=false" >> $env:GITHUB_OUTPUT
+              echo "last_working=$lastTested" >> $env:GITHUB_OUTPUT
+              Write-Host "New commit detected. Last tested: $lastTested"
+            }
+          } else {
+            echo "skip_tests=false" >> $env:GITHUB_OUTPUT
+            echo "last_working=none" >> $env:GITHUB_OUTPUT
+            Write-Host "No previous test record found"
+          }
+
+      - name: Download and install FieldWorks
+        if: steps.check_tested.outputs.skip_tests != 'true'
+        shell: powershell
+        run: |
+          # This step would need to be customized based on how FieldWorks
+          # is distributed and installed
+
+          # Option 1: Use official installer
+          # Download the latest FLEx installer from SIL
+          $flexVersion = "${{ github.event.inputs.fieldworks_version || 'latest' }}"
+
+          Write-Host "Installing FieldWorks version: $flexVersion"
+
+          # TODO: Implement actual download and installation logic
+          # This might involve:
+          # 1. Downloading from SIL's distribution site
+          # 2. Silent installation with appropriate flags
+          # 3. Setting up registry keys if needed
+
+          # Placeholder command - replace with actual installer
+          # Invoke-WebRequest -Uri "https://software.sil.org/downloads/..." -OutFile "flex-installer.exe"
+          # Start-Process -FilePath "flex-installer.exe" -ArgumentList "/S" -Wait
+
+          Write-Host "Note: FieldWorks installation needs to be implemented"
+          Write-Host "This may require caching or using a pre-configured runner"
+
+      - name: Install Python dependencies
+        if: steps.check_tested.outputs.skip_tests != 'true'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .
+
+      - name: Run compatibility tests
+        if: steps.check_tested.outputs.skip_tests != 'true'
+        id: tests
+        continue-on-error: true
+        run: |
+          # Run the full test suite
+          pytest flexlibs/tests/ -v --tb=short
+
+      - name: Record test results
+        if: steps.check_tested.outputs.skip_tests != 'true'
+        shell: powershell
+        run: |
+          $testsPassed = "${{ steps.tests.outcome }}" -eq "success"
+          $commitSha = "${{ steps.upstream.outputs.commit_sha }}"
+          $commitFile = "${{ env.LAST_WORKING_COMMIT_FILE }}"
+
+          # Create directory if it doesn't exist
+          $dir = Split-Path $commitFile -Parent
+          if (-not (Test-Path $dir)) {
+            New-Item -ItemType Directory -Path $dir -Force
+          }
+
+          if ($testsPassed) {
+            # Update the last working commit
+            Set-Content -Path $commitFile -Value $commitSha
+            Write-Host "Tests passed! Updated last working commit to: $commitSha"
+            echo "status=passed" >> $env:GITHUB_OUTPUT
+          } else {
+            Write-Host "Tests failed against commit: $commitSha"
+            echo "status=failed" >> $env:GITHUB_OUTPUT
+          }
+
+      - name: Create issue on breaking change
+        if: |
+          steps.tests.outcome == 'failure' &&
+          steps.check_tested.outputs.skip_tests != 'true' &&
+          (github.event.inputs.create_issue_on_failure != 'false' || github.event_name == 'schedule')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const commitSha = '${{ steps.upstream.outputs.commit_sha }}';
+            const commitDate = '${{ steps.upstream.outputs.commit_date }}';
+            const commitMessage = '${{ steps.upstream.outputs.commit_message }}';
+            const lastWorking = '${{ steps.check_tested.outputs.last_working }}';
+            const pythonVersion = '${{ matrix.python-version }}';
+
+            // Check if issue already exists
+            const existingIssues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: ['upstream-breaking-change']
+            });
+
+            const issueExists = existingIssues.data.some(issue =>
+              issue.title.includes(commitSha.substring(0, 7))
+            );
+
+            if (!issueExists) {
+              const body = `## Upstream Breaking Change Detected
+
+            The latest upstream commit from [sillsdev/liblcm](https://github.com/sillsdev/liblcm) appears to introduce breaking changes for flexlibs.
+
+            ### Upstream Commit Details
+            - **Commit**: [\`${commitSha.substring(0, 7)}\`](https://github.com/sillsdev/liblcm/commit/${commitSha})
+            - **Date**: ${commitDate}
+            - **Message**: ${commitMessage}
+
+            ### Test Environment
+            - **Python Version**: ${pythonVersion}
+            - **Last Working Commit**: ${lastWorking !== 'none' ? `[\`${lastWorking.substring(0, 7)}\`](https://github.com/sillsdev/liblcm/commit/${lastWorking})` : 'Unknown'}
+
+            ### Next Steps
+            1. Review the [upstream changes](https://github.com/sillsdev/liblcm/compare/${lastWorking}...${commitSha})
+            2. Determine if this is a breaking API change or a test environment issue
+            3. Update flexlibs to maintain compatibility if needed
+            4. Update documentation if new FLEx version requirements exist
+
+            ### Test Logs
+            See the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for detailed test output.
+
+            ---
+            *This issue was automatically created by the upstream compatibility check workflow.*`;
+
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `Upstream breaking change detected in liblcm@${commitSha.substring(0, 7)}`,
+                body: body,
+                labels: ['upstream-breaking-change', 'needs-investigation']
+              });
+            }
+
+      - name: Commit last working version
+        if: steps.tests.outcome == 'success' && steps.check_tested.outputs.skip_tests != 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add ${{ env.LAST_WORKING_COMMIT_FILE }}
+          git diff --staged --quiet || git commit -m "Update last working upstream commit to ${{ steps.upstream.outputs.commit_sha }}"
+
+      - name: Push changes
+        if: steps.tests.outcome == 'success' && steps.check_tested.outputs.skip_tests != 'true'
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
+
+      - name: Generate summary
+        if: always() && steps.check_tested.outputs.skip_tests != 'true'
+        shell: powershell
+        run: |
+          $status = "${{ steps.tests.outcome }}"
+          $commitSha = "${{ steps.upstream.outputs.commit_sha }}"
+          $commitMessage = "${{ steps.upstream.outputs.commit_message }}"
+          $pythonVersion = "${{ matrix.python-version }}"
+
+          $emoji = if ($status -eq "success") { ":white_check_mark:" } else { ":x:" }
+
+          @"
+          # Upstream Compatibility Check Results
+
+          $emoji **Test Status**: $status
+
+          ## Upstream Commit
+          - **SHA**: [\`${commitSha.substring(0, 7)}\`](https://github.com/sillsdev/liblcm/commit/$commitSha)
+          - **Message**: $commitMessage
+
+          ## Test Environment
+          - **Python Version**: $pythonVersion
+          - **OS**: Windows
+
+          "@ | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
