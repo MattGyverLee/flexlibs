@@ -85,20 +85,20 @@ class LexSenseOperations:
 
     # --- Core CRUD Operations ---
 
-    def GetAll(self, entry_or_hvo):
+    def GetAll(self, entry_or_hvo=None):
         """
-        Get all senses for a lexical entry.
+        Get senses for an entry or all senses in the project.
 
         Args:
-            entry_or_hvo: The ILexEntry object or HVO.
+            entry_or_hvo: Optional ILexEntry object or HVO.
+                         If provided, returns senses for that entry only.
+                         If None, returns ALL senses in the entire project.
 
         Yields:
-            ILexSense: Each sense of the entry.
-
-        Raises:
-            FP_NullParameterError: If entry_or_hvo is None.
+            ILexSense: Each sense.
 
         Example:
+            >>> # Get senses for a specific entry
             >>> entry = list(project.LexiconAllEntries())[0]
             >>> for sense in project.Senses.GetAll(entry):
             ...     gloss = project.Senses.GetGloss(sense)
@@ -106,22 +106,32 @@ class LexSenseOperations:
             ...     print(f"{gloss}: {defn}")
             run: to move swiftly on foot
             run: to flow or extend
+            >>>
+            >>> # Get ALL senses in entire project
+            >>> for sense in project.Senses.GetAll():
+            ...     gloss = project.Senses.GetGloss(sense)
+            ...     print(f"Sense: {gloss}")
 
         Notes:
+            - When called with no argument, iterates all senses in project
+            - When called with entry, returns only that entry's senses
             - Returns senses in order they appear in FLEx
             - Does not include subsenses (use GetSubsenses for those)
-            - Returns empty generator if entry has no senses
+            - Returns empty generator if no senses exist
 
         See Also:
             Create, GetSubsenses, GetOwningEntry
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
-
-        entry = self.__GetEntryObject(entry_or_hvo)
-
-        for sense in entry.SensesOS:
-            yield sense
+        if entry_or_hvo is None:
+            # Iterate ALL senses in entire project
+            for entry in self.project.lexDB.Entries:
+                for sense in entry.AllSenses:  # Includes subsenses
+                    yield sense
+        else:
+            # Iterate senses for specific entry
+            entry = self.__GetEntryObject(entry_or_hvo)
+            for sense in entry.SensesOS:
+                yield sense
 
 
     def Create(self, entry_or_hvo, gloss, wsHandle=None):

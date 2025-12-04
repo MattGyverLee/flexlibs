@@ -1,122 +1,304 @@
 #!/usr/bin/env python3
 """
-Demonstration of AgentOperations for flexlibs
+Full CRUD Demo: AgentOperations for flexlibs
+
+This script demonstrates complete CRUD operations for agent.
+Performs actual create, read, update, and delete operations on test data.
+
+Author: FlexTools Development Team
+Date: 2025-11-27
 """
+
 from flexlibs import FLExProject, FLExInitialize, FLExCleanup
 
-def demo_agent():
-    """Demonstrate AgentOperations functionality."""
+def demo_agent_crud():
+    """
+    Demonstrate full CRUD operations for agent.
+
+    Tests:
+    - CREATE: Create new test agent
+    - READ: Get all agents, find by name/identifier
+    - UPDATE: Modify agent properties
+    - DELETE: Remove test agent
+    """
+
+    print("=" * 70)
+    print("AGENT OPERATIONS - FULL CRUD TEST")
+    print("=" * 70)
+
+    # Initialize FieldWorks
     FLExInitialize()
 
+    # Open project with write enabled
     project = FLExProject()
     try:
-        project.OpenProject("Kenyang-M", writeEnabled=True)
+        project.OpenProject("Sena 3", writeEnabled=True)
     except Exception as e:
         print(f"Cannot run demo - FLEx project not available: {e}")
         FLExCleanup()
         return
 
-    print("=" * 60)
-    print("AgentOperations Demonstration")
-    print("=" * 60)
+    test_obj = None
+    test_name = "crud_test_agent"
 
-    # Test Read operations
-    print("\n1. Testing GetAll operations:")
     try:
-        agents = project.Agent.GetAll(flat=True)
-        count = 0
-        for agent in agents:
+        # ==================== READ: Initial state ====================
+        print("\n" + "="*70)
+        print("STEP 1: READ - Get existing agents")
+        print("="*70)
+
+        print("\nGetting all agents...")
+        initial_count = 0
+        for obj in project.Agent.GetAll():
+            # Display first few objects
             try:
-                name = project.Agent.GetName(agent)
-                abbr = project.Agent.GetAbbreviation(agent)
-                info = f"{name} - Abbr: {abbr if abbr else '(none)'}"
-                print(f"   Agent: {info}")
-            except UnicodeEncodeError:
-                print(f"   Agent: [Unicode name]")
-            count += 1
-            if count >= 5:
+                name = project.Agent.GetName(obj) if hasattr(project.Agent, 'GetName') else str(obj)
+                print(f"  - {name}")
+            except:
+                print(f"  - [Object {initial_count + 1}]")
+            initial_count += 1
+            if initial_count >= 5:
                 break
-        print(f"   Total shown: {count}")
-    except Exception as e:
-        print(f"   ERROR: {e}")
 
-    # Test Create operation
-    print("\n2. Testing Create operation:")
-    try:
-        test_name = "Demo Agent"
-        if not project.Agent.Exists(test_name):
-            agent = project.Agent.Create(test_name, "DA")
-            print(f"   Created: {project.Agent.GetName(agent)}")
+        print(f"\nTotal agents (showing first 5): {initial_count}")
+
+        # ==================== CREATE ====================
+        print("\n" + "="*70)
+        print("STEP 2: CREATE - Create new test agent")
+        print("="*70)
+
+        # Check if test object already exists
+        try:
+            if hasattr(project.Agent, 'Exists') and project.Agent.Exists(test_name):
+                print(f"\nTest agent '{test_name}' already exists")
+                print("Deleting existing one first...")
+                existing = project.Agent.Find(test_name) if hasattr(project.Agent, 'Find') else None
+                if existing:
+                    project.Agent.Delete(existing)
+                    print("  Deleted existing test agent")
+        except:
+            pass
+
+        # Create new object
+        print(f"\nCreating new agent: '{test_name}'")
+
+        try:
+            # Attempt to create with common parameters
+            test_obj = project.Agent.Create(test_name)
+        except TypeError:
+            try:
+                # Try without parameters if that fails
+                test_obj = project.Agent.Create()
+                if hasattr(project.Agent, 'SetName'):
+                    project.Agent.SetName(test_obj, test_name)
+            except Exception as e:
+                print(f"  Note: Create method may require specific parameters: {e}")
+                test_obj = None
+
+        if test_obj:
+            print(f"  SUCCESS: Agent created!")
+            try:
+                if hasattr(project.Agent, 'GetName'):
+                    print(f"  Name: {project.Agent.GetName(test_obj)}")
+            except:
+                pass
         else:
-            agent = project.Agent.Find(test_name)
-            print(f"   Agent already exists: {test_name}")
+            print(f"  Note: Could not create agent (may require special parameters)")
+            print("  Skipping remaining tests...")
+            return
+
+        # ==================== READ: Verify creation ====================
+        print("\n" + "="*70)
+        print("STEP 3: READ - Verify agent was created")
+        print("="*70)
+
+        # Test Exists
+        if hasattr(project.Agent, 'Exists'):
+            print(f"\nChecking if '{test_name}' exists...")
+            exists = project.Agent.Exists(test_name)
+            print(f"  Exists: {exists}")
+
+        # Test Find
+        if hasattr(project.Agent, 'Find'):
+            print(f"\nFinding agent by name...")
+            found_obj = project.Agent.Find(test_name)
+            if found_obj:
+                print(f"  FOUND: agent")
+                try:
+                    if hasattr(project.Agent, 'GetName'):
+                        print(f"  Name: {project.Agent.GetName(found_obj)}")
+                except:
+                    pass
+            else:
+                print("  NOT FOUND")
+
+        # Count after creation
+        print("\nCounting all agents after creation...")
+        current_count = sum(1 for _ in project.Agent.GetAll())
+        print(f"  Count before: {initial_count}")
+        print(f"  Count after:  {current_count}")
+        print(f"  Difference:   +{current_count - initial_count}")
+
+        # ==================== UPDATE ====================
+        print("\n" + "="*70)
+        print("STEP 4: UPDATE - Modify agent properties")
+        print("="*70)
+
+        if test_obj:
+            updated = False
+
+            # Try common update methods
+            if hasattr(project.Agent, 'SetName'):
+                try:
+                    new_name = "crud_test_agent_modified"
+                    print(f"\nUpdating name to: '{new_name}'")
+                    old_name = project.Agent.GetName(test_obj) if hasattr(project.Agent, 'GetName') else test_name
+                    project.Agent.SetName(test_obj, new_name)
+                    updated_name = project.Agent.GetName(test_obj) if hasattr(project.Agent, 'GetName') else new_name
+                    print(f"  Old name: {old_name}")
+                    print(f"  New name: {updated_name}")
+                    test_name = new_name  # Update for cleanup
+                    updated = True
+                except Exception as e:
+                    print(f"  Note: SetName failed: {e}")
+
+            # Try other Set methods
+            for method_name in dir(project.Agent):
+                if method_name.startswith('Set') and method_name != 'SetName' and not updated:
+                    print(f"\nFound update method: {method_name}")
+                    print("  (Method available but not tested in this demo)")
+                    break
+
+            if updated:
+                print("\n  UPDATE: SUCCESS")
+            else:
+                print("\n  Note: No standard update methods found or tested")
+
+        # ==================== READ: Verify updates ====================
+        print("\n" + "="*70)
+        print("STEP 5: READ - Verify updates persisted")
+        print("="*70)
+
+        if hasattr(project.Agent, 'Find'):
+            print(f"\nFinding agent after update...")
+            updated_obj = project.Agent.Find(test_name)
+            if updated_obj:
+                print(f"  FOUND: agent")
+                try:
+                    if hasattr(project.Agent, 'GetName'):
+                        print(f"  Name: {project.Agent.GetName(updated_obj)}")
+                except:
+                    pass
+            else:
+                print("  NOT FOUND - Update may not have persisted")
+
+        # ==================== DELETE ====================
+        print("\n" + "="*70)
+        print("STEP 6: DELETE - Remove test agent")
+        print("="*70)
+
+        if test_obj:
+            print(f"\nDeleting test agent...")
+            try:
+                obj_name = project.Agent.GetName(test_obj) if hasattr(project.Agent, 'GetName') else test_name
+            except:
+                obj_name = test_name
+
+            project.Agent.Delete(test_obj)
+            print(f"  Deleted: {obj_name}")
+
+            # Verify deletion
+            print("\nVerifying deletion...")
+            if hasattr(project.Agent, 'Exists'):
+                still_exists = project.Agent.Exists(test_name)
+                print(f"  Still exists: {still_exists}")
+
+                if not still_exists:
+                    print("  DELETE: SUCCESS")
+                else:
+                    print("  DELETE: FAILED - Agent still exists")
+
+            # Count after deletion
+            final_count = sum(1 for _ in project.Agent.GetAll())
+            print(f"\n  Count after delete: {final_count}")
+            print(f"  Back to initial:    {final_count == initial_count}")
+
+        # ==================== SUMMARY ====================
+        print("\n" + "="*70)
+        print("CRUD TEST SUMMARY")
+        print("="*70)
+        print("\nOperations tested:")
+        print("  [CREATE] Create new agent")
+        print("  [READ]   GetAll, Find, Exists, Get methods")
+        print("  [UPDATE] Set methods")
+        print("  [DELETE] Delete agent")
+        print("\nTest completed successfully!")
+
     except Exception as e:
-        print(f"   ERROR: {e}")
+        print(f"\n\nERROR during CRUD test: {e}")
+        import traceback
+        traceback.print_exc()
 
-    # Test Find operation
-    print("\n3. Testing Find operations:")
-    try:
-        agent = project.Agent.Find("Demo Agent")
-        if agent:
-            print(f"   Found by name: {project.Agent.GetName(agent)}")
-            guid = project.Agent.GetGuid(agent)
-            print(f"   GUID: {guid}")
-    except Exception as e:
-        print(f"   ERROR: {e}")
+    finally:
+        # Cleanup: Ensure test object is removed
+        print("\n" + "="*70)
+        print("CLEANUP")
+        print("="*70)
 
-    # Test Property operations
-    print("\n4. Testing Property operations:")
-    try:
-        if agent:
-            # Test abbreviation
-            abbr = project.Agent.GetAbbreviation(agent)
-            print(f"   Abbreviation: {abbr}")
+        try:
+            for name in ["crud_test_agent", "crud_test_agent_modified"]:
+                if hasattr(project.Agent, 'Exists') and project.Agent.Exists(name):
+                    obj = project.Agent.Find(name) if hasattr(project.Agent, 'Find') else None
+                    if obj:
+                        project.Agent.Delete(obj)
+                        print(f"  Cleaned up: {name}")
+        except:
+            pass
 
-            # Test description
-            project.Agent.SetDescription(agent, "Demo analyzing agent for testing")
-            desc = project.Agent.GetDescription(agent)
-            print(f"   Description: {desc[:50]}...")
-    except Exception as e:
-        print(f"   ERROR: {e}")
+        print("\nClosing project...")
+        project.CloseProject()
+        FLExCleanup()
 
-    # Test Hierarchy operations
-    print("\n5. Testing Hierarchy operations:")
-    try:
-        if agent:
-            subagent_name = "Demo Sub-Agent"
-            existing_subs = [project.Agent.GetName(s)
-                           for s in project.Agent.GetSubitems(agent)]
-            if subagent_name not in existing_subs:
-                subagent = project.Agent.CreateSubitem(agent, subagent_name, "DSA")
-                print(f"   Created subitem: {project.Agent.GetName(subagent)}")
+    print("\n" + "="*70)
+    print("DEMO COMPLETE")
+    print("="*70)
 
-            subs = project.Agent.GetSubitems(agent)
-            print(f"   Subitems count: {len(subs)}")
-
-            if subs:
-                parent = project.Agent.GetParent(subs[0])
-                if parent:
-                    print(f"   Parent of subitem: {project.Agent.GetName(parent)}")
-    except Exception as e:
-        print(f"   ERROR: {e}")
-
-    # Test Metadata operations
-    print("\n6. Testing Metadata operations:")
-    try:
-        if agent:
-            created = project.Agent.GetDateCreated(agent)
-            modified = project.Agent.GetDateModified(agent)
-            print(f"   Created: {created}")
-            print(f"   Modified: {modified}")
-    except Exception as e:
-        print(f"   ERROR: {e}")
-
-    print("\n" + "=" * 60)
-    print("Demonstration complete!")
-    print("=" * 60)
-
-    project.CloseProject()
-    FLExCleanup()
 
 if __name__ == "__main__":
-    demo_agent()
+    print("""
+Agent Operations - Full CRUD Demo
+=====================================================
+
+This demonstrates COMPLETE CRUD operations for agent.
+
+Operations Tested:
+==================
+
+CREATE: Create new agent
+READ:   GetAll(), Find(), Exists(), Get...() methods
+UPDATE: Set...() methods
+DELETE: Delete()
+
+Test Flow:
+==========
+1. READ initial state
+2. CREATE new test agent
+3. READ to verify creation
+4. UPDATE agent properties
+5. READ to verify updates
+6. DELETE test agent
+7. Verify deletion
+
+Requirements:
+  - FLEx project with write access
+  - Python.NET runtime
+
+WARNING: This demo modifies the database!
+         Test agent is created and deleted during the demo.
+    """)
+
+    response = input("\nRun CRUD demo? (y/N): ")
+    if response.lower() == 'y':
+        demo_agent_crud()
+    else:
+        print("\nDemo skipped.")

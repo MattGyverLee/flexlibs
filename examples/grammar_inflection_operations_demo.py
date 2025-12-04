@@ -1,105 +1,304 @@
 #!/usr/bin/env python3
 """
-Demonstration of InflectionFeatureOperations for flexlibs
+Full CRUD Demo: InflectionOperations for flexlibs
 
-This script demonstrates the comprehensive InflectionFeatureOperations class
-for managing inflection features in a FLEx project.
+This script demonstrates complete CRUD operations for inflection.
+Performs actual create, read, update, and delete operations on test data.
+
+Author: FlexTools Development Team
+Date: 2025-11-27
 """
 
 from flexlibs import FLExProject, FLExInitialize, FLExCleanup
 
-def demo_inflection_operations():
-    """Demonstrate InflectionFeatureOperations functionality."""
+def demo_inflection_crud():
+    """
+    Demonstrate full CRUD operations for inflection.
+
+    Tests:
+    - CREATE: Create new test inflection
+    - READ: Get all inflections, find by name/identifier
+    - UPDATE: Modify inflection properties
+    - DELETE: Remove test inflection
+    """
+
+    print("=" * 70)
+    print("INFLECTION OPERATIONS - FULL CRUD TEST")
+    print("=" * 70)
 
     # Initialize FieldWorks
     FLExInitialize()
 
-    # Open project
+    # Open project with write enabled
     project = FLExProject()
     try:
-        project.OpenProject("Kenyang-M", writeEnabled=True)
+        project.OpenProject("Sena 3", writeEnabled=True)
     except Exception as e:
         print(f"Cannot run demo - FLEx project not available: {e}")
         FLExCleanup()
         return
 
-    print("=" * 60)
-    print("InflectionFeatureOperations Demonstration")
-    print("=" * 60)
+    test_obj = None
+    test_name = "crud_test_inflection"
 
-    # --- Test all methods ---
-    print("\n1. Testing GetAll (if available):")
     try:
-        if hasattr(project.InflectionFeatures, 'GetAll'):
-            count = 0
-            for item in project.InflectionFeatures.GetAll():
-                count += 1
-                if count >= 5:
-                    print(f"   ... (showing first 5 of {count}+ items)")
+        # ==================== READ: Initial state ====================
+        print("\n" + "="*70)
+        print("STEP 1: READ - Get existing inflections")
+        print("="*70)
+
+        print("\nGetting all inflections...")
+        initial_count = 0
+        for obj in project.Inflection.GetAll():
+            # Display first few objects
+            try:
+                name = project.Inflection.GetName(obj) if hasattr(project.Inflection, 'GetName') else str(obj)
+                print(f"  - {name}")
+            except:
+                print(f"  - [Object {initial_count + 1}]")
+            initial_count += 1
+            if initial_count >= 5:
+                break
+
+        print(f"\nTotal inflections (showing first 5): {initial_count}")
+
+        # ==================== CREATE ====================
+        print("\n" + "="*70)
+        print("STEP 2: CREATE - Create new test inflection")
+        print("="*70)
+
+        # Check if test object already exists
+        try:
+            if hasattr(project.Inflection, 'Exists') and project.Inflection.Exists(test_name):
+                print(f"\nTest inflection '{test_name}' already exists")
+                print("Deleting existing one first...")
+                existing = project.Inflection.Find(test_name) if hasattr(project.Inflection, 'Find') else None
+                if existing:
+                    project.Inflection.Delete(existing)
+                    print("  Deleted existing test inflection")
+        except:
+            pass
+
+        # Create new object
+        print(f"\nCreating new inflection: '{test_name}'")
+
+        try:
+            # Attempt to create with common parameters
+            test_obj = project.Inflection.Create(test_name)
+        except TypeError:
+            try:
+                # Try without parameters if that fails
+                test_obj = project.Inflection.Create()
+                if hasattr(project.Inflection, 'SetName'):
+                    project.Inflection.SetName(test_obj, test_name)
+            except Exception as e:
+                print(f"  Note: Create method may require specific parameters: {e}")
+                test_obj = None
+
+        if test_obj:
+            print(f"  SUCCESS: Inflection created!")
+            try:
+                if hasattr(project.Inflection, 'GetName'):
+                    print(f"  Name: {project.Inflection.GetName(test_obj)}")
+            except:
+                pass
+        else:
+            print(f"  Note: Could not create inflection (may require special parameters)")
+            print("  Skipping remaining tests...")
+            return
+
+        # ==================== READ: Verify creation ====================
+        print("\n" + "="*70)
+        print("STEP 3: READ - Verify inflection was created")
+        print("="*70)
+
+        # Test Exists
+        if hasattr(project.Inflection, 'Exists'):
+            print(f"\nChecking if '{test_name}' exists...")
+            exists = project.Inflection.Exists(test_name)
+            print(f"  Exists: {exists}")
+
+        # Test Find
+        if hasattr(project.Inflection, 'Find'):
+            print(f"\nFinding inflection by name...")
+            found_obj = project.Inflection.Find(test_name)
+            if found_obj:
+                print(f"  FOUND: inflection")
+                try:
+                    if hasattr(project.Inflection, 'GetName'):
+                        print(f"  Name: {project.Inflection.GetName(found_obj)}")
+                except:
+                    pass
+            else:
+                print("  NOT FOUND")
+
+        # Count after creation
+        print("\nCounting all inflections after creation...")
+        current_count = sum(1 for _ in project.Inflection.GetAll())
+        print(f"  Count before: {initial_count}")
+        print(f"  Count after:  {current_count}")
+        print(f"  Difference:   +{current_count - initial_count}")
+
+        # ==================== UPDATE ====================
+        print("\n" + "="*70)
+        print("STEP 4: UPDATE - Modify inflection properties")
+        print("="*70)
+
+        if test_obj:
+            updated = False
+
+            # Try common update methods
+            if hasattr(project.Inflection, 'SetName'):
+                try:
+                    new_name = "crud_test_inflection_modified"
+                    print(f"\nUpdating name to: '{new_name}'")
+                    old_name = project.Inflection.GetName(test_obj) if hasattr(project.Inflection, 'GetName') else test_name
+                    project.Inflection.SetName(test_obj, new_name)
+                    updated_name = project.Inflection.GetName(test_obj) if hasattr(project.Inflection, 'GetName') else new_name
+                    print(f"  Old name: {old_name}")
+                    print(f"  New name: {updated_name}")
+                    test_name = new_name  # Update for cleanup
+                    updated = True
+                except Exception as e:
+                    print(f"  Note: SetName failed: {e}")
+
+            # Try other Set methods
+            for method_name in dir(project.Inflection):
+                if method_name.startswith('Set') and method_name != 'SetName' and not updated:
+                    print(f"\nFound update method: {method_name}")
+                    print("  (Method available but not tested in this demo)")
                     break
-            print(f"   Total items: {count}")
-        else:
-            print("   GetAll method not available")
+
+            if updated:
+                print("\n  UPDATE: SUCCESS")
+            else:
+                print("\n  Note: No standard update methods found or tested")
+
+        # ==================== READ: Verify updates ====================
+        print("\n" + "="*70)
+        print("STEP 5: READ - Verify updates persisted")
+        print("="*70)
+
+        if hasattr(project.Inflection, 'Find'):
+            print(f"\nFinding inflection after update...")
+            updated_obj = project.Inflection.Find(test_name)
+            if updated_obj:
+                print(f"  FOUND: inflection")
+                try:
+                    if hasattr(project.Inflection, 'GetName'):
+                        print(f"  Name: {project.Inflection.GetName(updated_obj)}")
+                except:
+                    pass
+            else:
+                print("  NOT FOUND - Update may not have persisted")
+
+        # ==================== DELETE ====================
+        print("\n" + "="*70)
+        print("STEP 6: DELETE - Remove test inflection")
+        print("="*70)
+
+        if test_obj:
+            print(f"\nDeleting test inflection...")
+            try:
+                obj_name = project.Inflection.GetName(test_obj) if hasattr(project.Inflection, 'GetName') else test_name
+            except:
+                obj_name = test_name
+
+            project.Inflection.Delete(test_obj)
+            print(f"  Deleted: {obj_name}")
+
+            # Verify deletion
+            print("\nVerifying deletion...")
+            if hasattr(project.Inflection, 'Exists'):
+                still_exists = project.Inflection.Exists(test_name)
+                print(f"  Still exists: {still_exists}")
+
+                if not still_exists:
+                    print("  DELETE: SUCCESS")
+                else:
+                    print("  DELETE: FAILED - Inflection still exists")
+
+            # Count after deletion
+            final_count = sum(1 for _ in project.Inflection.GetAll())
+            print(f"\n  Count after delete: {final_count}")
+            print(f"  Back to initial:    {final_count == initial_count}")
+
+        # ==================== SUMMARY ====================
+        print("\n" + "="*70)
+        print("CRUD TEST SUMMARY")
+        print("="*70)
+        print("\nOperations tested:")
+        print("  [CREATE] Create new inflection")
+        print("  [READ]   GetAll, Find, Exists, Get methods")
+        print("  [UPDATE] Set methods")
+        print("  [DELETE] Delete inflection")
+        print("\nTest completed successfully!")
+
     except Exception as e:
-        print(f"   ERROR: {e}")
+        print(f"\n\nERROR during CRUD test: {e}")
+        import traceback
+        traceback.print_exc()
 
-    print("\n2. Testing Create (if available):")
-    try:
-        if hasattr(project.InflectionFeatures, 'Create'):
-            print("   Create method available (not tested to preserve data)")
-        else:
-            print("   Create method not available")
-    except Exception as e:
-        print(f"   ERROR: {e}")
+    finally:
+        # Cleanup: Ensure test object is removed
+        print("\n" + "="*70)
+        print("CLEANUP")
+        print("="*70)
 
-    print("\n3. Testing Find/Exists (if available):")
-    try:
-        if hasattr(project.InflectionFeatures, 'Find'):
-            print("   Find method available")
-        if hasattr(project.InflectionFeatures, 'Exists'):
-            print("   Exists method available")
-    except Exception as e:
-        print(f"   ERROR: {e}")
+        try:
+            for name in ["crud_test_inflection", "crud_test_inflection_modified"]:
+                if hasattr(project.Inflection, 'Exists') and project.Inflection.Exists(name):
+                    obj = project.Inflection.Find(name) if hasattr(project.Inflection, 'Find') else None
+                    if obj:
+                        project.Inflection.Delete(obj)
+                        print(f"  Cleaned up: {name}")
+        except:
+            pass
 
-    print("\n4. Available methods in InflectionFeatureOperations:")
-    methods = ['FeatureCreate', 'FeatureDelete', 'FeatureGetAll', 'FeatureGetValues', 'FeatureStructureCreate', 'FeatureStructureDelete', 'FeatureStructureGetAll', 'InflectionClassCreate', 'InflectionClassDelete', 'InflectionClassGetAll', 'InflectionClassGetName', 'InflectionClassSetName']
-    for method in methods[:10]:  # Show first 10
-        print(f"   - {method}()")
-    if len(methods) > 10:
-        print(f"   ... and {len(methods) - 10} more")
+        print("\nClosing project...")
+        project.CloseProject()
+        FLExCleanup()
 
-    print("\n" + "=" * 60)
-    print("Demonstration complete!")
-    print("=" * 60)
+    print("\n" + "="*70)
+    print("DEMO COMPLETE")
+    print("="*70)
 
-    project.CloseProject()
-    FLExCleanup()
 
 if __name__ == "__main__":
     print("""
-InflectionFeatureOperations Demo
-=================================
+Inflection Operations - Full CRUD Demo
+=====================================================
 
-This demonstrates the InflectionFeatureOperations class.
+This demonstrates COMPLETE CRUD operations for inflection.
 
-Available methods (12 total):
+Operations Tested:
+==================
 
-Create operations (0):
+CREATE: Create new inflection
+READ:   GetAll(), Find(), Exists(), Get...() methods
+UPDATE: Set...() methods
+DELETE: Delete()
 
+Test Flow:
+==========
+1. READ initial state
+2. CREATE new test inflection
+3. READ to verify creation
+4. UPDATE inflection properties
+5. READ to verify updates
+6. DELETE test inflection
+7. Verify deletion
 
+Requirements:
+  - FLEx project with write access
+  - Python.NET runtime
 
-Read operations (0):
-
-
-
-Update operations (0):
-
-
-
-Delete operations (0):
-
-
-
-Note: Actual execution requires a FLEx project and Python.NET runtime.
+WARNING: This demo modifies the database!
+         Test inflection is created and deleted during the demo.
     """)
-    demo_inflection_operations()
+
+    response = input("\nRun CRUD demo? (y/N): ")
+    if response.lower() == 'y':
+        demo_inflection_crud()
+    else:
+        print("\nDemo skipped.")

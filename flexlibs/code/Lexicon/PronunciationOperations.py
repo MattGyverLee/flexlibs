@@ -82,20 +82,19 @@ class PronunciationOperations:
 
     # --- Core CRUD Operations ---
 
-    def GetAll(self, entry_or_hvo):
+    def GetAll(self, entry_or_hvo=None):
         """
-        Get all pronunciations for a lexical entry.
+        Get all pronunciations for a lexical entry, or all pronunciations in the entire project.
 
         Args:
-            entry_or_hvo: The ILexEntry object or HVO.
+            entry_or_hvo: The ILexEntry object or HVO. If None, iterates all pronunciations
+                         in the entire project.
 
         Yields:
-            ILexPronunciation: Each pronunciation for the entry.
-
-        Raises:
-            FP_NullParameterError: If entry_or_hvo is None.
+            ILexPronunciation: Each pronunciation for the entry (or project).
 
         Example:
+            >>> # Get pronunciations for specific entry
             >>> entry = list(project.LexiconAllEntries())[0]
             >>> for pron in project.Pronunciations.GetAll(entry):
             ...     ipa = project.Pronunciations.GetForm(pron, "en-fonipa")
@@ -103,22 +102,37 @@ class PronunciationOperations:
             IPA: rʌn
             IPA: ɹʌn
 
+            >>> # Get ALL pronunciations in entire project
+            >>> for pron in project.Pronunciations.GetAll():
+            ...     ipa = project.Pronunciations.GetForm(pron, "en-fonipa")
+            ...     print(f"IPA: {ipa}")
+
         Notes:
-            - Returns pronunciations in the order they appear in FLEx
-            - Returns empty generator if entry has no pronunciations
-            - Pronunciations are ordered collections (can be reordered)
+            - When entry_or_hvo is provided:
+              - Returns pronunciations in the order they appear in FLEx
+              - Returns empty generator if entry has no pronunciations
+              - Pronunciations are ordered collections (can be reordered)
+            - When entry_or_hvo is None:
+              - Iterates ALL entries in the project
+              - For each entry, yields all pronunciations
+              - Useful for project-wide pronunciation operations
 
         See Also:
             Create, Delete, Reorder
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        if entry_or_hvo is None:
+            # Iterate ALL pronunciations in entire project
+            for entry in self.project.lexDB.Entries:
+                if hasattr(entry, 'PronunciationsOS'):
+                    for pronunciation in entry.PronunciationsOS:
+                        yield pronunciation
+        else:
+            # Iterate pronunciations for specific entry
+            entry = self.__GetEntryObject(entry_or_hvo)
 
-        entry = self.__GetEntryObject(entry_or_hvo)
-
-        if hasattr(entry, 'PronunciationsOS'):
-            for pronunciation in entry.PronunciationsOS:
-                yield pronunciation
+            if hasattr(entry, 'PronunciationsOS'):
+                for pronunciation in entry.PronunciationsOS:
+                    yield pronunciation
 
 
     def Create(self, entry_or_hvo, form, wsHandle=None):

@@ -92,21 +92,20 @@ class EtymologyOperations:
 
     # --- Core CRUD Operations ---
 
-    def GetAll(self, entry_or_hvo):
+    def GetAll(self, entry_or_hvo=None):
         """
-        Get all etymologies for a lexical entry.
+        Get all etymologies for a lexical entry, or all etymologies in the entire project.
 
         Args:
-            entry_or_hvo: The ILexEntry object or HVO.
+            entry_or_hvo: The ILexEntry object or HVO. If None, iterates all etymologies
+                         in the entire project.
 
         Yields:
-            ILexEtymology: Each etymology object for the entry.
-
-        Raises:
-            FP_NullParameterError: If entry_or_hvo is None.
+            ILexEtymology: Each etymology object for the entry (or project).
 
         Example:
             >>> etymOps = EtymologyOperations(project)
+            >>> # Get etymologies for specific entry
             >>> entry = project.LexEntry.Find("telephone")
             >>> for etym in etymOps.GetAll(entry):
             ...     source = etymOps.GetSource(etym)
@@ -116,22 +115,36 @@ class EtymologyOperations:
             Etymology: Greek 'tele' (far)
             Etymology: Greek 'phone' (sound)
 
+            >>> # Get ALL etymologies in entire project
+            >>> for etym in etymOps.GetAll():
+            ...     source = etymOps.GetSource(etym)
+            ...     print(f"Etymology source: {source}")
+
         Notes:
-            - Returns etymologies in database order
-            - Returns empty generator if entry has no etymologies
-            - Etymologies can be reordered using Reorder()
-            - Each etymology represents one source or stage in word history
+            - When entry_or_hvo is provided:
+              - Returns etymologies in database order
+              - Returns empty generator if entry has no etymologies
+              - Etymologies can be reordered using Reorder()
+              - Each etymology represents one source or stage in word history
+            - When entry_or_hvo is None:
+              - Iterates ALL entries in the project
+              - For each entry, yields all etymologies
+              - Useful for project-wide etymology operations
 
         See Also:
             Create, Delete, Reorder
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        if entry_or_hvo is None:
+            # Iterate ALL etymologies in entire project
+            for entry in self.project.lexDB.Entries:
+                for etymology in entry.EtymologyOS:
+                    yield etymology
+        else:
+            # Iterate etymologies for specific entry
+            entry = self.__GetEntryObject(entry_or_hvo)
 
-        entry = self.__GetEntryObject(entry_or_hvo)
-
-        for etymology in entry.EtymologyOS:
-            yield etymology
+            for etymology in entry.EtymologyOS:
+                yield etymology
 
 
     def Create(self, entry_or_hvo, source=None, form=None, gloss=None, ws=None):

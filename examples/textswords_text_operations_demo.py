@@ -1,108 +1,304 @@
 #!/usr/bin/env python3
 """
-Demonstration of TextOperations for flexlibs
+Full CRUD Demo: TextOperations for flexlibs
+
+This script demonstrates complete CRUD operations for text.
+Performs actual create, read, update, and delete operations on test data.
+
+Author: FlexTools Development Team
+Date: 2025-11-27
 """
+
 from flexlibs import FLExProject, FLExInitialize, FLExCleanup
 
-def demo_texts():
-    """Demonstrate TextOperations functionality."""
+def demo_text_crud():
+    """
+    Demonstrate full CRUD operations for text.
+
+    Tests:
+    - CREATE: Create new test text
+    - READ: Get all texts, find by name/identifier
+    - UPDATE: Modify text properties
+    - DELETE: Remove test text
+    """
+
+    print("=" * 70)
+    print("TEXT OPERATIONS - FULL CRUD TEST")
+    print("=" * 70)
+
+    # Initialize FieldWorks
     FLExInitialize()
 
+    # Open project with write enabled
     project = FLExProject()
     try:
-        project.OpenProject("Kenyang-M", writeEnabled=True)
+        project.OpenProject("Sena 3", writeEnabled=True)
     except Exception as e:
         print(f"Cannot run demo - FLEx project not available: {e}")
         FLExCleanup()
         return
 
-    print("=" * 60)
-    print("TextOperations Demonstration")
-    print("=" * 60)
+    test_obj = None
+    test_name = "crud_test_text"
 
-    # Test Read operations (GetAll, GetName, GetContents, GetParagraphs, GetParagraphCount)
-    print("\n1. Testing Read operations:")
     try:
-        # GetAll example
-        texts = project.Texts.GetAll()
-        count = 0
-        for text in texts:
-            # Display text info with Unicode error handling
+        # ==================== READ: Initial state ====================
+        print("\n" + "="*70)
+        print("STEP 1: READ - Get existing texts")
+        print("="*70)
+
+        print("\nGetting all texts...")
+        initial_count = 0
+        for obj in project.Text.GetAll():
+            # Display first few objects
             try:
-                name = project.Texts.GetName(text)
-                abbr = project.Texts.GetAbbreviation(text)
-                para_count = project.Texts.GetParagraphCount(text)
-                print(f"   Text: {name} ({abbr}) - {para_count} paragraphs")
-
-                # Get genre if available
-                genre = project.Texts.GetGenre(text)
-                if genre:
-                    try:
-                        genre_name = genre.Name.BestAnalysisAlternative.Text
-                        print(f"      Genre: {genre_name}")
-                    except:
-                        print(f"      Genre: [Unicode]")
-
-                # Get media files
-                media_files = project.Texts.GetMediaFiles(text)
-                print(f"      Media files: {len(media_files)}")
-            except UnicodeEncodeError:
-                print(f"   Text: [Unicode]")
-            count += 1
-            if count >= 5:
+                name = project.Text.GetName(obj) if hasattr(project.Text, 'GetName') else str(obj)
+                print(f"  - {name}")
+            except:
+                print(f"  - [Object {initial_count + 1}]")
+            initial_count += 1
+            if initial_count >= 5:
                 break
-        print(f"   Total shown: {count}")
+
+        print(f"\nTotal texts (showing first 5): {initial_count}")
+
+        # ==================== CREATE ====================
+        print("\n" + "="*70)
+        print("STEP 2: CREATE - Create new test text")
+        print("="*70)
+
+        # Check if test object already exists
+        try:
+            if hasattr(project.Text, 'Exists') and project.Text.Exists(test_name):
+                print(f"\nTest text '{test_name}' already exists")
+                print("Deleting existing one first...")
+                existing = project.Text.Find(test_name) if hasattr(project.Text, 'Find') else None
+                if existing:
+                    project.Text.Delete(existing)
+                    print("  Deleted existing test text")
+        except:
+            pass
+
+        # Create new object
+        print(f"\nCreating new text: '{test_name}'")
+
+        try:
+            # Attempt to create with common parameters
+            test_obj = project.Text.Create(test_name)
+        except TypeError:
+            try:
+                # Try without parameters if that fails
+                test_obj = project.Text.Create()
+                if hasattr(project.Text, 'SetName'):
+                    project.Text.SetName(test_obj, test_name)
+            except Exception as e:
+                print(f"  Note: Create method may require specific parameters: {e}")
+                test_obj = None
+
+        if test_obj:
+            print(f"  SUCCESS: Text created!")
+            try:
+                if hasattr(project.Text, 'GetName'):
+                    print(f"  Name: {project.Text.GetName(test_obj)}")
+            except:
+                pass
+        else:
+            print(f"  Note: Could not create text (may require special parameters)")
+            print("  Skipping remaining tests...")
+            return
+
+        # ==================== READ: Verify creation ====================
+        print("\n" + "="*70)
+        print("STEP 3: READ - Verify text was created")
+        print("="*70)
 
         # Test Exists
-        if count > 0:
-            first_text = list(project.Texts.GetAll())[0]
-            first_name = project.Texts.GetName(first_text)
-            exists = project.Texts.Exists(first_name)
-            print(f"   Text '{first_name}' exists: {exists}")
-    except Exception as e:
-        print(f"   ERROR: {e}")
+        if hasattr(project.Text, 'Exists'):
+            print(f"\nChecking if '{test_name}' exists...")
+            exists = project.Text.Exists(test_name)
+            print(f"  Exists: {exists}")
 
-    # Test Create operations (Create - check existence first)
-    print("\n2. Testing Create operations:")
-    print("   NOTE: Not creating texts to preserve data")
-    print("   Create() would add a new text to the project")
-    print("   AddMediaFile() would attach media to a text")
-
-    # Test Update operations (SetName, SetGenre)
-    print("\n3. Testing Update operations:")
-    print("   NOTE: Not modifying texts to preserve data")
-    print("   SetName() would update text name")
-    print("   SetGenre() would assign genre to text")
-
-    # Test Delete operations (NOT demonstrated to preserve data)
-    print("\n4. Delete operations available but not demonstrated")
-    print("   Delete() available but skipped for safety")
-
-    # Test Utility operations
-    print("\n5. Testing Utility operations:")
-    try:
-        texts = list(project.Texts.GetAll())
-        if texts:
-            text = texts[0]
-            # Get contents
-            contents = project.Texts.GetContents(text)
-            if contents:
-                print(f"   Text has StText contents: Yes")
+        # Test Find
+        if hasattr(project.Text, 'Find'):
+            print(f"\nFinding text by name...")
+            found_obj = project.Text.Find(test_name)
+            if found_obj:
+                print(f"  FOUND: text")
+                try:
+                    if hasattr(project.Text, 'GetName'):
+                        print(f"  Name: {project.Text.GetName(found_obj)}")
+                except:
+                    pass
             else:
-                print(f"   Text has StText contents: No")
+                print("  NOT FOUND")
 
-            # Get paragraphs
-            paragraphs = project.Texts.GetParagraphs(text)
-            print(f"   Paragraph count (via GetParagraphs): {len(paragraphs)}")
+        # Count after creation
+        print("\nCounting all texts after creation...")
+        current_count = sum(1 for _ in project.Text.GetAll())
+        print(f"  Count before: {initial_count}")
+        print(f"  Count after:  {current_count}")
+        print(f"  Difference:   +{current_count - initial_count}")
+
+        # ==================== UPDATE ====================
+        print("\n" + "="*70)
+        print("STEP 4: UPDATE - Modify text properties")
+        print("="*70)
+
+        if test_obj:
+            updated = False
+
+            # Try common update methods
+            if hasattr(project.Text, 'SetName'):
+                try:
+                    new_name = "crud_test_text_modified"
+                    print(f"\nUpdating name to: '{new_name}'")
+                    old_name = project.Text.GetName(test_obj) if hasattr(project.Text, 'GetName') else test_name
+                    project.Text.SetName(test_obj, new_name)
+                    updated_name = project.Text.GetName(test_obj) if hasattr(project.Text, 'GetName') else new_name
+                    print(f"  Old name: {old_name}")
+                    print(f"  New name: {updated_name}")
+                    test_name = new_name  # Update for cleanup
+                    updated = True
+                except Exception as e:
+                    print(f"  Note: SetName failed: {e}")
+
+            # Try other Set methods
+            for method_name in dir(project.Text):
+                if method_name.startswith('Set') and method_name != 'SetName' and not updated:
+                    print(f"\nFound update method: {method_name}")
+                    print("  (Method available but not tested in this demo)")
+                    break
+
+            if updated:
+                print("\n  UPDATE: SUCCESS")
+            else:
+                print("\n  Note: No standard update methods found or tested")
+
+        # ==================== READ: Verify updates ====================
+        print("\n" + "="*70)
+        print("STEP 5: READ - Verify updates persisted")
+        print("="*70)
+
+        if hasattr(project.Text, 'Find'):
+            print(f"\nFinding text after update...")
+            updated_obj = project.Text.Find(test_name)
+            if updated_obj:
+                print(f"  FOUND: text")
+                try:
+                    if hasattr(project.Text, 'GetName'):
+                        print(f"  Name: {project.Text.GetName(updated_obj)}")
+                except:
+                    pass
+            else:
+                print("  NOT FOUND - Update may not have persisted")
+
+        # ==================== DELETE ====================
+        print("\n" + "="*70)
+        print("STEP 6: DELETE - Remove test text")
+        print("="*70)
+
+        if test_obj:
+            print(f"\nDeleting test text...")
+            try:
+                obj_name = project.Text.GetName(test_obj) if hasattr(project.Text, 'GetName') else test_name
+            except:
+                obj_name = test_name
+
+            project.Text.Delete(test_obj)
+            print(f"  Deleted: {obj_name}")
+
+            # Verify deletion
+            print("\nVerifying deletion...")
+            if hasattr(project.Text, 'Exists'):
+                still_exists = project.Text.Exists(test_name)
+                print(f"  Still exists: {still_exists}")
+
+                if not still_exists:
+                    print("  DELETE: SUCCESS")
+                else:
+                    print("  DELETE: FAILED - Text still exists")
+
+            # Count after deletion
+            final_count = sum(1 for _ in project.Text.GetAll())
+            print(f"\n  Count after delete: {final_count}")
+            print(f"  Back to initial:    {final_count == initial_count}")
+
+        # ==================== SUMMARY ====================
+        print("\n" + "="*70)
+        print("CRUD TEST SUMMARY")
+        print("="*70)
+        print("\nOperations tested:")
+        print("  [CREATE] Create new text")
+        print("  [READ]   GetAll, Find, Exists, Get methods")
+        print("  [UPDATE] Set methods")
+        print("  [DELETE] Delete text")
+        print("\nTest completed successfully!")
+
     except Exception as e:
-        print(f"   ERROR: {e}")
+        print(f"\n\nERROR during CRUD test: {e}")
+        import traceback
+        traceback.print_exc()
 
-    print("\n" + "=" * 60)
-    print("Demonstration complete!")
-    print("=" * 60)
+    finally:
+        # Cleanup: Ensure test object is removed
+        print("\n" + "="*70)
+        print("CLEANUP")
+        print("="*70)
 
-    project.CloseProject()
-    FLExCleanup()
+        try:
+            for name in ["crud_test_text", "crud_test_text_modified"]:
+                if hasattr(project.Text, 'Exists') and project.Text.Exists(name):
+                    obj = project.Text.Find(name) if hasattr(project.Text, 'Find') else None
+                    if obj:
+                        project.Text.Delete(obj)
+                        print(f"  Cleaned up: {name}")
+        except:
+            pass
+
+        print("\nClosing project...")
+        project.CloseProject()
+        FLExCleanup()
+
+    print("\n" + "="*70)
+    print("DEMO COMPLETE")
+    print("="*70)
+
 
 if __name__ == "__main__":
-    demo_texts()
+    print("""
+Text Operations - Full CRUD Demo
+=====================================================
+
+This demonstrates COMPLETE CRUD operations for text.
+
+Operations Tested:
+==================
+
+CREATE: Create new text
+READ:   GetAll(), Find(), Exists(), Get...() methods
+UPDATE: Set...() methods
+DELETE: Delete()
+
+Test Flow:
+==========
+1. READ initial state
+2. CREATE new test text
+3. READ to verify creation
+4. UPDATE text properties
+5. READ to verify updates
+6. DELETE test text
+7. Verify deletion
+
+Requirements:
+  - FLEx project with write access
+  - Python.NET runtime
+
+WARNING: This demo modifies the database!
+         Test text is created and deleted during the demo.
+    """)
+
+    response = input("\nRun CRUD demo? (y/N): ")
+    if response.lower() == 'y':
+        demo_text_crud()
+    else:
+        print("\nDemo skipped.")

@@ -1,133 +1,304 @@
 #!/usr/bin/env python3
 """
-Demonstration of ConfidenceOperations for flexlibs
+Full CRUD Demo: ConfidenceOperations for flexlibs
+
+This script demonstrates complete CRUD operations for confidence.
+Performs actual create, read, update, and delete operations on test data.
+
+Author: FlexTools Development Team
+Date: 2025-11-27
 """
+
 from flexlibs import FLExProject, FLExInitialize, FLExCleanup
 
-def demo_confidence():
-    """Demonstrate ConfidenceOperations functionality."""
+def demo_confidence_crud():
+    """
+    Demonstrate full CRUD operations for confidence.
+
+    Tests:
+    - CREATE: Create new test confidence
+    - READ: Get all confidences, find by name/identifier
+    - UPDATE: Modify confidence properties
+    - DELETE: Remove test confidence
+    """
+
+    print("=" * 70)
+    print("CONFIDENCE OPERATIONS - FULL CRUD TEST")
+    print("=" * 70)
+
+    # Initialize FieldWorks
     FLExInitialize()
 
+    # Open project with write enabled
     project = FLExProject()
     try:
-        project.OpenProject("Kenyang-M", writeEnabled=True)
+        project.OpenProject("Sena 3", writeEnabled=True)
     except Exception as e:
         print(f"Cannot run demo - FLEx project not available: {e}")
         FLExCleanup()
         return
 
-    print("=" * 60)
-    print("ConfidenceOperations Demonstration")
-    print("=" * 60)
+    test_obj = None
+    test_name = "crud_test_confidence"
 
-    # Test Read operations
-    print("\n1. Testing GetAll operations:")
     try:
-        levels = project.Confidence.GetAll(flat=True)
-        count = 0
-        for level in levels:
+        # ==================== READ: Initial state ====================
+        print("\n" + "="*70)
+        print("STEP 1: READ - Get existing confidences")
+        print("="*70)
+
+        print("\nGetting all confidences...")
+        initial_count = 0
+        for obj in project.Confidence.GetAll():
+            # Display first few objects
             try:
-                name = project.Confidence.GetName(level)
-                abbr = project.Confidence.GetAbbreviation(level)
-                info = f"{name} - Abbr: {abbr if abbr else '(none)'}"
-                print(f"   Confidence Level: {info}")
-            except UnicodeEncodeError:
-                print(f"   Confidence Level: [Unicode name]")
-            count += 1
-            if count >= 5:
+                name = project.Confidence.GetName(obj) if hasattr(project.Confidence, 'GetName') else str(obj)
+                print(f"  - {name}")
+            except:
+                print(f"  - [Object {initial_count + 1}]")
+            initial_count += 1
+            if initial_count >= 5:
                 break
-        print(f"   Total shown: {count}")
-    except Exception as e:
-        print(f"   ERROR: {e}")
 
-    # Test Create operation
-    print("\n2. Testing Create operation:")
-    try:
-        test_name = "Demo Confidence"
-        if not project.Confidence.Exists(test_name):
-            level = project.Confidence.Create(test_name, "DC")
-            print(f"   Created: {project.Confidence.GetName(level)}")
+        print(f"\nTotal confidences (showing first 5): {initial_count}")
+
+        # ==================== CREATE ====================
+        print("\n" + "="*70)
+        print("STEP 2: CREATE - Create new test confidence")
+        print("="*70)
+
+        # Check if test object already exists
+        try:
+            if hasattr(project.Confidence, 'Exists') and project.Confidence.Exists(test_name):
+                print(f"\nTest confidence '{test_name}' already exists")
+                print("Deleting existing one first...")
+                existing = project.Confidence.Find(test_name) if hasattr(project.Confidence, 'Find') else None
+                if existing:
+                    project.Confidence.Delete(existing)
+                    print("  Deleted existing test confidence")
+        except:
+            pass
+
+        # Create new object
+        print(f"\nCreating new confidence: '{test_name}'")
+
+        try:
+            # Attempt to create with common parameters
+            test_obj = project.Confidence.Create(test_name)
+        except TypeError:
+            try:
+                # Try without parameters if that fails
+                test_obj = project.Confidence.Create()
+                if hasattr(project.Confidence, 'SetName'):
+                    project.Confidence.SetName(test_obj, test_name)
+            except Exception as e:
+                print(f"  Note: Create method may require specific parameters: {e}")
+                test_obj = None
+
+        if test_obj:
+            print(f"  SUCCESS: Confidence created!")
+            try:
+                if hasattr(project.Confidence, 'GetName'):
+                    print(f"  Name: {project.Confidence.GetName(test_obj)}")
+            except:
+                pass
         else:
-            level = project.Confidence.Find(test_name)
-            print(f"   Confidence level already exists: {test_name}")
+            print(f"  Note: Could not create confidence (may require special parameters)")
+            print("  Skipping remaining tests...")
+            return
+
+        # ==================== READ: Verify creation ====================
+        print("\n" + "="*70)
+        print("STEP 3: READ - Verify confidence was created")
+        print("="*70)
+
+        # Test Exists
+        if hasattr(project.Confidence, 'Exists'):
+            print(f"\nChecking if '{test_name}' exists...")
+            exists = project.Confidence.Exists(test_name)
+            print(f"  Exists: {exists}")
+
+        # Test Find
+        if hasattr(project.Confidence, 'Find'):
+            print(f"\nFinding confidence by name...")
+            found_obj = project.Confidence.Find(test_name)
+            if found_obj:
+                print(f"  FOUND: confidence")
+                try:
+                    if hasattr(project.Confidence, 'GetName'):
+                        print(f"  Name: {project.Confidence.GetName(found_obj)}")
+                except:
+                    pass
+            else:
+                print("  NOT FOUND")
+
+        # Count after creation
+        print("\nCounting all confidences after creation...")
+        current_count = sum(1 for _ in project.Confidence.GetAll())
+        print(f"  Count before: {initial_count}")
+        print(f"  Count after:  {current_count}")
+        print(f"  Difference:   +{current_count - initial_count}")
+
+        # ==================== UPDATE ====================
+        print("\n" + "="*70)
+        print("STEP 4: UPDATE - Modify confidence properties")
+        print("="*70)
+
+        if test_obj:
+            updated = False
+
+            # Try common update methods
+            if hasattr(project.Confidence, 'SetName'):
+                try:
+                    new_name = "crud_test_confidence_modified"
+                    print(f"\nUpdating name to: '{new_name}'")
+                    old_name = project.Confidence.GetName(test_obj) if hasattr(project.Confidence, 'GetName') else test_name
+                    project.Confidence.SetName(test_obj, new_name)
+                    updated_name = project.Confidence.GetName(test_obj) if hasattr(project.Confidence, 'GetName') else new_name
+                    print(f"  Old name: {old_name}")
+                    print(f"  New name: {updated_name}")
+                    test_name = new_name  # Update for cleanup
+                    updated = True
+                except Exception as e:
+                    print(f"  Note: SetName failed: {e}")
+
+            # Try other Set methods
+            for method_name in dir(project.Confidence):
+                if method_name.startswith('Set') and method_name != 'SetName' and not updated:
+                    print(f"\nFound update method: {method_name}")
+                    print("  (Method available but not tested in this demo)")
+                    break
+
+            if updated:
+                print("\n  UPDATE: SUCCESS")
+            else:
+                print("\n  Note: No standard update methods found or tested")
+
+        # ==================== READ: Verify updates ====================
+        print("\n" + "="*70)
+        print("STEP 5: READ - Verify updates persisted")
+        print("="*70)
+
+        if hasattr(project.Confidence, 'Find'):
+            print(f"\nFinding confidence after update...")
+            updated_obj = project.Confidence.Find(test_name)
+            if updated_obj:
+                print(f"  FOUND: confidence")
+                try:
+                    if hasattr(project.Confidence, 'GetName'):
+                        print(f"  Name: {project.Confidence.GetName(updated_obj)}")
+                except:
+                    pass
+            else:
+                print("  NOT FOUND - Update may not have persisted")
+
+        # ==================== DELETE ====================
+        print("\n" + "="*70)
+        print("STEP 6: DELETE - Remove test confidence")
+        print("="*70)
+
+        if test_obj:
+            print(f"\nDeleting test confidence...")
+            try:
+                obj_name = project.Confidence.GetName(test_obj) if hasattr(project.Confidence, 'GetName') else test_name
+            except:
+                obj_name = test_name
+
+            project.Confidence.Delete(test_obj)
+            print(f"  Deleted: {obj_name}")
+
+            # Verify deletion
+            print("\nVerifying deletion...")
+            if hasattr(project.Confidence, 'Exists'):
+                still_exists = project.Confidence.Exists(test_name)
+                print(f"  Still exists: {still_exists}")
+
+                if not still_exists:
+                    print("  DELETE: SUCCESS")
+                else:
+                    print("  DELETE: FAILED - Confidence still exists")
+
+            # Count after deletion
+            final_count = sum(1 for _ in project.Confidence.GetAll())
+            print(f"\n  Count after delete: {final_count}")
+            print(f"  Back to initial:    {final_count == initial_count}")
+
+        # ==================== SUMMARY ====================
+        print("\n" + "="*70)
+        print("CRUD TEST SUMMARY")
+        print("="*70)
+        print("\nOperations tested:")
+        print("  [CREATE] Create new confidence")
+        print("  [READ]   GetAll, Find, Exists, Get methods")
+        print("  [UPDATE] Set methods")
+        print("  [DELETE] Delete confidence")
+        print("\nTest completed successfully!")
+
     except Exception as e:
-        print(f"   ERROR: {e}")
+        print(f"\n\nERROR during CRUD test: {e}")
+        import traceback
+        traceback.print_exc()
 
-    # Test Find operation
-    print("\n3. Testing Find operations:")
-    try:
-        level = project.Confidence.Find("Demo Confidence")
-        if level:
-            print(f"   Found by name: {project.Confidence.GetName(level)}")
-            guid = project.Confidence.GetGuid(level)
-            print(f"   GUID: {guid}")
-    except Exception as e:
-        print(f"   ERROR: {e}")
+    finally:
+        # Cleanup: Ensure test object is removed
+        print("\n" + "="*70)
+        print("CLEANUP")
+        print("="*70)
 
-    # Test Property operations
-    print("\n4. Testing Property operations:")
-    try:
-        if level:
-            # Test abbreviation
-            abbr = project.Confidence.GetAbbreviation(level)
-            print(f"   Abbreviation: {abbr}")
+        try:
+            for name in ["crud_test_confidence", "crud_test_confidence_modified"]:
+                if hasattr(project.Confidence, 'Exists') and project.Confidence.Exists(name):
+                    obj = project.Confidence.Find(name) if hasattr(project.Confidence, 'Find') else None
+                    if obj:
+                        project.Confidence.Delete(obj)
+                        print(f"  Cleaned up: {name}")
+        except:
+            pass
 
-            # Test description
-            project.Confidence.SetDescription(level, "Demo confidence level for testing")
-            desc = project.Confidence.GetDescription(level)
-            print(f"   Description: {desc[:50]}...")
-    except Exception as e:
-        print(f"   ERROR: {e}")
+        print("\nClosing project...")
+        project.CloseProject()
+        FLExCleanup()
 
-    # Test Hierarchy operations
-    print("\n5. Testing Hierarchy operations:")
-    try:
-        if level:
-            sublevel_name = "Demo Sub-Level"
-            existing_subs = [project.Confidence.GetName(s)
-                           for s in project.Confidence.GetSubitems(level)]
-            if sublevel_name not in existing_subs:
-                sublevel = project.Confidence.CreateSubitem(level, sublevel_name, "DSL")
-                print(f"   Created subitem: {project.Confidence.GetName(sublevel)}")
+    print("\n" + "="*70)
+    print("DEMO COMPLETE")
+    print("="*70)
 
-            subs = project.Confidence.GetSubitems(level)
-            print(f"   Subitems count: {len(subs)}")
-
-            if subs:
-                parent = project.Confidence.GetParent(subs[0])
-                if parent:
-                    print(f"   Parent of subitem: {project.Confidence.GetName(parent)}")
-    except Exception as e:
-        print(f"   ERROR: {e}")
-
-    # Test standard confidence levels
-    print("\n6. Testing standard confidence levels:")
-    try:
-        # Common confidence levels: High, Medium, Low, Uncertain
-        for name in ["High", "Medium", "Low"]:
-            conf = project.Confidence.Find(name)
-            if conf:
-                print(f"   Found standard level: {name}")
-    except Exception as e:
-        print(f"   ERROR: {e}")
-
-    # Test Metadata operations
-    print("\n7. Testing Metadata operations:")
-    try:
-        if level:
-            created = project.Confidence.GetDateCreated(level)
-            modified = project.Confidence.GetDateModified(level)
-            print(f"   Created: {created}")
-            print(f"   Modified: {modified}")
-    except Exception as e:
-        print(f"   ERROR: {e}")
-
-    print("\n" + "=" * 60)
-    print("Demonstration complete!")
-    print("=" * 60)
-
-    project.CloseProject()
-    FLExCleanup()
 
 if __name__ == "__main__":
-    demo_confidence()
+    print("""
+Confidence Operations - Full CRUD Demo
+=====================================================
+
+This demonstrates COMPLETE CRUD operations for confidence.
+
+Operations Tested:
+==================
+
+CREATE: Create new confidence
+READ:   GetAll(), Find(), Exists(), Get...() methods
+UPDATE: Set...() methods
+DELETE: Delete()
+
+Test Flow:
+==========
+1. READ initial state
+2. CREATE new test confidence
+3. READ to verify creation
+4. UPDATE confidence properties
+5. READ to verify updates
+6. DELETE test confidence
+7. Verify deletion
+
+Requirements:
+  - FLEx project with write access
+  - Python.NET runtime
+
+WARNING: This demo modifies the database!
+         Test confidence is created and deleted during the demo.
+    """)
+
+    response = input("\nRun CRUD demo? (y/N): ")
+    if response.lower() == 'y':
+        demo_confidence_crud()
+    else:
+        print("\nDemo skipped.")

@@ -621,23 +621,22 @@ class LexReferenceOperations:
 
     # --- Reference Management ---
 
-    def GetAll(self, sense_or_entry):
+    def GetAll(self, sense_or_entry=None):
         """
-        Get all lexical references for a sense or entry.
+        Get all lexical references for a sense or entry, or all references in the entire project.
 
         This returns all LexReference objects that include the specified
         sense or entry as one of their targets.
 
         Args:
-            sense_or_entry: Either an ILexSense or ILexEntry object (or HVO)
+            sense_or_entry: Either an ILexSense or ILexEntry object (or HVO).
+                           If None, iterates all lexical references in the entire project.
 
         Yields:
-            ILexReference: Each reference that includes this sense/entry
-
-        Raises:
-            FP_NullParameterError: If sense_or_entry is None
+            ILexReference: Each reference that includes this sense/entry (or project)
 
         Example:
+            >>> # Get references for specific sense
             >>> entry = project.LexEntry.Find("run")
             >>> if entry:
             ...     senses = list(project.Senses.GetAll(entry))
@@ -650,34 +649,55 @@ class LexReferenceOperations:
             Synonym: 3 targets
             Hypernym: 2 targets
 
+            >>> # Get ALL lexical references in entire project
+            >>> for ref in project.LexReferences.GetAll():
+            ...     ref_type = project.LexReferences.GetType(ref)
+            ...     type_name = project.LexReferences.GetTypeName(ref_type)
+            ...     print(f"Reference type: {type_name}")
+
         Notes:
-            - Returns references where sense/entry is any of the targets
-            - For entry, checks all senses of the entry
-            - Returns empty generator if no references exist
+            - When sense_or_entry is provided:
+              - Returns references where sense/entry is any of the targets
+              - For entry, checks all senses of the entry
+              - Returns empty generator if no references exist
+            - When sense_or_entry is None:
+              - Iterates ALL entries in the project
+              - For each entry, iterates all senses
+              - For each sense, yields all lexical references
+              - Useful for project-wide reference operations
 
         See Also:
             Create, GetTargets, GetReferencesOfType
         """
-        if not sense_or_entry:
-            raise FP_NullParameterError()
-
-        obj = self.__ResolveSenseOrEntry(sense_or_entry)
-
-        # Determine if this is a sense or entry
-        if hasattr(obj, 'ClassName'):
-            if obj.ClassName == 'LexSense':
-                # Get references for this sense
-                for ref in obj.ReferringLexReferences:
-                    yield ref
-            elif obj.ClassName == 'LexEntry':
-                # Get references for all senses of this entry
-                seen_refs = set()
-                for sense in obj.SensesOS:
+        if sense_or_entry is None:
+            # Iterate ALL lexical references in entire project
+            seen_refs = set()
+            for entry in self.project.lexDB.Entries:
+                for sense in entry.SensesOS:
                     for ref in sense.ReferringLexReferences:
-                        # Avoid duplicates
+                        # Avoid duplicates across different senses
                         if ref.Hvo not in seen_refs:
                             seen_refs.add(ref.Hvo)
                             yield ref
+        else:
+            # Iterate references for specific sense or entry
+            obj = self.__ResolveSenseOrEntry(sense_or_entry)
+
+            # Determine if this is a sense or entry
+            if hasattr(obj, 'ClassName'):
+                if obj.ClassName == 'LexSense':
+                    # Get references for this sense
+                    for ref in obj.ReferringLexReferences:
+                        yield ref
+                elif obj.ClassName == 'LexEntry':
+                    # Get references for all senses of this entry
+                    seen_refs = set()
+                    for sense in obj.SensesOS:
+                        for ref in sense.ReferringLexReferences:
+                            # Avoid duplicates
+                            if ref.Hvo not in seen_refs:
+                                seen_refs.add(ref.Hvo)
+                                yield ref
 
 
     def Create(self, ref_type_or_name, targets):

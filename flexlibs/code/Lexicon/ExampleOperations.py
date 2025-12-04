@@ -79,21 +79,22 @@ class ExampleOperations:
         self.project = project
 
 
-    def GetAll(self, sense_or_hvo):
+    def GetAll(self, sense_or_hvo=None):
         """
-        Get all example sentences for a lexical sense.
+        Get example sentences for a sense or all examples in the project.
 
         Args:
-            sense_or_hvo: The ILexSense object or HVO.
+            sense_or_hvo: Optional ILexSense object or HVO.
+                         If provided, returns examples for that sense only.
+                         If None, returns ALL examples in the entire project.
 
         Yields:
-            ILexExampleSentence: Each example sentence for the sense.
-
-        Raises:
-            FP_NullParameterError: If sense_or_hvo is None.
+            ILexExampleSentence: Each example sentence.
 
         Example:
             >>> exampleOps = ExampleOperations(project)
+            >>>
+            >>> # Get examples for a specific sense
             >>> entry = project.LexiconAllEntries().__next__()
             >>> sense = entry.SensesOS[0]
             >>> for example in exampleOps.GetAll(sense):
@@ -101,22 +102,33 @@ class ExampleOperations:
             ...     print(f"Example: {text}")
             Example: The dog ran quickly.
             Example: Dogs run faster than cats.
+            >>>
+            >>> # Get ALL examples in entire project
+            >>> for example in exampleOps.GetAll():
+            ...     text = exampleOps.GetExample(example)
+            ...     print(f"Example: {text}")
 
         Notes:
+            - When called with no argument, iterates all examples in project
+            - When called with sense, returns only that sense's examples
             - Returns examples in the order they appear in FLEx
-            - Returns empty generator if sense has no examples
+            - Returns empty generator if no examples exist
             - Examples are ordered collections (can be reordered)
 
         See Also:
             Create, Delete, Reorder
         """
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
-
-        sense = self.__GetSenseObject(sense_or_hvo)
-
-        for example in sense.ExamplesOS:
-            yield example
+        if sense_or_hvo is None:
+            # Iterate ALL examples in entire project
+            for entry in self.project.lexDB.Entries:
+                for sense in entry.AllSenses:  # Includes subsenses
+                    for example in sense.ExamplesOS:
+                        yield example
+        else:
+            # Iterate examples for specific sense
+            sense = self.__GetSenseObject(sense_or_hvo)
+            for example in sense.ExamplesOS:
+                yield example
 
 
     def Create(self, sense_or_hvo, example_text, wsHandle=None):

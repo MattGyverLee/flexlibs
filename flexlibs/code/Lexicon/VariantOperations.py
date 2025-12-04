@@ -277,23 +277,22 @@ class VariantOperations:
 
     # --- Variant Management ---
 
-    def GetAll(self, entry_or_hvo):
+    def GetAll(self, entry_or_hvo=None):
         """
-        Get all variant references for a lexical entry.
+        Get all variant references for a lexical entry, or all variants in the entire project.
 
         This returns the entry references that define this entry as a variant
         of other entries, or other entries as variants of this one.
 
         Args:
-            entry_or_hvo: The ILexEntry object or HVO.
+            entry_or_hvo: The ILexEntry object or HVO. If None, iterates all variant
+                         references in the entire project.
 
         Yields:
-            ILexEntryRef: Each variant reference associated with the entry.
-
-        Raises:
-            FP_NullParameterError: If entry_or_hvo is None.
+            ILexEntryRef: Each variant reference associated with the entry (or project).
 
         Example:
+            >>> # Get variant references for specific entry
             >>> entry = project.LexEntry.Find("colour")
             >>> for variant_ref in project.Variants.GetAll(entry):
             ...     vtype = project.Variants.GetType(variant_ref)
@@ -301,24 +300,40 @@ class VariantOperations:
             ...     print(f"Variant type: {type_name}")
             Variant type: Spelling Variant
 
+            >>> # Get ALL variant references in entire project
+            >>> for variant_ref in project.Variants.GetAll():
+            ...     form = project.Variants.GetForm(variant_ref)
+            ...     print(f"Variant form: {form}")
+
         Notes:
-            - Returns empty generator if entry has no variants
-            - Each ILexEntryRef represents one variant relationship
-            - For complex entries, may return multiple references
-            - Variant references are bidirectional in some cases
+            - When entry_or_hvo is provided:
+              - Returns empty generator if entry has no variants
+              - Each ILexEntryRef represents one variant relationship
+              - For complex entries, may return multiple references
+              - Variant references are bidirectional in some cases
+            - When entry_or_hvo is None:
+              - Iterates ALL entries in the project
+              - For each entry, yields all variant-type references
+              - Useful for project-wide variant operations
 
         See Also:
             Create, GetVariantCount, GetType
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        if entry_or_hvo is None:
+            # Iterate ALL variant references in entire project
+            for entry in self.project.lexDB.Entries:
+                for entry_ref in entry.EntryRefsOS:
+                    # Check if this is a variant type reference
+                    if entry_ref.RefType == 0:  # Variant type
+                        yield entry_ref
+        else:
+            # Iterate variant references for specific entry
+            entry = self.__GetEntryObject(entry_or_hvo)
 
-        entry = self.__GetEntryObject(entry_or_hvo)
-
-        for entry_ref in entry.EntryRefsOS:
-            # Check if this is a variant type reference
-            if entry_ref.RefType == 0:  # Variant type
-                yield entry_ref
+            for entry_ref in entry.EntryRefsOS:
+                # Check if this is a variant type reference
+                if entry_ref.RefType == 0:  # Variant type
+                    yield entry_ref
 
 
     def Create(self, entry_or_hvo, variant_form, variant_type, wsHandle=None):

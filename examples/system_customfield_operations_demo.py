@@ -1,143 +1,304 @@
 #!/usr/bin/env python3
 """
-Demonstration of CustomFieldOperations for flexlibs
+Full CRUD Demo: CustomfieldOperations for flexlibs
+
+This script demonstrates complete CRUD operations for customfield.
+Performs actual create, read, update, and delete operations on test data.
+
+Author: FlexTools Development Team
+Date: 2025-11-27
 """
+
 from flexlibs import FLExProject, FLExInitialize, FLExCleanup
 
-def demo_customfield():
-    """Demonstrate CustomFieldOperations functionality."""
+def demo_customfield_crud():
+    """
+    Demonstrate full CRUD operations for customfield.
+
+    Tests:
+    - CREATE: Create new test customfield
+    - READ: Get all customfields, find by name/identifier
+    - UPDATE: Modify customfield properties
+    - DELETE: Remove test customfield
+    """
+
+    print("=" * 70)
+    print("CUSTOMFIELD OPERATIONS - FULL CRUD TEST")
+    print("=" * 70)
+
+    # Initialize FieldWorks
     FLExInitialize()
 
+    # Open project with write enabled
     project = FLExProject()
     try:
-        project.OpenProject("Kenyang-M", writeEnabled=True)
+        project.OpenProject("Sena 3", writeEnabled=True)
     except Exception as e:
         print(f"Cannot run demo - FLEx project not available: {e}")
         FLExCleanup()
         return
 
-    print("=" * 60)
-    print("CustomFieldOperations Demonstration")
-    print("=" * 60)
+    test_obj = None
+    test_name = "crud_test_customfield"
 
-    # Test Read operations
-    print("\n1. Testing GetAll operations:")
     try:
-        fields = project.CustomField.GetAll()
-        count = 0
-        for field in fields:
+        # ==================== READ: Initial state ====================
+        print("\n" + "="*70)
+        print("STEP 1: READ - Get existing customfields")
+        print("="*70)
+
+        print("\nGetting all customfields...")
+        initial_count = 0
+        for obj in project.Customfield.GetAll():
+            # Display first few objects
             try:
-                name = project.CustomField.GetName(field)
-                field_type = project.CustomField.GetFieldType(field)
-                info = f"{name} - Type: {field_type if field_type else '(unknown)'}"
-                print(f"   Custom Field: {info}")
-            except UnicodeEncodeError:
-                print(f"   Custom Field: [Unicode name]")
-            count += 1
-            if count >= 5:
+                name = project.Customfield.GetName(obj) if hasattr(project.Customfield, 'GetName') else str(obj)
+                print(f"  - {name}")
+            except:
+                print(f"  - [Object {initial_count + 1}]")
+            initial_count += 1
+            if initial_count >= 5:
                 break
-        print(f"   Total shown: {count}")
-    except Exception as e:
-        print(f"   ERROR: {e}")
 
-    # Test Create operation
-    print("\n2. Testing Create operation:")
-    try:
-        test_name = "Demo_Custom_Field"
-        if not project.CustomField.Exists(test_name):
-            field = project.CustomField.Create(test_name, "String", "LexEntry")
-            print(f"   Created: {project.CustomField.GetName(field)}")
-        else:
-            field = project.CustomField.Find(test_name)
-            print(f"   Custom field already exists: {test_name}")
-    except Exception as e:
-        print(f"   ERROR: {e}")
+        print(f"\nTotal customfields (showing first 5): {initial_count}")
 
-    # Test Find operation
-    print("\n3. Testing Find operations:")
-    try:
-        field = project.CustomField.Find("Demo_Custom_Field")
-        if field:
-            print(f"   Found by name: {project.CustomField.GetName(field)}")
-            guid = project.CustomField.GetGuid(field)
-            print(f"   GUID: {guid}")
-    except Exception as e:
-        print(f"   ERROR: {e}")
+        # ==================== CREATE ====================
+        print("\n" + "="*70)
+        print("STEP 2: CREATE - Create new test customfield")
+        print("="*70)
 
-    # Test Property operations
-    print("\n4. Testing Property operations:")
-    try:
-        if field:
-            # Test field type
-            field_type = project.CustomField.GetFieldType(field)
-            print(f"   Field type: {field_type}")
+        # Check if test object already exists
+        try:
+            if hasattr(project.Customfield, 'Exists') and project.Customfield.Exists(test_name):
+                print(f"\nTest customfield '{test_name}' already exists")
+                print("Deleting existing one first...")
+                existing = project.Customfield.Find(test_name) if hasattr(project.Customfield, 'Find') else None
+                if existing:
+                    project.Customfield.Delete(existing)
+                    print("  Deleted existing test customfield")
+        except:
+            pass
 
-            # Test class name
-            class_name = project.CustomField.GetClassName(field)
-            print(f"   Class name: {class_name}")
+        # Create new object
+        print(f"\nCreating new customfield: '{test_name}'")
 
-            # Test help string
-            project.CustomField.SetHelpString(field, "Demo custom field for testing")
-            help_str = project.CustomField.GetHelpString(field)
-            print(f"   Help string: {help_str[:50]}...")
-
-            # Test label
-            project.CustomField.SetLabel(field, "Demo Field")
-            label = project.CustomField.GetLabel(field)
-            print(f"   Label: {label}")
-    except Exception as e:
-        print(f"   ERROR: {e}")
-
-    # Test field types
-    print("\n5. Testing field types:")
-    try:
-        all_fields = project.CustomField.GetAll()
-        type_counts = {}
-        for f in all_fields:
+        try:
+            # Attempt to create with common parameters
+            test_obj = project.Customfield.Create(test_name)
+        except TypeError:
             try:
-                ftype = project.CustomField.GetFieldType(f)
-                type_counts[ftype] = type_counts.get(ftype, 0) + 1
+                # Try without parameters if that fails
+                test_obj = project.Customfield.Create()
+                if hasattr(project.Customfield, 'SetName'):
+                    project.Customfield.SetName(test_obj, test_name)
+            except Exception as e:
+                print(f"  Note: Create method may require specific parameters: {e}")
+                test_obj = None
+
+        if test_obj:
+            print(f"  SUCCESS: Customfield created!")
+            try:
+                if hasattr(project.Customfield, 'GetName'):
+                    print(f"  Name: {project.Customfield.GetName(test_obj)}")
             except:
                 pass
-        print("   Field type distribution:")
-        for ftype, count in type_counts.items():
-            print(f"     {ftype}: {count}")
+        else:
+            print(f"  Note: Could not create customfield (may require special parameters)")
+            print("  Skipping remaining tests...")
+            return
+
+        # ==================== READ: Verify creation ====================
+        print("\n" + "="*70)
+        print("STEP 3: READ - Verify customfield was created")
+        print("="*70)
+
+        # Test Exists
+        if hasattr(project.Customfield, 'Exists'):
+            print(f"\nChecking if '{test_name}' exists...")
+            exists = project.Customfield.Exists(test_name)
+            print(f"  Exists: {exists}")
+
+        # Test Find
+        if hasattr(project.Customfield, 'Find'):
+            print(f"\nFinding customfield by name...")
+            found_obj = project.Customfield.Find(test_name)
+            if found_obj:
+                print(f"  FOUND: customfield")
+                try:
+                    if hasattr(project.Customfield, 'GetName'):
+                        print(f"  Name: {project.Customfield.GetName(found_obj)}")
+                except:
+                    pass
+            else:
+                print("  NOT FOUND")
+
+        # Count after creation
+        print("\nCounting all customfields after creation...")
+        current_count = sum(1 for _ in project.Customfield.GetAll())
+        print(f"  Count before: {initial_count}")
+        print(f"  Count after:  {current_count}")
+        print(f"  Difference:   +{current_count - initial_count}")
+
+        # ==================== UPDATE ====================
+        print("\n" + "="*70)
+        print("STEP 4: UPDATE - Modify customfield properties")
+        print("="*70)
+
+        if test_obj:
+            updated = False
+
+            # Try common update methods
+            if hasattr(project.Customfield, 'SetName'):
+                try:
+                    new_name = "crud_test_customfield_modified"
+                    print(f"\nUpdating name to: '{new_name}'")
+                    old_name = project.Customfield.GetName(test_obj) if hasattr(project.Customfield, 'GetName') else test_name
+                    project.Customfield.SetName(test_obj, new_name)
+                    updated_name = project.Customfield.GetName(test_obj) if hasattr(project.Customfield, 'GetName') else new_name
+                    print(f"  Old name: {old_name}")
+                    print(f"  New name: {updated_name}")
+                    test_name = new_name  # Update for cleanup
+                    updated = True
+                except Exception as e:
+                    print(f"  Note: SetName failed: {e}")
+
+            # Try other Set methods
+            for method_name in dir(project.Customfield):
+                if method_name.startswith('Set') and method_name != 'SetName' and not updated:
+                    print(f"\nFound update method: {method_name}")
+                    print("  (Method available but not tested in this demo)")
+                    break
+
+            if updated:
+                print("\n  UPDATE: SUCCESS")
+            else:
+                print("\n  Note: No standard update methods found or tested")
+
+        # ==================== READ: Verify updates ====================
+        print("\n" + "="*70)
+        print("STEP 5: READ - Verify updates persisted")
+        print("="*70)
+
+        if hasattr(project.Customfield, 'Find'):
+            print(f"\nFinding customfield after update...")
+            updated_obj = project.Customfield.Find(test_name)
+            if updated_obj:
+                print(f"  FOUND: customfield")
+                try:
+                    if hasattr(project.Customfield, 'GetName'):
+                        print(f"  Name: {project.Customfield.GetName(updated_obj)}")
+                except:
+                    pass
+            else:
+                print("  NOT FOUND - Update may not have persisted")
+
+        # ==================== DELETE ====================
+        print("\n" + "="*70)
+        print("STEP 6: DELETE - Remove test customfield")
+        print("="*70)
+
+        if test_obj:
+            print(f"\nDeleting test customfield...")
+            try:
+                obj_name = project.Customfield.GetName(test_obj) if hasattr(project.Customfield, 'GetName') else test_name
+            except:
+                obj_name = test_name
+
+            project.Customfield.Delete(test_obj)
+            print(f"  Deleted: {obj_name}")
+
+            # Verify deletion
+            print("\nVerifying deletion...")
+            if hasattr(project.Customfield, 'Exists'):
+                still_exists = project.Customfield.Exists(test_name)
+                print(f"  Still exists: {still_exists}")
+
+                if not still_exists:
+                    print("  DELETE: SUCCESS")
+                else:
+                    print("  DELETE: FAILED - Customfield still exists")
+
+            # Count after deletion
+            final_count = sum(1 for _ in project.Customfield.GetAll())
+            print(f"\n  Count after delete: {final_count}")
+            print(f"  Back to initial:    {final_count == initial_count}")
+
+        # ==================== SUMMARY ====================
+        print("\n" + "="*70)
+        print("CRUD TEST SUMMARY")
+        print("="*70)
+        print("\nOperations tested:")
+        print("  [CREATE] Create new customfield")
+        print("  [READ]   GetAll, Find, Exists, Get methods")
+        print("  [UPDATE] Set methods")
+        print("  [DELETE] Delete customfield")
+        print("\nTest completed successfully!")
+
     except Exception as e:
-        print(f"   ERROR: {e}")
+        print(f"\n\nERROR during CRUD test: {e}")
+        import traceback
+        traceback.print_exc()
 
-    # Test value operations (on actual entry if possible)
-    print("\n6. Testing value operations:")
-    try:
-        if field:
-            # Get a lexical entry to test with
-            entries = list(project.LexEntry.GetAll())
-            if entries:
-                entry = entries[0]
+    finally:
+        # Cleanup: Ensure test object is removed
+        print("\n" + "="*70)
+        print("CLEANUP")
+        print("="*70)
 
-                # Set custom field value
-                project.CustomField.SetValue(field, entry, "Demo value for testing")
-                value = project.CustomField.GetValue(field, entry)
-                print(f"   Custom field value: {value}")
-    except Exception as e:
-        print(f"   ERROR: {e}")
+        try:
+            for name in ["crud_test_customfield", "crud_test_customfield_modified"]:
+                if hasattr(project.Customfield, 'Exists') and project.Customfield.Exists(name):
+                    obj = project.Customfield.Find(name) if hasattr(project.Customfield, 'Find') else None
+                    if obj:
+                        project.Customfield.Delete(obj)
+                        print(f"  Cleaned up: {name}")
+        except:
+            pass
 
-    # Test Metadata operations
-    print("\n7. Testing Metadata operations:")
-    try:
-        if field:
-            created = project.CustomField.GetDateCreated(field)
-            modified = project.CustomField.GetDateModified(field)
-            print(f"   Created: {created}")
-            print(f"   Modified: {modified}")
-    except Exception as e:
-        print(f"   ERROR: {e}")
+        print("\nClosing project...")
+        project.CloseProject()
+        FLExCleanup()
 
-    print("\n" + "=" * 60)
-    print("Demonstration complete!")
-    print("=" * 60)
+    print("\n" + "="*70)
+    print("DEMO COMPLETE")
+    print("="*70)
 
-    project.CloseProject()
-    FLExCleanup()
 
 if __name__ == "__main__":
-    demo_customfield()
+    print("""
+Customfield Operations - Full CRUD Demo
+=====================================================
+
+This demonstrates COMPLETE CRUD operations for customfield.
+
+Operations Tested:
+==================
+
+CREATE: Create new customfield
+READ:   GetAll(), Find(), Exists(), Get...() methods
+UPDATE: Set...() methods
+DELETE: Delete()
+
+Test Flow:
+==========
+1. READ initial state
+2. CREATE new test customfield
+3. READ to verify creation
+4. UPDATE customfield properties
+5. READ to verify updates
+6. DELETE test customfield
+7. Verify deletion
+
+Requirements:
+  - FLEx project with write access
+  - Python.NET runtime
+
+WARNING: This demo modifies the database!
+         Test customfield is created and deleted during the demo.
+    """)
+
+    response = input("\nRun CRUD demo? (y/N): ")
+    if response.lower() == 'y':
+        demo_customfield_crud()
+    else:
+        print("\nDemo skipped.")

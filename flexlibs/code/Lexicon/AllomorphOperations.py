@@ -78,21 +78,20 @@ class AllomorphOperations:
         self.project = project
 
 
-    def GetAll(self, entry_or_hvo):
+    def GetAll(self, entry_or_hvo=None):
         """
-        Get all allomorphs for a lexical entry.
+        Get all allomorphs for a lexical entry, or all allomorphs in the entire project.
 
         Args:
-            entry_or_hvo: The ILexEntry object or HVO.
+            entry_or_hvo: The ILexEntry object or HVO. If None, iterates all allomorphs
+                         in the entire project.
 
         Yields:
-            IMoForm: Each allomorph of the entry.
-
-        Raises:
-            FP_NullParameterError: If entry_or_hvo is None.
+            IMoForm: Each allomorph of the entry (or project).
 
         Example:
             >>> allomorphOps = AllomorphOperations(project)
+            >>> # Get allomorphs for specific entry
             >>> entry = project.LexiconAllEntries()[0]
             >>> for allomorph in allomorphOps.GetAll(entry):
             ...     form = allomorphOps.GetForm(allomorph)
@@ -101,27 +100,46 @@ class AllomorphOperations:
             Allomorph: ran
             Allomorph: runn-
 
+            >>> # Get ALL allomorphs in entire project
+            >>> for allomorph in allomorphOps.GetAll():
+            ...     form = allomorphOps.GetForm(allomorph)
+            ...     print(f"Allomorph: {form}")
+
         Notes:
-            - Returns the lexeme form first (if it exists)
-            - Then returns all alternate forms
-            - Order follows FLEx database order
-            - Returns empty generator if entry has no allomorphs
+            - When entry_or_hvo is provided:
+              - Returns the lexeme form first (if it exists)
+              - Then returns all alternate forms
+              - Order follows FLEx database order
+              - Returns empty generator if entry has no allomorphs
+            - When entry_or_hvo is None:
+              - Iterates ALL entries in the project
+              - For each entry, yields lexeme form then alternate forms
+              - Useful for project-wide allomorph operations
 
         See Also:
             Create, GetForm
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        if entry_or_hvo is None:
+            # Iterate ALL allomorphs in entire project
+            for entry in self.project.lexDB.Entries:
+                # First yield the lexeme form if it exists
+                if entry.LexemeFormOA:
+                    yield entry.LexemeFormOA
 
-        entry = self.__GetEntryObject(entry_or_hvo)
+                # Then yield all alternate forms
+                for allomorph in entry.AlternateFormsOS:
+                    yield allomorph
+        else:
+            # Iterate allomorphs for specific entry
+            entry = self.__GetEntryObject(entry_or_hvo)
 
-        # First yield the lexeme form if it exists
-        if entry.LexemeFormOA:
-            yield entry.LexemeFormOA
+            # First yield the lexeme form if it exists
+            if entry.LexemeFormOA:
+                yield entry.LexemeFormOA
 
-        # Then yield all alternate forms
-        for allomorph in entry.AlternateFormsOS:
-            yield allomorph
+            # Then yield all alternate forms
+            for allomorph in entry.AlternateFormsOS:
+                yield allomorph
 
 
     def Create(self, entry_or_hvo, form, morphType, wsHandle=None):

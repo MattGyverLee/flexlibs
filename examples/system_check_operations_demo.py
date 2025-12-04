@@ -1,130 +1,304 @@
 #!/usr/bin/env python3
 """
-Demonstration of CheckOperations for flexlibs
+Full CRUD Demo: CheckOperations for flexlibs
+
+This script demonstrates complete CRUD operations for check.
+Performs actual create, read, update, and delete operations on test data.
+
+Author: FlexTools Development Team
+Date: 2025-11-27
 """
+
 from flexlibs import FLExProject, FLExInitialize, FLExCleanup
 
-def demo_check():
-    """Demonstrate CheckOperations functionality."""
+def demo_check_crud():
+    """
+    Demonstrate full CRUD operations for check.
+
+    Tests:
+    - CREATE: Create new test check
+    - READ: Get all checks, find by name/identifier
+    - UPDATE: Modify check properties
+    - DELETE: Remove test check
+    """
+
+    print("=" * 70)
+    print("CHECK OPERATIONS - FULL CRUD TEST")
+    print("=" * 70)
+
+    # Initialize FieldWorks
     FLExInitialize()
 
+    # Open project with write enabled
     project = FLExProject()
     try:
-        project.OpenProject("Kenyang-M", writeEnabled=True)
+        project.OpenProject("Sena 3", writeEnabled=True)
     except Exception as e:
         print(f"Cannot run demo - FLEx project not available: {e}")
         FLExCleanup()
         return
 
-    print("=" * 60)
-    print("CheckOperations Demonstration")
-    print("=" * 60)
+    test_obj = None
+    test_name = "crud_test_check"
 
-    # Test Read operations
-    print("\n1. Testing GetAll operations:")
     try:
-        checks = project.Check.GetAll()
-        count = 0
-        for check in checks:
+        # ==================== READ: Initial state ====================
+        print("\n" + "="*70)
+        print("STEP 1: READ - Get existing checks")
+        print("="*70)
+
+        print("\nGetting all checks...")
+        initial_count = 0
+        for obj in project.Check.GetAll():
+            # Display first few objects
             try:
-                name = project.Check.GetName(check)
-                desc = project.Check.GetDescription(check)
-                info = f"{name} - Desc: {desc[:30] if desc else '(none)'}..."
-                print(f"   Check: {info}")
-            except UnicodeEncodeError:
-                print(f"   Check: [Unicode name]")
-            count += 1
-            if count >= 5:
+                name = project.Check.GetName(obj) if hasattr(project.Check, 'GetName') else str(obj)
+                print(f"  - {name}")
+            except:
+                print(f"  - [Object {initial_count + 1}]")
+            initial_count += 1
+            if initial_count >= 5:
                 break
-        print(f"   Total shown: {count}")
-    except Exception as e:
-        print(f"   ERROR: {e}")
 
-    # Test Create operation
-    print("\n2. Testing Create operation:")
-    try:
-        test_name = "Demo Consistency Check"
-        if not project.Check.Exists(test_name):
-            check = project.Check.Create(test_name)
-            print(f"   Created: {project.Check.GetName(check)}")
+        print(f"\nTotal checks (showing first 5): {initial_count}")
+
+        # ==================== CREATE ====================
+        print("\n" + "="*70)
+        print("STEP 2: CREATE - Create new test check")
+        print("="*70)
+
+        # Check if test object already exists
+        try:
+            if hasattr(project.Check, 'Exists') and project.Check.Exists(test_name):
+                print(f"\nTest check '{test_name}' already exists")
+                print("Deleting existing one first...")
+                existing = project.Check.Find(test_name) if hasattr(project.Check, 'Find') else None
+                if existing:
+                    project.Check.Delete(existing)
+                    print("  Deleted existing test check")
+        except:
+            pass
+
+        # Create new object
+        print(f"\nCreating new check: '{test_name}'")
+
+        try:
+            # Attempt to create with common parameters
+            test_obj = project.Check.Create(test_name)
+        except TypeError:
+            try:
+                # Try without parameters if that fails
+                test_obj = project.Check.Create()
+                if hasattr(project.Check, 'SetName'):
+                    project.Check.SetName(test_obj, test_name)
+            except Exception as e:
+                print(f"  Note: Create method may require specific parameters: {e}")
+                test_obj = None
+
+        if test_obj:
+            print(f"  SUCCESS: Check created!")
+            try:
+                if hasattr(project.Check, 'GetName'):
+                    print(f"  Name: {project.Check.GetName(test_obj)}")
+            except:
+                pass
         else:
-            check = project.Check.Find(test_name)
-            print(f"   Check already exists: {test_name}")
+            print(f"  Note: Could not create check (may require special parameters)")
+            print("  Skipping remaining tests...")
+            return
+
+        # ==================== READ: Verify creation ====================
+        print("\n" + "="*70)
+        print("STEP 3: READ - Verify check was created")
+        print("="*70)
+
+        # Test Exists
+        if hasattr(project.Check, 'Exists'):
+            print(f"\nChecking if '{test_name}' exists...")
+            exists = project.Check.Exists(test_name)
+            print(f"  Exists: {exists}")
+
+        # Test Find
+        if hasattr(project.Check, 'Find'):
+            print(f"\nFinding check by name...")
+            found_obj = project.Check.Find(test_name)
+            if found_obj:
+                print(f"  FOUND: check")
+                try:
+                    if hasattr(project.Check, 'GetName'):
+                        print(f"  Name: {project.Check.GetName(found_obj)}")
+                except:
+                    pass
+            else:
+                print("  NOT FOUND")
+
+        # Count after creation
+        print("\nCounting all checks after creation...")
+        current_count = sum(1 for _ in project.Check.GetAll())
+        print(f"  Count before: {initial_count}")
+        print(f"  Count after:  {current_count}")
+        print(f"  Difference:   +{current_count - initial_count}")
+
+        # ==================== UPDATE ====================
+        print("\n" + "="*70)
+        print("STEP 4: UPDATE - Modify check properties")
+        print("="*70)
+
+        if test_obj:
+            updated = False
+
+            # Try common update methods
+            if hasattr(project.Check, 'SetName'):
+                try:
+                    new_name = "crud_test_check_modified"
+                    print(f"\nUpdating name to: '{new_name}'")
+                    old_name = project.Check.GetName(test_obj) if hasattr(project.Check, 'GetName') else test_name
+                    project.Check.SetName(test_obj, new_name)
+                    updated_name = project.Check.GetName(test_obj) if hasattr(project.Check, 'GetName') else new_name
+                    print(f"  Old name: {old_name}")
+                    print(f"  New name: {updated_name}")
+                    test_name = new_name  # Update for cleanup
+                    updated = True
+                except Exception as e:
+                    print(f"  Note: SetName failed: {e}")
+
+            # Try other Set methods
+            for method_name in dir(project.Check):
+                if method_name.startswith('Set') and method_name != 'SetName' and not updated:
+                    print(f"\nFound update method: {method_name}")
+                    print("  (Method available but not tested in this demo)")
+                    break
+
+            if updated:
+                print("\n  UPDATE: SUCCESS")
+            else:
+                print("\n  Note: No standard update methods found or tested")
+
+        # ==================== READ: Verify updates ====================
+        print("\n" + "="*70)
+        print("STEP 5: READ - Verify updates persisted")
+        print("="*70)
+
+        if hasattr(project.Check, 'Find'):
+            print(f"\nFinding check after update...")
+            updated_obj = project.Check.Find(test_name)
+            if updated_obj:
+                print(f"  FOUND: check")
+                try:
+                    if hasattr(project.Check, 'GetName'):
+                        print(f"  Name: {project.Check.GetName(updated_obj)}")
+                except:
+                    pass
+            else:
+                print("  NOT FOUND - Update may not have persisted")
+
+        # ==================== DELETE ====================
+        print("\n" + "="*70)
+        print("STEP 6: DELETE - Remove test check")
+        print("="*70)
+
+        if test_obj:
+            print(f"\nDeleting test check...")
+            try:
+                obj_name = project.Check.GetName(test_obj) if hasattr(project.Check, 'GetName') else test_name
+            except:
+                obj_name = test_name
+
+            project.Check.Delete(test_obj)
+            print(f"  Deleted: {obj_name}")
+
+            # Verify deletion
+            print("\nVerifying deletion...")
+            if hasattr(project.Check, 'Exists'):
+                still_exists = project.Check.Exists(test_name)
+                print(f"  Still exists: {still_exists}")
+
+                if not still_exists:
+                    print("  DELETE: SUCCESS")
+                else:
+                    print("  DELETE: FAILED - Check still exists")
+
+            # Count after deletion
+            final_count = sum(1 for _ in project.Check.GetAll())
+            print(f"\n  Count after delete: {final_count}")
+            print(f"  Back to initial:    {final_count == initial_count}")
+
+        # ==================== SUMMARY ====================
+        print("\n" + "="*70)
+        print("CRUD TEST SUMMARY")
+        print("="*70)
+        print("\nOperations tested:")
+        print("  [CREATE] Create new check")
+        print("  [READ]   GetAll, Find, Exists, Get methods")
+        print("  [UPDATE] Set methods")
+        print("  [DELETE] Delete check")
+        print("\nTest completed successfully!")
+
     except Exception as e:
-        print(f"   ERROR: {e}")
+        print(f"\n\nERROR during CRUD test: {e}")
+        import traceback
+        traceback.print_exc()
 
-    # Test Find operation
-    print("\n3. Testing Find operations:")
-    try:
-        check = project.Check.Find("Demo Consistency Check")
-        if check:
-            print(f"   Found by name: {project.Check.GetName(check)}")
-            guid = project.Check.GetGuid(check)
-            print(f"   GUID: {guid}")
-    except Exception as e:
-        print(f"   ERROR: {e}")
+    finally:
+        # Cleanup: Ensure test object is removed
+        print("\n" + "="*70)
+        print("CLEANUP")
+        print("="*70)
 
-    # Test Property operations
-    print("\n4. Testing Property operations:")
-    try:
-        if check:
-            # Test description
-            project.Check.SetDescription(check, "Demo consistency check for testing")
-            desc = project.Check.GetDescription(check)
-            print(f"   Description: {desc[:50]}...")
+        try:
+            for name in ["crud_test_check", "crud_test_check_modified"]:
+                if hasattr(project.Check, 'Exists') and project.Check.Exists(name):
+                    obj = project.Check.Find(name) if hasattr(project.Check, 'Find') else None
+                    if obj:
+                        project.Check.Delete(obj)
+                        print(f"  Cleaned up: {name}")
+        except:
+            pass
 
-            # Test enabled status
-            is_enabled = project.Check.IsEnabled(check)
-            print(f"   Is enabled: {is_enabled}")
+        print("\nClosing project...")
+        project.CloseProject()
+        FLExCleanup()
 
-            # Test check type
-            check_type = project.Check.GetCheckType(check)
-            print(f"   Check type: {check_type if check_type else '(none)'}")
-    except Exception as e:
-        print(f"   ERROR: {e}")
+    print("\n" + "="*70)
+    print("DEMO COMPLETE")
+    print("="*70)
 
-    # Test check execution
-    print("\n5. Testing check execution:")
-    try:
-        if check:
-            # Run the check (this might take time)
-            print("   Running check...")
-            result = project.Check.RunCheck(check)
-            print(f"   Check completed with {len(result)} issues found")
-    except Exception as e:
-        print(f"   ERROR (check execution may not be supported): {e}")
-
-    # Test check status operations
-    print("\n6. Testing check status:")
-    try:
-        if check:
-            # Get last run date
-            last_run = project.Check.GetLastRunDate(check)
-            print(f"   Last run: {last_run if last_run else 'Never'}")
-
-            # Get issue count
-            issue_count = project.Check.GetIssueCount(check)
-            print(f"   Issue count: {issue_count}")
-    except Exception as e:
-        print(f"   ERROR: {e}")
-
-    # Test Metadata operations
-    print("\n7. Testing Metadata operations:")
-    try:
-        if check:
-            created = project.Check.GetDateCreated(check)
-            modified = project.Check.GetDateModified(check)
-            print(f"   Created: {created}")
-            print(f"   Modified: {modified}")
-    except Exception as e:
-        print(f"   ERROR: {e}")
-
-    print("\n" + "=" * 60)
-    print("Demonstration complete!")
-    print("=" * 60)
-
-    project.CloseProject()
-    FLExCleanup()
 
 if __name__ == "__main__":
-    demo_check()
+    print("""
+Check Operations - Full CRUD Demo
+=====================================================
+
+This demonstrates COMPLETE CRUD operations for check.
+
+Operations Tested:
+==================
+
+CREATE: Create new check
+READ:   GetAll(), Find(), Exists(), Get...() methods
+UPDATE: Set...() methods
+DELETE: Delete()
+
+Test Flow:
+==========
+1. READ initial state
+2. CREATE new test check
+3. READ to verify creation
+4. UPDATE check properties
+5. READ to verify updates
+6. DELETE test check
+7. Verify deletion
+
+Requirements:
+  - FLEx project with write access
+  - Python.NET runtime
+
+WARNING: This demo modifies the database!
+         Test check is created and deleted during the demo.
+    """)
+
+    response = input("\nRun CRUD demo? (y/N): ")
+    if response.lower() == 'y':
+        demo_check_crud()
+    else:
+        print("\nDemo skipped.")

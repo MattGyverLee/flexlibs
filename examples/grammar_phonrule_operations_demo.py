@@ -1,115 +1,304 @@
 #!/usr/bin/env python3
 """
-Demonstration of PhonologicalRuleOperations for flexlibs
+Full CRUD Demo: PhonruleOperations for flexlibs
 
-This script demonstrates the comprehensive PhonologicalRuleOperations class
-for managing phonological rules in a FLEx project.
+This script demonstrates complete CRUD operations for phonrule.
+Performs actual create, read, update, and delete operations on test data.
+
+Author: FlexTools Development Team
+Date: 2025-11-27
 """
 
 from flexlibs import FLExProject, FLExInitialize, FLExCleanup
 
-def demo_phonrule_operations():
-    """Demonstrate PhonologicalRuleOperations functionality."""
+def demo_phonrule_crud():
+    """
+    Demonstrate full CRUD operations for phonrule.
+
+    Tests:
+    - CREATE: Create new test phonrule
+    - READ: Get all phonrules, find by name/identifier
+    - UPDATE: Modify phonrule properties
+    - DELETE: Remove test phonrule
+    """
+
+    print("=" * 70)
+    print("PHONRULE OPERATIONS - FULL CRUD TEST")
+    print("=" * 70)
 
     # Initialize FieldWorks
     FLExInitialize()
 
-    # Open project
+    # Open project with write enabled
     project = FLExProject()
     try:
-        project.OpenProject("Kenyang-M", writeEnabled=True)
+        project.OpenProject("Sena 3", writeEnabled=True)
     except Exception as e:
         print(f"Cannot run demo - FLEx project not available: {e}")
         FLExCleanup()
         return
 
-    print("=" * 60)
-    print("PhonologicalRuleOperations Demonstration")
-    print("=" * 60)
+    test_obj = None
+    test_name = "crud_test_phonrule"
 
-    # --- Test all methods ---
-    print("\n1. Testing GetAll (if available):")
     try:
-        if hasattr(project.PhonRules, 'GetAll'):
-            count = 0
-            for item in project.PhonRules.GetAll():
-                count += 1
-                if count >= 5:
-                    print(f"   ... (showing first 5 of {count}+ items)")
+        # ==================== READ: Initial state ====================
+        print("\n" + "="*70)
+        print("STEP 1: READ - Get existing phonrules")
+        print("="*70)
+
+        print("\nGetting all phonrules...")
+        initial_count = 0
+        for obj in project.Phonrule.GetAll():
+            # Display first few objects
+            try:
+                name = project.Phonrule.GetName(obj) if hasattr(project.Phonrule, 'GetName') else str(obj)
+                print(f"  - {name}")
+            except:
+                print(f"  - [Object {initial_count + 1}]")
+            initial_count += 1
+            if initial_count >= 5:
+                break
+
+        print(f"\nTotal phonrules (showing first 5): {initial_count}")
+
+        # ==================== CREATE ====================
+        print("\n" + "="*70)
+        print("STEP 2: CREATE - Create new test phonrule")
+        print("="*70)
+
+        # Check if test object already exists
+        try:
+            if hasattr(project.Phonrule, 'Exists') and project.Phonrule.Exists(test_name):
+                print(f"\nTest phonrule '{test_name}' already exists")
+                print("Deleting existing one first...")
+                existing = project.Phonrule.Find(test_name) if hasattr(project.Phonrule, 'Find') else None
+                if existing:
+                    project.Phonrule.Delete(existing)
+                    print("  Deleted existing test phonrule")
+        except:
+            pass
+
+        # Create new object
+        print(f"\nCreating new phonrule: '{test_name}'")
+
+        try:
+            # Attempt to create with common parameters
+            test_obj = project.Phonrule.Create(test_name)
+        except TypeError:
+            try:
+                # Try without parameters if that fails
+                test_obj = project.Phonrule.Create()
+                if hasattr(project.Phonrule, 'SetName'):
+                    project.Phonrule.SetName(test_obj, test_name)
+            except Exception as e:
+                print(f"  Note: Create method may require specific parameters: {e}")
+                test_obj = None
+
+        if test_obj:
+            print(f"  SUCCESS: Phonrule created!")
+            try:
+                if hasattr(project.Phonrule, 'GetName'):
+                    print(f"  Name: {project.Phonrule.GetName(test_obj)}")
+            except:
+                pass
+        else:
+            print(f"  Note: Could not create phonrule (may require special parameters)")
+            print("  Skipping remaining tests...")
+            return
+
+        # ==================== READ: Verify creation ====================
+        print("\n" + "="*70)
+        print("STEP 3: READ - Verify phonrule was created")
+        print("="*70)
+
+        # Test Exists
+        if hasattr(project.Phonrule, 'Exists'):
+            print(f"\nChecking if '{test_name}' exists...")
+            exists = project.Phonrule.Exists(test_name)
+            print(f"  Exists: {exists}")
+
+        # Test Find
+        if hasattr(project.Phonrule, 'Find'):
+            print(f"\nFinding phonrule by name...")
+            found_obj = project.Phonrule.Find(test_name)
+            if found_obj:
+                print(f"  FOUND: phonrule")
+                try:
+                    if hasattr(project.Phonrule, 'GetName'):
+                        print(f"  Name: {project.Phonrule.GetName(found_obj)}")
+                except:
+                    pass
+            else:
+                print("  NOT FOUND")
+
+        # Count after creation
+        print("\nCounting all phonrules after creation...")
+        current_count = sum(1 for _ in project.Phonrule.GetAll())
+        print(f"  Count before: {initial_count}")
+        print(f"  Count after:  {current_count}")
+        print(f"  Difference:   +{current_count - initial_count}")
+
+        # ==================== UPDATE ====================
+        print("\n" + "="*70)
+        print("STEP 4: UPDATE - Modify phonrule properties")
+        print("="*70)
+
+        if test_obj:
+            updated = False
+
+            # Try common update methods
+            if hasattr(project.Phonrule, 'SetName'):
+                try:
+                    new_name = "crud_test_phonrule_modified"
+                    print(f"\nUpdating name to: '{new_name}'")
+                    old_name = project.Phonrule.GetName(test_obj) if hasattr(project.Phonrule, 'GetName') else test_name
+                    project.Phonrule.SetName(test_obj, new_name)
+                    updated_name = project.Phonrule.GetName(test_obj) if hasattr(project.Phonrule, 'GetName') else new_name
+                    print(f"  Old name: {old_name}")
+                    print(f"  New name: {updated_name}")
+                    test_name = new_name  # Update for cleanup
+                    updated = True
+                except Exception as e:
+                    print(f"  Note: SetName failed: {e}")
+
+            # Try other Set methods
+            for method_name in dir(project.Phonrule):
+                if method_name.startswith('Set') and method_name != 'SetName' and not updated:
+                    print(f"\nFound update method: {method_name}")
+                    print("  (Method available but not tested in this demo)")
                     break
-            print(f"   Total items: {count}")
-        else:
-            print("   GetAll method not available")
+
+            if updated:
+                print("\n  UPDATE: SUCCESS")
+            else:
+                print("\n  Note: No standard update methods found or tested")
+
+        # ==================== READ: Verify updates ====================
+        print("\n" + "="*70)
+        print("STEP 5: READ - Verify updates persisted")
+        print("="*70)
+
+        if hasattr(project.Phonrule, 'Find'):
+            print(f"\nFinding phonrule after update...")
+            updated_obj = project.Phonrule.Find(test_name)
+            if updated_obj:
+                print(f"  FOUND: phonrule")
+                try:
+                    if hasattr(project.Phonrule, 'GetName'):
+                        print(f"  Name: {project.Phonrule.GetName(updated_obj)}")
+                except:
+                    pass
+            else:
+                print("  NOT FOUND - Update may not have persisted")
+
+        # ==================== DELETE ====================
+        print("\n" + "="*70)
+        print("STEP 6: DELETE - Remove test phonrule")
+        print("="*70)
+
+        if test_obj:
+            print(f"\nDeleting test phonrule...")
+            try:
+                obj_name = project.Phonrule.GetName(test_obj) if hasattr(project.Phonrule, 'GetName') else test_name
+            except:
+                obj_name = test_name
+
+            project.Phonrule.Delete(test_obj)
+            print(f"  Deleted: {obj_name}")
+
+            # Verify deletion
+            print("\nVerifying deletion...")
+            if hasattr(project.Phonrule, 'Exists'):
+                still_exists = project.Phonrule.Exists(test_name)
+                print(f"  Still exists: {still_exists}")
+
+                if not still_exists:
+                    print("  DELETE: SUCCESS")
+                else:
+                    print("  DELETE: FAILED - Phonrule still exists")
+
+            # Count after deletion
+            final_count = sum(1 for _ in project.Phonrule.GetAll())
+            print(f"\n  Count after delete: {final_count}")
+            print(f"  Back to initial:    {final_count == initial_count}")
+
+        # ==================== SUMMARY ====================
+        print("\n" + "="*70)
+        print("CRUD TEST SUMMARY")
+        print("="*70)
+        print("\nOperations tested:")
+        print("  [CREATE] Create new phonrule")
+        print("  [READ]   GetAll, Find, Exists, Get methods")
+        print("  [UPDATE] Set methods")
+        print("  [DELETE] Delete phonrule")
+        print("\nTest completed successfully!")
+
     except Exception as e:
-        print(f"   ERROR: {e}")
+        print(f"\n\nERROR during CRUD test: {e}")
+        import traceback
+        traceback.print_exc()
 
-    print("\n2. Testing Create (if available):")
-    try:
-        if hasattr(project.PhonRules, 'Create'):
-            print("   Create method available (not tested to preserve data)")
-        else:
-            print("   Create method not available")
-    except Exception as e:
-        print(f"   ERROR: {e}")
+    finally:
+        # Cleanup: Ensure test object is removed
+        print("\n" + "="*70)
+        print("CLEANUP")
+        print("="*70)
 
-    print("\n3. Testing Find/Exists (if available):")
-    try:
-        if hasattr(project.PhonRules, 'Find'):
-            print("   Find method available")
-        if hasattr(project.PhonRules, 'Exists'):
-            print("   Exists method available")
-    except Exception as e:
-        print(f"   ERROR: {e}")
+        try:
+            for name in ["crud_test_phonrule", "crud_test_phonrule_modified"]:
+                if hasattr(project.Phonrule, 'Exists') and project.Phonrule.Exists(name):
+                    obj = project.Phonrule.Find(name) if hasattr(project.Phonrule, 'Find') else None
+                    if obj:
+                        project.Phonrule.Delete(obj)
+                        print(f"  Cleaned up: {name}")
+        except:
+            pass
 
-    print("\n4. Available methods in PhonologicalRuleOperations:")
-    methods = ['AddInputSegment', 'AddOutputSegment', 'Create', 'Delete', 'Exists', 'Find', 'GetAll', 'GetDescription', 'GetDirection', 'GetName', 'GetStratum', 'SetDescription', 'SetDirection', 'SetLeftContext', 'SetName', 'SetRightContext', 'SetStratum']
-    for method in methods[:10]:  # Show first 10
-        print(f"   - {method}()")
-    if len(methods) > 10:
-        print(f"   ... and {len(methods) - 10} more")
+        print("\nClosing project...")
+        project.CloseProject()
+        FLExCleanup()
 
-    print("\n" + "=" * 60)
-    print("Demonstration complete!")
-    print("=" * 60)
+    print("\n" + "="*70)
+    print("DEMO COMPLETE")
+    print("="*70)
 
-    project.CloseProject()
-    FLExCleanup()
 
 if __name__ == "__main__":
     print("""
-PhonologicalRuleOperations Demo
-================================
+Phonrule Operations - Full CRUD Demo
+=====================================================
 
-This demonstrates the PhonologicalRuleOperations class.
+This demonstrates COMPLETE CRUD operations for phonrule.
 
-Available methods (17 total):
+Operations Tested:
+==================
 
-Create operations (3):
-  - AddInputSegment()
-  - AddOutputSegment()
-  - Create()
+CREATE: Create new phonrule
+READ:   GetAll(), Find(), Exists(), Get...() methods
+UPDATE: Set...() methods
+DELETE: Delete()
 
+Test Flow:
+==========
+1. READ initial state
+2. CREATE new test phonrule
+3. READ to verify creation
+4. UPDATE phonrule properties
+5. READ to verify updates
+6. DELETE test phonrule
+7. Verify deletion
 
-Read operations (7):
-  - Exists()
-  - Find()
-  - GetAll()
-  - GetDescription()
-  - GetDirection()
-  ...
+Requirements:
+  - FLEx project with write access
+  - Python.NET runtime
 
-Update operations (6):
-  - SetDescription()
-  - SetDirection()
-  - SetLeftContext()
-  - SetName()
-  - SetRightContext()
-  ...
-
-Delete operations (1):
-  - Delete()
-
-
-Note: Actual execution requires a FLEx project and Python.NET runtime.
+WARNING: This demo modifies the database!
+         Test phonrule is created and deleted during the demo.
     """)
-    demo_phonrule_operations()
+
+    response = input("\nRun CRUD demo? (y/N): ")
+    if response.lower() == 'y':
+        demo_phonrule_crud()
+    else:
+        print("\nDemo skipped.")

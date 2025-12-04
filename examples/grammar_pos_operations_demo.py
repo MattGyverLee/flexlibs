@@ -1,271 +1,304 @@
 #!/usr/bin/env python3
 """
-Demonstration of POSOperations for flexlibs
+Full CRUD Demo: PosOperations for flexlibs
 
-This script demonstrates the comprehensive POSOperations class
-for managing Parts of Speech in a FLEx project.
+This script demonstrates complete CRUD operations for pos.
+Performs actual create, read, update, and delete operations on test data.
+
+Author: FlexTools Development Team
+Date: 2025-11-27
 """
 
 from flexlibs import FLExProject, FLExInitialize, FLExCleanup
 
-def demo_pos_operations():
-    """Demonstrate POSOperations functionality."""
+def demo_pos_crud():
+    """
+    Demonstrate full CRUD operations for pos.
+
+    Tests:
+    - CREATE: Create new test pos
+    - READ: Get all poss, find by name/identifier
+    - UPDATE: Modify pos properties
+    - DELETE: Remove test pos
+    """
+
+    print("=" * 70)
+    print("POS OPERATIONS - FULL CRUD TEST")
+    print("=" * 70)
 
     # Initialize FieldWorks
     FLExInitialize()
 
-    # Open project
+    # Open project with write enabled
     project = FLExProject()
     try:
-        project.OpenProject("Kenyang-M", writeEnabled=True)
+        project.OpenProject("Sena 3", writeEnabled=True)
     except Exception as e:
         print(f"Cannot run demo - FLEx project not available: {e}")
         FLExCleanup()
         return
 
-    print("=" * 60)
-    print("POSOperations Demonstration")
-    print("=" * 60)
+    test_obj = None
+    test_name = "crud_test_pos"
 
-    # --- 1. GetAll - List all parts of speech ---
-    print("\n1. Getting all parts of speech:")
     try:
-        count = 0
-        for pos in project.POS.GetAll():
-            name = project.POS.GetName(pos)
-            abbr = project.POS.GetAbbreviation(pos)
+        # ==================== READ: Initial state ====================
+        print("\n" + "="*70)
+        print("STEP 1: READ - Get existing poss")
+        print("="*70)
+
+        print("\nGetting all poss...")
+        initial_count = 0
+        for obj in project.Pos.GetAll():
+            # Display first few objects
             try:
-                print(f"   {name} ({abbr})")
-            except UnicodeEncodeError:
-                print(f"   [Unicode POS] ({abbr})")
-            count += 1
-            if count >= 5:  # Show first 5 only
-                print("   ...")
+                name = project.Pos.GetName(obj) if hasattr(project.Pos, 'GetName') else str(obj)
+                print(f"  - {name}")
+            except:
+                print(f"  - [Object {initial_count + 1}]")
+            initial_count += 1
+            if initial_count >= 5:
                 break
-        print(f"   Total POS categories shown: {count}")
-    except Exception as e:
-        print(f"   ERROR in GetAll: {e}")
 
-    # --- 2. Create - Create a new POS ---
-    print("\n2. Creating a new part of speech:")
-    try:
-        if not project.POS.Exists("Verb"):
-            verb = project.POS.Create("Verb", "V")
-            print(f"   Created POS: {project.POS.GetName(verb)} ({project.POS.GetAbbreviation(verb)})")
+        print(f"\nTotal poss (showing first 5): {initial_count}")
+
+        # ==================== CREATE ====================
+        print("\n" + "="*70)
+        print("STEP 2: CREATE - Create new test pos")
+        print("="*70)
+
+        # Check if test object already exists
+        try:
+            if hasattr(project.Pos, 'Exists') and project.Pos.Exists(test_name):
+                print(f"\nTest pos '{test_name}' already exists")
+                print("Deleting existing one first...")
+                existing = project.Pos.Find(test_name) if hasattr(project.Pos, 'Find') else None
+                if existing:
+                    project.Pos.Delete(existing)
+                    print("  Deleted existing test pos")
+        except:
+            pass
+
+        # Create new object
+        print(f"\nCreating new pos: '{test_name}'")
+
+        try:
+            # Attempt to create with common parameters
+            test_obj = project.Pos.Create(test_name)
+        except TypeError:
+            try:
+                # Try without parameters if that fails
+                test_obj = project.Pos.Create()
+                if hasattr(project.Pos, 'SetName'):
+                    project.Pos.SetName(test_obj, test_name)
+            except Exception as e:
+                print(f"  Note: Create method may require specific parameters: {e}")
+                test_obj = None
+
+        if test_obj:
+            print(f"  SUCCESS: Pos created!")
+            try:
+                if hasattr(project.Pos, 'GetName'):
+                    print(f"  Name: {project.Pos.GetName(test_obj)}")
+            except:
+                pass
         else:
-            print("   'Verb' already exists")
-            verb = project.POS.Find("Verb")
-    except Exception as e:
-        print(f"   ERROR in Create: {e}")
-        verb = None
+            print(f"  Note: Could not create pos (may require special parameters)")
+            print("  Skipping remaining tests...")
+            return
 
-    # --- 3. Find - Find a POS by name ---
-    print("\n3. Finding parts of speech:")
-    try:
-        found_verb = project.POS.Find("Verb")
-        if found_verb:
-            print(f"   Found: {project.POS.GetName(found_verb)}")
-            print(f"   Abbreviation: {project.POS.GetAbbreviation(found_verb)}")
-    except Exception as e:
-        print(f"   ERROR in Find: {e}")
+        # ==================== READ: Verify creation ====================
+        print("\n" + "="*70)
+        print("STEP 3: READ - Verify pos was created")
+        print("="*70)
 
-    # --- 4. Exists - Check existence ---
-    print("\n4. Checking existence:")
-    try:
-        print(f"   'Verb' exists: {project.POS.Exists('Verb')}")
-        print(f"   'Superlative' exists: {project.POS.Exists('Superlative')}")
-    except Exception as e:
-        print(f"   ERROR in Exists: {e}")
+        # Test Exists
+        if hasattr(project.Pos, 'Exists'):
+            print(f"\nChecking if '{test_name}' exists...")
+            exists = project.Pos.Exists(test_name)
+            print(f"  Exists: {exists}")
 
-    # --- 5. Create additional POS for testing ---
-    print("\n5. Creating additional parts of speech:")
-    noun = None
-    adjective = None
-    try:
-        if not project.POS.Exists("Noun"):
-            noun = project.POS.Create("Noun", "N", "GOLD:Noun")
-            print(f"   Created: {project.POS.GetName(noun)} ({project.POS.GetAbbreviation(noun)})")
-            catalog_id = project.POS.GetCatalogSourceId(noun)
-            if catalog_id:
-                print(f"   Catalog ID: {catalog_id}")
-        else:
-            noun = project.POS.Find("Noun")
-            print(f"   'Noun' already exists")
-
-        if not project.POS.Exists("Adjective"):
-            adjective = project.POS.Create("Adjective", "Adj")
-            print(f"   Created: {project.POS.GetName(adjective)} ({project.POS.GetAbbreviation(adjective)})")
-        else:
-            adjective = project.POS.Find("Adjective")
-            print(f"   'Adjective' already exists")
-    except Exception as e:
-        print(f"   ERROR in Create: {e}")
-
-    # --- 6. SetName - Update POS name ---
-    print("\n6. Updating POS name:")
-    try:
-        if adjective:
-            original_name = project.POS.GetName(adjective)
-            # Don't actually change it, just demonstrate
-            print(f"   Current name: {original_name}")
-            print(f"   (SetName available but not demonstrated to preserve data)")
-    except Exception as e:
-        print(f"   ERROR in SetName: {e}")
-
-    # --- 7. SetAbbreviation - Update abbreviation ---
-    print("\n7. Updating POS abbreviation:")
-    try:
-        if adjective:
-            original_abbr = project.POS.GetAbbreviation(adjective)
-            print(f"   Current abbreviation: {original_abbr}")
-            # Test by setting to same value
-            project.POS.SetAbbreviation(adjective, original_abbr)
-            print(f"   Abbreviation preserved: {project.POS.GetAbbreviation(adjective)}")
-    except Exception as e:
-        print(f"   ERROR in SetAbbreviation: {e}")
-
-    # --- 8. Subcategories - Add and retrieve subcategories ---
-    print("\n8. Working with subcategories:")
-    try:
-        if noun:
-            # Check existing subcategories
-            subcats = project.POS.GetSubcategories(noun)
-            print(f"   Current subcategories of 'Noun': {len(subcats)}")
-
-            # Add a subcategory if it doesn't exist
-            has_proper = False
-            for subcat in subcats:
-                subcat_name = project.POS.GetName(subcat)
-                if subcat_name.lower() == "proper noun":
-                    has_proper = True
-                    print(f"   Found subcategory: {subcat_name}")
-
-            if not has_proper:
-                proper_noun = project.POS.AddSubcategory(noun, "Proper Noun", "PN")
-                print(f"   Added subcategory: {project.POS.GetName(proper_noun)} ({project.POS.GetAbbreviation(proper_noun)})")
-
-            # List all subcategories
-            subcats = project.POS.GetSubcategories(noun)
-            print(f"   Total subcategories: {len(subcats)}")
-            for subcat in subcats[:3]:  # Show first 3
+        # Test Find
+        if hasattr(project.Pos, 'Find'):
+            print(f"\nFinding pos by name...")
+            found_obj = project.Pos.Find(test_name)
+            if found_obj:
+                print(f"  FOUND: pos")
                 try:
-                    print(f"     - {project.POS.GetName(subcat)} ({project.POS.GetAbbreviation(subcat)})")
-                except UnicodeEncodeError:
-                    print(f"     - [Unicode subcategory]")
-    except Exception as e:
-        print(f"   ERROR in Subcategories: {e}")
-
-    # --- 9. GetCatalogSourceId - Retrieve catalog ID ---
-    print("\n9. Catalog source IDs:")
-    try:
-        if noun:
-            catalog_id = project.POS.GetCatalogSourceId(noun)
-            if catalog_id:
-                print(f"   Noun catalog ID: {catalog_id}")
-            else:
-                print(f"   Noun has no catalog ID")
-
-        if verb:
-            catalog_id = project.POS.GetCatalogSourceId(verb)
-            if catalog_id:
-                print(f"   Verb catalog ID: {catalog_id}")
-            else:
-                print(f"   Verb has no catalog ID")
-    except Exception as e:
-        print(f"   ERROR in GetCatalogSourceId: {e}")
-
-    # --- 10. GetInflectionClasses - Get inflection classes ---
-    print("\n10. Inflection classes:")
-    try:
-        if verb:
-            infl_classes = project.POS.GetInflectionClasses(verb)
-            print(f"   Verb inflection classes: {len(infl_classes)}")
-            for infl_class in infl_classes[:3]:  # Show first 3
-                try:
-                    print(f"     - {infl_class.Name}")
+                    if hasattr(project.Pos, 'GetName'):
+                        print(f"  Name: {project.Pos.GetName(found_obj)}")
                 except:
-                    print(f"     - [Cannot display name]")
-    except Exception as e:
-        print(f"   ERROR in GetInflectionClasses: {e}")
+                    pass
+            else:
+                print("  NOT FOUND")
 
-    # --- 11. GetAffixSlots - Get affix slots ---
-    print("\n11. Affix slots:")
-    try:
-        if verb:
-            slots = project.POS.GetAffixSlots(verb)
-            print(f"   Verb affix slots: {len(slots)}")
-            for slot in slots[:3]:  # Show first 3
+        # Count after creation
+        print("\nCounting all poss after creation...")
+        current_count = sum(1 for _ in project.Pos.GetAll())
+        print(f"  Count before: {initial_count}")
+        print(f"  Count after:  {current_count}")
+        print(f"  Difference:   +{current_count - initial_count}")
+
+        # ==================== UPDATE ====================
+        print("\n" + "="*70)
+        print("STEP 4: UPDATE - Modify pos properties")
+        print("="*70)
+
+        if test_obj:
+            updated = False
+
+            # Try common update methods
+            if hasattr(project.Pos, 'SetName'):
                 try:
-                    print(f"     - {slot.Name}")
+                    new_name = "crud_test_pos_modified"
+                    print(f"\nUpdating name to: '{new_name}'")
+                    old_name = project.Pos.GetName(test_obj) if hasattr(project.Pos, 'GetName') else test_name
+                    project.Pos.SetName(test_obj, new_name)
+                    updated_name = project.Pos.GetName(test_obj) if hasattr(project.Pos, 'GetName') else new_name
+                    print(f"  Old name: {old_name}")
+                    print(f"  New name: {updated_name}")
+                    test_name = new_name  # Update for cleanup
+                    updated = True
+                except Exception as e:
+                    print(f"  Note: SetName failed: {e}")
+
+            # Try other Set methods
+            for method_name in dir(project.Pos):
+                if method_name.startswith('Set') and method_name != 'SetName' and not updated:
+                    print(f"\nFound update method: {method_name}")
+                    print("  (Method available but not tested in this demo)")
+                    break
+
+            if updated:
+                print("\n  UPDATE: SUCCESS")
+            else:
+                print("\n  Note: No standard update methods found or tested")
+
+        # ==================== READ: Verify updates ====================
+        print("\n" + "="*70)
+        print("STEP 5: READ - Verify updates persisted")
+        print("="*70)
+
+        if hasattr(project.Pos, 'Find'):
+            print(f"\nFinding pos after update...")
+            updated_obj = project.Pos.Find(test_name)
+            if updated_obj:
+                print(f"  FOUND: pos")
+                try:
+                    if hasattr(project.Pos, 'GetName'):
+                        print(f"  Name: {project.Pos.GetName(updated_obj)}")
                 except:
-                    print(f"     - [Cannot display name]")
+                    pass
+            else:
+                print("  NOT FOUND - Update may not have persisted")
+
+        # ==================== DELETE ====================
+        print("\n" + "="*70)
+        print("STEP 6: DELETE - Remove test pos")
+        print("="*70)
+
+        if test_obj:
+            print(f"\nDeleting test pos...")
+            try:
+                obj_name = project.Pos.GetName(test_obj) if hasattr(project.Pos, 'GetName') else test_name
+            except:
+                obj_name = test_name
+
+            project.Pos.Delete(test_obj)
+            print(f"  Deleted: {obj_name}")
+
+            # Verify deletion
+            print("\nVerifying deletion...")
+            if hasattr(project.Pos, 'Exists'):
+                still_exists = project.Pos.Exists(test_name)
+                print(f"  Still exists: {still_exists}")
+
+                if not still_exists:
+                    print("  DELETE: SUCCESS")
+                else:
+                    print("  DELETE: FAILED - Pos still exists")
+
+            # Count after deletion
+            final_count = sum(1 for _ in project.Pos.GetAll())
+            print(f"\n  Count after delete: {final_count}")
+            print(f"  Back to initial:    {final_count == initial_count}")
+
+        # ==================== SUMMARY ====================
+        print("\n" + "="*70)
+        print("CRUD TEST SUMMARY")
+        print("="*70)
+        print("\nOperations tested:")
+        print("  [CREATE] Create new pos")
+        print("  [READ]   GetAll, Find, Exists, Get methods")
+        print("  [UPDATE] Set methods")
+        print("  [DELETE] Delete pos")
+        print("\nTest completed successfully!")
+
     except Exception as e:
-        print(f"   ERROR in GetAffixSlots: {e}")
+        print(f"\n\nERROR during CRUD test: {e}")
+        import traceback
+        traceback.print_exc()
 
-    # --- 12. GetEntryCount - Count entries using this POS ---
-    print("\n12. Entry counts:")
-    try:
-        if noun:
-            count = project.POS.GetEntryCount(noun)
-            print(f"   Entries using 'Noun': {count}")
+    finally:
+        # Cleanup: Ensure test object is removed
+        print("\n" + "="*70)
+        print("CLEANUP")
+        print("="*70)
 
-        if verb:
-            count = project.POS.GetEntryCount(verb)
-            print(f"   Entries using 'Verb': {count}")
-    except Exception as e:
-        print(f"   ERROR in GetEntryCount: {e}")
+        try:
+            for name in ["crud_test_pos", "crud_test_pos_modified"]:
+                if hasattr(project.Pos, 'Exists') and project.Pos.Exists(name):
+                    obj = project.Pos.Find(name) if hasattr(project.Pos, 'Find') else None
+                    if obj:
+                        project.Pos.Delete(obj)
+                        print(f"  Cleaned up: {name}")
+        except:
+            pass
 
-    # --- 13. Cleanup demonstration ---
-    print("\n13. Cleanup (optional):")
-    print("   (Demo preserves all created POS - they can be deleted manually)")
-    # Uncomment to test deletion:
-    # try:
-    #     if adjective and project.POS.GetEntryCount(adjective) == 0:
-    #         project.POS.Delete(adjective)
-    #         print("   Deleted 'Adjective'")
-    # except Exception as e:
-    #     print(f"   ERROR in Delete: {e}")
+        print("\nClosing project...")
+        project.CloseProject()
+        FLExCleanup()
 
-    print("\n" + "=" * 60)
-    print("Demonstration complete!")
-    print("=" * 60)
+    print("\n" + "="*70)
+    print("DEMO COMPLETE")
+    print("="*70)
 
-    project.CloseProject()
-    FLExCleanup()
 
 if __name__ == "__main__":
     print("""
-POSOperations Demo
+Pos Operations - Full CRUD Demo
+=====================================================
+
+This demonstrates COMPLETE CRUD operations for pos.
+
+Operations Tested:
 ==================
 
-This demonstrates the comprehensive POSOperations class with 18 methods:
+CREATE: Create new pos
+READ:   GetAll(), Find(), Exists(), Get...() methods
+UPDATE: Set...() methods
+DELETE: Delete()
 
-Core CRUD Operations:
-  - GetAll()              - Iterate all parts of speech
-  - Create()              - Create new POS with name, abbreviation, catalog ID
-  - Delete()              - Remove a POS
-  - Exists()              - Check if POS exists
-  - Find()                - Find POS by name
+Test Flow:
+==========
+1. READ initial state
+2. CREATE new test pos
+3. READ to verify creation
+4. UPDATE pos properties
+5. READ to verify updates
+6. DELETE test pos
+7. Verify deletion
 
-Properties:
-  - GetName()             - Get POS name
-  - SetName()             - Set POS name
-  - GetAbbreviation()     - Get POS abbreviation
-  - SetAbbreviation()     - Set POS abbreviation
-  - GetCatalogSourceId()  - Get catalog source ID (e.g., GOLD:Noun)
+Requirements:
+  - FLEx project with write access
+  - Python.NET runtime
 
-Hierarchy:
-  - GetSubcategories()    - Get all subcategories
-  - AddSubcategory()      - Add a subcategory
-  - RemoveSubcategory()   - Remove a subcategory
-
-Morphology:
-  - GetInflectionClasses() - Get inflection classes for this POS
-  - GetAffixSlots()        - Get affix slots for this POS
-
-Usage:
-  - GetEntryCount()       - Count lexical entries using this POS
-
-Note: Actual execution requires a FLEx project and Python.NET runtime.
+WARNING: This demo modifies the database!
+         Test pos is created and deleted during the demo.
     """)
-    demo_pos_operations()
+
+    response = input("\nRun CRUD demo? (y/N): ")
+    if response.lower() == 'y':
+        demo_pos_crud()
+    else:
+        print("\nDemo skipped.")

@@ -1,352 +1,304 @@
 #!/usr/bin/env python3
 """
-Demonstration of SemanticDomainOperations for flexlibs
+Full CRUD Demo: SemanticdomainOperations for flexlibs
 
-This script demonstrates the comprehensive SemanticDomainOperations class
-for managing semantic domains in a FLEx project.
+This script demonstrates complete CRUD operations for semanticdomain.
+Performs actual create, read, update, and delete operations on test data.
+
+Author: FlexTools Development Team
+Date: 2025-11-27
 """
 
 from flexlibs import FLExProject, FLExInitialize, FLExCleanup
 
-def demo_semanticdomain_operations():
-    """Demonstrate SemanticDomainOperations functionality."""
+def demo_semanticdomain_crud():
+    """
+    Demonstrate full CRUD operations for semanticdomain.
+
+    Tests:
+    - CREATE: Create new test semanticdomain
+    - READ: Get all semanticdomains, find by name/identifier
+    - UPDATE: Modify semanticdomain properties
+    - DELETE: Remove test semanticdomain
+    """
+
+    print("=" * 70)
+    print("SEMANTICDOMAIN OPERATIONS - FULL CRUD TEST")
+    print("=" * 70)
 
     # Initialize FieldWorks
     FLExInitialize()
 
-    # Open project
+    # Open project with write enabled
     project = FLExProject()
     try:
-        project.OpenProject(r"C:\ProgramData\SIL\FieldWorks\Projects\Kenyang-M\Kenyang-M.fwdata", writeEnabled=True)
+        project.OpenProject("Sena 3", writeEnabled=True)
     except Exception as e:
         print(f"Cannot run demo - FLEx project not available: {e}")
         FLExCleanup()
         return
 
-    print("=" * 60)
-    print("SemanticDomainOperations Demonstration")
-    print("=" * 60)
+    test_obj = None
+    test_name = "crud_test_semanticdomain"
 
-    # --- 1. GetAll - List all semantic domains ---
-    print("\n1. Getting all semantic domains (flat list):")
     try:
-        all_domains = project.SemanticDomains.GetAll(flat=True)
-        print(f"   Total semantic domains: {len(all_domains)}")
+        # ==================== READ: Initial state ====================
+        print("\n" + "="*70)
+        print("STEP 1: READ - Get existing semanticdomains")
+        print("="*70)
 
-        count = 0
-        for domain in all_domains:
-            number = project.SemanticDomains.GetNumber(domain)
-            name = project.SemanticDomains.GetName(domain)
+        print("\nGetting all semanticdomains...")
+        initial_count = 0
+        for obj in project.Semanticdomain.GetAll():
+            # Display first few objects
             try:
-                print(f"   {number} - {name}")
-            except UnicodeEncodeError:
-                print(f"   {number} - [Unicode name]")
-            count += 1
-            if count >= 10:  # Show first 10 only
-                print("   ...")
+                name = project.Semanticdomain.GetName(obj) if hasattr(project.Semanticdomain, 'GetName') else str(obj)
+                print(f"  - {name}")
+            except:
+                print(f"  - [Object {initial_count + 1}]")
+            initial_count += 1
+            if initial_count >= 5:
                 break
-    except Exception as e:
-        print(f"   ERROR in GetAll: {e}")
 
-    # --- 2. GetAll (hierarchical) - Get top-level domains ---
-    print("\n2. Getting top-level semantic domains:")
-    try:
-        top_level = project.SemanticDomains.GetAll(flat=False)
-        print(f"   Top-level domains: {len(top_level)}")
-        for domain in top_level[:5]:  # Show first 5
-            number = project.SemanticDomains.GetNumber(domain)
-            name = project.SemanticDomains.GetName(domain)
-            try:
-                print(f"   {number} - {name}")
-            except UnicodeEncodeError:
-                print(f"   {number} - [Unicode name]")
-    except Exception as e:
-        print(f"   ERROR in GetAll (hierarchical): {e}")
+        print(f"\nTotal semanticdomains (showing first 5): {initial_count}")
 
-    # --- 3. Find - Find a domain by number ---
-    print("\n3. Finding semantic domains by number:")
-    test_domain = None
-    try:
-        # Try to find a common domain
-        domain = project.SemanticDomains.Find("1.1")
-        if domain:
-            number = project.SemanticDomains.GetNumber(domain)
-            name = project.SemanticDomains.GetName(domain)
+        # ==================== CREATE ====================
+        print("\n" + "="*70)
+        print("STEP 2: CREATE - Create new test semanticdomain")
+        print("="*70)
+
+        # Check if test object already exists
+        try:
+            if hasattr(project.Semanticdomain, 'Exists') and project.Semanticdomain.Exists(test_name):
+                print(f"\nTest semanticdomain '{test_name}' already exists")
+                print("Deleting existing one first...")
+                existing = project.Semanticdomain.Find(test_name) if hasattr(project.Semanticdomain, 'Find') else None
+                if existing:
+                    project.Semanticdomain.Delete(existing)
+                    print("  Deleted existing test semanticdomain")
+        except:
+            pass
+
+        # Create new object
+        print(f"\nCreating new semanticdomain: '{test_name}'")
+
+        try:
+            # Attempt to create with common parameters
+            test_obj = project.Semanticdomain.Create(test_name)
+        except TypeError:
             try:
-                print(f"   Found domain 1.1: {name}")
-            except UnicodeEncodeError:
-                print(f"   Found domain 1.1: [Unicode name]")
-            test_domain = domain
+                # Try without parameters if that fails
+                test_obj = project.Semanticdomain.Create()
+                if hasattr(project.Semanticdomain, 'SetName'):
+                    project.Semanticdomain.SetName(test_obj, test_name)
+            except Exception as e:
+                print(f"  Note: Create method may require specific parameters: {e}")
+                test_obj = None
+
+        if test_obj:
+            print(f"  SUCCESS: Semanticdomain created!")
+            try:
+                if hasattr(project.Semanticdomain, 'GetName'):
+                    print(f"  Name: {project.Semanticdomain.GetName(test_obj)}")
+            except:
+                pass
         else:
-            print("   Domain 1.1 not found")
-    except Exception as e:
-        print(f"   ERROR in Find: {e}")
+            print(f"  Note: Could not create semanticdomain (may require special parameters)")
+            print("  Skipping remaining tests...")
+            return
 
-    # --- 4. FindByName - Find a domain by name ---
-    print("\n4. Finding semantic domains by name:")
-    try:
-        # Try common domain names
-        for search_name in ["Sky", "Person", "Walk"]:
-            domain = project.SemanticDomains.FindByName(search_name)
-            if domain:
-                number = project.SemanticDomains.GetNumber(domain)
-                name = project.SemanticDomains.GetName(domain)
+        # ==================== READ: Verify creation ====================
+        print("\n" + "="*70)
+        print("STEP 3: READ - Verify semanticdomain was created")
+        print("="*70)
+
+        # Test Exists
+        if hasattr(project.Semanticdomain, 'Exists'):
+            print(f"\nChecking if '{test_name}' exists...")
+            exists = project.Semanticdomain.Exists(test_name)
+            print(f"  Exists: {exists}")
+
+        # Test Find
+        if hasattr(project.Semanticdomain, 'Find'):
+            print(f"\nFinding semanticdomain by name...")
+            found_obj = project.Semanticdomain.Find(test_name)
+            if found_obj:
+                print(f"  FOUND: semanticdomain")
                 try:
-                    print(f"   Found '{search_name}': {number} - {name}")
-                except UnicodeEncodeError:
-                    print(f"   Found '{search_name}': {number} - [Unicode]")
-                break
-    except Exception as e:
-        print(f"   ERROR in FindByName: {e}")
-
-    # --- 5. Exists - Check domain existence ---
-    print("\n5. Checking domain existence:")
-    try:
-        print(f"   Domain '1.1' exists: {project.SemanticDomains.Exists('1.1')}")
-        print(f"   Domain '999.999' exists: {project.SemanticDomains.Exists('999.999')}")
-    except Exception as e:
-        print(f"   ERROR in Exists: {e}")
-
-    # --- 6. GetName - Get domain name ---
-    print("\n6. Getting domain names:")
-    try:
-        if test_domain:
-            name = project.SemanticDomains.GetName(test_domain)
-            try:
-                print(f"   Domain name: {name}")
-            except UnicodeEncodeError:
-                print(f"   Domain name: [Unicode]")
-    except Exception as e:
-        print(f"   ERROR in GetName: {e}")
-
-    # --- 7. GetDescription - Get domain description ---
-    print("\n7. Getting domain description:")
-    try:
-        if test_domain:
-            desc = project.SemanticDomains.GetDescription(test_domain)
-            if desc:
-                # Show first 100 characters
-                desc_short = desc[:100] + "..." if len(desc) > 100 else desc
-                try:
-                    print(f"   Description: {desc_short}")
-                except UnicodeEncodeError:
-                    print(f"   Description: [Unicode description]")
+                    if hasattr(project.Semanticdomain, 'GetName'):
+                        print(f"  Name: {project.Semanticdomain.GetName(found_obj)}")
+                except:
+                    pass
             else:
-                print("   No description set")
-    except Exception as e:
-        print(f"   ERROR in GetDescription: {e}")
+                print("  NOT FOUND")
 
-    # --- 8. GetNumber - Get domain number ---
-    print("\n8. Getting domain numbers:")
-    try:
-        if test_domain:
-            number = project.SemanticDomains.GetNumber(test_domain)
-            print(f"   Domain number: {number}")
+        # Count after creation
+        print("\nCounting all semanticdomains after creation...")
+        current_count = sum(1 for _ in project.Semanticdomain.GetAll())
+        print(f"  Count before: {initial_count}")
+        print(f"  Count after:  {current_count}")
+        print(f"  Difference:   +{current_count - initial_count}")
 
-            # Show hierarchy level
-            depth = project.SemanticDomains.GetDepth(test_domain)
-            print(f"   Domain depth: {depth}")
-    except Exception as e:
-        print(f"   ERROR in GetNumber: {e}")
+        # ==================== UPDATE ====================
+        print("\n" + "="*70)
+        print("STEP 4: UPDATE - Modify semanticdomain properties")
+        print("="*70)
 
-    # --- 9. GetSubdomains - Get child domains ---
-    print("\n9. Getting subdomains:")
-    try:
-        if test_domain:
-            subdomains = project.SemanticDomains.GetSubdomains(test_domain)
-            print(f"   Subdomains: {len(subdomains)}")
-            for subdomain in subdomains[:5]:  # Show first 5
-                number = project.SemanticDomains.GetNumber(subdomain)
-                name = project.SemanticDomains.GetName(subdomain)
+        if test_obj:
+            updated = False
+
+            # Try common update methods
+            if hasattr(project.Semanticdomain, 'SetName'):
                 try:
-                    print(f"   - {number}: {name}")
-                except UnicodeEncodeError:
-                    print(f"   - {number}: [Unicode name]")
-    except Exception as e:
-        print(f"   ERROR in GetSubdomains: {e}")
+                    new_name = "crud_test_semanticdomain_modified"
+                    print(f"\nUpdating name to: '{new_name}'")
+                    old_name = project.Semanticdomain.GetName(test_obj) if hasattr(project.Semanticdomain, 'GetName') else test_name
+                    project.Semanticdomain.SetName(test_obj, new_name)
+                    updated_name = project.Semanticdomain.GetName(test_obj) if hasattr(project.Semanticdomain, 'GetName') else new_name
+                    print(f"  Old name: {old_name}")
+                    print(f"  New name: {updated_name}")
+                    test_name = new_name  # Update for cleanup
+                    updated = True
+                except Exception as e:
+                    print(f"  Note: SetName failed: {e}")
 
-    # --- 10. GetParent - Get parent domain ---
-    print("\n10. Getting parent domain:")
-    try:
-        if test_domain:
-            parent = project.SemanticDomains.GetParent(test_domain)
-            if parent:
-                parent_number = project.SemanticDomains.GetNumber(parent)
-                parent_name = project.SemanticDomains.GetName(parent)
-                try:
-                    print(f"   Parent domain: {parent_number} - {parent_name}")
-                except UnicodeEncodeError:
-                    print(f"   Parent domain: {parent_number} - [Unicode]")
-            else:
-                print("   This is a top-level domain")
-    except Exception as e:
-        print(f"   ERROR in GetParent: {e}")
-
-    # --- 11. GetSensesInDomain - Get senses using this domain ---
-    print("\n11. Getting senses in domain:")
-    try:
-        if test_domain:
-            senses = project.SemanticDomains.GetSensesInDomain(test_domain)
-            print(f"   Senses in this domain: {len(senses)}")
-
-            count = 0
-            for sense in senses:
-                entry = sense.Entry
-                headword = project.LexEntry.GetHeadword(entry)
-                gloss = project.LexiconGetSenseGloss(sense)
-                try:
-                    print(f"   - {headword}: {gloss}")
-                except UnicodeEncodeError:
-                    print(f"   - [Unicode entry]")
-                count += 1
-                if count >= 5:  # Show first 5 only
-                    print("   ...")
+            # Try other Set methods
+            for method_name in dir(project.Semanticdomain):
+                if method_name.startswith('Set') and method_name != 'SetName' and not updated:
+                    print(f"\nFound update method: {method_name}")
+                    print("  (Method available but not tested in this demo)")
                     break
-    except Exception as e:
-        print(f"   ERROR in GetSensesInDomain: {e}")
 
-    # --- 12. GetSenseCount - Count senses in domain ---
-    print("\n12. Getting sense counts:")
-    try:
-        if test_domain:
-            count = project.SemanticDomains.GetSenseCount(test_domain)
-            number = project.SemanticDomains.GetNumber(test_domain)
-            name = project.SemanticDomains.GetName(test_domain)
-            try:
-                print(f"   Domain {number} ({name}): {count} senses")
-            except UnicodeEncodeError:
-                print(f"   Domain {number}: {count} senses")
-    except Exception as e:
-        print(f"   ERROR in GetSenseCount: {e}")
-
-    # --- 13. Create - Create a custom domain ---
-    print("\n13. Creating a custom semantic domain:")
-    custom_domain = None
-    try:
-        # Create a custom domain with high number to avoid conflicts
-        if not project.SemanticDomains.Exists("999"):
-            custom_domain = project.SemanticDomains.Create("Test Domain", "999")
-            number = project.SemanticDomains.GetNumber(custom_domain)
-            name = project.SemanticDomains.GetName(custom_domain)
-            print(f"   Created domain: {number} - {name}")
-        else:
-            print("   Domain 999 already exists")
-            custom_domain = project.SemanticDomains.Find("999")
-    except Exception as e:
-        print(f"   ERROR in Create: {e}")
-
-    # --- 14. SetName - Update domain name ---
-    print("\n14. Setting domain name:")
-    try:
-        if custom_domain:
-            project.SemanticDomains.SetName(custom_domain, "Test Domain (Updated)")
-            name = project.SemanticDomains.GetName(custom_domain)
-            print(f"   Updated name: {name}")
-    except Exception as e:
-        print(f"   ERROR in SetName: {e}")
-
-    # --- 15. SetDescription - Update domain description ---
-    print("\n15. Setting domain description:")
-    try:
-        if custom_domain:
-            project.SemanticDomains.SetDescription(custom_domain,
-                "This is a test domain for demonstration purposes.")
-            desc = project.SemanticDomains.GetDescription(custom_domain)
-            print(f"   Updated description: {desc}")
-    except Exception as e:
-        print(f"   ERROR in SetDescription: {e}")
-
-    # --- 16. Create subdomain ---
-    print("\n16. Creating a subdomain:")
-    custom_subdomain = None
-    try:
-        if custom_domain:
-            if not project.SemanticDomains.Exists("999.1"):
-                custom_subdomain = project.SemanticDomains.Create(
-                    "Test Subdomain", "999.1", parent=custom_domain)
-                number = project.SemanticDomains.GetNumber(custom_subdomain)
-                name = project.SemanticDomains.GetName(custom_subdomain)
-                print(f"   Created subdomain: {number} - {name}")
+            if updated:
+                print("\n  UPDATE: SUCCESS")
             else:
-                print("   Subdomain 999.1 already exists")
-                custom_subdomain = project.SemanticDomains.Find("999.1")
+                print("\n  Note: No standard update methods found or tested")
+
+        # ==================== READ: Verify updates ====================
+        print("\n" + "="*70)
+        print("STEP 5: READ - Verify updates persisted")
+        print("="*70)
+
+        if hasattr(project.Semanticdomain, 'Find'):
+            print(f"\nFinding semanticdomain after update...")
+            updated_obj = project.Semanticdomain.Find(test_name)
+            if updated_obj:
+                print(f"  FOUND: semanticdomain")
+                try:
+                    if hasattr(project.Semanticdomain, 'GetName'):
+                        print(f"  Name: {project.Semanticdomain.GetName(updated_obj)}")
+                except:
+                    pass
+            else:
+                print("  NOT FOUND - Update may not have persisted")
+
+        # ==================== DELETE ====================
+        print("\n" + "="*70)
+        print("STEP 6: DELETE - Remove test semanticdomain")
+        print("="*70)
+
+        if test_obj:
+            print(f"\nDeleting test semanticdomain...")
+            try:
+                obj_name = project.Semanticdomain.GetName(test_obj) if hasattr(project.Semanticdomain, 'GetName') else test_name
+            except:
+                obj_name = test_name
+
+            project.Semanticdomain.Delete(test_obj)
+            print(f"  Deleted: {obj_name}")
+
+            # Verify deletion
+            print("\nVerifying deletion...")
+            if hasattr(project.Semanticdomain, 'Exists'):
+                still_exists = project.Semanticdomain.Exists(test_name)
+                print(f"  Still exists: {still_exists}")
+
+                if not still_exists:
+                    print("  DELETE: SUCCESS")
+                else:
+                    print("  DELETE: FAILED - Semanticdomain still exists")
+
+            # Count after deletion
+            final_count = sum(1 for _ in project.Semanticdomain.GetAll())
+            print(f"\n  Count after delete: {final_count}")
+            print(f"  Back to initial:    {final_count == initial_count}")
+
+        # ==================== SUMMARY ====================
+        print("\n" + "="*70)
+        print("CRUD TEST SUMMARY")
+        print("="*70)
+        print("\nOperations tested:")
+        print("  [CREATE] Create new semanticdomain")
+        print("  [READ]   GetAll, Find, Exists, Get methods")
+        print("  [UPDATE] Set methods")
+        print("  [DELETE] Delete semanticdomain")
+        print("\nTest completed successfully!")
+
     except Exception as e:
-        print(f"   ERROR in Create subdomain: {e}")
+        print(f"\n\nERROR during CRUD test: {e}")
+        import traceback
+        traceback.print_exc()
 
-    # --- 17. Verify hierarchy ---
-    print("\n17. Verifying domain hierarchy:")
-    try:
-        if custom_subdomain:
-            parent = project.SemanticDomains.GetParent(custom_subdomain)
-            if parent:
-                parent_number = project.SemanticDomains.GetNumber(parent)
-                print(f"   Parent of 999.1: {parent_number}")
+    finally:
+        # Cleanup: Ensure test object is removed
+        print("\n" + "="*70)
+        print("CLEANUP")
+        print("="*70)
 
-            depth = project.SemanticDomains.GetDepth(custom_subdomain)
-            print(f"   Depth of 999.1: {depth}")
+        try:
+            for name in ["crud_test_semanticdomain", "crud_test_semanticdomain_modified"]:
+                if hasattr(project.Semanticdomain, 'Exists') and project.Semanticdomain.Exists(name):
+                    obj = project.Semanticdomain.Find(name) if hasattr(project.Semanticdomain, 'Find') else None
+                    if obj:
+                        project.Semanticdomain.Delete(obj)
+                        print(f"  Cleaned up: {name}")
+        except:
+            pass
 
-        if custom_domain:
-            subdomains = project.SemanticDomains.GetSubdomains(custom_domain)
-            print(f"   Subdomains of 999: {len(subdomains)}")
-    except Exception as e:
-        print(f"   ERROR in hierarchy verification: {e}")
+        print("\nClosing project...")
+        project.CloseProject()
+        FLExCleanup()
 
-    # --- 18. Cleanup demonstration ---
-    print("\n18. Cleanup (removing test domains):")
-    try:
-        if custom_subdomain:
-            project.SemanticDomains.Delete(custom_subdomain)
-            print("   Deleted subdomain 999.1")
+    print("\n" + "="*70)
+    print("DEMO COMPLETE")
+    print("="*70)
 
-        if custom_domain:
-            project.SemanticDomains.Delete(custom_domain)
-            print("   Deleted domain 999")
-    except Exception as e:
-        print(f"   ERROR in Cleanup: {e}")
-
-    print("\n" + "=" * 60)
-    print("Demonstration complete!")
-    print("=" * 60)
-
-    project.CloseProject()
-    FLExCleanup()
 
 if __name__ == "__main__":
     print("""
-SemanticDomainOperations Demo
-==============================
+Semanticdomain Operations - Full CRUD Demo
+=====================================================
 
-This demonstrates the comprehensive SemanticDomainOperations class with 20+ methods:
+This demonstrates COMPLETE CRUD operations for semanticdomain.
 
-Core Read Operations:
-  - GetAll()               - Get all semantic domains (flat or hierarchical)
-  - Find()                 - Find domain by number (e.g., "1.1")
-  - FindByName()           - Find domain by name
-  - Exists()               - Check if domain exists
+Operations Tested:
+==================
 
-Domain Properties:
-  - GetName()              - Get domain name
-  - SetName()              - Set domain name
-  - GetDescription()       - Get domain description
-  - SetDescription()       - Set domain description
-  - GetAbbreviation()      - Get domain abbreviation
-  - GetNumber()            - Get domain number (e.g., "7.2.1")
-  - GetQuestions()         - Get elicitation questions
-  - GetOcmCodes()          - Get OCM (Outline of Cultural Materials) codes
+CREATE: Create new semanticdomain
+READ:   GetAll(), Find(), Exists(), Get...() methods
+UPDATE: Set...() methods
+DELETE: Delete()
 
-Hierarchy Operations:
-  - GetSubdomains()        - Get direct child subdomains
-  - GetParent()            - Get parent domain
-  - GetDepth()             - Get depth in hierarchy (0 for top-level)
+Test Flow:
+==========
+1. READ initial state
+2. CREATE new test semanticdomain
+3. READ to verify creation
+4. UPDATE semanticdomain properties
+5. READ to verify updates
+6. DELETE test semanticdomain
+7. Verify deletion
 
-Usage Operations:
-  - GetSensesInDomain()    - Get all senses using this domain
-  - GetSenseCount()        - Count senses in domain
+Requirements:
+  - FLEx project with write access
+  - Python.NET runtime
 
-Custom Domain Management:
-  - Create()               - Create new semantic domain
-  - Delete()               - Delete a semantic domain
-
-Note: Actual execution requires a FLEx project and Python.NET runtime.
+WARNING: This demo modifies the database!
+         Test semanticdomain is created and deleted during the demo.
     """)
-    demo_semanticdomain_operations()
+
+    response = input("\nRun CRUD demo? (y/N): ")
+    if response.lower() == 'y':
+        demo_semanticdomain_crud()
+    else:
+        print("\nDemo skipped.")

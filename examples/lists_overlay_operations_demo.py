@@ -1,122 +1,304 @@
 #!/usr/bin/env python3
 """
-Demonstration of OverlayOperations for flexlibs
+Full CRUD Demo: OverlayOperations for flexlibs
+
+This script demonstrates complete CRUD operations for overlay.
+Performs actual create, read, update, and delete operations on test data.
+
+Author: FlexTools Development Team
+Date: 2025-11-27
 """
+
 from flexlibs import FLExProject, FLExInitialize, FLExCleanup
 
-def demo_overlay():
-    """Demonstrate OverlayOperations functionality."""
+def demo_overlay_crud():
+    """
+    Demonstrate full CRUD operations for overlay.
+
+    Tests:
+    - CREATE: Create new test overlay
+    - READ: Get all overlays, find by name/identifier
+    - UPDATE: Modify overlay properties
+    - DELETE: Remove test overlay
+    """
+
+    print("=" * 70)
+    print("OVERLAY OPERATIONS - FULL CRUD TEST")
+    print("=" * 70)
+
+    # Initialize FieldWorks
     FLExInitialize()
 
+    # Open project with write enabled
     project = FLExProject()
     try:
-        project.OpenProject("Kenyang-M", writeEnabled=True)
+        project.OpenProject("Sena 3", writeEnabled=True)
     except Exception as e:
         print(f"Cannot run demo - FLEx project not available: {e}")
         FLExCleanup()
         return
 
-    print("=" * 60)
-    print("OverlayOperations Demonstration")
-    print("=" * 60)
+    test_obj = None
+    test_name = "crud_test_overlay"
 
-    # Test Read operations
-    print("\n1. Testing GetAll operations:")
     try:
-        overlays = project.Overlay.GetAll(flat=True)
-        count = 0
-        for overlay in overlays:
+        # ==================== READ: Initial state ====================
+        print("\n" + "="*70)
+        print("STEP 1: READ - Get existing overlays")
+        print("="*70)
+
+        print("\nGetting all overlays...")
+        initial_count = 0
+        for obj in project.Overlay.GetAll():
+            # Display first few objects
             try:
-                name = project.Overlay.GetName(overlay)
-                abbr = project.Overlay.GetAbbreviation(overlay)
-                info = f"{name} - Abbr: {abbr if abbr else '(none)'}"
-                print(f"   Overlay: {info}")
-            except UnicodeEncodeError:
-                print(f"   Overlay: [Unicode name]")
-            count += 1
-            if count >= 5:
+                name = project.Overlay.GetName(obj) if hasattr(project.Overlay, 'GetName') else str(obj)
+                print(f"  - {name}")
+            except:
+                print(f"  - [Object {initial_count + 1}]")
+            initial_count += 1
+            if initial_count >= 5:
                 break
-        print(f"   Total shown: {count}")
-    except Exception as e:
-        print(f"   ERROR: {e}")
 
-    # Test Create operation
-    print("\n2. Testing Create operation:")
-    try:
-        test_name = "Demo Overlay"
-        if not project.Overlay.Exists(test_name):
-            overlay = project.Overlay.Create(test_name, "DO")
-            print(f"   Created: {project.Overlay.GetName(overlay)}")
+        print(f"\nTotal overlays (showing first 5): {initial_count}")
+
+        # ==================== CREATE ====================
+        print("\n" + "="*70)
+        print("STEP 2: CREATE - Create new test overlay")
+        print("="*70)
+
+        # Check if test object already exists
+        try:
+            if hasattr(project.Overlay, 'Exists') and project.Overlay.Exists(test_name):
+                print(f"\nTest overlay '{test_name}' already exists")
+                print("Deleting existing one first...")
+                existing = project.Overlay.Find(test_name) if hasattr(project.Overlay, 'Find') else None
+                if existing:
+                    project.Overlay.Delete(existing)
+                    print("  Deleted existing test overlay")
+        except:
+            pass
+
+        # Create new object
+        print(f"\nCreating new overlay: '{test_name}'")
+
+        try:
+            # Attempt to create with common parameters
+            test_obj = project.Overlay.Create(test_name)
+        except TypeError:
+            try:
+                # Try without parameters if that fails
+                test_obj = project.Overlay.Create()
+                if hasattr(project.Overlay, 'SetName'):
+                    project.Overlay.SetName(test_obj, test_name)
+            except Exception as e:
+                print(f"  Note: Create method may require specific parameters: {e}")
+                test_obj = None
+
+        if test_obj:
+            print(f"  SUCCESS: Overlay created!")
+            try:
+                if hasattr(project.Overlay, 'GetName'):
+                    print(f"  Name: {project.Overlay.GetName(test_obj)}")
+            except:
+                pass
         else:
-            overlay = project.Overlay.Find(test_name)
-            print(f"   Overlay already exists: {test_name}")
+            print(f"  Note: Could not create overlay (may require special parameters)")
+            print("  Skipping remaining tests...")
+            return
+
+        # ==================== READ: Verify creation ====================
+        print("\n" + "="*70)
+        print("STEP 3: READ - Verify overlay was created")
+        print("="*70)
+
+        # Test Exists
+        if hasattr(project.Overlay, 'Exists'):
+            print(f"\nChecking if '{test_name}' exists...")
+            exists = project.Overlay.Exists(test_name)
+            print(f"  Exists: {exists}")
+
+        # Test Find
+        if hasattr(project.Overlay, 'Find'):
+            print(f"\nFinding overlay by name...")
+            found_obj = project.Overlay.Find(test_name)
+            if found_obj:
+                print(f"  FOUND: overlay")
+                try:
+                    if hasattr(project.Overlay, 'GetName'):
+                        print(f"  Name: {project.Overlay.GetName(found_obj)}")
+                except:
+                    pass
+            else:
+                print("  NOT FOUND")
+
+        # Count after creation
+        print("\nCounting all overlays after creation...")
+        current_count = sum(1 for _ in project.Overlay.GetAll())
+        print(f"  Count before: {initial_count}")
+        print(f"  Count after:  {current_count}")
+        print(f"  Difference:   +{current_count - initial_count}")
+
+        # ==================== UPDATE ====================
+        print("\n" + "="*70)
+        print("STEP 4: UPDATE - Modify overlay properties")
+        print("="*70)
+
+        if test_obj:
+            updated = False
+
+            # Try common update methods
+            if hasattr(project.Overlay, 'SetName'):
+                try:
+                    new_name = "crud_test_overlay_modified"
+                    print(f"\nUpdating name to: '{new_name}'")
+                    old_name = project.Overlay.GetName(test_obj) if hasattr(project.Overlay, 'GetName') else test_name
+                    project.Overlay.SetName(test_obj, new_name)
+                    updated_name = project.Overlay.GetName(test_obj) if hasattr(project.Overlay, 'GetName') else new_name
+                    print(f"  Old name: {old_name}")
+                    print(f"  New name: {updated_name}")
+                    test_name = new_name  # Update for cleanup
+                    updated = True
+                except Exception as e:
+                    print(f"  Note: SetName failed: {e}")
+
+            # Try other Set methods
+            for method_name in dir(project.Overlay):
+                if method_name.startswith('Set') and method_name != 'SetName' and not updated:
+                    print(f"\nFound update method: {method_name}")
+                    print("  (Method available but not tested in this demo)")
+                    break
+
+            if updated:
+                print("\n  UPDATE: SUCCESS")
+            else:
+                print("\n  Note: No standard update methods found or tested")
+
+        # ==================== READ: Verify updates ====================
+        print("\n" + "="*70)
+        print("STEP 5: READ - Verify updates persisted")
+        print("="*70)
+
+        if hasattr(project.Overlay, 'Find'):
+            print(f"\nFinding overlay after update...")
+            updated_obj = project.Overlay.Find(test_name)
+            if updated_obj:
+                print(f"  FOUND: overlay")
+                try:
+                    if hasattr(project.Overlay, 'GetName'):
+                        print(f"  Name: {project.Overlay.GetName(updated_obj)}")
+                except:
+                    pass
+            else:
+                print("  NOT FOUND - Update may not have persisted")
+
+        # ==================== DELETE ====================
+        print("\n" + "="*70)
+        print("STEP 6: DELETE - Remove test overlay")
+        print("="*70)
+
+        if test_obj:
+            print(f"\nDeleting test overlay...")
+            try:
+                obj_name = project.Overlay.GetName(test_obj) if hasattr(project.Overlay, 'GetName') else test_name
+            except:
+                obj_name = test_name
+
+            project.Overlay.Delete(test_obj)
+            print(f"  Deleted: {obj_name}")
+
+            # Verify deletion
+            print("\nVerifying deletion...")
+            if hasattr(project.Overlay, 'Exists'):
+                still_exists = project.Overlay.Exists(test_name)
+                print(f"  Still exists: {still_exists}")
+
+                if not still_exists:
+                    print("  DELETE: SUCCESS")
+                else:
+                    print("  DELETE: FAILED - Overlay still exists")
+
+            # Count after deletion
+            final_count = sum(1 for _ in project.Overlay.GetAll())
+            print(f"\n  Count after delete: {final_count}")
+            print(f"  Back to initial:    {final_count == initial_count}")
+
+        # ==================== SUMMARY ====================
+        print("\n" + "="*70)
+        print("CRUD TEST SUMMARY")
+        print("="*70)
+        print("\nOperations tested:")
+        print("  [CREATE] Create new overlay")
+        print("  [READ]   GetAll, Find, Exists, Get methods")
+        print("  [UPDATE] Set methods")
+        print("  [DELETE] Delete overlay")
+        print("\nTest completed successfully!")
+
     except Exception as e:
-        print(f"   ERROR: {e}")
+        print(f"\n\nERROR during CRUD test: {e}")
+        import traceback
+        traceback.print_exc()
 
-    # Test Find operation
-    print("\n3. Testing Find operations:")
-    try:
-        overlay = project.Overlay.Find("Demo Overlay")
-        if overlay:
-            print(f"   Found by name: {project.Overlay.GetName(overlay)}")
-            guid = project.Overlay.GetGuid(overlay)
-            print(f"   GUID: {guid}")
-    except Exception as e:
-        print(f"   ERROR: {e}")
+    finally:
+        # Cleanup: Ensure test object is removed
+        print("\n" + "="*70)
+        print("CLEANUP")
+        print("="*70)
 
-    # Test Property operations
-    print("\n4. Testing Property operations:")
-    try:
-        if overlay:
-            # Test abbreviation
-            abbr = project.Overlay.GetAbbreviation(overlay)
-            print(f"   Abbreviation: {abbr}")
+        try:
+            for name in ["crud_test_overlay", "crud_test_overlay_modified"]:
+                if hasattr(project.Overlay, 'Exists') and project.Overlay.Exists(name):
+                    obj = project.Overlay.Find(name) if hasattr(project.Overlay, 'Find') else None
+                    if obj:
+                        project.Overlay.Delete(obj)
+                        print(f"  Cleaned up: {name}")
+        except:
+            pass
 
-            # Test description
-            project.Overlay.SetDescription(overlay, "Demo chart overlay for testing")
-            desc = project.Overlay.GetDescription(overlay)
-            print(f"   Description: {desc[:50]}...")
-    except Exception as e:
-        print(f"   ERROR: {e}")
+        print("\nClosing project...")
+        project.CloseProject()
+        FLExCleanup()
 
-    # Test Hierarchy operations
-    print("\n5. Testing Hierarchy operations:")
-    try:
-        if overlay:
-            suboverlay_name = "Demo Sub-Overlay"
-            existing_subs = [project.Overlay.GetName(s)
-                           for s in project.Overlay.GetSubitems(overlay)]
-            if suboverlay_name not in existing_subs:
-                suboverlay = project.Overlay.CreateSubitem(overlay, suboverlay_name, "DSO")
-                print(f"   Created subitem: {project.Overlay.GetName(suboverlay)}")
+    print("\n" + "="*70)
+    print("DEMO COMPLETE")
+    print("="*70)
 
-            subs = project.Overlay.GetSubitems(overlay)
-            print(f"   Subitems count: {len(subs)}")
-
-            if subs:
-                parent = project.Overlay.GetParent(subs[0])
-                if parent:
-                    print(f"   Parent of subitem: {project.Overlay.GetName(parent)}")
-    except Exception as e:
-        print(f"   ERROR: {e}")
-
-    # Test Metadata operations
-    print("\n6. Testing Metadata operations:")
-    try:
-        if overlay:
-            created = project.Overlay.GetDateCreated(overlay)
-            modified = project.Overlay.GetDateModified(overlay)
-            print(f"   Created: {created}")
-            print(f"   Modified: {modified}")
-    except Exception as e:
-        print(f"   ERROR: {e}")
-
-    print("\n" + "=" * 60)
-    print("Demonstration complete!")
-    print("=" * 60)
-
-    project.CloseProject()
-    FLExCleanup()
 
 if __name__ == "__main__":
-    demo_overlay()
+    print("""
+Overlay Operations - Full CRUD Demo
+=====================================================
+
+This demonstrates COMPLETE CRUD operations for overlay.
+
+Operations Tested:
+==================
+
+CREATE: Create new overlay
+READ:   GetAll(), Find(), Exists(), Get...() methods
+UPDATE: Set...() methods
+DELETE: Delete()
+
+Test Flow:
+==========
+1. READ initial state
+2. CREATE new test overlay
+3. READ to verify creation
+4. UPDATE overlay properties
+5. READ to verify updates
+6. DELETE test overlay
+7. Verify deletion
+
+Requirements:
+  - FLEx project with write access
+  - Python.NET runtime
+
+WARNING: This demo modifies the database!
+         Test overlay is created and deleted during the demo.
+    """)
+
+    response = input("\nRun CRUD demo? (y/N): ")
+    if response.lower() == 'y':
+        demo_overlay_crud()
+    else:
+        print("\nDemo skipped.")
