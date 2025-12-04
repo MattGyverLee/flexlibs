@@ -49,10 +49,10 @@ def demo_variant_crud():
 
         print("\nGetting all variants...")
         initial_count = 0
-        for obj in project.Variant.GetAll():
+        for obj in project.Variants.GetAll():
             # Display first few objects
             try:
-                name = project.Variant.GetName(obj) if hasattr(project.Variant, 'GetName') else str(obj)
+                name = project.Variants.GetName(obj) if hasattr(project.Variants, 'GetName') else str(obj)
                 print(f"  - {name}")
             except:
                 print(f"  - [Object {initial_count + 1}]")
@@ -69,43 +69,49 @@ def demo_variant_crud():
 
         # Check if test object already exists
         try:
-            if hasattr(project.Variant, 'Exists') and project.Variant.Exists(test_name):
+            if hasattr(project.Variants, 'Exists') and project.Variants.Exists(test_name):
                 print(f"\nTest variant '{test_name}' already exists")
                 print("Deleting existing one first...")
-                existing = project.Variant.Find(test_name) if hasattr(project.Variant, 'Find') else None
+                existing = project.Variants.Find(test_name) if hasattr(project.Variants, 'Find') else None
                 if existing:
-                    project.Variant.Delete(existing)
+                    project.Variants.Delete(existing)
                     print("  Deleted existing test variant")
         except:
             pass
 
-        # Create new object
+        
+        # Create parent entry for variant testing
+        print("\nCreating parent entry for variant test...")
+        parent_entry = None
+        try:
+            parent_entry = project.LexEntry.Create("crud_test_entry_for_variant")
+            print(f"  Created parent entry: crud_test_entry_for_variant")
+        except Exception as e:
+            print(f"  ERROR creating parent entry: {e}")
+            print("  Cannot test variant without parent entry")
+            return
+
+        # Get variant type
+        variant_type = None
+        try:
+            # Get first available variant type
+            from SIL.LCModel import ILexEntryType
+            variant_types = project.project.LexDb.VariantEntryTypesOA.PossibilitiesOS
+            if variant_types.Count > 0:
+                variant_type = variant_types[0]
+        except:
+            pass
+
+        if not variant_type:
+            print("  ERROR: Could not find variant type")
+            print("  Cannot test variant without variant type")
+            return
+
         print(f"\nCreating new variant: '{test_name}'")
 
-        try:
-            # Attempt to create with common parameters
-            test_obj = project.Variant.Create(test_name)
-        except TypeError:
-            try:
-                # Try without parameters if that fails
-                test_obj = project.Variant.Create()
-                if hasattr(project.Variant, 'SetName'):
-                    project.Variant.SetName(test_obj, test_name)
-            except Exception as e:
-                print(f"  Note: Create method may require specific parameters: {e}")
-                test_obj = None
-
-        if test_obj:
-            print(f"  SUCCESS: Variant created!")
-            try:
-                if hasattr(project.Variant, 'GetName'):
-                    print(f"  Name: {project.Variant.GetName(test_obj)}")
-            except:
-                pass
-        else:
-            print(f"  Note: Could not create variant (may require special parameters)")
-            print("  Skipping remaining tests...")
-            return
+        # Create variant with parent entry
+        test_obj = project.Variants.Create(parent_entry, test_name, variant_type)
+        print(f"  SUCCESS: Variant created!")
 
         # ==================== READ: Verify creation ====================
         print("\n" + "="*70)
@@ -113,20 +119,20 @@ def demo_variant_crud():
         print("="*70)
 
         # Test Exists
-        if hasattr(project.Variant, 'Exists'):
+        if hasattr(project.Variants, 'Exists'):
             print(f"\nChecking if '{test_name}' exists...")
-            exists = project.Variant.Exists(test_name)
+            exists = project.Variants.Exists(test_name)
             print(f"  Exists: {exists}")
 
         # Test Find
-        if hasattr(project.Variant, 'Find'):
+        if hasattr(project.Variants, 'Find'):
             print(f"\nFinding variant by name...")
-            found_obj = project.Variant.Find(test_name)
+            found_obj = project.Variants.Find(test_name)
             if found_obj:
                 print(f"  FOUND: variant")
                 try:
-                    if hasattr(project.Variant, 'GetName'):
-                        print(f"  Name: {project.Variant.GetName(found_obj)}")
+                    if hasattr(project.Variants, 'GetName'):
+                        print(f"  Name: {project.Variants.GetName(found_obj)}")
                 except:
                     pass
             else:
@@ -134,7 +140,7 @@ def demo_variant_crud():
 
         # Count after creation
         print("\nCounting all variants after creation...")
-        current_count = sum(1 for _ in project.Variant.GetAll())
+        current_count = sum(1 for _ in project.Variants.GetAll())
         print(f"  Count before: {initial_count}")
         print(f"  Count after:  {current_count}")
         print(f"  Difference:   +{current_count - initial_count}")
@@ -148,13 +154,13 @@ def demo_variant_crud():
             updated = False
 
             # Try common update methods
-            if hasattr(project.Variant, 'SetName'):
+            if hasattr(project.Variants, 'SetName'):
                 try:
                     new_name = "crud_test_variant_modified"
                     print(f"\nUpdating name to: '{new_name}'")
-                    old_name = project.Variant.GetName(test_obj) if hasattr(project.Variant, 'GetName') else test_name
-                    project.Variant.SetName(test_obj, new_name)
-                    updated_name = project.Variant.GetName(test_obj) if hasattr(project.Variant, 'GetName') else new_name
+                    old_name = project.Variants.GetName(test_obj) if hasattr(project.Variants, 'GetName') else test_name
+                    project.Variants.SetName(test_obj, new_name)
+                    updated_name = project.Variants.GetName(test_obj) if hasattr(project.Variants, 'GetName') else new_name
                     print(f"  Old name: {old_name}")
                     print(f"  New name: {updated_name}")
                     test_name = new_name  # Update for cleanup
@@ -163,7 +169,7 @@ def demo_variant_crud():
                     print(f"  Note: SetName failed: {e}")
 
             # Try other Set methods
-            for method_name in dir(project.Variant):
+            for method_name in dir(project.Variants):
                 if method_name.startswith('Set') and method_name != 'SetName' and not updated:
                     print(f"\nFound update method: {method_name}")
                     print("  (Method available but not tested in this demo)")
@@ -179,14 +185,14 @@ def demo_variant_crud():
         print("STEP 5: READ - Verify updates persisted")
         print("="*70)
 
-        if hasattr(project.Variant, 'Find'):
+        if hasattr(project.Variants, 'Find'):
             print(f"\nFinding variant after update...")
-            updated_obj = project.Variant.Find(test_name)
+            updated_obj = project.Variants.Find(test_name)
             if updated_obj:
                 print(f"  FOUND: variant")
                 try:
-                    if hasattr(project.Variant, 'GetName'):
-                        print(f"  Name: {project.Variant.GetName(updated_obj)}")
+                    if hasattr(project.Variants, 'GetName'):
+                        print(f"  Name: {project.Variants.GetName(updated_obj)}")
                 except:
                     pass
             else:
@@ -200,17 +206,17 @@ def demo_variant_crud():
         if test_obj:
             print(f"\nDeleting test variant...")
             try:
-                obj_name = project.Variant.GetName(test_obj) if hasattr(project.Variant, 'GetName') else test_name
+                obj_name = project.Variants.GetName(test_obj) if hasattr(project.Variants, 'GetName') else test_name
             except:
                 obj_name = test_name
 
-            project.Variant.Delete(test_obj)
+            project.Variants.Delete(test_obj)
             print(f"  Deleted: {obj_name}")
 
             # Verify deletion
             print("\nVerifying deletion...")
-            if hasattr(project.Variant, 'Exists'):
-                still_exists = project.Variant.Exists(test_name)
+            if hasattr(project.Variants, 'Exists'):
+                still_exists = project.Variants.Exists(test_name)
                 print(f"  Still exists: {still_exists}")
 
                 if not still_exists:
@@ -219,7 +225,7 @@ def demo_variant_crud():
                     print("  DELETE: FAILED - Variant still exists")
 
             # Count after deletion
-            final_count = sum(1 for _ in project.Variant.GetAll())
+            final_count = sum(1 for _ in project.Variants.GetAll())
             print(f"\n  Count after delete: {final_count}")
             print(f"  Back to initial:    {final_count == initial_count}")
 
@@ -247,11 +253,20 @@ def demo_variant_crud():
 
         try:
             for name in ["crud_test_variant", "crud_test_variant_modified"]:
-                if hasattr(project.Variant, 'Exists') and project.Variant.Exists(name):
-                    obj = project.Variant.Find(name) if hasattr(project.Variant, 'Find') else None
+                if hasattr(project.Variants, 'Exists') and project.Variants.Exists(name):
+                    obj = project.Variants.Find(name) if hasattr(project.Variants, 'Find') else None
                     if obj:
-                        project.Variant.Delete(obj)
+                        project.Variants.Delete(obj)
                         print(f"  Cleaned up: {name}")
+        except:
+            pass
+
+        
+        # Cleanup parent entry
+        try:
+            if parent_entry:
+                project.LexEntry.Delete(parent_entry)
+                print("  Cleaned up: parent entry")
         except:
             pass
 

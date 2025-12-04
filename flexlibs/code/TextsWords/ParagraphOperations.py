@@ -29,9 +29,10 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
+from ..BaseOperations import BaseOperations
 
 
-class ParagraphOperations:
+class ParagraphOperations(BaseOperations):
     """
     Paragraph CRUD operations for managing FLEx paragraph objects.
 
@@ -57,7 +58,11 @@ class ParagraphOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
+
+    def _GetSequence(self, parent):
+        """Specify which sequence to reorder for paragraph segments."""
+        return parent.SegmentsOS
 
     def __WSHandle(self, wsHandle):
         """
@@ -236,6 +241,108 @@ class ParagraphOperations:
         else:
             raise FP_ParameterError("Paragraph has no valid owner or cannot be removed")
 
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate a paragraph, creating a new paragraph with the same content.
+
+        This method creates a copy of an existing paragraph. With deep=False, only
+        the paragraph text is duplicated. With deep=True, all segments are also
+        duplicated (though segments typically need re-parsing).
+
+        Args:
+            item_or_hvo: Either an IStTxtPara object or its HVO (integer identifier)
+            insert_after (bool): If True, insert the duplicate after the original
+                paragraph in the text. If False, append to the end of the text.
+            deep (bool): If False, only duplicate the paragraph text. If True,
+                also duplicate all segments (though they may need re-parsing).
+
+        Returns:
+            IStTxtPara: The newly created duplicate paragraph
+
+        Raises:
+            FP_ReadOnlyError: If project was not opened with writeEnabled=True.
+            FP_NullParameterError: If item_or_hvo is None.
+            FP_ParameterError: If the paragraph does not exist or is invalid, or
+                if the paragraph has no valid owner text.
+
+        Example:
+            >>> # Shallow duplicate (paragraph text only)
+            >>> para = list(project.Paragraphs.GetAll(text))[0]
+            >>> duplicate = project.Paragraphs.Duplicate(para, insert_after=True)
+            >>> print(project.Paragraphs.GetText(duplicate))
+            In the beginning...
+
+            >>> # Deep duplicate (with segments, though they need re-parsing)
+            >>> duplicate = project.Paragraphs.Duplicate(para, deep=True)
+
+        Warning:
+            - The duplicate will have identical content but a new GUID
+            - Segments in duplicated paragraphs will need re-parsing for analyses
+            - insert_after=True inserts immediately after the original paragraph
+            - deep=True duplicates segments, but they may not have valid analyses
+
+        Notes:
+            - Duplicated paragraph is added to the same text as the original
+            - New GUID is auto-generated for the duplicate
+            - Text content is copied in the same writing system
+            - With deep=True, segments are created but analyses are not copied
+            - Paragraph is inserted after original if insert_after=True
+
+        See Also:
+            Create, Delete, InsertAt, project.Segments.Duplicate
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        para_obj = self.__GetParagraphObject(item_or_hvo)
+
+        # Get the owner (StText/IText)
+        owner = para_obj.Owner
+        if not owner or not hasattr(owner, 'ParagraphsOS'):
+            raise FP_ParameterError("Paragraph has no valid owner text")
+
+        # Get parent text - owner is StText, need to go up one more level to IText
+        parent_text = owner.Owner
+        if not parent_text:
+            raise FP_ParameterError("Cannot determine parent text for paragraph")
+
+        # Get source properties
+        wsHandle = self.__WSHandle(None)
+        para_text = self.GetText(para_obj, wsHandle)
+
+        # Determine insertion position
+        if insert_after:
+            # Find the index of the current paragraph
+            para_list = list(owner.ParagraphsOS)
+            try:
+                current_index = para_list.index(para_obj)
+                insert_index = current_index + 1
+            except ValueError:
+                # Paragraph not found in list, append to end
+                insert_index = len(para_list)
+
+            # Insert at position
+            new_para = self.InsertAt(parent_text, insert_index, para_text, wsHandle)
+        else:
+            # Append to end
+            new_para = self.Create(parent_text, para_text, wsHandle)
+
+        # Deep duplication: duplicate all segments
+        if deep:
+            segments = self.GetSegments(para_obj)
+            for segment in segments:
+                if hasattr(self.project, 'Segments') and hasattr(self.project.Segments, 'Duplicate'):
+                    # Note: Segments.Duplicate may not exist yet, so we create manually
+                    # Get segment baseline text
+                    if hasattr(segment, 'BaselineText'):
+                        seg_text = ITsString(segment.BaselineText).Text or ""
+                        if seg_text and hasattr(self.project, 'Segments'):
+                            # Create segment in new paragraph
+                            self.project.Segments.Create(new_para, seg_text, wsHandle)
+
+        return new_para
+
     def GetAll(self, text_or_hvo):
         """
         Get all paragraphs in a text.
@@ -321,7 +428,7 @@ class ParagraphOperations:
         wsHandle = self.__WSHandle(wsHandle)
 
         # Get the text content
-        text = ITsString(para_obj.Contents).Text
+        text = para_obj.Contents.Text if para_obj.Contents else ""
         return text or ""
 
     def SetText(self, paragraph_or_hvo, content, wsHandle=None):

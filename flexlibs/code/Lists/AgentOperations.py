@@ -33,9 +33,10 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
+from ..BaseOperations import BaseOperations
 
 
-class AgentOperations:
+class AgentOperations(BaseOperations):
     """
     This class provides operations for managing analysis agents in a FieldWorks
     project.
@@ -85,7 +86,11 @@ class AgentOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
+
+    def _GetSequence(self, parent):
+        """Specify which sequence to reorder for agent sub-possibilities."""
+        return parent.SubPossibilitiesOS
 
 
     # --- Core CRUD Operations ---
@@ -351,6 +356,81 @@ class AgentOperations:
 
         # Remove from agents collection
         self.project.lp.AnalyzingAgentsOC.Remove(agent)
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate an agent, creating a new copy with a new GUID.
+
+        Args:
+            item_or_hvo: Either an ICmAgent object or its HVO to duplicate.
+            insert_after (bool): If True (default), insert after the source agent.
+                                If False, insert at end of agents collection.
+            deep (bool): Not applicable for agents (no owned objects to copy).
+                        Included for API consistency.
+
+        Returns:
+            ICmAgent: The newly created duplicate agent with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If item_or_hvo is None.
+
+        Example:
+            >>> # Duplicate a parser agent
+            >>> parser = project.Agent.Find("MyParser")
+            >>> dup = project.Agent.Duplicate(parser)
+            >>> print(f"Original: {project.Agent.GetName(parser)}")
+            >>> print(f"Duplicate: {project.Agent.GetName(dup)}")
+            Original: MyParser
+            Duplicate: MyParser
+            >>>
+            >>> # Modify the duplicate
+            >>> project.Agent.SetName(dup, "MyParser Copy")
+            >>> project.Agent.SetVersion(dup, "1.0.1")
+
+        Notes:
+            - Factory.Create() automatically generates a new GUID
+            - insert_after=True preserves the original agent's position
+            - MultiString properties copied: Name, Version
+            - Reference properties copied: Human
+            - Agents have no owned objects, so deep parameter has no effect
+            - Duplicate agent is added to AnalyzingAgentsOC before copying properties
+
+        See Also:
+            Create, Delete, GetGuid
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not item_or_hvo:
+            raise FP_NullParameterError()
+
+        # Get source agent
+        source = self.__ResolveObject(item_or_hvo)
+
+        # Create new agent using factory (auto-generates new GUID)
+        factory = self.project.project.ServiceLocator.GetService(ICmAgentFactory)
+        duplicate = factory.Create()
+
+        # ADD TO PARENT FIRST before copying properties (CRITICAL)
+        if insert_after:
+            # Insert after source agent
+            source_index = self.project.lp.AnalyzingAgentsOC.IndexOf(source)
+            self.project.lp.AnalyzingAgentsOC.Insert(source_index + 1, duplicate)
+        else:
+            # Insert at end
+            self.project.lp.AnalyzingAgentsOC.Add(duplicate)
+
+        # Copy MultiString properties using CopyAlternatives
+        duplicate.Name.CopyAlternatives(source.Name)
+        duplicate.Version.CopyAlternatives(source.Version)
+
+        # Copy Reference Atomic (RA) property
+        if source.Human:
+            duplicate.Human = source.Human
+
+        return duplicate
 
 
     def Exists(self, name, wsHandle=None):

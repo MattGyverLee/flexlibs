@@ -30,9 +30,10 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
+from ..BaseOperations import BaseOperations
 
 
-class ConfidenceOperations:
+class ConfidenceOperations(BaseOperations):
     """
     This class provides operations for managing confidence levels (quality
     ratings) in a FieldWorks project.
@@ -90,7 +91,11 @@ class ConfidenceOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
+
+    def _GetSequence(self, parent):
+        """Specify which sequence to reorder for confidence level sub-possibilities."""
+        return parent.SubPossibilitiesOS
 
 
     # --- Core CRUD Operations ---
@@ -264,6 +269,82 @@ class ConfidenceOperations:
         confidence_list = self.project.lp.ConfidenceLevelsOA
         if confidence_list and level in confidence_list.PossibilitiesOS:
             confidence_list.PossibilitiesOS.Remove(level)
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate a confidence level, creating a new copy with a new GUID.
+
+        Args:
+            item_or_hvo: Either an ICmPossibility object or its HVO to duplicate.
+            insert_after (bool): If True (default), insert after the source level.
+                                If False, insert at end of confidence levels list.
+            deep (bool): Not applicable for confidence levels (no owned objects).
+                        Included for API consistency.
+
+        Returns:
+            ICmPossibility: The newly created duplicate confidence level with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If item_or_hvo is None.
+
+        Example:
+            >>> # Duplicate a confidence level
+            >>> high = project.Confidence.Find("High Confidence")
+            >>> dup = project.Confidence.Duplicate(high)
+            >>> print(f"Original: {project.Confidence.GetName(high)}")
+            >>> print(f"Duplicate: {project.Confidence.GetName(dup)}")
+            Original: High Confidence
+            Duplicate: High Confidence
+            >>>
+            >>> # Modify the duplicate
+            >>> project.Confidence.SetName(dup, "Very High Confidence")
+            >>> project.Confidence.SetDescription(dup,
+            ...     "Analysis confirmed by multiple expert sources")
+
+        Notes:
+            - Factory.Create() automatically generates a new GUID
+            - insert_after=True preserves the original level's position
+            - MultiString properties copied: Name, Description
+            - Confidence levels have no owned objects, so deep parameter has no effect
+            - Duplicate is added to ConfidenceLevelsOA before copying properties
+
+        See Also:
+            Create, Delete, GetGuid
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if item_or_hvo is None:
+            raise FP_NullParameterError()
+
+        # Get source confidence level
+        source = self.__ResolveObject(item_or_hvo)
+
+        # Get the confidence levels list
+        confidence_list = self.project.lp.ConfidenceLevelsOA
+        if not confidence_list:
+            raise FP_ParameterError("Confidence levels list not found in project")
+
+        # Create new confidence level using factory (auto-generates new GUID)
+        factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
+        duplicate = factory.Create()
+
+        # ADD TO PARENT FIRST before copying properties (CRITICAL)
+        if insert_after:
+            # Insert after source level
+            source_index = confidence_list.PossibilitiesOS.IndexOf(source)
+            confidence_list.PossibilitiesOS.Insert(source_index + 1, duplicate)
+        else:
+            # Insert at end
+            confidence_list.PossibilitiesOS.Add(duplicate)
+
+        # Copy MultiString properties using CopyAlternatives
+        duplicate.Name.CopyAlternatives(source.Name)
+        duplicate.Description.CopyAlternatives(source.Description)
+
+        return duplicate
 
 
     def Find(self, name):

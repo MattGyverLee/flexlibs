@@ -14,6 +14,9 @@
 import logging
 logger = logging.getLogger(__name__)
 
+# Import BaseOperations parent class
+from ..BaseOperations import BaseOperations
+
 # Import FLEx LCM types
 from SIL.LCModel import ICmPossibility, ICmPossibilityFactory
 from SIL.LCModel.Core.KernelInterfaces import ITsString
@@ -27,7 +30,7 @@ from ..FLExProject import (
 )
 
 
-class GramCatOperations:
+class GramCatOperations(BaseOperations):
     """
     This class provides operations for managing Grammatical Categories in a
     FieldWorks project.
@@ -71,7 +74,15 @@ class GramCatOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
+
+
+    def _GetSequence(self, parent):
+        """
+        Specify which sequence to reorder for grammatical categories.
+        For GramCat, we reorder parent.SubPossibilitiesOS
+        """
+        return parent.SubPossibilitiesOS
 
 
     def GetAll(self):
@@ -417,6 +428,136 @@ class GramCatOperations:
                 return None
 
         return None
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate a grammatical category, creating a new copy with a new GUID.
+
+        Args:
+            item_or_hvo: The ICmPossibility object or HVO to duplicate.
+            insert_after (bool): If True (default), insert after the source category.
+                                If False, insert at end of parent's possibilities list.
+            deep (bool): If True, recursively duplicate all subcategories.
+                        If False (default), only duplicate the category itself.
+
+        Returns:
+            ICmPossibility: The newly created duplicate category with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If item_or_hvo is None.
+
+        Example:
+            >>> gramCatOps = GramCatOperations(project)
+            >>> person = gramCatOps.Create("person")
+            >>> # Shallow copy (no subcategories)
+            >>> person_copy = gramCatOps.Duplicate(person)
+            >>> print(gramCatOps.GetName(person_copy))
+            person
+
+            >>> # Deep copy (includes all subcategories)
+            >>> number = gramCatOps.Create("number")
+            >>> singular = gramCatOps.Create("singular", parent=number)
+            >>> plural = gramCatOps.Create("plural", parent=number)
+            >>> number_copy = gramCatOps.Duplicate(number, deep=True)
+            >>> orig_subs = gramCatOps.GetSubcategories(number)
+            >>> copy_subs = gramCatOps.GetSubcategories(number_copy)
+            >>> print(f"Original has {len(orig_subs)} subcategories")
+            >>> print(f"Copy has {len(copy_subs)} subcategories")
+
+        Notes:
+            - Factory.Create() automatically generates a new GUID
+            - insert_after=True preserves the original category's position
+            - Simple properties copied: Name, Abbreviation, Description (MultiString)
+            - deep=True recursively duplicates SubPossibilitiesOS hierarchy
+            - Used for creating variants of grammatical feature hierarchies
+
+        See Also:
+            Create, Delete, GetSubcategories
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not item_or_hvo:
+            raise FP_NullParameterError()
+
+        # Get source category
+        source = self.__ResolveObject(item_or_hvo)
+
+        # Create new category using factory (auto-generates new GUID)
+        factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
+        duplicate = factory.Create()
+
+        # Determine parent and insertion position
+        # Check if source is a subcategory or top-level
+        parent_is_possibility = False
+        try:
+            parent_cat = ICmPossibility(source.Owner)
+            parent_is_possibility = True
+        except:
+            parent_is_possibility = False
+
+        if parent_is_possibility:
+            # Source is a subcategory
+            parent_cat = ICmPossibility(source.Owner)
+            if insert_after:
+                source_index = parent_cat.SubPossibilitiesOS.IndexOf(source)
+                parent_cat.SubPossibilitiesOS.Insert(source_index + 1, duplicate)
+            else:
+                parent_cat.SubPossibilitiesOS.Add(duplicate)
+        else:
+            # Source is top-level
+            feature_system = self.project.lp.MsFeatureSystemOA
+            if insert_after:
+                source_index = feature_system.TypesOC.IndexOf(source)
+                feature_system.TypesOC.Insert(source_index + 1, duplicate)
+            else:
+                feature_system.TypesOC.Add(duplicate)
+
+        # Copy simple MultiString properties (AFTER adding to parent)
+        duplicate.Name.CopyAlternatives(source.Name)
+        duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)
+        duplicate.Description.CopyAlternatives(source.Description)
+
+        # Deep copy: recursively duplicate subcategories
+        if deep and source.SubPossibilitiesOS.Count > 0:
+            for sub_cat in source.SubPossibilitiesOS:
+                # Recursively duplicate each subcategory
+                self.__DuplicateSubcategory(sub_cat, duplicate)
+
+        return duplicate
+
+
+    def __DuplicateSubcategory(self, source_sub, parent_duplicate):
+        """
+        Helper method to recursively duplicate a subcategory.
+
+        Args:
+            source_sub: The source ICmPossibility subcategory to duplicate.
+            parent_duplicate: The parent ICmPossibility to add the duplicate to.
+
+        Returns:
+            ICmPossibility: The duplicated subcategory.
+        """
+        # Create new subcategory
+        factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
+        sub_duplicate = factory.Create()
+
+        # Add to parent's SubPossibilitiesOS
+        parent_duplicate.SubPossibilitiesOS.Add(sub_duplicate)
+
+        # Copy properties
+        sub_duplicate.Name.CopyAlternatives(source_sub.Name)
+        sub_duplicate.Abbreviation.CopyAlternatives(source_sub.Abbreviation)
+        sub_duplicate.Description.CopyAlternatives(source_sub.Description)
+
+        # Recursively duplicate nested subcategories
+        if source_sub.SubPossibilitiesOS.Count > 0:
+            for nested_sub in source_sub.SubPossibilitiesOS:
+                self.__DuplicateSubcategory(nested_sub, sub_duplicate)
+
+        return sub_duplicate
 
 
     # --- Private Helper Methods ---

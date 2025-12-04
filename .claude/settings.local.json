@@ -2,7 +2,12 @@
   "permissions": {
     "allow": [
       "Bash(test:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(for file in LexSenseOperations ExampleOperations AllomorphOperations PronunciationOperations VariantOperations)",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(done)",
+      "Read(//d/**)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

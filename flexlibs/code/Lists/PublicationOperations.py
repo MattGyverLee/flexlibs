@@ -30,9 +30,10 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
+from ..BaseOperations import BaseOperations
 
 
-class PublicationOperations:
+class PublicationOperations(BaseOperations):
     """
     This class provides operations for managing publications and publishing
     workflows in a FieldWorks project.
@@ -86,7 +87,11 @@ class PublicationOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
+
+    def _GetSequence(self, parent):
+        """Specify which sequence to reorder for publication sub-possibilities."""
+        return parent.SubPossibilitiesOS
 
 
     # --- Core CRUD Operations ---
@@ -289,6 +294,134 @@ class PublicationOperations:
             pub_list = self.project.lexDB.PublicationTypesOA
             if pub_list:
                 pub_list.PossibilitiesOS.Remove(publication)
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate a publication, creating a new copy with a new GUID.
+
+        Args:
+            item_or_hvo: Either an ICmPossibility publication object or its HVO to duplicate.
+            insert_after (bool): If True (default), insert after the source publication.
+                                If False, insert at end of publications list.
+            deep (bool): If True, also duplicate owned divisions/sub-publications.
+                        If False (default), only copy simple properties.
+
+        Returns:
+            ICmPossibility: The newly created duplicate publication with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If item_or_hvo is None.
+
+        Example:
+            >>> # Duplicate a publication
+            >>> main_pub = project.Publications.Find("Main Dictionary")
+            >>> dup = project.Publications.Duplicate(main_pub)
+            >>> print(f"Original: {project.Publications.GetName(main_pub)}")
+            >>> print(f"Duplicate: {project.Publications.GetName(dup)}")
+            Original: Main Dictionary
+            Duplicate: Main Dictionary
+            >>>
+            >>> # Modify the duplicate
+            >>> project.Publications.SetName(dup, "Web Dictionary")
+            >>> project.Publications.SetPageWidth(dup, 10.0)
+            >>> project.Publications.SetPageHeight(dup, 12.0)
+            >>>
+            >>> # Deep duplicate (includes all divisions)
+            >>> deep_dup = project.Publications.Duplicate(main_pub, deep=True)
+            >>> divisions = project.Publications.GetDivisions(deep_dup)
+            >>> print(f"Duplicate has {len(divisions)} divisions")
+
+        Notes:
+            - Factory.Create() automatically generates a new GUID
+            - insert_after=True preserves the original publication's position
+            - MultiString properties copied: Name, Description, Abbreviation
+            - Numeric properties copied: PageWidth (SortKey), PageHeight (SortKey2)
+            - Date properties copied: DateCreated, DateModified
+            - If deep=True, also copies divisions (SubPossibilitiesOS)
+            - Duplicate is added to publication list before copying properties
+            - Duplicate is NOT set as default (even if source is default)
+
+        See Also:
+            Create, Delete, GetGuid, GetDivisions
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if item_or_hvo is None:
+            raise FP_NullParameterError()
+
+        # Get source publication
+        source = self.__ResolveObject(item_or_hvo)
+
+        # Get the parent or top-level list
+        parent = self.GetParent(source)
+
+        # Get the publication types list
+        pub_list = self.project.lexDB.PublicationTypesOA
+        if not pub_list:
+            raise FP_ParameterError("Publication types list not found in project")
+
+        # Create new publication using factory (auto-generates new GUID)
+        factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
+        duplicate = factory.Create()
+
+        # ADD TO PARENT FIRST before copying properties (CRITICAL)
+        if parent:
+            # Insert into parent's sub-publications
+            if insert_after:
+                source_index = parent.SubPossibilitiesOS.IndexOf(source)
+                parent.SubPossibilitiesOS.Insert(source_index + 1, duplicate)
+            else:
+                parent.SubPossibilitiesOS.Add(duplicate)
+        else:
+            # Insert into top-level list (but NOT as default, so never at position 0)
+            if insert_after:
+                source_index = pub_list.PossibilitiesOS.IndexOf(source)
+                # If source is default (index 0), insert after it (index 1)
+                # Otherwise insert after source
+                pub_list.PossibilitiesOS.Insert(source_index + 1, duplicate)
+            else:
+                pub_list.PossibilitiesOS.Add(duplicate)
+
+        # Copy MultiString properties using CopyAlternatives
+        duplicate.Name.CopyAlternatives(source.Name)
+        if hasattr(source, 'Description'):
+            duplicate.Description.CopyAlternatives(source.Description)
+        if hasattr(source, 'Abbreviation'):
+            duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)
+
+        # Copy numeric properties for page dimensions
+        if hasattr(source, 'SortKey') and hasattr(duplicate, 'SortKey'):
+            duplicate.SortKey = source.SortKey  # PageWidth
+        if hasattr(source, 'SortKey2') and hasattr(duplicate, 'SortKey2'):
+            duplicate.SortKey2 = source.SortKey2  # PageHeight
+
+        # Copy date properties
+        if hasattr(source, 'DateCreated'):
+            duplicate.DateCreated = source.DateCreated
+        if hasattr(source, 'DateModified'):
+            duplicate.DateModified = source.DateModified
+
+        # Deep copy: duplicate owned divisions (SubPossibilitiesOS)
+        if deep and hasattr(source, 'SubPossibilitiesOS') and source.SubPossibilitiesOS.Count > 0:
+            for division in source.SubPossibilitiesOS:
+                # Duplicate each division
+                div_factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
+                div_dup = div_factory.Create()
+                duplicate.SubPossibilitiesOS.Add(div_dup)
+
+                # Copy division properties
+                div_dup.Name.CopyAlternatives(division.Name)
+                if hasattr(division, 'Description'):
+                    div_dup.Description.CopyAlternatives(division.Description)
+                if hasattr(division, 'Abbreviation'):
+                    div_dup.Abbreviation.CopyAlternatives(division.Abbreviation)
+                if hasattr(division, 'DateCreated'):
+                    div_dup.DateCreated = division.DateCreated
+
+        return duplicate
 
 
     def Find(self, name):

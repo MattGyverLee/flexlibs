@@ -33,9 +33,10 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
+from ..BaseOperations import BaseOperations
 
 
-class PersonOperations:
+class PersonOperations(BaseOperations):
     """
     This class provides operations for managing people (consultants, speakers,
     researchers) in a FieldWorks project.
@@ -83,7 +84,7 @@ class PersonOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
 
 
     # --- Core CRUD Operations ---
@@ -1005,6 +1006,101 @@ class PersonOperations:
             person.PositionsRC.Add(position_poss)
         except (AttributeError, System.InvalidCastException) as e:
             raise FP_ParameterError("position must be a valid ICmPossibility object")
+
+
+    def Duplicate(self, person_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate a person, creating a new copy with a new GUID.
+
+        Args:
+            person_or_hvo: The ICmPerson object or HVO to duplicate.
+            insert_after (bool): If True (default), insert after the source person.
+                                If False, insert at end of people collection.
+            deep (bool): Reserved for future use (persons have no owned objects).
+                        Currently has no effect.
+
+        Returns:
+            ICmPerson: The newly created duplicate person with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If person_or_hvo is None.
+
+        Example:
+            >>> # Duplicate a person
+            >>> person = project.Person.Find("John Smith")
+            >>> dup = project.Person.Duplicate(person)
+            >>> print(f"Original: {project.Person.GetGuid(person)}")
+            >>> print(f"Duplicate: {project.Person.GetGuid(dup)}")
+            Original: 12345678-1234-1234-1234-123456789abc
+            Duplicate: 87654321-4321-4321-4321-cba987654321
+
+            >>> # Verify properties copied
+            >>> print(project.Person.GetEmail(dup))
+            john.smith@example.com
+
+        Notes:
+            - Factory.Create() automatically generates a new GUID
+            - insert_after=True preserves the original person's position
+            - Simple properties copied: Name, Gender, Email, DateOfBirth
+            - MultiString properties copied: Abbreviation (address), Description (education),
+              Comment (notes), PlaceOfBirth (phone)
+            - Reference collections copied: PositionsRC, PlacesOfResidenceRC, LanguagesRC
+            - DateCreated and DateModified are NOT copied (set automatically)
+            - deep parameter has no effect (persons have no owned objects)
+
+        See Also:
+            Create, Delete, GetGuid
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not person_or_hvo:
+            raise FP_NullParameterError()
+
+        # Get source person
+        source = self.__ResolveObject(person_or_hvo)
+
+        # Create new person using factory (auto-generates new GUID)
+        factory = self.project.project.ServiceLocator.GetService(ICmPersonFactory)
+        duplicate = factory.Create()
+
+        # Determine insertion position and add to parent FIRST
+        if insert_after:
+            source_index = self.project.lp.PeopleOC.IndexOf(source)
+            self.project.lp.PeopleOC.Insert(source_index + 1, duplicate)
+        else:
+            self.project.lp.PeopleOC.Add(duplicate)
+
+        # Copy simple MultiString properties
+        duplicate.Name.CopyAlternatives(source.Name)
+        duplicate.Gender.CopyAlternatives(source.Gender)
+        duplicate.Email.CopyAlternatives(source.Email)
+        duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)  # Address
+        duplicate.Description.CopyAlternatives(source.Description)     # Education
+        duplicate.Comment.CopyAlternatives(source.Comment)             # Notes
+        duplicate.PlaceOfBirth.CopyAlternatives(source.PlaceOfBirth)  # Phone
+
+        # Copy DateOfBirth (GenDate field)
+        if hasattr(source, 'DateOfBirth') and source.DateOfBirth:
+            duplicate.DateOfBirth = source.DateOfBirth
+
+        # Copy Reference Collection (RC) properties
+        if hasattr(source, 'PositionsRC'):
+            for position in source.PositionsRC:
+                duplicate.PositionsRC.Add(position)
+
+        if hasattr(source, 'PlacesOfResidenceRC'):
+            for residence in source.PlacesOfResidenceRC:
+                duplicate.PlacesOfResidenceRC.Add(residence)
+
+        if hasattr(source, 'LanguagesRC'):
+            for language in source.LanguagesRC:
+                duplicate.LanguagesRC.Add(language)
+
+        # Note: deep parameter has no effect for persons (no owned objects)
+
+        return duplicate
 
 
     # --- Metadata ---

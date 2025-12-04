@@ -33,9 +33,10 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
+from ..BaseOperations import BaseOperations
 
 
-class WfiMorphBundleOperations:
+class WfiMorphBundleOperations(BaseOperations):
     """
     This class provides operations for managing morpheme bundles in a FieldWorks project.
 
@@ -86,7 +87,11 @@ class WfiMorphBundleOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
+
+    def _GetSequence(self, parent):
+        """Specify which sequence to reorder for morph bundles."""
+        return parent.MorphsOS
 
 
     # ==================== CORE CRUD OPERATIONS ====================
@@ -234,6 +239,94 @@ class WfiMorphBundleOperations:
         # Remove from the analysis's morph bundles collection
         if hasattr(owner, 'MorphBundlesOS'):
             owner.MorphBundlesOS.Remove(bundle)
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate a morph bundle, creating a new copy with a new GUID.
+
+        Args:
+            item_or_hvo: The IWfiMorphBundle object or HVO to duplicate.
+            insert_after (bool): If True (default), insert after the source bundle.
+                                If False, insert at end of analysis's bundle sequence.
+            deep (bool): If True, also duplicate owned objects (if any exist).
+                        If False (default), only copy simple properties and references.
+                        Note: WfiMorphBundle has no owned objects, so deep has no effect.
+
+        Returns:
+            IWfiMorphBundle: The newly created duplicate bundle with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If item_or_hvo is None.
+
+        Example:
+            >>> morphBundleOps = WfiMorphBundleOperations(project)
+            >>> analysis = analyses[0]
+            >>> bundles = list(morphBundleOps.GetAll(analysis))
+            >>> if bundles:
+            ...     # Duplicate bundle
+            ...     dup = morphBundleOps.Duplicate(bundles[0])
+            ...     print(f"Original: {morphBundleOps.GetGuid(bundles[0])}")
+            ...     print(f"Duplicate: {morphBundleOps.GetGuid(dup)}")
+            Original: 12345678-1234-1234-1234-123456789abc
+            Duplicate: 87654321-4321-4321-4321-cba987654321
+            ...
+            ...     # Verify content was copied
+            ...     print(f"Form: {morphBundleOps.GetForm(dup)}")
+            ...     print(f"Gloss: {morphBundleOps.GetGloss(dup)}")
+
+        Notes:
+            - Factory.Create() automatically generates a new GUID
+            - insert_after=True preserves the original bundle's position in sequence
+            - Simple properties copied: Form, Gloss (MultiStrings)
+            - Reference properties copied: SenseRA, MsaRA, MorphRA, InflClassRA
+            - WfiMorphBundle has no owned objects, so deep parameter has no effect
+            - Useful for creating similar morpheme analyses or templates
+
+        See Also:
+            Create, Delete, GetGuid
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not item_or_hvo:
+            raise FP_NullParameterError()
+
+        # Get source bundle and parent
+        source = self.__GetBundleObject(item_or_hvo)
+        parent = self._GetObject(source.Owner.Hvo)
+
+        # Create new bundle using factory (auto-generates new GUID)
+        factory = self.project.project.ServiceLocator.GetService(IWfiMorphBundleFactory)
+        duplicate = factory.Create()
+
+        # Determine insertion position
+        if insert_after:
+            # Insert after source bundle
+            source_index = list(parent.MorphBundlesOS).index(source)
+            parent.MorphBundlesOS.Insert(source_index + 1, duplicate)
+        else:
+            # Insert at end
+            parent.MorphBundlesOS.Add(duplicate)
+
+        # Copy simple MultiString properties
+        duplicate.Form.CopyAlternatives(source.Form)
+        duplicate.Gloss.CopyAlternatives(source.Gloss)
+
+        # Copy Reference Atomic (RA) properties
+        if hasattr(source, 'SenseRA') and source.SenseRA:
+            duplicate.SenseRA = source.SenseRA
+        if hasattr(source, 'MsaRA') and source.MsaRA:
+            duplicate.MsaRA = source.MsaRA
+        if hasattr(source, 'MorphRA') and source.MorphRA:
+            duplicate.MorphRA = source.MorphRA
+        if hasattr(source, 'InflClassRA') and source.InflClassRA:
+            duplicate.InflClassRA = source.InflClassRA
+
+        # Note: WfiMorphBundle has no owned objects (OS collections), so deep has no effect
+
+        return duplicate
 
 
     def Reorder(self, analysis_or_hvo, bundle_list):

@@ -14,6 +14,9 @@
 import logging
 logger = logging.getLogger(__name__)
 
+# Import BaseOperations parent class
+from ..BaseOperations import BaseOperations
+
 # Import FLEx LCM types
 from SIL.LCModel import (
     IMoInflClass,
@@ -35,7 +38,7 @@ from ..FLExProject import (
 )
 
 
-class InflectionFeatureOperations:
+class InflectionFeatureOperations(BaseOperations):
     """
     This class provides operations for managing inflection classes, feature
     structures, and features in a FieldWorks project.
@@ -76,7 +79,15 @@ class InflectionFeatureOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
+
+
+    def _GetSequence(self, parent):
+        """
+        Specify which sequence to reorder for inflection features.
+        For InflectionFeature, we reorder parent.FeaturesOA.PossibilitiesOS
+        """
+        return parent.FeaturesOA.PossibilitiesOS
 
 
     # ========================================================================

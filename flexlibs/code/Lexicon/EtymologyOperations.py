@@ -14,6 +14,9 @@
 import logging
 logger = logging.getLogger(__name__)
 
+# Import BaseOperations parent class
+from ..BaseOperations import BaseOperations
+
 # Import FLEx LCM types
 from SIL.LCModel import (
     ILexEtymology,
@@ -31,7 +34,7 @@ from ..FLExProject import (
 )
 
 
-class EtymologyOperations:
+class EtymologyOperations(BaseOperations):
     """
     This class provides operations for managing etymological information in a
     FieldWorks project.
@@ -87,7 +90,15 @@ class EtymologyOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
+
+
+    def _GetSequence(self, parent):
+        """
+        Specify which sequence to reorder for etymologies.
+        For Etymology, we reorder entry.EtymologyOS
+        """
+        return parent.EtymologyOS
 
 
     # --- Core CRUD Operations ---
@@ -268,6 +279,92 @@ class EtymologyOperations:
         owner = etymology.Owner
         if hasattr(owner, 'EtymologyOS'):
             owner.EtymologyOS.Remove(etymology)
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate an etymology, creating a new copy with a new GUID.
+
+        Args:
+            item_or_hvo: The ILexEtymology object or HVO to duplicate.
+            insert_after (bool): If True (default), insert after the source etymology.
+                                If False, insert at end of entry's etymology list.
+            deep (bool): If True, also duplicate owned objects (if any exist).
+                        If False (default), only copy simple properties and references.
+                        Note: Etymology has no owned objects, so deep has no effect.
+
+        Returns:
+            ILexEtymology: The newly created duplicate etymology with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If item_or_hvo is None.
+
+        Example:
+            >>> etymOps = EtymologyOperations(project)
+            >>> entry = project.LexEntry.Find("telephone")
+            >>> etymologies = list(etymOps.GetAll(entry))
+            >>> if etymologies:
+            ...     # Duplicate etymology
+            ...     dup = etymOps.Duplicate(etymologies[0])
+            ...     print(f"Original: {etymOps.GetGuid(etymologies[0])}")
+            ...     print(f"Duplicate: {etymOps.GetGuid(dup)}")
+            Original: 12345678-1234-1234-1234-123456789abc
+            Duplicate: 87654321-4321-4321-4321-cba987654321
+            ...
+            ...     # Verify content was copied
+            ...     print(f"Source: {etymOps.GetSource(dup)}")
+            ...     print(f"Form: {etymOps.GetForm(dup)}")
+
+        Notes:
+            - Factory.Create() automatically generates a new GUID
+            - insert_after=True preserves the original etymology's position
+            - Simple properties copied: Source, Form, Gloss, Comment, Bibliography
+            - Reference properties copied: LanguageNotesRA
+            - Etymology has no owned objects, so deep parameter has no effect
+
+        See Also:
+            Create, Delete, GetGuid
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not item_or_hvo:
+            raise FP_NullParameterError()
+
+        # Get source etymology and parent
+        source = self.__GetEtymologyObject(item_or_hvo)
+        parent = source.Owner
+
+        # Create new etymology using factory (auto-generates new GUID)
+        factory = self.project.project.ServiceLocator.GetService(ILexEtymologyFactory)
+        duplicate = factory.Create()
+
+        # Determine insertion position
+        if insert_after:
+            # Insert after source etymology
+            if hasattr(parent, 'EtymologyOS'):
+                source_index = parent.EtymologyOS.IndexOf(source)
+                parent.EtymologyOS.Insert(source_index + 1, duplicate)
+        else:
+            # Insert at end
+            if hasattr(parent, 'EtymologyOS'):
+                parent.EtymologyOS.Add(duplicate)
+
+        # Copy simple MultiString properties (AFTER adding to parent)
+        duplicate.Source.CopyAlternatives(source.Source)
+        duplicate.Form.CopyAlternatives(source.Form)
+        duplicate.Gloss.CopyAlternatives(source.Gloss)
+        duplicate.Comment.CopyAlternatives(source.Comment)
+        duplicate.Bibliography.CopyAlternatives(source.Bibliography)
+
+        # Copy Reference Atomic (RA) properties
+        if hasattr(source, 'LanguageNotesRA') and source.LanguageNotesRA:
+            duplicate.LanguageNotesRA = source.LanguageNotesRA
+
+        # Note: Etymology has no owned objects (OS collections), so deep has no effect
+
+        return duplicate
 
 
     def Reorder(self, entry_or_hvo, etymology_list):

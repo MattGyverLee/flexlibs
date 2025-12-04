@@ -49,10 +49,10 @@ def demo_inflection_crud():
 
         print("\nGetting all inflections...")
         initial_count = 0
-        for obj in project.Inflection.GetAll():
+        for obj in project.InflectionFeatures.GetAll():
             # Display first few objects
             try:
-                name = project.Inflection.GetName(obj) if hasattr(project.Inflection, 'GetName') else str(obj)
+                name = project.InflectionFeatures.GetName(obj) if hasattr(project.InflectionFeatures, 'GetName') else str(obj)
                 print(f"  - {name}")
             except:
                 print(f"  - [Object {initial_count + 1}]")
@@ -69,12 +69,12 @@ def demo_inflection_crud():
 
         # Check if test object already exists
         try:
-            if hasattr(project.Inflection, 'Exists') and project.Inflection.Exists(test_name):
+            if hasattr(project.InflectionFeatures, 'Exists') and project.InflectionFeatures.Exists(test_name):
                 print(f"\nTest inflection '{test_name}' already exists")
                 print("Deleting existing one first...")
-                existing = project.Inflection.Find(test_name) if hasattr(project.Inflection, 'Find') else None
+                existing = project.InflectionFeatures.Find(test_name) if hasattr(project.InflectionFeatures, 'Find') else None
                 if existing:
-                    project.Inflection.Delete(existing)
+                    project.InflectionFeatures.Delete(existing)
                     print("  Deleted existing test inflection")
         except:
             pass
@@ -84,13 +84,13 @@ def demo_inflection_crud():
 
         try:
             # Attempt to create with common parameters
-            test_obj = project.Inflection.Create(test_name)
+            test_obj = project.InflectionFeatures.Create(test_name)
         except TypeError:
             try:
                 # Try without parameters if that fails
-                test_obj = project.Inflection.Create()
-                if hasattr(project.Inflection, 'SetName'):
-                    project.Inflection.SetName(test_obj, test_name)
+                test_obj = project.InflectionFeatures.Create()
+                if hasattr(project.InflectionFeatures, 'SetName'):
+                    project.InflectionFeatures.SetName(test_obj, test_name)
             except Exception as e:
                 print(f"  Note: Create method may require specific parameters: {e}")
                 test_obj = None
@@ -98,8 +98,8 @@ def demo_inflection_crud():
         if test_obj:
             print(f"  SUCCESS: Inflection created!")
             try:
-                if hasattr(project.Inflection, 'GetName'):
-                    print(f"  Name: {project.Inflection.GetName(test_obj)}")
+                if hasattr(project.InflectionFeatures, 'GetName'):
+                    print(f"  Name: {project.InflectionFeatures.GetName(test_obj)}")
             except:
                 pass
         else:
@@ -113,20 +113,20 @@ def demo_inflection_crud():
         print("="*70)
 
         # Test Exists
-        if hasattr(project.Inflection, 'Exists'):
+        if hasattr(project.InflectionFeatures, 'Exists'):
             print(f"\nChecking if '{test_name}' exists...")
-            exists = project.Inflection.Exists(test_name)
+            exists = project.InflectionFeatures.Exists(test_name)
             print(f"  Exists: {exists}")
 
         # Test Find
-        if hasattr(project.Inflection, 'Find'):
+        if hasattr(project.InflectionFeatures, 'Find'):
             print(f"\nFinding inflection by name...")
-            found_obj = project.Inflection.Find(test_name)
+            found_obj = project.InflectionFeatures.Find(test_name)
             if found_obj:
                 print(f"  FOUND: inflection")
                 try:
-                    if hasattr(project.Inflection, 'GetName'):
-                        print(f"  Name: {project.Inflection.GetName(found_obj)}")
+                    if hasattr(project.InflectionFeatures, 'GetName'):
+                        print(f"  Name: {project.InflectionFeatures.GetName(found_obj)}")
                 except:
                     pass
             else:
@@ -134,7 +134,7 @@ def demo_inflection_crud():
 
         # Count after creation
         print("\nCounting all inflections after creation...")
-        current_count = sum(1 for _ in project.Inflection.GetAll())
+        current_count = sum(1 for _ in project.InflectionFeatures.GetAll())
         print(f"  Count before: {initial_count}")
         print(f"  Count after:  {current_count}")
         print(f"  Difference:   +{current_count - initial_count}")
@@ -148,13 +148,13 @@ def demo_inflection_crud():
             updated = False
 
             # Try common update methods
-            if hasattr(project.Inflection, 'SetName'):
+            if hasattr(project.InflectionFeatures, 'SetName'):
                 try:
                     new_name = "crud_test_inflection_modified"
                     print(f"\nUpdating name to: '{new_name}'")
-                    old_name = project.Inflection.GetName(test_obj) if hasattr(project.Inflection, 'GetName') else test_name
-                    project.Inflection.SetName(test_obj, new_name)
-                    updated_name = project.Inflection.GetName(test_obj) if hasattr(project.Inflection, 'GetName') else new_name
+                    old_name = project.InflectionFeatures.GetName(test_obj) if hasattr(project.InflectionFeatures, 'GetName') else test_name
+                    project.InflectionFeatures.SetName(test_obj, new_name)
+                    updated_name = project.InflectionFeatures.GetName(test_obj) if hasattr(project.InflectionFeatures, 'GetName') else new_name
                     print(f"  Old name: {old_name}")
                     print(f"  New name: {updated_name}")
                     test_name = new_name  # Update for cleanup
@@ -163,7 +163,7 @@ def demo_inflection_crud():
                     print(f"  Note: SetName failed: {e}")
 
             # Try other Set methods
-            for method_name in dir(project.Inflection):
+            for method_name in dir(project.InflectionFeatures):
                 if method_name.startswith('Set') and method_name != 'SetName' and not updated:
                     print(f"\nFound update method: {method_name}")
                     print("  (Method available but not tested in this demo)")
@@ -179,14 +179,14 @@ def demo_inflection_crud():
         print("STEP 5: READ - Verify updates persisted")
         print("="*70)
 
-        if hasattr(project.Inflection, 'Find'):
+        if hasattr(project.InflectionFeatures, 'Find'):
             print(f"\nFinding inflection after update...")
-            updated_obj = project.Inflection.Find(test_name)
+            updated_obj = project.InflectionFeatures.Find(test_name)
             if updated_obj:
                 print(f"  FOUND: inflection")
                 try:
-                    if hasattr(project.Inflection, 'GetName'):
-                        print(f"  Name: {project.Inflection.GetName(updated_obj)}")
+                    if hasattr(project.InflectionFeatures, 'GetName'):
+                        print(f"  Name: {project.InflectionFeatures.GetName(updated_obj)}")
                 except:
                     pass
             else:
@@ -200,17 +200,17 @@ def demo_inflection_crud():
         if test_obj:
             print(f"\nDeleting test inflection...")
             try:
-                obj_name = project.Inflection.GetName(test_obj) if hasattr(project.Inflection, 'GetName') else test_name
+                obj_name = project.InflectionFeatures.GetName(test_obj) if hasattr(project.InflectionFeatures, 'GetName') else test_name
             except:
                 obj_name = test_name
 
-            project.Inflection.Delete(test_obj)
+            project.InflectionFeatures.Delete(test_obj)
             print(f"  Deleted: {obj_name}")
 
             # Verify deletion
             print("\nVerifying deletion...")
-            if hasattr(project.Inflection, 'Exists'):
-                still_exists = project.Inflection.Exists(test_name)
+            if hasattr(project.InflectionFeatures, 'Exists'):
+                still_exists = project.InflectionFeatures.Exists(test_name)
                 print(f"  Still exists: {still_exists}")
 
                 if not still_exists:
@@ -219,7 +219,7 @@ def demo_inflection_crud():
                     print("  DELETE: FAILED - Inflection still exists")
 
             # Count after deletion
-            final_count = sum(1 for _ in project.Inflection.GetAll())
+            final_count = sum(1 for _ in project.InflectionFeatures.GetAll())
             print(f"\n  Count after delete: {final_count}")
             print(f"  Back to initial:    {final_count == initial_count}")
 
@@ -247,10 +247,10 @@ def demo_inflection_crud():
 
         try:
             for name in ["crud_test_inflection", "crud_test_inflection_modified"]:
-                if hasattr(project.Inflection, 'Exists') and project.Inflection.Exists(name):
-                    obj = project.Inflection.Find(name) if hasattr(project.Inflection, 'Find') else None
+                if hasattr(project.InflectionFeatures, 'Exists') and project.InflectionFeatures.Exists(name):
+                    obj = project.InflectionFeatures.Find(name) if hasattr(project.InflectionFeatures, 'Find') else None
                     if obj:
-                        project.Inflection.Delete(obj)
+                        project.InflectionFeatures.Delete(obj)
                         print(f"  Cleaned up: {name}")
         except:
             pass

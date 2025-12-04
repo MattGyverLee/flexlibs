@@ -14,6 +14,9 @@
 import logging
 logger = logging.getLogger(__name__)
 
+# Import BaseOperations parent class
+from ..BaseOperations import BaseOperations
+
 # Import FLEx LCM types
 from SIL.LCModel import (
     ILexSense,
@@ -36,7 +39,7 @@ from ..FLExProject import (
 )
 
 
-class LexSenseOperations:
+class LexSenseOperations(BaseOperations):
     """
     This class provides operations for managing lexical senses in a FieldWorks project.
 
@@ -80,7 +83,15 @@ class LexSenseOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
+
+
+    def _GetSequence(self, parent):
+        """
+        Specify which sequence to reorder for senses.
+        For LexSense, we reorder entry.SensesOS
+        """
+        return parent.SensesOS
 
 
     # --- Core CRUD Operations ---
@@ -247,6 +258,135 @@ class LexSenseOperations:
         elif hasattr(owner, 'SensesOS'):
             # Subsense owned by another sense
             owner.SensesOS.Remove(sense)
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate a sense, creating a new copy with a new GUID.
+
+        Args:
+            item_or_hvo: The ILexSense object or HVO to duplicate.
+            insert_after (bool): If True (default), insert after the source sense.
+                                If False, insert at end of parent's sense list.
+            deep (bool): If True, also duplicate owned objects (subsenses, examples, pictures).
+                        If False (default), only copy simple properties and references.
+
+        Returns:
+            ILexSense: The newly created duplicate sense with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If item_or_hvo is None.
+
+        Example:
+            >>> entry = list(project.LexiconAllEntries())[0]
+            >>> senses = list(project.Senses.GetAll(entry))
+            >>> if senses:
+            ...     # Shallow duplicate (no examples/subsenses)
+            ...     dup = project.Senses.Duplicate(senses[0])
+            ...     print(f"Original: {project.Senses.GetGuid(senses[0])}")
+            ...     print(f"Duplicate: {project.Senses.GetGuid(dup)}")
+            Original: 12345678-1234-1234-1234-123456789abc
+            Duplicate: 87654321-4321-4321-4321-cba987654321
+            ...
+            ...     # Deep duplicate (includes all owned objects)
+            ...     deep_dup = project.Senses.Duplicate(senses[0], deep=True)
+            ...     print(f"Examples: {project.Senses.GetExampleCount(deep_dup)}")
+
+        Notes:
+            - Factory.Create() automatically generates a new GUID
+            - insert_after=True preserves the original sense's position/priority
+            - Simple properties copied: Gloss, Definition, etc.
+            - Reference properties copied: MSA, Status, SenseType, SemanticDomainsRC
+            - Owned objects (deep=True): ExamplesOS, SensesOS (subsenses), PicturesOS
+            - ImportResidue and LiftResidue are not copied (import-specific data)
+            - ReferringReversalIndexEntries are not copied (back-references)
+
+        See Also:
+            Create, Delete, GetGuid
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not item_or_hvo:
+            raise FP_NullParameterError()
+
+        # Get source sense and parent
+        source = self.__GetSenseObject(item_or_hvo)
+        parent = source.Owner
+
+        # Create new sense using factory (auto-generates new GUID)
+        factory = self.project.project.ServiceLocator.GetService(ILexSenseFactory)
+        duplicate = factory.Create()
+
+        # Determine insertion position
+        if insert_after:
+            # Insert after source sense
+            if hasattr(parent, 'SensesOS'):
+                source_index = parent.SensesOS.IndexOf(source)
+                parent.SensesOS.Insert(source_index + 1, duplicate)
+        else:
+            # Insert at end
+            if hasattr(parent, 'SensesOS'):
+                parent.SensesOS.Add(duplicate)
+
+        # Copy simple MultiString properties (AFTER adding to parent)
+        duplicate.Gloss.CopyAlternatives(source.Gloss)
+        duplicate.Definition.CopyAlternatives(source.Definition)
+        duplicate.Bibliography.CopyAlternatives(source.Bibliography)
+        duplicate.DiscourseNote.CopyAlternatives(source.DiscourseNote)
+        duplicate.EncyclopedicInfo.CopyAlternatives(source.EncyclopedicInfo)
+        duplicate.GeneralNote.CopyAlternatives(source.GeneralNote)
+        duplicate.GrammarNote.CopyAlternatives(source.GrammarNote)
+        duplicate.PhonologyNote.CopyAlternatives(source.PhonologyNote)
+        duplicate.Restrictions.CopyAlternatives(source.Restrictions)
+        duplicate.SemanticsNote.CopyAlternatives(source.SemanticsNote)
+        duplicate.SocioLinguisticsNote.CopyAlternatives(source.SocioLinguisticsNote)
+        duplicate.Source.CopyAlternatives(source.Source)
+
+        # Copy Reference Atomic (RA) properties
+        duplicate.MorphoSyntaxAnalysisRA = source.MorphoSyntaxAnalysisRA
+        duplicate.StatusRA = source.StatusRA
+        duplicate.SenseTypeRA = source.SenseTypeRA
+
+        # Copy Reference Collection (RC) properties
+        for domain in source.SemanticDomainsRC:
+            duplicate.SemanticDomainsRC.Add(domain)
+
+        for anthro in source.AnthroCodesRC:
+            duplicate.AnthroCodesRC.Add(anthro)
+
+        for domain_q in source.DomainTypesRC:
+            duplicate.DomainTypesRC.Add(domain_q)
+
+        for usage in source.UsageTypesRC:
+            duplicate.UsageTypesRC.Add(usage)
+
+        # Handle owned objects if deep=True
+        if deep:
+            # Duplicate examples
+            for example in source.ExamplesOS:
+                self.project.Examples.Duplicate(example, insert_after=False)
+
+            # Duplicate subsenses
+            for subsense in source.SensesOS:
+                self.Duplicate(subsense, insert_after=False, deep=True)
+
+            # Duplicate pictures
+            for picture in source.PicturesOS:
+                # Pictures require special handling - factory type varies
+                from SIL.LCModel import ICmPictureFactory
+                pic_factory = self.project.project.ServiceLocator.GetService(ICmPictureFactory)
+                new_pic = pic_factory.Create()
+                duplicate.PicturesOS.Add(new_pic)
+
+                # Copy picture properties
+                new_pic.Caption.CopyAlternatives(picture.Caption)
+                new_pic.PictureFileRA = picture.PictureFileRA
+                new_pic.LayoutPos = picture.LayoutPos
+                new_pic.ScaleFactor = picture.ScaleFactor
+
+        return duplicate
 
 
     def Reorder(self, entry_or_hvo, sense_list):

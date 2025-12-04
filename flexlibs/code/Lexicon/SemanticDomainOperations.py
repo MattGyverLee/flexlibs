@@ -14,6 +14,9 @@
 import logging
 logger = logging.getLogger(__name__)
 
+# Import BaseOperations parent class
+from ..BaseOperations import BaseOperations
+
 # Import FLEx LCM types
 from SIL.LCModel import (
     ICmSemanticDomain,
@@ -31,7 +34,7 @@ from ..FLExProject import (
 )
 
 
-class SemanticDomainOperations:
+class SemanticDomainOperations(BaseOperations):
     """
     This class provides operations for managing semantic domains in a
     FieldWorks project.
@@ -76,7 +79,7 @@ class SemanticDomainOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
 
 
     # --- Core Read Operations ---
@@ -1014,6 +1017,107 @@ class SemanticDomainOperations:
             # Remove from top-level list
             domain_list = self.project.lp.SemanticDomainListOA
             domain_list.PossibilitiesOS.Remove(domain)
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate a semantic domain, creating a new copy with a new GUID.
+
+        Args:
+            item_or_hvo: The ICmSemanticDomain object or HVO to duplicate.
+            insert_after (bool): If True (default), insert after the source domain.
+                                If False, insert at end of parent's subdomain list.
+            deep (bool): If True, also duplicate owned objects (subdomains, examples).
+                        If False (default), only copy simple properties.
+
+        Returns:
+            ICmSemanticDomain: The newly created duplicate domain with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If item_or_hvo is None.
+
+        Example:
+            >>> # Shallow duplicate (no subdomains)
+            >>> domain = project.SemanticDomains.Find("900.1")
+            >>> if domain:
+            ...     dup = project.SemanticDomains.Duplicate(domain)
+            ...     print(f"Original: {project.SemanticDomains.GetNumber(domain)}")
+            ...     print(f"Duplicate: {project.SemanticDomains.GetNumber(dup)}")
+            ...     # Note: Duplicate will have empty number - must be set manually
+            ...
+            ...     # Deep duplicate (includes all subdomains)
+            ...     deep_dup = project.SemanticDomains.Duplicate(domain, deep=True)
+            ...     subdomains = project.SemanticDomains.GetSubdomains(deep_dup)
+            ...     print(f"Subdomains: {len(subdomains)}")
+
+        Notes:
+            - Factory.Create() automatically generates a new GUID
+            - insert_after=True preserves the original domain's position
+            - Simple properties copied: Name, Description, Abbreviation, Questions, OcmCodes
+            - Owned objects (deep=True): SubPossibilitiesOS (subdomains), OccurrencesRS
+            - Abbreviation (domain number) is copied but should typically be changed
+            - ReferringObjects (senses) are not copied (back-references)
+
+        Warning:
+            - After duplication, update the Abbreviation (domain number) to be unique
+            - Domain numbers must be unique across the project
+            - Deep duplication of standard domains (1-9) is not recommended
+
+        See Also:
+            Create, Delete, GetNumber
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not item_or_hvo:
+            raise FP_NullParameterError()
+
+        # Get source domain and parent
+        source = self.__ResolveObject(item_or_hvo)
+        parent = self.GetParent(source)
+
+        # Create new domain using factory (auto-generates new GUID)
+        factory = self.project.project.ServiceLocator.GetService(
+            ICmSemanticDomainFactory
+        )
+        duplicate = factory.Create()
+
+        # Determine insertion position - ADD TO PARENT FIRST
+        if parent:
+            # Has a parent - add to parent's subdomains
+            if insert_after:
+                source_index = parent.SubPossibilitiesOS.IndexOf(source)
+                parent.SubPossibilitiesOS.Insert(source_index + 1, duplicate)
+            else:
+                parent.SubPossibilitiesOS.Add(duplicate)
+        else:
+            # Top-level domain - add to main list
+            domain_list = self.project.lp.SemanticDomainListOA
+            if insert_after:
+                source_index = domain_list.PossibilitiesOS.IndexOf(source)
+                domain_list.PossibilitiesOS.Insert(source_index + 1, duplicate)
+            else:
+                domain_list.PossibilitiesOS.Add(duplicate)
+
+        # Copy simple MultiString properties (AFTER adding to parent)
+        duplicate.Name.CopyAlternatives(source.Name)
+        duplicate.Description.CopyAlternatives(source.Description)
+        duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)
+        duplicate.Questions.CopyAlternatives(source.Questions)
+        duplicate.OcmCodes.CopyAlternatives(source.OcmCodes)
+
+        # Handle owned objects if deep=True
+        if deep:
+            # Duplicate subdomains recursively
+            for subdomain in source.SubPossibilitiesOS:
+                self.Duplicate(subdomain, insert_after=False, deep=True)
+
+            # Copy OccurrencesRS (references to examples in the semantic domain)
+            for occurrence in source.OccurrencesRS:
+                duplicate.OccurrencesRS.Add(occurrence)
+
+        return duplicate
 
 
     # --- Private Helper Methods ---

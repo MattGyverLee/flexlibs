@@ -14,6 +14,9 @@
 import logging
 logger = logging.getLogger(__name__)
 
+# Import BaseOperations parent class
+from ..BaseOperations import BaseOperations
+
 # Import FLEx LCM types
 from SIL.LCModel import (
     ILexReference,
@@ -63,7 +66,7 @@ class LexRefMappingTypes:
     SEQUENCE = 4    # krtSequence - Ordered sequence (A → B → C)
 
 
-class LexReferenceOperations:
+class LexReferenceOperations(BaseOperations):
     """
     This class provides operations for managing lexical references and
     cross-references in a FieldWorks project.
@@ -127,7 +130,7 @@ class LexReferenceOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
 
 
     # --- Reference Type Management ---

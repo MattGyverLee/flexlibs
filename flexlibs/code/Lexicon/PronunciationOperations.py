@@ -14,6 +14,9 @@
 import logging
 logger = logging.getLogger(__name__)
 
+# Import BaseOperations parent class
+from ..BaseOperations import BaseOperations
+
 # Import FLEx LCM types
 from SIL.LCModel import (
     ILexEntry,
@@ -33,7 +36,7 @@ from ..FLExProject import (
 )
 
 
-class PronunciationOperations:
+class PronunciationOperations(BaseOperations):
     """
     This class provides operations for managing pronunciations in a FieldWorks project.
 
@@ -77,7 +80,15 @@ class PronunciationOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
+
+
+    def _GetSequence(self, parent):
+        """
+        Specify which sequence to reorder for pronunciations.
+        For Pronunciation, we reorder entry.PronunciationsOS
+        """
+        return parent.PronunciationsOS
 
 
     # --- Core CRUD Operations ---
@@ -242,6 +253,104 @@ class PronunciationOperations:
         entry = pronunciation.Owner
         if hasattr(entry, 'PronunciationsOS'):
             entry.PronunciationsOS.Remove(pronunciation)
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        # TODO: determine if this is needed.
+        """
+        Duplicate a pronunciation, creating a new copy with a new GUID.
+
+        Args:
+            item_or_hvo: The ILexPronunciation object or HVO to duplicate.
+            insert_after (bool): If True (default), insert after the source pronunciation.
+                                If False, insert at end of parent's pronunciations list.
+            deep (bool): If True, also duplicate owned objects (media files).
+                        If False (default), only copy simple properties and references.
+
+        Returns:
+            ILexPronunciation: The newly created duplicate pronunciation with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If item_or_hvo is None.
+
+        Example:
+            >>> entry = list(project.LexiconAllEntries())[0]
+            >>> pronunciations = list(project.Pronunciations.GetAll(entry))
+            >>> if pronunciations:
+            ...     # Shallow duplicate (no media files)
+            ...     dup = project.Pronunciations.Duplicate(pronunciations[0])
+            ...     print(f"Original: {project.Pronunciations.GetGuid(pronunciations[0])}")
+            ...     print(f"Duplicate: {project.Pronunciations.GetGuid(dup)}")
+            ...     ipa = project.Pronunciations.GetForm(dup, "en-fonipa")
+            ...     print(f"IPA: {ipa}")
+            Original: 12345678-1234-1234-1234-123456789abc
+            Duplicate: 87654321-4321-4321-4321-cba987654321
+            IPA: rʌn
+            ...
+            ...     # Deep duplicate (includes media files)
+            ...     deep_dup = project.Pronunciations.Duplicate(pronunciations[0], deep=True)
+            ...     count = project.Pronunciations.GetMediaCount(deep_dup)
+            ...     print(f"Media files: {count}")
+
+        Notes:
+            - Factory.Create() automatically generates a new GUID
+            - insert_after=True preserves the original pronunciation's position/priority
+            - Simple properties copied: Form (MultiString)
+            - Reference properties copied: LocationRA
+            - Owned objects (deep=True): MediaFilesOS
+            - Media files are duplicated by creating new ICmFile objects with same properties
+            - LiftResidue is not copied (import-specific data)
+
+        See Also:
+            Create, Delete, GetGuid
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not item_or_hvo:
+            raise FP_NullParameterError()
+
+        # Get source pronunciation and parent
+        source = self.__GetPronunciationObject(item_or_hvo)
+        parent = source.Owner
+
+        # Create new pronunciation using factory (auto-generates new GUID)
+        factory = self.project.project.ServiceLocator.GetService(ILexPronunciationFactory)
+        duplicate = factory.Create()
+
+        # Determine insertion position
+        if insert_after and hasattr(parent, 'PronunciationsOS'):
+            # Insert after source pronunciation
+            source_index = parent.PronunciationsOS.IndexOf(source)
+            parent.PronunciationsOS.Insert(source_index + 1, duplicate)
+        else:
+            # Insert at end
+            if hasattr(parent, 'PronunciationsOS'):
+                parent.PronunciationsOS.Add(duplicate)
+
+        # Copy simple MultiString properties
+        duplicate.Form.CopyAlternatives(source.Form)
+
+        # Copy Reference Atomic (RA) properties
+        if hasattr(source, 'LocationRA'):
+            duplicate.LocationRA = source.LocationRA
+
+        # Handle owned objects if deep=True
+        if deep and hasattr(source, 'MediaFilesOS'):
+            # Duplicate media files
+            for media in source.MediaFilesOS:
+                media_factory = self.project.project.ServiceLocator.GetService(ICmFileFactory)
+                new_media = media_factory.Create()
+                duplicate.MediaFilesOS.Add(new_media)
+
+                # Copy media file properties
+                new_media.InternalPath = media.InternalPath
+                new_media.Description.CopyAlternatives(media.Description)
+                if hasattr(media, 'Copyright'):
+                    new_media.Copyright.CopyAlternatives(media.Copyright)
+
+        return duplicate
 
 
     def Reorder(self, entry_or_hvo, pronunciation_list):

@@ -31,9 +31,10 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
+from ..BaseOperations import BaseOperations
 
 
-class SegmentOperations:
+class SegmentOperations(BaseOperations):
     """
     This class provides operations for managing segments in a FieldWorks project.
 
@@ -68,7 +69,11 @@ class SegmentOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
+
+    def _GetSequence(self, parent):
+        """Specify which sequence to reorder for segment analyses (reference sequence)."""
+        return parent.AnalysesRS
 
     def __WSHandle(self, wsHandle):
         """
@@ -557,6 +562,107 @@ class SegmentOperations:
         owner = segment_obj.Owner
         if owner and hasattr(owner, 'SegmentsOS'):
             owner.SegmentsOS.Remove(segment_obj)
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate a segment, creating a new segment with the same content.
+
+        This method creates a copy of an existing segment. The baseline text and
+        translations (free and literal) are copied. Analyses are NOT copied as they
+        are complex and context-dependent.
+
+        Args:
+            item_or_hvo: Either an ISegment object or its HVO (integer identifier)
+            insert_after (bool): If True, insert the duplicate after the original
+                segment in the paragraph. If False, append to the end of the paragraph.
+            deep (bool): Currently not used for segments (analyses are never copied).
+                Parameter kept for consistency with other Duplicate() methods.
+
+        Returns:
+            ISegment: The newly created duplicate segment
+
+        Raises:
+            FP_ReadOnlyError: If project is not opened with writeEnabled=True.
+            FP_NullParameterError: If item_or_hvo is None.
+            FP_ParameterError: If the segment does not exist or is invalid, or
+                if the segment has no valid owner paragraph.
+
+        Example:
+            >>> # Duplicate a segment
+            >>> segment = list(project.Segments.GetAll(para))[0]
+            >>> duplicate = project.Segments.Duplicate(segment, insert_after=True)
+            >>> print(project.Segments.GetBaselineText(duplicate))
+            In the beginning God created the heavens and the earth.
+            >>> print(project.Segments.GetFreeTranslation(duplicate))
+            In the beginning God created the heavens and the earth.
+
+        Warning:
+            - Analyses are NOT copied (would need re-parsing)
+            - Notes are NOT copied
+            - Offsets may need adjustment after duplication
+            - The duplicate will have identical text but a new GUID
+            - insert_after=True inserts immediately after the original segment
+
+        Notes:
+            - Duplicated segment is added to the same paragraph as the original
+            - New GUID is auto-generated for the duplicate
+            - Baseline text is copied in the same writing system
+            - Free translation and literal translation are copied
+            - Analyses are NOT copied (complex and context-dependent)
+            - Segment is inserted after original if insert_after=True
+            - deep parameter is ignored (analyses never copied)
+
+        See Also:
+            Create, Delete, GetAll, SetBaselineText
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not item_or_hvo:
+            raise FP_NullParameterError()
+
+        segment_obj = self.__GetSegmentObject(item_or_hvo)
+
+        # Get the owner (paragraph)
+        owner = segment_obj.Owner
+        if not owner or not hasattr(owner, 'SegmentsOS'):
+            raise FP_ParameterError("Segment has no valid owner paragraph")
+
+        # Get source properties
+        wsHandle_vern = self.__WSHandleVern(None)
+        wsHandle_anal = self.__WSHandle(None)
+
+        baseline_text = self.GetBaselineText(segment_obj, wsHandle_vern)
+        free_trans = self.GetFreeTranslation(segment_obj, wsHandle_anal)
+        literal_trans = self.GetLiteralTranslation(segment_obj, wsHandle_anal)
+
+        # Create the new segment
+        new_segment = self.Create(owner, baseline_text, wsHandle_vern)
+
+        # Copy translations
+        if free_trans:
+            self.SetFreeTranslation(new_segment, free_trans, wsHandle_anal)
+
+        if literal_trans:
+            self.SetLiteralTranslation(new_segment, literal_trans, wsHandle_anal)
+
+        # Handle insert_after positioning
+        if insert_after:
+            # Find the index of the current segment
+            seg_list = list(owner.SegmentsOS)
+            try:
+                current_index = seg_list.index(segment_obj)
+                # The new segment was appended, so we need to move it
+                # Remove from end
+                owner.SegmentsOS.Remove(new_segment)
+                # Insert at correct position (after original)
+                owner.SegmentsOS.Insert(current_index + 1, new_segment)
+            except ValueError:
+                # Segment not found in list, leave at end
+                pass
+
+        return new_segment
 
     def Exists(self, paragraph_or_hvo, segment_or_hvo):
         """

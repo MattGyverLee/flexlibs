@@ -49,10 +49,10 @@ def demo_segment_crud():
 
         print("\nGetting all segments...")
         initial_count = 0
-        for obj in project.Segment.GetAll():
+        for obj in project.Segments.GetAll():
             # Display first few objects
             try:
-                name = project.Segment.GetName(obj) if hasattr(project.Segment, 'GetName') else str(obj)
+                name = project.Segments.GetName(obj) if hasattr(project.Segments, 'GetName') else str(obj)
                 print(f"  - {name}")
             except:
                 print(f"  - [Object {initial_count + 1}]")
@@ -69,12 +69,12 @@ def demo_segment_crud():
 
         # Check if test object already exists
         try:
-            if hasattr(project.Segment, 'Exists') and project.Segment.Exists(test_name):
+            if hasattr(project.Segments, 'Exists') and project.Segments.Exists(test_name):
                 print(f"\nTest segment '{test_name}' already exists")
                 print("Deleting existing one first...")
-                existing = project.Segment.Find(test_name) if hasattr(project.Segment, 'Find') else None
+                existing = project.Segments.Find(test_name) if hasattr(project.Segments, 'Find') else None
                 if existing:
-                    project.Segment.Delete(existing)
+                    project.Segments.Delete(existing)
                     print("  Deleted existing test segment")
         except:
             pass
@@ -84,13 +84,13 @@ def demo_segment_crud():
 
         try:
             # Attempt to create with common parameters
-            test_obj = project.Segment.Create(test_name)
+            test_obj = project.Segments.Create(test_name)
         except TypeError:
             try:
                 # Try without parameters if that fails
-                test_obj = project.Segment.Create()
-                if hasattr(project.Segment, 'SetName'):
-                    project.Segment.SetName(test_obj, test_name)
+                test_obj = project.Segments.Create()
+                if hasattr(project.Segments, 'SetName'):
+                    project.Segments.SetName(test_obj, test_name)
             except Exception as e:
                 print(f"  Note: Create method may require specific parameters: {e}")
                 test_obj = None
@@ -98,8 +98,8 @@ def demo_segment_crud():
         if test_obj:
             print(f"  SUCCESS: Segment created!")
             try:
-                if hasattr(project.Segment, 'GetName'):
-                    print(f"  Name: {project.Segment.GetName(test_obj)}")
+                if hasattr(project.Segments, 'GetName'):
+                    print(f"  Name: {project.Segments.GetName(test_obj)}")
             except:
                 pass
         else:
@@ -113,20 +113,20 @@ def demo_segment_crud():
         print("="*70)
 
         # Test Exists
-        if hasattr(project.Segment, 'Exists'):
+        if hasattr(project.Segments, 'Exists'):
             print(f"\nChecking if '{test_name}' exists...")
-            exists = project.Segment.Exists(test_name)
+            exists = project.Segments.Exists(test_name)
             print(f"  Exists: {exists}")
 
         # Test Find
-        if hasattr(project.Segment, 'Find'):
+        if hasattr(project.Segments, 'Find'):
             print(f"\nFinding segment by name...")
-            found_obj = project.Segment.Find(test_name)
+            found_obj = project.Segments.Find(test_name)
             if found_obj:
                 print(f"  FOUND: segment")
                 try:
-                    if hasattr(project.Segment, 'GetName'):
-                        print(f"  Name: {project.Segment.GetName(found_obj)}")
+                    if hasattr(project.Segments, 'GetName'):
+                        print(f"  Name: {project.Segments.GetName(found_obj)}")
                 except:
                     pass
             else:
@@ -134,7 +134,7 @@ def demo_segment_crud():
 
         # Count after creation
         print("\nCounting all segments after creation...")
-        current_count = sum(1 for _ in project.Segment.GetAll())
+        current_count = sum(1 for _ in project.Segments.GetAll())
         print(f"  Count before: {initial_count}")
         print(f"  Count after:  {current_count}")
         print(f"  Difference:   +{current_count - initial_count}")
@@ -148,13 +148,13 @@ def demo_segment_crud():
             updated = False
 
             # Try common update methods
-            if hasattr(project.Segment, 'SetName'):
+            if hasattr(project.Segments, 'SetName'):
                 try:
                     new_name = "crud_test_segment_modified"
                     print(f"\nUpdating name to: '{new_name}'")
-                    old_name = project.Segment.GetName(test_obj) if hasattr(project.Segment, 'GetName') else test_name
-                    project.Segment.SetName(test_obj, new_name)
-                    updated_name = project.Segment.GetName(test_obj) if hasattr(project.Segment, 'GetName') else new_name
+                    old_name = project.Segments.GetName(test_obj) if hasattr(project.Segments, 'GetName') else test_name
+                    project.Segments.SetName(test_obj, new_name)
+                    updated_name = project.Segments.GetName(test_obj) if hasattr(project.Segments, 'GetName') else new_name
                     print(f"  Old name: {old_name}")
                     print(f"  New name: {updated_name}")
                     test_name = new_name  # Update for cleanup
@@ -163,7 +163,7 @@ def demo_segment_crud():
                     print(f"  Note: SetName failed: {e}")
 
             # Try other Set methods
-            for method_name in dir(project.Segment):
+            for method_name in dir(project.Segments):
                 if method_name.startswith('Set') and method_name != 'SetName' and not updated:
                     print(f"\nFound update method: {method_name}")
                     print("  (Method available but not tested in this demo)")
@@ -179,14 +179,14 @@ def demo_segment_crud():
         print("STEP 5: READ - Verify updates persisted")
         print("="*70)
 
-        if hasattr(project.Segment, 'Find'):
+        if hasattr(project.Segments, 'Find'):
             print(f"\nFinding segment after update...")
-            updated_obj = project.Segment.Find(test_name)
+            updated_obj = project.Segments.Find(test_name)
             if updated_obj:
                 print(f"  FOUND: segment")
                 try:
-                    if hasattr(project.Segment, 'GetName'):
-                        print(f"  Name: {project.Segment.GetName(updated_obj)}")
+                    if hasattr(project.Segments, 'GetName'):
+                        print(f"  Name: {project.Segments.GetName(updated_obj)}")
                 except:
                     pass
             else:
@@ -200,17 +200,17 @@ def demo_segment_crud():
         if test_obj:
             print(f"\nDeleting test segment...")
             try:
-                obj_name = project.Segment.GetName(test_obj) if hasattr(project.Segment, 'GetName') else test_name
+                obj_name = project.Segments.GetName(test_obj) if hasattr(project.Segments, 'GetName') else test_name
             except:
                 obj_name = test_name
 
-            project.Segment.Delete(test_obj)
+            project.Segments.Delete(test_obj)
             print(f"  Deleted: {obj_name}")
 
             # Verify deletion
             print("\nVerifying deletion...")
-            if hasattr(project.Segment, 'Exists'):
-                still_exists = project.Segment.Exists(test_name)
+            if hasattr(project.Segments, 'Exists'):
+                still_exists = project.Segments.Exists(test_name)
                 print(f"  Still exists: {still_exists}")
 
                 if not still_exists:
@@ -219,7 +219,7 @@ def demo_segment_crud():
                     print("  DELETE: FAILED - Segment still exists")
 
             # Count after deletion
-            final_count = sum(1 for _ in project.Segment.GetAll())
+            final_count = sum(1 for _ in project.Segments.GetAll())
             print(f"\n  Count after delete: {final_count}")
             print(f"  Back to initial:    {final_count == initial_count}")
 
@@ -247,10 +247,10 @@ def demo_segment_crud():
 
         try:
             for name in ["crud_test_segment", "crud_test_segment_modified"]:
-                if hasattr(project.Segment, 'Exists') and project.Segment.Exists(name):
-                    obj = project.Segment.Find(name) if hasattr(project.Segment, 'Find') else None
+                if hasattr(project.Segments, 'Exists') and project.Segments.Exists(name):
+                    obj = project.Segments.Find(name) if hasattr(project.Segments, 'Find') else None
                     if obj:
-                        project.Segment.Delete(obj)
+                        project.Segments.Delete(obj)
                         print(f"  Cleaned up: {name}")
         except:
             pass

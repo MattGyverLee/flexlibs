@@ -49,10 +49,10 @@ def demo_possibilitylist_crud():
 
         print("\nGetting all possibilitylists...")
         initial_count = 0
-        for obj in project.Possibilitylist.GetAll():
+        for obj in project.PossibilityLists.GetAll():
             # Display first few objects
             try:
-                name = project.Possibilitylist.GetName(obj) if hasattr(project.Possibilitylist, 'GetName') else str(obj)
+                name = project.PossibilityLists.GetName(obj) if hasattr(project.PossibilityLists, 'GetName') else str(obj)
                 print(f"  - {name}")
             except:
                 print(f"  - [Object {initial_count + 1}]")
@@ -69,12 +69,12 @@ def demo_possibilitylist_crud():
 
         # Check if test object already exists
         try:
-            if hasattr(project.Possibilitylist, 'Exists') and project.Possibilitylist.Exists(test_name):
+            if hasattr(project.PossibilityLists, 'Exists') and project.PossibilityLists.Exists(test_name):
                 print(f"\nTest possibilitylist '{test_name}' already exists")
                 print("Deleting existing one first...")
-                existing = project.Possibilitylist.Find(test_name) if hasattr(project.Possibilitylist, 'Find') else None
+                existing = project.PossibilityLists.Find(test_name) if hasattr(project.PossibilityLists, 'Find') else None
                 if existing:
-                    project.Possibilitylist.Delete(existing)
+                    project.PossibilityLists.Delete(existing)
                     print("  Deleted existing test possibilitylist")
         except:
             pass
@@ -84,13 +84,13 @@ def demo_possibilitylist_crud():
 
         try:
             # Attempt to create with common parameters
-            test_obj = project.Possibilitylist.Create(test_name)
+            test_obj = project.PossibilityLists.Create(test_name)
         except TypeError:
             try:
                 # Try without parameters if that fails
-                test_obj = project.Possibilitylist.Create()
-                if hasattr(project.Possibilitylist, 'SetName'):
-                    project.Possibilitylist.SetName(test_obj, test_name)
+                test_obj = project.PossibilityLists.Create()
+                if hasattr(project.PossibilityLists, 'SetName'):
+                    project.PossibilityLists.SetName(test_obj, test_name)
             except Exception as e:
                 print(f"  Note: Create method may require specific parameters: {e}")
                 test_obj = None
@@ -98,8 +98,8 @@ def demo_possibilitylist_crud():
         if test_obj:
             print(f"  SUCCESS: Possibilitylist created!")
             try:
-                if hasattr(project.Possibilitylist, 'GetName'):
-                    print(f"  Name: {project.Possibilitylist.GetName(test_obj)}")
+                if hasattr(project.PossibilityLists, 'GetName'):
+                    print(f"  Name: {project.PossibilityLists.GetName(test_obj)}")
             except:
                 pass
         else:
@@ -113,20 +113,20 @@ def demo_possibilitylist_crud():
         print("="*70)
 
         # Test Exists
-        if hasattr(project.Possibilitylist, 'Exists'):
+        if hasattr(project.PossibilityLists, 'Exists'):
             print(f"\nChecking if '{test_name}' exists...")
-            exists = project.Possibilitylist.Exists(test_name)
+            exists = project.PossibilityLists.Exists(test_name)
             print(f"  Exists: {exists}")
 
         # Test Find
-        if hasattr(project.Possibilitylist, 'Find'):
+        if hasattr(project.PossibilityLists, 'Find'):
             print(f"\nFinding possibilitylist by name...")
-            found_obj = project.Possibilitylist.Find(test_name)
+            found_obj = project.PossibilityLists.Find(test_name)
             if found_obj:
                 print(f"  FOUND: possibilitylist")
                 try:
-                    if hasattr(project.Possibilitylist, 'GetName'):
-                        print(f"  Name: {project.Possibilitylist.GetName(found_obj)}")
+                    if hasattr(project.PossibilityLists, 'GetName'):
+                        print(f"  Name: {project.PossibilityLists.GetName(found_obj)}")
                 except:
                     pass
             else:
@@ -134,7 +134,7 @@ def demo_possibilitylist_crud():
 
         # Count after creation
         print("\nCounting all possibilitylists after creation...")
-        current_count = sum(1 for _ in project.Possibilitylist.GetAll())
+        current_count = sum(1 for _ in project.PossibilityLists.GetAll())
         print(f"  Count before: {initial_count}")
         print(f"  Count after:  {current_count}")
         print(f"  Difference:   +{current_count - initial_count}")
@@ -148,13 +148,13 @@ def demo_possibilitylist_crud():
             updated = False
 
             # Try common update methods
-            if hasattr(project.Possibilitylist, 'SetName'):
+            if hasattr(project.PossibilityLists, 'SetName'):
                 try:
                     new_name = "crud_test_possibilitylist_modified"
                     print(f"\nUpdating name to: '{new_name}'")
-                    old_name = project.Possibilitylist.GetName(test_obj) if hasattr(project.Possibilitylist, 'GetName') else test_name
-                    project.Possibilitylist.SetName(test_obj, new_name)
-                    updated_name = project.Possibilitylist.GetName(test_obj) if hasattr(project.Possibilitylist, 'GetName') else new_name
+                    old_name = project.PossibilityLists.GetName(test_obj) if hasattr(project.PossibilityLists, 'GetName') else test_name
+                    project.PossibilityLists.SetName(test_obj, new_name)
+                    updated_name = project.PossibilityLists.GetName(test_obj) if hasattr(project.PossibilityLists, 'GetName') else new_name
                     print(f"  Old name: {old_name}")
                     print(f"  New name: {updated_name}")
                     test_name = new_name  # Update for cleanup
@@ -163,7 +163,7 @@ def demo_possibilitylist_crud():
                     print(f"  Note: SetName failed: {e}")
 
             # Try other Set methods
-            for method_name in dir(project.Possibilitylist):
+            for method_name in dir(project.PossibilityLists):
                 if method_name.startswith('Set') and method_name != 'SetName' and not updated:
                     print(f"\nFound update method: {method_name}")
                     print("  (Method available but not tested in this demo)")
@@ -179,14 +179,14 @@ def demo_possibilitylist_crud():
         print("STEP 5: READ - Verify updates persisted")
         print("="*70)
 
-        if hasattr(project.Possibilitylist, 'Find'):
+        if hasattr(project.PossibilityLists, 'Find'):
             print(f"\nFinding possibilitylist after update...")
-            updated_obj = project.Possibilitylist.Find(test_name)
+            updated_obj = project.PossibilityLists.Find(test_name)
             if updated_obj:
                 print(f"  FOUND: possibilitylist")
                 try:
-                    if hasattr(project.Possibilitylist, 'GetName'):
-                        print(f"  Name: {project.Possibilitylist.GetName(updated_obj)}")
+                    if hasattr(project.PossibilityLists, 'GetName'):
+                        print(f"  Name: {project.PossibilityLists.GetName(updated_obj)}")
                 except:
                     pass
             else:
@@ -200,17 +200,17 @@ def demo_possibilitylist_crud():
         if test_obj:
             print(f"\nDeleting test possibilitylist...")
             try:
-                obj_name = project.Possibilitylist.GetName(test_obj) if hasattr(project.Possibilitylist, 'GetName') else test_name
+                obj_name = project.PossibilityLists.GetName(test_obj) if hasattr(project.PossibilityLists, 'GetName') else test_name
             except:
                 obj_name = test_name
 
-            project.Possibilitylist.Delete(test_obj)
+            project.PossibilityLists.Delete(test_obj)
             print(f"  Deleted: {obj_name}")
 
             # Verify deletion
             print("\nVerifying deletion...")
-            if hasattr(project.Possibilitylist, 'Exists'):
-                still_exists = project.Possibilitylist.Exists(test_name)
+            if hasattr(project.PossibilityLists, 'Exists'):
+                still_exists = project.PossibilityLists.Exists(test_name)
                 print(f"  Still exists: {still_exists}")
 
                 if not still_exists:
@@ -219,7 +219,7 @@ def demo_possibilitylist_crud():
                     print("  DELETE: FAILED - Possibilitylist still exists")
 
             # Count after deletion
-            final_count = sum(1 for _ in project.Possibilitylist.GetAll())
+            final_count = sum(1 for _ in project.PossibilityLists.GetAll())
             print(f"\n  Count after delete: {final_count}")
             print(f"  Back to initial:    {final_count == initial_count}")
 
@@ -247,10 +247,10 @@ def demo_possibilitylist_crud():
 
         try:
             for name in ["crud_test_possibilitylist", "crud_test_possibilitylist_modified"]:
-                if hasattr(project.Possibilitylist, 'Exists') and project.Possibilitylist.Exists(name):
-                    obj = project.Possibilitylist.Find(name) if hasattr(project.Possibilitylist, 'Find') else None
+                if hasattr(project.PossibilityLists, 'Exists') and project.PossibilityLists.Exists(name):
+                    obj = project.PossibilityLists.Find(name) if hasattr(project.PossibilityLists, 'Find') else None
                     if obj:
-                        project.Possibilitylist.Delete(obj)
+                        project.PossibilityLists.Delete(obj)
                         print(f"  Cleaned up: {name}")
         except:
             pass

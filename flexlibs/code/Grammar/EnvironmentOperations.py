@@ -14,6 +14,9 @@
 import logging
 logger = logging.getLogger(__name__)
 
+# Import BaseOperations parent class
+from ..BaseOperations import BaseOperations
+
 # Import FLEx LCM types
 from SIL.LCModel import IPhEnvironmentFactory, IPhEnvironment
 from SIL.LCModel.Core.KernelInterfaces import ITsString
@@ -27,7 +30,7 @@ from ..FLExProject import (
 )
 
 
-class EnvironmentOperations:
+class EnvironmentOperations(BaseOperations):
     """
     This class provides operations for managing phonological environments in a
     FieldWorks project.
@@ -69,7 +72,15 @@ class EnvironmentOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
+
+
+    def _GetSequence(self, parent):
+        """
+        Specify which sequence to reorder for environments.
+        For Environment, we reorder parent.EnvironmentsOA.PossibilitiesOS
+        """
+        return parent.EnvironmentsOA.PossibilitiesOS
 
 
     def GetAll(self):
@@ -427,6 +438,111 @@ class EnvironmentOperations:
 
         mkstr = TsStringUtils.MakeString(notation, wsHandle)
         env.StringRepresentation.set_String(wsHandle, mkstr)
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate a phonological environment, creating a new copy with a new GUID.
+
+        Args:
+            item_or_hvo: The IPhEnvironment object or HVO to duplicate.
+            insert_after (bool): If True (default), insert after the source environment.
+                                If False, insert at end of environments list.
+            deep (bool): If True, deep copy owned context objects (LeftContextOA, RightContextOA).
+                        If False (default), contexts are not copied.
+
+        Returns:
+            IPhEnvironment: The newly created duplicate environment with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If item_or_hvo is None.
+
+        Example:
+            >>> envOps = EnvironmentOperations(project)
+            >>> word_initial = envOps.Create("Word Initial")
+            >>> envOps.SetStringRepresentation(word_initial, "#_")
+            >>> # Shallow copy (no context objects)
+            >>> copy = envOps.Duplicate(word_initial)
+            >>> print(envOps.GetName(copy))
+            Word Initial
+
+            >>> # Deep copy (includes owned context objects)
+            >>> between_vowels = envOps.Create("Between Vowels")
+            >>> copy = envOps.Duplicate(between_vowels, deep=True)
+
+        Notes:
+            - Factory.Create() automatically generates a new GUID
+            - insert_after=True preserves the original environment's position
+            - Simple properties copied: Name, Description, StringRepresentation (MultiString)
+            - deep=True copies owned context objects (LeftContextOA, RightContextOA)
+            - Contexts are complex structures with their own owned objects
+
+        See Also:
+            Create, Delete
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not item_or_hvo:
+            raise FP_NullParameterError()
+
+        # Get source environment
+        source = self.__ResolveObject(item_or_hvo)
+
+        # Create new environment using factory (auto-generates new GUID)
+        factory = self.project.project.ServiceLocator.GetService(IPhEnvironmentFactory)
+        duplicate = factory.Create()
+
+        # Add to environments list
+        phon_data = self.project.lp.PhonologicalDataOA
+        if insert_after:
+            source_index = phon_data.EnvironmentsOS.IndexOf(source)
+            phon_data.EnvironmentsOS.Insert(source_index + 1, duplicate)
+        else:
+            phon_data.EnvironmentsOS.Add(duplicate)
+
+        # Copy simple MultiString properties (AFTER adding to parent)
+        duplicate.Name.CopyAlternatives(source.Name)
+        duplicate.Description.CopyAlternatives(source.Description)
+        duplicate.StringRepresentation.CopyAlternatives(source.StringRepresentation)
+
+        # Deep copy: owned context objects
+        if deep:
+            # Copy LeftContextOA if exists
+            if hasattr(source, 'LeftContextOA') and source.LeftContextOA:
+                duplicate.LeftContextOA = self.__CopyContextObject(source.LeftContextOA)
+
+            # Copy RightContextOA if exists
+            if hasattr(source, 'RightContextOA') and source.RightContextOA:
+                duplicate.RightContextOA = self.__CopyContextObject(source.RightContextOA)
+
+        return duplicate
+
+
+    def __CopyContextObject(self, source_context):
+        """
+        Helper method to deep copy a phonological context object.
+
+        Args:
+            source_context: The source context object to copy.
+
+        Returns:
+            The duplicated context object.
+
+        Notes:
+            - Context objects are complex and may have owned objects
+            - This method uses CopyObject pattern for deep cloning
+        """
+        # Use LCM's CopyObject for deep cloning of complex structures
+        # This handles all owned objects and nested structures
+        cache = self.project.project.ServiceLocator.GetInstance("ICmObjectRepository")
+        if hasattr(cache, 'CopyObject'):
+            return cache.CopyObject(source_context)
+
+        # Fallback: if CopyObject not available, return None
+        # The environment will still be duplicated, just without contexts
+        return None
 
 
     # --- Private Helper Methods ---

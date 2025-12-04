@@ -14,6 +14,9 @@
 import logging
 logger = logging.getLogger(__name__)
 
+# Import BaseOperations parent class
+from ..BaseOperations import BaseOperations
+
 # Import FLEx LCM types
 from SIL.LCModel import (
     ILexExampleSentence,
@@ -33,7 +36,7 @@ from ..FLExProject import (
 )
 
 
-class ExampleOperations:
+class ExampleOperations(BaseOperations):
     """
     This class provides operations for managing example sentences in a FieldWorks project.
 
@@ -76,7 +79,15 @@ class ExampleOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
+
+
+    def _GetSequence(self, parent):
+        """
+        Specify which sequence to reorder for examples.
+        For Example, we reorder sense.ExamplesOS
+        """
+        return parent.ExamplesOS
 
 
     def GetAll(self, sense_or_hvo=None):
@@ -240,6 +251,99 @@ class ExampleOperations:
         owner = example.Owner
         if hasattr(owner, 'ExamplesOS'):
             owner.ExamplesOS.Remove(example)
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate an example sentence, creating a new copy with a new GUID.
+
+        Args:
+            item_or_hvo: The ILexExampleSentence object or HVO to duplicate.
+            insert_after (bool): If True (default), insert after the source example.
+                                If False, insert at end of parent's examples list.
+            deep (bool): If True, also duplicate owned objects (translations).
+                        If False (default), only copy simple properties.
+
+        Returns:
+            ILexExampleSentence: The newly created duplicate example with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If item_or_hvo is None.
+
+        Example:
+            >>> exampleOps = ExampleOperations(project)
+            >>> entry = project.LexiconAllEntries().__next__()
+            >>> sense = entry.SensesOS[0]
+            >>> examples = list(exampleOps.GetAll(sense))
+            >>> if examples:
+            ...     # Shallow duplicate (no translations)
+            ...     dup = exampleOps.Duplicate(examples[0])
+            ...     print(f"Original: {exampleOps.GetGuid(examples[0])}")
+            ...     print(f"Duplicate: {exampleOps.GetGuid(dup)}")
+            Original: 12345678-1234-1234-1234-123456789abc
+            Duplicate: 87654321-4321-4321-4321-cba987654321
+            ...
+            ...     # Deep duplicate (includes translations)
+            ...     deep_dup = exampleOps.Duplicate(examples[0], deep=True)
+            ...     trans = exampleOps.GetTranslation(deep_dup)
+            ...     print(f"Translation: {trans}")
+
+        Notes:
+            - Factory.Create() automatically generates a new GUID
+            - insert_after=True preserves the original example's position/priority
+            - Simple properties copied: Example (MultiString), Reference
+            - Owned objects (deep=True): TranslationsOC
+            - LiftResidue is not copied (import-specific data)
+            - MediaFilesOS are not copied (would require file handling)
+
+        See Also:
+            Create, Delete, GetGuid
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not item_or_hvo:
+            raise FP_NullParameterError()
+
+        # Get source example and parent
+        source = self.__GetExampleObject(item_or_hvo)
+        parent = source.Owner
+
+        # Create new example using factory (auto-generates new GUID)
+        factory = self.project.project.ServiceLocator.GetService(ILexExampleSentenceFactory)
+        duplicate = factory.Create()
+
+        # Determine insertion position
+        if insert_after and hasattr(parent, 'ExamplesOS'):
+            # Insert after source example
+            source_index = parent.ExamplesOS.IndexOf(source)
+            parent.ExamplesOS.Insert(source_index + 1, duplicate)
+        else:
+            # Insert at end
+            if hasattr(parent, 'ExamplesOS'):
+                parent.ExamplesOS.Add(duplicate)
+
+        # Copy simple MultiString properties (AFTER adding to parent)
+        duplicate.Example.CopyAlternatives(source.Example)
+
+        # Skip copying Reference - it's complex and often empty
+        # Reference is an ITsString pointing to the source text location
+        # For duplicates, this reference doesn't make sense to copy
+
+        # Handle owned objects if deep=True
+        if deep:
+            # Duplicate translations
+            for translation in source.TranslationsOC:
+                trans_factory = self.project.project.ServiceLocator.GetService(ICmTranslationFactory)
+                new_trans = trans_factory.Create()
+                duplicate.TranslationsOC.Add(new_trans)
+
+                # Copy translation properties
+                new_trans.Translation.CopyAlternatives(translation.Translation)
+                new_trans.TypeRA = translation.TypeRA
+
+        return duplicate
 
 
     def Reorder(self, sense_or_hvo, example_list):

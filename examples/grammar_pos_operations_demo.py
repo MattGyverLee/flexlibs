@@ -32,7 +32,7 @@ def demo_pos_crud():
     # Open project with write enabled
     project = FLExProject()
     try:
-        project.OpenProject("Sena 3", writeEnabled=True)
+        project.POSProject("Sena 3", writeEnabled=True)
     except Exception as e:
         print(f"Cannot run demo - FLEx project not available: {e}")
         FLExCleanup()
@@ -49,10 +49,10 @@ def demo_pos_crud():
 
         print("\nGetting all poss...")
         initial_count = 0
-        for obj in project.Pos.GetAll():
+        for obj in project.POS.GetAll():
             # Display first few objects
             try:
-                name = project.Pos.GetName(obj) if hasattr(project.Pos, 'GetName') else str(obj)
+                name = project.POS.GetName(obj) if hasattr(project.POS, 'GetName') else str(obj)
                 print(f"  - {name}")
             except:
                 print(f"  - [Object {initial_count + 1}]")
@@ -69,12 +69,12 @@ def demo_pos_crud():
 
         # Check if test object already exists
         try:
-            if hasattr(project.Pos, 'Exists') and project.Pos.Exists(test_name):
+            if hasattr(project.POS, 'Exists') and project.POS.Exists(test_name):
                 print(f"\nTest pos '{test_name}' already exists")
                 print("Deleting existing one first...")
-                existing = project.Pos.Find(test_name) if hasattr(project.Pos, 'Find') else None
+                existing = project.POS.Find(test_name) if hasattr(project.POS, 'Find') else None
                 if existing:
-                    project.Pos.Delete(existing)
+                    project.POS.Delete(existing)
                     print("  Deleted existing test pos")
         except:
             pass
@@ -84,13 +84,13 @@ def demo_pos_crud():
 
         try:
             # Attempt to create with common parameters
-            test_obj = project.Pos.Create(test_name)
+            test_obj = project.POS.Create(test_name)
         except TypeError:
             try:
                 # Try without parameters if that fails
-                test_obj = project.Pos.Create()
-                if hasattr(project.Pos, 'SetName'):
-                    project.Pos.SetName(test_obj, test_name)
+                test_obj = project.POS.Create()
+                if hasattr(project.POS, 'SetName'):
+                    project.POS.SetName(test_obj, test_name)
             except Exception as e:
                 print(f"  Note: Create method may require specific parameters: {e}")
                 test_obj = None
@@ -98,8 +98,8 @@ def demo_pos_crud():
         if test_obj:
             print(f"  SUCCESS: Pos created!")
             try:
-                if hasattr(project.Pos, 'GetName'):
-                    print(f"  Name: {project.Pos.GetName(test_obj)}")
+                if hasattr(project.POS, 'GetName'):
+                    print(f"  Name: {project.POS.GetName(test_obj)}")
             except:
                 pass
         else:
@@ -113,20 +113,20 @@ def demo_pos_crud():
         print("="*70)
 
         # Test Exists
-        if hasattr(project.Pos, 'Exists'):
+        if hasattr(project.POS, 'Exists'):
             print(f"\nChecking if '{test_name}' exists...")
-            exists = project.Pos.Exists(test_name)
+            exists = project.POS.Exists(test_name)
             print(f"  Exists: {exists}")
 
         # Test Find
-        if hasattr(project.Pos, 'Find'):
+        if hasattr(project.POS, 'Find'):
             print(f"\nFinding pos by name...")
-            found_obj = project.Pos.Find(test_name)
+            found_obj = project.POS.Find(test_name)
             if found_obj:
                 print(f"  FOUND: pos")
                 try:
-                    if hasattr(project.Pos, 'GetName'):
-                        print(f"  Name: {project.Pos.GetName(found_obj)}")
+                    if hasattr(project.POS, 'GetName'):
+                        print(f"  Name: {project.POS.GetName(found_obj)}")
                 except:
                     pass
             else:
@@ -134,7 +134,7 @@ def demo_pos_crud():
 
         # Count after creation
         print("\nCounting all poss after creation...")
-        current_count = sum(1 for _ in project.Pos.GetAll())
+        current_count = sum(1 for _ in project.POS.GetAll())
         print(f"  Count before: {initial_count}")
         print(f"  Count after:  {current_count}")
         print(f"  Difference:   +{current_count - initial_count}")
@@ -148,13 +148,13 @@ def demo_pos_crud():
             updated = False
 
             # Try common update methods
-            if hasattr(project.Pos, 'SetName'):
+            if hasattr(project.POS, 'SetName'):
                 try:
                     new_name = "crud_test_pos_modified"
                     print(f"\nUpdating name to: '{new_name}'")
-                    old_name = project.Pos.GetName(test_obj) if hasattr(project.Pos, 'GetName') else test_name
-                    project.Pos.SetName(test_obj, new_name)
-                    updated_name = project.Pos.GetName(test_obj) if hasattr(project.Pos, 'GetName') else new_name
+                    old_name = project.POS.GetName(test_obj) if hasattr(project.POS, 'GetName') else test_name
+                    project.POS.SetName(test_obj, new_name)
+                    updated_name = project.POS.GetName(test_obj) if hasattr(project.POS, 'GetName') else new_name
                     print(f"  Old name: {old_name}")
                     print(f"  New name: {updated_name}")
                     test_name = new_name  # Update for cleanup
@@ -163,7 +163,7 @@ def demo_pos_crud():
                     print(f"  Note: SetName failed: {e}")
 
             # Try other Set methods
-            for method_name in dir(project.Pos):
+            for method_name in dir(project.POS):
                 if method_name.startswith('Set') and method_name != 'SetName' and not updated:
                     print(f"\nFound update method: {method_name}")
                     print("  (Method available but not tested in this demo)")
@@ -179,14 +179,14 @@ def demo_pos_crud():
         print("STEP 5: READ - Verify updates persisted")
         print("="*70)
 
-        if hasattr(project.Pos, 'Find'):
+        if hasattr(project.POS, 'Find'):
             print(f"\nFinding pos after update...")
-            updated_obj = project.Pos.Find(test_name)
+            updated_obj = project.POS.Find(test_name)
             if updated_obj:
                 print(f"  FOUND: pos")
                 try:
-                    if hasattr(project.Pos, 'GetName'):
-                        print(f"  Name: {project.Pos.GetName(updated_obj)}")
+                    if hasattr(project.POS, 'GetName'):
+                        print(f"  Name: {project.POS.GetName(updated_obj)}")
                 except:
                     pass
             else:
@@ -200,17 +200,17 @@ def demo_pos_crud():
         if test_obj:
             print(f"\nDeleting test pos...")
             try:
-                obj_name = project.Pos.GetName(test_obj) if hasattr(project.Pos, 'GetName') else test_name
+                obj_name = project.POS.GetName(test_obj) if hasattr(project.POS, 'GetName') else test_name
             except:
                 obj_name = test_name
 
-            project.Pos.Delete(test_obj)
+            project.POS.Delete(test_obj)
             print(f"  Deleted: {obj_name}")
 
             # Verify deletion
             print("\nVerifying deletion...")
-            if hasattr(project.Pos, 'Exists'):
-                still_exists = project.Pos.Exists(test_name)
+            if hasattr(project.POS, 'Exists'):
+                still_exists = project.POS.Exists(test_name)
                 print(f"  Still exists: {still_exists}")
 
                 if not still_exists:
@@ -219,7 +219,7 @@ def demo_pos_crud():
                     print("  DELETE: FAILED - Pos still exists")
 
             # Count after deletion
-            final_count = sum(1 for _ in project.Pos.GetAll())
+            final_count = sum(1 for _ in project.POS.GetAll())
             print(f"\n  Count after delete: {final_count}")
             print(f"  Back to initial:    {final_count == initial_count}")
 
@@ -247,16 +247,16 @@ def demo_pos_crud():
 
         try:
             for name in ["crud_test_pos", "crud_test_pos_modified"]:
-                if hasattr(project.Pos, 'Exists') and project.Pos.Exists(name):
-                    obj = project.Pos.Find(name) if hasattr(project.Pos, 'Find') else None
+                if hasattr(project.POS, 'Exists') and project.POS.Exists(name):
+                    obj = project.POS.Find(name) if hasattr(project.POS, 'Find') else None
                     if obj:
-                        project.Pos.Delete(obj)
+                        project.POS.Delete(obj)
                         print(f"  Cleaned up: {name}")
         except:
             pass
 
         print("\nClosing project...")
-        project.CloseProject()
+        project.POSProject()
         FLExCleanup()
 
     print("\n" + "="*70)

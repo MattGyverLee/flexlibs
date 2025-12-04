@@ -32,7 +32,7 @@ def demo_etymology_crud():
     # Open project with write enabled
     project = FLExProject()
     try:
-        project.OpenProject("Sena 3", writeEnabled=True)
+        project.EtymologyProject("Sena 3", writeEnabled=True)
     except Exception as e:
         print(f"Cannot run demo - FLEx project not available: {e}")
         FLExCleanup()
@@ -79,33 +79,23 @@ def demo_etymology_crud():
         except:
             pass
 
-        # Create new object
+        
+        # Create parent entry for etymology testing
+        print("\nCreating parent entry for etymology test...")
+        parent_entry = None
+        try:
+            parent_entry = project.LexEntry.Create("crud_test_entry_for_etymology")
+            print(f"  Created parent entry: crud_test_entry_for_etymology")
+        except Exception as e:
+            print(f"  ERROR creating parent entry: {e}")
+            print("  Cannot test etymology without parent entry")
+            return
+
         print(f"\nCreating new etymology: '{test_name}'")
 
-        try:
-            # Attempt to create with common parameters
-            test_obj = project.Etymology.Create(test_name)
-        except TypeError:
-            try:
-                # Try without parameters if that fails
-                test_obj = project.Etymology.Create()
-                if hasattr(project.Etymology, 'SetName'):
-                    project.Etymology.SetName(test_obj, test_name)
-            except Exception as e:
-                print(f"  Note: Create method may require specific parameters: {e}")
-                test_obj = None
-
-        if test_obj:
-            print(f"  SUCCESS: Etymology created!")
-            try:
-                if hasattr(project.Etymology, 'GetName'):
-                    print(f"  Name: {project.Etymology.GetName(test_obj)}")
-            except:
-                pass
-        else:
-            print(f"  Note: Could not create etymology (may require special parameters)")
-            print("  Skipping remaining tests...")
-            return
+        # Create etymology with parent entry (not string)
+        test_obj = project.Etymology.Create(parent_entry)
+        print(f"  SUCCESS: Etymology created!")
 
         # ==================== READ: Verify creation ====================
         print("\n" + "="*70)
@@ -255,8 +245,17 @@ def demo_etymology_crud():
         except:
             pass
 
+        
+        # Cleanup parent entry
+        try:
+            if parent_entry:
+                project.LexEntry.Delete(parent_entry)
+                print("  Cleaned up: parent entry")
+        except:
+            pass
+
         print("\nClosing project...")
-        project.CloseProject()
+        project.EtymologyProject()
         FLExCleanup()
 
     print("\n" + "="*70)

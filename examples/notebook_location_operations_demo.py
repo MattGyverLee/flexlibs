@@ -32,7 +32,7 @@ def demo_location_crud():
     # Open project with write enabled
     project = FLExProject()
     try:
-        project.OpenProject("Sena 3", writeEnabled=True)
+        project.LocationProject("Sena 3", writeEnabled=True)
     except Exception as e:
         print(f"Cannot run demo - FLEx project not available: {e}")
         FLExCleanup()
@@ -256,7 +256,7 @@ def demo_location_crud():
             pass
 
         print("\nClosing project...")
-        project.CloseProject()
+        project.LocationProject()
         FLExCleanup()
 
     print("\n" + "="*70)

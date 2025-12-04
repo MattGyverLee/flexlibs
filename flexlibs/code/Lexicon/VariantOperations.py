@@ -14,6 +14,9 @@
 import logging
 logger = logging.getLogger(__name__)
 
+# Import BaseOperations parent class
+from ..BaseOperations import BaseOperations
+
 # Import FLEx LCM types
 from SIL.LCModel import (
     ILexEntry,
@@ -34,7 +37,7 @@ from ..FLExProject import (
 )
 
 
-class VariantOperations:
+class VariantOperations(BaseOperations):
     """
     This class provides operations for managing variant forms in a FieldWorks project.
 
@@ -93,7 +96,15 @@ class VariantOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
+
+
+    def _GetSequence(self, parent):
+        """
+        Specify which sequence to reorder for variants.
+        For Variant, we reorder parent.VariantEntryBackRefsOS
+        """
+        return parent.VariantEntryBackRefsOS
 
 
     # --- Variant Type Management ---
@@ -475,6 +486,104 @@ class VariantOperations:
         # Remove from entry's EntryRefsOS
         if hasattr(owner, 'EntryRefsOS'):
             owner.EntryRefsOS.Remove(variant)
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate a variant reference, creating a new copy with a new GUID.
+
+        Args:
+            item_or_hvo: The ILexEntryRef object or HVO to duplicate.
+            insert_after (bool): If True (default), insert after the source variant.
+                                If False, insert at end of parent's entry refs list.
+            deep (bool): Reserved for future use (variants have no owned objects to duplicate).
+
+        Returns:
+            ILexEntryRef: The newly created duplicate variant reference with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If item_or_hvo is None.
+
+        Example:
+            >>> entry = project.LexEntry.Find("colour")
+            >>> variants = list(project.Variants.GetAll(entry))
+            >>> if variants:
+            ...     # Duplicate the variant reference
+            ...     dup = project.Variants.Duplicate(variants[0])
+            ...     print(f"Original: {variants[0].Guid}")
+            ...     print(f"Duplicate: {dup.Guid}")
+            ...     vtype = project.Variants.GetType(dup)
+            ...     print(f"Type: {project.Variants.GetTypeName(vtype)}")
+            Original: 12345678-1234-1234-1234-123456789abc
+            Duplicate: 87654321-4321-4321-4321-cba987654321
+            Type: Spelling Variant
+
+        Notes:
+            - Factory.Create() automatically generates a new GUID
+            - insert_after=True preserves the original variant's position/priority
+            - Simple properties copied: RefType, HideMinorEntry, ShowComplexFormsIn
+            - Reference Sequence (RS) properties copied: VariantEntryTypesRS, ComponentLexemesRS
+            - The duplicate shares the same form as the source (both owned by same entry)
+            - Variants have no owned objects, so deep parameter has no effect
+            - LiftResidue is not copied (import-specific data)
+
+        See Also:
+            Create, Delete, GetType
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not item_or_hvo:
+            raise FP_NullParameterError()
+
+        # Get source variant and parent
+        source = self.__GetVariantObject(item_or_hvo)
+        parent = source.Owner
+
+        # Create new variant reference using factory (auto-generates new GUID)
+        factory = self.project.project.ServiceLocator.GetService(ILexEntryRefFactory)
+        duplicate = factory.Create()
+
+        # Determine insertion position
+        if insert_after and hasattr(parent, 'EntryRefsOS'):
+            # Insert after source variant
+            source_index = parent.EntryRefsOS.IndexOf(source)
+            parent.EntryRefsOS.Insert(source_index + 1, duplicate)
+        else:
+            # Insert at end
+            if hasattr(parent, 'EntryRefsOS'):
+                parent.EntryRefsOS.Add(duplicate)
+
+        # Copy simple properties
+        duplicate.RefType = source.RefType
+
+        if hasattr(source, 'HideMinorEntry'):
+            duplicate.HideMinorEntry = source.HideMinorEntry
+
+        if hasattr(source, 'ShowComplexFormsIn'):
+            duplicate.ShowComplexFormsIn = source.ShowComplexFormsIn
+
+        # Copy Reference Sequence (RS) properties
+        # Copy variant entry types
+        for vtype in source.VariantEntryTypesRS:
+            duplicate.VariantEntryTypesRS.Add(vtype)
+
+        # Copy component lexemes (for irregularly inflected forms)
+        for component in source.ComponentLexemesRS:
+            duplicate.ComponentLexemesRS.Add(component)
+
+        # Copy complex entry types (if applicable)
+        if hasattr(source, 'ComplexEntryTypesRS'):
+            for ctype in source.ComplexEntryTypesRS:
+                duplicate.ComplexEntryTypesRS.Add(ctype)
+
+        # Copy primary lexemes (if applicable)
+        if hasattr(source, 'PrimaryLexemesRS'):
+            for plex in source.PrimaryLexemesRS:
+                duplicate.PrimaryLexemesRS.Add(plex)
+
+        return duplicate
 
 
     def GetForm(self, variant_or_hvo, wsHandle=None):

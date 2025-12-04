@@ -14,6 +14,9 @@
 import logging
 logger = logging.getLogger(__name__)
 
+# Import BaseOperations parent class
+from ..BaseOperations import BaseOperations
+
 # Import FLEx LCM types
 from SIL.LCModel import (
     IMoForm,
@@ -32,7 +35,7 @@ from ..FLExProject import (
 )
 
 
-class AllomorphOperations:
+class AllomorphOperations(BaseOperations):
     """
     This class provides operations for managing allomorphs in a FieldWorks project.
 
@@ -75,7 +78,15 @@ class AllomorphOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
+
+
+    def _GetSequence(self, parent):
+        """
+        Specify which sequence to reorder for allomorphs.
+        For Allomorph, we reorder entry.AlternateFormsOS
+        """
+        return parent.AlternateFormsOS
 
 
     def GetAll(self, entry_or_hvo=None):
@@ -276,6 +287,106 @@ class AllomorphOperations:
         elif hasattr(owner, 'AlternateFormsOS'):
             # Deleting an alternate form
             owner.AlternateFormsOS.Remove(allomorph)
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate an allomorph, creating a new copy with a new GUID.
+
+        Args:
+            item_or_hvo: The IMoForm object or HVO to duplicate.
+            insert_after (bool): If True (default), insert after the source allomorph.
+                                If False, insert at end of parent's alternate forms list.
+            deep (bool): Reserved for future use (allomorphs have no owned objects).
+
+        Returns:
+            IMoForm: The newly created duplicate allomorph with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If item_or_hvo is None.
+
+        Example:
+            >>> allomorphOps = AllomorphOperations(project)
+            >>> entry = project.LexiconAllEntries()[0]
+            >>> allomorphs = list(allomorphOps.GetAll(entry))
+            >>> if len(allomorphs) > 1:  # Don't duplicate lexeme form
+            ...     # Duplicate an alternate form
+            ...     dup = allomorphOps.Duplicate(allomorphs[1])
+            ...     print(f"Original: {allomorphOps.GetGuid(allomorphs[1])}")
+            ...     print(f"Duplicate: {allomorphOps.GetGuid(dup)}")
+            ...     print(f"Form: {allomorphOps.GetForm(dup)}")
+            Original: 12345678-1234-1234-1234-123456789abc
+            Duplicate: 87654321-4321-4321-4321-cba987654321
+            Form: walk
+
+        Notes:
+            - Factory.Create() automatically generates a new GUID
+            - Factory type determined by source ClassName (MoStemAllomorph, MoAffixAllomorph, etc.)
+            - insert_after=True preserves the original allomorph's position/priority
+            - Simple properties copied: Form (MultiString)
+            - Reference properties copied: MorphTypeRA, PhoneEnvRC
+            - Allomorphs have no owned objects, so deep parameter has no effect
+            - Only duplicates alternate forms, not lexeme forms
+
+        See Also:
+            Create, Delete, GetGuid
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not item_or_hvo:
+            raise FP_NullParameterError()
+
+        # Get source allomorph and parent
+        source = self.__GetAllomorphObject(item_or_hvo)
+        parent = source.Owner
+
+        # Determine the factory type based on the source's ClassName
+        class_name = source.ClassName
+        factory = None
+
+        if class_name == 'MoStemAllomorph':
+            from SIL.LCModel import IMoStemAllomorphFactory
+            factory = self.project.project.ServiceLocator.GetService(IMoStemAllomorphFactory)
+        elif class_name == 'MoAffixAllomorph':
+            from SIL.LCModel import IMoAffixAllomorphFactory
+            factory = self.project.project.ServiceLocator.GetService(IMoAffixAllomorphFactory)
+        else:
+            # Default to stem allomorph factory
+            from SIL.LCModel import IMoStemAllomorphFactory
+            factory = self.project.project.ServiceLocator.GetService(IMoStemAllomorphFactory)
+
+        # Create new allomorph using factory (auto-generates new GUID)
+        duplicate = factory.Create()
+
+        # Determine insertion position
+        # Note: Allomorphs can be lexeme forms or alternate forms
+        if hasattr(parent, 'LexemeFormOA') and parent.LexemeFormOA == source:
+            # Source is lexeme form - add duplicate as alternate form
+            if insert_after:
+                parent.AlternateFormsOS.Insert(0, duplicate)
+            else:
+                parent.AlternateFormsOS.Add(duplicate)
+        elif hasattr(parent, 'AlternateFormsOS'):
+            # Source is alternate form
+            if insert_after:
+                source_index = parent.AlternateFormsOS.IndexOf(source)
+                parent.AlternateFormsOS.Insert(source_index + 1, duplicate)
+            else:
+                parent.AlternateFormsOS.Add(duplicate)
+
+        # Copy simple MultiString properties (AFTER adding to parent)
+        duplicate.Form.CopyAlternatives(source.Form)
+
+        # Copy Reference Atomic (RA) properties
+        duplicate.MorphTypeRA = source.MorphTypeRA
+
+        # Copy Reference Collection (RC) properties
+        for env in source.PhoneEnvRC:
+            duplicate.PhoneEnvRC.Add(env)
+
+        return duplicate
 
 
     def GetForm(self, allomorph_or_hvo, wsHandle=None):

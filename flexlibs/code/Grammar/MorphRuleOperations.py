@@ -14,6 +14,9 @@
 import logging
 logger = logging.getLogger(__name__)
 
+# Import BaseOperations parent class
+from ..BaseOperations import BaseOperations
+
 # Import FLEx LCM types
 # Note: Morph rule interfaces may not exist in current LCM API version
 # from SIL.LCModel import (
@@ -32,7 +35,7 @@ from ..FLExProject import (
 )
 
 
-class MorphRuleOperations:
+class MorphRuleOperations(BaseOperations):
     """
     This class provides operations for managing morphological rules in a
     FieldWorks project.
@@ -74,7 +77,15 @@ class MorphRuleOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
+
+
+    def _GetSequence(self, parent):
+        """
+        Specify which sequence to reorder for morph rules.
+        For MorphRule, we reorder parent.RulesOS
+        """
+        return parent.RulesOS
 
 
     def GetAll(self):
@@ -603,6 +614,107 @@ class MorphRuleOperations:
         # Set active state
         if hasattr(rule, 'Active'):
             rule.Active = bool(active)
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate a morphological rule, creating a new copy with a new GUID.
+
+        Args:
+            item_or_hvo: The IMoMorphRule object or HVO to duplicate.
+            insert_after (bool): If True (default), insert after the source rule.
+                                If False, insert at end of rules list.
+            deep (bool): Reserved for future use (rules have complex owned objects).
+
+        Returns:
+            IMoMorphRule: The newly created duplicate rule with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If item_or_hvo is None.
+
+        Example:
+            >>> ruleOps = MorphRuleOperations(project)
+            >>> plural = ruleOps.Create("Plural Formation", "Adds -s suffix")
+            >>> # Duplicate the rule
+            >>> copy = ruleOps.Duplicate(plural)
+            >>> print(ruleOps.GetName(copy))
+            Plural Formation
+
+            >>> # Modify the duplicate
+            >>> ruleOps.SetName(copy, "Plural Formation (Variant)")
+            >>> ruleOps.SetActive(copy, True)
+
+        Notes:
+            - Factory.Create() automatically generates a new GUID
+            - insert_after=True preserves the original rule's position
+            - Simple properties copied: Name, Description (MultiString)
+            - Reference property copied: StratumRA
+            - Boolean property copied: Active
+            - deep parameter reserved for future complex owned object copying
+            - Rules may have complex owned objects (constraints, etc.) not copied
+
+        See Also:
+            Create, Delete, SetActive
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not item_or_hvo:
+            raise FP_NullParameterError()
+
+        # Get source rule
+        source = self.__ResolveObject(item_or_hvo)
+
+        # Determine factory type - use IMoAffixProcessFactory as default
+        from SIL.LCModel import IMoAffixProcessFactory
+        factory = self.project.project.ServiceLocator.GetService(IMoAffixProcessFactory)
+
+        # Create new rule using factory (auto-generates new GUID)
+        duplicate = factory.Create()
+
+        # Add to appropriate rules collection
+        morph_data = self.project.lp.MorphologicalDataOA
+
+        # Determine which collection the source belongs to
+        is_affix_rule = False
+        is_template_rule = False
+
+        if hasattr(morph_data, 'AffixRulesOS') and source in morph_data.AffixRulesOS:
+            is_affix_rule = True
+        elif hasattr(morph_data, 'TemplatesOS') and source in morph_data.TemplatesOS:
+            is_template_rule = True
+
+        # Insert into appropriate collection
+        if is_affix_rule:
+            if insert_after:
+                source_index = morph_data.AffixRulesOS.IndexOf(source)
+                morph_data.AffixRulesOS.Insert(source_index + 1, duplicate)
+            else:
+                morph_data.AffixRulesOS.Add(duplicate)
+        elif is_template_rule:
+            if insert_after:
+                source_index = morph_data.TemplatesOS.IndexOf(source)
+                morph_data.TemplatesOS.Insert(source_index + 1, duplicate)
+            else:
+                morph_data.TemplatesOS.Add(duplicate)
+        else:
+            # Default to AffixRulesOS
+            morph_data.AffixRulesOS.Add(duplicate)
+
+        # Copy simple MultiString properties (AFTER adding to parent)
+        duplicate.Name.CopyAlternatives(source.Name)
+        duplicate.Description.CopyAlternatives(source.Description)
+
+        # Copy Reference Atomic (RA) properties
+        if hasattr(source, 'StratumRA') and source.StratumRA:
+            duplicate.StratumRA = source.StratumRA
+
+        # Copy boolean properties
+        if hasattr(source, 'Active'):
+            duplicate.Active = source.Active
+
+        return duplicate
 
 
     # --- Private Helper Methods ---

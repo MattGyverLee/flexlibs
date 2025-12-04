@@ -14,6 +14,9 @@
 import logging
 logger = logging.getLogger(__name__)
 
+# Import BaseOperations parent class
+from ..BaseOperations import BaseOperations
+
 # Import FLEx LCM types
 from SIL.LCModel import (
     IReversalIndex,
@@ -32,7 +35,7 @@ from ..FLExProject import (
 )
 
 
-class ReversalOperations:
+class ReversalOperations(BaseOperations):
     """
     This class provides operations for managing reversal entries in a
     FieldWorks project.
@@ -84,7 +87,7 @@ class ReversalOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
 
 
     # --- Reversal Index Management ---
@@ -961,6 +964,112 @@ class ReversalOperations:
             raise FP_NullParameterError()
 
         return list(reversal_entry.PartsOfSpeechRC)
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate a reversal entry, creating a new copy with a new GUID.
+
+        Args:
+            item_or_hvo: The IReversalIndexEntry object or HVO to duplicate.
+            insert_after (bool): If True (default), insert after the source entry.
+                                If False, insert at end of parent's entry list.
+            deep (bool): If True, also duplicate owned objects (subentries).
+                        If False (default), only copy simple properties and references.
+
+        Returns:
+            IReversalIndexEntry: The newly created duplicate entry with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If item_or_hvo is None.
+
+        Example:
+            >>> en_index = project.Reversal.GetIndex("en")
+            >>> entry = project.Reversal.Find(en_index, "run")
+            >>> if entry:
+            ...     # Shallow duplicate (no subentries)
+            ...     dup = project.Reversal.Duplicate(entry)
+            ...     form = project.Reversal.GetForm(dup)
+            ...     print(f"Duplicate form: {form}")
+            Duplicate form: run
+            ...
+            ...     # Deep duplicate (includes all subentries)
+            ...     deep_dup = project.Reversal.Duplicate(entry, deep=True)
+            ...     subentries = project.Reversal.GetSubentries(deep_dup)
+            ...     print(f"Subentries: {len(subentries)}")
+            Subentries: 3
+
+        Notes:
+            - Factory.Create() automatically generates a new GUID
+            - insert_after=True preserves the original entry's position
+            - Simple properties copied: ReversalForm
+            - Reference properties copied: SensesRS, PartsOfSpeechRC
+            - Owned objects (deep=True): SubentriesOS (subentries)
+            - After duplication, you may want to modify the ReversalForm
+            - Duplicates maintain links to the same senses as the original
+
+        See Also:
+            Create, Delete, CreateSubentry
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not item_or_hvo:
+            raise FP_NullParameterError()
+
+        # Get source entry
+        if isinstance(item_or_hvo, int):
+            source = self.project.Object(item_or_hvo)
+        else:
+            source = item_or_hvo
+
+        # Determine parent (could be reversal index or parent entry)
+        parent = source.Owner
+        parent_entry = self.GetParentEntry(source)
+
+        # Create new reversal entry using factory (auto-generates new GUID)
+        factory = self.project.project.ServiceLocator.GetService(
+            IReversalIndexEntryFactory
+        )
+        duplicate = factory.Create()
+
+        # Determine insertion position - ADD TO PARENT FIRST
+        if parent_entry:
+            # This is a subentry - add to parent entry's subentries
+            if insert_after:
+                source_index = parent_entry.SubentriesOS.IndexOf(source)
+                parent_entry.SubentriesOS.Insert(source_index + 1, duplicate)
+            else:
+                parent_entry.SubentriesOS.Add(duplicate)
+        else:
+            # This is a top-level entry - add to reversal index
+            reversal_index = source.ReversalIndex
+            if reversal_index:
+                if insert_after:
+                    source_index = reversal_index.EntriesOC.IndexOf(source)
+                    reversal_index.EntriesOC.Insert(source_index + 1, duplicate)
+                else:
+                    reversal_index.EntriesOC.Add(duplicate)
+
+        # Copy simple MultiString properties (AFTER adding to parent)
+        duplicate.ReversalForm.CopyAlternatives(source.ReversalForm)
+
+        # Copy Reference Sequence (RS) properties - senses
+        for sense in source.SensesRS:
+            duplicate.SensesRS.Add(sense)
+
+        # Copy Reference Collection (RC) properties - parts of speech
+        for pos in source.PartsOfSpeechRC:
+            duplicate.PartsOfSpeechRC.Add(pos)
+
+        # Handle owned objects if deep=True
+        if deep:
+            # Duplicate subentries recursively
+            for subentry in source.SubentriesOS:
+                self.Duplicate(subentry, insert_after=False, deep=True)
+
+        return duplicate
 
 
     # --- Private Helper Methods ---

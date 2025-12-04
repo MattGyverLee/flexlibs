@@ -33,9 +33,10 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
+from ..BaseOperations import BaseOperations
 
 
-class NoteOperations:
+class NoteOperations(BaseOperations):
     """
     This class provides operations for managing notes and comments in a
     FieldWorks project.
@@ -82,7 +83,7 @@ class NoteOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
 
 
     # --- Core CRUD Operations ---
@@ -258,6 +259,107 @@ class NoteOperations:
         # Delete the note object
         if hasattr(note, 'Delete'):
             note.Delete()
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate a note, creating a new copy with a new GUID.
+
+        Args:
+            item_or_hvo: The ICmBaseAnnotation (note) object or HVO to duplicate.
+            insert_after (bool): If True (default), insert after the source note.
+                                If False, insert at end of owner's annotation list.
+            deep (bool): If True, also duplicate owned objects (replies).
+                        If False (default), only copy simple properties and references.
+
+        Returns:
+            ICmBaseAnnotation: The newly created duplicate note with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If item_or_hvo is None.
+
+        Example:
+            >>> entry = project.LexEntry.Find("run")
+            >>> notes = list(project.Note.GetAll(entry))
+            >>> if notes:
+            ...     # Shallow duplicate (no replies)
+            ...     dup = project.Note.Duplicate(notes[0])
+            ...     print(f"Original: {project.Note.GetGuid(notes[0])}")
+            ...     print(f"Duplicate: {project.Note.GetGuid(dup)}")
+            Original: 12345678-1234-1234-1234-123456789abc
+            Duplicate: 87654321-4321-4321-4321-cba987654321
+            ...
+            ...     # Deep duplicate (includes all replies)
+            ...     deep_dup = project.Note.Duplicate(notes[0], deep=True)
+            ...     print(f"Replies: {len(list(project.Note.GetReplies(deep_dup)))}")
+
+        Notes:
+            - Factory.Create() automatically generates a new GUID
+            - insert_after=True preserves the original note's position
+            - Simple properties copied: Comment, Source (author), DateCreated, DateModified
+            - Reference properties copied: AnnotationTypeRA, BeginObjectRA
+            - Owned objects (deep=True): RepliesOS (threaded discussion)
+            - DateCreated and DateModified are copied from source, not set to current time
+
+        See Also:
+            Create, Delete, GetGuid, GetReplies
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not item_or_hvo:
+            raise FP_NullParameterError()
+
+        # Get source note and parent
+        source = item_or_hvo if not isinstance(item_or_hvo, int) else self.project.Object(item_or_hvo)
+        parent = source.Owner
+
+        # Create new note using factory (auto-generates new GUID)
+        factory = self.project.project.ServiceLocator.GetService(ICmBaseAnnotationFactory)
+        duplicate = factory.Create()
+
+        # Determine insertion position
+        # Notes can be in AnnotationsOS (when parent is owner object) or RepliesOS (when parent is another note)
+        if insert_after:
+            # Insert after source note
+            if hasattr(parent, 'RepliesOS'):
+                source_index = parent.RepliesOS.IndexOf(source)
+                parent.RepliesOS.Insert(source_index + 1, duplicate)
+            elif hasattr(parent, 'AnnotationsOS'):
+                source_index = parent.AnnotationsOS.IndexOf(source)
+                parent.AnnotationsOS.Insert(source_index + 1, duplicate)
+        else:
+            # Insert at end
+            if hasattr(parent, 'RepliesOS'):
+                parent.RepliesOS.Add(duplicate)
+            elif hasattr(parent, 'AnnotationsOS'):
+                parent.AnnotationsOS.Add(duplicate)
+
+        # Copy simple MultiString properties
+        duplicate.Comment.CopyAlternatives(source.Comment)
+        duplicate.Source.CopyAlternatives(source.Source)
+
+        # Copy Reference Atomic (RA) properties
+        if hasattr(source, 'AnnotationTypeRA'):
+            duplicate.AnnotationTypeRA = source.AnnotationTypeRA
+        if hasattr(source, 'BeginObjectRA'):
+            duplicate.BeginObjectRA = source.BeginObjectRA
+
+        # Copy datetime properties
+        if hasattr(source, 'DateCreated'):
+            duplicate.DateCreated = source.DateCreated
+        if hasattr(source, 'DateModified'):
+            duplicate.DateModified = source.DateModified
+
+        # Handle owned objects if deep=True
+        if deep:
+            # Duplicate replies
+            if hasattr(source, 'RepliesOS'):
+                for reply in source.RepliesOS:
+                    self.Duplicate(reply, insert_after=False, deep=True)
+
+        return duplicate
 
 
     def Reorder(self, owner_object, note_list):

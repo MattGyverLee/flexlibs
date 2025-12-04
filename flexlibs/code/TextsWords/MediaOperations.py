@@ -34,6 +34,7 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
+from ..BaseOperations import BaseOperations
 
 
 # --- Media Type Enum ---
@@ -48,7 +49,7 @@ class MediaType:
 
 # --- MediaOperations Class ---
 
-class MediaOperations:
+class MediaOperations(BaseOperations):
     """
     Provides operations for managing media files in a FLEx project.
 
@@ -81,7 +82,7 @@ class MediaOperations:
         Args:
             project: FLExProject instance
         """
-        self.project = project
+        super().__init__(project)
 
     def __WSHandle(self, wsHandle):
         """
@@ -246,6 +247,127 @@ class MediaOperations:
         # Delete the object (this removes all references)
         # Note: LCModel handles cascading deletion of references
         self.project.cache.DomainDataByFlid.DeleteObj(media.Hvo)
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate a media file reference, creating a new reference to the same file.
+
+        This method creates a copy of the media file reference (ICmFile object) in
+        the database. The duplicate points to the SAME physical file - the file
+        itself is NOT duplicated on disk. Use copy_file=True to create a physical
+        copy of the file.
+
+        Args:
+            item_or_hvo: Either an ICmFile object or its HVO (database ID)
+            insert_after (bool): Not applicable for media files (they are not in
+                a sequence). Parameter kept for consistency with other Duplicate()
+                methods.
+            deep (bool): If True, the physical file is also copied with a new name.
+                If False, only the database reference is duplicated (both references
+                point to the same file).
+
+        Returns:
+            ICmFile: The newly created duplicate media file reference
+
+        Raises:
+            FP_ReadOnlyError: If project is not opened with write enabled
+            FP_NullParameterError: If item_or_hvo is None
+            FP_ParameterError: If media doesn't exist
+
+        Example:
+            >>> # Shallow duplicate (reference only, same file)
+            >>> media = project.Media.Find("audio.wav")
+            >>> duplicate = project.Media.Duplicate(media, deep=False)
+            >>> print(project.Media.GetInternalPath(duplicate))
+            LinkedFiles/AudioVisual/audio.wav
+            >>> print(project.Media.GetLabel(duplicate, "en"))
+            Speaker 1 (copy)
+
+            >>> # Deep duplicate (copy the physical file too)
+            >>> duplicate = project.Media.Duplicate(media, deep=True)
+            >>> print(project.Media.GetInternalPath(duplicate))
+            LinkedFiles/AudioVisual/audio_copy.wav
+
+        Warning:
+            - With deep=False, both references point to the SAME file
+            - Deleting the file affects both references
+            - With deep=True, the file is physically copied (doubles disk space)
+            - The duplicate will have a " (copy)" suffix in the label
+            - insert_after parameter is ignored (media not in a sequence)
+
+        Notes:
+            - Duplicated reference is added to the project database
+            - New GUID is auto-generated for the duplicate
+            - Internal path is copied (or modified if deep=True)
+            - Label is copied with " (copy)" suffix
+            - With deep=False, both references share the same physical file
+            - With deep=True, a new file is created with "_copy" suffix
+            - insert_after parameter is ignored (media files not in sequence)
+
+        See Also:
+            Create, Delete, CopyToProject
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if item_or_hvo is None:
+            raise FP_NullParameterError()
+
+        # Resolve to media object
+        if isinstance(item_or_hvo, int):
+            source_media = self.project.Object(item_or_hvo)
+            if not isinstance(source_media, ICmFile):
+                raise FP_ParameterError("HVO does not refer to a media file")
+        else:
+            source_media = item_or_hvo
+
+        # Get source properties
+        wsHandle = self.__WSHandle(None)
+        internal_path = self.GetInternalPath(source_media)
+        label = self.GetLabel(source_media, wsHandle)
+
+        # Create unique label by appending " (copy)"
+        new_label = f"{label} (copy)" if label else "Media (copy)"
+
+        # Handle deep copy (copy the physical file)
+        new_path = internal_path
+        if deep and internal_path:
+            # Get the external path
+            external_path = self.GetExternalPath(source_media)
+            if os.path.exists(external_path):
+                # Create new filename with "_copy" suffix
+                dir_name = os.path.dirname(internal_path)
+                file_name = os.path.basename(internal_path)
+                name_base, ext = os.path.splitext(file_name)
+                new_file_name = f"{name_base}_copy{ext}"
+                new_path = os.path.join(dir_name, new_file_name)
+
+                # Ensure uniqueness
+                counter = 1
+                while True:
+                    new_external_path = os.path.join(
+                        os.path.dirname(external_path),
+                        os.path.basename(new_path)
+                    )
+                    if not os.path.exists(new_external_path):
+                        break
+                    new_file_name = f"{name_base}_copy{counter}{ext}"
+                    new_path = os.path.join(dir_name, new_file_name)
+                    counter += 1
+
+                # Copy the file
+                try:
+                    shutil.copy2(external_path, new_external_path)
+                except Exception as e:
+                    logger.warning(f"Failed to copy physical file: {e}")
+                    # Continue with shallow copy if file copy fails
+                    new_path = internal_path
+
+        # Create the new media reference
+        new_media = self.Create(new_path, label=new_label, wsHandle=wsHandle)
+
+        return new_media
 
     def Find(self, filename):
         """

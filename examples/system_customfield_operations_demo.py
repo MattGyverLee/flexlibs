@@ -49,10 +49,10 @@ def demo_customfield_crud():
 
         print("\nGetting all customfields...")
         initial_count = 0
-        for obj in project.Customfield.GetAll():
+        for obj in project.CustomFields.GetAll():
             # Display first few objects
             try:
-                name = project.Customfield.GetName(obj) if hasattr(project.Customfield, 'GetName') else str(obj)
+                name = project.CustomFields.GetName(obj) if hasattr(project.CustomFields, 'GetName') else str(obj)
                 print(f"  - {name}")
             except:
                 print(f"  - [Object {initial_count + 1}]")
@@ -69,12 +69,12 @@ def demo_customfield_crud():
 
         # Check if test object already exists
         try:
-            if hasattr(project.Customfield, 'Exists') and project.Customfield.Exists(test_name):
+            if hasattr(project.CustomFields, 'Exists') and project.CustomFields.Exists(test_name):
                 print(f"\nTest customfield '{test_name}' already exists")
                 print("Deleting existing one first...")
-                existing = project.Customfield.Find(test_name) if hasattr(project.Customfield, 'Find') else None
+                existing = project.CustomFields.Find(test_name) if hasattr(project.CustomFields, 'Find') else None
                 if existing:
-                    project.Customfield.Delete(existing)
+                    project.CustomFields.Delete(existing)
                     print("  Deleted existing test customfield")
         except:
             pass
@@ -84,13 +84,13 @@ def demo_customfield_crud():
 
         try:
             # Attempt to create with common parameters
-            test_obj = project.Customfield.Create(test_name)
+            test_obj = project.CustomFields.Create(test_name)
         except TypeError:
             try:
                 # Try without parameters if that fails
-                test_obj = project.Customfield.Create()
-                if hasattr(project.Customfield, 'SetName'):
-                    project.Customfield.SetName(test_obj, test_name)
+                test_obj = project.CustomFields.Create()
+                if hasattr(project.CustomFields, 'SetName'):
+                    project.CustomFields.SetName(test_obj, test_name)
             except Exception as e:
                 print(f"  Note: Create method may require specific parameters: {e}")
                 test_obj = None
@@ -98,8 +98,8 @@ def demo_customfield_crud():
         if test_obj:
             print(f"  SUCCESS: Customfield created!")
             try:
-                if hasattr(project.Customfield, 'GetName'):
-                    print(f"  Name: {project.Customfield.GetName(test_obj)}")
+                if hasattr(project.CustomFields, 'GetName'):
+                    print(f"  Name: {project.CustomFields.GetName(test_obj)}")
             except:
                 pass
         else:
@@ -113,20 +113,20 @@ def demo_customfield_crud():
         print("="*70)
 
         # Test Exists
-        if hasattr(project.Customfield, 'Exists'):
+        if hasattr(project.CustomFields, 'Exists'):
             print(f"\nChecking if '{test_name}' exists...")
-            exists = project.Customfield.Exists(test_name)
+            exists = project.CustomFields.Exists(test_name)
             print(f"  Exists: {exists}")
 
         # Test Find
-        if hasattr(project.Customfield, 'Find'):
+        if hasattr(project.CustomFields, 'Find'):
             print(f"\nFinding customfield by name...")
-            found_obj = project.Customfield.Find(test_name)
+            found_obj = project.CustomFields.Find(test_name)
             if found_obj:
                 print(f"  FOUND: customfield")
                 try:
-                    if hasattr(project.Customfield, 'GetName'):
-                        print(f"  Name: {project.Customfield.GetName(found_obj)}")
+                    if hasattr(project.CustomFields, 'GetName'):
+                        print(f"  Name: {project.CustomFields.GetName(found_obj)}")
                 except:
                     pass
             else:
@@ -134,7 +134,7 @@ def demo_customfield_crud():
 
         # Count after creation
         print("\nCounting all customfields after creation...")
-        current_count = sum(1 for _ in project.Customfield.GetAll())
+        current_count = sum(1 for _ in project.CustomFields.GetAll())
         print(f"  Count before: {initial_count}")
         print(f"  Count after:  {current_count}")
         print(f"  Difference:   +{current_count - initial_count}")
@@ -148,13 +148,13 @@ def demo_customfield_crud():
             updated = False
 
             # Try common update methods
-            if hasattr(project.Customfield, 'SetName'):
+            if hasattr(project.CustomFields, 'SetName'):
                 try:
                     new_name = "crud_test_customfield_modified"
                     print(f"\nUpdating name to: '{new_name}'")
-                    old_name = project.Customfield.GetName(test_obj) if hasattr(project.Customfield, 'GetName') else test_name
-                    project.Customfield.SetName(test_obj, new_name)
-                    updated_name = project.Customfield.GetName(test_obj) if hasattr(project.Customfield, 'GetName') else new_name
+                    old_name = project.CustomFields.GetName(test_obj) if hasattr(project.CustomFields, 'GetName') else test_name
+                    project.CustomFields.SetName(test_obj, new_name)
+                    updated_name = project.CustomFields.GetName(test_obj) if hasattr(project.CustomFields, 'GetName') else new_name
                     print(f"  Old name: {old_name}")
                     print(f"  New name: {updated_name}")
                     test_name = new_name  # Update for cleanup
@@ -163,7 +163,7 @@ def demo_customfield_crud():
                     print(f"  Note: SetName failed: {e}")
 
             # Try other Set methods
-            for method_name in dir(project.Customfield):
+            for method_name in dir(project.CustomFields):
                 if method_name.startswith('Set') and method_name != 'SetName' and not updated:
                     print(f"\nFound update method: {method_name}")
                     print("  (Method available but not tested in this demo)")
@@ -179,14 +179,14 @@ def demo_customfield_crud():
         print("STEP 5: READ - Verify updates persisted")
         print("="*70)
 
-        if hasattr(project.Customfield, 'Find'):
+        if hasattr(project.CustomFields, 'Find'):
             print(f"\nFinding customfield after update...")
-            updated_obj = project.Customfield.Find(test_name)
+            updated_obj = project.CustomFields.Find(test_name)
             if updated_obj:
                 print(f"  FOUND: customfield")
                 try:
-                    if hasattr(project.Customfield, 'GetName'):
-                        print(f"  Name: {project.Customfield.GetName(updated_obj)}")
+                    if hasattr(project.CustomFields, 'GetName'):
+                        print(f"  Name: {project.CustomFields.GetName(updated_obj)}")
                 except:
                     pass
             else:
@@ -200,17 +200,17 @@ def demo_customfield_crud():
         if test_obj:
             print(f"\nDeleting test customfield...")
             try:
-                obj_name = project.Customfield.GetName(test_obj) if hasattr(project.Customfield, 'GetName') else test_name
+                obj_name = project.CustomFields.GetName(test_obj) if hasattr(project.CustomFields, 'GetName') else test_name
             except:
                 obj_name = test_name
 
-            project.Customfield.Delete(test_obj)
+            project.CustomFields.Delete(test_obj)
             print(f"  Deleted: {obj_name}")
 
             # Verify deletion
             print("\nVerifying deletion...")
-            if hasattr(project.Customfield, 'Exists'):
-                still_exists = project.Customfield.Exists(test_name)
+            if hasattr(project.CustomFields, 'Exists'):
+                still_exists = project.CustomFields.Exists(test_name)
                 print(f"  Still exists: {still_exists}")
 
                 if not still_exists:
@@ -219,7 +219,7 @@ def demo_customfield_crud():
                     print("  DELETE: FAILED - Customfield still exists")
 
             # Count after deletion
-            final_count = sum(1 for _ in project.Customfield.GetAll())
+            final_count = sum(1 for _ in project.CustomFields.GetAll())
             print(f"\n  Count after delete: {final_count}")
             print(f"  Back to initial:    {final_count == initial_count}")
 
@@ -247,10 +247,10 @@ def demo_customfield_crud():
 
         try:
             for name in ["crud_test_customfield", "crud_test_customfield_modified"]:
-                if hasattr(project.Customfield, 'Exists') and project.Customfield.Exists(name):
-                    obj = project.Customfield.Find(name) if hasattr(project.Customfield, 'Find') else None
+                if hasattr(project.CustomFields, 'Exists') and project.CustomFields.Exists(name):
+                    obj = project.CustomFields.Find(name) if hasattr(project.CustomFields, 'Find') else None
                     if obj:
-                        project.Customfield.Delete(obj)
+                        project.CustomFields.Delete(obj)
                         print(f"  Cleaned up: {name}")
         except:
             pass

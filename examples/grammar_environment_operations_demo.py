@@ -49,9 +49,9 @@ def demo_environment_crud():
 
         print("\nGetting all environments...")
         initial_count = 0
-        for env in project.Environment.GetAll():
-            name = project.Environment.GetName(env)
-            str_rep = project.Environment.GetStringRepresentation(env)
+        for env in project.Environments.GetAll():
+            name = project.Environments.GetName(env)
+            str_rep = project.Environments.GetStringRepresentation(env)
             print(f"  - {name}: {str_rep}")
             initial_count += 1
             if initial_count >= 5:
@@ -65,27 +65,27 @@ def demo_environment_crud():
         print("="*70)
 
         # Check if test environment already exists
-        if project.Environment.Exists(test_name):
+        if project.Environments.Exists(test_name):
             print(f"\nTest environment '{test_name}' already exists")
             print("Deleting existing one first...")
-            existing = project.Environment.Find(test_name)
+            existing = project.Environments.Find(test_name)
             if existing:
-                project.Environment.Delete(existing)
+                project.Environments.Delete(existing)
                 print("  Deleted existing test environment")
 
         # Create new environment
         print(f"\nCreating new environment: '{test_name}'")
         print("  String representation: '/ _ #'")
 
-        test_env = project.Environment.Create(
+        test_env = project.Environments.Create(
             name=test_name,
             string_representation="/ _ #"
         )
 
         if test_env:
             print(f"  SUCCESS: Environment created!")
-            print(f"  Name: {project.Environment.GetName(test_env)}")
-            print(f"  String: {project.Environment.GetStringRepresentation(test_env)}")
+            print(f"  Name: {project.Environments.GetName(test_env)}")
+            print(f"  String: {project.Environments.GetStringRepresentation(test_env)}")
         else:
             print("  FAILED: Could not create environment")
             return
@@ -97,21 +97,21 @@ def demo_environment_crud():
 
         # Test Exists
         print(f"\nChecking if '{test_name}' exists...")
-        exists = project.Environment.Exists(test_name)
+        exists = project.Environments.Exists(test_name)
         print(f"  Exists: {exists}")
 
         # Test Find
         print(f"\nFinding environment by name...")
-        found_env = project.Environment.Find(test_name)
+        found_env = project.Environments.Find(test_name)
         if found_env:
-            print(f"  FOUND: {project.Environment.GetName(found_env)}")
-            print(f"  String: {project.Environment.GetStringRepresentation(found_env)}")
+            print(f"  FOUND: {project.Environments.GetName(found_env)}")
+            print(f"  String: {project.Environments.GetStringRepresentation(found_env)}")
         else:
             print("  NOT FOUND")
 
         # Count environments after creation
         print("\nCounting all environments after creation...")
-        current_count = sum(1 for _ in project.Environment.GetAll())
+        current_count = sum(1 for _ in project.Environments.GetAll())
         print(f"  Count before: {initial_count}")
         print(f"  Count after:  {current_count}")
         print(f"  Difference:   +{current_count - initial_count}")
@@ -126,9 +126,9 @@ def demo_environment_crud():
             new_name = "crud_test_environment_modified"
             print(f"\nUpdating name to: '{new_name}'")
 
-            old_name = project.Environment.GetName(test_env)
-            project.Environment.SetName(test_env, new_name)
-            updated_name = project.Environment.GetName(test_env)
+            old_name = project.Environments.GetName(test_env)
+            project.Environments.SetName(test_env, new_name)
+            updated_name = project.Environments.GetName(test_env)
 
             print(f"  Old name: {old_name}")
             print(f"  New name: {updated_name}")
@@ -137,9 +137,9 @@ def demo_environment_crud():
             new_string = "/ V _ #"
             print(f"\nUpdating string representation to: '{new_string}'")
 
-            old_string = project.Environment.GetStringRepresentation(test_env)
-            project.Environment.SetStringRepresentation(test_env, new_string)
-            updated_string = project.Environment.GetStringRepresentation(test_env)
+            old_string = project.Environments.GetStringRepresentation(test_env)
+            project.Environments.SetStringRepresentation(test_env, new_string)
+            updated_string = project.Environments.GetStringRepresentation(test_env)
 
             print(f"  Old string: {old_string}")
             print(f"  New string: {updated_string}")
@@ -163,10 +163,10 @@ def demo_environment_crud():
 
         # Re-find with new name
         print(f"\nFinding environment by updated name...")
-        updated_env = project.Environment.Find("crud_test_environment_modified")
+        updated_env = project.Environments.Find("crud_test_environment_modified")
         if updated_env:
-            print(f"  FOUND: {project.Environment.GetName(updated_env)}")
-            print(f"  String: {project.Environment.GetStringRepresentation(updated_env)}")
+            print(f"  FOUND: {project.Environments.GetName(updated_env)}")
+            print(f"  String: {project.Environments.GetStringRepresentation(updated_env)}")
         else:
             print("  NOT FOUND - Update may not have persisted")
 
@@ -177,14 +177,14 @@ def demo_environment_crud():
 
         if test_env:
             print(f"\nDeleting test environment...")
-            env_name = project.Environment.GetName(test_env)
+            env_name = project.Environments.GetName(test_env)
 
-            project.Environment.Delete(test_env)
+            project.Environments.Delete(test_env)
             print(f"  Deleted: {env_name}")
 
             # Verify deletion
             print("\nVerifying deletion...")
-            still_exists = project.Environment.Exists(env_name)
+            still_exists = project.Environments.Exists(env_name)
             print(f"  Still exists: {still_exists}")
 
             if not still_exists:
@@ -193,7 +193,7 @@ def demo_environment_crud():
                 print("  DELETE: FAILED - Environment still exists")
 
             # Count after deletion
-            final_count = sum(1 for _ in project.Environment.GetAll())
+            final_count = sum(1 for _ in project.Environments.GetAll())
             print(f"\n  Count after delete: {final_count}")
             print(f"  Back to initial:    {final_count == initial_count}")
 
@@ -221,10 +221,10 @@ def demo_environment_crud():
 
         try:
             for name in ["crud_test_environment", "crud_test_environment_modified"]:
-                if project.Environment.Exists(name):
-                    env = project.Environment.Find(name)
+                if project.Environments.Exists(name):
+                    env = project.Environments.Find(name)
                     if env:
-                        project.Environment.Delete(env)
+                        project.Environments.Delete(env)
                         print(f"  Cleaned up: {name}")
         except:
             pass

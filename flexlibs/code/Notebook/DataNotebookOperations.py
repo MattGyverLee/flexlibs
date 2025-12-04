@@ -36,9 +36,10 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
+from ..BaseOperations import BaseOperations
 
 
-class DataNotebookOperations:
+class DataNotebookOperations(BaseOperations):
     """
     This class provides operations for managing research notebook records in a
     FieldWorks project.
@@ -116,7 +117,11 @@ class DataNotebookOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
+
+    def _GetSequence(self, parent):
+        """Specify which sequence to reorder for notebook records."""
+        return parent.RecordsOS
 
 
     def __WSHandle(self, wsHandle):
@@ -2250,6 +2255,110 @@ class DataNotebookOperations:
                 results.append(record)
 
         return results
+
+
+    def Duplicate(self, record_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate a notebook record, creating a new copy with a new GUID.
+
+        Args:
+            record_or_hvo: The IRnGenericRec object or HVO to duplicate.
+            insert_after (bool): If True (default), insert after the source record.
+                                If False, insert at end of parent's records list.
+            deep (bool): If True, also duplicate owned objects (sub-records).
+                        If False (default), only copy simple properties and references.
+
+        Returns:
+            IRnGenericRec: The newly created duplicate record with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If record_or_hvo is None.
+
+        Example:
+            >>> # Shallow duplicate (no sub-records)
+            >>> record = project.DataNotebook.Find("Interview 1")
+            >>> dup = project.DataNotebook.Duplicate(record)
+            >>> print(f"Original: {project.DataNotebook.GetGuid(record)}")
+            >>> print(f"Duplicate: {project.DataNotebook.GetGuid(dup)}")
+            Original: 12345678-1234-1234-1234-123456789abc
+            Duplicate: 87654321-4321-4321-4321-cba987654321
+
+            >>> # Deep duplicate (includes all sub-records)
+            >>> deep_dup = project.DataNotebook.Duplicate(record, deep=True)
+            >>> print(f"Sub-records: {len(project.DataNotebook.GetSubRecords(deep_dup))}")
+
+        Notes:
+            - Factory.Create() automatically generates a new GUID
+            - insert_after=True preserves the original record's position
+            - Simple properties copied: Title, Text (content)
+            - Reference properties copied: Type, Status, Confidence
+            - DateTime properties copied: DateOfEvent
+            - Owned objects (deep=True): SubRecordsOS
+            - Collections NOT duplicated: Researchers, Participants, TextsRC, MediaFilesOS
+            - DateCreated and DateModified are NOT copied (set automatically)
+
+        See Also:
+            Create, Delete, GetGuid, GetSubRecords
+        """
+        if not self.project.project.CanEdit:
+            raise FP_ReadOnlyError()
+
+        if not record_or_hvo:
+            raise FP_NullParameterError()
+
+        # Get source record
+        source = self.__GetRecordObject(record_or_hvo)
+
+        # Determine parent (owner)
+        owner = source.Owner
+
+        # Create new record using factory (auto-generates new GUID)
+        factory = self.project.project.ServiceLocator.GetService(IRnGenericRecFactory)
+        duplicate = factory.Create()
+
+        # Determine insertion position and add to parent FIRST
+        if IRnGenericRec.IsInstance(owner):
+            # Parent is another notebook record (sub-record)
+            parent_record = IRnGenericRec(owner)
+            if insert_after:
+                source_index = parent_record.SubRecordsOS.IndexOf(source)
+                parent_record.SubRecordsOS.Insert(source_index + 1, duplicate)
+            else:
+                parent_record.SubRecordsOS.Add(duplicate)
+        else:
+            # Parent is the top-level repository
+            repos = self.project.project.ServiceLocator.GetService(IRnResearchNbkRepository)
+            if insert_after:
+                source_index = repos.RecordsOC.IndexOf(source)
+                repos.RecordsOC.Insert(source_index + 1, duplicate)
+            else:
+                repos.RecordsOC.Add(duplicate)
+
+        # Copy simple MultiString properties
+        duplicate.Title.CopyAlternatives(source.Title)
+        duplicate.Text.CopyAlternatives(source.Text)
+
+        # Copy Reference Atomic (RA) properties
+        if hasattr(source, 'Type') and source.Type:
+            duplicate.Type = source.Type
+        if hasattr(source, 'Status') and source.Status:
+            duplicate.Status = source.Status
+        if hasattr(source, 'Confidence') and source.Confidence:
+            duplicate.Confidence = source.Confidence
+
+        # Copy DateTime properties
+        if hasattr(source, 'DateOfEvent') and source.DateOfEvent:
+            duplicate.DateOfEvent = source.DateOfEvent
+
+        # Handle owned objects if deep=True
+        if deep:
+            # Duplicate sub-records
+            if hasattr(source, 'SubRecordsOS'):
+                for subrecord in source.SubRecordsOS:
+                    self.Duplicate(subrecord, insert_after=False, deep=True)
+
+        return duplicate
 
 
     # --- Metadata Operations ---

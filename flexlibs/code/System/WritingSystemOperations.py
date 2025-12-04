@@ -27,9 +27,10 @@ from ..FLExProject import (
     FP_ParameterError,
     FP_WritingSystemError,
 )
+from ..BaseOperations import BaseOperations
 
 
-class WritingSystemOperations:
+class WritingSystemOperations(BaseOperations):
     """
     This class provides operations for managing writing systems in a
     FieldWorks project.
@@ -76,7 +77,7 @@ class WritingSystemOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
 
 
     # --- Core CRUD Operations ---
@@ -1015,3 +1016,27 @@ class WritingSystemOperations:
         else:
             # Already a writing system object
             return ws
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate operation is not applicable for writing systems.
+
+        Writing systems are project-level configuration objects with unique
+        identifiers and cannot be duplicated in the traditional sense.
+
+        Raises:
+            NotImplementedError: Always raised - writing systems cannot be duplicated.
+
+        Notes:
+            - Use Create() to create a new writing system with similar properties
+            - Writing systems have unique language tags (BCP 47)
+            - Each writing system must have a unique identifier
+            - Duplication would create ambiguity in the WS system
+
+        See Also:
+            Create, Delete, GetAll
+        """
+        raise NotImplementedError(
+            "Writing systems cannot be duplicated. Use Create() to create a new writing system."
+        )

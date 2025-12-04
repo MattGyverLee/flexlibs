@@ -49,10 +49,10 @@ def demo_pronunciation_crud():
 
         print("\nGetting all pronunciations...")
         initial_count = 0
-        for obj in project.Pronunciation.GetAll():
+        for obj in project.Pronunciations.GetAll():
             # Display first few objects
             try:
-                name = project.Pronunciation.GetName(obj) if hasattr(project.Pronunciation, 'GetName') else str(obj)
+                name = project.Pronunciations.GetName(obj) if hasattr(project.Pronunciations, 'GetName') else str(obj)
                 print(f"  - {name}")
             except:
                 print(f"  - [Object {initial_count + 1}]")
@@ -69,43 +69,33 @@ def demo_pronunciation_crud():
 
         # Check if test object already exists
         try:
-            if hasattr(project.Pronunciation, 'Exists') and project.Pronunciation.Exists(test_name):
+            if hasattr(project.Pronunciations, 'Exists') and project.Pronunciations.Exists(test_name):
                 print(f"\nTest pronunciation '{test_name}' already exists")
                 print("Deleting existing one first...")
-                existing = project.Pronunciation.Find(test_name) if hasattr(project.Pronunciation, 'Find') else None
+                existing = project.Pronunciations.Find(test_name) if hasattr(project.Pronunciations, 'Find') else None
                 if existing:
-                    project.Pronunciation.Delete(existing)
+                    project.Pronunciations.Delete(existing)
                     print("  Deleted existing test pronunciation")
         except:
             pass
 
-        # Create new object
+        
+        # Create parent entry for pronunciation testing
+        print("\nCreating parent entry for pronunciation test...")
+        parent_entry = None
+        try:
+            parent_entry = project.LexEntry.Create("crud_test_entry_for_pronunciation")
+            print(f"  Created parent entry: crud_test_entry_for_pronunciation")
+        except Exception as e:
+            print(f"  ERROR creating parent entry: {e}")
+            print("  Cannot test pronunciation without parent entry")
+            return
+
         print(f"\nCreating new pronunciation: '{test_name}'")
 
-        try:
-            # Attempt to create with common parameters
-            test_obj = project.Pronunciation.Create(test_name)
-        except TypeError:
-            try:
-                # Try without parameters if that fails
-                test_obj = project.Pronunciation.Create()
-                if hasattr(project.Pronunciation, 'SetName'):
-                    project.Pronunciation.SetName(test_obj, test_name)
-            except Exception as e:
-                print(f"  Note: Create method may require specific parameters: {e}")
-                test_obj = None
-
-        if test_obj:
-            print(f"  SUCCESS: Pronunciation created!")
-            try:
-                if hasattr(project.Pronunciation, 'GetName'):
-                    print(f"  Name: {project.Pronunciation.GetName(test_obj)}")
-            except:
-                pass
-        else:
-            print(f"  Note: Could not create pronunciation (may require special parameters)")
-            print("  Skipping remaining tests...")
-            return
+        # Create pronunciation with parent entry
+        test_obj = project.Pronunciations.Create(parent_entry, test_name)
+        print(f"  SUCCESS: Pronunciation created!")
 
         # ==================== READ: Verify creation ====================
         print("\n" + "="*70)
@@ -113,20 +103,20 @@ def demo_pronunciation_crud():
         print("="*70)
 
         # Test Exists
-        if hasattr(project.Pronunciation, 'Exists'):
+        if hasattr(project.Pronunciations, 'Exists'):
             print(f"\nChecking if '{test_name}' exists...")
-            exists = project.Pronunciation.Exists(test_name)
+            exists = project.Pronunciations.Exists(test_name)
             print(f"  Exists: {exists}")
 
         # Test Find
-        if hasattr(project.Pronunciation, 'Find'):
+        if hasattr(project.Pronunciations, 'Find'):
             print(f"\nFinding pronunciation by name...")
-            found_obj = project.Pronunciation.Find(test_name)
+            found_obj = project.Pronunciations.Find(test_name)
             if found_obj:
                 print(f"  FOUND: pronunciation")
                 try:
-                    if hasattr(project.Pronunciation, 'GetName'):
-                        print(f"  Name: {project.Pronunciation.GetName(found_obj)}")
+                    if hasattr(project.Pronunciations, 'GetName'):
+                        print(f"  Name: {project.Pronunciations.GetName(found_obj)}")
                 except:
                     pass
             else:
@@ -134,7 +124,7 @@ def demo_pronunciation_crud():
 
         # Count after creation
         print("\nCounting all pronunciations after creation...")
-        current_count = sum(1 for _ in project.Pronunciation.GetAll())
+        current_count = sum(1 for _ in project.Pronunciations.GetAll())
         print(f"  Count before: {initial_count}")
         print(f"  Count after:  {current_count}")
         print(f"  Difference:   +{current_count - initial_count}")
@@ -148,13 +138,13 @@ def demo_pronunciation_crud():
             updated = False
 
             # Try common update methods
-            if hasattr(project.Pronunciation, 'SetName'):
+            if hasattr(project.Pronunciations, 'SetName'):
                 try:
                     new_name = "crud_test_pronunciation_modified"
                     print(f"\nUpdating name to: '{new_name}'")
-                    old_name = project.Pronunciation.GetName(test_obj) if hasattr(project.Pronunciation, 'GetName') else test_name
-                    project.Pronunciation.SetName(test_obj, new_name)
-                    updated_name = project.Pronunciation.GetName(test_obj) if hasattr(project.Pronunciation, 'GetName') else new_name
+                    old_name = project.Pronunciations.GetName(test_obj) if hasattr(project.Pronunciations, 'GetName') else test_name
+                    project.Pronunciations.SetName(test_obj, new_name)
+                    updated_name = project.Pronunciations.GetName(test_obj) if hasattr(project.Pronunciations, 'GetName') else new_name
                     print(f"  Old name: {old_name}")
                     print(f"  New name: {updated_name}")
                     test_name = new_name  # Update for cleanup
@@ -163,7 +153,7 @@ def demo_pronunciation_crud():
                     print(f"  Note: SetName failed: {e}")
 
             # Try other Set methods
-            for method_name in dir(project.Pronunciation):
+            for method_name in dir(project.Pronunciations):
                 if method_name.startswith('Set') and method_name != 'SetName' and not updated:
                     print(f"\nFound update method: {method_name}")
                     print("  (Method available but not tested in this demo)")
@@ -179,14 +169,14 @@ def demo_pronunciation_crud():
         print("STEP 5: READ - Verify updates persisted")
         print("="*70)
 
-        if hasattr(project.Pronunciation, 'Find'):
+        if hasattr(project.Pronunciations, 'Find'):
             print(f"\nFinding pronunciation after update...")
-            updated_obj = project.Pronunciation.Find(test_name)
+            updated_obj = project.Pronunciations.Find(test_name)
             if updated_obj:
                 print(f"  FOUND: pronunciation")
                 try:
-                    if hasattr(project.Pronunciation, 'GetName'):
-                        print(f"  Name: {project.Pronunciation.GetName(updated_obj)}")
+                    if hasattr(project.Pronunciations, 'GetName'):
+                        print(f"  Name: {project.Pronunciations.GetName(updated_obj)}")
                 except:
                     pass
             else:
@@ -200,17 +190,17 @@ def demo_pronunciation_crud():
         if test_obj:
             print(f"\nDeleting test pronunciation...")
             try:
-                obj_name = project.Pronunciation.GetName(test_obj) if hasattr(project.Pronunciation, 'GetName') else test_name
+                obj_name = project.Pronunciations.GetName(test_obj) if hasattr(project.Pronunciations, 'GetName') else test_name
             except:
                 obj_name = test_name
 
-            project.Pronunciation.Delete(test_obj)
+            project.Pronunciations.Delete(test_obj)
             print(f"  Deleted: {obj_name}")
 
             # Verify deletion
             print("\nVerifying deletion...")
-            if hasattr(project.Pronunciation, 'Exists'):
-                still_exists = project.Pronunciation.Exists(test_name)
+            if hasattr(project.Pronunciations, 'Exists'):
+                still_exists = project.Pronunciations.Exists(test_name)
                 print(f"  Still exists: {still_exists}")
 
                 if not still_exists:
@@ -219,7 +209,7 @@ def demo_pronunciation_crud():
                     print("  DELETE: FAILED - Pronunciation still exists")
 
             # Count after deletion
-            final_count = sum(1 for _ in project.Pronunciation.GetAll())
+            final_count = sum(1 for _ in project.Pronunciations.GetAll())
             print(f"\n  Count after delete: {final_count}")
             print(f"  Back to initial:    {final_count == initial_count}")
 
@@ -247,11 +237,20 @@ def demo_pronunciation_crud():
 
         try:
             for name in ["crud_test_pronunciation", "crud_test_pronunciation_modified"]:
-                if hasattr(project.Pronunciation, 'Exists') and project.Pronunciation.Exists(name):
-                    obj = project.Pronunciation.Find(name) if hasattr(project.Pronunciation, 'Find') else None
+                if hasattr(project.Pronunciations, 'Exists') and project.Pronunciations.Exists(name):
+                    obj = project.Pronunciations.Find(name) if hasattr(project.Pronunciations, 'Find') else None
                     if obj:
-                        project.Pronunciation.Delete(obj)
+                        project.Pronunciations.Delete(obj)
                         print(f"  Cleaned up: {name}")
+        except:
+            pass
+
+        
+        # Cleanup parent entry
+        try:
+            if parent_entry:
+                project.LexEntry.Delete(parent_entry)
+                print("  Cleaned up: parent entry")
         except:
             pass
 

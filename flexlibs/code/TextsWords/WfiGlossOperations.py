@@ -31,11 +31,12 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
+from ..BaseOperations import BaseOperations
 
 
 # --- WfiGlossOperations Class ---
 
-class WfiGlossOperations:
+class WfiGlossOperations(BaseOperations):
     """
     Provides operations for managing wordform glosses (WfiGloss) in a FLEx project.
 
@@ -71,7 +72,7 @@ class WfiGlossOperations:
         Args:
             project: FLExProject instance
         """
-        self.project = project
+        super().__init__(project)
 
     def __WSHandle(self, wsHandle):
         """
@@ -258,6 +259,88 @@ class WfiGlossOperations:
         # Remove from analysis's Meanings collection
         if hasattr(analysis, 'MeaningsOC'):
             analysis.MeaningsOC.Remove(gloss)
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate a wordform gloss, creating a new copy with a new GUID.
+
+        Args:
+            item_or_hvo: The IWfiGloss object or HVO to duplicate.
+            insert_after (bool): If True (default), insert after the source gloss.
+                                If False, insert at end of analysis's gloss list.
+            deep (bool): If True, also duplicate owned objects (if any exist).
+                        If False (default), only copy simple properties and references.
+                        Note: WfiGloss has no owned objects, so deep has no effect.
+
+        Returns:
+            IWfiGloss: The newly created duplicate gloss with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If item_or_hvo is None.
+
+        Example:
+            >>> wf = project.Wordforms.Find("running")
+            >>> analyses = project.Wordforms.GetAnalyses(wf)
+            >>> if analyses:
+            ...     glosses = list(project.WfiGlosses.GetAll(analyses[0]))
+            ...     if glosses:
+            ...         # Duplicate gloss
+            ...         dup = project.WfiGlosses.Duplicate(glosses[0])
+            ...         print(f"Original: {project.WfiGlosses.GetGuid(glosses[0])}")
+            ...         print(f"Duplicate: {project.WfiGlosses.GetGuid(dup)}")
+            Original: 12345678-1234-1234-1234-123456789abc
+            Duplicate: 87654321-4321-4321-4321-cba987654321
+            ...
+            ...         # Verify content was copied
+            ...         print(f"Form: {project.WfiGlosses.GetForm(dup)}")
+
+        Notes:
+            - Factory.Create() automatically generates a new GUID
+            - insert_after=True preserves the original gloss's position
+            - Simple properties copied: Form (MultiString in all writing systems)
+            - Reference properties: None (WfiGloss has no reference properties)
+            - WfiGloss has no owned objects, so deep parameter has no effect
+
+        See Also:
+            Create, Delete, GetGuid
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not item_or_hvo:
+            raise FP_NullParameterError()
+
+        # Resolve to gloss object
+        if isinstance(item_or_hvo, int):
+            source = self.project.Object(item_or_hvo)
+            if not isinstance(source, IWfiGloss):
+                raise FP_ParameterError("HVO does not refer to a wordform gloss")
+        else:
+            source = item_or_hvo
+
+        parent = self._GetObject(source.Owner.Hvo)
+
+        # Create new gloss using factory (auto-generates new GUID)
+        factory = self.project.project.ServiceLocator.GetService(IWfiGlossFactory)
+        duplicate = factory.Create()
+
+        # Determine insertion position
+        if insert_after:
+            # Insert after source gloss
+            source_index = list(parent.MeaningsOC).index(source)
+            parent.MeaningsOC.Insert(source_index + 1, duplicate)
+        else:
+            # Insert at end
+            parent.MeaningsOC.Add(duplicate)
+
+        # Copy simple MultiString properties
+        duplicate.Form.CopyAlternatives(source.Form)
+
+        # Note: WfiGloss has no owned objects (OS collections), so deep has no effect
+
+        return duplicate
 
     def Reorder(self, analysis_or_hvo, gloss_list):
         """

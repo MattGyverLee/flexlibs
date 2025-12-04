@@ -31,9 +31,10 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
+from ..BaseOperations import BaseOperations
 
 
-class TranslationTypeOperations:
+class TranslationTypeOperations(BaseOperations):
     """
     This class provides operations for managing translation types in a
     FieldWorks project.
@@ -86,7 +87,11 @@ class TranslationTypeOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
+
+    def _GetSequence(self, parent):
+        """Specify which sequence to reorder for translation type sub-possibilities."""
+        return parent.SubPossibilitiesOS
 
 
     # --- Core CRUD Operations ---
@@ -274,6 +279,93 @@ class TranslationTypeOperations:
         trans_list = self.project.lp.TranslationTagsOA
         if trans_list:
             trans_list.PossibilitiesOS.Remove(trans_type)
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate a translation type, creating a new copy with a new GUID.
+
+        Args:
+            item_or_hvo: Either an ICmPossibility object or its HVO to duplicate.
+            insert_after (bool): If True (default), insert after the source type.
+                                If False, insert at end of translation types list.
+            deep (bool): Not applicable for translation types (no owned objects).
+                        Included for API consistency.
+
+        Returns:
+            ICmPossibility: The newly created duplicate translation type with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If item_or_hvo is None.
+
+        Example:
+            >>> # Duplicate a translation type
+            >>> free = project.TranslationTypes.GetFreeTranslationType()
+            >>> dup = project.TranslationTypes.Duplicate(free)
+            >>> print(f"Original: {project.TranslationTypes.GetName(free)}")
+            >>> print(f"Duplicate: {project.TranslationTypes.GetName(dup)}")
+            Original: Free translation
+            Duplicate: Free translation
+            >>>
+            >>> # Modify the duplicate
+            >>> project.TranslationTypes.SetName(dup, "Idiomatic Translation")
+            >>> project.TranslationTypes.SetAbbreviation(dup, "idio")
+            >>>
+            >>> # Set multilingual content
+            >>> fr_ws = project.WSHandle('fr')
+            >>> project.TranslationTypes.SetAnalysisWS(dup, fr_ws,
+            ...     name="Traduction idiomatique",
+            ...     abbreviation="idio")
+
+        Notes:
+            - Factory.Create() automatically generates a new GUID
+            - insert_after=True preserves the original type's position
+            - MultiString properties copied: Name, Abbreviation
+            - Translation types have no owned objects, so deep parameter has no effect
+            - Duplicate is added to TranslationTagsOA before copying properties
+            - Duplicate will NOT be a predefined type (has new GUID)
+
+        See Also:
+            Create, Delete, GetGuid, SetAnalysisWS
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not item_or_hvo:
+            raise FP_NullParameterError()
+
+        # Get source translation type
+        source = self.__ResolveObject(item_or_hvo)
+
+        # Get the translation tags list
+        trans_list = self.project.lp.TranslationTagsOA
+        if trans_list is None:
+            # Create translation tags list if it doesn't exist
+            from SIL.LCModel import ICmPossibilityListFactory
+            list_factory = self.project.project.ServiceLocator.GetService(
+                ICmPossibilityListFactory)
+            trans_list = list_factory.Create()
+            self.project.lp.TranslationTagsOA = trans_list
+
+        # Create new translation type using factory (auto-generates new GUID)
+        factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
+        duplicate = factory.Create()
+
+        # ADD TO PARENT FIRST before copying properties (CRITICAL)
+        if insert_after:
+            # Insert after source type
+            source_index = trans_list.PossibilitiesOS.IndexOf(source)
+            trans_list.PossibilitiesOS.Insert(source_index + 1, duplicate)
+        else:
+            # Insert at end
+            trans_list.PossibilitiesOS.Add(duplicate)
+
+        # Copy MultiString properties using CopyAlternatives
+        duplicate.Name.CopyAlternatives(source.Name)
+        duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)
+
+        return duplicate
 
 
     def Find(self, name):

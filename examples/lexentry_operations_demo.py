@@ -32,7 +32,7 @@ def demo_lexentry_crud():
     # Open project with write enabled
     project = FLExProject()
     try:
-        project.OpenProject("Sena 3", writeEnabled=True)
+        project.LexEntryProject("Sena 3", writeEnabled=True)
     except Exception as e:
         print(f"Cannot run demo - FLEx project not available: {e}")
         FLExCleanup()
@@ -49,10 +49,10 @@ def demo_lexentry_crud():
 
         print("\nGetting all lexentrys...")
         initial_count = 0
-        for obj in project.Lexentry.GetAll():
+        for obj in project.LexEntry.GetAll():
             # Display first few objects
             try:
-                name = project.Lexentry.GetName(obj) if hasattr(project.Lexentry, 'GetName') else str(obj)
+                name = project.LexEntry.GetName(obj) if hasattr(project.LexEntry, 'GetName') else str(obj)
                 print(f"  - {name}")
             except:
                 print(f"  - [Object {initial_count + 1}]")
@@ -69,12 +69,12 @@ def demo_lexentry_crud():
 
         # Check if test object already exists
         try:
-            if hasattr(project.Lexentry, 'Exists') and project.Lexentry.Exists(test_name):
+            if hasattr(project.LexEntry, 'Exists') and project.LexEntry.Exists(test_name):
                 print(f"\nTest lexentry '{test_name}' already exists")
                 print("Deleting existing one first...")
-                existing = project.Lexentry.Find(test_name) if hasattr(project.Lexentry, 'Find') else None
+                existing = project.LexEntry.Find(test_name) if hasattr(project.LexEntry, 'Find') else None
                 if existing:
-                    project.Lexentry.Delete(existing)
+                    project.LexEntry.Delete(existing)
                     print("  Deleted existing test lexentry")
         except:
             pass
@@ -84,13 +84,13 @@ def demo_lexentry_crud():
 
         try:
             # Attempt to create with common parameters
-            test_obj = project.Lexentry.Create(test_name)
+            test_obj = project.LexEntry.Create(test_name)
         except TypeError:
             try:
                 # Try without parameters if that fails
-                test_obj = project.Lexentry.Create()
-                if hasattr(project.Lexentry, 'SetName'):
-                    project.Lexentry.SetName(test_obj, test_name)
+                test_obj = project.LexEntry.Create()
+                if hasattr(project.LexEntry, 'SetName'):
+                    project.LexEntry.SetName(test_obj, test_name)
             except Exception as e:
                 print(f"  Note: Create method may require specific parameters: {e}")
                 test_obj = None
@@ -98,8 +98,8 @@ def demo_lexentry_crud():
         if test_obj:
             print(f"  SUCCESS: Lexentry created!")
             try:
-                if hasattr(project.Lexentry, 'GetName'):
-                    print(f"  Name: {project.Lexentry.GetName(test_obj)}")
+                if hasattr(project.LexEntry, 'GetName'):
+                    print(f"  Name: {project.LexEntry.GetName(test_obj)}")
             except:
                 pass
         else:
@@ -113,20 +113,20 @@ def demo_lexentry_crud():
         print("="*70)
 
         # Test Exists
-        if hasattr(project.Lexentry, 'Exists'):
+        if hasattr(project.LexEntry, 'Exists'):
             print(f"\nChecking if '{test_name}' exists...")
-            exists = project.Lexentry.Exists(test_name)
+            exists = project.LexEntry.Exists(test_name)
             print(f"  Exists: {exists}")
 
         # Test Find
-        if hasattr(project.Lexentry, 'Find'):
+        if hasattr(project.LexEntry, 'Find'):
             print(f"\nFinding lexentry by name...")
-            found_obj = project.Lexentry.Find(test_name)
+            found_obj = project.LexEntry.Find(test_name)
             if found_obj:
                 print(f"  FOUND: lexentry")
                 try:
-                    if hasattr(project.Lexentry, 'GetName'):
-                        print(f"  Name: {project.Lexentry.GetName(found_obj)}")
+                    if hasattr(project.LexEntry, 'GetName'):
+                        print(f"  Name: {project.LexEntry.GetName(found_obj)}")
                 except:
                     pass
             else:
@@ -134,7 +134,7 @@ def demo_lexentry_crud():
 
         # Count after creation
         print("\nCounting all lexentrys after creation...")
-        current_count = sum(1 for _ in project.Lexentry.GetAll())
+        current_count = sum(1 for _ in project.LexEntry.GetAll())
         print(f"  Count before: {initial_count}")
         print(f"  Count after:  {current_count}")
         print(f"  Difference:   +{current_count - initial_count}")
@@ -148,13 +148,13 @@ def demo_lexentry_crud():
             updated = False
 
             # Try common update methods
-            if hasattr(project.Lexentry, 'SetName'):
+            if hasattr(project.LexEntry, 'SetName'):
                 try:
                     new_name = "crud_test_lexentry_modified"
                     print(f"\nUpdating name to: '{new_name}'")
-                    old_name = project.Lexentry.GetName(test_obj) if hasattr(project.Lexentry, 'GetName') else test_name
-                    project.Lexentry.SetName(test_obj, new_name)
-                    updated_name = project.Lexentry.GetName(test_obj) if hasattr(project.Lexentry, 'GetName') else new_name
+                    old_name = project.LexEntry.GetName(test_obj) if hasattr(project.LexEntry, 'GetName') else test_name
+                    project.LexEntry.SetName(test_obj, new_name)
+                    updated_name = project.LexEntry.GetName(test_obj) if hasattr(project.LexEntry, 'GetName') else new_name
                     print(f"  Old name: {old_name}")
                     print(f"  New name: {updated_name}")
                     test_name = new_name  # Update for cleanup
@@ -163,7 +163,7 @@ def demo_lexentry_crud():
                     print(f"  Note: SetName failed: {e}")
 
             # Try other Set methods
-            for method_name in dir(project.Lexentry):
+            for method_name in dir(project.LexEntry):
                 if method_name.startswith('Set') and method_name != 'SetName' and not updated:
                     print(f"\nFound update method: {method_name}")
                     print("  (Method available but not tested in this demo)")
@@ -179,14 +179,14 @@ def demo_lexentry_crud():
         print("STEP 5: READ - Verify updates persisted")
         print("="*70)
 
-        if hasattr(project.Lexentry, 'Find'):
+        if hasattr(project.LexEntry, 'Find'):
             print(f"\nFinding lexentry after update...")
-            updated_obj = project.Lexentry.Find(test_name)
+            updated_obj = project.LexEntry.Find(test_name)
             if updated_obj:
                 print(f"  FOUND: lexentry")
                 try:
-                    if hasattr(project.Lexentry, 'GetName'):
-                        print(f"  Name: {project.Lexentry.GetName(updated_obj)}")
+                    if hasattr(project.LexEntry, 'GetName'):
+                        print(f"  Name: {project.LexEntry.GetName(updated_obj)}")
                 except:
                     pass
             else:
@@ -200,17 +200,17 @@ def demo_lexentry_crud():
         if test_obj:
             print(f"\nDeleting test lexentry...")
             try:
-                obj_name = project.Lexentry.GetName(test_obj) if hasattr(project.Lexentry, 'GetName') else test_name
+                obj_name = project.LexEntry.GetName(test_obj) if hasattr(project.LexEntry, 'GetName') else test_name
             except:
                 obj_name = test_name
 
-            project.Lexentry.Delete(test_obj)
+            project.LexEntry.Delete(test_obj)
             print(f"  Deleted: {obj_name}")
 
             # Verify deletion
             print("\nVerifying deletion...")
-            if hasattr(project.Lexentry, 'Exists'):
-                still_exists = project.Lexentry.Exists(test_name)
+            if hasattr(project.LexEntry, 'Exists'):
+                still_exists = project.LexEntry.Exists(test_name)
                 print(f"  Still exists: {still_exists}")
 
                 if not still_exists:
@@ -219,7 +219,7 @@ def demo_lexentry_crud():
                     print("  DELETE: FAILED - Lexentry still exists")
 
             # Count after deletion
-            final_count = sum(1 for _ in project.Lexentry.GetAll())
+            final_count = sum(1 for _ in project.LexEntry.GetAll())
             print(f"\n  Count after delete: {final_count}")
             print(f"  Back to initial:    {final_count == initial_count}")
 
@@ -247,16 +247,16 @@ def demo_lexentry_crud():
 
         try:
             for name in ["crud_test_lexentry", "crud_test_lexentry_modified"]:
-                if hasattr(project.Lexentry, 'Exists') and project.Lexentry.Exists(name):
-                    obj = project.Lexentry.Find(name) if hasattr(project.Lexentry, 'Find') else None
+                if hasattr(project.LexEntry, 'Exists') and project.LexEntry.Exists(name):
+                    obj = project.LexEntry.Find(name) if hasattr(project.LexEntry, 'Find') else None
                     if obj:
-                        project.Lexentry.Delete(obj)
+                        project.LexEntry.Delete(obj)
                         print(f"  Cleaned up: {name}")
         except:
             pass
 
         print("\nClosing project...")
-        project.CloseProject()
+        project.LexEntryProject()
         FLExCleanup()
 
     print("\n" + "="*70)

@@ -49,10 +49,10 @@ def demo_semanticdomain_crud():
 
         print("\nGetting all semanticdomains...")
         initial_count = 0
-        for obj in project.Semanticdomain.GetAll():
+        for obj in project.SemanticDomains.GetAll():
             # Display first few objects
             try:
-                name = project.Semanticdomain.GetName(obj) if hasattr(project.Semanticdomain, 'GetName') else str(obj)
+                name = project.SemanticDomains.GetName(obj) if hasattr(project.SemanticDomains, 'GetName') else str(obj)
                 print(f"  - {name}")
             except:
                 print(f"  - [Object {initial_count + 1}]")
@@ -69,12 +69,12 @@ def demo_semanticdomain_crud():
 
         # Check if test object already exists
         try:
-            if hasattr(project.Semanticdomain, 'Exists') and project.Semanticdomain.Exists(test_name):
+            if hasattr(project.SemanticDomains, 'Exists') and project.SemanticDomains.Exists(test_name):
                 print(f"\nTest semanticdomain '{test_name}' already exists")
                 print("Deleting existing one first...")
-                existing = project.Semanticdomain.Find(test_name) if hasattr(project.Semanticdomain, 'Find') else None
+                existing = project.SemanticDomains.Find(test_name) if hasattr(project.SemanticDomains, 'Find') else None
                 if existing:
-                    project.Semanticdomain.Delete(existing)
+                    project.SemanticDomains.Delete(existing)
                     print("  Deleted existing test semanticdomain")
         except:
             pass
@@ -84,13 +84,13 @@ def demo_semanticdomain_crud():
 
         try:
             # Attempt to create with common parameters
-            test_obj = project.Semanticdomain.Create(test_name)
+            test_obj = project.SemanticDomains.Create(test_name)
         except TypeError:
             try:
                 # Try without parameters if that fails
-                test_obj = project.Semanticdomain.Create()
-                if hasattr(project.Semanticdomain, 'SetName'):
-                    project.Semanticdomain.SetName(test_obj, test_name)
+                test_obj = project.SemanticDomains.Create()
+                if hasattr(project.SemanticDomains, 'SetName'):
+                    project.SemanticDomains.SetName(test_obj, test_name)
             except Exception as e:
                 print(f"  Note: Create method may require specific parameters: {e}")
                 test_obj = None
@@ -98,8 +98,8 @@ def demo_semanticdomain_crud():
         if test_obj:
             print(f"  SUCCESS: Semanticdomain created!")
             try:
-                if hasattr(project.Semanticdomain, 'GetName'):
-                    print(f"  Name: {project.Semanticdomain.GetName(test_obj)}")
+                if hasattr(project.SemanticDomains, 'GetName'):
+                    print(f"  Name: {project.SemanticDomains.GetName(test_obj)}")
             except:
                 pass
         else:
@@ -113,20 +113,20 @@ def demo_semanticdomain_crud():
         print("="*70)
 
         # Test Exists
-        if hasattr(project.Semanticdomain, 'Exists'):
+        if hasattr(project.SemanticDomains, 'Exists'):
             print(f"\nChecking if '{test_name}' exists...")
-            exists = project.Semanticdomain.Exists(test_name)
+            exists = project.SemanticDomains.Exists(test_name)
             print(f"  Exists: {exists}")
 
         # Test Find
-        if hasattr(project.Semanticdomain, 'Find'):
+        if hasattr(project.SemanticDomains, 'Find'):
             print(f"\nFinding semanticdomain by name...")
-            found_obj = project.Semanticdomain.Find(test_name)
+            found_obj = project.SemanticDomains.Find(test_name)
             if found_obj:
                 print(f"  FOUND: semanticdomain")
                 try:
-                    if hasattr(project.Semanticdomain, 'GetName'):
-                        print(f"  Name: {project.Semanticdomain.GetName(found_obj)}")
+                    if hasattr(project.SemanticDomains, 'GetName'):
+                        print(f"  Name: {project.SemanticDomains.GetName(found_obj)}")
                 except:
                     pass
             else:
@@ -134,7 +134,7 @@ def demo_semanticdomain_crud():
 
         # Count after creation
         print("\nCounting all semanticdomains after creation...")
-        current_count = sum(1 for _ in project.Semanticdomain.GetAll())
+        current_count = sum(1 for _ in project.SemanticDomains.GetAll())
         print(f"  Count before: {initial_count}")
         print(f"  Count after:  {current_count}")
         print(f"  Difference:   +{current_count - initial_count}")
@@ -148,13 +148,13 @@ def demo_semanticdomain_crud():
             updated = False
 
             # Try common update methods
-            if hasattr(project.Semanticdomain, 'SetName'):
+            if hasattr(project.SemanticDomains, 'SetName'):
                 try:
                     new_name = "crud_test_semanticdomain_modified"
                     print(f"\nUpdating name to: '{new_name}'")
-                    old_name = project.Semanticdomain.GetName(test_obj) if hasattr(project.Semanticdomain, 'GetName') else test_name
-                    project.Semanticdomain.SetName(test_obj, new_name)
-                    updated_name = project.Semanticdomain.GetName(test_obj) if hasattr(project.Semanticdomain, 'GetName') else new_name
+                    old_name = project.SemanticDomains.GetName(test_obj) if hasattr(project.SemanticDomains, 'GetName') else test_name
+                    project.SemanticDomains.SetName(test_obj, new_name)
+                    updated_name = project.SemanticDomains.GetName(test_obj) if hasattr(project.SemanticDomains, 'GetName') else new_name
                     print(f"  Old name: {old_name}")
                     print(f"  New name: {updated_name}")
                     test_name = new_name  # Update for cleanup
@@ -163,7 +163,7 @@ def demo_semanticdomain_crud():
                     print(f"  Note: SetName failed: {e}")
 
             # Try other Set methods
-            for method_name in dir(project.Semanticdomain):
+            for method_name in dir(project.SemanticDomains):
                 if method_name.startswith('Set') and method_name != 'SetName' and not updated:
                     print(f"\nFound update method: {method_name}")
                     print("  (Method available but not tested in this demo)")
@@ -179,14 +179,14 @@ def demo_semanticdomain_crud():
         print("STEP 5: READ - Verify updates persisted")
         print("="*70)
 
-        if hasattr(project.Semanticdomain, 'Find'):
+        if hasattr(project.SemanticDomains, 'Find'):
             print(f"\nFinding semanticdomain after update...")
-            updated_obj = project.Semanticdomain.Find(test_name)
+            updated_obj = project.SemanticDomains.Find(test_name)
             if updated_obj:
                 print(f"  FOUND: semanticdomain")
                 try:
-                    if hasattr(project.Semanticdomain, 'GetName'):
-                        print(f"  Name: {project.Semanticdomain.GetName(updated_obj)}")
+                    if hasattr(project.SemanticDomains, 'GetName'):
+                        print(f"  Name: {project.SemanticDomains.GetName(updated_obj)}")
                 except:
                     pass
             else:
@@ -200,17 +200,17 @@ def demo_semanticdomain_crud():
         if test_obj:
             print(f"\nDeleting test semanticdomain...")
             try:
-                obj_name = project.Semanticdomain.GetName(test_obj) if hasattr(project.Semanticdomain, 'GetName') else test_name
+                obj_name = project.SemanticDomains.GetName(test_obj) if hasattr(project.SemanticDomains, 'GetName') else test_name
             except:
                 obj_name = test_name
 
-            project.Semanticdomain.Delete(test_obj)
+            project.SemanticDomains.Delete(test_obj)
             print(f"  Deleted: {obj_name}")
 
             # Verify deletion
             print("\nVerifying deletion...")
-            if hasattr(project.Semanticdomain, 'Exists'):
-                still_exists = project.Semanticdomain.Exists(test_name)
+            if hasattr(project.SemanticDomains, 'Exists'):
+                still_exists = project.SemanticDomains.Exists(test_name)
                 print(f"  Still exists: {still_exists}")
 
                 if not still_exists:
@@ -219,7 +219,7 @@ def demo_semanticdomain_crud():
                     print("  DELETE: FAILED - Semanticdomain still exists")
 
             # Count after deletion
-            final_count = sum(1 for _ in project.Semanticdomain.GetAll())
+            final_count = sum(1 for _ in project.SemanticDomains.GetAll())
             print(f"\n  Count after delete: {final_count}")
             print(f"  Back to initial:    {final_count == initial_count}")
 
@@ -247,10 +247,10 @@ def demo_semanticdomain_crud():
 
         try:
             for name in ["crud_test_semanticdomain", "crud_test_semanticdomain_modified"]:
-                if hasattr(project.Semanticdomain, 'Exists') and project.Semanticdomain.Exists(name):
-                    obj = project.Semanticdomain.Find(name) if hasattr(project.Semanticdomain, 'Find') else None
+                if hasattr(project.SemanticDomains, 'Exists') and project.SemanticDomains.Exists(name):
+                    obj = project.SemanticDomains.Find(name) if hasattr(project.SemanticDomains, 'Find') else None
                     if obj:
-                        project.Semanticdomain.Delete(obj)
+                        project.SemanticDomains.Delete(obj)
                         print(f"  Cleaned up: {name}")
         except:
             pass

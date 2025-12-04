@@ -49,10 +49,10 @@ def demo_publication_crud():
 
         print("\nGetting all publications...")
         initial_count = 0
-        for obj in project.Publication.GetAll():
+        for obj in project.Publications.GetAll():
             # Display first few objects
             try:
-                name = project.Publication.GetName(obj) if hasattr(project.Publication, 'GetName') else str(obj)
+                name = project.Publications.GetName(obj) if hasattr(project.Publications, 'GetName') else str(obj)
                 print(f"  - {name}")
             except:
                 print(f"  - [Object {initial_count + 1}]")
@@ -69,12 +69,12 @@ def demo_publication_crud():
 
         # Check if test object already exists
         try:
-            if hasattr(project.Publication, 'Exists') and project.Publication.Exists(test_name):
+            if hasattr(project.Publications, 'Exists') and project.Publications.Exists(test_name):
                 print(f"\nTest publication '{test_name}' already exists")
                 print("Deleting existing one first...")
-                existing = project.Publication.Find(test_name) if hasattr(project.Publication, 'Find') else None
+                existing = project.Publications.Find(test_name) if hasattr(project.Publications, 'Find') else None
                 if existing:
-                    project.Publication.Delete(existing)
+                    project.Publications.Delete(existing)
                     print("  Deleted existing test publication")
         except:
             pass
@@ -84,13 +84,13 @@ def demo_publication_crud():
 
         try:
             # Attempt to create with common parameters
-            test_obj = project.Publication.Create(test_name)
+            test_obj = project.Publications.Create(test_name)
         except TypeError:
             try:
                 # Try without parameters if that fails
-                test_obj = project.Publication.Create()
-                if hasattr(project.Publication, 'SetName'):
-                    project.Publication.SetName(test_obj, test_name)
+                test_obj = project.Publications.Create()
+                if hasattr(project.Publications, 'SetName'):
+                    project.Publications.SetName(test_obj, test_name)
             except Exception as e:
                 print(f"  Note: Create method may require specific parameters: {e}")
                 test_obj = None
@@ -98,8 +98,8 @@ def demo_publication_crud():
         if test_obj:
             print(f"  SUCCESS: Publication created!")
             try:
-                if hasattr(project.Publication, 'GetName'):
-                    print(f"  Name: {project.Publication.GetName(test_obj)}")
+                if hasattr(project.Publications, 'GetName'):
+                    print(f"  Name: {project.Publications.GetName(test_obj)}")
             except:
                 pass
         else:
@@ -113,20 +113,20 @@ def demo_publication_crud():
         print("="*70)
 
         # Test Exists
-        if hasattr(project.Publication, 'Exists'):
+        if hasattr(project.Publications, 'Exists'):
             print(f"\nChecking if '{test_name}' exists...")
-            exists = project.Publication.Exists(test_name)
+            exists = project.Publications.Exists(test_name)
             print(f"  Exists: {exists}")
 
         # Test Find
-        if hasattr(project.Publication, 'Find'):
+        if hasattr(project.Publications, 'Find'):
             print(f"\nFinding publication by name...")
-            found_obj = project.Publication.Find(test_name)
+            found_obj = project.Publications.Find(test_name)
             if found_obj:
                 print(f"  FOUND: publication")
                 try:
-                    if hasattr(project.Publication, 'GetName'):
-                        print(f"  Name: {project.Publication.GetName(found_obj)}")
+                    if hasattr(project.Publications, 'GetName'):
+                        print(f"  Name: {project.Publications.GetName(found_obj)}")
                 except:
                     pass
             else:
@@ -134,7 +134,7 @@ def demo_publication_crud():
 
         # Count after creation
         print("\nCounting all publications after creation...")
-        current_count = sum(1 for _ in project.Publication.GetAll())
+        current_count = sum(1 for _ in project.Publications.GetAll())
         print(f"  Count before: {initial_count}")
         print(f"  Count after:  {current_count}")
         print(f"  Difference:   +{current_count - initial_count}")
@@ -148,13 +148,13 @@ def demo_publication_crud():
             updated = False
 
             # Try common update methods
-            if hasattr(project.Publication, 'SetName'):
+            if hasattr(project.Publications, 'SetName'):
                 try:
                     new_name = "crud_test_publication_modified"
                     print(f"\nUpdating name to: '{new_name}'")
-                    old_name = project.Publication.GetName(test_obj) if hasattr(project.Publication, 'GetName') else test_name
-                    project.Publication.SetName(test_obj, new_name)
-                    updated_name = project.Publication.GetName(test_obj) if hasattr(project.Publication, 'GetName') else new_name
+                    old_name = project.Publications.GetName(test_obj) if hasattr(project.Publications, 'GetName') else test_name
+                    project.Publications.SetName(test_obj, new_name)
+                    updated_name = project.Publications.GetName(test_obj) if hasattr(project.Publications, 'GetName') else new_name
                     print(f"  Old name: {old_name}")
                     print(f"  New name: {updated_name}")
                     test_name = new_name  # Update for cleanup
@@ -163,7 +163,7 @@ def demo_publication_crud():
                     print(f"  Note: SetName failed: {e}")
 
             # Try other Set methods
-            for method_name in dir(project.Publication):
+            for method_name in dir(project.Publications):
                 if method_name.startswith('Set') and method_name != 'SetName' and not updated:
                     print(f"\nFound update method: {method_name}")
                     print("  (Method available but not tested in this demo)")
@@ -179,14 +179,14 @@ def demo_publication_crud():
         print("STEP 5: READ - Verify updates persisted")
         print("="*70)
 
-        if hasattr(project.Publication, 'Find'):
+        if hasattr(project.Publications, 'Find'):
             print(f"\nFinding publication after update...")
-            updated_obj = project.Publication.Find(test_name)
+            updated_obj = project.Publications.Find(test_name)
             if updated_obj:
                 print(f"  FOUND: publication")
                 try:
-                    if hasattr(project.Publication, 'GetName'):
-                        print(f"  Name: {project.Publication.GetName(updated_obj)}")
+                    if hasattr(project.Publications, 'GetName'):
+                        print(f"  Name: {project.Publications.GetName(updated_obj)}")
                 except:
                     pass
             else:
@@ -200,17 +200,17 @@ def demo_publication_crud():
         if test_obj:
             print(f"\nDeleting test publication...")
             try:
-                obj_name = project.Publication.GetName(test_obj) if hasattr(project.Publication, 'GetName') else test_name
+                obj_name = project.Publications.GetName(test_obj) if hasattr(project.Publications, 'GetName') else test_name
             except:
                 obj_name = test_name
 
-            project.Publication.Delete(test_obj)
+            project.Publications.Delete(test_obj)
             print(f"  Deleted: {obj_name}")
 
             # Verify deletion
             print("\nVerifying deletion...")
-            if hasattr(project.Publication, 'Exists'):
-                still_exists = project.Publication.Exists(test_name)
+            if hasattr(project.Publications, 'Exists'):
+                still_exists = project.Publications.Exists(test_name)
                 print(f"  Still exists: {still_exists}")
 
                 if not still_exists:
@@ -219,7 +219,7 @@ def demo_publication_crud():
                     print("  DELETE: FAILED - Publication still exists")
 
             # Count after deletion
-            final_count = sum(1 for _ in project.Publication.GetAll())
+            final_count = sum(1 for _ in project.Publications.GetAll())
             print(f"\n  Count after delete: {final_count}")
             print(f"  Back to initial:    {final_count == initial_count}")
 
@@ -247,10 +247,10 @@ def demo_publication_crud():
 
         try:
             for name in ["crud_test_publication", "crud_test_publication_modified"]:
-                if hasattr(project.Publication, 'Exists') and project.Publication.Exists(name):
-                    obj = project.Publication.Find(name) if hasattr(project.Publication, 'Find') else None
+                if hasattr(project.Publications, 'Exists') and project.Publications.Exists(name):
+                    obj = project.Publications.Find(name) if hasattr(project.Publications, 'Find') else None
                     if obj:
-                        project.Publication.Delete(obj)
+                        project.Publications.Delete(obj)
                         print(f"  Cleaned up: {name}")
         except:
             pass

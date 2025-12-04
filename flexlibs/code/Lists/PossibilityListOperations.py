@@ -32,9 +32,10 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
+from ..BaseOperations import BaseOperations
 
 
-class PossibilityListOperations:
+class PossibilityListOperations(BaseOperations):
     """
     This class provides generic operations for managing possibility lists
     in a FieldWorks project.
@@ -85,7 +86,11 @@ class PossibilityListOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
+
+    def _GetSequence(self, parent):
+        """Specify which sequence to reorder for possibility items."""
+        return parent.SubPossibilitiesOS
 
 
     # --- List Management ---
@@ -613,6 +618,139 @@ class PossibilityListOperations:
             # Remove from top-level list
             owner = self.__GetListOwner(item)
             owner.PossibilitiesOS.Remove(item)
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate a possibility item, creating a new copy with a new GUID.
+
+        Args:
+            item_or_hvo: Either an ICmPossibility object or its HVO to duplicate.
+            insert_after (bool): If True (default), insert after the source item.
+                                If False, insert at end of parent's collection.
+            deep (bool): If True, also duplicate owned subitems recursively.
+                        If False (default), only copy simple properties.
+
+        Returns:
+            ICmPossibility: The newly created duplicate item with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If item_or_hvo is None.
+
+        Example:
+            >>> # Duplicate a top-level item (shallow copy)
+            >>> genre_list = project.PossibilityLists.FindList("Text Genres")
+            >>> narrative = project.PossibilityLists.FindItem(genre_list, "Narrative")
+            >>> dup = project.PossibilityLists.Duplicate(narrative)
+            >>> print(f"Original: {project.PossibilityLists.GetItemName(narrative)}")
+            >>> print(f"Duplicate: {project.PossibilityLists.GetItemName(dup)}")
+            Original: Narrative
+            Duplicate: Narrative
+            >>>
+            >>> # Modify the duplicate
+            >>> project.PossibilityLists.SetItemName(dup, "Epic Narrative")
+            >>> project.PossibilityLists.SetItemAbbreviation(dup, "Epic")
+            >>>
+            >>> # Deep duplicate (includes all subitems)
+            >>> deep_dup = project.PossibilityLists.Duplicate(narrative, deep=True)
+            >>> subitems = project.PossibilityLists.GetSubitems(deep_dup)
+            >>> print(f"Duplicate has {len(subitems)} subitems")
+
+        Notes:
+            - Factory.Create() automatically generates a new GUID
+            - insert_after=True preserves the original item's position
+            - MultiString properties copied: Name, Abbreviation, Description
+            - If deep=True, recursively duplicates all SubPossibilitiesOS
+            - Duplicate is added to parent collection before copying properties
+            - Parent hierarchy is preserved
+
+        See Also:
+            CreateItem, DeleteItem, GetGuid, GetSubitems
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not item_or_hvo:
+            raise FP_NullParameterError()
+
+        # Get source item
+        source = self.__ResolveItem(item_or_hvo)
+
+        # Get the parent item or owning list
+        parent = self.GetParentItem(source)
+
+        # Create new item using factory (auto-generates new GUID)
+        factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
+        duplicate = factory.Create()
+
+        # ADD TO PARENT FIRST before copying properties (CRITICAL)
+        if parent:
+            # Insert into parent's subitems
+            if insert_after:
+                source_index = parent.SubPossibilitiesOS.IndexOf(source)
+                parent.SubPossibilitiesOS.Insert(source_index + 1, duplicate)
+            else:
+                parent.SubPossibilitiesOS.Add(duplicate)
+        else:
+            # Insert into top-level list
+            owner = self.__GetListOwner(source)
+            if insert_after:
+                source_index = owner.PossibilitiesOS.IndexOf(source)
+                owner.PossibilitiesOS.Insert(source_index + 1, duplicate)
+            else:
+                owner.PossibilitiesOS.Add(duplicate)
+
+        # Copy MultiString properties using CopyAlternatives
+        duplicate.Name.CopyAlternatives(source.Name)
+        duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)
+        # Description is also a MultiString but needs special handling
+        if hasattr(source, 'Description') and hasattr(duplicate, 'Description'):
+            duplicate.Description.CopyAlternatives(source.Description)
+
+        # Deep copy: duplicate owned subitems recursively
+        if deep and hasattr(source, 'SubPossibilitiesOS') and source.SubPossibilitiesOS.Count > 0:
+            for sub_item in source.SubPossibilitiesOS:
+                # Recursively duplicate each subitem
+                sub_factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
+                sub_dup = sub_factory.Create()
+                duplicate.SubPossibilitiesOS.Add(sub_dup)
+
+                # Copy sub-item properties
+                sub_dup.Name.CopyAlternatives(sub_item.Name)
+                sub_dup.Abbreviation.CopyAlternatives(sub_item.Abbreviation)
+                if hasattr(sub_item, 'Description'):
+                    sub_dup.Description.CopyAlternatives(sub_item.Description)
+
+                # Recursively copy deeper levels if they exist
+                if sub_item.SubPossibilitiesOS.Count > 0:
+                    self.__DuplicateSubitemsRecursive(sub_item, sub_dup)
+
+        return duplicate
+
+
+    def __DuplicateSubitemsRecursive(self, source_parent, dup_parent):
+        """
+        Helper method to recursively duplicate subitems.
+
+        Args:
+            source_parent: Source ICmPossibility with subitems to copy.
+            dup_parent: Duplicate ICmPossibility to receive copied subitems.
+        """
+        for sub_item in source_parent.SubPossibilitiesOS:
+            factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
+            sub_dup = factory.Create()
+            dup_parent.SubPossibilitiesOS.Add(sub_dup)
+
+            # Copy properties
+            sub_dup.Name.CopyAlternatives(sub_item.Name)
+            sub_dup.Abbreviation.CopyAlternatives(sub_item.Abbreviation)
+            if hasattr(sub_item, 'Description'):
+                sub_dup.Description.CopyAlternatives(sub_item.Description)
+
+            # Continue recursion if there are deeper levels
+            if sub_item.SubPossibilitiesOS.Count > 0:
+                self.__DuplicateSubitemsRecursive(sub_item, sub_dup)
 
 
     def FindItem(self, list_or_hvo, name):

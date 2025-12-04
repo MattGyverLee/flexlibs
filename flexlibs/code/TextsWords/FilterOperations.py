@@ -1253,3 +1253,72 @@ class FilterOperations:
                 return False
 
         return True
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate a filter, creating a new copy with a new GUID.
+
+        Args:
+            item_or_hvo: The filter dict object to duplicate (not HVO-based).
+            insert_after (bool): Not applicable for filters (ignored).
+            deep (bool): Not applicable for filters (ignored).
+
+        Returns:
+            dict: The newly created duplicate filter with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If item_or_hvo is None.
+
+        Example:
+            >>> verb_filter = project.Filter.Find("Verbs")
+            >>> if verb_filter:
+            ...     dup = project.Filter.Duplicate(verb_filter)
+            ...     project.Filter.SetName(dup, "Verbs Copy")
+            ...     print(f"Duplicate: {project.Filter.GetName(dup)}")
+
+        Notes:
+            - Creates a new filter with new GUID
+            - All properties copied: name, filter_type, criteria
+            - Name is copied as-is (may need renaming to avoid confusion)
+            - Filters are stored as JSON, not LCM objects
+
+        See Also:
+            Create, Delete, GetGuid
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if item_or_hvo is None:
+            raise FP_NullParameterError()
+
+        if not isinstance(item_or_hvo, dict):
+            raise FP_ParameterError("Filter object must be a dictionary")
+
+        # Get source filter
+        source = item_or_hvo
+
+        # Create new filter with new GUID
+        from System import Guid
+        import System
+
+        filter_guid = str(Guid.NewGuid())
+        duplicate = {
+            'guid': filter_guid,
+            'name': source['name'],  # Copy name as-is
+            'filter_type': source['filter_type'],
+            'criteria': dict(source['criteria']),  # Deep copy criteria dict
+            'date_created': System.DateTime.Now.ToString(),
+            'date_modified': System.DateTime.Now.ToString()
+        }
+
+        # Save to project
+        filters = self._LoadFiltersFromProject()
+        filters[filter_guid] = duplicate
+        self._SaveFiltersToProject(filters)
+
+        # Update cache
+        self._filter_cache[filter_guid] = duplicate
+
+        return duplicate

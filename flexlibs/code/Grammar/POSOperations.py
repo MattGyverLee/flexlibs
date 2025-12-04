@@ -14,6 +14,9 @@
 import logging
 logger = logging.getLogger(__name__)
 
+# Import BaseOperations parent class
+from ..BaseOperations import BaseOperations
+
 # Import FLEx LCM types
 from SIL.LCModel import IPartOfSpeechFactory, IPartOfSpeech, ILexEntryRepository
 from SIL.LCModel.Core.KernelInterfaces import ITsString
@@ -27,7 +30,7 @@ from ..FLExProject import (
 )
 
 
-class POSOperations:
+class POSOperations(BaseOperations):
     """
     This class provides operations for managing Parts of Speech in a
     FieldWorks project.
@@ -66,7 +69,15 @@ class POSOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
+
+
+    def _GetSequence(self, parent):
+        """
+        Specify which sequence to reorder for POS.
+        For POS, we reorder parent.SubPossibilitiesOS
+        """
+        return parent.SubPossibilitiesOS
 
 
     def GetAll(self):
@@ -777,6 +788,143 @@ class POSOperations:
                     break  # Count each entry only once
 
         return count
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate a part of speech, creating a new copy with a new GUID.
+
+        Args:
+            item_or_hvo: The IPartOfSpeech object or HVO to duplicate.
+            insert_after (bool): If True (default), insert after the source POS.
+                                If False, insert at end of parent's possibilities list.
+            deep (bool): If True, recursively duplicate all subcategories.
+                        If False (default), only duplicate the POS itself.
+
+        Returns:
+            IPartOfSpeech: The newly created duplicate POS with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If item_or_hvo is None.
+
+        Example:
+            >>> posOps = POSOperations(project)
+            >>> noun = posOps.Find("Noun")
+            >>> # Shallow copy (no subcategories)
+            >>> noun_copy = posOps.Duplicate(noun)
+            >>> print(posOps.GetName(noun_copy))
+            Noun
+
+            >>> # Deep copy (includes all subcategories)
+            >>> verb = posOps.Find("Verb")
+            >>> verb_copy = posOps.Duplicate(verb, deep=True)
+            >>> orig_subs = posOps.GetSubcategories(verb)
+            >>> copy_subs = posOps.GetSubcategories(verb_copy)
+            >>> print(f"Original has {len(orig_subs)} subcategories")
+            >>> print(f"Copy has {len(copy_subs)} subcategories")
+
+        Notes:
+            - Factory.Create() automatically generates a new GUID
+            - insert_after=True preserves the original POS's position
+            - Simple properties copied: Name, Abbreviation, Description (MultiString)
+            - String property copied: CatalogSourceId
+            - deep=True recursively duplicates SubPossibilitiesOS hierarchy
+            - Inflection classes and affix slots are NOT copied (references)
+            - Use after copying to create variants of existing categories
+
+        See Also:
+            Create, Delete, GetSubcategories
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not item_or_hvo:
+            raise FP_NullParameterError()
+
+        # Get source POS and parent
+        source = self.__ResolveObject(item_or_hvo)
+
+        # Create new POS using factory (auto-generates new GUID)
+        factory = self.project.project.ServiceLocator.GetService(IPartOfSpeechFactory)
+        duplicate = factory.Create()
+
+        # Determine parent and insertion position
+        # Check if source is a subcategory or top-level
+        parent_is_possibility = False
+        try:
+            parent_pos = IPartOfSpeech(source.Owner)
+            parent_is_possibility = True
+        except:
+            parent_is_possibility = False
+
+        if parent_is_possibility:
+            # Source is a subcategory
+            parent_pos = IPartOfSpeech(source.Owner)
+            if insert_after:
+                source_index = parent_pos.SubPossibilitiesOS.IndexOf(source)
+                parent_pos.SubPossibilitiesOS.Insert(source_index + 1, duplicate)
+            else:
+                parent_pos.SubPossibilitiesOS.Add(duplicate)
+        else:
+            # Source is top-level
+            pos_list = self.project.lp.PartsOfSpeechOA
+            if insert_after:
+                source_index = pos_list.PossibilitiesOS.IndexOf(source)
+                pos_list.PossibilitiesOS.Insert(source_index + 1, duplicate)
+            else:
+                pos_list.PossibilitiesOS.Add(duplicate)
+
+        # Copy simple MultiString properties (AFTER adding to parent)
+        duplicate.Name.CopyAlternatives(source.Name)
+        duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)
+        duplicate.Description.CopyAlternatives(source.Description)
+
+        # Copy string property
+        if source.CatalogSourceId:
+            duplicate.CatalogSourceId = source.CatalogSourceId
+
+        # Deep copy: recursively duplicate subcategories
+        if deep and source.SubPossibilitiesOS.Count > 0:
+            for sub_pos in source.SubPossibilitiesOS:
+                # Recursively duplicate each subcategory
+                self.__DuplicateSubcategory(sub_pos, duplicate)
+
+        return duplicate
+
+
+    def __DuplicateSubcategory(self, source_sub, parent_duplicate):
+        """
+        Helper method to recursively duplicate a subcategory.
+
+        Args:
+            source_sub: The source IPartOfSpeech subcategory to duplicate.
+            parent_duplicate: The parent IPartOfSpeech to add the duplicate to.
+
+        Returns:
+            IPartOfSpeech: The duplicated subcategory.
+        """
+        # Create new subcategory
+        factory = self.project.project.ServiceLocator.GetService(IPartOfSpeechFactory)
+        sub_duplicate = factory.Create()
+
+        # Add to parent's SubPossibilitiesOS
+        parent_duplicate.SubPossibilitiesOS.Add(sub_duplicate)
+
+        # Copy properties
+        sub_duplicate.Name.CopyAlternatives(source_sub.Name)
+        sub_duplicate.Abbreviation.CopyAlternatives(source_sub.Abbreviation)
+        sub_duplicate.Description.CopyAlternatives(source_sub.Description)
+
+        if source_sub.CatalogSourceId:
+            sub_duplicate.CatalogSourceId = source_sub.CatalogSourceId
+
+        # Recursively duplicate nested subcategories
+        if source_sub.SubPossibilitiesOS.Count > 0:
+            for nested_sub in source_sub.SubPossibilitiesOS:
+                self.__DuplicateSubcategory(nested_sub, sub_duplicate)
+
+        return sub_duplicate
 
 
     # --- Private Helper Methods ---

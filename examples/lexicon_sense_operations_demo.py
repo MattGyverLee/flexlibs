@@ -49,10 +49,10 @@ def demo_sense_crud():
 
         print("\nGetting all senses...")
         initial_count = 0
-        for obj in project.Sense.GetAll():
+        for obj in project.Senses.GetAll():
             # Display first few objects
             try:
-                name = project.Sense.GetName(obj) if hasattr(project.Sense, 'GetName') else str(obj)
+                name = project.Senses.GetName(obj) if hasattr(project.Senses, 'GetName') else str(obj)
                 print(f"  - {name}")
             except:
                 print(f"  - [Object {initial_count + 1}]")
@@ -69,43 +69,33 @@ def demo_sense_crud():
 
         # Check if test object already exists
         try:
-            if hasattr(project.Sense, 'Exists') and project.Sense.Exists(test_name):
+            if hasattr(project.Senses, 'Exists') and project.Senses.Exists(test_name):
                 print(f"\nTest sense '{test_name}' already exists")
                 print("Deleting existing one first...")
-                existing = project.Sense.Find(test_name) if hasattr(project.Sense, 'Find') else None
+                existing = project.Senses.Find(test_name) if hasattr(project.Senses, 'Find') else None
                 if existing:
-                    project.Sense.Delete(existing)
+                    project.Senses.Delete(existing)
                     print("  Deleted existing test sense")
         except:
             pass
 
-        # Create new object
+        
+        # Create parent entry for sense testing
+        print("\nCreating parent entry for sense test...")
+        parent_entry = None
+        try:
+            parent_entry = project.LexEntry.Create("crud_test_entry_for_sense")
+            print(f"  Created parent entry: crud_test_entry_for_sense")
+        except Exception as e:
+            print(f"  ERROR creating parent entry: {e}")
+            print("  Cannot test sense without parent entry")
+            return
+
         print(f"\nCreating new sense: '{test_name}'")
 
-        try:
-            # Attempt to create with common parameters
-            test_obj = project.Sense.Create(test_name)
-        except TypeError:
-            try:
-                # Try without parameters if that fails
-                test_obj = project.Sense.Create()
-                if hasattr(project.Sense, 'SetName'):
-                    project.Sense.SetName(test_obj, test_name)
-            except Exception as e:
-                print(f"  Note: Create method may require specific parameters: {e}")
-                test_obj = None
-
-        if test_obj:
-            print(f"  SUCCESS: Sense created!")
-            try:
-                if hasattr(project.Sense, 'GetName'):
-                    print(f"  Name: {project.Sense.GetName(test_obj)}")
-            except:
-                pass
-        else:
-            print(f"  Note: Could not create sense (may require special parameters)")
-            print("  Skipping remaining tests...")
-            return
+        # Create sense with parent entry
+        test_obj = project.LexEntry.AddSense(parent_entry, test_name)
+        print(f"  SUCCESS: Sense created!")
 
         # ==================== READ: Verify creation ====================
         print("\n" + "="*70)
@@ -113,20 +103,20 @@ def demo_sense_crud():
         print("="*70)
 
         # Test Exists
-        if hasattr(project.Sense, 'Exists'):
+        if hasattr(project.Senses, 'Exists'):
             print(f"\nChecking if '{test_name}' exists...")
-            exists = project.Sense.Exists(test_name)
+            exists = project.Senses.Exists(test_name)
             print(f"  Exists: {exists}")
 
         # Test Find
-        if hasattr(project.Sense, 'Find'):
+        if hasattr(project.Senses, 'Find'):
             print(f"\nFinding sense by name...")
-            found_obj = project.Sense.Find(test_name)
+            found_obj = project.Senses.Find(test_name)
             if found_obj:
                 print(f"  FOUND: sense")
                 try:
-                    if hasattr(project.Sense, 'GetName'):
-                        print(f"  Name: {project.Sense.GetName(found_obj)}")
+                    if hasattr(project.Senses, 'GetName'):
+                        print(f"  Name: {project.Senses.GetName(found_obj)}")
                 except:
                     pass
             else:
@@ -134,7 +124,7 @@ def demo_sense_crud():
 
         # Count after creation
         print("\nCounting all senses after creation...")
-        current_count = sum(1 for _ in project.Sense.GetAll())
+        current_count = sum(1 for _ in project.Senses.GetAll())
         print(f"  Count before: {initial_count}")
         print(f"  Count after:  {current_count}")
         print(f"  Difference:   +{current_count - initial_count}")
@@ -148,13 +138,13 @@ def demo_sense_crud():
             updated = False
 
             # Try common update methods
-            if hasattr(project.Sense, 'SetName'):
+            if hasattr(project.Senses, 'SetName'):
                 try:
                     new_name = "crud_test_sense_modified"
                     print(f"\nUpdating name to: '{new_name}'")
-                    old_name = project.Sense.GetName(test_obj) if hasattr(project.Sense, 'GetName') else test_name
-                    project.Sense.SetName(test_obj, new_name)
-                    updated_name = project.Sense.GetName(test_obj) if hasattr(project.Sense, 'GetName') else new_name
+                    old_name = project.Senses.GetName(test_obj) if hasattr(project.Senses, 'GetName') else test_name
+                    project.Senses.SetName(test_obj, new_name)
+                    updated_name = project.Senses.GetName(test_obj) if hasattr(project.Senses, 'GetName') else new_name
                     print(f"  Old name: {old_name}")
                     print(f"  New name: {updated_name}")
                     test_name = new_name  # Update for cleanup
@@ -163,7 +153,7 @@ def demo_sense_crud():
                     print(f"  Note: SetName failed: {e}")
 
             # Try other Set methods
-            for method_name in dir(project.Sense):
+            for method_name in dir(project.Senses):
                 if method_name.startswith('Set') and method_name != 'SetName' and not updated:
                     print(f"\nFound update method: {method_name}")
                     print("  (Method available but not tested in this demo)")
@@ -179,14 +169,14 @@ def demo_sense_crud():
         print("STEP 5: READ - Verify updates persisted")
         print("="*70)
 
-        if hasattr(project.Sense, 'Find'):
+        if hasattr(project.Senses, 'Find'):
             print(f"\nFinding sense after update...")
-            updated_obj = project.Sense.Find(test_name)
+            updated_obj = project.Senses.Find(test_name)
             if updated_obj:
                 print(f"  FOUND: sense")
                 try:
-                    if hasattr(project.Sense, 'GetName'):
-                        print(f"  Name: {project.Sense.GetName(updated_obj)}")
+                    if hasattr(project.Senses, 'GetName'):
+                        print(f"  Name: {project.Senses.GetName(updated_obj)}")
                 except:
                     pass
             else:
@@ -200,17 +190,17 @@ def demo_sense_crud():
         if test_obj:
             print(f"\nDeleting test sense...")
             try:
-                obj_name = project.Sense.GetName(test_obj) if hasattr(project.Sense, 'GetName') else test_name
+                obj_name = project.Senses.GetName(test_obj) if hasattr(project.Senses, 'GetName') else test_name
             except:
                 obj_name = test_name
 
-            project.Sense.Delete(test_obj)
+            project.Senses.Delete(test_obj)
             print(f"  Deleted: {obj_name}")
 
             # Verify deletion
             print("\nVerifying deletion...")
-            if hasattr(project.Sense, 'Exists'):
-                still_exists = project.Sense.Exists(test_name)
+            if hasattr(project.Senses, 'Exists'):
+                still_exists = project.Senses.Exists(test_name)
                 print(f"  Still exists: {still_exists}")
 
                 if not still_exists:
@@ -219,7 +209,7 @@ def demo_sense_crud():
                     print("  DELETE: FAILED - Sense still exists")
 
             # Count after deletion
-            final_count = sum(1 for _ in project.Sense.GetAll())
+            final_count = sum(1 for _ in project.Senses.GetAll())
             print(f"\n  Count after delete: {final_count}")
             print(f"  Back to initial:    {final_count == initial_count}")
 
@@ -247,11 +237,20 @@ def demo_sense_crud():
 
         try:
             for name in ["crud_test_sense", "crud_test_sense_modified"]:
-                if hasattr(project.Sense, 'Exists') and project.Sense.Exists(name):
-                    obj = project.Sense.Find(name) if hasattr(project.Sense, 'Find') else None
+                if hasattr(project.Senses, 'Exists') and project.Senses.Exists(name):
+                    obj = project.Senses.Find(name) if hasattr(project.Senses, 'Find') else None
                     if obj:
-                        project.Sense.Delete(obj)
+                        project.Senses.Delete(obj)
                         print(f"  Cleaned up: {name}")
+        except:
+            pass
+
+        
+        # Cleanup parent entry (sense will be deleted with it)
+        try:
+            if parent_entry:
+                project.LexEntry.Delete(parent_entry)
+                print("  Cleaned up: parent entry and sense")
         except:
             pass
 

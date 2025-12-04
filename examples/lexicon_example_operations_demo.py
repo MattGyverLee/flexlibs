@@ -49,10 +49,10 @@ def demo_example_crud():
 
         print("\nGetting all examples...")
         initial_count = 0
-        for obj in project.Example.GetAll():
+        for obj in project.Examples.GetAll():
             # Display first few objects
             try:
-                name = project.Example.GetName(obj) if hasattr(project.Example, 'GetName') else str(obj)
+                name = project.Examples.GetName(obj) if hasattr(project.Examples, 'GetName') else str(obj)
                 print(f"  - {name}")
             except:
                 print(f"  - [Object {initial_count + 1}]")
@@ -69,43 +69,35 @@ def demo_example_crud():
 
         # Check if test object already exists
         try:
-            if hasattr(project.Example, 'Exists') and project.Example.Exists(test_name):
+            if hasattr(project.Examples, 'Exists') and project.Examples.Exists(test_name):
                 print(f"\nTest example '{test_name}' already exists")
                 print("Deleting existing one first...")
-                existing = project.Example.Find(test_name) if hasattr(project.Example, 'Find') else None
+                existing = project.Examples.Find(test_name) if hasattr(project.Examples, 'Find') else None
                 if existing:
-                    project.Example.Delete(existing)
+                    project.Examples.Delete(existing)
                     print("  Deleted existing test example")
         except:
             pass
 
-        # Create new object
+        
+        # Create parent entry and sense for example testing
+        print("\nCreating parent entry and sense for example test...")
+        parent_entry = None
+        parent_sense = None
+        try:
+            parent_entry = project.LexEntry.Create("crud_test_entry_for_example")
+            parent_sense = project.LexEntry.AddSense(parent_entry, "test sense")
+            print(f"  Created parent entry and sense")
+        except Exception as e:
+            print(f"  ERROR creating parent objects: {e}")
+            print("  Cannot test example without parent sense")
+            return
+
         print(f"\nCreating new example: '{test_name}'")
 
-        try:
-            # Attempt to create with common parameters
-            test_obj = project.Example.Create(test_name)
-        except TypeError:
-            try:
-                # Try without parameters if that fails
-                test_obj = project.Example.Create()
-                if hasattr(project.Example, 'SetName'):
-                    project.Example.SetName(test_obj, test_name)
-            except Exception as e:
-                print(f"  Note: Create method may require specific parameters: {e}")
-                test_obj = None
-
-        if test_obj:
-            print(f"  SUCCESS: Example created!")
-            try:
-                if hasattr(project.Example, 'GetName'):
-                    print(f"  Name: {project.Example.GetName(test_obj)}")
-            except:
-                pass
-        else:
-            print(f"  Note: Could not create example (may require special parameters)")
-            print("  Skipping remaining tests...")
-            return
+        # Create example with parent sense
+        test_obj = project.Examples.Create(parent_sense, test_name)
+        print(f"  SUCCESS: Example created!")
 
         # ==================== READ: Verify creation ====================
         print("\n" + "="*70)
@@ -113,20 +105,20 @@ def demo_example_crud():
         print("="*70)
 
         # Test Exists
-        if hasattr(project.Example, 'Exists'):
+        if hasattr(project.Examples, 'Exists'):
             print(f"\nChecking if '{test_name}' exists...")
-            exists = project.Example.Exists(test_name)
+            exists = project.Examples.Exists(test_name)
             print(f"  Exists: {exists}")
 
         # Test Find
-        if hasattr(project.Example, 'Find'):
+        if hasattr(project.Examples, 'Find'):
             print(f"\nFinding example by name...")
-            found_obj = project.Example.Find(test_name)
+            found_obj = project.Examples.Find(test_name)
             if found_obj:
                 print(f"  FOUND: example")
                 try:
-                    if hasattr(project.Example, 'GetName'):
-                        print(f"  Name: {project.Example.GetName(found_obj)}")
+                    if hasattr(project.Examples, 'GetName'):
+                        print(f"  Name: {project.Examples.GetName(found_obj)}")
                 except:
                     pass
             else:
@@ -134,7 +126,7 @@ def demo_example_crud():
 
         # Count after creation
         print("\nCounting all examples after creation...")
-        current_count = sum(1 for _ in project.Example.GetAll())
+        current_count = sum(1 for _ in project.Examples.GetAll())
         print(f"  Count before: {initial_count}")
         print(f"  Count after:  {current_count}")
         print(f"  Difference:   +{current_count - initial_count}")
@@ -148,13 +140,13 @@ def demo_example_crud():
             updated = False
 
             # Try common update methods
-            if hasattr(project.Example, 'SetName'):
+            if hasattr(project.Examples, 'SetName'):
                 try:
                     new_name = "crud_test_example_modified"
                     print(f"\nUpdating name to: '{new_name}'")
-                    old_name = project.Example.GetName(test_obj) if hasattr(project.Example, 'GetName') else test_name
-                    project.Example.SetName(test_obj, new_name)
-                    updated_name = project.Example.GetName(test_obj) if hasattr(project.Example, 'GetName') else new_name
+                    old_name = project.Examples.GetName(test_obj) if hasattr(project.Examples, 'GetName') else test_name
+                    project.Examples.SetName(test_obj, new_name)
+                    updated_name = project.Examples.GetName(test_obj) if hasattr(project.Examples, 'GetName') else new_name
                     print(f"  Old name: {old_name}")
                     print(f"  New name: {updated_name}")
                     test_name = new_name  # Update for cleanup
@@ -163,7 +155,7 @@ def demo_example_crud():
                     print(f"  Note: SetName failed: {e}")
 
             # Try other Set methods
-            for method_name in dir(project.Example):
+            for method_name in dir(project.Examples):
                 if method_name.startswith('Set') and method_name != 'SetName' and not updated:
                     print(f"\nFound update method: {method_name}")
                     print("  (Method available but not tested in this demo)")
@@ -179,14 +171,14 @@ def demo_example_crud():
         print("STEP 5: READ - Verify updates persisted")
         print("="*70)
 
-        if hasattr(project.Example, 'Find'):
+        if hasattr(project.Examples, 'Find'):
             print(f"\nFinding example after update...")
-            updated_obj = project.Example.Find(test_name)
+            updated_obj = project.Examples.Find(test_name)
             if updated_obj:
                 print(f"  FOUND: example")
                 try:
-                    if hasattr(project.Example, 'GetName'):
-                        print(f"  Name: {project.Example.GetName(updated_obj)}")
+                    if hasattr(project.Examples, 'GetName'):
+                        print(f"  Name: {project.Examples.GetName(updated_obj)}")
                 except:
                     pass
             else:
@@ -200,17 +192,17 @@ def demo_example_crud():
         if test_obj:
             print(f"\nDeleting test example...")
             try:
-                obj_name = project.Example.GetName(test_obj) if hasattr(project.Example, 'GetName') else test_name
+                obj_name = project.Examples.GetName(test_obj) if hasattr(project.Examples, 'GetName') else test_name
             except:
                 obj_name = test_name
 
-            project.Example.Delete(test_obj)
+            project.Examples.Delete(test_obj)
             print(f"  Deleted: {obj_name}")
 
             # Verify deletion
             print("\nVerifying deletion...")
-            if hasattr(project.Example, 'Exists'):
-                still_exists = project.Example.Exists(test_name)
+            if hasattr(project.Examples, 'Exists'):
+                still_exists = project.Examples.Exists(test_name)
                 print(f"  Still exists: {still_exists}")
 
                 if not still_exists:
@@ -219,7 +211,7 @@ def demo_example_crud():
                     print("  DELETE: FAILED - Example still exists")
 
             # Count after deletion
-            final_count = sum(1 for _ in project.Example.GetAll())
+            final_count = sum(1 for _ in project.Examples.GetAll())
             print(f"\n  Count after delete: {final_count}")
             print(f"  Back to initial:    {final_count == initial_count}")
 
@@ -247,11 +239,20 @@ def demo_example_crud():
 
         try:
             for name in ["crud_test_example", "crud_test_example_modified"]:
-                if hasattr(project.Example, 'Exists') and project.Example.Exists(name):
-                    obj = project.Example.Find(name) if hasattr(project.Example, 'Find') else None
+                if hasattr(project.Examples, 'Exists') and project.Examples.Exists(name):
+                    obj = project.Examples.Find(name) if hasattr(project.Examples, 'Find') else None
                     if obj:
-                        project.Example.Delete(obj)
+                        project.Examples.Delete(obj)
                         print(f"  Cleaned up: {name}")
+        except:
+            pass
+
+        
+        # Cleanup parent entry (sense will be deleted with it)
+        try:
+            if parent_entry:
+                project.LexEntry.Delete(parent_entry)
+                print("  Cleaned up: parent entry and sense")
         except:
             pass
 

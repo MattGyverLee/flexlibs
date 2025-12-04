@@ -32,7 +32,7 @@ def demo_datanotebook_crud():
     # Open project with write enabled
     project = FLExProject()
     try:
-        project.OpenProject("Sena 3", writeEnabled=True)
+        project.DataNotebookProject("Sena 3", writeEnabled=True)
     except Exception as e:
         print(f"Cannot run demo - FLEx project not available: {e}")
         FLExCleanup()
@@ -49,10 +49,10 @@ def demo_datanotebook_crud():
 
         print("\nGetting all datanotebooks...")
         initial_count = 0
-        for obj in project.Datanotebook.GetAll():
+        for obj in project.DataNotebook.GetAll():
             # Display first few objects
             try:
-                name = project.Datanotebook.GetName(obj) if hasattr(project.Datanotebook, 'GetName') else str(obj)
+                name = project.DataNotebook.GetName(obj) if hasattr(project.DataNotebook, 'GetName') else str(obj)
                 print(f"  - {name}")
             except:
                 print(f"  - [Object {initial_count + 1}]")
@@ -69,12 +69,12 @@ def demo_datanotebook_crud():
 
         # Check if test object already exists
         try:
-            if hasattr(project.Datanotebook, 'Exists') and project.Datanotebook.Exists(test_name):
+            if hasattr(project.DataNotebook, 'Exists') and project.DataNotebook.Exists(test_name):
                 print(f"\nTest datanotebook '{test_name}' already exists")
                 print("Deleting existing one first...")
-                existing = project.Datanotebook.Find(test_name) if hasattr(project.Datanotebook, 'Find') else None
+                existing = project.DataNotebook.Find(test_name) if hasattr(project.DataNotebook, 'Find') else None
                 if existing:
-                    project.Datanotebook.Delete(existing)
+                    project.DataNotebook.Delete(existing)
                     print("  Deleted existing test datanotebook")
         except:
             pass
@@ -84,13 +84,13 @@ def demo_datanotebook_crud():
 
         try:
             # Attempt to create with common parameters
-            test_obj = project.Datanotebook.Create(test_name)
+            test_obj = project.DataNotebook.Create(test_name)
         except TypeError:
             try:
                 # Try without parameters if that fails
-                test_obj = project.Datanotebook.Create()
-                if hasattr(project.Datanotebook, 'SetName'):
-                    project.Datanotebook.SetName(test_obj, test_name)
+                test_obj = project.DataNotebook.Create()
+                if hasattr(project.DataNotebook, 'SetName'):
+                    project.DataNotebook.SetName(test_obj, test_name)
             except Exception as e:
                 print(f"  Note: Create method may require specific parameters: {e}")
                 test_obj = None
@@ -98,8 +98,8 @@ def demo_datanotebook_crud():
         if test_obj:
             print(f"  SUCCESS: Datanotebook created!")
             try:
-                if hasattr(project.Datanotebook, 'GetName'):
-                    print(f"  Name: {project.Datanotebook.GetName(test_obj)}")
+                if hasattr(project.DataNotebook, 'GetName'):
+                    print(f"  Name: {project.DataNotebook.GetName(test_obj)}")
             except:
                 pass
         else:
@@ -113,20 +113,20 @@ def demo_datanotebook_crud():
         print("="*70)
 
         # Test Exists
-        if hasattr(project.Datanotebook, 'Exists'):
+        if hasattr(project.DataNotebook, 'Exists'):
             print(f"\nChecking if '{test_name}' exists...")
-            exists = project.Datanotebook.Exists(test_name)
+            exists = project.DataNotebook.Exists(test_name)
             print(f"  Exists: {exists}")
 
         # Test Find
-        if hasattr(project.Datanotebook, 'Find'):
+        if hasattr(project.DataNotebook, 'Find'):
             print(f"\nFinding datanotebook by name...")
-            found_obj = project.Datanotebook.Find(test_name)
+            found_obj = project.DataNotebook.Find(test_name)
             if found_obj:
                 print(f"  FOUND: datanotebook")
                 try:
-                    if hasattr(project.Datanotebook, 'GetName'):
-                        print(f"  Name: {project.Datanotebook.GetName(found_obj)}")
+                    if hasattr(project.DataNotebook, 'GetName'):
+                        print(f"  Name: {project.DataNotebook.GetName(found_obj)}")
                 except:
                     pass
             else:
@@ -134,7 +134,7 @@ def demo_datanotebook_crud():
 
         # Count after creation
         print("\nCounting all datanotebooks after creation...")
-        current_count = sum(1 for _ in project.Datanotebook.GetAll())
+        current_count = sum(1 for _ in project.DataNotebook.GetAll())
         print(f"  Count before: {initial_count}")
         print(f"  Count after:  {current_count}")
         print(f"  Difference:   +{current_count - initial_count}")
@@ -148,13 +148,13 @@ def demo_datanotebook_crud():
             updated = False
 
             # Try common update methods
-            if hasattr(project.Datanotebook, 'SetName'):
+            if hasattr(project.DataNotebook, 'SetName'):
                 try:
                     new_name = "crud_test_datanotebook_modified"
                     print(f"\nUpdating name to: '{new_name}'")
-                    old_name = project.Datanotebook.GetName(test_obj) if hasattr(project.Datanotebook, 'GetName') else test_name
-                    project.Datanotebook.SetName(test_obj, new_name)
-                    updated_name = project.Datanotebook.GetName(test_obj) if hasattr(project.Datanotebook, 'GetName') else new_name
+                    old_name = project.DataNotebook.GetName(test_obj) if hasattr(project.DataNotebook, 'GetName') else test_name
+                    project.DataNotebook.SetName(test_obj, new_name)
+                    updated_name = project.DataNotebook.GetName(test_obj) if hasattr(project.DataNotebook, 'GetName') else new_name
                     print(f"  Old name: {old_name}")
                     print(f"  New name: {updated_name}")
                     test_name = new_name  # Update for cleanup
@@ -163,7 +163,7 @@ def demo_datanotebook_crud():
                     print(f"  Note: SetName failed: {e}")
 
             # Try other Set methods
-            for method_name in dir(project.Datanotebook):
+            for method_name in dir(project.DataNotebook):
                 if method_name.startswith('Set') and method_name != 'SetName' and not updated:
                     print(f"\nFound update method: {method_name}")
                     print("  (Method available but not tested in this demo)")
@@ -179,14 +179,14 @@ def demo_datanotebook_crud():
         print("STEP 5: READ - Verify updates persisted")
         print("="*70)
 
-        if hasattr(project.Datanotebook, 'Find'):
+        if hasattr(project.DataNotebook, 'Find'):
             print(f"\nFinding datanotebook after update...")
-            updated_obj = project.Datanotebook.Find(test_name)
+            updated_obj = project.DataNotebook.Find(test_name)
             if updated_obj:
                 print(f"  FOUND: datanotebook")
                 try:
-                    if hasattr(project.Datanotebook, 'GetName'):
-                        print(f"  Name: {project.Datanotebook.GetName(updated_obj)}")
+                    if hasattr(project.DataNotebook, 'GetName'):
+                        print(f"  Name: {project.DataNotebook.GetName(updated_obj)}")
                 except:
                     pass
             else:
@@ -200,17 +200,17 @@ def demo_datanotebook_crud():
         if test_obj:
             print(f"\nDeleting test datanotebook...")
             try:
-                obj_name = project.Datanotebook.GetName(test_obj) if hasattr(project.Datanotebook, 'GetName') else test_name
+                obj_name = project.DataNotebook.GetName(test_obj) if hasattr(project.DataNotebook, 'GetName') else test_name
             except:
                 obj_name = test_name
 
-            project.Datanotebook.Delete(test_obj)
+            project.DataNotebook.Delete(test_obj)
             print(f"  Deleted: {obj_name}")
 
             # Verify deletion
             print("\nVerifying deletion...")
-            if hasattr(project.Datanotebook, 'Exists'):
-                still_exists = project.Datanotebook.Exists(test_name)
+            if hasattr(project.DataNotebook, 'Exists'):
+                still_exists = project.DataNotebook.Exists(test_name)
                 print(f"  Still exists: {still_exists}")
 
                 if not still_exists:
@@ -219,7 +219,7 @@ def demo_datanotebook_crud():
                     print("  DELETE: FAILED - Datanotebook still exists")
 
             # Count after deletion
-            final_count = sum(1 for _ in project.Datanotebook.GetAll())
+            final_count = sum(1 for _ in project.DataNotebook.GetAll())
             print(f"\n  Count after delete: {final_count}")
             print(f"  Back to initial:    {final_count == initial_count}")
 
@@ -247,16 +247,16 @@ def demo_datanotebook_crud():
 
         try:
             for name in ["crud_test_datanotebook", "crud_test_datanotebook_modified"]:
-                if hasattr(project.Datanotebook, 'Exists') and project.Datanotebook.Exists(name):
-                    obj = project.Datanotebook.Find(name) if hasattr(project.Datanotebook, 'Find') else None
+                if hasattr(project.DataNotebook, 'Exists') and project.DataNotebook.Exists(name):
+                    obj = project.DataNotebook.Find(name) if hasattr(project.DataNotebook, 'Find') else None
                     if obj:
-                        project.Datanotebook.Delete(obj)
+                        project.DataNotebook.Delete(obj)
                         print(f"  Cleaned up: {name}")
         except:
             pass
 
         print("\nClosing project...")
-        project.CloseProject()
+        project.DataNotebookProject()
         FLExCleanup()
 
     print("\n" + "="*70)

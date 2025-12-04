@@ -49,10 +49,10 @@ def demo_translationtype_crud():
 
         print("\nGetting all translationtypes...")
         initial_count = 0
-        for obj in project.Translationtype.GetAll():
+        for obj in project.TranslationTypes.GetAll():
             # Display first few objects
             try:
-                name = project.Translationtype.GetName(obj) if hasattr(project.Translationtype, 'GetName') else str(obj)
+                name = project.TranslationTypes.GetName(obj) if hasattr(project.TranslationTypes, 'GetName') else str(obj)
                 print(f"  - {name}")
             except:
                 print(f"  - [Object {initial_count + 1}]")
@@ -69,12 +69,12 @@ def demo_translationtype_crud():
 
         # Check if test object already exists
         try:
-            if hasattr(project.Translationtype, 'Exists') and project.Translationtype.Exists(test_name):
+            if hasattr(project.TranslationTypes, 'Exists') and project.TranslationTypes.Exists(test_name):
                 print(f"\nTest translationtype '{test_name}' already exists")
                 print("Deleting existing one first...")
-                existing = project.Translationtype.Find(test_name) if hasattr(project.Translationtype, 'Find') else None
+                existing = project.TranslationTypes.Find(test_name) if hasattr(project.TranslationTypes, 'Find') else None
                 if existing:
-                    project.Translationtype.Delete(existing)
+                    project.TranslationTypes.Delete(existing)
                     print("  Deleted existing test translationtype")
         except:
             pass
@@ -84,13 +84,13 @@ def demo_translationtype_crud():
 
         try:
             # Attempt to create with common parameters
-            test_obj = project.Translationtype.Create(test_name)
+            test_obj = project.TranslationTypes.Create(test_name)
         except TypeError:
             try:
                 # Try without parameters if that fails
-                test_obj = project.Translationtype.Create()
-                if hasattr(project.Translationtype, 'SetName'):
-                    project.Translationtype.SetName(test_obj, test_name)
+                test_obj = project.TranslationTypes.Create()
+                if hasattr(project.TranslationTypes, 'SetName'):
+                    project.TranslationTypes.SetName(test_obj, test_name)
             except Exception as e:
                 print(f"  Note: Create method may require specific parameters: {e}")
                 test_obj = None
@@ -98,8 +98,8 @@ def demo_translationtype_crud():
         if test_obj:
             print(f"  SUCCESS: Translationtype created!")
             try:
-                if hasattr(project.Translationtype, 'GetName'):
-                    print(f"  Name: {project.Translationtype.GetName(test_obj)}")
+                if hasattr(project.TranslationTypes, 'GetName'):
+                    print(f"  Name: {project.TranslationTypes.GetName(test_obj)}")
             except:
                 pass
         else:
@@ -113,20 +113,20 @@ def demo_translationtype_crud():
         print("="*70)
 
         # Test Exists
-        if hasattr(project.Translationtype, 'Exists'):
+        if hasattr(project.TranslationTypes, 'Exists'):
             print(f"\nChecking if '{test_name}' exists...")
-            exists = project.Translationtype.Exists(test_name)
+            exists = project.TranslationTypes.Exists(test_name)
             print(f"  Exists: {exists}")
 
         # Test Find
-        if hasattr(project.Translationtype, 'Find'):
+        if hasattr(project.TranslationTypes, 'Find'):
             print(f"\nFinding translationtype by name...")
-            found_obj = project.Translationtype.Find(test_name)
+            found_obj = project.TranslationTypes.Find(test_name)
             if found_obj:
                 print(f"  FOUND: translationtype")
                 try:
-                    if hasattr(project.Translationtype, 'GetName'):
-                        print(f"  Name: {project.Translationtype.GetName(found_obj)}")
+                    if hasattr(project.TranslationTypes, 'GetName'):
+                        print(f"  Name: {project.TranslationTypes.GetName(found_obj)}")
                 except:
                     pass
             else:
@@ -134,7 +134,7 @@ def demo_translationtype_crud():
 
         # Count after creation
         print("\nCounting all translationtypes after creation...")
-        current_count = sum(1 for _ in project.Translationtype.GetAll())
+        current_count = sum(1 for _ in project.TranslationTypes.GetAll())
         print(f"  Count before: {initial_count}")
         print(f"  Count after:  {current_count}")
         print(f"  Difference:   +{current_count - initial_count}")
@@ -148,13 +148,13 @@ def demo_translationtype_crud():
             updated = False
 
             # Try common update methods
-            if hasattr(project.Translationtype, 'SetName'):
+            if hasattr(project.TranslationTypes, 'SetName'):
                 try:
                     new_name = "crud_test_translationtype_modified"
                     print(f"\nUpdating name to: '{new_name}'")
-                    old_name = project.Translationtype.GetName(test_obj) if hasattr(project.Translationtype, 'GetName') else test_name
-                    project.Translationtype.SetName(test_obj, new_name)
-                    updated_name = project.Translationtype.GetName(test_obj) if hasattr(project.Translationtype, 'GetName') else new_name
+                    old_name = project.TranslationTypes.GetName(test_obj) if hasattr(project.TranslationTypes, 'GetName') else test_name
+                    project.TranslationTypes.SetName(test_obj, new_name)
+                    updated_name = project.TranslationTypes.GetName(test_obj) if hasattr(project.TranslationTypes, 'GetName') else new_name
                     print(f"  Old name: {old_name}")
                     print(f"  New name: {updated_name}")
                     test_name = new_name  # Update for cleanup
@@ -163,7 +163,7 @@ def demo_translationtype_crud():
                     print(f"  Note: SetName failed: {e}")
 
             # Try other Set methods
-            for method_name in dir(project.Translationtype):
+            for method_name in dir(project.TranslationTypes):
                 if method_name.startswith('Set') and method_name != 'SetName' and not updated:
                     print(f"\nFound update method: {method_name}")
                     print("  (Method available but not tested in this demo)")
@@ -179,14 +179,14 @@ def demo_translationtype_crud():
         print("STEP 5: READ - Verify updates persisted")
         print("="*70)
 
-        if hasattr(project.Translationtype, 'Find'):
+        if hasattr(project.TranslationTypes, 'Find'):
             print(f"\nFinding translationtype after update...")
-            updated_obj = project.Translationtype.Find(test_name)
+            updated_obj = project.TranslationTypes.Find(test_name)
             if updated_obj:
                 print(f"  FOUND: translationtype")
                 try:
-                    if hasattr(project.Translationtype, 'GetName'):
-                        print(f"  Name: {project.Translationtype.GetName(updated_obj)}")
+                    if hasattr(project.TranslationTypes, 'GetName'):
+                        print(f"  Name: {project.TranslationTypes.GetName(updated_obj)}")
                 except:
                     pass
             else:
@@ -200,17 +200,17 @@ def demo_translationtype_crud():
         if test_obj:
             print(f"\nDeleting test translationtype...")
             try:
-                obj_name = project.Translationtype.GetName(test_obj) if hasattr(project.Translationtype, 'GetName') else test_name
+                obj_name = project.TranslationTypes.GetName(test_obj) if hasattr(project.TranslationTypes, 'GetName') else test_name
             except:
                 obj_name = test_name
 
-            project.Translationtype.Delete(test_obj)
+            project.TranslationTypes.Delete(test_obj)
             print(f"  Deleted: {obj_name}")
 
             # Verify deletion
             print("\nVerifying deletion...")
-            if hasattr(project.Translationtype, 'Exists'):
-                still_exists = project.Translationtype.Exists(test_name)
+            if hasattr(project.TranslationTypes, 'Exists'):
+                still_exists = project.TranslationTypes.Exists(test_name)
                 print(f"  Still exists: {still_exists}")
 
                 if not still_exists:
@@ -219,7 +219,7 @@ def demo_translationtype_crud():
                     print("  DELETE: FAILED - Translationtype still exists")
 
             # Count after deletion
-            final_count = sum(1 for _ in project.Translationtype.GetAll())
+            final_count = sum(1 for _ in project.TranslationTypes.GetAll())
             print(f"\n  Count after delete: {final_count}")
             print(f"  Back to initial:    {final_count == initial_count}")
 
@@ -247,10 +247,10 @@ def demo_translationtype_crud():
 
         try:
             for name in ["crud_test_translationtype", "crud_test_translationtype_modified"]:
-                if hasattr(project.Translationtype, 'Exists') and project.Translationtype.Exists(name):
-                    obj = project.Translationtype.Find(name) if hasattr(project.Translationtype, 'Find') else None
+                if hasattr(project.TranslationTypes, 'Exists') and project.TranslationTypes.Exists(name):
+                    obj = project.TranslationTypes.Find(name) if hasattr(project.TranslationTypes, 'Find') else None
                     if obj:
-                        project.Translationtype.Delete(obj)
+                        project.TranslationTypes.Delete(obj)
                         print(f"  Cleaned up: {name}")
         except:
             pass

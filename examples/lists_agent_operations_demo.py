@@ -49,10 +49,10 @@ def demo_agent_crud():
 
         print("\nGetting all agents...")
         initial_count = 0
-        for obj in project.Agent.GetAll():
+        for obj in project.Agents.GetAll():
             # Display first few objects
             try:
-                name = project.Agent.GetName(obj) if hasattr(project.Agent, 'GetName') else str(obj)
+                name = project.Agents.GetName(obj) if hasattr(project.Agents, 'GetName') else str(obj)
                 print(f"  - {name}")
             except:
                 print(f"  - [Object {initial_count + 1}]")
@@ -69,12 +69,12 @@ def demo_agent_crud():
 
         # Check if test object already exists
         try:
-            if hasattr(project.Agent, 'Exists') and project.Agent.Exists(test_name):
+            if hasattr(project.Agents, 'Exists') and project.Agents.Exists(test_name):
                 print(f"\nTest agent '{test_name}' already exists")
                 print("Deleting existing one first...")
-                existing = project.Agent.Find(test_name) if hasattr(project.Agent, 'Find') else None
+                existing = project.Agents.Find(test_name) if hasattr(project.Agents, 'Find') else None
                 if existing:
-                    project.Agent.Delete(existing)
+                    project.Agents.Delete(existing)
                     print("  Deleted existing test agent")
         except:
             pass
@@ -84,13 +84,13 @@ def demo_agent_crud():
 
         try:
             # Attempt to create with common parameters
-            test_obj = project.Agent.Create(test_name)
+            test_obj = project.Agents.Create(test_name)
         except TypeError:
             try:
                 # Try without parameters if that fails
-                test_obj = project.Agent.Create()
-                if hasattr(project.Agent, 'SetName'):
-                    project.Agent.SetName(test_obj, test_name)
+                test_obj = project.Agents.Create()
+                if hasattr(project.Agents, 'SetName'):
+                    project.Agents.SetName(test_obj, test_name)
             except Exception as e:
                 print(f"  Note: Create method may require specific parameters: {e}")
                 test_obj = None
@@ -98,8 +98,8 @@ def demo_agent_crud():
         if test_obj:
             print(f"  SUCCESS: Agent created!")
             try:
-                if hasattr(project.Agent, 'GetName'):
-                    print(f"  Name: {project.Agent.GetName(test_obj)}")
+                if hasattr(project.Agents, 'GetName'):
+                    print(f"  Name: {project.Agents.GetName(test_obj)}")
             except:
                 pass
         else:
@@ -113,20 +113,20 @@ def demo_agent_crud():
         print("="*70)
 
         # Test Exists
-        if hasattr(project.Agent, 'Exists'):
+        if hasattr(project.Agents, 'Exists'):
             print(f"\nChecking if '{test_name}' exists...")
-            exists = project.Agent.Exists(test_name)
+            exists = project.Agents.Exists(test_name)
             print(f"  Exists: {exists}")
 
         # Test Find
-        if hasattr(project.Agent, 'Find'):
+        if hasattr(project.Agents, 'Find'):
             print(f"\nFinding agent by name...")
-            found_obj = project.Agent.Find(test_name)
+            found_obj = project.Agents.Find(test_name)
             if found_obj:
                 print(f"  FOUND: agent")
                 try:
-                    if hasattr(project.Agent, 'GetName'):
-                        print(f"  Name: {project.Agent.GetName(found_obj)}")
+                    if hasattr(project.Agents, 'GetName'):
+                        print(f"  Name: {project.Agents.GetName(found_obj)}")
                 except:
                     pass
             else:
@@ -134,7 +134,7 @@ def demo_agent_crud():
 
         # Count after creation
         print("\nCounting all agents after creation...")
-        current_count = sum(1 for _ in project.Agent.GetAll())
+        current_count = sum(1 for _ in project.Agents.GetAll())
         print(f"  Count before: {initial_count}")
         print(f"  Count after:  {current_count}")
         print(f"  Difference:   +{current_count - initial_count}")
@@ -148,13 +148,13 @@ def demo_agent_crud():
             updated = False
 
             # Try common update methods
-            if hasattr(project.Agent, 'SetName'):
+            if hasattr(project.Agents, 'SetName'):
                 try:
                     new_name = "crud_test_agent_modified"
                     print(f"\nUpdating name to: '{new_name}'")
-                    old_name = project.Agent.GetName(test_obj) if hasattr(project.Agent, 'GetName') else test_name
-                    project.Agent.SetName(test_obj, new_name)
-                    updated_name = project.Agent.GetName(test_obj) if hasattr(project.Agent, 'GetName') else new_name
+                    old_name = project.Agents.GetName(test_obj) if hasattr(project.Agents, 'GetName') else test_name
+                    project.Agents.SetName(test_obj, new_name)
+                    updated_name = project.Agents.GetName(test_obj) if hasattr(project.Agents, 'GetName') else new_name
                     print(f"  Old name: {old_name}")
                     print(f"  New name: {updated_name}")
                     test_name = new_name  # Update for cleanup
@@ -163,7 +163,7 @@ def demo_agent_crud():
                     print(f"  Note: SetName failed: {e}")
 
             # Try other Set methods
-            for method_name in dir(project.Agent):
+            for method_name in dir(project.Agents):
                 if method_name.startswith('Set') and method_name != 'SetName' and not updated:
                     print(f"\nFound update method: {method_name}")
                     print("  (Method available but not tested in this demo)")
@@ -179,14 +179,14 @@ def demo_agent_crud():
         print("STEP 5: READ - Verify updates persisted")
         print("="*70)
 
-        if hasattr(project.Agent, 'Find'):
+        if hasattr(project.Agents, 'Find'):
             print(f"\nFinding agent after update...")
-            updated_obj = project.Agent.Find(test_name)
+            updated_obj = project.Agents.Find(test_name)
             if updated_obj:
                 print(f"  FOUND: agent")
                 try:
-                    if hasattr(project.Agent, 'GetName'):
-                        print(f"  Name: {project.Agent.GetName(updated_obj)}")
+                    if hasattr(project.Agents, 'GetName'):
+                        print(f"  Name: {project.Agents.GetName(updated_obj)}")
                 except:
                     pass
             else:
@@ -200,17 +200,17 @@ def demo_agent_crud():
         if test_obj:
             print(f"\nDeleting test agent...")
             try:
-                obj_name = project.Agent.GetName(test_obj) if hasattr(project.Agent, 'GetName') else test_name
+                obj_name = project.Agents.GetName(test_obj) if hasattr(project.Agents, 'GetName') else test_name
             except:
                 obj_name = test_name
 
-            project.Agent.Delete(test_obj)
+            project.Agents.Delete(test_obj)
             print(f"  Deleted: {obj_name}")
 
             # Verify deletion
             print("\nVerifying deletion...")
-            if hasattr(project.Agent, 'Exists'):
-                still_exists = project.Agent.Exists(test_name)
+            if hasattr(project.Agents, 'Exists'):
+                still_exists = project.Agents.Exists(test_name)
                 print(f"  Still exists: {still_exists}")
 
                 if not still_exists:
@@ -219,7 +219,7 @@ def demo_agent_crud():
                     print("  DELETE: FAILED - Agent still exists")
 
             # Count after deletion
-            final_count = sum(1 for _ in project.Agent.GetAll())
+            final_count = sum(1 for _ in project.Agents.GetAll())
             print(f"\n  Count after delete: {final_count}")
             print(f"  Back to initial:    {final_count == initial_count}")
 
@@ -247,10 +247,10 @@ def demo_agent_crud():
 
         try:
             for name in ["crud_test_agent", "crud_test_agent_modified"]:
-                if hasattr(project.Agent, 'Exists') and project.Agent.Exists(name):
-                    obj = project.Agent.Find(name) if hasattr(project.Agent, 'Find') else None
+                if hasattr(project.Agents, 'Exists') and project.Agents.Exists(name):
+                    obj = project.Agents.Find(name) if hasattr(project.Agents, 'Find') else None
                     if obj:
-                        project.Agent.Delete(obj)
+                        project.Agents.Delete(obj)
                         print(f"  Cleaned up: {name}")
         except:
             pass

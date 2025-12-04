@@ -51,9 +51,10 @@ from ..FLExProject import (
 
 # Import FLExLCM types
 from .. import FLExLCM  # Fixed: was "from ." (wrong path)
+from ..BaseOperations import BaseOperations
 
 
-class CustomFieldOperations:
+class CustomFieldOperations(BaseOperations):
     """
     This class provides operations for managing custom fields in a
     FieldWorks project.
@@ -110,7 +111,7 @@ class CustomFieldOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
 
 
     # --- Field Definition Management ---
@@ -1308,3 +1309,26 @@ class CustomFieldOperations:
                 raise FP_ParameterError(f"Invalid writing system: {ws}")
             return handle
         return ws
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate operation is not applicable for custom fields.
+
+        Custom fields are metadata definitions at the project schema level and
+        cannot be duplicated like data objects.
+
+        Raises:
+            NotImplementedError: Always raised - custom fields cannot be duplicated.
+
+        Notes:
+            - Use CreateField() to create a new custom field with similar properties
+            - Custom fields are unique schema elements
+            - Field duplication would require schema modification
+
+        See Also:
+            CreateField, DeleteField
+        """
+        raise NotImplementedError(
+            "Custom fields cannot be duplicated. Use CreateField() to create a new field."
+        )

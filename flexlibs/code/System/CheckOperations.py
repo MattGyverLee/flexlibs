@@ -37,9 +37,10 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
+from ..BaseOperations import BaseOperations
 
 
-class CheckOperations:
+class CheckOperations(BaseOperations):
     """
     This class provides operations for managing consistency checks and
     validation in a FieldWorks project.
@@ -90,7 +91,7 @@ class CheckOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
         # Cache for check execution results
         self._check_results = {}
         self._check_last_run = {}
@@ -1359,3 +1360,78 @@ class CheckOperations:
         if hasattr(obj, 'HeadWord'):
             return f"Issue with '{obj.HeadWord.Text}'"
         return "Issue found"
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate a check type, creating a new copy with a new GUID.
+
+        Args:
+            item_or_hvo: The ICmPossibility check object or HVO to duplicate.
+            insert_after (bool): If True (default), insert after the source check.
+                                If False, insert at end of parent's list.
+            deep (bool): If True, also duplicate sub-checks.
+                        If False (default), only copy simple properties.
+
+        Returns:
+            ICmPossibility: The newly created duplicate with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If item_or_hvo is None.
+
+        Example:
+            >>> check = project.Checks.FindCheckType("Missing Gloss")
+            >>> if check:
+            ...     dup = project.Checks.Duplicate(check)
+            ...     print(f"Duplicate: {project.Checks.GetName(dup)}")
+
+        Notes:
+            - Factory.Create() automatically generates a new GUID
+            - MultiString properties: Name, Description
+            - Check state (enabled/disabled) is not copied
+            - Check results are not copied
+
+        See Also:
+            CreateCheckType, DeleteCheckType, GetGuid
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        check_obj = self.__GetCheckObject(item_or_hvo)
+        parent = check_obj.Owner
+
+        # Create new check using factory (auto-generates new GUID)
+        factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
+        duplicate = factory.Create()
+
+        # ADD TO PARENT FIRST
+        if insert_after:
+            # Insert after source
+            if hasattr(parent, 'PossibilitiesOS'):
+                source_index = parent.PossibilitiesOS.IndexOf(check_obj)
+                parent.PossibilitiesOS.Insert(source_index + 1, duplicate)
+            elif hasattr(parent, 'SubPossibilitiesOS'):
+                source_index = parent.SubPossibilitiesOS.IndexOf(check_obj)
+                parent.SubPossibilitiesOS.Insert(source_index + 1, duplicate)
+        else:
+            # Insert at end
+            if hasattr(parent, 'PossibilitiesOS'):
+                parent.PossibilitiesOS.Add(duplicate)
+            elif hasattr(parent, 'SubPossibilitiesOS'):
+                parent.SubPossibilitiesOS.Add(duplicate)
+
+        # Copy MultiString properties (AFTER adding to parent)
+        duplicate.Name.CopyAlternatives(check_obj.Name)
+        if hasattr(check_obj, 'Description') and check_obj.Description:
+            duplicate.Description.CopyAlternatives(check_obj.Description)
+
+        # Note: Check state and results are not copied
+        # The duplicate starts as disabled with no results
+
+        # Deep copy: duplicate sub-checks
+        if deep and hasattr(check_obj, 'SubPossibilitiesOS') and check_obj.SubPossibilitiesOS.Count > 0:
+            for sub in check_obj.SubPossibilitiesOS:
+                self.Duplicate(sub, insert_after=False, deep=True)
+
+        return duplicate

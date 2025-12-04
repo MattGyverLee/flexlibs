@@ -31,9 +31,10 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
+from ..BaseOperations import BaseOperations
 
 
-class AnnotationDefOperations:
+class AnnotationDefOperations(BaseOperations):
     """
     This class provides operations for managing annotation type definitions
     in a FieldWorks project.
@@ -93,7 +94,7 @@ class AnnotationDefOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
 
 
     # --- Core CRUD Operations ---
@@ -1094,6 +1095,94 @@ class AnnotationDefOperations:
         if hasattr(anno_def, 'DateCreated'):
             return anno_def.DateCreated
         return None
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate an annotation definition, creating a new copy with a new GUID.
+
+        Args:
+            item_or_hvo: The ICmAnnotationDefn object or HVO to duplicate.
+            insert_after (bool): If True (default), insert after the source definition.
+                                If False, insert at end of parent's list.
+            deep (bool): If True, also duplicate sub-possibilities.
+                        If False (default), only copy simple properties.
+
+        Returns:
+            ICmAnnotationDefn: The newly created duplicate with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If item_or_hvo is None.
+
+        Example:
+            >>> todo = project.AnnotationDef.Find("To Do")
+            >>> if todo:
+            ...     dup = project.AnnotationDef.Duplicate(todo)
+            ...     print(f"Duplicate GUID: {project.AnnotationDef.GetGuid(dup)}")
+
+        Notes:
+            - Factory.Create() automatically generates a new GUID
+            - MultiString properties: Name, HelpString, Prompt
+            - Simple properties: AnnotationType, InstanceOf, UserCanCreate, AllowsMultiple
+            - Sub-possibilities duplicated only if deep=True
+
+        See Also:
+            Create, Delete, GetGuid
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not item_or_hvo:
+            raise FP_NullParameterError()
+
+        # Get source object
+        source = ICmAnnotationDefn(item_or_hvo) if not isinstance(item_or_hvo, int) else ICmAnnotationDefn(self.project.Object(item_or_hvo))
+        parent = source.Owner
+
+        # Create new annotation definition using factory (auto-generates new GUID)
+        factory = self.project.project.ServiceLocator.GetService(ICmAnnotationDefnFactory)
+        duplicate = factory.Create()
+
+        # ADD TO PARENT FIRST
+        if insert_after:
+            # Insert after source
+            if hasattr(parent, 'PossibilitiesOS'):
+                source_index = parent.PossibilitiesOS.IndexOf(source)
+                parent.PossibilitiesOS.Insert(source_index + 1, duplicate)
+            elif hasattr(parent, 'SubPossibilitiesOS'):
+                source_index = parent.SubPossibilitiesOS.IndexOf(source)
+                parent.SubPossibilitiesOS.Insert(source_index + 1, duplicate)
+        else:
+            # Insert at end
+            if hasattr(parent, 'PossibilitiesOS'):
+                parent.PossibilitiesOS.Add(duplicate)
+            elif hasattr(parent, 'SubPossibilitiesOS'):
+                parent.SubPossibilitiesOS.Add(duplicate)
+
+        # Copy MultiString properties (AFTER adding to parent)
+        duplicate.Name.CopyAlternatives(source.Name)
+        if hasattr(source, 'HelpString') and source.HelpString:
+            duplicate.HelpString.CopyAlternatives(source.HelpString)
+        if hasattr(source, 'Prompt') and source.Prompt:
+            duplicate.Prompt.CopyAlternatives(source.Prompt)
+
+        # Copy simple properties
+        if hasattr(source, 'AnnotationType'):
+            duplicate.AnnotationType = source.AnnotationType
+        if hasattr(source, 'InstanceOf'):
+            duplicate.InstanceOf = source.InstanceOf
+        if hasattr(source, 'UserCanCreate'):
+            duplicate.UserCanCreate = source.UserCanCreate
+        if hasattr(source, 'AllowsMultiple'):
+            duplicate.AllowsMultiple = source.AllowsMultiple
+
+        # Deep copy: duplicate sub-possibilities
+        if deep and hasattr(source, 'SubPossibilitiesOS') and source.SubPossibilitiesOS.Count > 0:
+            for sub in source.SubPossibilitiesOS:
+                self.Duplicate(sub, insert_after=False, deep=True)
+
+        return duplicate
 
 
     # --- Private Helper Methods ---

@@ -14,6 +14,9 @@
 import logging
 logger = logging.getLogger(__name__)
 
+# Import BaseOperations parent class
+from ..BaseOperations import BaseOperations
+
 # Import FLEx LCM types
 from SIL.LCModel import (
     IPhNaturalClass,
@@ -32,7 +35,7 @@ from ..FLExProject import (
 )
 
 
-class NaturalClassOperations:
+class NaturalClassOperations(BaseOperations):
     """
     This class provides operations for managing natural classes in a
     FieldWorks project.
@@ -73,7 +76,15 @@ class NaturalClassOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
+
+
+    def _GetSequence(self, parent):
+        """
+        Specify which sequence to reorder for natural classes.
+        For NaturalClass, we reorder parent.SubPossibilitiesOS
+        """
+        return parent.SubPossibilitiesOS
 
     def __WSHandle(self, wsHandle):
         """
@@ -259,6 +270,88 @@ class NaturalClassOperations:
         # Remove from the natural classes collection
         phon_data = self.project.lp.PhonologicalDataOA
         phon_data.NaturalClassesOS.Remove(nc)
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate a natural class, creating a new copy with a new GUID.
+
+        Args:
+            item_or_hvo: The IPhNaturalClass object or HVO to duplicate.
+            insert_after (bool): If True (default), insert after the source natural class.
+                                If False, insert at end of natural classes list.
+            deep (bool): If True, also duplicate owned objects (if any exist).
+                        If False (default), only copy simple properties and references.
+                        Note: NaturalClass has no owned objects, so deep has no effect.
+
+        Returns:
+            IPhNCSegments: The newly created duplicate natural class with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If item_or_hvo is None.
+
+        Example:
+            >>> ncOps = NaturalClassOperations(project)
+            >>> stops = ncOps.Create("Voiceless Stops", "VLS")
+            >>> # Add some phonemes...
+            >>> # Now duplicate it to create "Voiced Stops"
+            >>> voiced = ncOps.Duplicate(stops)
+            >>> ncOps.SetName(voiced, "Voiced Stops")
+            >>> ncOps.SetAbbreviation(voiced, "VCD")
+            >>> print(f"Original: {ncOps.GetGuid(stops)}")
+            >>> print(f"Duplicate: {ncOps.GetGuid(voiced)}")
+            Original: 12345678-1234-1234-1234-123456789abc
+            Duplicate: 87654321-4321-4321-4321-cba987654321
+
+        Notes:
+            - Factory.Create() automatically generates a new GUID
+            - insert_after=True preserves the original class's position
+            - Simple properties copied: Name, Abbreviation, Description
+            - Reference properties copied: SegmentsRC (phoneme members)
+            - NaturalClass has no owned objects, so deep parameter has no effect
+            - Useful for creating similar natural classes (e.g., voiced/voiceless pairs)
+            - Segment references are shallow copied - both classes reference same phonemes
+
+        See Also:
+            Create, Delete, GetGuid, AddPhoneme
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not item_or_hvo:
+            raise FP_NullParameterError()
+
+        # Get source natural class
+        source = self.__GetNaturalClassObject(item_or_hvo)
+        phon_data = self.project.lp.PhonologicalDataOA
+
+        # Create new natural class using factory (auto-generates new GUID)
+        factory = self.project.project.ServiceLocator.GetService(IPhNCSegmentsFactory)
+        duplicate = factory.Create()
+
+        # Determine insertion position
+        if insert_after:
+            # Insert after source natural class
+            source_index = list(phon_data.NaturalClassesOS).index(source)
+            phon_data.NaturalClassesOS.Insert(source_index + 1, duplicate)
+        else:
+            # Insert at end
+            phon_data.NaturalClassesOS.Add(duplicate)
+
+        # Copy simple MultiString properties
+        duplicate.Name.CopyAlternatives(source.Name)
+        duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)
+        duplicate.Description.CopyAlternatives(source.Description)
+
+        # Copy Reference Collection (RC) properties - phoneme members
+        if hasattr(source, 'SegmentsRC'):
+            for phoneme in source.SegmentsRC:
+                duplicate.SegmentsRC.Add(phoneme)
+
+        # Note: NaturalClass has no owned objects (OS collections), so deep has no effect
+
+        return duplicate
 
     def GetName(self, nc_or_hvo, wsHandle=None):
         """

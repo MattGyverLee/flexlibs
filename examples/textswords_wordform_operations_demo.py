@@ -49,10 +49,10 @@ def demo_wordform_crud():
 
         print("\nGetting all wordforms...")
         initial_count = 0
-        for obj in project.Wordform.GetAll():
+        for obj in project.Wordforms.GetAll():
             # Display first few objects
             try:
-                name = project.Wordform.GetName(obj) if hasattr(project.Wordform, 'GetName') else str(obj)
+                name = project.Wordforms.GetName(obj) if hasattr(project.Wordforms, 'GetName') else str(obj)
                 print(f"  - {name}")
             except:
                 print(f"  - [Object {initial_count + 1}]")
@@ -69,12 +69,12 @@ def demo_wordform_crud():
 
         # Check if test object already exists
         try:
-            if hasattr(project.Wordform, 'Exists') and project.Wordform.Exists(test_name):
+            if hasattr(project.Wordforms, 'Exists') and project.Wordforms.Exists(test_name):
                 print(f"\nTest wordform '{test_name}' already exists")
                 print("Deleting existing one first...")
-                existing = project.Wordform.Find(test_name) if hasattr(project.Wordform, 'Find') else None
+                existing = project.Wordforms.Find(test_name) if hasattr(project.Wordforms, 'Find') else None
                 if existing:
-                    project.Wordform.Delete(existing)
+                    project.Wordforms.Delete(existing)
                     print("  Deleted existing test wordform")
         except:
             pass
@@ -84,13 +84,13 @@ def demo_wordform_crud():
 
         try:
             # Attempt to create with common parameters
-            test_obj = project.Wordform.Create(test_name)
+            test_obj = project.Wordforms.Create(test_name)
         except TypeError:
             try:
                 # Try without parameters if that fails
-                test_obj = project.Wordform.Create()
-                if hasattr(project.Wordform, 'SetName'):
-                    project.Wordform.SetName(test_obj, test_name)
+                test_obj = project.Wordforms.Create()
+                if hasattr(project.Wordforms, 'SetName'):
+                    project.Wordforms.SetName(test_obj, test_name)
             except Exception as e:
                 print(f"  Note: Create method may require specific parameters: {e}")
                 test_obj = None
@@ -98,8 +98,8 @@ def demo_wordform_crud():
         if test_obj:
             print(f"  SUCCESS: Wordform created!")
             try:
-                if hasattr(project.Wordform, 'GetName'):
-                    print(f"  Name: {project.Wordform.GetName(test_obj)}")
+                if hasattr(project.Wordforms, 'GetName'):
+                    print(f"  Name: {project.Wordforms.GetName(test_obj)}")
             except:
                 pass
         else:
@@ -113,20 +113,20 @@ def demo_wordform_crud():
         print("="*70)
 
         # Test Exists
-        if hasattr(project.Wordform, 'Exists'):
+        if hasattr(project.Wordforms, 'Exists'):
             print(f"\nChecking if '{test_name}' exists...")
-            exists = project.Wordform.Exists(test_name)
+            exists = project.Wordforms.Exists(test_name)
             print(f"  Exists: {exists}")
 
         # Test Find
-        if hasattr(project.Wordform, 'Find'):
+        if hasattr(project.Wordforms, 'Find'):
             print(f"\nFinding wordform by name...")
-            found_obj = project.Wordform.Find(test_name)
+            found_obj = project.Wordforms.Find(test_name)
             if found_obj:
                 print(f"  FOUND: wordform")
                 try:
-                    if hasattr(project.Wordform, 'GetName'):
-                        print(f"  Name: {project.Wordform.GetName(found_obj)}")
+                    if hasattr(project.Wordforms, 'GetName'):
+                        print(f"  Name: {project.Wordforms.GetName(found_obj)}")
                 except:
                     pass
             else:
@@ -134,7 +134,7 @@ def demo_wordform_crud():
 
         # Count after creation
         print("\nCounting all wordforms after creation...")
-        current_count = sum(1 for _ in project.Wordform.GetAll())
+        current_count = sum(1 for _ in project.Wordforms.GetAll())
         print(f"  Count before: {initial_count}")
         print(f"  Count after:  {current_count}")
         print(f"  Difference:   +{current_count - initial_count}")
@@ -148,13 +148,13 @@ def demo_wordform_crud():
             updated = False
 
             # Try common update methods
-            if hasattr(project.Wordform, 'SetName'):
+            if hasattr(project.Wordforms, 'SetName'):
                 try:
                     new_name = "crud_test_wordform_modified"
                     print(f"\nUpdating name to: '{new_name}'")
-                    old_name = project.Wordform.GetName(test_obj) if hasattr(project.Wordform, 'GetName') else test_name
-                    project.Wordform.SetName(test_obj, new_name)
-                    updated_name = project.Wordform.GetName(test_obj) if hasattr(project.Wordform, 'GetName') else new_name
+                    old_name = project.Wordforms.GetName(test_obj) if hasattr(project.Wordforms, 'GetName') else test_name
+                    project.Wordforms.SetName(test_obj, new_name)
+                    updated_name = project.Wordforms.GetName(test_obj) if hasattr(project.Wordforms, 'GetName') else new_name
                     print(f"  Old name: {old_name}")
                     print(f"  New name: {updated_name}")
                     test_name = new_name  # Update for cleanup
@@ -163,7 +163,7 @@ def demo_wordform_crud():
                     print(f"  Note: SetName failed: {e}")
 
             # Try other Set methods
-            for method_name in dir(project.Wordform):
+            for method_name in dir(project.Wordforms):
                 if method_name.startswith('Set') and method_name != 'SetName' and not updated:
                     print(f"\nFound update method: {method_name}")
                     print("  (Method available but not tested in this demo)")
@@ -179,14 +179,14 @@ def demo_wordform_crud():
         print("STEP 5: READ - Verify updates persisted")
         print("="*70)
 
-        if hasattr(project.Wordform, 'Find'):
+        if hasattr(project.Wordforms, 'Find'):
             print(f"\nFinding wordform after update...")
-            updated_obj = project.Wordform.Find(test_name)
+            updated_obj = project.Wordforms.Find(test_name)
             if updated_obj:
                 print(f"  FOUND: wordform")
                 try:
-                    if hasattr(project.Wordform, 'GetName'):
-                        print(f"  Name: {project.Wordform.GetName(updated_obj)}")
+                    if hasattr(project.Wordforms, 'GetName'):
+                        print(f"  Name: {project.Wordforms.GetName(updated_obj)}")
                 except:
                     pass
             else:
@@ -200,17 +200,17 @@ def demo_wordform_crud():
         if test_obj:
             print(f"\nDeleting test wordform...")
             try:
-                obj_name = project.Wordform.GetName(test_obj) if hasattr(project.Wordform, 'GetName') else test_name
+                obj_name = project.Wordforms.GetName(test_obj) if hasattr(project.Wordforms, 'GetName') else test_name
             except:
                 obj_name = test_name
 
-            project.Wordform.Delete(test_obj)
+            project.Wordforms.Delete(test_obj)
             print(f"  Deleted: {obj_name}")
 
             # Verify deletion
             print("\nVerifying deletion...")
-            if hasattr(project.Wordform, 'Exists'):
-                still_exists = project.Wordform.Exists(test_name)
+            if hasattr(project.Wordforms, 'Exists'):
+                still_exists = project.Wordforms.Exists(test_name)
                 print(f"  Still exists: {still_exists}")
 
                 if not still_exists:
@@ -219,7 +219,7 @@ def demo_wordform_crud():
                     print("  DELETE: FAILED - Wordform still exists")
 
             # Count after deletion
-            final_count = sum(1 for _ in project.Wordform.GetAll())
+            final_count = sum(1 for _ in project.Wordforms.GetAll())
             print(f"\n  Count after delete: {final_count}")
             print(f"  Back to initial:    {final_count == initial_count}")
 
@@ -247,10 +247,10 @@ def demo_wordform_crud():
 
         try:
             for name in ["crud_test_wordform", "crud_test_wordform_modified"]:
-                if hasattr(project.Wordform, 'Exists') and project.Wordform.Exists(name):
-                    obj = project.Wordform.Find(name) if hasattr(project.Wordform, 'Find') else None
+                if hasattr(project.Wordforms, 'Exists') and project.Wordforms.Exists(name):
+                    obj = project.Wordforms.Find(name) if hasattr(project.Wordforms, 'Find') else None
                     if obj:
-                        project.Wordform.Delete(obj)
+                        project.Wordforms.Delete(obj)
                         print(f"  Cleaned up: {name}")
         except:
             pass

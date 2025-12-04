@@ -49,10 +49,10 @@ def demo_wfianalysis_crud():
 
         print("\nGetting all wfianalysiss...")
         initial_count = 0
-        for obj in project.Wfianalysis.GetAll():
+        for obj in project.WfiAnalyses.GetAll():
             # Display first few objects
             try:
-                name = project.Wfianalysis.GetName(obj) if hasattr(project.Wfianalysis, 'GetName') else str(obj)
+                name = project.WfiAnalyses.GetName(obj) if hasattr(project.WfiAnalyses, 'GetName') else str(obj)
                 print(f"  - {name}")
             except:
                 print(f"  - [Object {initial_count + 1}]")
@@ -69,12 +69,12 @@ def demo_wfianalysis_crud():
 
         # Check if test object already exists
         try:
-            if hasattr(project.Wfianalysis, 'Exists') and project.Wfianalysis.Exists(test_name):
+            if hasattr(project.WfiAnalyses, 'Exists') and project.WfiAnalyses.Exists(test_name):
                 print(f"\nTest wfianalysis '{test_name}' already exists")
                 print("Deleting existing one first...")
-                existing = project.Wfianalysis.Find(test_name) if hasattr(project.Wfianalysis, 'Find') else None
+                existing = project.WfiAnalyses.Find(test_name) if hasattr(project.WfiAnalyses, 'Find') else None
                 if existing:
-                    project.Wfianalysis.Delete(existing)
+                    project.WfiAnalyses.Delete(existing)
                     print("  Deleted existing test wfianalysis")
         except:
             pass
@@ -84,13 +84,13 @@ def demo_wfianalysis_crud():
 
         try:
             # Attempt to create with common parameters
-            test_obj = project.Wfianalysis.Create(test_name)
+            test_obj = project.WfiAnalyses.Create(test_name)
         except TypeError:
             try:
                 # Try without parameters if that fails
-                test_obj = project.Wfianalysis.Create()
-                if hasattr(project.Wfianalysis, 'SetName'):
-                    project.Wfianalysis.SetName(test_obj, test_name)
+                test_obj = project.WfiAnalyses.Create()
+                if hasattr(project.WfiAnalyses, 'SetName'):
+                    project.WfiAnalyses.SetName(test_obj, test_name)
             except Exception as e:
                 print(f"  Note: Create method may require specific parameters: {e}")
                 test_obj = None
@@ -98,8 +98,8 @@ def demo_wfianalysis_crud():
         if test_obj:
             print(f"  SUCCESS: Wfianalysis created!")
             try:
-                if hasattr(project.Wfianalysis, 'GetName'):
-                    print(f"  Name: {project.Wfianalysis.GetName(test_obj)}")
+                if hasattr(project.WfiAnalyses, 'GetName'):
+                    print(f"  Name: {project.WfiAnalyses.GetName(test_obj)}")
             except:
                 pass
         else:
@@ -113,20 +113,20 @@ def demo_wfianalysis_crud():
         print("="*70)
 
         # Test Exists
-        if hasattr(project.Wfianalysis, 'Exists'):
+        if hasattr(project.WfiAnalyses, 'Exists'):
             print(f"\nChecking if '{test_name}' exists...")
-            exists = project.Wfianalysis.Exists(test_name)
+            exists = project.WfiAnalyses.Exists(test_name)
             print(f"  Exists: {exists}")
 
         # Test Find
-        if hasattr(project.Wfianalysis, 'Find'):
+        if hasattr(project.WfiAnalyses, 'Find'):
             print(f"\nFinding wfianalysis by name...")
-            found_obj = project.Wfianalysis.Find(test_name)
+            found_obj = project.WfiAnalyses.Find(test_name)
             if found_obj:
                 print(f"  FOUND: wfianalysis")
                 try:
-                    if hasattr(project.Wfianalysis, 'GetName'):
-                        print(f"  Name: {project.Wfianalysis.GetName(found_obj)}")
+                    if hasattr(project.WfiAnalyses, 'GetName'):
+                        print(f"  Name: {project.WfiAnalyses.GetName(found_obj)}")
                 except:
                     pass
             else:
@@ -134,7 +134,7 @@ def demo_wfianalysis_crud():
 
         # Count after creation
         print("\nCounting all wfianalysiss after creation...")
-        current_count = sum(1 for _ in project.Wfianalysis.GetAll())
+        current_count = sum(1 for _ in project.WfiAnalyses.GetAll())
         print(f"  Count before: {initial_count}")
         print(f"  Count after:  {current_count}")
         print(f"  Difference:   +{current_count - initial_count}")
@@ -148,13 +148,13 @@ def demo_wfianalysis_crud():
             updated = False
 
             # Try common update methods
-            if hasattr(project.Wfianalysis, 'SetName'):
+            if hasattr(project.WfiAnalyses, 'SetName'):
                 try:
                     new_name = "crud_test_wfianalysis_modified"
                     print(f"\nUpdating name to: '{new_name}'")
-                    old_name = project.Wfianalysis.GetName(test_obj) if hasattr(project.Wfianalysis, 'GetName') else test_name
-                    project.Wfianalysis.SetName(test_obj, new_name)
-                    updated_name = project.Wfianalysis.GetName(test_obj) if hasattr(project.Wfianalysis, 'GetName') else new_name
+                    old_name = project.WfiAnalyses.GetName(test_obj) if hasattr(project.WfiAnalyses, 'GetName') else test_name
+                    project.WfiAnalyses.SetName(test_obj, new_name)
+                    updated_name = project.WfiAnalyses.GetName(test_obj) if hasattr(project.WfiAnalyses, 'GetName') else new_name
                     print(f"  Old name: {old_name}")
                     print(f"  New name: {updated_name}")
                     test_name = new_name  # Update for cleanup
@@ -163,7 +163,7 @@ def demo_wfianalysis_crud():
                     print(f"  Note: SetName failed: {e}")
 
             # Try other Set methods
-            for method_name in dir(project.Wfianalysis):
+            for method_name in dir(project.WfiAnalyses):
                 if method_name.startswith('Set') and method_name != 'SetName' and not updated:
                     print(f"\nFound update method: {method_name}")
                     print("  (Method available but not tested in this demo)")
@@ -179,14 +179,14 @@ def demo_wfianalysis_crud():
         print("STEP 5: READ - Verify updates persisted")
         print("="*70)
 
-        if hasattr(project.Wfianalysis, 'Find'):
+        if hasattr(project.WfiAnalyses, 'Find'):
             print(f"\nFinding wfianalysis after update...")
-            updated_obj = project.Wfianalysis.Find(test_name)
+            updated_obj = project.WfiAnalyses.Find(test_name)
             if updated_obj:
                 print(f"  FOUND: wfianalysis")
                 try:
-                    if hasattr(project.Wfianalysis, 'GetName'):
-                        print(f"  Name: {project.Wfianalysis.GetName(updated_obj)}")
+                    if hasattr(project.WfiAnalyses, 'GetName'):
+                        print(f"  Name: {project.WfiAnalyses.GetName(updated_obj)}")
                 except:
                     pass
             else:
@@ -200,17 +200,17 @@ def demo_wfianalysis_crud():
         if test_obj:
             print(f"\nDeleting test wfianalysis...")
             try:
-                obj_name = project.Wfianalysis.GetName(test_obj) if hasattr(project.Wfianalysis, 'GetName') else test_name
+                obj_name = project.WfiAnalyses.GetName(test_obj) if hasattr(project.WfiAnalyses, 'GetName') else test_name
             except:
                 obj_name = test_name
 
-            project.Wfianalysis.Delete(test_obj)
+            project.WfiAnalyses.Delete(test_obj)
             print(f"  Deleted: {obj_name}")
 
             # Verify deletion
             print("\nVerifying deletion...")
-            if hasattr(project.Wfianalysis, 'Exists'):
-                still_exists = project.Wfianalysis.Exists(test_name)
+            if hasattr(project.WfiAnalyses, 'Exists'):
+                still_exists = project.WfiAnalyses.Exists(test_name)
                 print(f"  Still exists: {still_exists}")
 
                 if not still_exists:
@@ -219,7 +219,7 @@ def demo_wfianalysis_crud():
                     print("  DELETE: FAILED - Wfianalysis still exists")
 
             # Count after deletion
-            final_count = sum(1 for _ in project.Wfianalysis.GetAll())
+            final_count = sum(1 for _ in project.WfiAnalyses.GetAll())
             print(f"\n  Count after delete: {final_count}")
             print(f"  Back to initial:    {final_count == initial_count}")
 
@@ -247,10 +247,10 @@ def demo_wfianalysis_crud():
 
         try:
             for name in ["crud_test_wfianalysis", "crud_test_wfianalysis_modified"]:
-                if hasattr(project.Wfianalysis, 'Exists') and project.Wfianalysis.Exists(name):
-                    obj = project.Wfianalysis.Find(name) if hasattr(project.Wfianalysis, 'Find') else None
+                if hasattr(project.WfiAnalyses, 'Exists') and project.WfiAnalyses.Exists(name):
+                    obj = project.WfiAnalyses.Find(name) if hasattr(project.WfiAnalyses, 'Find') else None
                     if obj:
-                        project.Wfianalysis.Delete(obj)
+                        project.WfiAnalyses.Delete(obj)
                         print(f"  Cleaned up: {name}")
         except:
             pass

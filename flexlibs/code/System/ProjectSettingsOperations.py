@@ -29,9 +29,10 @@ from ..FLExProject import (
     FP_ParameterError,
     FP_WritingSystemError,
 )
+from ..BaseOperations import BaseOperations
 
 
-class ProjectSettingsOperations:
+class ProjectSettingsOperations(BaseOperations):
     """
     This class provides operations for managing project-level settings and
     configuration in a FieldWorks project.
@@ -95,7 +96,7 @@ class ProjectSettingsOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
 
 
     # --- Project Information ---
@@ -933,3 +934,25 @@ class ProjectSettingsOperations:
             str: Normalized tag
         """
         return language_tag.replace("_", "-").lower()
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate operation is not applicable for project settings.
+
+        Project settings are singleton configuration objects and cannot be duplicated.
+
+        Raises:
+            NotImplementedError: Always raised - project settings cannot be duplicated.
+
+        Notes:
+            - Project settings are unique per project
+            - Use getter/setter methods to modify settings
+            - Settings are not duplicatable data objects
+
+        See Also:
+            GetProjectName, SetProjectName
+        """
+        raise NotImplementedError(
+            "Project settings cannot be duplicated. Project settings are singleton configuration objects."
+        )

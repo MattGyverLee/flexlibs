@@ -49,10 +49,10 @@ def demo_annotationdef_crud():
 
         print("\nGetting all annotationdefs...")
         initial_count = 0
-        for obj in project.Annotationdef.GetAll():
+        for obj in project.AnnotationDefs.GetAll():
             # Display first few objects
             try:
-                name = project.Annotationdef.GetName(obj) if hasattr(project.Annotationdef, 'GetName') else str(obj)
+                name = project.AnnotationDefs.GetName(obj) if hasattr(project.AnnotationDefs, 'GetName') else str(obj)
                 print(f"  - {name}")
             except:
                 print(f"  - [Object {initial_count + 1}]")
@@ -69,12 +69,12 @@ def demo_annotationdef_crud():
 
         # Check if test object already exists
         try:
-            if hasattr(project.Annotationdef, 'Exists') and project.Annotationdef.Exists(test_name):
+            if hasattr(project.AnnotationDefs, 'Exists') and project.AnnotationDefs.Exists(test_name):
                 print(f"\nTest annotationdef '{test_name}' already exists")
                 print("Deleting existing one first...")
-                existing = project.Annotationdef.Find(test_name) if hasattr(project.Annotationdef, 'Find') else None
+                existing = project.AnnotationDefs.Find(test_name) if hasattr(project.AnnotationDefs, 'Find') else None
                 if existing:
-                    project.Annotationdef.Delete(existing)
+                    project.AnnotationDefs.Delete(existing)
                     print("  Deleted existing test annotationdef")
         except:
             pass
@@ -84,13 +84,13 @@ def demo_annotationdef_crud():
 
         try:
             # Attempt to create with common parameters
-            test_obj = project.Annotationdef.Create(test_name)
+            test_obj = project.AnnotationDefs.Create(test_name)
         except TypeError:
             try:
                 # Try without parameters if that fails
-                test_obj = project.Annotationdef.Create()
-                if hasattr(project.Annotationdef, 'SetName'):
-                    project.Annotationdef.SetName(test_obj, test_name)
+                test_obj = project.AnnotationDefs.Create()
+                if hasattr(project.AnnotationDefs, 'SetName'):
+                    project.AnnotationDefs.SetName(test_obj, test_name)
             except Exception as e:
                 print(f"  Note: Create method may require specific parameters: {e}")
                 test_obj = None
@@ -98,8 +98,8 @@ def demo_annotationdef_crud():
         if test_obj:
             print(f"  SUCCESS: Annotationdef created!")
             try:
-                if hasattr(project.Annotationdef, 'GetName'):
-                    print(f"  Name: {project.Annotationdef.GetName(test_obj)}")
+                if hasattr(project.AnnotationDefs, 'GetName'):
+                    print(f"  Name: {project.AnnotationDefs.GetName(test_obj)}")
             except:
                 pass
         else:
@@ -113,20 +113,20 @@ def demo_annotationdef_crud():
         print("="*70)
 
         # Test Exists
-        if hasattr(project.Annotationdef, 'Exists'):
+        if hasattr(project.AnnotationDefs, 'Exists'):
             print(f"\nChecking if '{test_name}' exists...")
-            exists = project.Annotationdef.Exists(test_name)
+            exists = project.AnnotationDefs.Exists(test_name)
             print(f"  Exists: {exists}")
 
         # Test Find
-        if hasattr(project.Annotationdef, 'Find'):
+        if hasattr(project.AnnotationDefs, 'Find'):
             print(f"\nFinding annotationdef by name...")
-            found_obj = project.Annotationdef.Find(test_name)
+            found_obj = project.AnnotationDefs.Find(test_name)
             if found_obj:
                 print(f"  FOUND: annotationdef")
                 try:
-                    if hasattr(project.Annotationdef, 'GetName'):
-                        print(f"  Name: {project.Annotationdef.GetName(found_obj)}")
+                    if hasattr(project.AnnotationDefs, 'GetName'):
+                        print(f"  Name: {project.AnnotationDefs.GetName(found_obj)}")
                 except:
                     pass
             else:
@@ -134,7 +134,7 @@ def demo_annotationdef_crud():
 
         # Count after creation
         print("\nCounting all annotationdefs after creation...")
-        current_count = sum(1 for _ in project.Annotationdef.GetAll())
+        current_count = sum(1 for _ in project.AnnotationDefs.GetAll())
         print(f"  Count before: {initial_count}")
         print(f"  Count after:  {current_count}")
         print(f"  Difference:   +{current_count - initial_count}")
@@ -148,13 +148,13 @@ def demo_annotationdef_crud():
             updated = False
 
             # Try common update methods
-            if hasattr(project.Annotationdef, 'SetName'):
+            if hasattr(project.AnnotationDefs, 'SetName'):
                 try:
                     new_name = "crud_test_annotationdef_modified"
                     print(f"\nUpdating name to: '{new_name}'")
-                    old_name = project.Annotationdef.GetName(test_obj) if hasattr(project.Annotationdef, 'GetName') else test_name
-                    project.Annotationdef.SetName(test_obj, new_name)
-                    updated_name = project.Annotationdef.GetName(test_obj) if hasattr(project.Annotationdef, 'GetName') else new_name
+                    old_name = project.AnnotationDefs.GetName(test_obj) if hasattr(project.AnnotationDefs, 'GetName') else test_name
+                    project.AnnotationDefs.SetName(test_obj, new_name)
+                    updated_name = project.AnnotationDefs.GetName(test_obj) if hasattr(project.AnnotationDefs, 'GetName') else new_name
                     print(f"  Old name: {old_name}")
                     print(f"  New name: {updated_name}")
                     test_name = new_name  # Update for cleanup
@@ -163,7 +163,7 @@ def demo_annotationdef_crud():
                     print(f"  Note: SetName failed: {e}")
 
             # Try other Set methods
-            for method_name in dir(project.Annotationdef):
+            for method_name in dir(project.AnnotationDefs):
                 if method_name.startswith('Set') and method_name != 'SetName' and not updated:
                     print(f"\nFound update method: {method_name}")
                     print("  (Method available but not tested in this demo)")
@@ -179,14 +179,14 @@ def demo_annotationdef_crud():
         print("STEP 5: READ - Verify updates persisted")
         print("="*70)
 
-        if hasattr(project.Annotationdef, 'Find'):
+        if hasattr(project.AnnotationDefs, 'Find'):
             print(f"\nFinding annotationdef after update...")
-            updated_obj = project.Annotationdef.Find(test_name)
+            updated_obj = project.AnnotationDefs.Find(test_name)
             if updated_obj:
                 print(f"  FOUND: annotationdef")
                 try:
-                    if hasattr(project.Annotationdef, 'GetName'):
-                        print(f"  Name: {project.Annotationdef.GetName(updated_obj)}")
+                    if hasattr(project.AnnotationDefs, 'GetName'):
+                        print(f"  Name: {project.AnnotationDefs.GetName(updated_obj)}")
                 except:
                     pass
             else:
@@ -200,17 +200,17 @@ def demo_annotationdef_crud():
         if test_obj:
             print(f"\nDeleting test annotationdef...")
             try:
-                obj_name = project.Annotationdef.GetName(test_obj) if hasattr(project.Annotationdef, 'GetName') else test_name
+                obj_name = project.AnnotationDefs.GetName(test_obj) if hasattr(project.AnnotationDefs, 'GetName') else test_name
             except:
                 obj_name = test_name
 
-            project.Annotationdef.Delete(test_obj)
+            project.AnnotationDefs.Delete(test_obj)
             print(f"  Deleted: {obj_name}")
 
             # Verify deletion
             print("\nVerifying deletion...")
-            if hasattr(project.Annotationdef, 'Exists'):
-                still_exists = project.Annotationdef.Exists(test_name)
+            if hasattr(project.AnnotationDefs, 'Exists'):
+                still_exists = project.AnnotationDefs.Exists(test_name)
                 print(f"  Still exists: {still_exists}")
 
                 if not still_exists:
@@ -219,7 +219,7 @@ def demo_annotationdef_crud():
                     print("  DELETE: FAILED - Annotationdef still exists")
 
             # Count after deletion
-            final_count = sum(1 for _ in project.Annotationdef.GetAll())
+            final_count = sum(1 for _ in project.AnnotationDefs.GetAll())
             print(f"\n  Count after delete: {final_count}")
             print(f"  Back to initial:    {final_count == initial_count}")
 
@@ -247,10 +247,10 @@ def demo_annotationdef_crud():
 
         try:
             for name in ["crud_test_annotationdef", "crud_test_annotationdef_modified"]:
-                if hasattr(project.Annotationdef, 'Exists') and project.Annotationdef.Exists(name):
-                    obj = project.Annotationdef.Find(name) if hasattr(project.Annotationdef, 'Find') else None
+                if hasattr(project.AnnotationDefs, 'Exists') and project.AnnotationDefs.Exists(name):
+                    obj = project.AnnotationDefs.Find(name) if hasattr(project.AnnotationDefs, 'Find') else None
                     if obj:
-                        project.Annotationdef.Delete(obj)
+                        project.AnnotationDefs.Delete(obj)
                         print(f"  Cleaned up: {name}")
         except:
             pass

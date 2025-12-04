@@ -39,6 +39,7 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
+from ..BaseOperations import BaseOperations
 
 
 # --- Approval Status Enum ---
@@ -52,7 +53,7 @@ class ApprovalStatusTypes:
 
 # --- WfiAnalysisOperations Class ---
 
-class WfiAnalysisOperations:
+class WfiAnalysisOperations(BaseOperations):
     """
     Provides operations for managing wordform analyses in a FLEx project.
 
@@ -87,7 +88,11 @@ class WfiAnalysisOperations:
         Args:
             project: FLExProject instance
         """
-        self.project = project
+        super().__init__(project)
+
+    def _GetSequence(self, parent):
+        """Specify which sequence to reorder for wordform analyses."""
+        return parent.AnalysesOS
 
     def __WSHandle(self, wsHandle):
         """
@@ -288,6 +293,113 @@ class WfiAnalysisOperations:
         # Get the owning wordform and remove the analysis
         wordform = analysis.Owner
         wordform.AnalysesOC.Remove(analysis)
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate a wordform analysis, creating a new copy with a new GUID.
+
+        Args:
+            item_or_hvo: The IWfiAnalysis object or HVO to duplicate.
+            insert_after (bool): If True (default), insert after the source analysis.
+                                If False, insert at end of wordform's analysis list.
+            deep (bool): If True, also duplicate owned objects (glosses, morph bundles).
+                        If False (default), only copy simple properties and references.
+
+        Returns:
+            IWfiAnalysis: The newly created duplicate analysis with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If item_or_hvo is None.
+
+        Example:
+            >>> wf = project.Wordforms.Find("running")
+            >>> analyses = project.WfiAnalyses.GetAll(wf)
+            >>> if analyses:
+            ...     # Shallow duplicate (no glosses/morph bundles)
+            ...     dup = project.WfiAnalyses.Duplicate(analyses[0])
+            ...     print(f"Original: {project.WfiAnalyses.GetGuid(analyses[0])}")
+            ...     print(f"Duplicate: {project.WfiAnalyses.GetGuid(dup)}")
+            Original: 12345678-1234-1234-1234-123456789abc
+            Duplicate: 87654321-4321-4321-4321-cba987654321
+            ...
+            ...     # Deep duplicate (includes all glosses and morph bundles)
+            ...     deep_dup = project.WfiAnalyses.Duplicate(analyses[0], deep=True)
+            ...     print(f"Glosses: {project.WfiAnalyses.GetGlossCount(deep_dup)}")
+            ...     print(f"Morph bundles: {project.WfiAnalyses.GetMorphBundleCount(deep_dup)}")
+
+        Notes:
+            - Factory.Create() automatically generates a new GUID
+            - insert_after=True preserves the original analysis's position
+            - Simple properties copied: None (analysis has no simple MultiString properties)
+            - Reference properties copied: CategoryRA (part of speech)
+            - Owned objects (deep=True): MeaningsOC (glosses), MorphBundlesOS (morph bundles)
+            - EvaluationsRC (approval status) is NOT copied - new analysis starts unapproved
+
+        See Also:
+            Create, Delete, GetGuid
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not item_or_hvo:
+            raise FP_NullParameterError()
+
+        # Get source analysis and parent
+        source = self.__GetAnalysisObject(item_or_hvo)
+        parent = self._GetObject(source.Owner.Hvo)
+
+        # Create new analysis using factory (auto-generates new GUID)
+        factory = self.project.project.ServiceLocator.GetService(IWfiAnalysisFactory)
+        duplicate = factory.Create()
+
+        # Determine insertion position
+        if insert_after:
+            # Insert after source analysis
+            source_index = list(parent.AnalysesOC).index(source)
+            parent.AnalysesOC.Insert(source_index + 1, duplicate)
+        else:
+            # Insert at end
+            parent.AnalysesOC.Add(duplicate)
+
+        # Copy Reference Atomic (RA) properties
+        if hasattr(source, 'CategoryRA') and source.CategoryRA:
+            duplicate.CategoryRA = source.CategoryRA
+
+        # Note: We intentionally do NOT copy EvaluationsRC (approval status)
+        # New duplicate should start as unapproved
+
+        # Handle owned objects if deep=True
+        if deep:
+            # Duplicate glosses (MeaningsOC)
+            for gloss in source.MeaningsOC:
+                # Use WfiGlossOperations.Duplicate if available, otherwise manually copy
+                gloss_factory = self.project.project.ServiceLocator.GetService(IWfiGlossFactory)
+                new_gloss = gloss_factory.Create()
+                duplicate.MeaningsOC.Add(new_gloss)
+                # Copy gloss form
+                new_gloss.Form.CopyAlternatives(gloss.Form)
+
+            # Duplicate morph bundles (MorphBundlesOS)
+            for bundle in source.MorphBundlesOS:
+                # Use WfiMorphBundleOperations.Duplicate if available, otherwise manually copy
+                bundle_factory = self.project.project.ServiceLocator.GetService(IWfiMorphBundleFactory)
+                new_bundle = bundle_factory.Create()
+                duplicate.MorphBundlesOS.Add(new_bundle)
+                # Copy bundle properties
+                new_bundle.Form.CopyAlternatives(bundle.Form)
+                new_bundle.Gloss.CopyAlternatives(bundle.Gloss)
+                if hasattr(bundle, 'SenseRA') and bundle.SenseRA:
+                    new_bundle.SenseRA = bundle.SenseRA
+                if hasattr(bundle, 'MsaRA') and bundle.MsaRA:
+                    new_bundle.MsaRA = bundle.MsaRA
+                if hasattr(bundle, 'MorphRA') and bundle.MorphRA:
+                    new_bundle.MorphRA = bundle.MorphRA
+                if hasattr(bundle, 'InflClassRA') and bundle.InflClassRA:
+                    new_bundle.InflClassRA = bundle.InflClassRA
+
+        return duplicate
 
     def Exists(self, wordform_or_hvo, analysis_or_hvo):
         """

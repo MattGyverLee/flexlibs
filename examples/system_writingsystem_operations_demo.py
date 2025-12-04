@@ -49,10 +49,10 @@ def demo_writingsystem_crud():
 
         print("\nGetting all writingsystems...")
         initial_count = 0
-        for obj in project.Writingsystem.GetAll():
+        for obj in project.WritingSystems.GetAll():
             # Display first few objects
             try:
-                name = project.Writingsystem.GetName(obj) if hasattr(project.Writingsystem, 'GetName') else str(obj)
+                name = project.WritingSystems.GetName(obj) if hasattr(project.WritingSystems, 'GetName') else str(obj)
                 print(f"  - {name}")
             except:
                 print(f"  - [Object {initial_count + 1}]")
@@ -69,12 +69,12 @@ def demo_writingsystem_crud():
 
         # Check if test object already exists
         try:
-            if hasattr(project.Writingsystem, 'Exists') and project.Writingsystem.Exists(test_name):
+            if hasattr(project.WritingSystems, 'Exists') and project.WritingSystems.Exists(test_name):
                 print(f"\nTest writingsystem '{test_name}' already exists")
                 print("Deleting existing one first...")
-                existing = project.Writingsystem.Find(test_name) if hasattr(project.Writingsystem, 'Find') else None
+                existing = project.WritingSystems.Find(test_name) if hasattr(project.WritingSystems, 'Find') else None
                 if existing:
-                    project.Writingsystem.Delete(existing)
+                    project.WritingSystems.Delete(existing)
                     print("  Deleted existing test writingsystem")
         except:
             pass
@@ -84,13 +84,13 @@ def demo_writingsystem_crud():
 
         try:
             # Attempt to create with common parameters
-            test_obj = project.Writingsystem.Create(test_name)
+            test_obj = project.WritingSystems.Create(test_name)
         except TypeError:
             try:
                 # Try without parameters if that fails
-                test_obj = project.Writingsystem.Create()
-                if hasattr(project.Writingsystem, 'SetName'):
-                    project.Writingsystem.SetName(test_obj, test_name)
+                test_obj = project.WritingSystems.Create()
+                if hasattr(project.WritingSystems, 'SetName'):
+                    project.WritingSystems.SetName(test_obj, test_name)
             except Exception as e:
                 print(f"  Note: Create method may require specific parameters: {e}")
                 test_obj = None
@@ -98,8 +98,8 @@ def demo_writingsystem_crud():
         if test_obj:
             print(f"  SUCCESS: Writingsystem created!")
             try:
-                if hasattr(project.Writingsystem, 'GetName'):
-                    print(f"  Name: {project.Writingsystem.GetName(test_obj)}")
+                if hasattr(project.WritingSystems, 'GetName'):
+                    print(f"  Name: {project.WritingSystems.GetName(test_obj)}")
             except:
                 pass
         else:
@@ -113,20 +113,20 @@ def demo_writingsystem_crud():
         print("="*70)
 
         # Test Exists
-        if hasattr(project.Writingsystem, 'Exists'):
+        if hasattr(project.WritingSystems, 'Exists'):
             print(f"\nChecking if '{test_name}' exists...")
-            exists = project.Writingsystem.Exists(test_name)
+            exists = project.WritingSystems.Exists(test_name)
             print(f"  Exists: {exists}")
 
         # Test Find
-        if hasattr(project.Writingsystem, 'Find'):
+        if hasattr(project.WritingSystems, 'Find'):
             print(f"\nFinding writingsystem by name...")
-            found_obj = project.Writingsystem.Find(test_name)
+            found_obj = project.WritingSystems.Find(test_name)
             if found_obj:
                 print(f"  FOUND: writingsystem")
                 try:
-                    if hasattr(project.Writingsystem, 'GetName'):
-                        print(f"  Name: {project.Writingsystem.GetName(found_obj)}")
+                    if hasattr(project.WritingSystems, 'GetName'):
+                        print(f"  Name: {project.WritingSystems.GetName(found_obj)}")
                 except:
                     pass
             else:
@@ -134,7 +134,7 @@ def demo_writingsystem_crud():
 
         # Count after creation
         print("\nCounting all writingsystems after creation...")
-        current_count = sum(1 for _ in project.Writingsystem.GetAll())
+        current_count = sum(1 for _ in project.WritingSystems.GetAll())
         print(f"  Count before: {initial_count}")
         print(f"  Count after:  {current_count}")
         print(f"  Difference:   +{current_count - initial_count}")
@@ -148,13 +148,13 @@ def demo_writingsystem_crud():
             updated = False
 
             # Try common update methods
-            if hasattr(project.Writingsystem, 'SetName'):
+            if hasattr(project.WritingSystems, 'SetName'):
                 try:
                     new_name = "crud_test_writingsystem_modified"
                     print(f"\nUpdating name to: '{new_name}'")
-                    old_name = project.Writingsystem.GetName(test_obj) if hasattr(project.Writingsystem, 'GetName') else test_name
-                    project.Writingsystem.SetName(test_obj, new_name)
-                    updated_name = project.Writingsystem.GetName(test_obj) if hasattr(project.Writingsystem, 'GetName') else new_name
+                    old_name = project.WritingSystems.GetName(test_obj) if hasattr(project.WritingSystems, 'GetName') else test_name
+                    project.WritingSystems.SetName(test_obj, new_name)
+                    updated_name = project.WritingSystems.GetName(test_obj) if hasattr(project.WritingSystems, 'GetName') else new_name
                     print(f"  Old name: {old_name}")
                     print(f"  New name: {updated_name}")
                     test_name = new_name  # Update for cleanup
@@ -163,7 +163,7 @@ def demo_writingsystem_crud():
                     print(f"  Note: SetName failed: {e}")
 
             # Try other Set methods
-            for method_name in dir(project.Writingsystem):
+            for method_name in dir(project.WritingSystems):
                 if method_name.startswith('Set') and method_name != 'SetName' and not updated:
                     print(f"\nFound update method: {method_name}")
                     print("  (Method available but not tested in this demo)")
@@ -179,14 +179,14 @@ def demo_writingsystem_crud():
         print("STEP 5: READ - Verify updates persisted")
         print("="*70)
 
-        if hasattr(project.Writingsystem, 'Find'):
+        if hasattr(project.WritingSystems, 'Find'):
             print(f"\nFinding writingsystem after update...")
-            updated_obj = project.Writingsystem.Find(test_name)
+            updated_obj = project.WritingSystems.Find(test_name)
             if updated_obj:
                 print(f"  FOUND: writingsystem")
                 try:
-                    if hasattr(project.Writingsystem, 'GetName'):
-                        print(f"  Name: {project.Writingsystem.GetName(updated_obj)}")
+                    if hasattr(project.WritingSystems, 'GetName'):
+                        print(f"  Name: {project.WritingSystems.GetName(updated_obj)}")
                 except:
                     pass
             else:
@@ -200,17 +200,17 @@ def demo_writingsystem_crud():
         if test_obj:
             print(f"\nDeleting test writingsystem...")
             try:
-                obj_name = project.Writingsystem.GetName(test_obj) if hasattr(project.Writingsystem, 'GetName') else test_name
+                obj_name = project.WritingSystems.GetName(test_obj) if hasattr(project.WritingSystems, 'GetName') else test_name
             except:
                 obj_name = test_name
 
-            project.Writingsystem.Delete(test_obj)
+            project.WritingSystems.Delete(test_obj)
             print(f"  Deleted: {obj_name}")
 
             # Verify deletion
             print("\nVerifying deletion...")
-            if hasattr(project.Writingsystem, 'Exists'):
-                still_exists = project.Writingsystem.Exists(test_name)
+            if hasattr(project.WritingSystems, 'Exists'):
+                still_exists = project.WritingSystems.Exists(test_name)
                 print(f"  Still exists: {still_exists}")
 
                 if not still_exists:
@@ -219,7 +219,7 @@ def demo_writingsystem_crud():
                     print("  DELETE: FAILED - Writingsystem still exists")
 
             # Count after deletion
-            final_count = sum(1 for _ in project.Writingsystem.GetAll())
+            final_count = sum(1 for _ in project.WritingSystems.GetAll())
             print(f"\n  Count after delete: {final_count}")
             print(f"  Back to initial:    {final_count == initial_count}")
 
@@ -247,10 +247,10 @@ def demo_writingsystem_crud():
 
         try:
             for name in ["crud_test_writingsystem", "crud_test_writingsystem_modified"]:
-                if hasattr(project.Writingsystem, 'Exists') and project.Writingsystem.Exists(name):
-                    obj = project.Writingsystem.Find(name) if hasattr(project.Writingsystem, 'Find') else None
+                if hasattr(project.WritingSystems, 'Exists') and project.WritingSystems.Exists(name):
+                    obj = project.WritingSystems.Find(name) if hasattr(project.WritingSystems, 'Find') else None
                     if obj:
-                        project.Writingsystem.Delete(obj)
+                        project.WritingSystems.Delete(obj)
                         print(f"  Cleaned up: {name}")
         except:
             pass

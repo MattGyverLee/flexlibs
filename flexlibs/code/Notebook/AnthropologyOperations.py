@@ -32,9 +32,10 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
+from ..BaseOperations import BaseOperations
 
 
-class AnthropologyOperations:
+class AnthropologyOperations(BaseOperations):
     """
     This class provides operations for managing anthropological and cultural
     items in a FieldWorks project.
@@ -89,7 +90,7 @@ class AnthropologyOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
 
 
     def __WSHandle(self, wsHandle):
@@ -1695,6 +1696,106 @@ class AnthropologyOperations:
         # Remove the person from the item's collection
         if hasattr(item, 'ResearchersRC'):
             item.ResearchersRC.Remove(person_obj)
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate an anthropology item, creating a new copy with a new GUID.
+
+        Args:
+            item_or_hvo: The ICmAnthroItem object or HVO to duplicate.
+            insert_after (bool): If True (default), insert after the source item.
+                                If False, insert at end of parent's subitems list.
+            deep (bool): If True, also duplicate owned objects (subitems).
+                        If False (default), only copy simple properties and references.
+
+        Returns:
+            ICmAnthroItem: The newly created duplicate item with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If item_or_hvo is None.
+
+        Example:
+            >>> # Shallow duplicate (no subitems)
+            >>> item = project.Anthropology.Find("Marriage Customs")
+            >>> dup = project.Anthropology.Duplicate(item)
+            >>> print(f"Original: {project.Anthropology.GetGuid(item)}")
+            >>> print(f"Duplicate: {project.Anthropology.GetGuid(dup)}")
+            Original: 12345678-1234-1234-1234-123456789abc
+            Duplicate: 87654321-4321-4321-4321-cba987654321
+
+            >>> # Deep duplicate (includes all subitems)
+            >>> deep_dup = project.Anthropology.Duplicate(item, deep=True)
+            >>> print(f"Subitems: {len(project.Anthropology.GetSubitems(deep_dup))}")
+
+        Notes:
+            - Factory.Create() automatically generates a new GUID
+            - insert_after=True preserves the original item's position
+            - Simple properties copied: Name, Abbreviation, Description, AnthroCode
+            - Reference properties copied: CategoryRA
+            - Owned objects (deep=True): SubPossibilitiesOS (subitems)
+            - TextsRC and ResearchersRC collections are NOT duplicated
+            - DateCreated and DateModified are NOT copied (set to current time)
+
+        See Also:
+            Create, Delete, GetGuid, GetSubitems
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not item_or_hvo:
+            raise FP_NullParameterError()
+
+        # Get source item and parent
+        source = self.__GetItemObject(item_or_hvo)
+
+        # Determine parent (owner)
+        owner = source.Owner
+
+        # Create new item using factory (auto-generates new GUID)
+        factory = self.project.project.ServiceLocator.GetService(ICmAnthroItemFactory)
+        duplicate = factory.Create()
+
+        # Determine insertion position and add to parent FIRST
+        if hasattr(owner, 'SubPossibilitiesOS'):
+            # Parent is another anthropology item
+            if insert_after:
+                source_index = owner.SubPossibilitiesOS.IndexOf(source)
+                owner.SubPossibilitiesOS.Insert(source_index + 1, duplicate)
+            else:
+                owner.SubPossibilitiesOS.Add(duplicate)
+        else:
+            # Parent is the top-level list
+            anthro_list = self.project.lp.AnthroListOA
+            if anthro_list:
+                if insert_after:
+                    source_index = anthro_list.PossibilitiesOS.IndexOf(source)
+                    anthro_list.PossibilitiesOS.Insert(source_index + 1, duplicate)
+                else:
+                    anthro_list.PossibilitiesOS.Add(duplicate)
+
+        # Copy simple MultiString properties
+        duplicate.Name.CopyAlternatives(source.Name)
+        duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)
+        duplicate.Description.CopyAlternatives(source.Description)
+
+        # Copy simple string property
+        if hasattr(source, 'AnthroCode') and source.AnthroCode:
+            duplicate.AnthroCode = source.AnthroCode
+
+        # Copy Reference Atomic (RA) properties
+        if hasattr(source, 'CategoryRA') and source.CategoryRA:
+            duplicate.CategoryRA = source.CategoryRA
+
+        # Handle owned objects if deep=True
+        if deep:
+            # Duplicate subitems
+            if hasattr(source, 'SubPossibilitiesOS'):
+                for subitem in source.SubPossibilitiesOS:
+                    self.Duplicate(subitem, insert_after=False, deep=True)
+
+        return duplicate
 
 
     # --- Metadata Operations ---

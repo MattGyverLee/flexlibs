@@ -30,9 +30,10 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
+from ..BaseOperations import BaseOperations
 
 
-class OverlayOperations:
+class OverlayOperations(BaseOperations):
     """
     Discourse chart overlay and layer management operations for FLEx projects.
 
@@ -90,7 +91,11 @@ class OverlayOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
+
+    def _GetSequence(self, parent):
+        """Specify which sequence to reorder for overlay sub-possibilities."""
+        return parent.SubPossibilitiesOS
 
 
     # --- Helper Methods ---
@@ -360,6 +365,116 @@ class OverlayOperations:
             owner.PossibilitiesOS.Remove(overlay_obj)
         else:
             raise FP_ParameterError("Overlay has no valid owner or cannot be removed")
+
+
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate an overlay, creating a new copy with a new GUID.
+
+        Args:
+            item_or_hvo: Either an overlay object or its HVO to duplicate.
+            insert_after (bool): If True (default), insert after the source overlay.
+                                If False, insert at end of owner's collection.
+            deep (bool): If True, also duplicate owned sub-possibilities.
+                        If False (default), only copy simple properties.
+
+        Returns:
+            Overlay object: The newly created duplicate overlay with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If project was not opened with writeEnabled=True.
+            FP_NullParameterError: If item_or_hvo is None.
+            FP_ParameterError: If the overlay is invalid or has no owner.
+
+        Example:
+            >>> overlay_ops = OverlayOperations(project)
+            >>> chart = discourse_ops.GetAllCharts(text)[0]
+            >>> overlay = overlay_ops.Find(chart, "Participants")
+            >>> if overlay:
+            ...     dup = overlay_ops.Duplicate(overlay)
+            ...     print(f"Original: {overlay_ops.GetName(overlay)}")
+            ...     print(f"Duplicate: {overlay_ops.GetName(dup)}")
+            Original: Participants
+            Duplicate: Participants
+            >>>
+            >>> # Modify the duplicate
+            >>> overlay_ops.SetName(dup, "Secondary Participants")
+            >>> overlay_ops.SetDescription(dup, "Track secondary participant chains")
+
+        Notes:
+            - Factory.Create() automatically generates a new GUID
+            - insert_after=True preserves the original overlay's position
+            - MultiString properties copied: Name, Description, Abbreviation
+            - If deep=True, also copies SubPossibilitiesOS recursively
+            - Duplicate is added to owner's collection before copying properties
+
+        See Also:
+            Create, Delete, GetGuid
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not item_or_hvo:
+            raise FP_NullParameterError()
+
+        # Get source overlay and owner
+        source = self.__GetOverlayObject(item_or_hvo)
+        owner = source.Owner
+
+        if not owner:
+            raise FP_ParameterError("Overlay has no owner")
+
+        # Create new overlay using factory (auto-generates new GUID)
+        factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
+        duplicate = factory.Create()
+
+        # ADD TO PARENT FIRST before copying properties (CRITICAL)
+        if hasattr(owner, 'ColumnsPossibilitiesOC'):
+            if insert_after:
+                source_index = owner.ColumnsPossibilitiesOC.IndexOf(source)
+                owner.ColumnsPossibilitiesOC.Insert(source_index + 1, duplicate)
+            else:
+                owner.ColumnsPossibilitiesOC.Add(duplicate)
+        elif hasattr(owner, 'PossibilitiesOS'):
+            if insert_after:
+                source_index = owner.PossibilitiesOS.IndexOf(source)
+                owner.PossibilitiesOS.Insert(source_index + 1, duplicate)
+            else:
+                owner.PossibilitiesOS.Add(duplicate)
+        else:
+            raise FP_ParameterError("Owner has no valid collection for overlay")
+
+        # Copy MultiString properties using CopyAlternatives
+        if hasattr(source, 'Name'):
+            duplicate.Name.CopyAlternatives(source.Name)
+        if hasattr(source, 'Description'):
+            duplicate.Description.CopyAlternatives(source.Description)
+        if hasattr(source, 'Abbreviation'):
+            duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)
+
+        # Copy visibility and display order properties
+        if hasattr(source, 'Hidden') and hasattr(duplicate, 'Hidden'):
+            duplicate.Hidden = source.Hidden
+        if hasattr(source, 'SortSpec') and hasattr(duplicate, 'SortSpec'):
+            duplicate.SortSpec = source.SortSpec
+
+        # Deep copy: duplicate owned sub-possibilities
+        if deep and hasattr(source, 'SubPossibilitiesOS') and source.SubPossibilitiesOS.Count > 0:
+            for sub_item in source.SubPossibilitiesOS:
+                # Recursively duplicate each sub-possibility
+                sub_factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
+                sub_dup = sub_factory.Create()
+                duplicate.SubPossibilitiesOS.Add(sub_dup)
+
+                # Copy sub-item properties
+                if hasattr(sub_item, 'Name'):
+                    sub_dup.Name.CopyAlternatives(sub_item.Name)
+                if hasattr(sub_item, 'Description'):
+                    sub_dup.Description.CopyAlternatives(sub_item.Description)
+                if hasattr(sub_item, 'Abbreviation'):
+                    sub_dup.Abbreviation.CopyAlternatives(sub_item.Abbreviation)
+
+        return duplicate
 
 
     def Find(self, chart_or_hvo, name):

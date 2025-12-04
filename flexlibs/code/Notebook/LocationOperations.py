@@ -32,9 +32,10 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
+from ..BaseOperations import BaseOperations
 
 
-class LocationOperations:
+class LocationOperations(BaseOperations):
     """
     This class provides operations for managing geographic locations in a
     FieldWorks project.
@@ -83,7 +84,7 @@ class LocationOperations:
         Args:
             project: The FLExProject instance to operate on.
         """
-        self.project = project
+        super().__init__(project)
 
 
     # --- Core CRUD Operations ---
@@ -1204,6 +1205,117 @@ class LocationOperations:
         new_location.DateCreated = DateTime.Now
 
         return new_location
+
+
+    def Duplicate(self, location_or_hvo, insert_after=True, deep=False):
+        """
+        Duplicate a location, creating a new copy with a new GUID.
+
+        Args:
+            location_or_hvo: The ICmLocation object or HVO to duplicate.
+            insert_after (bool): If True (default), insert after the source location.
+                                If False, insert at end of parent's sublocations list.
+            deep (bool): If True, also duplicate owned objects (sublocations).
+                        If False (default), only copy simple properties and references.
+
+        Returns:
+            ICmLocation: The newly created duplicate location with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If location_or_hvo is None.
+
+        Example:
+            >>> # Shallow duplicate (no sublocations)
+            >>> location = project.Location.Find("Barasana Village")
+            >>> dup = project.Location.Duplicate(location)
+            >>> print(f"Original: {project.Location.GetGuid(location)}")
+            >>> print(f"Duplicate: {project.Location.GetGuid(dup)}")
+            Original: 12345678-1234-1234-1234-123456789abc
+            Duplicate: 87654321-4321-4321-4321-cba987654321
+
+            >>> # Deep duplicate (includes all sublocations)
+            >>> region = project.Location.Find("Vaupés Department")
+            >>> deep_dup = project.Location.Duplicate(region, deep=True)
+            >>> print(f"Sublocations: {len(project.Location.GetSublocations(deep_dup))}")
+
+        Notes:
+            - Factory.Create() automatically generates a new GUID
+            - insert_after=True preserves the original location's position
+            - Simple properties copied: Name, Abbreviation (alias), Description
+            - Geographic properties copied: coordinates (latitude/longitude), elevation
+            - Owned objects (deep=True): SubPossibilitiesOS (sublocations)
+            - DateCreated is set to current time (not copied from source)
+            - DateModified is set automatically
+
+        See Also:
+            Create, Delete, GetGuid, GetSublocations
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if location_or_hvo is None:
+            raise FP_NullParameterError()
+
+        # Get source location
+        source = self.__ResolveObject(location_or_hvo)
+
+        # Determine parent (owner)
+        parent = self.GetRegion(source)
+
+        # Create new location using factory (auto-generates new GUID)
+        factory = self.project.project.ServiceLocator.GetService(ICmLocationFactory)
+        duplicate = factory.Create()
+
+        # Determine insertion position and add to parent FIRST
+        if parent:
+            # Parent is another location (sublocation)
+            if insert_after:
+                source_index = parent.SubPossibilitiesOS.IndexOf(source)
+                parent.SubPossibilitiesOS.Insert(source_index + 1, duplicate)
+            else:
+                parent.SubPossibilitiesOS.Add(duplicate)
+        else:
+            # Parent is the top-level list
+            location_list = self.project.lp.LocationsOA
+            if location_list:
+                if insert_after:
+                    source_index = location_list.PossibilitiesOS.IndexOf(source)
+                    location_list.PossibilitiesOS.Insert(source_index + 1, duplicate)
+                else:
+                    location_list.PossibilitiesOS.Add(duplicate)
+
+        # Copy simple MultiString properties
+        duplicate.Name.CopyAlternatives(source.Name)
+        duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)
+        if hasattr(source, 'Description'):
+            duplicate.Description.CopyAlternatives(source.Description)
+
+        # Copy coordinates and elevation
+        coords = self.GetCoordinates(source)
+        if coords:
+            lat, lon = coords
+            # Note: SetCoordinates handles the DateOfEvent GenDate field
+            if hasattr(source, 'DateOfEvent') and source.DateOfEvent:
+                if hasattr(duplicate, 'DateOfEvent'):
+                    duplicate.DateOfEvent = source.DateOfEvent
+
+        elevation = self.GetElevation(source)
+        if elevation is not None:
+            if hasattr(duplicate, 'Elevation'):
+                duplicate.Elevation = elevation
+
+        # Set creation date
+        duplicate.DateCreated = DateTime.Now
+
+        # Handle owned objects if deep=True
+        if deep:
+            # Duplicate sublocations
+            if hasattr(source, 'SubPossibilitiesOS'):
+                for sublocation in source.SubPossibilitiesOS:
+                    self.Duplicate(sublocation, insert_after=False, deep=True)
+
+        return duplicate
 
 
     # --- Metadata Operations ---
