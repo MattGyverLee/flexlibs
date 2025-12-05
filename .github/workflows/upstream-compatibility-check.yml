@@ -31,7 +31,9 @@ env:
 jobs:
   check-upstream:
     name: Test against upstream liblcm
-    runs-on: windows-latest
+    # Self-hosted runner with FLEx pre-installed
+    # See .github/upstream-compatibility/README.md for setup instructions
+    runs-on: [self-hosted, windows, fieldworks]
 
     strategy:
       matrix:
@@ -104,31 +106,50 @@ jobs:
             Write-Host "No previous test record found"
           }
 
-      - name: Download and install FieldWorks
+      - name: Verify FLEx installation
+        id: verify_flex
         if: steps.check_tested.outputs.skip_tests != 'true'
         shell: powershell
         run: |
-          # This step would need to be customized based on how FieldWorks
-          # is distributed and installed
+          # Verify that FieldWorks is installed on the self-hosted runner
+          Write-Host "Verifying FieldWorks installation..."
 
-          # Option 1: Use official installer
-          # Download the latest FLEx installer from SIL
-          $flexVersion = "${{ github.event.inputs.fieldworks_version || 'latest' }}"
+          # Check for FLEx installation directory
+          $flexPaths = @(
+            "${env:ProgramFiles}\SIL\FieldWorks 9",
+            "${env:ProgramFiles(x86)}\SIL\FieldWorks 9",
+            "${env:ProgramFiles}\SIL\FieldWorks 10"
+          )
 
-          Write-Host "Installing FieldWorks version: $flexVersion"
+          $flexFound = $false
+          $flexPath = $null
 
-          # TODO: Implement actual download and installation logic
-          # This might involve:
-          # 1. Downloading from SIL's distribution site
-          # 2. Silent installation with appropriate flags
-          # 3. Setting up registry keys if needed
+          foreach ($path in $flexPaths) {
+            if (Test-Path $path) {
+              $flexFound = $true
+              $flexPath = $path
+              Write-Host "✓ FieldWorks found at: $path"
+              break
+            }
+          }
 
-          # Placeholder command - replace with actual installer
-          # Invoke-WebRequest -Uri "https://software.sil.org/downloads/..." -OutFile "flex-installer.exe"
-          # Start-Process -FilePath "flex-installer.exe" -ArgumentList "/S" -Wait
+          if (-not $flexFound) {
+            Write-Error "FieldWorks installation not found!"
+            Write-Host "This workflow requires a self-hosted runner with FLEx pre-installed."
+            Write-Host "Please see .github/upstream-compatibility/README.md for setup instructions."
+            exit 1
+          }
 
-          Write-Host "Note: FieldWorks installation needs to be implemented"
-          Write-Host "This may require caching or using a pre-configured runner"
+          # Get FLEx version information
+          $versionFile = Join-Path $flexPath "FieldWorks.exe"
+          if (Test-Path $versionFile) {
+            $version = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($versionFile)
+            Write-Host "FLEx Version: $($version.FileVersion)"
+            echo "flex_version=$($version.FileVersion)" >> $env:GITHUB_OUTPUT
+            echo "flex_path=$flexPath" >> $env:GITHUB_OUTPUT
+          } else {
+            Write-Host "Warning: Could not determine FLEx version"
+          }
 
       - name: Install Python dependencies
         if: steps.check_tested.outputs.skip_tests != 'true'
@@ -253,6 +274,7 @@ jobs:
           $commitSha = "${{ steps.upstream.outputs.commit_sha }}"
           $commitMessage = "${{ steps.upstream.outputs.commit_message }}"
           $pythonVersion = "${{ matrix.python-version }}"
+          $flexVersion = "${{ steps.verify_flex.outputs.flex_version }}"
 
           $emoji = if ($status -eq "success") { ":white_check_mark:" } else { ":x:" }
 
@@ -267,6 +289,7 @@ jobs:
 
           ## Test Environment
           - **Python Version**: $pythonVersion
-          - **OS**: Windows
+          - **FLEx Version**: $flexVersion
+          - **OS**: Windows (Self-hosted runner)
 
           "@ | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append

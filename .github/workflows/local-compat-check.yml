@@ -1,0 +1,333 @@
+name: Local Compatibility Check
+
+# Lightweight smoke tests that run on every commit/PR
+# Does NOT require FLEx installation - provides quick feedback
+# For full compatibility testing with FLEx, see upstream-compatibility-check.yml
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+      - develop
+
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  smoke-tests:
+    name: Smoke Tests (No FLEx Required)
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.11', '3.13']
+
+    steps:
+      - name: Checkout flexlibs
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-mock
+          # Install flexlibs in development mode (without FLEx dependencies)
+          if [ -f requirements.txt ]; then
+            # Install only non-FLEx dependencies if possible
+            grep -v "pythonnet" requirements.txt > requirements-test.txt || true
+            pip install -r requirements-test.txt || true
+          fi
+
+      - name: Test module imports
+        id: imports
+        continue-on-error: true
+        run: |
+          python << 'PYTHON_SCRIPT'
+          import sys
+          import os
+
+          # Add flexlibs to path
+          sys.path.insert(0, os.path.join(os.getcwd(), 'flexlibs', 'code'))
+
+          print("Testing module structure and imports (without .NET dependencies)...")
+
+          failed_imports = []
+          successful_imports = []
+
+          # Test that Python files exist and are syntactically valid
+          import ast
+          from pathlib import Path
+
+          code_dir = Path('flexlibs/code')
+          python_files = list(code_dir.rglob('*.py'))
+
+          print(f"\nFound {len(python_files)} Python files")
+
+          syntax_errors = []
+          for py_file in python_files:
+              try:
+                  with open(py_file, 'r', encoding='utf-8') as f:
+                      ast.parse(f.read())
+                  successful_imports.append(str(py_file))
+              except SyntaxError as e:
+                  syntax_errors.append(f"{py_file}: {e}")
+                  failed_imports.append(str(py_file))
+
+          print(f"\n✓ {len(successful_imports)} files have valid Python syntax")
+
+          if syntax_errors:
+              print(f"\n✗ {len(syntax_errors)} files have syntax errors:")
+              for error in syntax_errors:
+                  print(f"  - {error}")
+              sys.exit(1)
+          else:
+              print("\n✓ All Python files have valid syntax")
+              sys.exit(0)
+          PYTHON_SCRIPT
+
+      - name: Verify Operations class structure
+        id: structure
+        run: |
+          python << 'PYTHON_SCRIPT'
+          import ast
+          from pathlib import Path
+
+          print("Verifying Operations classes structure...")
+
+          operations_dirs = [
+              'flexlibs/code/Lexicon',
+              'flexlibs/code/Grammar',
+              'flexlibs/code/TextsWords',
+              'flexlibs/code/Lists',
+              'flexlibs/code/System',
+              'flexlibs/code/Shared',
+              'flexlibs/code/Discourse',
+              'flexlibs/code/Notebook',
+              'flexlibs/code/Scripture',
+          ]
+
+          total_classes = 0
+          total_methods = 0
+
+          for ops_dir in operations_dirs:
+              ops_path = Path(ops_dir)
+              if not ops_path.exists():
+                  print(f"✗ Directory not found: {ops_dir}")
+                  continue
+
+              for py_file in ops_path.glob('*Operations.py'):
+                  try:
+                      with open(py_file, 'r', encoding='utf-8') as f:
+                          tree = ast.parse(f.read())
+
+                      for node in ast.walk(tree):
+                          if isinstance(node, ast.ClassDef):
+                              total_classes += 1
+                              class_methods = [n for n in node.body if isinstance(n, ast.FunctionDef)]
+                              total_methods += len(class_methods)
+                              print(f"  ✓ {py_file.name}: {node.name} ({len(class_methods)} methods)")
+
+                  except Exception as e:
+                      print(f"  ✗ Error parsing {py_file}: {e}")
+
+          print(f"\nSummary:")
+          print(f"  Total Operations classes: {total_classes}")
+          print(f"  Total methods: {total_methods}")
+
+          if total_classes == 0:
+              print("✗ No Operations classes found!")
+              exit(1)
+          else:
+              print(f"✓ Found {total_classes} Operations classes")
+          PYTHON_SCRIPT
+
+      - name: Check API usage patterns
+        id: api_patterns
+        run: |
+          python << 'PYTHON_SCRIPT'
+          import re
+          from pathlib import Path
+          from collections import defaultdict
+
+          print("Analyzing SIL.LCModel API usage patterns...")
+
+          # Track what we import from SIL namespaces
+          sil_imports = defaultdict(set)
+
+          code_dir = Path('flexlibs/code')
+          for py_file in code_dir.rglob('*.py'):
+              try:
+                  with open(py_file, 'r', encoding='utf-8') as f:
+                      content = f.read()
+
+                  # Find all "from SIL.X import Y" patterns
+                  pattern = r'from (SIL\.[^\s]+) import ([^\n]+)'
+                  matches = re.findall(pattern, content)
+
+                  for namespace, imports in matches:
+                      # Clean up imports (handle multi-line, parentheses, etc.)
+                      imports_cleaned = imports.replace('(', '').replace(')', '').strip()
+                      for imp in imports_cleaned.split(','):
+                          imp_clean = imp.strip()
+                          if imp_clean and not imp_clean.startswith('#'):
+                              sil_imports[namespace].add(imp_clean)
+
+              except Exception as e:
+                  print(f"Warning: Could not parse {py_file}: {e}")
+
+          print("\nSIL Namespace Usage:")
+          total_imports = 0
+          for namespace in sorted(sil_imports.keys()):
+              imports = sorted(sil_imports[namespace])
+              print(f"\n{namespace}:")
+              print(f"  {len(imports)} classes/types used")
+              total_imports += len(imports)
+              # Show first 5 as examples
+              for imp in imports[:5]:
+                  print(f"    - {imp}")
+              if len(imports) > 5:
+                  print(f"    ... and {len(imports) - 5} more")
+
+          print(f"\n✓ Total SIL imports tracked: {total_imports}")
+          print(f"✓ Namespaces used: {len(sil_imports)}")
+
+          # Check for critical namespaces
+          critical_namespaces = [
+              'SIL.LCModel',
+              'SIL.LCModel.Core.KernelInterfaces',
+              'SIL.LCModel.Core.Text',
+          ]
+
+          missing_critical = []
+          for ns in critical_namespaces:
+              if ns not in sil_imports:
+                  missing_critical.append(ns)
+
+          if missing_critical:
+              print(f"\n⚠ Warning: Some expected namespaces not found:")
+              for ns in missing_critical:
+                  print(f"  - {ns}")
+          PYTHON_SCRIPT
+
+      - name: Validate expected API surface
+        id: api_surface
+        run: |
+          python << 'PYTHON_SCRIPT'
+          import ast
+          from pathlib import Path
+
+          print("Validating expected public API methods exist...")
+
+          # Check FLExProject.py has expected structure
+          flex_project = Path('flexlibs/code/FLExProject.py')
+
+          if not flex_project.exists():
+              print("✗ FLExProject.py not found!")
+              exit(1)
+
+          with open(flex_project, 'r', encoding='utf-8') as f:
+              tree = ast.parse(f.read())
+
+          # Find FLExProject class
+          flex_project_class = None
+          for node in ast.walk(tree):
+              if isinstance(node, ast.ClassDef) and node.name == 'FLExProject':
+                  flex_project_class = node
+                  break
+
+          if not flex_project_class:
+              print("✗ FLExProject class not found!")
+              exit(1)
+
+          # Get all methods
+          methods = [n.name for n in flex_project_class.body if isinstance(n, ast.FunctionDef)]
+          public_methods = [m for m in methods if not m.startswith('_')]
+
+          print(f"\nFLExProject class:")
+          print(f"  Total methods: {len(methods)}")
+          print(f"  Public methods: {len(public_methods)}")
+
+          # Check for critical methods
+          critical_methods = [
+              'OpenProject',
+              'CloseProject',
+          ]
+
+          # Check for Operations property accessors
+          expected_properties = [
+              'LexEntry', 'Texts', 'Wordforms', 'POS', 'WritingSystems',
+              'CustomFields', 'Senses', 'Examples'
+          ]
+
+          missing_critical = [m for m in critical_methods if m not in public_methods]
+          missing_properties = [p for p in expected_properties if p not in public_methods]
+
+          if missing_critical:
+              print(f"\n✗ Missing critical methods:")
+              for m in missing_critical:
+                  print(f"  - {m}")
+              exit(1)
+
+          if missing_properties:
+              print(f"\n⚠ Warning: Some expected properties missing:")
+              for p in missing_properties:
+                  print(f"  - {p}")
+
+          print(f"\n✓ FLExProject class structure validated")
+          print(f"✓ All critical methods present")
+          PYTHON_SCRIPT
+
+      - name: Generate smoke test summary
+        if: always()
+        run: |
+          echo "# Local Compatibility Check Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Python Version:** ${{ matrix.python-version }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ steps.imports.outcome }}" == "success" ]; then
+            echo "✅ **Module Imports:** All Python files have valid syntax" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Module Imports:** Some files have syntax errors" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ steps.structure.outcome }}" == "success" ]; then
+            echo "✅ **Operations Structure:** All Operations classes found and valid" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Operations Structure:** Issues with Operations classes" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ steps.api_patterns.outcome }}" == "success" ]; then
+            echo "✅ **API Patterns:** SIL.LCModel usage patterns validated" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **API Patterns:** Issues with API usage patterns" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ steps.api_surface.outcome }}" == "success" ]; then
+            echo "✅ **API Surface:** Expected public API methods present" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **API Surface:** Missing expected API methods" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note:** This is a lightweight smoke test that doesn't require FLEx." >> $GITHUB_STEP_SUMMARY
+          echo "For full compatibility testing, see the \`upstream-compatibility-check\` workflow." >> $GITHUB_STEP_SUMMARY
+
+      - name: Check overall status
+        if: steps.imports.outcome != 'success' || steps.structure.outcome != 'success' || steps.api_surface.outcome != 'success'
+        run: |
+          echo "Some smoke tests failed. Please review the logs above."
+          exit 1

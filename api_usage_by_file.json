@@ -1,0 +1,1537 @@
+{
+  "code/FLExProject.py": {
+    "namespaces": [
+      "SIL.FieldWorks.Common.FwUtils",
+      "SIL.LCModel",
+      "SIL.LCModel.Core.Cellar",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text",
+      "SIL.LCModel.Infrastructure",
+      "SIL.LCModel.Utils"
+    ],
+    "total_imports": 49,
+    "repositories": [
+      "ICmObjectRepository",
+      "ICmPossibilityRepository",
+      "ILexEntryRepository",
+      "ILexRefTypeRepository",
+      "ISegmentRepository",
+      "ITextRepository",
+      "IWfiAnalysisRepository",
+      "IWfiWordformRepository"
+    ],
+    "factories": [
+      "ILexEntryRefFactory"
+    ],
+    "interfaces": [
+      "ICmPossibilityList",
+      "ICmSemanticDomain",
+      "IDataReader",
+      "IFwMetaDataCacheManaged",
+      "ILexEntry",
+      "ILexSense",
+      "IMoMorphType",
+      "IReversalIndex",
+      "IReversalIndexEntry",
+      "IStTxtPara",
+      "ITsStrBldr",
+      "ITsString",
+      "IUndoStackManager",
+      "IWfiAnalysis"
+    ],
+    "tags": [
+      "LexEntryTags",
+      "LexExampleSentenceTags",
+      "LexSenseTags",
+      "MoFormTags",
+      "ReversalIndexEntryTags",
+      "TextTags",
+      "WfiAnalysisTags",
+      "WfiGlossTags",
+      "WfiMorphBundleTags",
+      "WfiWordformTags"
+    ],
+    "utilities": [
+      "ReflectionHelper",
+      "TsStringUtils"
+    ]
+  },
+  "code/FLExGlobals.py": {
+    "namespaces": [
+      "SIL.FieldWorks.Common.FwUtils"
+    ],
+    "total_imports": 1,
+    "repositories": [],
+    "factories": [],
+    "interfaces": [],
+    "tags": [],
+    "utilities": []
+  },
+  "code/FLExLCM.py": {
+    "namespaces": [
+      "SIL.FieldWorks",
+      "SIL.FieldWorks.Common.Controls",
+      "SIL.FieldWorks.Common.FwUtils",
+      "SIL.FieldWorks.FdoUi",
+      "SIL.FieldWorks.FwCoreDlgs",
+      "SIL.LCModel",
+      "SIL.LCModel.Core.Cellar"
+    ],
+    "total_imports": 11,
+    "repositories": [],
+    "factories": [],
+    "interfaces": [],
+    "tags": [],
+    "utilities": [
+      "FwUtils",
+      "LcmFileHelper",
+      "ThreadHelper"
+    ]
+  },
+  "code/FLExInit.py": {
+    "namespaces": [
+      "SIL.FieldWorks.Common.FwUtils",
+      "SIL.WritingSystems"
+    ],
+    "total_imports": 3,
+    "repositories": [],
+    "factories": [],
+    "interfaces": [],
+    "tags": [],
+    "utilities": [
+      "FwRegistryHelper",
+      "FwUtils"
+    ]
+  },
+  "code/System/WritingSystemOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text",
+      "SIL.WritingSystems"
+    ],
+    "total_imports": 6,
+    "repositories": [],
+    "factories": [],
+    "interfaces": [
+      "IMultiString",
+      "IMultiUnicode",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/System/CheckOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 9,
+    "repositories": [],
+    "factories": [
+      "ICmPossibilityFactory",
+      "ICmPossibilityListFactory"
+    ],
+    "interfaces": [
+      "ICmPossibility",
+      "ICmPossibilityList",
+      "ILexEntry",
+      "IText",
+      "ITsString",
+      "IWfiWordform"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/System/CustomFieldOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.Cellar",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text",
+      "SIL.LCModel.Infrastructure"
+    ],
+    "total_imports": 15,
+    "repositories": [
+      "ICmObjectRepository",
+      "ICmPossibilityRepository"
+    ],
+    "factories": [],
+    "interfaces": [
+      "IFwMetaDataCacheManaged",
+      "ILexEntry",
+      "ILexExampleSentence",
+      "ILexSense",
+      "IMoForm",
+      "ITsString"
+    ],
+    "tags": [
+      "LexEntryTags",
+      "LexExampleSentenceTags",
+      "LexSenseTags",
+      "MoFormTags"
+    ],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/System/ProjectSettingsOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text",
+      "SIL.WritingSystems"
+    ],
+    "total_imports": 4,
+    "repositories": [],
+    "factories": [],
+    "interfaces": [
+      "ILangProject",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/System/AnnotationDefOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 6,
+    "repositories": [
+      "ICmAnnotationDefnRepository"
+    ],
+    "factories": [
+      "ICmAnnotationDefnFactory"
+    ],
+    "interfaces": [
+      "ICmAnnotationDefn",
+      "ICmPossibility",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Shared/MediaOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 7,
+    "repositories": [
+      "ICmObjectRepository"
+    ],
+    "factories": [
+      "ICmFileFactory",
+      "ICmFolderFactory"
+    ],
+    "interfaces": [
+      "ICmFile",
+      "ICmFolder",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Shared/FilterOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 9,
+    "repositories": [
+      "ICmObjectRepository"
+    ],
+    "factories": [
+      "ICmFilterFactory"
+    ],
+    "interfaces": [
+      "ICmFilter",
+      "IFsClosedFeature",
+      "ILexEntry",
+      "IText",
+      "ITsString",
+      "IWfiWordform"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Discourse/ConstChartTagOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 7,
+    "repositories": [],
+    "factories": [
+      "ICmPossibilityFactory",
+      "IConstChartTagFactory"
+    ],
+    "interfaces": [
+      "ICmPossibility",
+      "IConstChartTag",
+      "IDsConstChart",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Discourse/ConstChartClauseMarkerOperations.py": {
+    "namespaces": [
+      "SIL.LCModel"
+    ],
+    "total_imports": 4,
+    "repositories": [],
+    "factories": [
+      "IConstChartClauseMarkerFactory"
+    ],
+    "interfaces": [
+      "IConstChartClauseMarker",
+      "IConstChartRow",
+      "IConstChartWordGroup"
+    ],
+    "tags": [],
+    "utilities": []
+  },
+  "code/Discourse/ConstChartWordGroupOperations.py": {
+    "namespaces": [
+      "SIL.LCModel"
+    ],
+    "total_imports": 5,
+    "repositories": [],
+    "factories": [
+      "IConstChartWordGroupFactory"
+    ],
+    "interfaces": [
+      "IAnalysis",
+      "IConstChartRow",
+      "IConstChartWordGroup",
+      "ISegment"
+    ],
+    "tags": [],
+    "utilities": []
+  },
+  "code/Discourse/ConstChartMovedTextOperations.py": {
+    "namespaces": [
+      "SIL.LCModel"
+    ],
+    "total_imports": 4,
+    "repositories": [],
+    "factories": [
+      "IConstChartMovedTextMarkerFactory"
+    ],
+    "interfaces": [
+      "IConstChartMovedTextMarker",
+      "IConstChartWordGroup",
+      "IDsConstChart"
+    ],
+    "tags": [],
+    "utilities": []
+  },
+  "code/Discourse/ConstChartOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 9,
+    "repositories": [
+      "IDsConstChartRepository"
+    ],
+    "factories": [
+      "IDsConstChartFactory",
+      "IDsDiscourseFactory"
+    ],
+    "interfaces": [
+      "ICmPossibility",
+      "IConstChartRow",
+      "IDsConstChart",
+      "IDsDiscourse",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Discourse/ConstChartRowOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 6,
+    "repositories": [],
+    "factories": [
+      "IConstChartRowFactory"
+    ],
+    "interfaces": [
+      "IConstChartRow",
+      "IConstChartWordGroup",
+      "IDsConstChart",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Wordform/WfiWordformOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 6,
+    "repositories": [
+      "IWfiWordformRepository"
+    ],
+    "factories": [
+      "IWfiWordformFactory"
+    ],
+    "interfaces": [
+      "ITsString",
+      "IWfiAnalysis",
+      "IWfiWordform"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Wordform/WfiGlossOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 5,
+    "repositories": [],
+    "factories": [
+      "IWfiGlossFactory"
+    ],
+    "interfaces": [
+      "ITsString",
+      "IWfiAnalysis",
+      "IWfiGloss"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Wordform/WfiAnalysisOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 7,
+    "repositories": [],
+    "factories": [
+      "IWfiAnalysisFactory"
+    ],
+    "interfaces": [
+      "IPartOfSpeech",
+      "ITsString",
+      "IWfiAnalysis",
+      "IWfiMorphBundle",
+      "IWfiWordform"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Wordform/WfiMorphBundleOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 7,
+    "repositories": [],
+    "factories": [
+      "IWfiMorphBundleFactory"
+    ],
+    "interfaces": [
+      "ILexSense",
+      "IMoMorphType",
+      "ITsString",
+      "IWfiAnalysis",
+      "IWfiMorphBundle"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/TextsWords/TextOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 10,
+    "repositories": [
+      "ITextRepository"
+    ],
+    "factories": [
+      "ICmFolderFactory",
+      "ICmMediaFactory",
+      "IStTextFactory",
+      "ITextFactory"
+    ],
+    "interfaces": [
+      "ICmMedia",
+      "ICmPossibility",
+      "IText",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/TextsWords/DiscourseOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 3,
+    "repositories": [],
+    "factories": [],
+    "interfaces": [
+      "IDsConstChart",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/TextsWords/WordformOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 5,
+    "repositories": [
+      "IWfiWordformRepository"
+    ],
+    "factories": [
+      "IWfiWordformFactory"
+    ],
+    "interfaces": [
+      "ITsString",
+      "IWfiWordform"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/TextsWords/SegmentOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 5,
+    "repositories": [],
+    "factories": [
+      "ISegmentFactory"
+    ],
+    "interfaces": [
+      "ISegment",
+      "IStTxtPara",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/TextsWords/WfiGlossOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 5,
+    "repositories": [],
+    "factories": [
+      "IWfiGlossFactory"
+    ],
+    "interfaces": [
+      "ITsString",
+      "IWfiAnalysis",
+      "IWfiGloss"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/TextsWords/WfiAnalysisOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 12,
+    "repositories": [
+      "IWfiAnalysisRepository"
+    ],
+    "factories": [
+      "ICmAgentEvaluationFactory",
+      "IWfiAnalysisFactory",
+      "IWfiGlossFactory",
+      "IWfiMorphBundleFactory"
+    ],
+    "interfaces": [
+      "ICmAgent",
+      "ICmAgentEvaluation",
+      "IPartOfSpeech",
+      "ITsString",
+      "IWfiAnalysis",
+      "IWfiWordform"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/TextsWords/ParagraphOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 5,
+    "repositories": [],
+    "factories": [
+      "IStTxtParaFactory"
+    ],
+    "interfaces": [
+      "IStTxtPara",
+      "IText",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/TextsWords/WfiMorphBundleOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 9,
+    "repositories": [],
+    "factories": [
+      "IWfiMorphBundleFactory"
+    ],
+    "interfaces": [
+      "ILexSense",
+      "IMoInflClass",
+      "IMoMorphSynAnalysis",
+      "IMoMorphType",
+      "ITsString",
+      "IWfiAnalysis",
+      "IWfiMorphBundle"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Lexicon/LexEntryOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 15,
+    "repositories": [
+      "ILexEntryRepository"
+    ],
+    "factories": [
+      "ILexEntryFactory",
+      "ILexEntryRefFactory",
+      "ILexSenseFactory",
+      "IMoAffixAllomorphFactory",
+      "IMoStemAllomorphFactory"
+    ],
+    "interfaces": [
+      "ILexEntry",
+      "ILexEntryRef",
+      "ILexSense",
+      "IMoForm",
+      "IMoMorphType",
+      "ITsString"
+    ],
+    "tags": [
+      "LexEntryRefTags",
+      "MoMorphTypeTags"
+    ],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Lexicon/EtymologyOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 10,
+    "repositories": [],
+    "factories": [
+      "ILexEtymologyFactory"
+    ],
+    "interfaces": [
+      "ILexEntry",
+      "ILexEtymology",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Lexicon/SemanticDomainOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 5,
+    "repositories": [
+      "ILexSenseRepository"
+    ],
+    "factories": [
+      "ICmSemanticDomainFactory"
+    ],
+    "interfaces": [
+      "ICmSemanticDomain",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Lexicon/VariantOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 8,
+    "repositories": [
+      "ILexEntryTypeRepository"
+    ],
+    "factories": [
+      "ILexEntryRefFactory"
+    ],
+    "interfaces": [
+      "ILexEntry",
+      "ILexEntryRef",
+      "ILexEntryType",
+      "ITsString",
+      "IVariantComponentLexeme"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Lexicon/LexSenseOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text",
+      "SIL.LCModel.Utils"
+    ],
+    "total_imports": 30,
+    "repositories": [],
+    "factories": [
+      "ICmPictureFactory",
+      "ILexExampleSentenceFactory",
+      "ILexSenseFactory",
+      "IMoStemMsaFactory"
+    ],
+    "interfaces": [
+      "ICmPicture",
+      "ICmSemanticDomain",
+      "ILexEntry",
+      "ILexSense",
+      "IReversalIndexEntry",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "ReflectionHelper",
+      "TsStringUtils"
+    ]
+  },
+  "code/Lexicon/ReversalOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 6,
+    "repositories": [],
+    "factories": [
+      "IReversalIndexEntryFactory"
+    ],
+    "interfaces": [
+      "ILexSense",
+      "IReversalIndex",
+      "IReversalIndexEntry",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Lexicon/AllomorphOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 11,
+    "repositories": [],
+    "factories": [
+      "IMoAffixAllomorphFactory",
+      "IMoStemAllomorphFactory"
+    ],
+    "interfaces": [
+      "ILexEntry",
+      "IMoForm",
+      "IPhEnvironment",
+      "ITsString"
+    ],
+    "tags": [
+      "MoMorphTypeTags"
+    ],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Lexicon/PronunciationOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 8,
+    "repositories": [],
+    "factories": [
+      "ICmFileFactory",
+      "ILexPronunciationFactory"
+    ],
+    "interfaces": [
+      "ICmFile",
+      "ILexEntry",
+      "ILexPronunciation",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Lexicon/ExampleOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 9,
+    "repositories": [],
+    "factories": [
+      "ICmTranslationFactory",
+      "ILexExampleSentenceFactory"
+    ],
+    "interfaces": [
+      "ICmTranslation",
+      "ILexExampleSentence",
+      "ILexSense",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Lexicon/LexReferenceOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 13,
+    "repositories": [
+      "ILexRefTypeRepository"
+    ],
+    "factories": [
+      "ICmPossibilityListFactory",
+      "ILexRefTypeFactory",
+      "ILexReferenceFactory"
+    ],
+    "interfaces": [
+      "ILexEntry",
+      "ILexRefType",
+      "ILexReference",
+      "ILexSense",
+      "ITsString"
+    ],
+    "tags": [
+      "LexRefTypeTags"
+    ],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Notebook/DataNotebookOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 11,
+    "repositories": [
+      "ICmPossibilityRepository",
+      "IRnResearchNbkRepository"
+    ],
+    "factories": [
+      "ICmFileFactory",
+      "IRnGenericRecFactory"
+    ],
+    "interfaces": [
+      "ICmFile",
+      "ICmPerson",
+      "ICmPossibility",
+      "IRnGenericRec",
+      "IText",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Notebook/LocationOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 6,
+    "repositories": [
+      "ICmPossibilityRepository"
+    ],
+    "factories": [
+      "ICmLocationFactory"
+    ],
+    "interfaces": [
+      "ICmLocation",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Notebook/PersonOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 9,
+    "repositories": [
+      "ICmPersonRepository",
+      "ICmPossibilityRepository"
+    ],
+    "factories": [
+      "ICmPersonFactory"
+    ],
+    "interfaces": [
+      "ICmLocation",
+      "ICmPerson",
+      "ICmPossibility",
+      "ILangProject",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Notebook/AnthropologyOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 8,
+    "repositories": [],
+    "factories": [
+      "ICmAnthroItemFactory",
+      "ICmPossibilityListFactory"
+    ],
+    "interfaces": [
+      "ICmAnthroItem",
+      "ICmPerson",
+      "ICmPossibility",
+      "IText",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Notebook/NoteOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 8,
+    "repositories": [],
+    "factories": [
+      "ICmBaseAnnotationFactory",
+      "IScrScriptureNoteFactory"
+    ],
+    "interfaces": [
+      "ICmAnnotationDefn",
+      "ICmBaseAnnotation",
+      "ICmPossibility",
+      "IScrScriptureNote",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Reversal/ReversalIndexEntryOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 6,
+    "repositories": [],
+    "factories": [
+      "IReversalIndexEntryFactory"
+    ],
+    "interfaces": [
+      "ILexSense",
+      "IReversalIndex",
+      "IReversalIndexEntry",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Reversal/ReversalIndexOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 6,
+    "repositories": [
+      "IReversalIndexRepository"
+    ],
+    "factories": [
+      "IReversalIndexFactory"
+    ],
+    "interfaces": [
+      "ILangProject",
+      "IReversalIndex",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Scripture/ScrTxtParaOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 7,
+    "repositories": [],
+    "factories": [
+      "IScrTxtParaFactory",
+      "IStTextFactory"
+    ],
+    "interfaces": [
+      "IScrSection",
+      "IScrTxtPara",
+      "IStStyle",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Scripture/ScrDraftOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 5,
+    "repositories": [],
+    "factories": [
+      "IScrDraftFactory"
+    ],
+    "interfaces": [
+      "IScrDraft",
+      "IScripture",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Scripture/ScrBookOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 7,
+    "repositories": [
+      "IScrBookRepository"
+    ],
+    "factories": [
+      "IScrBookFactory"
+    ],
+    "interfaces": [
+      "IScrBook",
+      "IScrSection",
+      "IScripture",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Scripture/ScrNoteOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 13,
+    "repositories": [],
+    "factories": [
+      "IScrBookAnnotationsFactory",
+      "IScrScriptureNoteFactory",
+      "IStTextFactory",
+      "IStTxtParaFactory"
+    ],
+    "interfaces": [
+      "IScrBook",
+      "IScrBookAnnotations",
+      "IScrScriptureNote",
+      "IScrTxtPara",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Scripture/ScrAnnotationsOperations.py": {
+    "namespaces": [
+      "SIL.LCModel"
+    ],
+    "total_imports": 4,
+    "repositories": [],
+    "factories": [
+      "IScrBookAnnotationsFactory"
+    ],
+    "interfaces": [
+      "IScrBook",
+      "IScrBookAnnotations",
+      "IScrScriptureNote"
+    ],
+    "tags": [],
+    "utilities": []
+  },
+  "code/Scripture/ScrSectionOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 9,
+    "repositories": [],
+    "factories": [
+      "IScrSectionFactory",
+      "IStTextFactory",
+      "IStTxtParaFactory"
+    ],
+    "interfaces": [
+      "IScrBook",
+      "IScrSection",
+      "IScrTxtPara",
+      "IStText",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Grammar/POSOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 5,
+    "repositories": [
+      "ILexEntryRepository"
+    ],
+    "factories": [
+      "IPartOfSpeechFactory"
+    ],
+    "interfaces": [
+      "IPartOfSpeech",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Grammar/NaturalClassOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 6,
+    "repositories": [],
+    "factories": [
+      "IPhNCSegmentsFactory"
+    ],
+    "interfaces": [
+      "IPhNCSegments",
+      "IPhNaturalClass",
+      "IPhPhoneme",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Grammar/InflectionFeatureOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 7,
+    "repositories": [],
+    "factories": [
+      "IFsFeatStrucFactory",
+      "IMoInflClassFactory"
+    ],
+    "interfaces": [
+      "IFsFeatDefn",
+      "IFsFeatStruc",
+      "IMoInflClass",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Grammar/PhonologicalRuleOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 3,
+    "repositories": [],
+    "factories": [
+      "IPhRegularRuleFactory"
+    ],
+    "interfaces": [
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Grammar/GramCatOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 4,
+    "repositories": [],
+    "factories": [
+      "ICmPossibilityFactory"
+    ],
+    "interfaces": [
+      "ICmPossibility",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Grammar/MorphRuleOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 3,
+    "repositories": [],
+    "factories": [
+      "IMoAffixProcessFactory"
+    ],
+    "interfaces": [
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Grammar/PhonemeOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 7,
+    "repositories": [],
+    "factories": [
+      "IPhCodeFactory",
+      "IPhPhonemeFactory"
+    ],
+    "interfaces": [
+      "IFsFeatStruc",
+      "IPhCode",
+      "IPhPhoneme",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Grammar/EnvironmentOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 4,
+    "repositories": [],
+    "factories": [
+      "IPhEnvironmentFactory"
+    ],
+    "interfaces": [
+      "IPhEnvironment",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Lists/PublicationOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 5,
+    "repositories": [
+      "ICmPossibilityRepository"
+    ],
+    "factories": [
+      "ICmPossibilityFactory"
+    ],
+    "interfaces": [
+      "ICmPossibility",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Lists/TranslationTypeOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 8,
+    "repositories": [
+      "IStTxtParaRepository",
+      "ITextRepository"
+    ],
+    "factories": [
+      "ICmPossibilityFactory",
+      "ICmPossibilityListFactory"
+    ],
+    "interfaces": [
+      "ICmPossibility",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Lists/OverlayOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 6,
+    "repositories": [],
+    "factories": [
+      "ICmPossibilityFactory",
+      "IDsConstChartFactory"
+    ],
+    "interfaces": [
+      "ICmPossibility",
+      "IDsConstChart",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Lists/ConfidenceOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 6,
+    "repositories": [
+      "IWfiAnalysisRepository",
+      "IWfiGlossRepository"
+    ],
+    "factories": [
+      "ICmPossibilityFactory"
+    ],
+    "interfaces": [
+      "ICmPossibility",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Lists/PossibilityListOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 7,
+    "repositories": [
+      "ICmPossibilityRepository"
+    ],
+    "factories": [
+      "ICmPossibilityFactory",
+      "ICmPossibilityListFactory"
+    ],
+    "interfaces": [
+      "ICmPossibility",
+      "ICmPossibilityList",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  },
+  "code/Lists/AgentOperations.py": {
+    "namespaces": [
+      "SIL.LCModel",
+      "SIL.LCModel.Core.KernelInterfaces",
+      "SIL.LCModel.Core.Text"
+    ],
+    "total_imports": 8,
+    "repositories": [
+      "ICmAgentRepository"
+    ],
+    "factories": [
+      "ICmAgentFactory"
+    ],
+    "interfaces": [
+      "ICmAgent",
+      "ICmAgentEvaluation",
+      "ICmPerson",
+      "ILangProject",
+      "ITsString"
+    ],
+    "tags": [],
+    "utilities": [
+      "TsStringUtils"
+    ]
+  }
+}

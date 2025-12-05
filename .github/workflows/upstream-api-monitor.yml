@@ -115,6 +115,120 @@ jobs:
 
           echo "snapshot_created=true" >> $GITHUB_OUTPUT
 
+      - name: Deep API Analysis
+        id: deep_analysis
+        shell: bash
+        run: |
+          # Extract flexlibs API usage patterns
+          echo "## Deep API Analysis" > deep_api_analysis.md
+          echo "" >> deep_api_analysis.md
+
+          echo "### FlexLibs SIL.LCModel Class Usage" >> deep_api_analysis.md
+          echo "" >> deep_api_analysis.md
+
+          # Extract all unique SIL.LCModel classes used by flexlibs
+          cd flexlibs
+          grep -r "from SIL\.LCModel import" --include="*.py" . | \
+            sed 's/.*from SIL\.LCModel import //' | \
+            tr ',' '\n' | \
+            sed 's/^ *//' | \
+            sed 's/ *$//' | \
+            grep -v "^$" | \
+            sort -u > ../flexlibs_classes.txt
+
+          # Also extract SIL.LCModel.Core classes
+          grep -r "from SIL\.LCModel\.Core" --include="*.py" . | \
+            sed 's/.*from SIL\.LCModel\.Core\.[^ ]* import //' | \
+            tr ',' '\n' | \
+            sed 's/^ *//' | \
+            sed 's/ *$//' | \
+            grep -v "^$" | \
+            sort -u >> ../flexlibs_classes.txt
+
+          # Extract SIL.LCModel.Infrastructure classes
+          grep -r "from SIL\.LCModel\.Infrastructure import" --include="*.py" . | \
+            sed 's/.*from SIL\.LCModel\.Infrastructure import //' | \
+            tr ',' '\n' | \
+            sed 's/^ *//' | \
+            sed 's/ *$//' | \
+            grep -v "^$" | \
+            sort -u >> ../flexlibs_classes.txt
+
+          # Remove duplicates
+          sort -u ../flexlibs_classes.txt > ../flexlibs_classes_unique.txt
+
+          echo "FlexLibs uses the following classes from SIL.LCModel:" >> ../deep_api_analysis.md
+          echo '```' >> ../deep_api_analysis.md
+          cat ../flexlibs_classes_unique.txt >> ../deep_api_analysis.md
+          echo '```' >> ../deep_api_analysis.md
+          echo "" >> ../deep_api_analysis.md
+
+          # Now check which of these exist in the latest liblcm
+          cd ../liblcm
+          echo "### Checking Class Availability in Latest LibLCM" >> ../deep_api_analysis.md
+          echo "" >> ../deep_api_analysis.md
+
+          MISSING_CLASSES=""
+          FOUND_CLASSES=""
+
+          while IFS= read -r class_name; do
+            # Skip empty lines and comments
+            [ -z "$class_name" ] && continue
+            [[ "$class_name" == \#* ]] && continue
+
+            # Search for the class in liblcm C# files
+            if grep -r "class $class_name\|interface I$class_name" --include="*.cs" . > /dev/null 2>&1; then
+              FOUND_CLASSES="${FOUND_CLASSES}${class_name}\n"
+            else
+              MISSING_CLASSES="${MISSING_CLASSES}${class_name}\n"
+            fi
+          done < ../flexlibs_classes_unique.txt
+
+          echo "#### Classes Found in Latest LibLCM:" >> ../deep_api_analysis.md
+          echo '```' >> ../deep_api_analysis.md
+          echo -e "$FOUND_CLASSES" | grep -v "^$" | sort >> ../deep_api_analysis.md
+          echo '```' >> ../deep_api_analysis.md
+          echo "" >> ../deep_api_analysis.md
+
+          if [ -n "$MISSING_CLASSES" ]; then
+            echo "#### ⚠️ Classes NOT Found (May Be Renamed/Removed):" >> ../deep_api_analysis.md
+            echo '```' >> ../deep_api_analysis.md
+            echo -e "$MISSING_CLASSES" | grep -v "^$" | sort >> ../deep_api_analysis.md
+            echo '```' >> ../deep_api_analysis.md
+            echo "missing_classes=true" >> $GITHUB_OUTPUT
+          else
+            echo "#### ✅ All FlexLibs Classes Found in Latest LibLCM" >> ../deep_api_analysis.md
+            echo "missing_classes=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "" >> ../deep_api_analysis.md
+
+          # Check recent commits for mentions of flexlibs-used classes
+          echo "### Recent Commits Affecting FlexLibs Classes" >> ../deep_api_analysis.md
+          echo "" >> ../deep_api_analysis.md
+
+          RELEVANT_COMMITS=""
+          while IFS= read -r class_name; do
+            [ -z "$class_name" ] && continue
+            [[ "$class_name" == \#* ]] && continue
+
+            # Search recent commits for mentions of this class
+            COMMITS=$(git log -10 --oneline --all-match --grep="$class_name" 2>/dev/null || echo "")
+            if [ -n "$COMMITS" ]; then
+              RELEVANT_COMMITS="${RELEVANT_COMMITS}For class '$class_name':\n${COMMITS}\n\n"
+            fi
+          done < ../flexlibs_classes_unique.txt
+
+          if [ -n "$RELEVANT_COMMITS" ]; then
+            echo '```' >> ../deep_api_analysis.md
+            echo -e "$RELEVANT_COMMITS" >> ../deep_api_analysis.md
+            echo '```' >> ../deep_api_analysis.md
+          else
+            echo "No recent commits mention flexlibs-used classes by name." >> ../deep_api_analysis.md
+          fi
+
+          cd ..
+
       - name: Create monitoring report
         shell: bash
         run: |
@@ -139,6 +253,14 @@ jobs:
 
           cat liblcm_deps.md >> monitoring_report.md
 
+          # Add deep API analysis if it exists
+          if [ -f deep_api_analysis.md ]; then
+            cat >> monitoring_report.md << 'EOF'
+
+          EOF
+            cat deep_api_analysis.md >> monitoring_report.md
+          fi
+
           cat >> monitoring_report.md << 'EOF'
 
           ## Recommendations
@@ -146,6 +268,19 @@ jobs:
           - Review recent commits: https://github.com/sillsdev/liblcm/commits/master
           - Check for breaking changes in namespaces used by flexlibs
           - Monitor for new FLEx releases that incorporate these changes
+          EOF
+
+          if [ "${{ steps.deep_analysis.outputs.missing_classes }}" == "true" ]; then
+            cat >> monitoring_report.md << 'EOF'
+
+          ## ⚠️ Action Required
+          - Some classes used by flexlibs may have been renamed or removed in latest liblcm
+          - Review the Deep API Analysis section above for details
+          - Investigate whether these changes affect flexlibs functionality
+          EOF
+          fi
+
+          cat >> monitoring_report.md << 'EOF'
 
           ---
           *Generated automatically by upstream API monitor*
