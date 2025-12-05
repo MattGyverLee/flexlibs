@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import FLEx LCM types
 from SIL.LCModel import (
     ICmPossibility,
@@ -32,7 +29,6 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
-
 
 class TranslationTypeOperations(BaseOperations):
     """
@@ -93,7 +89,6 @@ class TranslationTypeOperations(BaseOperations):
         """Specify which sequence to reorder for translation type sub-possibilities."""
         return parent.SubPossibilitiesOS
 
-
     # --- Core CRUD Operations ---
 
     def GetAll(self):
@@ -129,7 +124,6 @@ class TranslationTypeOperations(BaseOperations):
         if trans_list:
             for trans_type in trans_list.PossibilitiesOS:
                 yield trans_type
-
 
     def Create(self, name, abbreviation=None, wsHandle=None):
         """
@@ -219,7 +213,6 @@ class TranslationTypeOperations(BaseOperations):
 
         return new_type
 
-
     def Delete(self, type_or_hvo):
         """
         Delete a translation type.
@@ -279,7 +272,6 @@ class TranslationTypeOperations(BaseOperations):
         trans_list = self.project.lp.TranslationTagsOA
         if trans_list:
             trans_list.PossibilitiesOS.Remove(trans_type)
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -367,7 +359,6 @@ class TranslationTypeOperations(BaseOperations):
 
         return duplicate
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -400,7 +391,6 @@ class TranslationTypeOperations(BaseOperations):
         props['Abbreviation'] = ITsString(trans_type.Abbreviation.get_String(wsHandle)).Text or ""
 
         return props
-
 
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
@@ -448,7 +438,6 @@ class TranslationTypeOperations(BaseOperations):
                 }
 
         return is_different, differences
-
 
     def Find(self, name):
         """
@@ -502,7 +491,6 @@ class TranslationTypeOperations(BaseOperations):
 
         return None
 
-
     def Exists(self, name):
         """
         Check if a translation type with the given name exists.
@@ -538,7 +526,6 @@ class TranslationTypeOperations(BaseOperations):
             raise FP_NullParameterError()
 
         return self.Find(name) is not None
-
 
     # --- Property Accessors ---
 
@@ -577,7 +564,6 @@ class TranslationTypeOperations(BaseOperations):
 
         name = ITsString(trans_type.Name.get_String(wsHandle)).Text
         return name or ""
-
 
     def SetName(self, type_or_hvo, name, wsHandle=None):
         """
@@ -624,7 +610,6 @@ class TranslationTypeOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         trans_type.Name.set_String(wsHandle, mkstr)
 
-
     def GetAbbreviation(self, type_or_hvo, wsHandle=None):
         """
         Get the abbreviation of a translation type.
@@ -661,7 +646,6 @@ class TranslationTypeOperations(BaseOperations):
 
         abbr = ITsString(trans_type.Abbreviation.get_String(wsHandle)).Text
         return abbr or ""
-
 
     def SetAbbreviation(self, type_or_hvo, abbreviation, wsHandle=None):
         """
@@ -706,7 +690,6 @@ class TranslationTypeOperations(BaseOperations):
 
         mkstr = TsStringUtils.MakeString(abbreviation, wsHandle)
         trans_type.Abbreviation.set_String(wsHandle, mkstr)
-
 
     # --- Writing System Methods ---
 
@@ -759,7 +742,6 @@ class TranslationTypeOperations(BaseOperations):
                     ws_list.append(ws)
 
         return ws_list
-
 
     def SetAnalysisWS(self, type_or_hvo, wsHandle, name=None,
                       abbreviation=None):
@@ -817,7 +799,6 @@ class TranslationTypeOperations(BaseOperations):
             mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
             trans_type.Abbreviation.set_String(wsHandle, mkstr_abbr)
 
-
     # --- Usage Tracking ---
 
     def GetTextsWithType(self, type_or_hvo):
@@ -872,7 +853,6 @@ class TranslationTypeOperations(BaseOperations):
                         if translation.TypeRA.Guid == type_guid:
                             yield text
                             break  # Count each text only once
-
 
     def GetSegmentsWithType(self, type_or_hvo):
         """
@@ -931,7 +911,6 @@ class TranslationTypeOperations(BaseOperations):
                         # This method is provided for API completeness
                         pass
 
-
     # --- Predefined Translation Types ---
 
     def GetFreeTranslationType(self):
@@ -968,7 +947,6 @@ class TranslationTypeOperations(BaseOperations):
         guid = System.Guid("eb92e50f-ba96-4d1d-b632-057b5c274132")
         return self.__FindByGuid(guid)
 
-
     def GetLiteralTranslationType(self):
         """
         Get the predefined "Literal translation" type.
@@ -1003,7 +981,6 @@ class TranslationTypeOperations(BaseOperations):
         guid = System.Guid("c6e13529-97ed-4a8a-86f9-7b30b3b0b1c0")
         return self.__FindByGuid(guid)
 
-
     def GetBackTranslationType(self):
         """
         Get the predefined "Back translation" type.
@@ -1037,7 +1014,6 @@ class TranslationTypeOperations(BaseOperations):
         # Back translation GUID
         guid = System.Guid("d7f713e4-e8cf-11d3-9764-00c04f186933")
         return self.__FindByGuid(guid)
-
 
     # --- Query Methods ---
 
@@ -1085,7 +1061,6 @@ class TranslationTypeOperations(BaseOperations):
                     if ws == wsHandle:
                         yield trans_type
                         break
-
 
     def IsDefault(self, type_or_hvo):
         """
@@ -1136,7 +1111,6 @@ class TranslationTypeOperations(BaseOperations):
 
         return guid in predefined_guids
 
-
     def SetDefault(self, type_or_hvo):
         """
         Set a translation type as the default for new translations.
@@ -1184,7 +1158,6 @@ class TranslationTypeOperations(BaseOperations):
             "SetDefault is not supported for translation types. "
             "Translation type defaults are context-dependent.")
 
-
     # --- Metadata ---
 
     def GetGuid(self, type_or_hvo):
@@ -1227,7 +1200,6 @@ class TranslationTypeOperations(BaseOperations):
         trans_type = self.__ResolveObject(type_or_hvo)
         return trans_type.Guid
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, type_or_hvo):
@@ -1244,7 +1216,6 @@ class TranslationTypeOperations(BaseOperations):
             return self.project.Object(type_or_hvo)
         return type_or_hvo
 
-
     def __WSHandle(self, wsHandle):
         """
         Get writing system handle, defaulting to analysis WS.
@@ -1259,7 +1230,6 @@ class TranslationTypeOperations(BaseOperations):
             return self.project.project.DefaultAnalWs
         return self.project._FLExProject__WSHandle(
             wsHandle, self.project.project.DefaultAnalWs)
-
 
     def __FindByGuid(self, guid):
         """

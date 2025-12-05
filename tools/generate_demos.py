@@ -1,46 +1,93 @@
 #!/usr/bin/env python3
 """
-Generate demonstration files for Operations classes
+Generate demonstration files for Operations classes.
+
+This script creates demonstration files showing how to use various
+Operations classes in flexlibs. It analyzes the methods available
+in each Operations class and generates example code.
 """
 
 import os
 import sys
+from pathlib import Path
 
-# Add flexlibs to path
-sys.path.insert(0, r'D:\Github\flexlibs')
+# Add flexlibs to path (use relative path from script location)
+script_dir = Path(__file__).parent
+flexlibs_root = script_dir.parent
+sys.path.insert(0, str(flexlibs_root))
 
-from flexlibs.code.Grammar.NaturalClassOperations import NaturalClassOperations
+from flexlibs.code.Grammar.NaturalClassOperations import (
+    NaturalClassOperations
+)
 from flexlibs.code.Grammar.EnvironmentOperations import EnvironmentOperations
-from flexlibs.code.Grammar.PhonologicalRuleOperations import PhonologicalRuleOperations
-from flexlibs.code.Grammar.InflectionFeatureOperations import InflectionFeatureOperations
+from flexlibs.code.Grammar.PhonologicalRuleOperations import (
+    PhonologicalRuleOperations
+)
+from flexlibs.code.Grammar.InflectionFeatureOperations import (
+    InflectionFeatureOperations
+)
 from flexlibs.code.Grammar.GramCatOperations import GramCatOperations
-# MorphRuleOperations has import error - will handle separately
 from flexlibs.code.Lexicon.LexSenseOperations import LexSenseOperations
 from flexlibs.code.Lexicon.ExampleOperations import ExampleOperations
-from flexlibs.code.Lexicon.PronunciationOperations import PronunciationOperations
+from flexlibs.code.Lexicon.PronunciationOperations import (
+    PronunciationOperations
+)
 from flexlibs.code.Lexicon.VariantOperations import VariantOperations
 from flexlibs.code.Lexicon.AllomorphOperations import AllomorphOperations
 from flexlibs.code.Lexicon.EtymologyOperations import EtymologyOperations
 from flexlibs.code.Lexicon.LexReferenceOperations import LexReferenceOperations
 
+
 def get_public_methods(cls):
-    """Get all public methods from a class"""
+    """
+    Get all public methods from a class.
+
+    Args:
+        cls: The class to inspect
+
+    Returns:
+        Sorted list of public method names
+    """
     methods = []
     for name in dir(cls):
         if not name.startswith('_') and callable(getattr(cls, name, None)):
             methods.append(name)
     return sorted(methods)
 
-def generate_demo(ops_class, filename, property_name, display_name, domain):
-    """Generate a demonstration file"""
 
+def generate_demo(ops_class, filename, property_name, display_name, domain):
+    """
+    Generate a demonstration file for an Operations class.
+
+    Args:
+        ops_class: The Operations class to demonstrate
+        filename: Output filename for the demo
+        property_name: Property name on FLExProject (e.g., 'Phonemes')
+        display_name: Human-readable name for the operations
+        domain: Domain identifier for function naming
+
+    Returns:
+        None (writes file to examples directory)
+    """
     methods = get_public_methods(ops_class)
 
     # Categorize methods
-    create_methods = [m for m in methods if m.startswith('Create') or m.startswith('Add')]
-    read_methods = [m for m in methods if m.startswith('Get') or m == 'Find' or m == 'Exists']
-    update_methods = [m for m in methods if m.startswith('Set') or m.startswith('Update')]
-    delete_methods = [m for m in methods if m.startswith('Delete') or m.startswith('Remove')]
+    create_methods = [
+        m for m in methods
+        if m.startswith('Create') or m.startswith('Add')
+    ]
+    read_methods = [
+        m for m in methods
+        if m.startswith('Get') or m == 'Find' or m == 'Exists'
+    ]
+    update_methods = [
+        m for m in methods
+        if m.startswith('Set') or m.startswith('Update')
+    ]
+    delete_methods = [
+        m for m in methods
+        if m.startswith('Delete') or m.startswith('Remove')
+    ]
 
     content = f'''#!/usr/bin/env python3
 """
@@ -149,30 +196,54 @@ Note: Actual execution requires a FLEx project and Python.NET runtime.
     demo_{domain.lower()}_operations()
 '''
 
-    output_path = os.path.join(r'D:\Github\flexlibs\examples', filename)
+    # Use relative path from script location
+    examples_dir = flexlibs_root / 'examples'
+    examples_dir.mkdir(exist_ok=True)
+    output_path = examples_dir / filename
+
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(content)
     print(f"Created: {filename}")
 
-# Generate all demos
-demos = [
-    (NaturalClassOperations, 'grammar_naturalclass_operations_demo.py', 'NaturalClasses', 'Natural Classes', 'naturalclass'),
-    (EnvironmentOperations, 'grammar_environment_operations_demo.py', 'Environments', 'Environments', 'environment'),
-    (PhonologicalRuleOperations, 'grammar_phonrule_operations_demo.py', 'PhonRules', 'Phonological Rules', 'phonrule'),
-    (InflectionFeatureOperations, 'grammar_inflection_operations_demo.py', 'InflectionFeatures', 'Inflection Features', 'inflection'),
-    (GramCatOperations, 'grammar_gramcat_operations_demo.py', 'GramCat', 'Grammatical Categories', 'gramcat'),
-    # (MorphRuleOperations, 'grammar_morphrule_operations_demo.py', 'MorphRules', 'Morphological Rules', 'morphrule'),  # Import error
-    (LexSenseOperations, 'lexicon_sense_operations_demo.py', 'Senses', 'Lexical Senses', 'sense'),
-    (ExampleOperations, 'lexicon_example_operations_demo.py', 'Examples', 'Example Sentences', 'example'),
-    (PronunciationOperations, 'lexicon_pronunciation_operations_demo.py', 'Pronunciations', 'Pronunciations', 'pronunciation'),
-    (VariantOperations, 'lexicon_variant_operations_demo.py', 'Variants', 'Variant Forms', 'variant'),
-    (AllomorphOperations, 'lexicon_allomorph_operations_demo.py', 'Allomorphs', 'Allomorphs', 'allomorph'),
-    (EtymologyOperations, 'lexicon_etymology_operations_demo.py', 'Etymology', 'Etymologies', 'etymology'),
-    (LexReferenceOperations, 'lexicon_lexreference_operations_demo.py', 'LexReferences', 'Lexical References', 'lexreference'),
-]
 
-print("Generating 12 demonstration files (MorphRuleOperations has import errors)...")
-for ops_class, filename, prop, display, domain in demos:
-    generate_demo(ops_class, filename, prop, display, domain)
+def main():
+    """Generate all demonstration files."""
+    # Define demonstrations to generate
+    demos = [
+        (NaturalClassOperations, 'grammar_naturalclass_operations_demo.py',
+         'NaturalClasses', 'Natural Classes', 'naturalclass'),
+        (EnvironmentOperations, 'grammar_environment_operations_demo.py',
+         'Environments', 'Environments', 'environment'),
+        (PhonologicalRuleOperations, 'grammar_phonrule_operations_demo.py',
+         'PhonRules', 'Phonological Rules', 'phonrule'),
+        (InflectionFeatureOperations, 'grammar_inflection_operations_demo.py',
+         'InflectionFeatures', 'Inflection Features', 'inflection'),
+        (GramCatOperations, 'grammar_gramcat_operations_demo.py',
+         'GramCat', 'Grammatical Categories', 'gramcat'),
+        (LexSenseOperations, 'lexicon_sense_operations_demo.py',
+         'Senses', 'Lexical Senses', 'sense'),
+        (ExampleOperations, 'lexicon_example_operations_demo.py',
+         'Examples', 'Example Sentences', 'example'),
+        (PronunciationOperations, 'lexicon_pronunciation_operations_demo.py',
+         'Pronunciations', 'Pronunciations', 'pronunciation'),
+        (VariantOperations, 'lexicon_variant_operations_demo.py',
+         'Variants', 'Variant Forms', 'variant'),
+        (AllomorphOperations, 'lexicon_allomorph_operations_demo.py',
+         'Allomorphs', 'Allomorphs', 'allomorph'),
+        (EtymologyOperations, 'lexicon_etymology_operations_demo.py',
+         'Etymology', 'Etymologies', 'etymology'),
+        (LexReferenceOperations, 'lexicon_lexreference_operations_demo.py',
+         'LexReferences', 'Lexical References', 'lexreference'),
+    ]
 
-print("\nAll demonstrations generated!")
+    print("Generating demonstration files...")
+    print(f"Total demos to generate: {len(demos)}\n")
+
+    for ops_class, filename, prop, display, domain in demos:
+        generate_demo(ops_class, filename, prop, display, domain)
+
+    print("\nAll demonstrations generated!")
+
+
+if __name__ == "__main__":
+    main()

@@ -150,9 +150,8 @@ Each agent personality can be adapted to your project by:
 
 ## Related Documentation
 
-- [Historical Example: flexlibs v2.0.0](../Temp/DELEGATION_COMPLETE.md)
-- [Pattern Library](../Temp/DELEGATION_PATTERN_GUIDE.md)
-- [Agent Reports](../Temp/) - Example outputs from agents
+- See project documentation in the `/docs` directory for implementation examples
+- Agent usage examples can be found in historical project documentation
 
 ## Contributing
 

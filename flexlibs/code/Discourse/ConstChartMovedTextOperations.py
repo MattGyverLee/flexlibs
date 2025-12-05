@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -31,7 +28,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 class ConstChartMovedTextOperations(BaseOperations):
     """
@@ -74,7 +70,6 @@ class ConstChartMovedTextOperations(BaseOperations):
             project: The FLExProject instance to operate on.
         """
         super().__init__(project)
-
 
     # --- Core CRUD Operations ---
 
@@ -140,7 +135,6 @@ class ConstChartMovedTextOperations(BaseOperations):
 
         return new_marker
 
-
     def Delete(self, marker_or_hvo):
         """
         Delete a moved text marker.
@@ -177,7 +171,6 @@ class ConstChartMovedTextOperations(BaseOperations):
         # Delete the marker (LCM handles removal from repository)
         marker.Delete()
 
-
     def Find(self, word_group_or_hvo):
         """
         Find the moved text marker for a word group.
@@ -212,7 +205,6 @@ class ConstChartMovedTextOperations(BaseOperations):
         word_group = self.__ResolveWordGroup(word_group_or_hvo)
 
         return word_group.MovedTextMarkerOA if hasattr(word_group, 'MovedTextMarkerOA') else None
-
 
     def GetAll(self, chart_or_hvo):
         """
@@ -258,7 +250,6 @@ class ConstChartMovedTextOperations(BaseOperations):
 
         return markers
 
-
     # --- Marker Properties ---
 
     def IsPreposed(self, marker_or_hvo):
@@ -297,7 +288,6 @@ class ConstChartMovedTextOperations(BaseOperations):
 
         return marker.Preposed
 
-
     def SetPreposed(self, marker_or_hvo, value):
         """
         Set whether moved text is preposed or postposed.
@@ -335,7 +325,6 @@ class ConstChartMovedTextOperations(BaseOperations):
         marker = self.__ResolveObject(marker_or_hvo)
 
         marker.Preposed = bool(value)
-
 
     def GetWordGroup(self, marker_or_hvo):
         """
@@ -378,7 +367,6 @@ class ConstChartMovedTextOperations(BaseOperations):
 
         return None
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, marker_or_hvo):
@@ -401,7 +389,6 @@ class ConstChartMovedTextOperations(BaseOperations):
             return obj
         return marker_or_hvo
 
-
     def __ResolveWordGroup(self, word_group_or_hvo):
         """
         Resolve HVO or object to IConstChartWordGroup.
@@ -422,7 +409,6 @@ class ConstChartMovedTextOperations(BaseOperations):
             return obj
         return word_group_or_hvo
 
-
     def __ResolveChart(self, chart_or_hvo):
         """
         Resolve HVO or object to IDsConstChart.
@@ -442,7 +428,6 @@ class ConstChartMovedTextOperations(BaseOperations):
                 raise FP_ParameterError("HVO does not refer to a constituent chart")
             return obj
         return chart_or_hvo
-
 
     # --- Reordering Support ---
 

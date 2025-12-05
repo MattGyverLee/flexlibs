@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import FLEx LCM types
 from SIL.LCModel import (
     ICmPerson,
@@ -34,7 +31,6 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
-
 
 class PersonOperations(BaseOperations):
     """
@@ -86,7 +82,6 @@ class PersonOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     # --- Core CRUD Operations ---
 
     def GetAll(self):
@@ -118,7 +113,6 @@ class PersonOperations(BaseOperations):
             Find, Create, GetName
         """
         return self.project.ObjectsIn(ICmPersonRepository)
-
 
     def Create(self, name, wsHandle=None):
         """
@@ -184,7 +178,6 @@ class PersonOperations(BaseOperations):
 
         return new_person
 
-
     def Delete(self, person_or_hvo):
         """
         Delete a person from the FLEx project.
@@ -232,7 +225,6 @@ class PersonOperations(BaseOperations):
         # Remove from people collection
         self.project.lp.PeopleOC.Remove(person)
 
-
     def Exists(self, name, wsHandle=None):
         """
         Check if a person with the given name exists.
@@ -271,7 +263,6 @@ class PersonOperations(BaseOperations):
             return False
 
         return self.Find(name, wsHandle) is not None
-
 
     def Find(self, name, wsHandle=None):
         """
@@ -324,7 +315,6 @@ class PersonOperations(BaseOperations):
 
         return None
 
-
     # --- Name Management ---
 
     def GetName(self, person_or_hvo, wsHandle=None):
@@ -366,7 +356,6 @@ class PersonOperations(BaseOperations):
 
         name = ITsString(person.Name.get_String(wsHandle)).Text
         return name or ""
-
 
     def SetName(self, person_or_hvo, name, wsHandle=None):
         """
@@ -417,7 +406,6 @@ class PersonOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         person.Name.set_String(wsHandle, mkstr)
 
-
     # --- Gender ---
 
     def GetGender(self, person_or_hvo, wsHandle=None):
@@ -456,7 +444,6 @@ class PersonOperations(BaseOperations):
 
         gender = ITsString(person.Gender.get_String(wsHandle)).Text
         return gender or ""
-
 
     def SetGender(self, person_or_hvo, gender, wsHandle=None):
         """
@@ -500,7 +487,6 @@ class PersonOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(gender, wsHandle)
         person.Gender.set_String(wsHandle, mkstr)
 
-
     # --- Date of Birth ---
 
     def GetDateOfBirth(self, person_or_hvo):
@@ -539,7 +525,6 @@ class PersonOperations(BaseOperations):
         if person.DateOfBirth:
             return str(person.DateOfBirth)
         return ""
-
 
     def SetDateOfBirth(self, person_or_hvo, date_str):
         """
@@ -582,7 +567,6 @@ class PersonOperations(BaseOperations):
         # DateOfBirth is a GenDate field - set as string
         person.DateOfBirth = date_str
 
-
     # --- Contact Information ---
 
     def GetEmail(self, person_or_hvo, wsHandle=None):
@@ -621,7 +605,6 @@ class PersonOperations(BaseOperations):
 
         email = ITsString(person.Email.get_String(wsHandle)).Text
         return email or ""
-
 
     def SetEmail(self, person_or_hvo, email, wsHandle=None):
         """
@@ -669,7 +652,6 @@ class PersonOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(email, wsHandle)
         person.Email.set_String(wsHandle, mkstr)
 
-
     def GetPhone(self, person_or_hvo, wsHandle=None):
         """
         Get the phone number of a person.
@@ -706,7 +688,6 @@ class PersonOperations(BaseOperations):
 
         phone = ITsString(person.PlaceOfBirth.get_String(wsHandle)).Text
         return phone or ""
-
 
     def SetPhone(self, person_or_hvo, phone, wsHandle=None):
         """
@@ -754,7 +735,6 @@ class PersonOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(phone, wsHandle)
         person.PlaceOfBirth.set_String(wsHandle, mkstr)
 
-
     def GetAddress(self, person_or_hvo, wsHandle=None):
         """
         Get the address of a person.
@@ -792,7 +772,6 @@ class PersonOperations(BaseOperations):
         # Use Abbreviation field for address storage
         address = ITsString(person.Abbreviation.get_String(wsHandle)).Text
         return address or ""
-
 
     def SetAddress(self, person_or_hvo, address, wsHandle=None):
         """
@@ -837,7 +816,6 @@ class PersonOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(address, wsHandle)
         person.Abbreviation.set_String(wsHandle, mkstr)
 
-
     # --- Academic Information ---
 
     def GetEducation(self, person_or_hvo, wsHandle=None):
@@ -876,7 +854,6 @@ class PersonOperations(BaseOperations):
 
         education = ITsString(person.Description.get_String(wsHandle)).Text
         return education or ""
-
 
     def SetEducation(self, person_or_hvo, education, wsHandle=None):
         """
@@ -922,7 +899,6 @@ class PersonOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(education, wsHandle)
         person.Description.set_String(wsHandle, mkstr)
 
-
     def GetPositions(self, person_or_hvo):
         """
         Get the positions/roles associated with a person.
@@ -960,7 +936,6 @@ class PersonOperations(BaseOperations):
         person = self.__ResolveObject(person_or_hvo)
 
         return list(person.PositionsRC)
-
 
     def AddPosition(self, person_or_hvo, position):
         """
@@ -1006,7 +981,6 @@ class PersonOperations(BaseOperations):
             person.PositionsRC.Add(position_poss)
         except (AttributeError, System.InvalidCastException) as e:
             raise FP_ParameterError("position must be a valid ICmPossibility object")
-
 
     def Duplicate(self, person_or_hvo, insert_after=True, deep=False):
         """
@@ -1102,7 +1076,6 @@ class PersonOperations(BaseOperations):
 
         return duplicate
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -1155,7 +1128,6 @@ class PersonOperations(BaseOperations):
             props['Languages'] = [str(lang.Guid) for lang in person.LanguagesRC]
 
         return props
-
 
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
@@ -1213,7 +1185,6 @@ class PersonOperations(BaseOperations):
 
         return is_different, differences
 
-
     # --- Metadata ---
 
     def GetGuid(self, person_or_hvo):
@@ -1256,7 +1227,6 @@ class PersonOperations(BaseOperations):
 
         return person.Guid
 
-
     def GetDateCreated(self, person_or_hvo):
         """
         Get the creation date of a person record.
@@ -1292,7 +1262,6 @@ class PersonOperations(BaseOperations):
 
         return person.DateCreated
 
-
     def GetDateModified(self, person_or_hvo):
         """
         Get the last modification date of a person record.
@@ -1327,7 +1296,6 @@ class PersonOperations(BaseOperations):
         person = self.__ResolveObject(person_or_hvo)
 
         return person.DateModified
-
 
     # --- Relationships ---
 
@@ -1367,7 +1335,6 @@ class PersonOperations(BaseOperations):
         person = self.__ResolveObject(person_or_hvo)
 
         return list(person.PlacesOfResidenceRC)
-
 
     def AddResidence(self, person_or_hvo, location):
         """
@@ -1412,7 +1379,6 @@ class PersonOperations(BaseOperations):
         except (AttributeError, System.InvalidCastException) as e:
             raise FP_ParameterError("location must be a valid ICmLocation object")
 
-
     def GetLanguages(self, person_or_hvo):
         """
         Get the languages known by a person.
@@ -1450,7 +1416,6 @@ class PersonOperations(BaseOperations):
         person = self.__ResolveObject(person_or_hvo)
 
         return list(person.LanguagesRC)
-
 
     def AddLanguage(self, person_or_hvo, language):
         """
@@ -1497,7 +1462,6 @@ class PersonOperations(BaseOperations):
         except (AttributeError, System.InvalidCastException) as e:
             raise FP_ParameterError("language must be a valid ICmPossibility object")
 
-
     # --- Notes ---
 
     def GetNotes(self, person_or_hvo, wsHandle=None):
@@ -1537,7 +1501,6 @@ class PersonOperations(BaseOperations):
         # Use Comment field for notes
         notes = ITsString(person.Comment.get_String(wsHandle)).Text
         return notes or ""
-
 
     def AddNote(self, person_or_hvo, note, wsHandle=None):
         """
@@ -1594,7 +1557,6 @@ class PersonOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(new_notes, wsHandle)
         person.Comment.set_String(wsHandle, mkstr)
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, person_or_hvo):
@@ -1617,7 +1579,6 @@ class PersonOperations(BaseOperations):
             return obj
         return person_or_hvo
 
-
     def __WSHandle(self, wsHandle):
         """
         Get writing system handle, defaulting to vernacular WS.
@@ -1634,7 +1595,6 @@ class PersonOperations(BaseOperations):
             wsHandle,
             self.project.project.DefaultVernWs
         )
-
 
     def __WSHandleAnalysis(self, wsHandle):
         """

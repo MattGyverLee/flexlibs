@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -37,7 +34,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 # --- Lexical Reference Mapping Type Constants ---
 
@@ -64,7 +60,6 @@ class LexRefMappingTypes:
     ASYMMETRIC = 2  # krtAsym - Asymmetric with forward/reverse (A → B, B ← A)
     TREE = 3        # krtTree - Tree/hierarchical (parent-child)
     SEQUENCE = 4    # krtSequence - Ordered sequence (A → B → C)
-
 
 class LexReferenceOperations(BaseOperations):
     """
@@ -132,7 +127,6 @@ class LexReferenceOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     # --- Reference Type Management ---
 
     def GetAllTypes(self):
@@ -166,7 +160,6 @@ class LexReferenceOperations(BaseOperations):
             FindType, CreateType, GetTypeName, GetMappingType
         """
         return self.project.ObjectsIn(ILexRefTypeRepository)
-
 
     def CreateType(self, name, mapping_type, reverse_name=None, wsHandle=None):
         """
@@ -285,7 +278,6 @@ class LexReferenceOperations(BaseOperations):
 
         return new_ref_type
 
-
     def DeleteType(self, ref_type_or_hvo):
         """
         Delete a lexical relation type.
@@ -328,7 +320,6 @@ class LexReferenceOperations(BaseOperations):
         ref_types_list = self.project.lexDB.ReferencesOA
         if ref_types_list:
             ref_types_list.PossibilitiesOS.Remove(ref_type)
-
 
     def FindType(self, name, wsHandle=None):
         """
@@ -383,7 +374,6 @@ class LexReferenceOperations(BaseOperations):
 
         return None
 
-
     def GetTypeName(self, ref_type_or_hvo, wsHandle=None):
         """
         Get the name of a lexical relation type.
@@ -422,7 +412,6 @@ class LexReferenceOperations(BaseOperations):
 
         name = ITsString(ref_type.Name.get_String(wsHandle)).Text
         return name or ""
-
 
     def SetTypeName(self, ref_type_or_hvo, name, wsHandle=None):
         """
@@ -465,7 +454,6 @@ class LexReferenceOperations(BaseOperations):
 
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         ref_type.Name.set_String(wsHandle, mkstr)
-
 
     def GetTypeReverseName(self, ref_type_or_hvo, wsHandle=None):
         """
@@ -514,7 +502,6 @@ class LexReferenceOperations(BaseOperations):
         else:
             return ""
 
-
     def SetTypeReverseName(self, ref_type_or_hvo, name, wsHandle=None):
         """
         Set the reverse name for an asymmetric relation type.
@@ -562,7 +549,6 @@ class LexReferenceOperations(BaseOperations):
 
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         ref_type.ReverseName.set_String(wsHandle, mkstr)
-
 
     def GetMappingType(self, ref_type_or_hvo):
         """
@@ -620,7 +606,6 @@ class LexReferenceOperations(BaseOperations):
             return "Sequence"
         else:
             return "Unknown"
-
 
     # --- Reference Management ---
 
@@ -701,7 +686,6 @@ class LexReferenceOperations(BaseOperations):
                             if ref.Hvo not in seen_refs:
                                 seen_refs.add(ref.Hvo)
                                 yield ref
-
 
     def Create(self, ref_type_or_name, targets):
         """
@@ -799,7 +783,6 @@ class LexReferenceOperations(BaseOperations):
 
         return new_ref
 
-
     def Delete(self, lex_ref_or_hvo):
         """
         Delete a lexical reference.
@@ -845,7 +828,6 @@ class LexReferenceOperations(BaseOperations):
         if hasattr(owner, 'MembersOC'):
             owner.MembersOC.Remove(lex_ref)
 
-
     def GetTargets(self, lex_ref_or_hvo):
         """
         Get all target senses or entries in a lexical reference.
@@ -890,7 +872,6 @@ class LexReferenceOperations(BaseOperations):
         lex_ref = self.__ResolveLexRef(lex_ref_or_hvo)
 
         return list(lex_ref.TargetsRS)
-
 
     def AddTarget(self, lex_ref_or_hvo, sense_or_entry):
         """
@@ -957,7 +938,6 @@ class LexReferenceOperations(BaseOperations):
         # Add the target
         lex_ref.TargetsRS.Add(target)
 
-
     def RemoveTarget(self, lex_ref_or_hvo, sense_or_entry):
         """
         Remove a target sense or entry from a lexical reference.
@@ -1016,7 +996,6 @@ class LexReferenceOperations(BaseOperations):
         if target in lex_ref.TargetsRS:
             lex_ref.TargetsRS.Remove(target)
 
-
     def GetType(self, lex_ref_or_hvo):
         """
         Get the reference type of a lexical reference.
@@ -1057,7 +1036,6 @@ class LexReferenceOperations(BaseOperations):
 
         # The owner of a LexReference is always a LexRefType
         return lex_ref.Owner
-
 
     def GetReferencesOfType(self, ref_type_or_name):
         """
@@ -1110,7 +1088,6 @@ class LexReferenceOperations(BaseOperations):
         # Yield all members of this type
         for ref in ref_type.MembersOC:
             yield ref
-
 
     # --- Show Complex Forms Operations ---
 
@@ -1189,7 +1166,6 @@ class LexReferenceOperations(BaseOperations):
 
         return ref
 
-
     def GetComplexFormEntries(self, entry):
         """
         Get all complex form entries that show this entry as a component.
@@ -1253,7 +1229,6 @@ class LexReferenceOperations(BaseOperations):
 
         return complex_forms
 
-
     def GetComponentEntries(self, complex_entry):
         """
         Get all component entries that make up a complex form entry.
@@ -1316,7 +1291,6 @@ class LexReferenceOperations(BaseOperations):
 
         return components
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -1363,7 +1337,6 @@ class LexReferenceOperations(BaseOperations):
 
         return props
 
-
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two lexical references and return their differences.
@@ -1394,7 +1367,6 @@ class LexReferenceOperations(BaseOperations):
         is_different = len(differences) > 0
         return is_different, differences
 
-
     # --- Private Helper Methods ---
 
     def __ResolveRefType(self, ref_type_or_hvo):
@@ -1418,7 +1390,6 @@ class LexReferenceOperations(BaseOperations):
             return obj
         return ref_type_or_hvo
 
-
     def __ResolveLexRef(self, lex_ref_or_hvo):
         """
         Resolve HVO or object to ILexReference.
@@ -1439,7 +1410,6 @@ class LexReferenceOperations(BaseOperations):
                 raise FP_ParameterError("HVO does not refer to a LexReference")
             return obj
         return lex_ref_or_hvo
-
 
     def __ResolveSenseOrEntry(self, sense_or_entry):
         """
@@ -1467,7 +1437,6 @@ class LexReferenceOperations(BaseOperations):
             return obj
         return sense_or_entry
 
-
     def __ResolveEntry(self, entry_or_hvo):
         """
         Resolve HVO or object to ILexEntry.
@@ -1487,7 +1456,6 @@ class LexReferenceOperations(BaseOperations):
                 raise FP_ParameterError("Object is not a LexEntry")
             return obj
         return entry_or_hvo
-
 
     def __WSHandleAnalysis(self, wsHandle):
         """

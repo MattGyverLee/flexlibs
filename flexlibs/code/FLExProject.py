@@ -13,9 +13,6 @@
 #   Copyright Craig Farrow, 2008 - 2024
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Initialise low-level FLEx data access
 from . import FLExInit
 from . import FLExLCM
@@ -71,7 +68,6 @@ from SIL.FieldWorks.Common.FwUtils import (
     StartupException,
     FwAppArgs,
     )
-
 
 #--- Exceptions ------------------------------------------------------
 
@@ -244,7 +240,6 @@ class FLExProject (object):
             # An unknown error -- pass on the full information
             raise FP_ProjectError(e.Message)
 
-
         self.lp    = self.project.LangProject
         self.lexDB = self.lp.LexDbOA
         
@@ -266,28 +261,19 @@ class FLExProject (object):
         """
         Save any pending changes and dispose of the LCM object.
         """
-        # logger.debug("Closing FLExProject object...")
         if hasattr(self, "project"):
             if self.writeEnabled:
-                # logger.debug("Saving changes...")
                 # This must be called to mirror the call to BeginNonUndoableTask().
                 self.project.MainCacheAccessor.EndNonUndoableTask()
                 # Save all changes to disk. (EndNonUndoableTask)
                 usm = self.ObjectRepository(IUndoStackManager)
-                usm.Save()                
-                # logger.debug("Done")
+                usm.Save()
             try:
-                # logger.debug("Calling Dispose()...")
                 self.project.Dispose()
                 del self.project
-                # logger.debug("Deleted project object")
                 return
-            except:
-                # import traceback
-                # logger.debug("Exception in Dispose()")
-                # logger.debug("FLExProject.__del__:\n %s\n" % (traceback.format_exc()))
+            except Exception:
                 raise
-                pass
 
     # --- Advanced Operations ---
 
@@ -1796,7 +1782,6 @@ class FLExProject (object):
         """
         return self.WritingSystems.GetBestString(stringObj)
 
-
     # --- LCM Utilities ---
     
     def UnpackNestedPossibilityList(self, possibilityList, objClass, flat=False):
@@ -1933,7 +1918,6 @@ class FLExProject (object):
         return (self.WritingSystems.GetLanguageTag(ws),
                 self.WritingSystems.GetDisplayName(ws))
 
-
     # --- Media and LinkedFiles support ---
 
     def GetLinkedFilesDir(self):
@@ -1971,7 +1955,6 @@ class FLExProject (object):
         # Last resort: raise error
         raise RuntimeError("Could not determine LinkedFiles directory path")
 
-
     def IsAudioWritingSystem(self, wsHandle):
         """
         Check if a writing system is an audio writing system.
@@ -2006,7 +1989,6 @@ class FLExProject (object):
 
         except Exception:
             return False
-
 
     def GetAudioPath(self, multistring_field, wsHandle):
         """
@@ -2064,7 +2046,6 @@ class FLExProject (object):
             import logging
             logging.warning(f"Could not extract audio path: {e}")
             return None
-
 
     def SetAudioPath(self, multistring_field, wsHandle, file_path):
         """
@@ -2148,7 +2129,6 @@ class FLExProject (object):
         """
         return self.SemanticDomains.GetAll(flat=flat)
 
-
     # --- Global utility functions ---
     
     def BuildGotoURL(self, objectOrGuid):
@@ -2170,7 +2150,7 @@ class FLExProject (object):
         # Quick sanity check that we have the right thing
         try:
             flexObject.Guid
-        except:
+        except (AttributeError, Exception):
             raise FP_ParameterError("BuildGotoURL: objectOrGuid is neither System.Guid nor an object with attribute Guid")
 
         if flexObject.ClassID == ReversalIndexEntryTags.kClassId:
@@ -2207,7 +2187,6 @@ class FLExProject (object):
 
         return self.project.ServiceLocator.GetService(repository)
 
-
     def ObjectCountFor(self, repository):
         """
         Returns the number of objects in `repository`.
@@ -2241,7 +2220,6 @@ class FLExProject (object):
         repo = self.ObjectRepository(repository)
         return iter(repo.AllInstances())
 
-
     def Object(self, hvoOrGuid):
         """
         Returns the `CmObject` for the given Hvo or guid (`str` or `System.Guid`).
@@ -2257,7 +2235,6 @@ class FLExProject (object):
             return self.project.ServiceLocator.GetObject(hvoOrGuid)
         else:
             raise FP_ParameterError("hvoOrGuid must be an Hvo (int), System.Guid or str")
-
 
     # --- Lexicon ---
 
@@ -2288,7 +2265,6 @@ class FLExProject (object):
         """
 
         return self.LexEntry.GetAll()
-
 
     def LexiconAllEntriesSorted(self):
         """
@@ -2347,7 +2323,6 @@ class FLExProject (object):
         """
         return self.LexEntry.GetLexemeForm(entry, languageTagOrHandle)
 
-
     def LexiconSetLexemeForm(self, entry, form, languageTagOrHandle=None):
         """
         Set the lexeme form for `entry`:
@@ -2378,7 +2353,6 @@ class FLExProject (object):
         # MultiUnicodeAccessor
         form = ITsString(entry.AlternateFormsOS.Form.get_String(WSHandle)).Text
         return form or ""
-
 
     def LexiconGetPublishInCount(self, entry):
         """
@@ -2442,7 +2416,6 @@ class FLExProject (object):
         tr = ITsString(translation.Translation.get_String(WSHandle)).Text
         return tr or ""
 
-
     def LexiconGetSenseNumber(self, sense):
         """
         Returns the sense number for the sense. (This is not available
@@ -2452,7 +2425,6 @@ class FLExProject (object):
         """
 
         return self.Senses.GetSenseNumber(sense)
-
 
     #  Analysis WS fields
 
@@ -2536,7 +2508,6 @@ class FLExProject (object):
         count = ReflectionHelper.GetProperty(entry, "EntryAnalysesCount")
         return count
 
-
     def LexiconSenseAnalysesCount(self, sense):
         """
         Returns a count of the occurrences of the sense in the text corpus.
@@ -2545,7 +2516,6 @@ class FLExProject (object):
         """
 
         return self.Senses.GetAnalysesCount(sense)
-
 
     # --- Lexicon: field functions ---
 
@@ -2587,7 +2557,6 @@ class FLExProject (object):
             hvo = senseOrEntryOrHvo
         
         return hvo
-
 
     def GetCustomFieldValue(self, senseOrEntryOrHvo, fieldID,
                             languageTagOrHandle=None):
@@ -2644,7 +2613,6 @@ class FLExProject (object):
 
         raise FP_ParameterError("GetCustomFieldValue: field is not a supported type")
 
-
     def LexiconFieldIsStringType(self, fieldID):
         """
         Returns `True` if the given field is a simple string type suitable
@@ -2656,7 +2624,6 @@ class FLExProject (object):
 
         field_type = self.CustomFields.GetFieldType(fieldID)
         return field_type == CellarPropertyType.String
-
 
     def LexiconFieldIsMultiType(self, fieldID):
         """
@@ -2791,7 +2758,6 @@ class FLExProject (object):
         else:
             raise FP_ParameterError("LexiconClearField: field is not a supported type")
 
-
     def LexiconSetFieldInteger(self, senseOrEntryOrHvo, fieldID, integer):
         """
         Sets the integer value for the given entry/sense and field ID.
@@ -2812,7 +2778,6 @@ class FLExProject (object):
             except LcmInvalidFieldException as msg:
                 # This exception indicates that the project is not in write mode
                 raise FP_ReadOnlyError()
-
 
     def LexiconAddTagToField(self, senseOrEntryOrHvo, fieldID, tag):
         """
@@ -2835,7 +2800,6 @@ class FLExProject (object):
 
         return
 
-
     # --- Lexicon: list field functions ---
 
     def ListFieldPossibilityList(self, senseOrEntry, fieldID):
@@ -2854,7 +2818,6 @@ class FLExProject (object):
                              CellarPropertyType.ReferenceCollection):
             raise FP_ParameterError("ListFieldPossibilityList: field must be a List type")
         return ICmPossibilityList(senseOrEntry.ReferenceTargetOwner(fieldID))
-
 
     def ListFieldPossibilities(self, senseOrEntry, fieldID):
         """
@@ -2875,7 +2838,6 @@ class FLExProject (object):
         pList = self.ListFieldPossibilityList(senseOrEntry, fieldID)
         return pList.PossibilitiesOS
 
-
     def ListFieldLookup(self, senseOrEntry, fieldID, value):
         """
         Looks up the value (a string) in the `CmPossibilityList` for the
@@ -2888,7 +2850,6 @@ class FLExProject (object):
         return pList.FindPossibilityByName(pList.PossibilitiesOS,
                                            value,
                                            wsa)
-
 
     def LexiconSetListFieldSingle(self, 
                                   senseOrEntry, 
@@ -2933,7 +2894,6 @@ class FLExProject (object):
                                                  fieldID, 
                                                  possibility.Hvo)
 
-
     def LexiconClearListFieldSingle(self, 
                                     senseOrEntry, 
                                     fieldID):
@@ -2948,7 +2908,6 @@ class FLExProject (object):
         self.project.DomainDataByFlid.SetObjProp(hvo, 
                                                  fieldID, 
                                                  0)
-
 
     def LexiconSetListFieldMultiple(self, 
                                     senseOrEntry, 
@@ -3003,7 +2962,6 @@ class FLExProject (object):
                      0, numItems,
                      hvoList, len(hvoList))
 
-
     # --- Lexicon: Custom fields ---
     
     def __GetCustomFieldsOfType(self, classID):
@@ -3027,7 +2985,6 @@ class FLExProject (object):
                 return flid
         return None
 
-
     def LexiconGetEntryCustomFields(self):
         """
         Returns a list of the custom fields defined at entry level.
@@ -3037,7 +2994,6 @@ class FLExProject (object):
         """
         return self.CustomFields.GetAllFields("LexEntry")
 
-
     def LexiconGetSenseCustomFields(self):
         """
         Returns a list of the custom fields defined at sense level.
@@ -3046,7 +3002,6 @@ class FLExProject (object):
         Delegates to: CustomFields.GetAllFields("LexSense")
         """
         return self.CustomFields.GetAllFields("LexSense")
-
 
     def LexiconGetExampleCustomFields(self):
         """
@@ -3078,7 +3033,6 @@ class FLExProject (object):
         """
         return self.CustomFields.FindField("LexEntry", fieldName)
 
-
     def LexiconGetSenseCustomFieldNamed(self, fieldName):
         """
         Return the sense-level field ID given its name.
@@ -3088,7 +3042,6 @@ class FLExProject (object):
         Delegates to: CustomFields.FindField("LexSense", name)
         """
         return self.CustomFields.FindField("LexSense", fieldName)
-
 
     # --- Entry/Sense Operations (FlexTools Compatibility) ---
 
@@ -3113,7 +3066,6 @@ class FLExProject (object):
         """
         return self.LexEntry.GetMorphType(entry)
 
-
     def LexiconSetMorphType(self, entry, morph_type_or_name):
         """
         Set the morph type of a lexical entry.
@@ -3132,7 +3084,6 @@ class FLExProject (object):
         """
         return self.LexEntry.SetMorphType(entry, morph_type_or_name)
 
-
     def LexiconAllAllomorphs(self):
         """
         Get all allomorphs in the entire project.
@@ -3149,7 +3100,6 @@ class FLExProject (object):
             Delegates to: Allomorphs.GetAll()
         """
         return self.Allomorphs.GetAll()
-
 
     def LexiconNumberOfSenses(self, entry):
         """
@@ -3170,7 +3120,6 @@ class FLExProject (object):
             Delegates to: LexEntry.GetSenseCount(entry)
         """
         return self.LexEntry.GetSenseCount(entry)
-
 
     def LexiconGetSenseByName(self, entry, gloss_text, languageTagOrHandle=None):
         """
@@ -3203,7 +3152,6 @@ class FLExProject (object):
                 return sense
         return None
 
-
     def LexiconAddEntry(self, lexeme_form, morph_type_name="stem", languageTagOrHandle=None):
         """
         Create a new lexical entry.
@@ -3233,7 +3181,6 @@ class FLExProject (object):
 
         return self.LexEntry.Create(lexeme_form, morph_type_name, wsHandle)
 
-
     def LexiconGetEntry(self, index):
         """
         Get a lexical entry by index.
@@ -3259,7 +3206,6 @@ class FLExProject (object):
             if i == index:
                 return entry
         return None
-
 
     def LexiconAddSense(self, entry, gloss, languageTagOrHandle=None):
         """
@@ -3289,7 +3235,6 @@ class FLExProject (object):
 
         return self.LexEntry.AddSense(entry, gloss, wsHandle)
 
-
     def LexiconGetSense(self, entry, index):
         """
         Get a sense by index from an entry.
@@ -3313,7 +3258,6 @@ class FLExProject (object):
         if 0 <= index < len(senses):
             return senses[index]
         return None
-
 
     def LexiconDeleteObject(self, obj):
         """
@@ -3362,13 +3306,12 @@ class FLExProject (object):
                             if hasattr(collection, 'Remove') and obj in collection:
                                 collection.Remove(obj)
                                 return
-                        except:
+                        except Exception:
                             pass
 
             # Fallback: use DeleteUnderlyingObject
             from SIL.LCModel.Infrastructure import IDataReader
             self.project.ServiceLocator.GetInstance(IDataReader).DeleteUnderlyingObject(obj.Hvo)
-
 
     def LexiconGetHeadWord(self, entry):
         """
@@ -3392,7 +3335,6 @@ class FLExProject (object):
             Delegates to: LexiconGetHeadword(entry)
         """
         return self.LexiconGetHeadword(entry)
-
 
     def LexiconGetAllomorphForms(self, entry, languageTagOrHandle=None):
         """
@@ -3428,7 +3370,6 @@ class FLExProject (object):
                 forms.append(form)
         return forms
 
-
     def LexiconAddAllomorph(self, entry, form, morphType, languageTagOrHandle=None):
         """
         Add an allomorph to an entry.
@@ -3459,7 +3400,6 @@ class FLExProject (object):
 
         return self.Allomorphs.Create(entry, form, morphType, wsHandle)
 
-
     def LexiconGetPronunciations(self, entry):
         """
         Get all pronunciations for an entry.
@@ -3480,7 +3420,6 @@ class FLExProject (object):
             Delegates to: Pronunciations.GetAll(entry)
         """
         return self.Pronunciations.GetAll(entry)
-
 
     def LexiconAddPronunciation(self, entry, form, languageTagOrHandle=None):
         """
@@ -3510,7 +3449,6 @@ class FLExProject (object):
 
         return self.Pronunciations.Create(entry, form, wsHandle)
 
-
     def LexiconGetVariantType(self, variant):
         """
         Get the variant type of a variant entry reference.
@@ -3531,7 +3469,6 @@ class FLExProject (object):
             Delegates to: Variants.GetVariantType(variant)
         """
         return self.Variants.GetVariantType(variant)
-
 
     def LexiconAddVariantForm(self, entry, form, variant_type, languageTagOrHandle=None):
         """
@@ -3563,7 +3500,6 @@ class FLExProject (object):
 
         return self.Variants.Create(entry, form, variant_type, wsHandle)
 
-
     def LexiconGetComplexFormType(self, entry_ref):
         """
         Get the complex form type of an entry reference.
@@ -3587,7 +3523,6 @@ class FLExProject (object):
             return entry_ref.ComplexEntryTypesRS[0]
         return None
 
-
     def LexiconSetComplexFormType(self, entry_ref, complex_form_type):
         """
         Set the complex form type of an entry reference.
@@ -3608,7 +3543,6 @@ class FLExProject (object):
         if hasattr(entry_ref, 'ComplexEntryTypesRS'):
             entry_ref.ComplexEntryTypesRS.Clear()
             entry_ref.ComplexEntryTypesRS.Append(complex_form_type)
-
 
     def LexiconAddComplexForm(self, entry, components, complex_form_type):
         """
@@ -3648,7 +3582,6 @@ class FLExProject (object):
             entry_ref.ComplexEntryTypesRS.Append(complex_form_type)
 
         return entry_ref
-
 
     # --- Lexical Relations ---
     
@@ -3693,7 +3626,6 @@ class FLExProject (object):
         """
         return [self.Publications.GetName(pub) for pub in self.Publications.GetAll()]
 
-
     def PublicationType(self, publicationName):
         """
         Returns the `PublicationType` object (a `CmPossibility`) for the
@@ -3704,7 +3636,6 @@ class FLExProject (object):
            This method delegates to :meth:`PublicationOperations.Find`.
         """
         return self.Publications.Find(publicationName)
-
 
     # --- Reversal Indices ---
 
@@ -3718,7 +3649,6 @@ class FLExProject (object):
            This method delegates to :meth:`ReversalOperations.GetIndex`.
         """
         return self.Reversal.GetIndex(languageTag)
-
 
     def ReversalEntries(self, languageTag):
         """
@@ -3735,7 +3665,6 @@ class FLExProject (object):
         else:
             return None
 
-
     def ReversalGetForm(self, entry, languageTagOrHandle=None):
         """
         Returns the citation form for the reversal entry in the default
@@ -3745,7 +3674,6 @@ class FLExProject (object):
            This method delegates to :meth:`ReversalOperations.GetForm`.
         """
         return self.Reversal.GetForm(entry, languageTagOrHandle)
-
 
     def ReversalSetForm(self, entry, form, languageTagOrHandle=None):
         """
@@ -3768,7 +3696,6 @@ class FLExProject (object):
         """
 
         return sum(1 for _ in self.Texts.GetAll())
-
 
     def TextsGetAll(self, supplyName=True, supplyText=True):
         """

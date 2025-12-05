@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 import clr
 clr.AddReference("System")
 import System
@@ -41,7 +38,6 @@ from ..FLExProject import (
 )
 from ..BaseOperations import BaseOperations
 
-
 # --- Approval Status Enum ---
 
 class ApprovalStatusTypes:
@@ -49,7 +45,6 @@ class ApprovalStatusTypes:
     DISAPPROVED = 0      # Parser or human has disapproved
     UNAPPROVED = 1       # Not yet approved/reviewed
     APPROVED = 2         # Parser or human has approved
-
 
 # --- WfiAnalysisOperations Class ---
 
@@ -147,7 +142,6 @@ class WfiAnalysisOperations(BaseOperations):
                 raise FP_ParameterError("HVO does not refer to an analysis")
             return analysis
         return analysis_or_hvo
-
 
     # --- Core CRUD Operations ---
 
@@ -249,7 +243,6 @@ class WfiAnalysisOperations(BaseOperations):
 
         return new_analysis
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -279,7 +272,6 @@ class WfiAnalysisOperations(BaseOperations):
             props['CategoryRA'] = str(item.CategoryRA.Guid)
 
         return props
-
 
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
@@ -375,7 +367,6 @@ class WfiAnalysisOperations(BaseOperations):
         # Get the owning wordform and remove the analysis
         wordform = analysis.Owner
         wordform.AnalysesOC.Remove(analysis)
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -528,7 +519,6 @@ class WfiAnalysisOperations(BaseOperations):
                 return True
 
         return False
-
 
     # --- Approval & Status Operations ---
 
@@ -894,7 +884,6 @@ class WfiAnalysisOperations(BaseOperations):
         # Set to disapproved status
         self.SetApprovalStatus(analysis, ApprovalStatusTypes.DISAPPROVED)
 
-
     # --- Gloss Operations ---
 
     def GetGlosses(self, analysis_or_hvo):
@@ -1039,7 +1028,6 @@ class WfiAnalysisOperations(BaseOperations):
 
         return new_gloss
 
-
     # --- Morph Bundle Operations ---
 
     def GetMorphBundles(self, analysis_or_hvo):
@@ -1117,7 +1105,6 @@ class WfiAnalysisOperations(BaseOperations):
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
         return analysis.MorphBundlesOS.Count
-
 
     # --- Category Operations ---
 
@@ -1222,7 +1209,6 @@ class WfiAnalysisOperations(BaseOperations):
             analysis.CategoryRA = category
         else:
             raise FP_ParameterError("Analysis does not support CategoryRA property")
-
 
     # --- Evaluation Operations ---
 
@@ -1367,7 +1353,6 @@ class WfiAnalysisOperations(BaseOperations):
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
         return list(analysis.EvaluationsRC)
-
 
     # --- Utility Operations ---
 

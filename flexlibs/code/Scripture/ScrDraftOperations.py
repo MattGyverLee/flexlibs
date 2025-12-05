@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -32,7 +29,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 class ScrDraftOperations(BaseOperations):
     """
@@ -77,7 +73,6 @@ class ScrDraftOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     # --- Core CRUD Operations ---
 
     def GetAll(self):
@@ -111,7 +106,6 @@ class ScrDraftOperations(BaseOperations):
             return iter([])
 
         return iter(scripture.ArchivedDraftsOC)
-
 
     def Create(self, description, type="saved_version"):
         """
@@ -181,7 +175,6 @@ class ScrDraftOperations(BaseOperations):
 
         return new_draft
 
-
     def Delete(self, draft_or_hvo):
         """
         Delete a Scripture draft from the FLEx project.
@@ -225,7 +218,6 @@ class ScrDraftOperations(BaseOperations):
 
         # Delete the draft (LCM handles removal from repository)
         draft.Delete()
-
 
     def Find(self, description):
         """
@@ -280,7 +272,6 @@ class ScrDraftOperations(BaseOperations):
 
         return None
 
-
     # --- Draft Properties ---
 
     def GetDescription(self, draft_or_hvo):
@@ -317,7 +308,6 @@ class ScrDraftOperations(BaseOperations):
 
         desc = ITsString(draft.Description.get_String(wsHandle)).Text
         return desc or ""
-
 
     def SetDescription(self, draft_or_hvo, text):
         """
@@ -359,7 +349,6 @@ class ScrDraftOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         draft.Description.set_String(wsHandle, mkstr)
 
-
     def GetBooks(self, draft_or_hvo):
         """
         Get all books in a Scripture draft.
@@ -394,7 +383,6 @@ class ScrDraftOperations(BaseOperations):
         draft = self.__ResolveObject(draft_or_hvo)
         return list(draft.BooksOS)
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, draft_or_hvo):
@@ -416,7 +404,6 @@ class ScrDraftOperations(BaseOperations):
                 raise FP_ParameterError("HVO does not refer to a Scripture draft")
             return obj
         return draft_or_hvo
-
 
     def __GetScripture(self):
         """

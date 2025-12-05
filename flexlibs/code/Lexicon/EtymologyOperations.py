@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -32,7 +29,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 class EtymologyOperations(BaseOperations):
     """
@@ -92,14 +88,12 @@ class EtymologyOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     def _GetSequence(self, parent):
         """
         Specify which sequence to reorder for etymologies.
         For Etymology, we reorder entry.EtymologyOS
         """
         return parent.EtymologyOS
-
 
     # --- Core CRUD Operations ---
 
@@ -156,7 +150,6 @@ class EtymologyOperations(BaseOperations):
 
             for etymology in entry.EtymologyOS:
                 yield etymology
-
 
     def Create(self, entry_or_hvo, source=None, form=None, gloss=None, ws=None):
         """
@@ -234,7 +227,6 @@ class EtymologyOperations(BaseOperations):
 
         return new_etymology
 
-
     def Delete(self, etymology_or_hvo):
         """
         Delete an etymology from its owning entry.
@@ -279,7 +271,6 @@ class EtymologyOperations(BaseOperations):
         owner = etymology.Owner
         if hasattr(owner, 'EtymologyOS'):
             owner.EtymologyOS.Remove(etymology)
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -366,7 +357,6 @@ class EtymologyOperations(BaseOperations):
 
         return duplicate
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -446,7 +436,6 @@ class EtymologyOperations(BaseOperations):
 
         return props
 
-
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two etymologies and return their differences.
@@ -476,7 +465,6 @@ class EtymologyOperations(BaseOperations):
 
         is_different = len(differences) > 0
         return is_different, differences
-
 
     def Reorder(self, entry_or_hvo, etymology_list):
         """
@@ -541,7 +529,6 @@ class EtymologyOperations(BaseOperations):
         for etymology in etymologies:
             entry.EtymologyOS.Add(etymology)
 
-
     # --- Source Language Operations ---
 
     def GetSource(self, etymology_or_hvo, ws=None):
@@ -587,7 +574,6 @@ class EtymologyOperations(BaseOperations):
 
         source = ITsString(etymology.Source.get_String(wsHandle)).Text
         return source or ""
-
 
     def SetSource(self, etymology_or_hvo, text, ws=None):
         """
@@ -638,7 +624,6 @@ class EtymologyOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         etymology.Source.set_String(wsHandle, mkstr)
 
-
     # --- Form & Gloss Operations ---
 
     def GetForm(self, etymology_or_hvo, ws=None):
@@ -682,7 +667,6 @@ class EtymologyOperations(BaseOperations):
 
         form = ITsString(etymology.Form.get_String(wsHandle)).Text
         return form or ""
-
 
     def SetForm(self, etymology_or_hvo, text, ws=None):
         """
@@ -731,7 +715,6 @@ class EtymologyOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         etymology.Form.set_String(wsHandle, mkstr)
 
-
     def GetGloss(self, etymology_or_hvo, ws=None):
         """
         Get the gloss (meaning in the source language).
@@ -773,7 +756,6 @@ class EtymologyOperations(BaseOperations):
 
         gloss = ITsString(etymology.Gloss.get_String(wsHandle)).Text
         return gloss or ""
-
 
     def SetGloss(self, etymology_or_hvo, text, ws=None):
         """
@@ -819,7 +801,6 @@ class EtymologyOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         etymology.Gloss.set_String(wsHandle, mkstr)
 
-
     # --- Comment & Bibliography Operations ---
 
     def GetComment(self, etymology_or_hvo, ws=None):
@@ -862,7 +843,6 @@ class EtymologyOperations(BaseOperations):
 
         comment = ITsString(etymology.Comment.get_String(wsHandle)).Text
         return comment or ""
-
 
     def SetComment(self, etymology_or_hvo, text, ws=None):
         """
@@ -917,7 +897,6 @@ class EtymologyOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         etymology.Comment.set_String(wsHandle, mkstr)
 
-
     def GetBibliography(self, etymology_or_hvo):
         """
         Get the bibliographic reference for an etymology.
@@ -970,11 +949,10 @@ class EtymologyOperations(BaseOperations):
                 else:
                     try:
                         return ITsString(bib).Text or ""
-                    except:
+                    except Exception:
                         return str(bib) if bib else ""
 
         return ""
-
 
     def SetBibliography(self, etymology_or_hvo, bibliography_text):
         """
@@ -1035,7 +1013,6 @@ class EtymologyOperations(BaseOperations):
                 mkstr = TsStringUtils.MakeString(bibliography_text, wsHandle)
                 etymology.Bibliography = mkstr
 
-
     # --- Utility Operations ---
 
     def GetOwningEntry(self, etymology_or_hvo):
@@ -1075,7 +1052,6 @@ class EtymologyOperations(BaseOperations):
         etymology = self.__GetEtymologyObject(etymology_or_hvo)
         return ILexEntry(etymology.Owner)
 
-
     def GetGuid(self, etymology_or_hvo):
         """
         Get the GUID (Global Unique Identifier) of an etymology.
@@ -1114,7 +1090,6 @@ class EtymologyOperations(BaseOperations):
         etymology = self.__GetEtymologyObject(etymology_or_hvo)
         return etymology.Guid
 
-
     # --- Additional Properties ---
 
     def GetLanguage(self, etymology_or_hvo):
@@ -1140,7 +1115,6 @@ class EtymologyOperations(BaseOperations):
 
         etymology = self.__GetEtymologyObject(etymology_or_hvo)
         return etymology.LanguageRA
-
 
     def SetLanguage(self, etymology_or_hvo, language):
         """
@@ -1171,7 +1145,6 @@ class EtymologyOperations(BaseOperations):
         etymology = self.__GetEtymologyObject(etymology_or_hvo)
         etymology.LanguageRA = language
 
-
     # --- Private Helper Methods ---
 
     def __GetEntryObject(self, entry_or_hvo):
@@ -1194,7 +1167,6 @@ class EtymologyOperations(BaseOperations):
             return obj
         return entry_or_hvo
 
-
     def __GetEtymologyObject(self, etymology_or_hvo):
         """
         Resolve HVO or object to ILexEtymology.
@@ -1214,7 +1186,6 @@ class EtymologyOperations(BaseOperations):
                 raise FP_ParameterError("HVO does not refer to an etymology")
             return obj
         return etymology_or_hvo
-
 
     def __WSHandleAnalysis(self, ws):
         """

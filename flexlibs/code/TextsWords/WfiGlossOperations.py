@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 import clr
 clr.AddReference("System")
 
@@ -32,7 +29,6 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
-
 
 # --- WfiGlossOperations Class ---
 
@@ -209,7 +205,6 @@ class WfiGlossOperations(BaseOperations):
 
         return new_gloss
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -238,7 +233,6 @@ class WfiGlossOperations(BaseOperations):
             props['Form'] = self.project.GetMultiStringDict(item.Form)
 
         return props
-
 
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
@@ -340,7 +334,6 @@ class WfiGlossOperations(BaseOperations):
         # Remove from analysis's Meanings collection
         if hasattr(analysis, 'MeaningsOC'):
             analysis.MeaningsOC.Remove(gloss)
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """

@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -32,7 +29,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 class ConstChartWordGroupOperations(BaseOperations):
     """
@@ -74,7 +70,6 @@ class ConstChartWordGroupOperations(BaseOperations):
             project: The FLExProject instance to operate on.
         """
         super().__init__(project)
-
 
     # --- Core CRUD Operations ---
 
@@ -152,7 +147,6 @@ class ConstChartWordGroupOperations(BaseOperations):
 
         return new_word_group
 
-
     def Delete(self, group_or_hvo):
         """
         Delete a word group from its chart row.
@@ -193,7 +187,6 @@ class ConstChartWordGroupOperations(BaseOperations):
         # Delete the word group (LCM handles removal from repository)
         group.Delete()
 
-
     def Find(self, row_or_hvo, index):
         """
         Find a word group in a row by its index position.
@@ -233,7 +226,6 @@ class ConstChartWordGroupOperations(BaseOperations):
 
         return row.CellsOS[index]
 
-
     def GetAll(self, row_or_hvo):
         """
         Get all word groups in a chart row.
@@ -267,7 +259,6 @@ class ConstChartWordGroupOperations(BaseOperations):
         row = self.__ResolveRow(row_or_hvo)
 
         return list(row.CellsOS)
-
 
     # --- Word Group Properties ---
 
@@ -304,7 +295,6 @@ class ConstChartWordGroupOperations(BaseOperations):
         group = self.__ResolveObject(group_or_hvo)
 
         return group.BeginSegmentRA if hasattr(group, 'BeginSegmentRA') else None
-
 
     def SetBeginSegment(self, group_or_hvo, segment):
         """
@@ -345,7 +335,6 @@ class ConstChartWordGroupOperations(BaseOperations):
 
         group.BeginSegmentRA = segment
 
-
     def GetEndSegment(self, group_or_hvo):
         """
         Get the ending segment of a word group.
@@ -379,7 +368,6 @@ class ConstChartWordGroupOperations(BaseOperations):
         group = self.__ResolveObject(group_or_hvo)
 
         return group.EndSegmentRA if hasattr(group, 'EndSegmentRA') else None
-
 
     def SetEndSegment(self, group_or_hvo, segment):
         """
@@ -420,7 +408,6 @@ class ConstChartWordGroupOperations(BaseOperations):
 
         group.EndSegmentRA = segment
 
-
     def GetColumn(self, group_or_hvo):
         """
         Get the column position of a word group in the chart.
@@ -455,7 +442,6 @@ class ConstChartWordGroupOperations(BaseOperations):
         group = self.__ResolveObject(group_or_hvo)
 
         return group.ColumnRA if hasattr(group, 'ColumnRA') else None
-
 
     def SetColumn(self, group_or_hvo, column):
         """
@@ -494,7 +480,6 @@ class ConstChartWordGroupOperations(BaseOperations):
 
         group.ColumnRA = column
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, group_or_hvo):
@@ -517,7 +502,6 @@ class ConstChartWordGroupOperations(BaseOperations):
             return obj
         return group_or_hvo
 
-
     def __ResolveRow(self, row_or_hvo):
         """
         Resolve HVO or object to IConstChartRow.
@@ -537,7 +521,6 @@ class ConstChartWordGroupOperations(BaseOperations):
                 raise FP_ParameterError("HVO does not refer to a chart row")
             return obj
         return row_or_hvo
-
 
     # --- Reordering Support ---
 

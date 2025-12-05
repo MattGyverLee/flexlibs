@@ -32,7 +32,6 @@ from ..FLExProject import (
 )
 from ..BaseOperations import BaseOperations
 
-
 class OverlayOperations(BaseOperations):
     """
     Discourse chart overlay and layer management operations for FLEx projects.
@@ -97,7 +96,6 @@ class OverlayOperations(BaseOperations):
         """Specify which sequence to reorder for overlay sub-possibilities."""
         return parent.SubPossibilitiesOS
 
-
     # --- Helper Methods ---
 
     def __WSHandle(self, wsHandle):
@@ -113,7 +111,6 @@ class OverlayOperations(BaseOperations):
         if wsHandle is None:
             return self.project.project.DefaultAnalWs
         return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultAnalWs)
-
 
     def __GetChartObject(self, chart_or_hvo):
         """
@@ -138,7 +135,6 @@ class OverlayOperations(BaseOperations):
             except (AttributeError, System.InvalidCastException) as e:
                 raise FP_ParameterError(f"Invalid chart HVO: {chart_or_hvo}")
         return chart_or_hvo
-
 
     def __GetOverlayObject(self, overlay_or_hvo):
         """
@@ -171,7 +167,6 @@ class OverlayOperations(BaseOperations):
             except (AttributeError, System.InvalidCastException) as e:
                 raise FP_ParameterError(f"Invalid overlay HVO: {overlay_or_hvo}")
         return overlay_or_hvo
-
 
     # --- Core Operations ---
 
@@ -231,7 +226,6 @@ class OverlayOperations(BaseOperations):
                     clause_type = row.ClauseType
                     if clause_type:
                         yield clause_type
-
 
     def Create(self, chart_or_hvo, name):
         """
@@ -313,7 +307,6 @@ class OverlayOperations(BaseOperations):
 
         return overlay
 
-
     def Delete(self, overlay_or_hvo):
         """
         Delete an overlay from its chart.
@@ -365,7 +358,6 @@ class OverlayOperations(BaseOperations):
             owner.PossibilitiesOS.Remove(overlay_obj)
         else:
             raise FP_ParameterError("Overlay has no valid owner or cannot be removed")
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -476,7 +468,6 @@ class OverlayOperations(BaseOperations):
 
         return duplicate
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -520,7 +511,6 @@ class OverlayOperations(BaseOperations):
             props['SortSpec'] = int(overlay.SortSpec) if overlay.SortSpec else 0
 
         return props
-
 
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
@@ -568,7 +558,6 @@ class OverlayOperations(BaseOperations):
                 }
 
         return is_different, differences
-
 
     def Find(self, chart_or_hvo, name):
         """
@@ -627,7 +616,6 @@ class OverlayOperations(BaseOperations):
 
         return None
 
-
     # --- Property Operations ---
 
     def GetName(self, overlay_or_hvo, wsHandle=None):
@@ -669,7 +657,6 @@ class OverlayOperations(BaseOperations):
             name_str = ITsString(overlay_obj.Name.get_String(wsHandle)).Text
             return name_str or ""
         return ""
-
 
     def SetName(self, overlay_or_hvo, name, wsHandle=None):
         """
@@ -720,7 +707,6 @@ class OverlayOperations(BaseOperations):
         else:
             raise FP_ParameterError("Overlay does not support name setting")
 
-
     def GetDescription(self, overlay_or_hvo, wsHandle=None):
         """
         Get the description of an overlay.
@@ -763,7 +749,6 @@ class OverlayOperations(BaseOperations):
             desc_str = ITsString(overlay_obj.Description.get_String(wsHandle)).Text
             return desc_str or ""
         return ""
-
 
     def SetDescription(self, overlay_or_hvo, description, wsHandle=None):
         """
@@ -812,7 +797,6 @@ class OverlayOperations(BaseOperations):
             overlay_obj.Description.set_String(wsHandle, desc_str)
         else:
             raise FP_ParameterError("Overlay does not support description setting")
-
 
     # --- Visibility Operations ---
 
@@ -864,7 +848,6 @@ class OverlayOperations(BaseOperations):
 
         # Default to visible if no visibility property exists
         return True
-
 
     def SetVisible(self, overlay_or_hvo, visible):
         """
@@ -922,7 +905,6 @@ class OverlayOperations(BaseOperations):
             # This might need to be implemented through custom fields
             logger.warning("Overlay does not have a visibility property")
 
-
     def GetDisplayOrder(self, overlay_or_hvo):
         """
         Get the display order of an overlay.
@@ -977,7 +959,6 @@ class OverlayOperations(BaseOperations):
                 pass
 
         return 0
-
 
     def SetDisplayOrder(self, overlay_or_hvo, order):
         """
@@ -1048,7 +1029,6 @@ class OverlayOperations(BaseOperations):
             else:
                 logger.warning("Overlay does not support display order setting")
 
-
     # --- Element Operations ---
 
     def GetElements(self, overlay_or_hvo):
@@ -1099,7 +1079,6 @@ class OverlayOperations(BaseOperations):
             elements.extend(list(overlay_obj.MarkersRS))
 
         return elements
-
 
     def AddElement(self, overlay_or_hvo, element):
         """
@@ -1163,7 +1142,6 @@ class OverlayOperations(BaseOperations):
 
         raise FP_ParameterError("Could not add element to overlay")
 
-
     def RemoveElement(self, overlay_or_hvo, element):
         """
         Remove a chart element from an overlay.
@@ -1225,7 +1203,6 @@ class OverlayOperations(BaseOperations):
         # If we get here, element wasn't in any collection
         logger.warning("Element not found in overlay or could not be removed")
 
-
     # --- Chart Operations ---
 
     def GetChart(self, overlay_or_hvo):
@@ -1279,7 +1256,6 @@ class OverlayOperations(BaseOperations):
 
         raise FP_ParameterError("Overlay has no valid owning chart")
 
-
     def GetPossItems(self, overlay_or_hvo):
         """
         Get the possibility items (column/row labels) for an overlay.
@@ -1328,7 +1304,6 @@ class OverlayOperations(BaseOperations):
 
         return items
 
-
     # --- Query Operations ---
 
     def FindByChart(self, chart_or_hvo, name):
@@ -1360,7 +1335,6 @@ class OverlayOperations(BaseOperations):
             Find, GetAll
         """
         return self.Find(chart_or_hvo, name)
-
 
     def GetVisibleOverlays(self, chart_or_hvo):
         """
@@ -1407,7 +1381,6 @@ class OverlayOperations(BaseOperations):
         for overlay in self.GetAll(chart_or_hvo):
             if self.IsVisible(overlay):
                 yield overlay
-
 
     # --- Metadata Operations ---
 

@@ -11,10 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
-
 class BaseOperations:
     """
     Base class for all FLEx operation classes.
@@ -78,7 +74,6 @@ class BaseOperations:
             project: The FLExProject instance to operate on.
         """
         self.project = project
-
 
     # ========== REORDERING METHODS ==========
 
@@ -178,7 +173,6 @@ class BaseOperations:
 
         return count
 
-
     def MoveUp(self, parent_or_hvo, item, positions=1):
         """
         Move an item up (toward index 0) by specified number of positions.
@@ -271,7 +265,6 @@ class BaseOperations:
             sequence.MoveTo(current_index, current_index, sequence, new_index)
 
         return actual_moved
-
 
     def MoveDown(self, parent_or_hvo, item, positions=1):
         """
@@ -367,7 +360,6 @@ class BaseOperations:
 
         return actual_moved
 
-
     def MoveToIndex(self, parent_or_hvo, item, new_index):
         """
         Move an item to a specific index position.
@@ -452,7 +444,6 @@ class BaseOperations:
 
         return True
 
-
     def MoveBefore(self, item_to_move, target_item):
         """
         Move an item to position immediately before another item.
@@ -524,7 +515,6 @@ class BaseOperations:
                 sequence.MoveTo(move_index, move_index, sequence, target_index)
 
         return True
-
 
     def MoveAfter(self, item_to_move, target_item):
         """
@@ -598,7 +588,6 @@ class BaseOperations:
                 sequence.MoveTo(move_index, move_index, sequence, target_index + 1)
 
         return True
-
 
     def Swap(self, item1, item2):
         """
@@ -681,7 +670,6 @@ class BaseOperations:
                 sequence.MoveTo(idx2, idx2, sequence, idx1)
 
         return True
-
 
     # ========== SYNC INTEGRATION METHODS ==========
 
@@ -778,7 +766,6 @@ class BaseOperations:
             "Implement it if you want to enable property-level synchronization "
             "for this item type. See flexlibs.sync documentation for details."
         )
-
 
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
@@ -934,7 +921,6 @@ class BaseOperations:
             "documentation for details."
         )
 
-
     # ========== HELPER METHODS ==========
 
     def _GetSequence(self, parent):
@@ -980,7 +966,6 @@ class BaseOperations:
             "Example: return parent.SensesOS"
         )
 
-
     def _GetObject(self, obj_or_hvo):
         """
         Get object from HVO or return object directly.
@@ -1016,7 +1001,6 @@ class BaseOperations:
         if isinstance(obj_or_hvo, int):
             return self.project.Object(obj_or_hvo)
         return obj_or_hvo
-
 
     def _FindCommonSequence(self, item1, item2):
         """
@@ -1112,7 +1096,7 @@ class BaseOperations:
                             found2 = True
                         if found1 and found2:
                             return sequence
-                except:
+                except Exception:
                     # Property might not be accessible or not a sequence
                     continue
 

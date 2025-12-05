@@ -36,7 +36,6 @@ from ..FLExProject import (
 )
 from ..BaseOperations import BaseOperations
 
-
 # --- Media Type Enum ---
 
 class MediaType:
@@ -45,7 +44,6 @@ class MediaType:
     AUDIO = 1
     VIDEO = 2
     IMAGE = 3
-
 
 # --- MediaOperations Class ---
 
@@ -248,7 +246,6 @@ class MediaOperations(BaseOperations):
         # Note: LCModel handles cascading deletion of references
         self.project.cache.DomainDataByFlid.DeleteObj(media.Hvo)
 
-
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
         Duplicate a media file reference, creating a new reference to the same file.
@@ -369,7 +366,6 @@ class MediaOperations(BaseOperations):
 
         return new_media
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -405,7 +401,6 @@ class MediaOperations(BaseOperations):
             props['Description'] = self.project.GetMultiStringDict(item.Description)
 
         return props
-
 
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """

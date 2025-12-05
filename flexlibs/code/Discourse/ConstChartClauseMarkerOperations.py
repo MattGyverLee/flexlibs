@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -31,7 +28,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 class ConstChartClauseMarkerOperations(BaseOperations):
     """
@@ -74,7 +70,6 @@ class ConstChartClauseMarkerOperations(BaseOperations):
             project: The FLExProject instance to operate on.
         """
         super().__init__(project)
-
 
     # --- Core CRUD Operations ---
 
@@ -143,7 +138,6 @@ class ConstChartClauseMarkerOperations(BaseOperations):
 
         return new_marker
 
-
     def Delete(self, marker_or_hvo):
         """
         Delete a clause marker from its row.
@@ -183,7 +177,6 @@ class ConstChartClauseMarkerOperations(BaseOperations):
 
         # Delete the marker (LCM handles removal from repository)
         marker.Delete()
-
 
     def Find(self, row_or_hvo, index):
         """
@@ -226,7 +219,6 @@ class ConstChartClauseMarkerOperations(BaseOperations):
 
         return None
 
-
     def GetAll(self, row_or_hvo):
         """
         Get all clause markers in a chart row.
@@ -265,7 +257,6 @@ class ConstChartClauseMarkerOperations(BaseOperations):
 
         return []
 
-
     # --- Marker Properties ---
 
     def GetWordGroup(self, marker_or_hvo):
@@ -301,7 +292,6 @@ class ConstChartClauseMarkerOperations(BaseOperations):
         marker = self.__ResolveObject(marker_or_hvo)
 
         return marker.WordGroupRA if hasattr(marker, 'WordGroupRA') else None
-
 
     def GetDependentClauses(self, marker_or_hvo):
         """
@@ -341,7 +331,6 @@ class ConstChartClauseMarkerOperations(BaseOperations):
             return list(marker.DependentClausesRS)
 
         return []
-
 
     def AddDependentClause(self, marker_or_hvo, clause_marker):
         """
@@ -399,7 +388,6 @@ class ConstChartClauseMarkerOperations(BaseOperations):
             if clause_marker not in marker.DependentClausesRS:
                 marker.DependentClausesRS.Add(clause_marker)
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, marker_or_hvo):
@@ -422,7 +410,6 @@ class ConstChartClauseMarkerOperations(BaseOperations):
             return obj
         return marker_or_hvo
 
-
     def __ResolveRow(self, row_or_hvo):
         """
         Resolve HVO or object to IConstChartRow.
@@ -442,7 +429,6 @@ class ConstChartClauseMarkerOperations(BaseOperations):
                 raise FP_ParameterError("HVO does not refer to a chart row")
             return obj
         return row_or_hvo
-
 
     # --- Reordering Support ---
 

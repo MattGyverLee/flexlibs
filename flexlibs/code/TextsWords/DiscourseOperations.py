@@ -8,9 +8,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 import clr
 clr.AddReference("System")
 import System
@@ -42,7 +39,6 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
-
 
 class DiscourseOperations(BaseOperations):
     """
@@ -105,7 +101,6 @@ class DiscourseOperations(BaseOperations):
         """Specify which sequence to reorder for discourse charts."""
         return parent.ChartsOS
 
-
     # --- Helper Methods ---
 
     def __WSHandle(self, wsHandle):
@@ -121,7 +116,6 @@ class DiscourseOperations(BaseOperations):
         if wsHandle is None:
             return self.project.project.DefaultAnalWs
         return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultAnalWs)
-
 
     def __GetTextObject(self, text_or_hvo):
         """
@@ -146,7 +140,6 @@ class DiscourseOperations(BaseOperations):
             except:
                 raise FP_ParameterError(f"Invalid text HVO: {text_or_hvo}")
         return text_or_hvo
-
 
     def __GetChartObject(self, chart_or_hvo):
         """
@@ -178,7 +171,6 @@ class DiscourseOperations(BaseOperations):
                 raise FP_ParameterError(f"Invalid chart HVO: {chart_or_hvo}")
         return chart_or_hvo
 
-
     def __GetRowObject(self, row_or_hvo):
         """
         Resolve row_or_hvo to IConstChartRow object.
@@ -203,7 +195,6 @@ class DiscourseOperations(BaseOperations):
             except:
                 raise FP_ParameterError(f"Invalid row HVO: {row_or_hvo}")
         return row_or_hvo
-
 
     # --- Chart Management Operations ---
 
@@ -256,7 +247,6 @@ class DiscourseOperations(BaseOperations):
             if hasattr(text_obj.ContentsOA, 'ChartsOC'):
                 for chart in text_obj.ContentsOA.ChartsOC:
                     yield chart
-
 
     def CreateChart(self, text_or_hvo, name, chart_type="constituent"):
         """
@@ -345,7 +335,6 @@ class DiscourseOperations(BaseOperations):
 
         return chart
 
-
     def DeleteChart(self, chart_or_hvo):
         """
         Delete a chart from its text.
@@ -394,7 +383,6 @@ class DiscourseOperations(BaseOperations):
         else:
             raise FP_ParameterError("Chart has no valid owner or cannot be removed")
 
-
     def GetChartName(self, chart_or_hvo, wsHandle=None):
         """
         Get the name of a chart.
@@ -435,7 +423,6 @@ class DiscourseOperations(BaseOperations):
             name_str = ITsString(chart_obj.Name.get_String(wsHandle)).Text
             return name_str or ""
         return ""
-
 
     def SetChartName(self, chart_or_hvo, name, wsHandle=None):
         """
@@ -486,7 +473,6 @@ class DiscourseOperations(BaseOperations):
             chart_obj.Name.set_String(wsHandle, name_str)
         else:
             raise FP_ParameterError("Chart does not support name setting")
-
 
     def GetChartType(self, chart_or_hvo):
         """
@@ -547,7 +533,6 @@ class DiscourseOperations(BaseOperations):
                 except:
                     return "unknown"
 
-
     # --- Chart Row/Structure Operations ---
 
     def GetRows(self, chart_or_hvo):
@@ -600,7 +585,6 @@ class DiscourseOperations(BaseOperations):
             return list(chart_obj.RowsOS)
         return []
 
-
     def GetRowCount(self, chart_or_hvo):
         """
         Get the number of rows in a chart.
@@ -642,7 +626,6 @@ class DiscourseOperations(BaseOperations):
         if hasattr(chart_obj, 'RowsOS'):
             return chart_obj.RowsOS.Count
         return 0
-
 
     def AddRow(self, chart_or_hvo):
         """
@@ -700,7 +683,6 @@ class DiscourseOperations(BaseOperations):
 
         return row
 
-
     def DeleteRow(self, row_or_hvo):
         """
         Delete a row from its chart.
@@ -751,7 +733,6 @@ class DiscourseOperations(BaseOperations):
         else:
             raise FP_ParameterError("Row has no valid owner or cannot be removed")
 
-
     # --- Chart Content Operations ---
 
     def GetCells(self, row_or_hvo):
@@ -800,7 +781,6 @@ class DiscourseOperations(BaseOperations):
         if hasattr(row_obj, 'CellsOS'):
             return list(row_obj.CellsOS)
         return []
-
 
     def SetCellContent(self, cell, content, wsHandle=None):
         """
@@ -870,7 +850,6 @@ class DiscourseOperations(BaseOperations):
             raise FP_ParameterError(
                 "Cell does not support editable content (no Label or Comment property)"
             )
-
 
     def GetCellContent(self, cell, wsHandle=None):
         """
@@ -954,7 +933,6 @@ class DiscourseOperations(BaseOperations):
 
         return content or ""
 
-
     # --- Utility Operations ---
 
     def GetOwningText(self, chart_or_hvo):
@@ -1006,7 +984,6 @@ class DiscourseOperations(BaseOperations):
 
         raise FP_ParameterError("Chart has no valid owning text")
 
-
     def GetGuid(self, chart_or_hvo):
         """
         Get the GUID of a chart.
@@ -1047,7 +1024,6 @@ class DiscourseOperations(BaseOperations):
             return chart_obj.Guid
         else:
             raise FP_ParameterError("Chart object does not have a GUID")
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -1127,7 +1103,6 @@ class DiscourseOperations(BaseOperations):
 
         return duplicate
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -1158,7 +1133,6 @@ class DiscourseOperations(BaseOperations):
             props['Name'] = self.project.GetMultiStringDict(item.Name)
 
         return props
-
 
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """

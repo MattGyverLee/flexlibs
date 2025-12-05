@@ -36,7 +36,6 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
-
 class AllomorphOperations(BaseOperations):
     """
     This class provides operations for managing allomorphs in a FieldWorks project.
@@ -82,14 +81,12 @@ class AllomorphOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     def _GetSequence(self, parent):
         """
         Specify which sequence to reorder for allomorphs.
         For Allomorph, we reorder entry.AlternateFormsOS
         """
         return parent.AlternateFormsOS
-
 
     def GetAll(self, entry_or_hvo=None):
         """
@@ -153,7 +150,6 @@ class AllomorphOperations(BaseOperations):
             # Then yield all alternate forms
             for allomorph in entry.AlternateFormsOS:
                 yield allomorph
-
 
     def Create(self, entry_or_hvo, form, morphType=None, wsHandle=None):
         """
@@ -248,7 +244,6 @@ class AllomorphOperations(BaseOperations):
 
         return allomorph
 
-
     def Delete(self, allomorph_or_hvo):
         """
         Delete an allomorph.
@@ -307,7 +302,6 @@ class AllomorphOperations(BaseOperations):
         elif hasattr(owner, 'AlternateFormsOS'):
             # Deleting an alternate form
             owner.AlternateFormsOS.Remove(allomorph)
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -408,7 +402,6 @@ class AllomorphOperations(BaseOperations):
 
         return duplicate
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -459,7 +452,6 @@ class AllomorphOperations(BaseOperations):
             props['MorphTypeRA'] = None
 
         return props
-
 
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
@@ -515,7 +507,6 @@ class AllomorphOperations(BaseOperations):
         is_different = len(differences) > 0
         return is_different, differences
 
-
     def GetForm(self, allomorph_or_hvo, wsHandle=None):
         """
         Get the form (text) of an allomorph.
@@ -560,7 +551,6 @@ class AllomorphOperations(BaseOperations):
 
         form = ITsString(allomorph.Form.get_String(wsHandle)).Text
         return form or ""
-
 
     def SetForm(self, allomorph_or_hvo, form, wsHandle=None):
         """
@@ -613,7 +603,6 @@ class AllomorphOperations(BaseOperations):
 
         mkstr = TsStringUtils.MakeString(form, wsHandle)
         allomorph.Form.set_String(wsHandle, mkstr)
-
 
     def SetFormAudio(self, allomorph_or_hvo, file_path, wsHandle=None):
         """
@@ -727,7 +716,6 @@ class AllomorphOperations(BaseOperations):
 
         return internal_path
 
-
     def GetFormAudio(self, allomorph_or_hvo, wsHandle=None):
         """
         Get the audio file path from an allomorph's Form field.
@@ -804,7 +792,6 @@ class AllomorphOperations(BaseOperations):
             # Not an audio writing system
             return None
 
-
     def GetMorphType(self, allomorph_or_hvo):
         """
         Get the morpheme type of an allomorph.
@@ -844,7 +831,6 @@ class AllomorphOperations(BaseOperations):
 
         allomorph = self.__GetAllomorphObject(allomorph_or_hvo)
         return allomorph.MorphTypeRA
-
 
     def SetMorphType(self, allomorph_or_hvo, morphType):
         """
@@ -888,7 +874,6 @@ class AllomorphOperations(BaseOperations):
         allomorph = self.__GetAllomorphObject(allomorph_or_hvo)
         allomorph.MorphTypeRA = morphType
 
-
     def GetPhoneEnv(self, allomorph_or_hvo):
         """
         Get the phonological environments for an allomorph.
@@ -928,7 +913,6 @@ class AllomorphOperations(BaseOperations):
 
         allomorph = self.__GetAllomorphObject(allomorph_or_hvo)
         return list(allomorph.PhoneEnvRC)
-
 
     def AddPhoneEnv(self, allomorph_or_hvo, env_or_hvo):
         """
@@ -978,7 +962,6 @@ class AllomorphOperations(BaseOperations):
 
         allomorph.PhoneEnvRC.Add(env)
 
-
     def RemovePhoneEnv(self, allomorph_or_hvo, env_or_hvo):
         """
         Remove a phonological environment from an allomorph.
@@ -1024,7 +1007,6 @@ class AllomorphOperations(BaseOperations):
         if env in allomorph.PhoneEnvRC:
             allomorph.PhoneEnvRC.Remove(env)
 
-
     # --- Private Helper Methods ---
 
     def __GetEntryObject(self, entry_or_hvo):
@@ -1041,7 +1023,6 @@ class AllomorphOperations(BaseOperations):
             return self.project.Object(entry_or_hvo)
         return entry_or_hvo
 
-
     def __GetAllomorphObject(self, allomorph_or_hvo):
         """
         Resolve HVO or object to IMoForm.
@@ -1056,7 +1037,6 @@ class AllomorphOperations(BaseOperations):
             return self.project.Object(allomorph_or_hvo)
         return allomorph_or_hvo
 
-
     def __GetEnvironmentObject(self, env_or_hvo):
         """
         Resolve HVO or object to IPhEnvironment.
@@ -1070,7 +1050,6 @@ class AllomorphOperations(BaseOperations):
         if isinstance(env_or_hvo, int):
             return self.project.Object(env_or_hvo)
         return env_or_hvo
-
 
     def __IsStemType(self, morph_type):
         """
@@ -1103,7 +1082,6 @@ class AllomorphOperations(BaseOperations):
         }
 
         return morph_type.Guid in stem_guids
-
 
     def __WSHandle(self, wsHandle):
         """

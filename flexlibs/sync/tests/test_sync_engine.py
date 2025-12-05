@@ -7,15 +7,15 @@ Date: 2025-11-26
 
 import unittest
 from unittest.mock import Mock, MagicMock, patch
-import sys
+
 
 class MockGuid:
     def __init__(self, guid_string):
         self.value = guid_string
+
     def __str__(self):
         return self.value
 
-sys.path.insert(0, 'D:\\Github\\flexlibs')
 
 from flexlibs.sync.engine import SyncEngine, SyncMode, SyncResult
 from flexlibs.sync.match_strategies import GuidMatchStrategy, FieldMatchStrategy

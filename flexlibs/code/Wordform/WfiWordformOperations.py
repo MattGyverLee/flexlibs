@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -33,7 +30,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 class WfiWordformOperations(BaseOperations):
     """
@@ -86,7 +82,6 @@ class WfiWordformOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     # --- Core CRUD Operations ---
 
     def GetAll(self):
@@ -116,7 +111,6 @@ class WfiWordformOperations(BaseOperations):
             Find, FindOrCreate, Create
         """
         return self.project.ObjectsIn(IWfiWordformRepository)
-
 
     def Create(self, form, wsHandle=None):
         """
@@ -173,7 +167,6 @@ class WfiWordformOperations(BaseOperations):
 
         return new_wordform
 
-
     def Delete(self, wordform_or_hvo):
         """
         Delete a wordform from the Wordform Inventory.
@@ -215,7 +208,6 @@ class WfiWordformOperations(BaseOperations):
 
         # Delete the wordform (LCM handles removal from repository)
         wordform.Delete()
-
 
     def Find(self, form, wsHandle=None):
         """
@@ -266,7 +258,6 @@ class WfiWordformOperations(BaseOperations):
                 return wordform
 
         return None
-
 
     def FindOrCreate(self, form, wsHandle=None):
         """
@@ -322,7 +313,6 @@ class WfiWordformOperations(BaseOperations):
         # Create new wordform if not found
         return self.Create(form, wsHandle)
 
-
     def FindByHvo(self, hvo):
         """
         Find a wordform by its HVO (database ID).
@@ -357,11 +347,10 @@ class WfiWordformOperations(BaseOperations):
             obj = self.project.Object(hvo)
             if isinstance(obj, IWfiWordform):
                 return obj
-        except:
+        except Exception:
             pass
 
         return None
-
 
     # --- Property Access ---
 
@@ -396,7 +385,6 @@ class WfiWordformOperations(BaseOperations):
 
         form = ITsString(wordform.Form.get_String(wsHandle)).Text
         return form or ""
-
 
     # --- Analysis Management ---
 
@@ -439,7 +427,6 @@ class WfiWordformOperations(BaseOperations):
         wordform = self.__ResolveObject(wordform_or_hvo)
 
         return list(wordform.AnalysesOC)
-
 
     def GetApprovedAnalysis(self, wordform_or_hvo):
         """
@@ -487,7 +474,6 @@ class WfiWordformOperations(BaseOperations):
                 return analysis
 
         return None
-
 
     def SetApprovedAnalysis(self, wordform_or_hvo, analysis):
         """
@@ -541,7 +527,6 @@ class WfiWordformOperations(BaseOperations):
 
             wordform.HumanApprovedAnalysesRS.Add(analysis)
 
-
     def GetOccurrences(self, wordform_or_hvo):
         """
         Get the number of times this wordform occurs in texts.
@@ -579,7 +564,6 @@ class WfiWordformOperations(BaseOperations):
         # Note: This is a simplified count - actual implementation may be more complex
         return wordform.OccurrencesInTexts.Count
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, wordform_or_hvo):
@@ -601,7 +585,6 @@ class WfiWordformOperations(BaseOperations):
                 raise FP_ParameterError("HVO does not refer to a wordform")
             return obj
         return wordform_or_hvo
-
 
     def __WSHandle(self, wsHandle):
         """

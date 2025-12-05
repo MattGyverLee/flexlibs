@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import FLEx LCM types
 from SIL.LCModel import SpecialWritingSystemCodes
 from SIL.LCModel.Core.KernelInterfaces import ITsString
@@ -28,7 +25,6 @@ from ..FLExProject import (
     FP_WritingSystemError,
 )
 from ..BaseOperations import BaseOperations
-
 
 class WritingSystemOperations(BaseOperations):
     """
@@ -79,7 +75,6 @@ class WritingSystemOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     # --- Core CRUD Operations ---
 
     def GetAll(self):
@@ -118,7 +113,6 @@ class WritingSystemOperations(BaseOperations):
             if ws.Id in active_tags:
                 yield ws
 
-
     def GetVernacular(self):
         """
         Get all vernacular writing systems.
@@ -150,7 +144,6 @@ class WritingSystemOperations(BaseOperations):
         for ws in self.project.project.ServiceLocator.WritingSystems.AllWritingSystems:
             if ws.Id in vern_ws_set:
                 yield ws
-
 
     def GetAnalysis(self):
         """
@@ -185,7 +178,6 @@ class WritingSystemOperations(BaseOperations):
         for ws in self.project.project.ServiceLocator.WritingSystems.AllWritingSystems:
             if ws.Id in anal_ws_set:
                 yield ws
-
 
     def Create(self, language_tag, name, is_vernacular=True):
         """
@@ -256,7 +248,7 @@ class WritingSystemOperations(BaseOperations):
         # Note: DisplayLabel may be read-only in some versions, so we try both
         try:
             ws.DisplayLabel = name
-        except:
+        except Exception:
             # If DisplayLabel is read-only, the language tag is used
             pass
 
@@ -275,7 +267,6 @@ class WritingSystemOperations(BaseOperations):
                 self.project.lp.CurAnalysisWss = language_tag
 
         return ws
-
 
     def Delete(self, ws_handle_or_tag):
         """
@@ -349,7 +340,6 @@ class WritingSystemOperations(BaseOperations):
             anal_tags.discard(language_tag)
             self.project.lp.CurAnalysisWss = " ".join(sorted(anal_tags))
 
-
     # --- Configuration Methods ---
 
     def GetFontName(self, ws):
@@ -391,7 +381,6 @@ class WritingSystemOperations(BaseOperations):
             return ws_obj.DefaultFont
         else:
             return ""
-
 
     def SetFontName(self, ws, font_name):
         """
@@ -440,7 +429,6 @@ class WritingSystemOperations(BaseOperations):
         elif hasattr(ws_obj, 'DefaultFont'):
             ws_obj.DefaultFont = font_name
 
-
     def GetFontSize(self, ws):
         """
         Get the default font size for a writing system.
@@ -473,7 +461,6 @@ class WritingSystemOperations(BaseOperations):
             return float(ws_obj.DefaultFontSize)
         else:
             return 12.0  # Default size
-
 
     def SetFontSize(self, ws, size):
         """
@@ -524,7 +511,6 @@ class WritingSystemOperations(BaseOperations):
         if hasattr(ws_obj, 'DefaultFontSize'):
             ws_obj.DefaultFontSize = float(size)
 
-
     def GetRightToLeft(self, ws):
         """
         Get the right-to-left directionality setting for a writing system.
@@ -570,7 +556,6 @@ class WritingSystemOperations(BaseOperations):
         else:
             return False  # Default to LTR
 
-
     def SetRightToLeft(self, ws, is_rtl):
         """
         Set the right-to-left directionality for a writing system.
@@ -615,7 +600,6 @@ class WritingSystemOperations(BaseOperations):
             ws_obj.RightToLeftScript = bool(is_rtl)
         elif hasattr(ws_obj, 'RightToLeft'):
             ws_obj.RightToLeft = bool(is_rtl)
-
 
     # --- Default Settings ---
 
@@ -665,7 +649,6 @@ class WritingSystemOperations(BaseOperations):
         # Set as default
         self.project.lp.DefaultVernacularWritingSystem = ws_obj
 
-
     def SetDefaultAnalysis(self, ws):
         """
         Set the default analysis writing system.
@@ -712,7 +695,6 @@ class WritingSystemOperations(BaseOperations):
         # Set as default
         self.project.lp.DefaultAnalysisWritingSystem = ws_obj
 
-
     def GetDefaultVernacular(self):
         """
         Get the default vernacular writing system.
@@ -737,7 +719,6 @@ class WritingSystemOperations(BaseOperations):
         """
         return self.project.lp.DefaultVernacularWritingSystem
 
-
     def GetDefaultAnalysis(self):
         """
         Get the default analysis writing system.
@@ -761,7 +742,6 @@ class WritingSystemOperations(BaseOperations):
             SetDefaultAnalysis, GetDefaultVernacular
         """
         return self.project.lp.DefaultAnalysisWritingSystem
-
 
     # --- Utility Methods ---
 
@@ -799,7 +779,6 @@ class WritingSystemOperations(BaseOperations):
 
         return ws_obj.DisplayLabel or ws_obj.Id
 
-
     def GetLanguageTag(self, ws):
         """
         Get the language tag (BCP 47 identifier) for a writing system.
@@ -831,7 +810,6 @@ class WritingSystemOperations(BaseOperations):
             raise FP_NullParameterError()
 
         return ws.Id
-
 
     def Exists(self, language_tag):
         """
@@ -867,7 +845,6 @@ class WritingSystemOperations(BaseOperations):
             raise FP_NullParameterError()
 
         return self._GetWSByTag(language_tag) is not None
-
 
     def GetBestString(self, string_obj):
         """
@@ -928,7 +905,6 @@ class WritingSystemOperations(BaseOperations):
         # Return empty string for FLEx's null marker "***"
         return "" if s == "***" else s
 
-
     # --- Private Helper Methods ---
 
     def _GetAllVernacularWSTags(self):
@@ -940,7 +916,6 @@ class WritingSystemOperations(BaseOperations):
         """
         return set(self.project.lp.CurVernWss.split())
 
-
     def _GetAllAnalysisWSTags(self):
         """
         Get set of all analysis writing system tags.
@@ -949,7 +924,6 @@ class WritingSystemOperations(BaseOperations):
             set: Set of analysis WS language tags
         """
         return set(self.project.lp.CurAnalysisWss.split())
-
 
     def _NormalizeLangTag(self, language_tag):
         """
@@ -962,7 +936,6 @@ class WritingSystemOperations(BaseOperations):
             str: Normalized tag
         """
         return language_tag.replace("_", "-").lower()
-
 
     def _GetWSByTag(self, language_tag):
         """
@@ -981,7 +954,6 @@ class WritingSystemOperations(BaseOperations):
                 return ws
         return None
 
-
     def _GetWSByHandle(self, handle):
         """
         Get writing system object by handle.
@@ -996,7 +968,6 @@ class WritingSystemOperations(BaseOperations):
             if ws.Handle == handle:
                 return ws
         return None
-
 
     def _ResolveWS(self, ws):
         """
@@ -1016,7 +987,6 @@ class WritingSystemOperations(BaseOperations):
         else:
             # Already a writing system object
             return ws
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -1040,7 +1010,6 @@ class WritingSystemOperations(BaseOperations):
         raise NotImplementedError(
             "Writing systems cannot be duplicated. Use Create() to create a new writing system."
         )
-
 
     # ========== SYNC INTEGRATION METHODS ==========
 

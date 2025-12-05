@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -33,7 +30,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 class ReversalOperations(BaseOperations):
     """
@@ -89,7 +85,6 @@ class ReversalOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     # --- Reversal Index Management ---
 
     def GetAllIndexes(self):
@@ -121,7 +116,6 @@ class ReversalOperations(BaseOperations):
             GetIndex, FindIndex
         """
         return list(self.project.lexDB.ReversalIndexesOC)
-
 
     def GetIndex(self, ws):
         """
@@ -167,7 +161,6 @@ class ReversalOperations(BaseOperations):
 
         return None
 
-
     def FindIndex(self, ws):
         """
         Find a reversal index by writing system (alias for GetIndex).
@@ -194,7 +187,6 @@ class ReversalOperations(BaseOperations):
             GetIndex, GetAllIndexes
         """
         return self.GetIndex(ws)
-
 
     # --- Entry CRUD Operations ---
 
@@ -235,7 +227,6 @@ class ReversalOperations(BaseOperations):
             raise FP_NullParameterError()
 
         return list(reversal_index.EntriesOC)
-
 
     def Create(self, reversal_index, form, ws=None):
         """
@@ -308,7 +299,6 @@ class ReversalOperations(BaseOperations):
 
         return new_entry
 
-
     def Delete(self, reversal_entry):
         """
         Delete a reversal entry from its reversal index.
@@ -353,7 +343,6 @@ class ReversalOperations(BaseOperations):
         # Remove from reversal index
         if reversal_index:
             reversal_index.EntriesOC.Remove(reversal_entry)
-
 
     def Find(self, reversal_index, form, ws=None):
         """
@@ -411,7 +400,6 @@ class ReversalOperations(BaseOperations):
 
         return None
 
-
     def Exists(self, reversal_index, form, ws=None):
         """
         Check if a reversal entry with the given form exists.
@@ -453,7 +441,6 @@ class ReversalOperations(BaseOperations):
             return False
 
         return self.Find(reversal_index, form, ws) is not None
-
 
     # --- Form Management ---
 
@@ -509,7 +496,6 @@ class ReversalOperations(BaseOperations):
 
         form = ITsString(reversal_entry.ReversalForm.get_String(wsHandle)).Text
         return form or ""
-
 
     def SetForm(self, reversal_entry, text, ws=None):
         """
@@ -569,7 +555,6 @@ class ReversalOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         reversal_entry.ReversalForm.set_String(wsHandle, mkstr)
 
-
     # --- Sense Linking ---
 
     def GetSenses(self, reversal_entry):
@@ -612,7 +597,6 @@ class ReversalOperations(BaseOperations):
             raise FP_NullParameterError()
 
         return list(reversal_entry.SensesRS)
-
 
     def AddSense(self, reversal_entry, sense):
         """
@@ -663,7 +647,6 @@ class ReversalOperations(BaseOperations):
         # Add sense to reversal entry's sense collection
         reversal_entry.SensesRS.Add(sense)
 
-
     def RemoveSense(self, reversal_entry, sense):
         """
         Unlink a lexical sense from a reversal entry.
@@ -709,7 +692,6 @@ class ReversalOperations(BaseOperations):
         # Remove sense from reversal entry's sense collection
         reversal_entry.SensesRS.Remove(sense)
 
-
     def GetSenseCount(self, reversal_entry):
         """
         Get the count of senses linked to a reversal entry.
@@ -747,7 +729,6 @@ class ReversalOperations(BaseOperations):
             raise FP_NullParameterError()
 
         return reversal_entry.SensesRS.Count
-
 
     # --- Subentries ---
 
@@ -792,7 +773,6 @@ class ReversalOperations(BaseOperations):
             raise FP_NullParameterError()
 
         return list(reversal_entry.SubentriesOS)
-
 
     def CreateSubentry(self, parent_entry, form, ws=None):
         """
@@ -874,7 +854,6 @@ class ReversalOperations(BaseOperations):
 
         return new_subentry
 
-
     def GetParentEntry(self, reversal_entry):
         """
         Get the parent reversal entry of a subentry.
@@ -920,7 +899,6 @@ class ReversalOperations(BaseOperations):
 
         return None
 
-
     # --- Parts of Speech ---
 
     def GetPartsOfSpeech(self, reversal_entry):
@@ -964,7 +942,6 @@ class ReversalOperations(BaseOperations):
             raise FP_NullParameterError()
 
         return list(reversal_entry.PartsOfSpeechRC)
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -1071,7 +1048,6 @@ class ReversalOperations(BaseOperations):
 
         return duplicate
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -1103,7 +1079,6 @@ class ReversalOperations(BaseOperations):
 
         return props
 
-
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two reversal entries and return their differences.
@@ -1134,7 +1109,6 @@ class ReversalOperations(BaseOperations):
         is_different = len(differences) > 0
         return is_different, differences
 
-
     # --- Private Helper Methods ---
 
     def __WSHandleAnalysis(self, wsHandleOrTag):
@@ -1154,7 +1128,6 @@ class ReversalOperations(BaseOperations):
             return self.project.WSHandle(wsHandleOrTag)
 
         return wsHandleOrTag
-
 
     def __NormalizeLangTag(self, languageTag):
         """

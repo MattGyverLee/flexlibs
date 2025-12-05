@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import FLEx LCM types
 from SIL.LCModel import (
     ICmPossibility,
@@ -33,7 +30,6 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
-
 
 class PossibilityListOperations(BaseOperations):
     """
@@ -91,7 +87,6 @@ class PossibilityListOperations(BaseOperations):
     def _GetSequence(self, parent):
         """Specify which sequence to reorder for possibility items."""
         return parent.SubPossibilitiesOS
-
 
     # --- List Management ---
 
@@ -182,7 +177,6 @@ class PossibilityListOperations(BaseOperations):
 
         return lists
 
-
     def CreateList(self, name, wsHandle=None):
         """
         Create a new possibility list.
@@ -242,7 +236,6 @@ class PossibilityListOperations(BaseOperations):
 
         return new_list
 
-
     def DeleteList(self, list_or_hvo):
         """
         Delete a possibility list.
@@ -290,7 +283,6 @@ class PossibilityListOperations(BaseOperations):
             "DeleteList: Direct deletion of possibility lists is not safe. "
             "Please delete items individually or consult FLEx documentation."
         )
-
 
     def FindList(self, name):
         """
@@ -343,7 +335,6 @@ class PossibilityListOperations(BaseOperations):
 
         return None
 
-
     def GetListName(self, list_or_hvo, wsHandle=None):
         """
         Get the name of a possibility list.
@@ -379,7 +370,6 @@ class PossibilityListOperations(BaseOperations):
 
         name = ITsString(poss_list.Name.get_String(wsHandle)).Text
         return name or ""
-
 
     def SetListName(self, list_or_hvo, name, wsHandle=None):
         """
@@ -423,7 +413,6 @@ class PossibilityListOperations(BaseOperations):
 
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         poss_list.Name.set_String(wsHandle, mkstr)
-
 
     # --- Item Management ---
 
@@ -482,7 +471,6 @@ class PossibilityListOperations(BaseOperations):
                 ICmPossibility,
                 flat
             ))
-
 
     def CreateItem(self, list_or_hvo, name, wsHandle=None, parent=None):
         """
@@ -566,7 +554,6 @@ class PossibilityListOperations(BaseOperations):
 
         return new_item
 
-
     def DeleteItem(self, item_or_hvo):
         """
         Delete an item from a possibility list.
@@ -618,7 +605,6 @@ class PossibilityListOperations(BaseOperations):
             # Remove from top-level list
             owner = self.__GetListOwner(item)
             owner.PossibilitiesOS.Remove(item)
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -728,7 +714,6 @@ class PossibilityListOperations(BaseOperations):
 
         return duplicate
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -765,7 +750,6 @@ class PossibilityListOperations(BaseOperations):
             props['Description'] = ITsString(poss_item.Description.get_String(wsHandle)).Text or ""
 
         return props
-
 
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
@@ -814,7 +798,6 @@ class PossibilityListOperations(BaseOperations):
 
         return is_different, differences
 
-
     def __DuplicateSubitemsRecursive(self, source_parent, dup_parent):
         """
         Helper method to recursively duplicate subitems.
@@ -837,7 +820,6 @@ class PossibilityListOperations(BaseOperations):
             # Continue recursion if there are deeper levels
             if sub_item.SubPossibilitiesOS.Count > 0:
                 self.__DuplicateSubitemsRecursive(sub_item, sub_dup)
-
 
     def FindItem(self, list_or_hvo, name):
         """
@@ -895,7 +877,6 @@ class PossibilityListOperations(BaseOperations):
 
         return None
 
-
     def GetItemName(self, item_or_hvo, wsHandle=None):
         """
         Get the name of a possibility item.
@@ -935,7 +916,6 @@ class PossibilityListOperations(BaseOperations):
 
         name = ITsString(item.Name.get_String(wsHandle)).Text
         return name or ""
-
 
     def SetItemName(self, item_or_hvo, name, wsHandle=None):
         """
@@ -977,7 +957,6 @@ class PossibilityListOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         item.Name.set_String(wsHandle, mkstr)
 
-
     def GetItemAbbreviation(self, item_or_hvo, wsHandle=None):
         """
         Get the abbreviation of a possibility item.
@@ -1010,7 +989,6 @@ class PossibilityListOperations(BaseOperations):
 
         abbr = ITsString(item.Abbreviation.get_String(wsHandle)).Text
         return abbr or ""
-
 
     def SetItemAbbreviation(self, item_or_hvo, abbr, wsHandle=None):
         """
@@ -1052,7 +1030,6 @@ class PossibilityListOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(abbr, wsHandle)
         item.Abbreviation.set_String(wsHandle, mkstr)
 
-
     def GetItemDescription(self, item_or_hvo, wsHandle=None):
         """
         Get the description of a possibility item.
@@ -1086,7 +1063,6 @@ class PossibilityListOperations(BaseOperations):
         # Description is a MultiString
         desc = ITsString(item.Description.get_String(wsHandle)).Text
         return desc or ""
-
 
     def SetItemDescription(self, item_or_hvo, description, wsHandle=None):
         """
@@ -1123,7 +1099,6 @@ class PossibilityListOperations(BaseOperations):
 
         # Description is a MultiString
         item.Description.set_String(wsHandle, description)
-
 
     # --- Hierarchy Operations ---
 
@@ -1167,7 +1142,6 @@ class PossibilityListOperations(BaseOperations):
         item = self.__ResolveItem(item_or_hvo)
 
         return list(item.SubPossibilitiesOS)
-
 
     def GetParentItem(self, item_or_hvo):
         """
@@ -1219,7 +1193,6 @@ class PossibilityListOperations(BaseOperations):
                 return ICmPossibility(owner)
 
         return None
-
 
     def MoveItem(self, item_or_hvo, new_parent_or_hvo=None):
         """
@@ -1301,7 +1274,6 @@ class PossibilityListOperations(BaseOperations):
         else:
             item_list.PossibilitiesOS.Add(item)
 
-
     def GetDepth(self, item_or_hvo):
         """
         Get the depth of an item in the hierarchy.
@@ -1355,7 +1327,6 @@ class PossibilityListOperations(BaseOperations):
 
         return depth
 
-
     # --- Utilities ---
 
     def GetListGuid(self, list_or_hvo):
@@ -1391,7 +1362,6 @@ class PossibilityListOperations(BaseOperations):
 
         poss_list = self.__ResolveList(list_or_hvo)
         return poss_list.Guid
-
 
     def GetItemGuid(self, item_or_hvo):
         """
@@ -1434,7 +1404,6 @@ class PossibilityListOperations(BaseOperations):
         item = self.__ResolveItem(item_or_hvo)
         return item.Guid
 
-
     def GetItemHvo(self, item):
         """
         Get the HVO (handle value) of a possibility item.
@@ -1469,7 +1438,6 @@ class PossibilityListOperations(BaseOperations):
 
         return item.Hvo
 
-
     def GetListHvo(self, poss_list):
         """
         Get the HVO (handle value) of a possibility list.
@@ -1503,7 +1471,6 @@ class PossibilityListOperations(BaseOperations):
 
         return poss_list.Hvo
 
-
     # --- Private Helper Methods ---
 
     def __ResolveList(self, list_or_hvo):
@@ -1528,7 +1495,6 @@ class PossibilityListOperations(BaseOperations):
             return obj
         return list_or_hvo
 
-
     def __ResolveItem(self, item_or_hvo):
         """
         Resolve HVO or object to ICmPossibility.
@@ -1551,7 +1517,6 @@ class PossibilityListOperations(BaseOperations):
             return obj
         return item_or_hvo
 
-
     def __WSHandle(self, wsHandle):
         """
         Get writing system handle, defaulting to analysis WS.
@@ -1568,7 +1533,6 @@ class PossibilityListOperations(BaseOperations):
             wsHandle,
             self.project.project.DefaultAnalWs
         )
-
 
     def __GetListOwner(self, item):
         """
@@ -1591,7 +1555,6 @@ class PossibilityListOperations(BaseOperations):
             else:
                 break
         return None
-
 
     def __IsDescendant(self, potential_descendant, potential_ancestor):
         """

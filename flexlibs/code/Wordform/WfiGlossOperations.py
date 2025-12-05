@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -32,7 +29,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 class WfiGlossOperations(BaseOperations):
     """
@@ -81,7 +77,6 @@ class WfiGlossOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     # --- Core CRUD Operations ---
 
     def GetAll(self, analysis_or_hvo):
@@ -122,7 +117,6 @@ class WfiGlossOperations(BaseOperations):
 
         for gloss in analysis.MeaningsOC:
             yield gloss
-
 
     def Create(self, analysis_or_hvo, gloss_text, wsHandle=None):
         """
@@ -186,7 +180,6 @@ class WfiGlossOperations(BaseOperations):
 
         return new_gloss
 
-
     def Delete(self, gloss_or_hvo):
         """
         Delete a wordform gloss.
@@ -229,7 +222,6 @@ class WfiGlossOperations(BaseOperations):
         # Delete the gloss (LCM handles removal from collections)
         gloss.Delete()
 
-
     def Find(self, analysis_or_hvo, index):
         """
         Find a gloss by its index in the analysis's glosses.
@@ -269,7 +261,6 @@ class WfiGlossOperations(BaseOperations):
 
         return analysis.MeaningsOC[index]
 
-
     # --- Property Access ---
 
     def GetForm(self, gloss_or_hvo, wsHandle=None):
@@ -306,7 +297,6 @@ class WfiGlossOperations(BaseOperations):
 
         form = ITsString(gloss.Form.get_String(wsHandle)).Text
         return form or ""
-
 
     def SetForm(self, gloss_or_hvo, text, wsHandle=None):
         """
@@ -347,7 +337,6 @@ class WfiGlossOperations(BaseOperations):
 
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         gloss.Form.set_String(wsHandle, mkstr)
-
 
     # --- Human Approval ---
 
@@ -397,7 +386,6 @@ class WfiGlossOperations(BaseOperations):
                 return wordform.HumanApprovedAnalysesRS.Contains(analysis)
 
         return False
-
 
     def Approve(self, gloss_or_hvo):
         """
@@ -450,7 +438,6 @@ class WfiGlossOperations(BaseOperations):
         wordform.HumanApprovedAnalysesRS.Clear()
         wordform.HumanApprovedAnalysesRS.Add(analysis)
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, gloss_or_hvo):
@@ -473,7 +460,6 @@ class WfiGlossOperations(BaseOperations):
             return obj
         return gloss_or_hvo
 
-
     def __GetAnalysisObject(self, analysis_or_hvo):
         """
         Resolve HVO or object to IWfiAnalysis.
@@ -493,7 +479,6 @@ class WfiGlossOperations(BaseOperations):
                 raise FP_ParameterError("HVO does not refer to a wordform analysis")
             return obj
         return analysis_or_hvo
-
 
     def __WSHandleAnalysis(self, wsHandle):
         """

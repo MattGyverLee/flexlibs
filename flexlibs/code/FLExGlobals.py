@@ -30,7 +30,6 @@ from Microsoft.Win32 import Registry, RegistryKey
 import logging
 logger = logging.getLogger(__name__)
 
-
 # ----------------------------------------------------------------
 # Public globals
 
@@ -54,7 +53,6 @@ FWREG_PROJECTSDIR   = "ProjectsDir"
 FWRegKeys = { 
                 "9" : r"SOFTWARE\SIL\FieldWorks\9",
             }
-
 
 # ----------------------------------------------------------------
 def GetFWRegKey():
@@ -83,7 +81,6 @@ def GetFWRegKey():
     msg = "%s FieldWorks %s not found" \
             % (python32or64, " or ".join(FW_SUPPORTED_VERSIONS))
     raise Exception(msg)
-
 
 # -------------------------------------------------------------------
 

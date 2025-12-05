@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -33,7 +30,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 class ReversalIndexOperations(BaseOperations):
     """
@@ -80,7 +76,6 @@ class ReversalIndexOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     # --- Core CRUD Operations ---
 
     def GetAll(self):
@@ -109,7 +104,6 @@ class ReversalIndexOperations(BaseOperations):
             Create, Find, FindByWritingSystem
         """
         return self.project.ObjectsIn(IReversalIndexRepository)
-
 
     def Create(self, name, writing_system):
         """
@@ -183,7 +177,6 @@ class ReversalIndexOperations(BaseOperations):
 
         return new_index
 
-
     def Delete(self, index_or_hvo):
         """
         Delete a reversal index from the project.
@@ -224,7 +217,6 @@ class ReversalIndexOperations(BaseOperations):
 
         # Delete the index (LCM handles removal from repository)
         index.Delete()
-
 
     def Find(self, name):
         """
@@ -269,7 +261,6 @@ class ReversalIndexOperations(BaseOperations):
                 return idx
 
         return None
-
 
     def FindByWritingSystem(self, ws):
         """
@@ -316,7 +307,6 @@ class ReversalIndexOperations(BaseOperations):
 
         return None
 
-
     # --- Property Access ---
 
     def GetName(self, index_or_hvo, wsHandle=None):
@@ -350,7 +340,6 @@ class ReversalIndexOperations(BaseOperations):
 
         name = ITsString(index.Name.get_String(wsHandle)).Text
         return name or ""
-
 
     def SetName(self, index_or_hvo, name, wsHandle=None):
         """
@@ -392,7 +381,6 @@ class ReversalIndexOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         index.Name.set_String(wsHandle, mkstr)
 
-
     def GetWritingSystem(self, index_or_hvo):
         """
         Get the writing system of a reversal index.
@@ -421,7 +409,6 @@ class ReversalIndexOperations(BaseOperations):
         index = self.__ResolveObject(index_or_hvo)
 
         return index.WritingSystem or ""
-
 
     def GetEntries(self, index_or_hvo):
         """
@@ -463,7 +450,6 @@ class ReversalIndexOperations(BaseOperations):
         for entry in index.EntriesOC:
             yield entry
 
-
     def ExportToLIFT(self, index_or_hvo, path):
         """
         Export a reversal index to LIFT format.
@@ -504,7 +490,6 @@ class ReversalIndexOperations(BaseOperations):
             "Use FLEx's built-in LIFT export functionality."
         )
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, index_or_hvo):
@@ -526,7 +511,6 @@ class ReversalIndexOperations(BaseOperations):
                 raise FP_ParameterError("HVO does not refer to a reversal index")
             return obj
         return index_or_hvo
-
 
     def __WSHandleAnalysis(self, wsHandle):
         """

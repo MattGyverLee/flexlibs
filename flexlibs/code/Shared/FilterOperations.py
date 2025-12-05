@@ -43,7 +43,6 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
-
 # --- Filter Type Constants ---
 
 class FilterTypes:
@@ -56,7 +55,6 @@ class FilterTypes:
     SENSE = "Sense"                 # Sense filters
     ALLOMORPH = "Allomorph"         # Allomorph filters
     CUSTOM = "Custom"               # Custom/generic filters
-
 
 # --- FilterOperations Class ---
 
@@ -120,7 +118,6 @@ class FilterOperations:
         self.project = project
         self._filter_cache = {}  # Cache for filter objects
 
-
     # --- Core Filter Management ---
 
     def GetAll(self):
@@ -154,7 +151,6 @@ class FilterOperations:
         filters = self._LoadFiltersFromProject()
         for filter_guid, filter_data in filters.items():
             yield filter_data
-
 
     def Create(self, name, filter_type, criteria):
         """
@@ -251,7 +247,6 @@ class FilterOperations:
 
         return filter_obj
 
-
     def Delete(self, filter_obj):
         """
         Delete a saved filter from the project.
@@ -304,7 +299,6 @@ class FilterOperations:
         if filter_guid in self._filter_cache:
             del self._filter_cache[filter_guid]
 
-
     def Find(self, name):
         """
         Find a saved filter by name.
@@ -351,7 +345,6 @@ class FilterOperations:
 
         return None
 
-
     def Exists(self, name):
         """
         Check if a filter with the given name exists.
@@ -388,7 +381,6 @@ class FilterOperations:
             return False
 
         return self.Find(name) is not None
-
 
     # --- Filter Properties ---
 
@@ -428,7 +420,6 @@ class FilterOperations:
             raise FP_ParameterError("Invalid filter object")
 
         return filter_obj['name']
-
 
     def SetName(self, filter_obj, name):
         """
@@ -480,7 +471,6 @@ class FilterOperations:
         filters[filter_guid] = filter_obj
         self._SaveFiltersToProject(filters)
 
-
     def GetCriteria(self, filter_obj):
         """
         Get the filter criteria definition.
@@ -525,7 +515,6 @@ class FilterOperations:
             raise FP_ParameterError("Invalid filter object")
 
         return filter_obj['criteria']
-
 
     def SetCriteria(self, filter_obj, criteria):
         """
@@ -581,7 +570,6 @@ class FilterOperations:
         filters[filter_guid] = filter_obj
         self._SaveFiltersToProject(filters)
 
-
     def GetFilterType(self, filter_obj):
         """
         Get the filter type (entry/text/wordform/etc.).
@@ -624,7 +612,6 @@ class FilterOperations:
 
         return filter_obj['filter_type']
 
-
     def GetGuid(self, filter_obj):
         """
         Get the GUID of a filter.
@@ -661,7 +648,6 @@ class FilterOperations:
             raise FP_ParameterError("Invalid filter object")
 
         return filter_obj['guid']
-
 
     # --- Filter Application ---
 
@@ -726,7 +712,6 @@ class FilterOperations:
 
         return matching_objects
 
-
     def GetMatchCount(self, filter_obj, object_collection=None):
         """
         Get the count of objects matching a filter.
@@ -779,7 +764,6 @@ class FilterOperations:
         matching = self.ApplyFilter(filter_obj, object_collection)
         return len(matching)
 
-
     # --- Filter Import/Export ---
 
     def ExportFilter(self, filter_obj, file_path):
@@ -825,7 +809,6 @@ class FilterOperations:
                 json.dump(filter_obj, f, indent=2, ensure_ascii=False)
         except Exception as e:
             raise FP_ParameterError(f"Failed to export filter: {e}")
-
 
     def ImportFilter(self, file_path, rename_if_exists=False):
         """
@@ -913,7 +896,6 @@ class FilterOperations:
             filter_data['criteria']
         )
 
-
     # --- Utility Methods ---
 
     def GetFiltersByType(self, filter_type):
@@ -957,7 +939,6 @@ class FilterOperations:
             if filter_obj['filter_type'] == filter_type:
                 yield filter_obj
 
-
     def GetDateCreated(self, filter_obj):
         """
         Get the creation date of a filter.
@@ -993,7 +974,6 @@ class FilterOperations:
             raise FP_ParameterError("Invalid filter object")
 
         return filter_obj.get('date_created', '')
-
 
     def GetDateModified(self, filter_obj):
         """
@@ -1031,7 +1011,6 @@ class FilterOperations:
 
         return filter_obj.get('date_modified', '')
 
-
     # --- Private Helper Methods ---
 
     def _LoadFiltersFromProject(self):
@@ -1055,7 +1034,6 @@ class FilterOperations:
         # Return empty dict if no filters stored
         return {}
 
-
     def _SaveFiltersToProject(self, filters):
         """
         Save all filters to project custom settings.
@@ -1075,7 +1053,6 @@ class FilterOperations:
                 "Project does not support custom properties. "
                 "Filters will only persist in memory."
             )
-
 
     def _GetAllObjectsOfType(self, filter_type):
         """
@@ -1097,7 +1074,6 @@ class FilterOperations:
             # For other types, return empty list
             logger.warning(f"GetAllObjectsOfType not implemented for {filter_type}")
             return []
-
 
     def _ObjectMatchesCriteria(self, obj, criteria, filter_type):
         """
@@ -1124,7 +1100,6 @@ class FilterOperations:
         except Exception as e:
             logger.error(f"Error matching criteria: {e}")
             return False
-
 
     def _MatchLexEntryCriteria(self, entry, criteria):
         """
@@ -1185,7 +1160,6 @@ class FilterOperations:
         # If no criteria specified or all matched, return True
         return True
 
-
     def _MatchWordformCriteria(self, wordform, criteria):
         """
         Check if a wordform matches criteria.
@@ -1215,7 +1189,6 @@ class FilterOperations:
                 return False
 
         return True
-
 
     def _MatchTextCriteria(self, text, criteria):
         """
@@ -1253,7 +1226,6 @@ class FilterOperations:
                 return False
 
         return True
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -1323,7 +1295,6 @@ class FilterOperations:
 
         return duplicate
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -1362,7 +1333,6 @@ class FilterOperations:
             props['criteria'] = item['criteria']
 
         return props
-
 
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """

@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -28,7 +25,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 class POSOperations(BaseOperations):
     """
@@ -71,14 +67,12 @@ class POSOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     def _GetSequence(self, parent):
         """
         Specify which sequence to reorder for POS.
         For POS, we reorder parent.SubPossibilitiesOS
         """
         return parent.SubPossibilitiesOS
-
 
     def GetAll(self):
         """
@@ -109,7 +103,6 @@ class POSOperations(BaseOperations):
         if pos_list:
             for pos in pos_list.PossibilitiesOS:
                 yield pos
-
 
     def Create(self, name, abbreviation, catalogSourceId=None):
         """
@@ -190,7 +183,6 @@ class POSOperations(BaseOperations):
 
         return new_pos
 
-
     def Delete(self, pos_or_hvo):
         """
         Delete a part of speech.
@@ -231,7 +223,6 @@ class POSOperations(BaseOperations):
         pos_list = self.project.lp.PartsOfSpeechOA
         pos_list.PossibilitiesOS.Remove(pos)
 
-
     def Exists(self, name):
         """
         Check if a part of speech with the given name exists.
@@ -262,7 +253,6 @@ class POSOperations(BaseOperations):
             raise FP_NullParameterError()
 
         return self.Find(name) is not None
-
 
     def Find(self, name):
         """
@@ -319,7 +309,6 @@ class POSOperations(BaseOperations):
 
         return None
 
-
     def GetName(self, pos_or_hvo, wsHandle=None):
         """
         Get the name of a part of speech.
@@ -355,7 +344,6 @@ class POSOperations(BaseOperations):
 
         name = ITsString(pos.Name.get_String(wsHandle)).Text
         return name or ""
-
 
     def SetName(self, pos_or_hvo, name, wsHandle=None):
         """
@@ -397,7 +385,6 @@ class POSOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         pos.Name.set_String(wsHandle, mkstr)
 
-
     def GetAbbreviation(self, pos_or_hvo, wsHandle=None):
         """
         Get the abbreviation of a part of speech.
@@ -430,7 +417,6 @@ class POSOperations(BaseOperations):
 
         abbr = ITsString(pos.Abbreviation.get_String(wsHandle)).Text
         return abbr or ""
-
 
     def SetAbbreviation(self, pos_or_hvo, abbr, wsHandle=None):
         """
@@ -471,7 +457,6 @@ class POSOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(abbr, wsHandle)
         pos.Abbreviation.set_String(wsHandle, mkstr)
 
-
     def GetSubcategories(self, pos_or_hvo):
         """
         Get all subcategories of a part of speech.
@@ -510,7 +495,6 @@ class POSOperations(BaseOperations):
         pos = self.__ResolveObject(pos_or_hvo)
 
         return list(pos.SubPossibilitiesOS)
-
 
     def AddSubcategory(self, pos_or_hvo, name, abbreviation):
         """
@@ -579,7 +563,6 @@ class POSOperations(BaseOperations):
 
         return subcat
 
-
     def RemoveSubcategory(self, pos_or_hvo, subcat_or_hvo):
         """
         Remove a subcategory from a part of speech.
@@ -624,7 +607,6 @@ class POSOperations(BaseOperations):
         # Remove from parent's SubPossibilitiesOS
         pos.SubPossibilitiesOS.Remove(subcat)
 
-
     def GetCatalogSourceId(self, pos_or_hvo):
         """
         Get the catalog source ID of a part of speech.
@@ -659,7 +641,6 @@ class POSOperations(BaseOperations):
         pos = self.__ResolveObject(pos_or_hvo)
 
         return pos.CatalogSourceId or ""
-
 
     def GetInflectionClasses(self, pos_or_hvo):
         """
@@ -701,7 +682,6 @@ class POSOperations(BaseOperations):
         # IPartOfSpeech has InflectionClassesOC
         return list(pos.InflectionClassesOC)
 
-
     def GetAffixSlots(self, pos_or_hvo):
         """
         Get all affix slots associated with a part of speech.
@@ -741,7 +721,6 @@ class POSOperations(BaseOperations):
 
         # IPartOfSpeech has AffixSlotsOC
         return list(pos.AffixSlotsOC)
-
 
     def GetEntryCount(self, pos_or_hvo):
         """
@@ -788,7 +767,6 @@ class POSOperations(BaseOperations):
                     break  # Count each entry only once
 
         return count
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -855,7 +833,7 @@ class POSOperations(BaseOperations):
         try:
             parent_pos = IPartOfSpeech(source.Owner)
             parent_is_possibility = True
-        except:
+        except Exception:
             parent_is_possibility = False
 
         if parent_is_possibility:
@@ -892,7 +870,6 @@ class POSOperations(BaseOperations):
 
         return duplicate
 
-
     def __DuplicateSubcategory(self, source_sub, parent_duplicate):
         """
         Helper method to recursively duplicate a subcategory.
@@ -926,7 +903,6 @@ class POSOperations(BaseOperations):
 
         return sub_duplicate
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, pos_or_hvo):
@@ -942,7 +918,6 @@ class POSOperations(BaseOperations):
         if isinstance(pos_or_hvo, int):
             return self.project.Object(pos_or_hvo)
         return pos_or_hvo
-
 
     # ========== SYNC INTEGRATION METHODS ==========
 
@@ -996,7 +971,6 @@ class POSOperations(BaseOperations):
             props['CatalogSourceId'] = pos.CatalogSourceId
 
         return props
-
 
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
@@ -1056,7 +1030,6 @@ class POSOperations(BaseOperations):
                 differences[key] = (val1, val2)
 
         return (is_different, differences)
-
 
     # --- Private Helper Methods ---
 

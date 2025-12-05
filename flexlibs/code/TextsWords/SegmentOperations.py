@@ -8,10 +8,7 @@
 #   Copyright 2025
 #
 
-import logging
 import re
-
-logger = logging.getLogger(__name__)
 
 import clr
 clr.AddReference("System")
@@ -32,7 +29,6 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
-
 
 class SegmentOperations(BaseOperations):
     """
@@ -563,7 +559,6 @@ class SegmentOperations(BaseOperations):
         if owner and hasattr(owner, 'SegmentsOS'):
             owner.SegmentsOS.Remove(segment_obj)
 
-
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
         Duplicate a segment, creating a new segment with the same content.
@@ -664,7 +659,6 @@ class SegmentOperations(BaseOperations):
 
         return new_segment
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -716,7 +710,6 @@ class SegmentOperations(BaseOperations):
             props['EndOffset'] = int(item.EndOffset)
 
         return props
-
 
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """

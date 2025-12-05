@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import FLEx LCM types
 from SIL.LCModel import (
     ICmPossibility,
@@ -31,7 +28,6 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
-
 
 class ConfidenceOperations(BaseOperations):
     """
@@ -97,7 +93,6 @@ class ConfidenceOperations(BaseOperations):
         """Specify which sequence to reorder for confidence level sub-possibilities."""
         return parent.SubPossibilitiesOS
 
-
     # --- Core CRUD Operations ---
 
     def GetAll(self):
@@ -138,7 +133,6 @@ class ConfidenceOperations(BaseOperations):
             return []
 
         return list(confidence_list.PossibilitiesOS)
-
 
     def Create(self, name, wsHandle=None):
         """
@@ -214,7 +208,6 @@ class ConfidenceOperations(BaseOperations):
 
         return new_level
 
-
     def Delete(self, level_or_hvo):
         """
         Delete a confidence level from the project.
@@ -269,7 +262,6 @@ class ConfidenceOperations(BaseOperations):
         confidence_list = self.project.lp.ConfidenceLevelsOA
         if confidence_list and level in confidence_list.PossibilitiesOS:
             confidence_list.PossibilitiesOS.Remove(level)
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -346,7 +338,6 @@ class ConfidenceOperations(BaseOperations):
 
         return duplicate
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -380,7 +371,6 @@ class ConfidenceOperations(BaseOperations):
         props['Description'] = ITsString(level.Description.get_String(wsHandle)).Text or ""
 
         return props
-
 
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
@@ -428,7 +418,6 @@ class ConfidenceOperations(BaseOperations):
                 }
 
         return is_different, differences
-
 
     def Find(self, name):
         """
@@ -489,7 +478,6 @@ class ConfidenceOperations(BaseOperations):
 
         return None
 
-
     def Exists(self, name):
         """
         Check if a confidence level with the given name exists.
@@ -524,7 +512,6 @@ class ConfidenceOperations(BaseOperations):
             raise FP_NullParameterError()
 
         return self.Find(name) is not None
-
 
     # --- Name and Description Operations ---
 
@@ -575,7 +562,6 @@ class ConfidenceOperations(BaseOperations):
 
         name = ITsString(level.Name.get_String(wsHandle)).Text
         return name or ""
-
 
     def SetName(self, level_or_hvo, name, wsHandle=None):
         """
@@ -631,7 +617,6 @@ class ConfidenceOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         level.Name.set_String(wsHandle, mkstr)
 
-
     def GetDescription(self, level_or_hvo, wsHandle=None):
         """
         Get the description of a confidence level.
@@ -678,7 +663,6 @@ class ConfidenceOperations(BaseOperations):
 
         desc = ITsString(level.Description.get_String(wsHandle)).Text
         return desc or ""
-
 
     def SetDescription(self, level_or_hvo, description, wsHandle=None):
         """
@@ -731,7 +715,6 @@ class ConfidenceOperations(BaseOperations):
 
         mkstr = TsStringUtils.MakeString(description, wsHandle)
         level.Description.set_String(wsHandle, mkstr)
-
 
     # --- Usage Query Operations ---
 
@@ -799,7 +782,6 @@ class ConfidenceOperations(BaseOperations):
 
         return analyses
 
-
     def GetGlossesWithConfidence(self, level_or_hvo):
         """
         Get all wordform glosses that use this confidence level.
@@ -864,7 +846,6 @@ class ConfidenceOperations(BaseOperations):
 
         return glosses
 
-
     # --- Special Query Operations ---
 
     def GetDefault(self):
@@ -908,7 +889,6 @@ class ConfidenceOperations(BaseOperations):
         # In FLEx, the first item is often the default
         # Some lists may have an IsDefault flag, but typically use first item
         return levels[0] if levels else None
-
 
     # --- Metadata Operations ---
 
@@ -957,7 +937,6 @@ class ConfidenceOperations(BaseOperations):
         level = self.__ResolveObject(level_or_hvo)
         return level.Guid
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, level_or_hvo):
@@ -981,7 +960,6 @@ class ConfidenceOperations(BaseOperations):
                 )
             return obj
         return level_or_hvo
-
 
     def __WSHandle(self, wsHandle):
         """

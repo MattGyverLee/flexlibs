@@ -1,17 +1,26 @@
+"""
+Unit tests for FLEx initialization and cleanup.
+
+Author: FlexTools Development Team
+"""
+
 import unittest
 from flexlibs import FLExInitialize, FLExCleanup
 
 
 class TestFLExInit(unittest.TestCase):
+    """Test FLEx initialization and cleanup functions."""
+
     def test_InitializeCleanup(self):
+        """Test that FLEx can be initialized and cleaned up without errors."""
         try:
             FLExInitialize()
-        except:
-            self.fail("Failed to initialize")
+        except Exception as e:
+            self.fail(f"Failed to initialize: {e}")
         try:
             FLExCleanup()
-        except:
-            self.fail("Failed to Cleanup")
+        except Exception as e:
+            self.fail(f"Failed to cleanup: {e}")
 
 
 if __name__ == "__main__":

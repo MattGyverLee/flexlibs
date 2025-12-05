@@ -10,9 +10,6 @@ Date: 2025-11-27
 import unittest
 from unittest.mock import Mock
 
-import sys
-sys.path.insert(0, 'D:\\Github\\flexlibs')
-
 from flexlibs.sync.dependency_graph import (
     DependencyGraph,
     DependencyType,

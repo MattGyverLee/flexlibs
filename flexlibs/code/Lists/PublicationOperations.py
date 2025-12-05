@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import FLEx LCM types
 from SIL.LCModel import (
     ICmPossibility,
@@ -31,7 +28,6 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
-
 
 class PublicationOperations(BaseOperations):
     """
@@ -93,7 +89,6 @@ class PublicationOperations(BaseOperations):
         """Specify which sequence to reorder for publication sub-possibilities."""
         return parent.SubPossibilitiesOS
 
-
     # --- Core CRUD Operations ---
 
     def GetAll(self, flat=True):
@@ -146,7 +141,6 @@ class PublicationOperations(BaseOperations):
             ICmPossibility,
             flat
         ))
-
 
     def Create(self, name, wsHandle=None):
         """
@@ -230,7 +224,6 @@ class PublicationOperations(BaseOperations):
 
         return new_pub
 
-
     def Delete(self, publication_or_hvo):
         """
         Delete a publication from the project.
@@ -294,7 +287,6 @@ class PublicationOperations(BaseOperations):
             pub_list = self.project.lexDB.PublicationTypesOA
             if pub_list:
                 pub_list.PossibilitiesOS.Remove(publication)
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -423,7 +415,6 @@ class PublicationOperations(BaseOperations):
 
         return duplicate
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -459,7 +450,6 @@ class PublicationOperations(BaseOperations):
             props['Abbreviation'] = ITsString(pub.Abbreviation.get_String(wsHandle)).Text or ""
 
         return props
-
 
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
@@ -507,7 +497,6 @@ class PublicationOperations(BaseOperations):
                 }
 
         return is_different, differences
-
 
     def Find(self, name):
         """
@@ -565,7 +554,6 @@ class PublicationOperations(BaseOperations):
 
         return None
 
-
     def Exists(self, name):
         """
         Check if a publication with the given name exists.
@@ -597,7 +585,6 @@ class PublicationOperations(BaseOperations):
             return False
 
         return self.Find(name) is not None
-
 
     # --- Name and Description Operations ---
 
@@ -641,7 +628,6 @@ class PublicationOperations(BaseOperations):
 
         name = ITsString(publication.Name.get_String(wsHandle)).Text
         return name or ""
-
 
     def SetName(self, publication_or_hvo, name, wsHandle=None):
         """
@@ -696,7 +682,6 @@ class PublicationOperations(BaseOperations):
         # Update modification date
         publication.DateModified = DateTime.Now
 
-
     def GetDescription(self, publication_or_hvo, wsHandle=None):
         """
         Get the description of a publication.
@@ -738,7 +723,6 @@ class PublicationOperations(BaseOperations):
             return desc or ""
 
         return ""
-
 
     def SetDescription(self, publication_or_hvo, description, wsHandle=None):
         """
@@ -790,7 +774,6 @@ class PublicationOperations(BaseOperations):
             # Update modification date
             publication.DateModified = DateTime.Now
 
-
     # --- Publishing Properties ---
 
     def GetPageLayout(self, publication_or_hvo, wsHandle=None):
@@ -834,7 +817,6 @@ class PublicationOperations(BaseOperations):
             return layout or ""
 
         return ""
-
 
     def SetPageLayout(self, publication_or_hvo, layout, wsHandle=None):
         """
@@ -883,7 +865,6 @@ class PublicationOperations(BaseOperations):
 
             # Update modification date
             publication.DateModified = DateTime.Now
-
 
     def GetIsDefault(self, publication_or_hvo):
         """
@@ -938,7 +919,6 @@ class PublicationOperations(BaseOperations):
             return publication.Hvo == default_pub.Hvo
 
         return False
-
 
     def SetIsDefault(self, publication_or_hvo, is_default):
         """
@@ -998,7 +978,6 @@ class PublicationOperations(BaseOperations):
                     pub_list.PossibilitiesOS.Remove(publication)
                     pub_list.PossibilitiesOS.Add(publication)
 
-
     # --- Formatting Properties ---
 
     def GetPageHeight(self, publication_or_hvo):
@@ -1046,7 +1025,6 @@ class PublicationOperations(BaseOperations):
             return float(publication.SortKey2) / 1000.0
 
         return None
-
 
     def SetPageHeight(self, publication_or_hvo, height):
         """
@@ -1106,7 +1084,6 @@ class PublicationOperations(BaseOperations):
             # Update modification date
             publication.DateModified = DateTime.Now
 
-
     def GetPageWidth(self, publication_or_hvo):
         """
         Get the page width for a publication.
@@ -1153,7 +1130,6 @@ class PublicationOperations(BaseOperations):
             return float(publication.SortKey) / 1000.0
 
         return None
-
 
     def SetPageWidth(self, publication_or_hvo, width):
         """
@@ -1213,7 +1189,6 @@ class PublicationOperations(BaseOperations):
             # Update modification date
             publication.DateModified = DateTime.Now
 
-
     # --- Divisions and Structure ---
 
     def GetDivisions(self, publication_or_hvo):
@@ -1258,7 +1233,6 @@ class PublicationOperations(BaseOperations):
             return list(publication.SubPossibilitiesOS)
 
         return []
-
 
     def AddDivision(self, publication_or_hvo, division_name, wsHandle=None):
         """
@@ -1330,7 +1304,6 @@ class PublicationOperations(BaseOperations):
 
         return new_division
 
-
     def GetHeaderFooter(self, publication_or_hvo, wsHandle=None):
         """
         Get the header/footer configuration for a publication.
@@ -1373,7 +1346,6 @@ class PublicationOperations(BaseOperations):
             return header or ""
 
         return ""
-
 
     def GetIsLandscape(self, publication_or_hvo):
         """
@@ -1427,7 +1399,6 @@ class PublicationOperations(BaseOperations):
 
         return False
 
-
     # --- Hierarchical Operations ---
 
     def GetSubPublications(self, publication_or_hvo):
@@ -1467,7 +1438,6 @@ class PublicationOperations(BaseOperations):
             return list(publication.SubPossibilitiesOS)
 
         return []
-
 
     def GetParent(self, publication_or_hvo):
         """
@@ -1510,7 +1480,6 @@ class PublicationOperations(BaseOperations):
 
         return None
 
-
     # --- Metadata Operations ---
 
     def GetGuid(self, publication_or_hvo):
@@ -1551,7 +1520,6 @@ class PublicationOperations(BaseOperations):
 
         publication = self.__ResolveObject(publication_or_hvo)
         return publication.Guid
-
 
     def GetDateCreated(self, publication_or_hvo):
         """
@@ -1596,7 +1564,6 @@ class PublicationOperations(BaseOperations):
             return publication.DateCreated
 
         return None
-
 
     def GetDateModified(self, publication_or_hvo):
         """
@@ -1645,7 +1612,6 @@ class PublicationOperations(BaseOperations):
 
         return None
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, publication_or_hvo):
@@ -1667,7 +1633,6 @@ class PublicationOperations(BaseOperations):
                 raise FP_ParameterError("HVO does not refer to a publication")
             return obj
         return publication_or_hvo
-
 
     def __WSHandle(self, wsHandle):
         """

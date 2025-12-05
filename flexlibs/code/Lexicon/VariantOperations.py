@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -35,7 +32,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 class VariantOperations(BaseOperations):
     """
@@ -98,14 +94,12 @@ class VariantOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     def _GetSequence(self, parent):
         """
         Specify which sequence to reorder for variants.
         For Variant, we reorder parent.VariantEntryBackRefsOS
         """
         return parent.VariantEntryBackRefsOS
-
 
     # --- Variant Type Management ---
 
@@ -147,7 +141,6 @@ class VariantOperations(BaseOperations):
             if vtype.SubPossibilitiesOS.Count > 0:
                 for subtype in vtype.SubPossibilitiesOS:
                     yield subtype
-
 
     def FindType(self, name):
         """
@@ -204,7 +197,6 @@ class VariantOperations(BaseOperations):
 
         return None
 
-
     def GetTypeName(self, variant_type, wsHandle=None):
         """
         Get the name of a variant type.
@@ -246,7 +238,6 @@ class VariantOperations(BaseOperations):
         name = ITsString(variant_type.Name.get_String(wsHandle)).Text
         return name or ""
 
-
     def GetTypeDescription(self, variant_type, wsHandle=None):
         """
         Get the description of a variant type.
@@ -284,7 +275,6 @@ class VariantOperations(BaseOperations):
 
         desc = ITsString(variant_type.Description.get_String(wsHandle)).Text
         return desc or ""
-
 
     # --- Variant Management ---
 
@@ -345,7 +335,6 @@ class VariantOperations(BaseOperations):
                 # Check if this is a variant type reference
                 if entry_ref.RefType == 0:  # Variant type
                     yield entry_ref
-
 
     def Create(self, entry_or_hvo, variant_form, variant_type, wsHandle=None):
         """
@@ -438,7 +427,6 @@ class VariantOperations(BaseOperations):
 
         return entry_ref
 
-
     def Delete(self, variant_or_hvo):
         """
         Delete a variant reference.
@@ -486,7 +474,6 @@ class VariantOperations(BaseOperations):
         # Remove from entry's EntryRefsOS
         if hasattr(owner, 'EntryRefsOS'):
             owner.EntryRefsOS.Remove(variant)
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -585,7 +572,6 @@ class VariantOperations(BaseOperations):
 
         return duplicate
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -619,7 +605,6 @@ class VariantOperations(BaseOperations):
 
         return props
 
-
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two variant references and return their differences.
@@ -649,7 +634,6 @@ class VariantOperations(BaseOperations):
 
         is_different = len(differences) > 0
         return is_different, differences
-
 
     def GetForm(self, variant_or_hvo, wsHandle=None):
         """
@@ -698,7 +682,6 @@ class VariantOperations(BaseOperations):
             return form or ""
 
         return ""
-
 
     def SetForm(self, variant_or_hvo, text, wsHandle=None):
         """
@@ -755,7 +738,6 @@ class VariantOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         owner.LexemeFormOA.Form.set_String(wsHandle, mkstr)
 
-
     def GetType(self, variant_or_hvo):
         """
         Get the variant type of a variant reference.
@@ -796,7 +778,6 @@ class VariantOperations(BaseOperations):
             return variant.VariantEntryTypesRS[0]
 
         return None
-
 
     def SetType(self, variant_or_hvo, variant_type):
         """
@@ -846,7 +827,6 @@ class VariantOperations(BaseOperations):
 
         # Add the new type
         variant.VariantEntryTypesRS.Add(variant_type)
-
 
     # --- Component Management (for irregularly inflected forms) ---
 
@@ -904,7 +884,6 @@ class VariantOperations(BaseOperations):
 
         return components
 
-
     def AddComponentLexeme(self, variant_or_hvo, entry_or_hvo):
         """
         Add a component lexeme to a variant.
@@ -961,7 +940,6 @@ class VariantOperations(BaseOperations):
         # Add the entry as a component
         variant.ComponentLexemesRS.Add(entry)
 
-
     def RemoveComponentLexeme(self, variant_or_hvo, entry_or_hvo):
         """
         Remove a component lexeme from a variant.
@@ -1011,7 +989,6 @@ class VariantOperations(BaseOperations):
         if entry in variant.ComponentLexemesRS:
             variant.ComponentLexemesRS.Remove(entry)
 
-
     # --- Utilities ---
 
     def GetOwningEntry(self, variant_or_hvo):
@@ -1055,7 +1032,6 @@ class VariantOperations(BaseOperations):
         variant = self.__GetVariantObject(variant_or_hvo)
 
         return variant.Owner
-
 
     def GetVariantCount(self, entry_or_hvo):
         """
@@ -1101,7 +1077,6 @@ class VariantOperations(BaseOperations):
 
         return count
 
-
     # --- Private Helper Methods ---
 
     def __GetEntryObject(self, entry_or_hvo):
@@ -1124,7 +1099,6 @@ class VariantOperations(BaseOperations):
             return obj
         return entry_or_hvo
 
-
     def __GetVariantObject(self, variant_or_hvo):
         """
         Resolve HVO or object to ILexEntryRef.
@@ -1145,7 +1119,6 @@ class VariantOperations(BaseOperations):
             return obj
         return variant_or_hvo
 
-
     def __WSHandle(self, wsHandle):
         """
         Get writing system handle, defaulting to vernacular WS.
@@ -1162,7 +1135,6 @@ class VariantOperations(BaseOperations):
             wsHandle,
             self.project.project.DefaultVernWs
         )
-
 
     def __WSHandleAnalysis(self, wsHandle):
         """

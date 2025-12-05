@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import FLEx LCM types
 from SIL.LCModel import (
     ICmAnnotationDefn,
@@ -32,7 +29,6 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
-
 
 class AnnotationDefOperations(BaseOperations):
     """
@@ -96,7 +92,6 @@ class AnnotationDefOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     # --- Core CRUD Operations ---
 
     def GetAll(self):
@@ -132,7 +127,6 @@ class AnnotationDefOperations(BaseOperations):
 
         for anno_def in repo.AllInstances():
             yield anno_def
-
 
     def Create(self, name, annotation_type, wsHandle=None, parent=None):
         """
@@ -238,7 +232,6 @@ class AnnotationDefOperations(BaseOperations):
 
         return anno_def
 
-
     def Delete(self, anno_def):
         """
         Delete an annotation definition.
@@ -291,7 +284,6 @@ class AnnotationDefOperations(BaseOperations):
         # Delete the object
         if hasattr(anno_def, 'Delete'):
             anno_def.Delete()
-
 
     def Find(self, name, wsHandle=None):
         """
@@ -351,7 +343,6 @@ class AnnotationDefOperations(BaseOperations):
 
         return None
 
-
     def Exists(self, name, wsHandle=None):
         """
         Check if an annotation definition with the given name exists.
@@ -388,7 +379,6 @@ class AnnotationDefOperations(BaseOperations):
 
         return self.Find(name, wsHandle) is not None
 
-
     # --- Property Getters and Setters ---
 
     def GetName(self, anno_def, wsHandle=None):
@@ -422,7 +412,6 @@ class AnnotationDefOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
         name = ITsString(anno_def.Name.get_String(wsHandle)).Text
         return name or ""
-
 
     def SetName(self, anno_def, name, wsHandle=None):
         """
@@ -468,7 +457,6 @@ class AnnotationDefOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         anno_def.Name.set_String(wsHandle, mkstr)
 
-
     def GetHelpString(self, anno_def, wsHandle=None):
         """
         Get the help string (description) of an annotation definition.
@@ -507,7 +495,6 @@ class AnnotationDefOperations(BaseOperations):
             help_str = ITsString(anno_def.HelpString.get_String(wsHandle)).Text
             return help_str or ""
         return ""
-
 
     def SetHelpString(self, anno_def, help_string, wsHandle=None):
         """
@@ -557,7 +544,6 @@ class AnnotationDefOperations(BaseOperations):
             mkstr = TsStringUtils.MakeString(help_string, wsHandle)
             anno_def.HelpString.set_String(wsHandle, mkstr)
 
-
     # --- Type and Instance Information ---
 
     def GetAnnotationType(self, anno_def):
@@ -601,7 +587,6 @@ class AnnotationDefOperations(BaseOperations):
             return anno_def.AnnotationType
         return 0
 
-
     def GetInstanceOf(self, anno_def):
         """
         Get the class that this annotation definition is an instance of.
@@ -635,7 +620,6 @@ class AnnotationDefOperations(BaseOperations):
         if hasattr(anno_def, 'InstanceOf'):
             return anno_def.InstanceOf
         return 0
-
 
     # --- User Control Fields ---
 
@@ -680,7 +664,6 @@ class AnnotationDefOperations(BaseOperations):
         if hasattr(anno_def, 'UserCanCreate'):
             return bool(anno_def.UserCanCreate)
         return False
-
 
     def SetUserCanCreate(self, anno_def, can_create):
         """
@@ -727,7 +710,6 @@ class AnnotationDefOperations(BaseOperations):
         if hasattr(anno_def, 'UserCanCreate'):
             anno_def.UserCanCreate = bool(can_create)
 
-
     def GetMultiple(self, anno_def):
         """
         Check if multiple annotations of this type are allowed.
@@ -765,7 +747,6 @@ class AnnotationDefOperations(BaseOperations):
         if hasattr(anno_def, 'AllowsMultiple'):
             return bool(anno_def.AllowsMultiple)
         return True  # Default to allowing multiple
-
 
     def SetMultiple(self, anno_def, allow_multiple):
         """
@@ -810,7 +791,6 @@ class AnnotationDefOperations(BaseOperations):
         if hasattr(anno_def, 'AllowsMultiple'):
             anno_def.AllowsMultiple = bool(allow_multiple)
 
-
     # --- Prompt and Copy/Paste Settings ---
 
     def GetPrompt(self, anno_def, wsHandle=None):
@@ -851,7 +831,6 @@ class AnnotationDefOperations(BaseOperations):
             prompt = ITsString(anno_def.Prompt.get_String(wsHandle)).Text
             return prompt or ""
         return ""
-
 
     def SetPrompt(self, anno_def, prompt_text, wsHandle=None):
         """
@@ -899,7 +878,6 @@ class AnnotationDefOperations(BaseOperations):
             mkstr = TsStringUtils.MakeString(prompt_text, wsHandle)
             anno_def.Prompt.set_String(wsHandle, mkstr)
 
-
     def GetCopyCutPasteAllowed(self, anno_def):
         """
         Check if copy/cut/paste operations are allowed for this type.
@@ -935,7 +913,6 @@ class AnnotationDefOperations(BaseOperations):
         if hasattr(anno_def, 'CopyCutPasteAllowed'):
             return bool(anno_def.CopyCutPasteAllowed)
         return True  # Default to allowing copy/paste
-
 
     # --- Query Methods ---
 
@@ -986,7 +963,6 @@ class AnnotationDefOperations(BaseOperations):
             if self.GetAnnotationType(anno_def) == type_value:
                 yield anno_def
 
-
     def GetUserCreatableTypes(self):
         """
         Get all annotation definitions that users can create.
@@ -1020,7 +996,6 @@ class AnnotationDefOperations(BaseOperations):
         for anno_def in self.GetAll():
             if self.GetUserCanCreate(anno_def):
                 yield anno_def
-
 
     # --- Metadata Methods ---
 
@@ -1058,7 +1033,6 @@ class AnnotationDefOperations(BaseOperations):
 
         return anno_def.Guid
 
-
     def GetDateCreated(self, anno_def):
         """
         Get the creation date of an annotation definition.
@@ -1095,7 +1069,6 @@ class AnnotationDefOperations(BaseOperations):
         if hasattr(anno_def, 'DateCreated'):
             return anno_def.DateCreated
         return None
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -1184,7 +1157,6 @@ class AnnotationDefOperations(BaseOperations):
 
         return duplicate
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -1239,7 +1211,6 @@ class AnnotationDefOperations(BaseOperations):
                 }
 
         return is_different, differences
-
 
     # --- Private Helper Methods ---
 

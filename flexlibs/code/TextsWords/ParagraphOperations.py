@@ -8,9 +8,6 @@
 #   Copyright Craig Farrow, 2008 - 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 import clr
 clr.AddReference("System")
 import System
@@ -30,7 +27,6 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
-
 
 class ParagraphOperations(BaseOperations):
     """
@@ -241,7 +237,6 @@ class ParagraphOperations(BaseOperations):
         else:
             raise FP_ParameterError("Paragraph has no valid owner or cannot be removed")
 
-
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
         Duplicate a paragraph, creating a new paragraph with the same content.
@@ -343,7 +338,6 @@ class ParagraphOperations(BaseOperations):
 
         return new_para
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -380,7 +374,6 @@ class ParagraphOperations(BaseOperations):
             props['Contents'] = ws_dict
 
         return props
-
 
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """

@@ -35,7 +35,6 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
-
 class ExampleOperations(BaseOperations):
     """
     This class provides operations for managing example sentences in a FieldWorks project.
@@ -81,14 +80,12 @@ class ExampleOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     def _GetSequence(self, parent):
         """
         Specify which sequence to reorder for examples.
         For Example, we reorder sense.ExamplesOS
         """
         return parent.ExamplesOS
-
 
     def GetAll(self, sense_or_hvo=None):
         """
@@ -140,7 +137,6 @@ class ExampleOperations(BaseOperations):
             sense = self.__GetSenseObject(sense_or_hvo)
             for example in sense.ExamplesOS:
                 yield example
-
 
     def Create(self, sense_or_hvo, example_text, wsHandle=None):
         """
@@ -207,7 +203,6 @@ class ExampleOperations(BaseOperations):
 
         return example
 
-
     def Delete(self, example_or_hvo):
         """
         Delete an example sentence.
@@ -251,7 +246,6 @@ class ExampleOperations(BaseOperations):
         owner = example.Owner
         if hasattr(owner, 'ExamplesOS'):
             owner.ExamplesOS.Remove(example)
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -345,7 +339,6 @@ class ExampleOperations(BaseOperations):
 
         return duplicate
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -388,7 +381,6 @@ class ExampleOperations(BaseOperations):
 
         return props
 
-
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two example sentences and return their differences.
@@ -418,7 +410,6 @@ class ExampleOperations(BaseOperations):
 
         is_different = len(differences) > 0
         return is_different, differences
-
 
     def Reorder(self, sense_or_hvo, example_list):
         """
@@ -481,7 +472,6 @@ class ExampleOperations(BaseOperations):
         for example in examples:
             sense.ExamplesOS.Add(example)
 
-
     def GetExample(self, example_or_hvo, wsHandle=None):
         """
         Get the example text of an example sentence.
@@ -526,7 +516,6 @@ class ExampleOperations(BaseOperations):
 
         text = ITsString(example.Example.get_String(wsHandle)).Text
         return text or ""
-
 
     def SetExample(self, example_or_hvo, text, wsHandle=None):
         """
@@ -573,7 +562,6 @@ class ExampleOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         example.Example.set_String(wsHandle, mkstr)
 
-
     def GetTranslations(self, example_or_hvo):
         """
         Get all translation objects for an example sentence.
@@ -615,7 +603,6 @@ class ExampleOperations(BaseOperations):
 
         example = self.__GetExampleObject(example_or_hvo)
         return list(example.TranslationsOC)
-
 
     def GetTranslation(self, example_or_hvo, wsHandle=None):
         """
@@ -669,7 +656,6 @@ class ExampleOperations(BaseOperations):
                 return text
 
         return ""
-
 
     def SetTranslation(self, example_or_hvo, text, wsHandle=None):
         """
@@ -737,7 +723,6 @@ class ExampleOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         translation.Translation.set_String(wsHandle, mkstr)
 
-
     def AddTranslation(self, example_or_hvo, text, wsHandle=None):
         """
         Add a new translation to an example sentence.
@@ -771,7 +756,6 @@ class ExampleOperations(BaseOperations):
             SetTranslation, GetTranslation, RemoveTranslation
         """
         self.SetTranslation(example_or_hvo, text, wsHandle)
-
 
     def RemoveTranslation(self, example_or_hvo, wsHandle=None):
         """
@@ -822,7 +806,6 @@ class ExampleOperations(BaseOperations):
                 translation.Translation.set_String(wsHandle, None)
                 break
 
-
     def GetReference(self, example_or_hvo):
         """
         Get the reference (source citation) for an example sentence.
@@ -864,7 +847,6 @@ class ExampleOperations(BaseOperations):
             ref = ITsString(example.Reference).Text
             return ref or ""
         return ""
-
 
     def SetReference(self, example_or_hvo, reference_text):
         """
@@ -913,7 +895,6 @@ class ExampleOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(reference_text, wsHandle)
         example.Reference = mkstr
 
-
     def GetMediaFiles(self, example_or_hvo):
         """
         Get all media files associated with an example sentence.
@@ -955,7 +936,6 @@ class ExampleOperations(BaseOperations):
             return list(example.MediaFilesOS)
         return []
 
-
     def GetMediaCount(self, example_or_hvo):
         """
         Get the count of media files associated with an example sentence.
@@ -995,7 +975,6 @@ class ExampleOperations(BaseOperations):
         if hasattr(example, 'MediaFilesOS'):
             return example.MediaFilesOS.Count
         return 0
-
 
     def AddMediaFile(self, example_or_hvo, file_path, label=None):
         """
@@ -1076,7 +1055,6 @@ class ExampleOperations(BaseOperations):
 
         return media_file
 
-
     def RemoveMediaFile(self, example_or_hvo, media_or_hvo):
         """
         Remove a media file from an example sentence.
@@ -1135,7 +1113,6 @@ class ExampleOperations(BaseOperations):
         # Remove from collection
         if hasattr(example, 'MediaFilesOS'):
             example.MediaFilesOS.Remove(media)
-
 
     def MoveMediaFile(self, media, from_example_or_hvo, to_example_or_hvo):
         """
@@ -1248,7 +1225,6 @@ class ExampleOperations(BaseOperations):
 
         return True
 
-
     def GetOwningSense(self, example_or_hvo):
         """
         Get the lexical sense that owns this example sentence.
@@ -1286,7 +1262,6 @@ class ExampleOperations(BaseOperations):
 
         example = self.__GetExampleObject(example_or_hvo)
         return ILexSense(example.Owner)
-
 
     def GetGuid(self, example_or_hvo):
         """
@@ -1326,7 +1301,6 @@ class ExampleOperations(BaseOperations):
         example = self.__GetExampleObject(example_or_hvo)
         return example.Guid
 
-
     # --- Additional Properties ---
 
     def GetLiteralTranslation(self, example_or_hvo, wsHandle=None):
@@ -1354,7 +1328,6 @@ class ExampleOperations(BaseOperations):
         wsHandle = self.__WSHandleAnalysis(wsHandle)
 
         return ITsString(example.LiteralTranslation.get_String(wsHandle)).Text or ""
-
 
     def SetLiteralTranslation(self, example_or_hvo, text, wsHandle=None):
         """
@@ -1386,7 +1359,6 @@ class ExampleOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         example.LiteralTranslation.set_String(wsHandle, mkstr)
 
-
     def GetDoNotPublishIn(self, example_or_hvo):
         """
         Get the publications this example should not be published in.
@@ -1414,7 +1386,6 @@ class ExampleOperations(BaseOperations):
             name = pub.Name.BestAnalysisAlternative.Text if pub.Name else str(pub.Guid)
             result.append(name)
         return result
-
 
     def AddDoNotPublishIn(self, example_or_hvo, publication):
         """
@@ -1446,7 +1417,6 @@ class ExampleOperations(BaseOperations):
         if publication not in example.DoNotPublishIn:
             example.DoNotPublishIn.Add(publication)
 
-
     def RemoveDoNotPublishIn(self, example_or_hvo, publication):
         """
         Remove a publication from the exclude list for this example.
@@ -1477,7 +1447,6 @@ class ExampleOperations(BaseOperations):
         if publication in example.DoNotPublishIn:
             example.DoNotPublishIn.Remove(publication)
 
-
     # --- Private Helper Methods ---
 
     def __GetSenseObject(self, sense_or_hvo):
@@ -1494,7 +1463,6 @@ class ExampleOperations(BaseOperations):
             return self.project.Object(sense_or_hvo)
         return sense_or_hvo
 
-
     def __GetExampleObject(self, example_or_hvo):
         """
         Resolve HVO or object to ILexExampleSentence.
@@ -1509,7 +1477,6 @@ class ExampleOperations(BaseOperations):
             return self.project.Object(example_or_hvo)
         return example_or_hvo
 
-
     def __WSHandle(self, wsHandle):
         """
         Get writing system handle, defaulting to analysis WS for translations.
@@ -1523,7 +1490,6 @@ class ExampleOperations(BaseOperations):
         if wsHandle is None:
             return self.project.project.DefaultAnalWs
         return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultAnalWs)
-
 
     def __WSHandleVern(self, wsHandle):
         """

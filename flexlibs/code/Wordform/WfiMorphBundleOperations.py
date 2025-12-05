@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -34,7 +31,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 class WfiMorphBundleOperations(BaseOperations):
     """
@@ -84,14 +80,12 @@ class WfiMorphBundleOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     def _GetSequence(self, parent):
         """
         Specify which sequence to reorder for morph bundles.
         For WfiMorphBundle, we reorder analysis.MorphBundlesOS
         """
         return parent.MorphBundlesOS
-
 
     # --- Core CRUD Operations ---
 
@@ -134,7 +128,6 @@ class WfiMorphBundleOperations(BaseOperations):
 
         for bundle in analysis.MorphBundlesOS:
             yield bundle
-
 
     def Create(self, analysis_or_hvo, form, sense=None, wsHandle=None):
         """
@@ -206,7 +199,6 @@ class WfiMorphBundleOperations(BaseOperations):
 
         return new_bundle
 
-
     def Delete(self, bundle_or_hvo):
         """
         Delete a morpheme bundle from an analysis.
@@ -250,7 +242,6 @@ class WfiMorphBundleOperations(BaseOperations):
         # Delete the bundle (LCM handles removal from collections)
         bundle.Delete()
 
-
     def Find(self, analysis_or_hvo, index):
         """
         Find a morph bundle by its index in the analysis.
@@ -292,7 +283,6 @@ class WfiMorphBundleOperations(BaseOperations):
 
         return analysis.MorphBundlesOS[index]
 
-
     # --- Property Access ---
 
     def GetForm(self, bundle_or_hvo, wsHandle=None):
@@ -326,7 +316,6 @@ class WfiMorphBundleOperations(BaseOperations):
 
         form = ITsString(bundle.Form.get_String(wsHandle)).Text
         return form or ""
-
 
     def SetForm(self, bundle_or_hvo, text, wsHandle=None):
         """
@@ -368,7 +357,6 @@ class WfiMorphBundleOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         bundle.Form.set_String(wsHandle, mkstr)
 
-
     # --- Lexicon Linking ---
 
     def GetSense(self, bundle_or_hvo):
@@ -409,7 +397,6 @@ class WfiMorphBundleOperations(BaseOperations):
         bundle = self.__ResolveObject(bundle_or_hvo)
 
         return bundle.SenseRA if hasattr(bundle, 'SenseRA') else None
-
 
     def SetSense(self, bundle_or_hvo, sense):
         """
@@ -456,7 +443,6 @@ class WfiMorphBundleOperations(BaseOperations):
         if hasattr(bundle, 'SenseRA'):
             bundle.SenseRA = sense
 
-
     # --- Morpheme Type ---
 
     def GetMorphemeType(self, bundle_or_hvo):
@@ -495,7 +481,6 @@ class WfiMorphBundleOperations(BaseOperations):
         bundle = self.__ResolveObject(bundle_or_hvo)
 
         return bundle.MorphRA if hasattr(bundle, 'MorphRA') else None
-
 
     def SetMorphemeType(self, bundle_or_hvo, type_or_name):
         """
@@ -547,7 +532,6 @@ class WfiMorphBundleOperations(BaseOperations):
         if hasattr(bundle, 'MorphRA'):
             bundle.MorphRA = type_or_name
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, bundle_or_hvo):
@@ -570,7 +554,6 @@ class WfiMorphBundleOperations(BaseOperations):
             return obj
         return bundle_or_hvo
 
-
     def __GetAnalysisObject(self, analysis_or_hvo):
         """
         Resolve HVO or object to IWfiAnalysis.
@@ -591,7 +574,6 @@ class WfiMorphBundleOperations(BaseOperations):
             return obj
         return analysis_or_hvo
 
-
     def __WSHandle(self, wsHandle):
         """
         Get writing system handle, defaulting to vernacular WS.
@@ -608,7 +590,6 @@ class WfiMorphBundleOperations(BaseOperations):
             wsHandle,
             self.project.project.DefaultVernWs
         )
-
 
     def __FindMorphType(self, name):
         """

@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -35,7 +32,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 class ScrSectionOperations(BaseOperations):
     """
@@ -78,7 +74,6 @@ class ScrSectionOperations(BaseOperations):
             project: The FLExProject instance to operate on.
         """
         super().__init__(project)
-
 
     # --- Core CRUD Operations ---
 
@@ -143,7 +138,6 @@ class ScrSectionOperations(BaseOperations):
 
         return new_section
 
-
     def Delete(self, section_or_hvo):
         """
         Delete a Scripture section from the FLEx project.
@@ -183,7 +177,6 @@ class ScrSectionOperations(BaseOperations):
 
         # Delete the section (LCM handles removal from repository)
         section.Delete()
-
 
     def Find(self, book_or_hvo, index):
         """
@@ -232,7 +225,6 @@ class ScrSectionOperations(BaseOperations):
 
         return book.SectionsOS[index]
 
-
     def GetAll(self, book_or_hvo):
         """
         Get all Scripture sections in a book.
@@ -271,7 +263,6 @@ class ScrSectionOperations(BaseOperations):
         book = self.__ResolveBook(book_or_hvo)
 
         return list(book.SectionsOS)
-
 
     # --- Section Properties ---
 
@@ -322,7 +313,6 @@ class ScrSectionOperations(BaseOperations):
         para = section.HeadingOA.ParagraphsOS[0]
         text = ITsString(para.Contents.get_String(wsHandle)).Text
         return text or ""
-
 
     def SetHeading(self, section_or_hvo, text, wsHandle=None):
         """
@@ -381,7 +371,6 @@ class ScrSectionOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         para.Contents.set_String(wsHandle, mkstr)
 
-
     def GetContent(self, section_or_hvo):
         """
         Get all content paragraphs in a Scripture section.
@@ -419,7 +408,6 @@ class ScrSectionOperations(BaseOperations):
             return []
 
         return list(section.ContentOA.ParagraphsOS)
-
 
     def MoveTo(self, section_or_hvo, target_book_or_hvo, index):
         """
@@ -486,7 +474,6 @@ class ScrSectionOperations(BaseOperations):
         # Insert at new location
         target_book.SectionsOS.Insert(index, section)
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, section_or_hvo):
@@ -509,7 +496,6 @@ class ScrSectionOperations(BaseOperations):
             return obj
         return section_or_hvo
 
-
     def __ResolveBook(self, book_or_hvo):
         """
         Resolve HVO or object to IScrBook.
@@ -529,7 +515,6 @@ class ScrSectionOperations(BaseOperations):
                 raise FP_ParameterError("HVO does not refer to a Scripture book")
             return obj
         return book_or_hvo
-
 
     def __WSHandle(self, wsHandle):
         """

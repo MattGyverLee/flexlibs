@@ -12,9 +12,6 @@ Author: FlexTools Development Team
 Date: 2025-11-27
 """
 
-import sys
-sys.path.insert(0, r'D:\Github\flexlibs')
-
 from flexlibs import FLExProject, FLExInitialize, FLExCleanup
 from flexlibs.sync import (
     HierarchicalImporter,

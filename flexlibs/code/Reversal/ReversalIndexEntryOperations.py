@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -33,7 +30,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 class ReversalIndexEntryOperations(BaseOperations):
     """
@@ -82,14 +78,12 @@ class ReversalIndexEntryOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     def _GetSequence(self, parent):
         """
         Specify which sequence to reorder for reversal entries.
         For ReversalIndexEntry, we reorder parent.SubentriesOS
         """
         return parent.SubentriesOS
-
 
     # --- Core CRUD Operations ---
 
@@ -131,7 +125,6 @@ class ReversalIndexEntryOperations(BaseOperations):
 
         for entry in index.EntriesOC:
             yield entry
-
 
     def Create(self, index_or_hvo, form, sense=None, wsHandle=None):
         """
@@ -206,7 +199,6 @@ class ReversalIndexEntryOperations(BaseOperations):
 
         return new_entry
 
-
     def Delete(self, entry_or_hvo):
         """
         Delete a reversal index entry.
@@ -246,7 +238,6 @@ class ReversalIndexEntryOperations(BaseOperations):
 
         # Delete the entry (LCM handles removal from collections)
         entry.Delete()
-
 
     def Find(self, index_or_hvo, form, wsHandle=None):
         """
@@ -303,7 +294,6 @@ class ReversalIndexEntryOperations(BaseOperations):
 
         return None
 
-
     def FindByHvo(self, hvo):
         """
         Find a reversal entry by its HVO (database ID).
@@ -338,11 +328,10 @@ class ReversalIndexEntryOperations(BaseOperations):
             obj = self.project.Object(hvo)
             if isinstance(obj, IReversalIndexEntry):
                 return obj
-        except:
+        except Exception:
             pass
 
         return None
-
 
     # --- Property Access ---
 
@@ -380,7 +369,6 @@ class ReversalIndexEntryOperations(BaseOperations):
 
         form = ITsString(entry.ReversalForm.get_String(wsHandle)).Text
         return form or ""
-
 
     def SetForm(self, entry_or_hvo, text, wsHandle=None):
         """
@@ -425,7 +413,6 @@ class ReversalIndexEntryOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         entry.ReversalForm.set_String(wsHandle, mkstr)
 
-
     # --- Sense Linking ---
 
     def GetSenses(self, entry_or_hvo):
@@ -465,7 +452,6 @@ class ReversalIndexEntryOperations(BaseOperations):
         entry = self.__ResolveObject(entry_or_hvo)
 
         return list(entry.SensesRS)
-
 
     def AddSense(self, entry_or_hvo, sense):
         """
@@ -507,7 +493,6 @@ class ReversalIndexEntryOperations(BaseOperations):
         if sense not in entry.SensesRS:
             entry.SensesRS.Add(sense)
 
-
     def RemoveSense(self, entry_or_hvo, sense):
         """
         Unlink a lexical sense from this reversal entry.
@@ -546,7 +531,6 @@ class ReversalIndexEntryOperations(BaseOperations):
         # Remove sense if linked
         if sense in entry.SensesRS:
             entry.SensesRS.Remove(sense)
-
 
     # --- Hierarchical Structure ---
 
@@ -588,7 +572,6 @@ class ReversalIndexEntryOperations(BaseOperations):
 
         return list(entry.SubentriesOS)
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, entry_or_hvo):
@@ -611,7 +594,6 @@ class ReversalIndexEntryOperations(BaseOperations):
             return obj
         return entry_or_hvo
 
-
     def __GetIndexObject(self, index_or_hvo):
         """
         Resolve HVO or object to IReversalIndex.
@@ -631,7 +613,6 @@ class ReversalIndexEntryOperations(BaseOperations):
                 raise FP_ParameterError("HVO does not refer to a reversal index")
             return obj
         return index_or_hvo
-
 
     def __GetEntryWS(self, entry):
         """

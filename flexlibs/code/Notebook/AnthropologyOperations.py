@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import FLEx LCM types
 from SIL.LCModel import (
     ICmAnthroItem,
@@ -33,7 +30,6 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
-
 
 class AnthropologyOperations(BaseOperations):
     """
@@ -92,7 +88,6 @@ class AnthropologyOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     def __WSHandle(self, wsHandle):
         """
         Internal helper for writing system handles.
@@ -106,7 +101,6 @@ class AnthropologyOperations(BaseOperations):
         if wsHandle is None:
             return self.project.project.DefaultAnalWs
         return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultAnalWs)
-
 
     def __ValidatedItemHvo(self, item_or_hvo):
         """
@@ -131,7 +125,6 @@ class AnthropologyOperations(BaseOperations):
 
         return hvo
 
-
     def __GetItemObject(self, item_or_hvo):
         """
         Internal function to get ICmAnthroItem object from item_or_hvo.
@@ -151,9 +144,8 @@ class AnthropologyOperations(BaseOperations):
         try:
             obj = self.project.Object(hvo)
             return ICmAnthroItem(obj)
-        except:
+        except Exception:
             raise FP_ParameterError(f"Invalid anthropology item object or HVO: {item_or_hvo}")
-
 
     # --- Core CRUD Operations ---
 
@@ -212,7 +204,6 @@ class AnthropologyOperations(BaseOperations):
             ICmAnthroItem,
             flat
         ))
-
 
     def Create(self, name, abbreviation=None, anthro_code=None):
         """
@@ -313,7 +304,6 @@ class AnthropologyOperations(BaseOperations):
 
         return new_item
 
-
     def CreateSubitem(self, parent_item, name, abbreviation=None, anthro_code=None):
         """
         Create a new anthropology item as a child of an existing item.
@@ -405,7 +395,6 @@ class AnthropologyOperations(BaseOperations):
 
         return new_item
 
-
     def Delete(self, item_or_hvo):
         """
         Delete an anthropology item.
@@ -457,9 +446,8 @@ class AnthropologyOperations(BaseOperations):
                         parent = ICmPossibility(item.Owner)
                         if hasattr(parent, 'SubPossibilitiesOS'):
                             parent.SubPossibilitiesOS.Remove(item)
-                    except:
+                    except Exception:
                         pass
-
 
     def Exists(self, name):
         """
@@ -504,7 +492,6 @@ class AnthropologyOperations(BaseOperations):
             raise FP_NullParameterError()
 
         return self.Find(name) is not None
-
 
     def Find(self, name):
         """
@@ -562,7 +549,6 @@ class AnthropologyOperations(BaseOperations):
                 return item
 
         return None
-
 
     def FindByCode(self, anthro_code):
         """
@@ -631,7 +617,6 @@ class AnthropologyOperations(BaseOperations):
 
         return None
 
-
     def FindByCategory(self, category):
         """
         Find all anthropology items in a specific category.
@@ -681,7 +666,6 @@ class AnthropologyOperations(BaseOperations):
 
         return results
 
-
     # --- Property Access Methods ---
 
     def GetName(self, item_or_hvo, wsHandle=None):
@@ -724,7 +708,6 @@ class AnthropologyOperations(BaseOperations):
 
         name = ITsString(item.Name.get_String(wsHandle)).Text
         return name or ""
-
 
     def SetName(self, item_or_hvo, name, wsHandle=None):
         """
@@ -770,7 +753,6 @@ class AnthropologyOperations(BaseOperations):
 
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         item.Name.set_String(wsHandle, mkstr)
-
 
     def GetAbbreviation(self, item_or_hvo, wsHandle=None):
         """
@@ -819,7 +801,6 @@ class AnthropologyOperations(BaseOperations):
         abbr = ITsString(item.Abbreviation.get_String(wsHandle)).Text
         return abbr or ""
 
-
     def SetAbbreviation(self, item_or_hvo, abbreviation, wsHandle=None):
         """
         Set the abbreviation of an anthropology item.
@@ -863,7 +844,6 @@ class AnthropologyOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(abbreviation, wsHandle)
         item.Abbreviation.set_String(wsHandle, mkstr)
 
-
     def GetDescription(self, item_or_hvo, wsHandle=None):
         """
         Get the description of an anthropology item.
@@ -906,7 +886,6 @@ class AnthropologyOperations(BaseOperations):
 
         desc = ITsString(item.Description.get_String(wsHandle)).Text
         return desc or ""
-
 
     def SetDescription(self, item_or_hvo, description, wsHandle=None):
         """
@@ -960,7 +939,6 @@ class AnthropologyOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(description, wsHandle)
         item.Description.set_String(wsHandle, mkstr)
 
-
     def GetAnthroCode(self, item_or_hvo):
         """
         Get the OCM (Outline of Cultural Materials) code of an item.
@@ -1009,7 +987,6 @@ class AnthropologyOperations(BaseOperations):
             return item.AnthroCode
         return ""
 
-
     def SetAnthroCode(self, item_or_hvo, anthro_code):
         """
         Set the OCM (Outline of Cultural Materials) code of an item.
@@ -1054,7 +1031,6 @@ class AnthropologyOperations(BaseOperations):
         item = self.__GetItemObject(item_or_hvo)
         item.AnthroCode = anthro_code
 
-
     def GetCategory(self, item_or_hvo):
         """
         Get the category of an anthropology item.
@@ -1091,7 +1067,6 @@ class AnthropologyOperations(BaseOperations):
         if hasattr(item, 'CategoryRA') and item.CategoryRA:
             return item.CategoryRA
         return None
-
 
     def SetCategory(self, item_or_hvo, category):
         """
@@ -1136,9 +1111,8 @@ class AnthropologyOperations(BaseOperations):
             try:
                 cat_poss = ICmPossibility(category)
                 item.CategoryRA = cat_poss
-            except:
+            except Exception:
                 raise FP_ParameterError("category must be a valid ICmPossibility object")
-
 
     # --- Hierarchy Operations ---
 
@@ -1201,7 +1175,6 @@ class AnthropologyOperations(BaseOperations):
             return list(item.SubPossibilitiesOS)
         return []
 
-
     def GetParent(self, item_or_hvo):
         """
         Get the parent item of an anthropology item.
@@ -1255,11 +1228,10 @@ class AnthropologyOperations(BaseOperations):
                 # Check if owner is an ICmAnthroItem (not the list)
                 parent = ICmAnthroItem(item.Owner)
                 return parent
-            except:
+            except Exception:
                 # Owner is the AnthroListOA, so this is a top-level item
                 return None
         return None
-
 
     # --- Text Linking Operations ---
 
@@ -1304,7 +1276,6 @@ class AnthropologyOperations(BaseOperations):
         if hasattr(item, 'TextsRC'):
             return list(item.TextsRC)
         return []
-
 
     def AddText(self, item_or_hvo, text):
         """
@@ -1359,7 +1330,7 @@ class AnthropologyOperations(BaseOperations):
 
         try:
             text_obj = IText(text)
-        except:
+        except Exception:
             raise FP_ParameterError("text must be a valid IText object")
 
         # Check if already linked
@@ -1369,7 +1340,6 @@ class AnthropologyOperations(BaseOperations):
         # Add the text to the item's collection
         if hasattr(item, 'TextsRC'):
             item.TextsRC.Add(text_obj)
-
 
     def RemoveText(self, item_or_hvo, text):
         """
@@ -1418,7 +1388,7 @@ class AnthropologyOperations(BaseOperations):
 
         try:
             text_obj = IText(text)
-        except:
+        except Exception:
             raise FP_ParameterError("text must be a valid IText object")
 
         # Check if linked
@@ -1428,7 +1398,6 @@ class AnthropologyOperations(BaseOperations):
         # Remove the text from the item's collection
         if hasattr(item, 'TextsRC'):
             item.TextsRC.Remove(text_obj)
-
 
     def GetTextCount(self, item_or_hvo):
         """
@@ -1471,7 +1440,6 @@ class AnthropologyOperations(BaseOperations):
         if hasattr(item, 'TextsRC'):
             return item.TextsRC.Count
         return 0
-
 
     def GetItemsForText(self, text):
         """
@@ -1522,7 +1490,7 @@ class AnthropologyOperations(BaseOperations):
 
         try:
             text_obj = IText(text)
-        except:
+        except Exception:
             raise FP_ParameterError("text must be a valid IText object")
 
         results = []
@@ -1533,7 +1501,6 @@ class AnthropologyOperations(BaseOperations):
                 results.append(item)
 
         return results
-
 
     # --- Researcher/People Linking Operations ---
 
@@ -1573,7 +1540,6 @@ class AnthropologyOperations(BaseOperations):
         if hasattr(item, 'ResearchersRC'):
             return list(item.ResearchersRC)
         return []
-
 
     def AddResearcher(self, item_or_hvo, person):
         """
@@ -1627,7 +1593,7 @@ class AnthropologyOperations(BaseOperations):
 
         try:
             person_obj = ICmPerson(person)
-        except:
+        except Exception:
             raise FP_ParameterError("person must be a valid ICmPerson object")
 
         # Check if already linked
@@ -1637,7 +1603,6 @@ class AnthropologyOperations(BaseOperations):
         # Add the person to the item's collection
         if hasattr(item, 'ResearchersRC'):
             item.ResearchersRC.Add(person_obj)
-
 
     def RemoveResearcher(self, item_or_hvo, person):
         """
@@ -1686,7 +1651,7 @@ class AnthropologyOperations(BaseOperations):
 
         try:
             person_obj = ICmPerson(person)
-        except:
+        except Exception:
             raise FP_ParameterError("person must be a valid ICmPerson object")
 
         # Check if linked
@@ -1696,7 +1661,6 @@ class AnthropologyOperations(BaseOperations):
         # Remove the person from the item's collection
         if hasattr(item, 'ResearchersRC'):
             item.ResearchersRC.Remove(person_obj)
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -1797,7 +1761,6 @@ class AnthropologyOperations(BaseOperations):
 
         return duplicate
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -1851,7 +1814,6 @@ class AnthropologyOperations(BaseOperations):
 
         return is_different, differences
 
-
     # --- Metadata Operations ---
 
     def GetGuid(self, item_or_hvo):
@@ -1889,7 +1851,6 @@ class AnthropologyOperations(BaseOperations):
         """
         item = self.__GetItemObject(item_or_hvo)
         return item.Guid
-
 
     def GetDateCreated(self, item_or_hvo):
         """
@@ -1937,7 +1898,6 @@ class AnthropologyOperations(BaseOperations):
         if hasattr(item, 'DateCreated'):
             return item.DateCreated
         return None
-
 
     def GetDateModified(self, item_or_hvo):
         """

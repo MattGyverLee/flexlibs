@@ -36,8 +36,17 @@ operations_patterns = [
     "flexlibs/code/System/*.py",
 ]
 
+
 def analyze_file(filepath):
-    """Analyze a file for potential object creation sequence bugs."""
+    """
+    Analyze a file for potential object creation sequence bugs.
+
+    Args:
+        filepath: Path to the Python file to analyze
+
+    Returns:
+        List of issues found in the file
+    """
     with open(filepath, 'r', encoding='utf-8') as f:
         content = f.read()
 
@@ -69,6 +78,7 @@ def analyze_file(filepath):
                 })
 
     return issues
+
 
 def main():
     print("=" * 70)
@@ -106,6 +116,7 @@ def main():
     print()
     print("Note: This is a heuristic analysis. Manual review required.")
     print("Pattern: Setting properties BEFORE adding to collection likely fails.")
+
 
 if __name__ == "__main__":
     main()

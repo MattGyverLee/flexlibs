@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -34,7 +31,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 class ScrNoteOperations(BaseOperations):
     """
@@ -89,7 +85,6 @@ class ScrNoteOperations(BaseOperations):
             project: The FLExProject instance to operate on.
         """
         super().__init__(project)
-
 
     # --- Core CRUD Operations ---
 
@@ -204,7 +199,6 @@ class ScrNoteOperations(BaseOperations):
 
         return new_note
 
-
     def Delete(self, note_or_hvo):
         """
         Delete a Scripture note from the FLEx project.
@@ -243,7 +237,6 @@ class ScrNoteOperations(BaseOperations):
 
         # Delete the note (LCM handles removal from repository)
         note.Delete()
-
 
     def Find(self, book_or_hvo, index):
         """
@@ -298,7 +291,6 @@ class ScrNoteOperations(BaseOperations):
 
         return annotations.NotesOS[index]
 
-
     def GetAll(self, book_or_hvo):
         """
         Get all Scripture notes in a book.
@@ -341,7 +333,6 @@ class ScrNoteOperations(BaseOperations):
 
         annotations = book.FootnotesOS[0]
         return list(annotations.NotesOS)
-
 
     # --- Note Properties ---
 
@@ -392,7 +383,6 @@ class ScrNoteOperations(BaseOperations):
         para = note.DiscussionOA.ParagraphsOS[0]
         text = ITsString(para.Contents.get_String(wsHandle)).Text
         return text or ""
-
 
     def SetText(self, note_or_hvo, text, wsHandle=None):
         """
@@ -458,7 +448,6 @@ class ScrNoteOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         para.Contents.set_String(wsHandle, mkstr)
 
-
     def GetType(self, note_or_hvo):
         """
         Get the type of a Scripture note.
@@ -495,7 +484,6 @@ class ScrNoteOperations(BaseOperations):
         # For simplicity, return generic "note" type
         # A full implementation would check note.AnnotationTypeRA
         return "note"
-
 
     def Resolve(self, note_or_hvo):
         """
@@ -538,7 +526,6 @@ class ScrNoteOperations(BaseOperations):
         if hasattr(note, 'ResolutionStatus'):
             note.ResolutionStatus = 1  # Resolved
 
-
     def IsResolved(self, note_or_hvo):
         """
         Check if a Scripture note is marked as resolved.
@@ -577,7 +564,6 @@ class ScrNoteOperations(BaseOperations):
 
         return False
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, note_or_hvo):
@@ -600,7 +586,6 @@ class ScrNoteOperations(BaseOperations):
             return obj
         return note_or_hvo
 
-
     def __ResolveBook(self, book_or_hvo):
         """
         Resolve HVO or object to IScrBook.
@@ -621,7 +606,6 @@ class ScrNoteOperations(BaseOperations):
             return obj
         return book_or_hvo
 
-
     def __ResolveParagraph(self, para_or_hvo):
         """
         Resolve HVO or object to IScrTxtPara.
@@ -641,7 +625,6 @@ class ScrNoteOperations(BaseOperations):
                 raise FP_ParameterError("HVO does not refer to a Scripture paragraph")
             return obj
         return para_or_hvo
-
 
     def __WSHandle(self, wsHandle):
         """

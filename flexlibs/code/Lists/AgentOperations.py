@@ -12,9 +12,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import FLEx LCM types
 from SIL.LCModel import (
     ICmAgent,
@@ -34,7 +31,6 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
-
 
 class AgentOperations(BaseOperations):
     """
@@ -92,7 +88,6 @@ class AgentOperations(BaseOperations):
         """Specify which sequence to reorder for agent sub-possibilities."""
         return parent.SubPossibilitiesOS
 
-
     # --- Core CRUD Operations ---
 
     def GetAll(self):
@@ -125,7 +120,6 @@ class AgentOperations(BaseOperations):
             Find, Create, GetHumanAgents, GetParserAgents
         """
         return self.project.ObjectsIn(ICmAgentRepository)
-
 
     def Create(self, name, wsHandle=None):
         """
@@ -190,7 +184,6 @@ class AgentOperations(BaseOperations):
 
         return new_agent
 
-
     def CreateHumanAgent(self, name, person, wsHandle=None):
         """
         Create a new human agent linked to a person.
@@ -251,7 +244,6 @@ class AgentOperations(BaseOperations):
 
         return agent
 
-
     def CreateParserAgent(self, name, version="", wsHandle=None):
         """
         Create a new parser agent (computer/automated analyzer).
@@ -308,7 +300,6 @@ class AgentOperations(BaseOperations):
 
         return agent
 
-
     def Delete(self, agent_or_hvo):
         """
         Delete an agent from the FLEx project.
@@ -356,7 +347,6 @@ class AgentOperations(BaseOperations):
 
         # Remove from agents collection
         self.project.lp.AnalyzingAgentsOC.Remove(agent)
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -432,7 +422,6 @@ class AgentOperations(BaseOperations):
 
         return duplicate
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -472,7 +461,6 @@ class AgentOperations(BaseOperations):
             props['Human'] = None
 
         return props
-
 
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
@@ -521,7 +509,6 @@ class AgentOperations(BaseOperations):
 
         return is_different, differences
 
-
     def Exists(self, name, wsHandle=None):
         """
         Check if an agent with the given name exists.
@@ -560,7 +547,6 @@ class AgentOperations(BaseOperations):
             return False
 
         return self.Find(name, wsHandle) is not None
-
 
     def Find(self, name, wsHandle=None):
         """
@@ -613,7 +599,6 @@ class AgentOperations(BaseOperations):
 
         return None
 
-
     # --- Name and Version Management ---
 
     def GetName(self, agent_or_hvo, wsHandle=None):
@@ -655,7 +640,6 @@ class AgentOperations(BaseOperations):
 
         name = ITsString(agent.Name.get_String(wsHandle)).Text
         return name or ""
-
 
     def SetName(self, agent_or_hvo, name, wsHandle=None):
         """
@@ -706,7 +690,6 @@ class AgentOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         agent.Name.set_String(wsHandle, mkstr)
 
-
     def GetVersion(self, agent_or_hvo, wsHandle=None):
         """
         Get the version string of an agent.
@@ -732,7 +715,6 @@ class AgentOperations(BaseOperations):
             >>> version = project.Agent.GetVersion(human)
             >>> print(version)
 
-
         Notes:
             - Returns empty string if version not set
             - Typically used for parser agents
@@ -750,7 +732,6 @@ class AgentOperations(BaseOperations):
 
         version = ITsString(agent.Version.get_String(wsHandle)).Text
         return version or ""
-
 
     def SetVersion(self, agent_or_hvo, version, wsHandle=None):
         """
@@ -800,7 +781,6 @@ class AgentOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(version, wsHandle)
         agent.Version.set_String(wsHandle, mkstr)
 
-
     # --- Agent Type Operations ---
 
     def IsHuman(self, agent_or_hvo):
@@ -844,7 +824,6 @@ class AgentOperations(BaseOperations):
 
         return agent.Human is not None
 
-
     def IsParser(self, agent_or_hvo):
         """
         Check if an agent is a parser (automated analyzer).
@@ -884,7 +863,6 @@ class AgentOperations(BaseOperations):
         agent = self.__ResolveObject(agent_or_hvo)
 
         return agent.Human is None
-
 
     # --- Human (Person) Link ---
 
@@ -930,7 +908,6 @@ class AgentOperations(BaseOperations):
         agent = self.__ResolveObject(agent_or_hvo)
 
         return agent.Human
-
 
     def SetHuman(self, agent_or_hvo, person):
         """
@@ -979,7 +956,6 @@ class AgentOperations(BaseOperations):
                 agent.Human = person_obj
             except:
                 raise FP_ParameterError("person must be a valid ICmPerson object")
-
 
     # --- Evaluations ---
 
@@ -1036,7 +1012,6 @@ class AgentOperations(BaseOperations):
 
         return evaluations
 
-
     def GetEvaluationCount(self, agent_or_hvo):
         """
         Get the number of evaluations created by an agent.
@@ -1075,7 +1050,6 @@ class AgentOperations(BaseOperations):
             raise FP_NullParameterError()
 
         return len(self.GetEvaluations(agent_or_hvo))
-
 
     # --- Query Methods ---
 
@@ -1124,7 +1098,6 @@ class AgentOperations(BaseOperations):
                     agents.append(agent)
         return agents
 
-
     def GetHumanAgents(self):
         """
         Get all human agents in the project.
@@ -1157,7 +1130,6 @@ class AgentOperations(BaseOperations):
         """
         return self.FindByType(True)
 
-
     def GetParserAgents(self):
         """
         Get all parser agents in the project.
@@ -1188,7 +1160,6 @@ class AgentOperations(BaseOperations):
             GetHumanAgents, FindByType, IsParser
         """
         return self.FindByType(False)
-
 
     # --- Metadata ---
 
@@ -1232,7 +1203,6 @@ class AgentOperations(BaseOperations):
 
         return agent.Guid
 
-
     def GetDateCreated(self, agent_or_hvo):
         """
         Get the creation date of an agent record.
@@ -1272,7 +1242,6 @@ class AgentOperations(BaseOperations):
         agent = self.__ResolveObject(agent_or_hvo)
 
         return agent.DateCreated
-
 
     def GetDateModified(self, agent_or_hvo):
         """
@@ -1317,7 +1286,6 @@ class AgentOperations(BaseOperations):
 
         return agent.DateModified
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, agent_or_hvo):
@@ -1339,7 +1307,6 @@ class AgentOperations(BaseOperations):
                 raise FP_ParameterError("HVO does not refer to an agent")
             return obj
         return agent_or_hvo
-
 
     def __WSHandleAnalysis(self, wsHandle):
         """

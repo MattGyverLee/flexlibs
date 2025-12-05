@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -34,7 +31,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 class ConstChartTagOperations(BaseOperations):
     """
@@ -76,7 +72,6 @@ class ConstChartTagOperations(BaseOperations):
             project: The FLExProject instance to operate on.
         """
         super().__init__(project)
-
 
     # --- Core CRUD Operations ---
 
@@ -151,7 +146,6 @@ class ConstChartTagOperations(BaseOperations):
 
         return new_tag
 
-
     def Delete(self, tag_or_hvo):
         """
         Delete a chart tag.
@@ -187,7 +181,6 @@ class ConstChartTagOperations(BaseOperations):
 
         # Delete the tag (LCM handles removal from repository)
         tag.Delete()
-
 
     def Find(self, chart_or_hvo, name):
         """
@@ -239,7 +232,6 @@ class ConstChartTagOperations(BaseOperations):
 
         return None
 
-
     def GetAll(self, chart_or_hvo):
         """
         Get all chart tags for a constituent chart.
@@ -278,7 +270,6 @@ class ConstChartTagOperations(BaseOperations):
 
         return []
 
-
     # --- Tag Properties ---
 
     def GetName(self, tag_or_hvo):
@@ -314,7 +305,6 @@ class ConstChartTagOperations(BaseOperations):
         wsHandle = self.__WSHandleAnalysis()
 
         return ITsString(tag.Name.get_String(wsHandle)).Text or ""
-
 
     def SetName(self, tag_or_hvo, name):
         """
@@ -359,7 +349,6 @@ class ConstChartTagOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         tag.Name.set_String(wsHandle, mkstr)
 
-
     def GetDescription(self, tag_or_hvo, ws=None):
         """
         Get the description of a chart tag.
@@ -395,7 +384,6 @@ class ConstChartTagOperations(BaseOperations):
         wsHandle = self.__WSHandle(ws)
 
         return ITsString(tag.Description.get_String(wsHandle)).Text or ""
-
 
     def SetDescription(self, tag_or_hvo, text, ws=None):
         """
@@ -437,7 +425,6 @@ class ConstChartTagOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         tag.Description.set_String(wsHandle, mkstr)
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, tag_or_hvo):
@@ -460,7 +447,6 @@ class ConstChartTagOperations(BaseOperations):
             return obj
         return tag_or_hvo
 
-
     def __ResolveChart(self, chart_or_hvo):
         """
         Resolve HVO or object to IDsConstChart.
@@ -481,7 +467,6 @@ class ConstChartTagOperations(BaseOperations):
             return obj
         return chart_or_hvo
 
-
     def __WSHandle(self, ws):
         """
         Get writing system handle, defaulting to analysis WS.
@@ -499,7 +484,6 @@ class ConstChartTagOperations(BaseOperations):
             self.project.project.DefaultAnalWs
         )
 
-
     def __WSHandleAnalysis(self):
         """
         Get writing system handle for analysis writing system.
@@ -508,7 +492,6 @@ class ConstChartTagOperations(BaseOperations):
             int: The analysis writing system handle
         """
         return self.project.project.DefaultAnalWs
-
 
     # --- Reordering Support ---
 

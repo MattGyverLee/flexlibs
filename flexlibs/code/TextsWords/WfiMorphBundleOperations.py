@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import FLEx LCM types
 from SIL.LCModel import (
     IWfiMorphBundle,
@@ -34,7 +31,6 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
-
 
 class WfiMorphBundleOperations(BaseOperations):
     """
@@ -93,7 +89,6 @@ class WfiMorphBundleOperations(BaseOperations):
         """Specify which sequence to reorder for morph bundles."""
         return parent.MorphsOS
 
-
     # ==================== CORE CRUD OPERATIONS ====================
 
     def GetAll(self, analysis_or_hvo):
@@ -136,7 +131,6 @@ class WfiMorphBundleOperations(BaseOperations):
         # Yield all morph bundles in sequence
         for bundle in analysis.MorphBundlesOS:
             yield bundle
-
 
     def Create(self, analysis_or_hvo):
         """
@@ -191,7 +185,6 @@ class WfiMorphBundleOperations(BaseOperations):
 
         return bundle
 
-
     def Delete(self, bundle_or_hvo):
         """
         Delete a morph bundle from its analysis.
@@ -239,7 +232,6 @@ class WfiMorphBundleOperations(BaseOperations):
         # Remove from the analysis's morph bundles collection
         if hasattr(owner, 'MorphBundlesOS'):
             owner.MorphBundlesOS.Remove(bundle)
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -328,7 +320,6 @@ class WfiMorphBundleOperations(BaseOperations):
 
         return duplicate
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -377,7 +368,6 @@ class WfiMorphBundleOperations(BaseOperations):
             props['InflClassRA'] = str(item.InflClassRA.Guid)
 
         return props
-
 
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
@@ -429,7 +419,6 @@ class WfiMorphBundleOperations(BaseOperations):
 
         is_different = len(differences) > 0
         return (is_different, differences)
-
 
     def Reorder(self, analysis_or_hvo, bundle_list):
         """
@@ -491,7 +480,6 @@ class WfiMorphBundleOperations(BaseOperations):
         for bundle in bundle_list:
             analysis.MorphBundlesOS.Add(bundle)
 
-
     # ==================== FORM & GLOSS OPERATIONS ====================
 
     def GetForm(self, bundle_or_hvo, wsHandle=None):
@@ -539,7 +527,6 @@ class WfiMorphBundleOperations(BaseOperations):
 
         form = ITsString(bundle.Form.get_String(wsHandle)).Text
         return form or ""
-
 
     def SetForm(self, bundle_or_hvo, text, wsHandle=None):
         """
@@ -590,7 +577,6 @@ class WfiMorphBundleOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         bundle.Form.set_String(wsHandle, mkstr)
 
-
     def GetGloss(self, bundle_or_hvo, wsHandle=None):
         """
         Get the morpheme gloss of a bundle.
@@ -636,7 +622,6 @@ class WfiMorphBundleOperations(BaseOperations):
 
         gloss = ITsString(bundle.Gloss.get_String(wsHandle)).Text
         return gloss or ""
-
 
     def SetGloss(self, bundle_or_hvo, text, wsHandle=None):
         """
@@ -687,7 +672,6 @@ class WfiMorphBundleOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         bundle.Gloss.set_String(wsHandle, mkstr)
 
-
     # ==================== LEXICAL LINK OPERATIONS ====================
 
     def GetSense(self, bundle_or_hvo):
@@ -730,7 +714,6 @@ class WfiMorphBundleOperations(BaseOperations):
 
         bundle = self.__GetBundleObject(bundle_or_hvo)
         return bundle.SenseRA if bundle.SenseRA else None
-
 
     def SetSense(self, bundle_or_hvo, sense_or_hvo):
         """
@@ -780,7 +763,6 @@ class WfiMorphBundleOperations(BaseOperations):
             sense = self.__GetSenseObject(sense_or_hvo)
             bundle.SenseRA = sense
 
-
     def GetMorphType(self, bundle_or_hvo):
         """
         Get the morpheme type of a bundle.
@@ -823,7 +805,6 @@ class WfiMorphBundleOperations(BaseOperations):
 
         bundle = self.__GetBundleObject(bundle_or_hvo)
         return bundle.MorphRA if bundle.MorphRA else None
-
 
     def SetMorphType(self, bundle_or_hvo, morph_type_or_hvo):
         """
@@ -874,7 +855,6 @@ class WfiMorphBundleOperations(BaseOperations):
             morph_type = self.__GetMorphTypeObject(morph_type_or_hvo)
             bundle.MorphRA = morph_type
 
-
     # ==================== MSA OPERATIONS ====================
 
     def GetMSA(self, bundle_or_hvo):
@@ -915,7 +895,6 @@ class WfiMorphBundleOperations(BaseOperations):
 
         bundle = self.__GetBundleObject(bundle_or_hvo)
         return bundle.MsaRA if bundle.MsaRA else None
-
 
     def SetMSA(self, bundle_or_hvo, msa_or_hvo):
         """
@@ -968,7 +947,6 @@ class WfiMorphBundleOperations(BaseOperations):
             msa = self.__GetMSAObject(msa_or_hvo)
             bundle.MsaRA = msa
 
-
     # ==================== INFLECTION OPERATIONS ====================
 
     def GetInflType(self, bundle_or_hvo):
@@ -1011,7 +989,6 @@ class WfiMorphBundleOperations(BaseOperations):
 
         bundle = self.__GetBundleObject(bundle_or_hvo)
         return bundle.InflType if bundle.InflType else None
-
 
     def SetInflType(self, bundle_or_hvo, infl_type_or_hvo):
         """
@@ -1067,7 +1044,6 @@ class WfiMorphBundleOperations(BaseOperations):
                 infl_type = infl_type_or_hvo
             bundle.InflType = infl_type
 
-
     def GetInflectionClass(self, bundle_or_hvo):
         """
         Get the inflection class of a bundle.
@@ -1108,7 +1084,6 @@ class WfiMorphBundleOperations(BaseOperations):
 
         bundle = self.__GetBundleObject(bundle_or_hvo)
         return bundle.InflClassRA if bundle.InflClassRA else None
-
 
     def SetInflectionClass(self, bundle_or_hvo, infl_class_or_hvo):
         """
@@ -1160,7 +1135,6 @@ class WfiMorphBundleOperations(BaseOperations):
             infl_class = self.__GetInflectionClassObject(infl_class_or_hvo)
             bundle.InflClassRA = infl_class
 
-
     # ==================== UTILITY OPERATIONS ====================
 
     def GetOwningAnalysis(self, bundle_or_hvo):
@@ -1199,7 +1173,6 @@ class WfiMorphBundleOperations(BaseOperations):
         bundle = self.__GetBundleObject(bundle_or_hvo)
         return bundle.Owner
 
-
     def GetGuid(self, bundle_or_hvo):
         """
         Get the GUID (Globally Unique Identifier) of a morph bundle.
@@ -1237,7 +1210,6 @@ class WfiMorphBundleOperations(BaseOperations):
         bundle = self.__GetBundleObject(bundle_or_hvo)
         return str(bundle.Guid)
 
-
     # ==================== PRIVATE HELPER METHODS ====================
 
     def __GetBundleObject(self, bundle_or_hvo):
@@ -1254,7 +1226,6 @@ class WfiMorphBundleOperations(BaseOperations):
             return self.project.Object(bundle_or_hvo)
         return bundle_or_hvo
 
-
     def __GetAnalysisObject(self, analysis_or_hvo):
         """
         Resolve HVO or object to IWfiAnalysis.
@@ -1268,7 +1239,6 @@ class WfiMorphBundleOperations(BaseOperations):
         if isinstance(analysis_or_hvo, int):
             return self.project.Object(analysis_or_hvo)
         return analysis_or_hvo
-
 
     def __GetSenseObject(self, sense_or_hvo):
         """
@@ -1284,7 +1254,6 @@ class WfiMorphBundleOperations(BaseOperations):
             return self.project.Object(sense_or_hvo)
         return sense_or_hvo
 
-
     def __GetMorphTypeObject(self, morph_type_or_hvo):
         """
         Resolve HVO or object to IMoMorphType.
@@ -1298,7 +1267,6 @@ class WfiMorphBundleOperations(BaseOperations):
         if isinstance(morph_type_or_hvo, int):
             return self.project.Object(morph_type_or_hvo)
         return morph_type_or_hvo
-
 
     def __GetMSAObject(self, msa_or_hvo):
         """
@@ -1314,7 +1282,6 @@ class WfiMorphBundleOperations(BaseOperations):
             return self.project.Object(msa_or_hvo)
         return msa_or_hvo
 
-
     def __GetInflectionClassObject(self, infl_class_or_hvo):
         """
         Resolve HVO or object to IMoInflClass.
@@ -1329,7 +1296,6 @@ class WfiMorphBundleOperations(BaseOperations):
             return self.project.Object(infl_class_or_hvo)
         return infl_class_or_hvo
 
-
     def __WSHandleVern(self, wsHandle):
         """
         Get writing system handle, defaulting to vernacular WS for morpheme forms.
@@ -1343,7 +1309,6 @@ class WfiMorphBundleOperations(BaseOperations):
         if wsHandle is None:
             return self.project.project.DefaultVernWs
         return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultVernWs)
-
 
     def __WSHandleAnal(self, wsHandle):
         """

@@ -34,7 +34,6 @@ from ..FLExProject import (
 )
 from ..BaseOperations import BaseOperations
 
-
 class LocationOperations(BaseOperations):
     """
     This class provides operations for managing geographic locations in a
@@ -85,7 +84,6 @@ class LocationOperations(BaseOperations):
             project: The FLExProject instance to operate on.
         """
         super().__init__(project)
-
 
     # --- Core CRUD Operations ---
 
@@ -141,7 +139,6 @@ class LocationOperations(BaseOperations):
             ICmLocation,
             flat
         ))
-
 
     def Create(self, name, wsHandle=None, alias=None):
         """
@@ -226,7 +223,6 @@ class LocationOperations(BaseOperations):
 
         return new_location
 
-
     def Delete(self, location_or_hvo):
         """
         Delete a location from the project.
@@ -282,7 +278,6 @@ class LocationOperations(BaseOperations):
             location_list = self.project.lp.LocationsOA
             if location_list:
                 location_list.PossibilitiesOS.Remove(location)
-
 
     def Find(self, name):
         """
@@ -343,7 +338,6 @@ class LocationOperations(BaseOperations):
 
         return None
 
-
     def Exists(self, name):
         """
         Check if a location with the given name exists.
@@ -375,7 +369,6 @@ class LocationOperations(BaseOperations):
             return False
 
         return self.Find(name) is not None
-
 
     # --- Name and Alias Operations ---
 
@@ -422,7 +415,6 @@ class LocationOperations(BaseOperations):
 
         name = ITsString(location.Name.get_String(wsHandle)).Text
         return name or ""
-
 
     def SetName(self, location_or_hvo, name, wsHandle=None):
         """
@@ -474,7 +466,6 @@ class LocationOperations(BaseOperations):
         # Update modification date
         location.DateModified = DateTime.Now
 
-
     def GetAlias(self, location_or_hvo, wsHandle=None):
         """
         Get the alias/abbreviation of a location.
@@ -520,7 +511,6 @@ class LocationOperations(BaseOperations):
 
         alias = ITsString(location.Abbreviation.get_String(wsHandle)).Text
         return alias or ""
-
 
     def SetAlias(self, location_or_hvo, alias, wsHandle=None):
         """
@@ -570,7 +560,6 @@ class LocationOperations(BaseOperations):
 
         # Update modification date
         location.DateModified = DateTime.Now
-
 
     # --- Geographic Properties ---
 
@@ -631,7 +620,6 @@ class LocationOperations(BaseOperations):
                     return (float(lat), float(lon))
 
         return None
-
 
     def SetCoordinates(self, location_or_hvo, latitude, longitude):
         """
@@ -714,7 +702,6 @@ class LocationOperations(BaseOperations):
         # Update modification date
         location.DateModified = DateTime.Now
 
-
     def GetElevation(self, location_or_hvo):
         """
         Get the elevation of a location in meters above sea level.
@@ -763,7 +750,6 @@ class LocationOperations(BaseOperations):
                 return int(elev)
 
         return None
-
 
     def SetElevation(self, location_or_hvo, elevation):
         """
@@ -834,7 +820,6 @@ class LocationOperations(BaseOperations):
         # Update modification date
         location.DateModified = DateTime.Now
 
-
     # --- Description ---
 
     def GetDescription(self, location_or_hvo, wsHandle=None):
@@ -879,7 +864,6 @@ class LocationOperations(BaseOperations):
             return desc or ""
 
         return ""
-
 
     def SetDescription(self, location_or_hvo, description, wsHandle=None):
         """
@@ -933,7 +917,6 @@ class LocationOperations(BaseOperations):
             # Update modification date
             location.DateModified = DateTime.Now
 
-
     # --- Hierarchical Operations ---
 
     def GetRegion(self, location_or_hvo):
@@ -986,7 +969,6 @@ class LocationOperations(BaseOperations):
                 return owner
 
         return None
-
 
     def SetRegion(self, location_or_hvo, parent_location_or_hvo):
         """
@@ -1076,7 +1058,6 @@ class LocationOperations(BaseOperations):
         # Update modification date
         location.DateModified = DateTime.Now
 
-
     def GetSublocations(self, location_or_hvo):
         """
         Get all direct child sublocations of a location.
@@ -1126,7 +1107,6 @@ class LocationOperations(BaseOperations):
             return list(location.SubPossibilitiesOS)
 
         return []
-
 
     def CreateSublocation(self, parent_location_or_hvo, name, wsHandle=None, alias=None):
         """
@@ -1205,7 +1185,6 @@ class LocationOperations(BaseOperations):
         new_location.DateCreated = DateTime.Now
 
         return new_location
-
 
     def Duplicate(self, location_or_hvo, insert_after=True, deep=False):
         """
@@ -1317,7 +1296,6 @@ class LocationOperations(BaseOperations):
 
         return duplicate
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -1385,7 +1363,6 @@ class LocationOperations(BaseOperations):
 
         return is_different, differences
 
-
     # --- Metadata Operations ---
 
     def GetGuid(self, location_or_hvo):
@@ -1427,7 +1404,6 @@ class LocationOperations(BaseOperations):
 
         location = self.__ResolveObject(location_or_hvo)
         return location.Guid
-
 
     def GetDateCreated(self, location_or_hvo):
         """
@@ -1473,7 +1449,6 @@ class LocationOperations(BaseOperations):
             return location.DateCreated
 
         return None
-
 
     def GetDateModified(self, location_or_hvo):
         """
@@ -1522,7 +1497,6 @@ class LocationOperations(BaseOperations):
             return location.DateModified
 
         return None
-
 
     # --- Query Operations ---
 
@@ -1604,7 +1578,6 @@ class LocationOperations(BaseOperations):
 
         return results
 
-
     def GetNearby(self, location_or_hvo, radius_km=50):
         """
         Get all locations near a given location.
@@ -1668,7 +1641,6 @@ class LocationOperations(BaseOperations):
 
         return nearby
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, location_or_hvo):
@@ -1691,7 +1663,6 @@ class LocationOperations(BaseOperations):
             return obj
         return location_or_hvo
 
-
     def __WSHandle(self, wsHandle):
         """
         Get writing system handle, defaulting to analysis WS.
@@ -1708,7 +1679,6 @@ class LocationOperations(BaseOperations):
             wsHandle,
             self.project.project.DefaultAnalWs
         )
-
 
     def __HaversineDistance(self, lat1, lon1, lat2, lon2):
         """

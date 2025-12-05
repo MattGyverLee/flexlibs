@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -36,7 +33,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 class InflectionFeatureOperations(BaseOperations):
     """
@@ -81,14 +77,12 @@ class InflectionFeatureOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     def _GetSequence(self, parent):
         """
         Specify which sequence to reorder for inflection features.
         For InflectionFeature, we reorder parent.FeaturesOA.PossibilitiesOS
         """
         return parent.FeaturesOA.PossibilitiesOS
-
 
     # ========================================================================
     # INFLECTION CLASS OPERATIONS
@@ -126,7 +120,6 @@ class InflectionFeatureOperations(BaseOperations):
             infl_classes = morph_data.ProdRestrictOA
             for ic in infl_classes.PossibilitiesOS:
                 yield ic
-
 
     def InflectionClassCreate(self, name):
         """
@@ -198,7 +191,6 @@ class InflectionFeatureOperations(BaseOperations):
 
         return new_ic
 
-
     def InflectionClassDelete(self, ic_or_hvo):
         """
         Delete an inflection class.
@@ -242,7 +234,6 @@ class InflectionFeatureOperations(BaseOperations):
         if morph_data.ProdRestrictOA:
             morph_data.ProdRestrictOA.PossibilitiesOS.Remove(ic)
 
-
     def InflectionClassGetName(self, ic_or_hvo, wsHandle=None):
         """
         Get the name of an inflection class.
@@ -276,7 +267,6 @@ class InflectionFeatureOperations(BaseOperations):
 
         name = ITsString(ic.Name.get_String(wsHandle)).Text
         return name or ""
-
 
     def InflectionClassSetName(self, ic_or_hvo, name, wsHandle=None):
         """
@@ -319,7 +309,6 @@ class InflectionFeatureOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         ic.Name.set_String(wsHandle, mkstr)
 
-
     # ========================================================================
     # FEATURE STRUCTURE OPERATIONS
     # ========================================================================
@@ -359,7 +348,6 @@ class InflectionFeatureOperations(BaseOperations):
                     for fs in feature.FeaturesOS:
                         yield fs
 
-
     def FeatureStructureCreate(self):
         """
         Create a new feature structure.
@@ -393,7 +381,6 @@ class InflectionFeatureOperations(BaseOperations):
         new_fs = factory.Create()
 
         return new_fs
-
 
     def FeatureStructureDelete(self, fs_or_hvo):
         """
@@ -436,7 +423,6 @@ class InflectionFeatureOperations(BaseOperations):
             if hasattr(owner, 'FeaturesOA') and owner.FeaturesOA == fs:
                 owner.FeaturesOA = None
 
-
     # ========================================================================
     # FEATURE OPERATIONS
     # ========================================================================
@@ -467,7 +453,6 @@ class InflectionFeatureOperations(BaseOperations):
         if feature_system:
             for feature in feature_system.FeaturesOS:
                 yield feature
-
 
     def FeatureCreate(self, name, type):
         """
@@ -538,7 +523,6 @@ class InflectionFeatureOperations(BaseOperations):
 
         return new_feature
 
-
     def FeatureDelete(self, feature_or_hvo):
         """
         Delete a feature definition.
@@ -583,7 +567,6 @@ class InflectionFeatureOperations(BaseOperations):
         if feature_system:
             feature_system.FeaturesOS.Remove(feature)
 
-
     def FeatureGetValues(self, feature_or_hvo):
         """
         Get all possible values for a feature.
@@ -627,7 +610,6 @@ class InflectionFeatureOperations(BaseOperations):
             return list(feature.FeaturesOS)
 
         return []
-
 
     def GetFeatures(self, feature_system_or_hvo):
         """
@@ -683,7 +665,6 @@ class InflectionFeatureOperations(BaseOperations):
 
         return []
 
-
     def GetFeatureConstraints(self, feature_system_or_hvo):
         """
         Get all feature constraints in the feature system (READ-ONLY).
@@ -732,7 +713,6 @@ class InflectionFeatureOperations(BaseOperations):
             return list(feature_system.FeatureConstraintsOC)
 
         return []
-
 
     def GetTypes(self, feature_system_or_hvo):
         """
@@ -798,7 +778,6 @@ class InflectionFeatureOperations(BaseOperations):
 
         return []
 
-
     # ========================================================================
     # PRIVATE HELPER METHODS
     # ========================================================================
@@ -817,7 +796,6 @@ class InflectionFeatureOperations(BaseOperations):
             return self.project.Object(ic_or_hvo)
         return ic_or_hvo
 
-
     def __ResolveFeatureStructure(self, fs_or_hvo):
         """
         Resolve HVO or object to IFsFeatStruc.
@@ -831,7 +809,6 @@ class InflectionFeatureOperations(BaseOperations):
         if isinstance(fs_or_hvo, int):
             return self.project.Object(fs_or_hvo)
         return fs_or_hvo
-
 
     def __ResolveFeature(self, feature_or_hvo):
         """
@@ -847,7 +824,6 @@ class InflectionFeatureOperations(BaseOperations):
             return self.project.Object(feature_or_hvo)
         return feature_or_hvo
 
-
     def __ResolveFeatureSystem(self, fs_or_hvo):
         """
         Resolve HVO or object to IFsFeatureSystem.
@@ -861,7 +837,6 @@ class InflectionFeatureOperations(BaseOperations):
         if isinstance(fs_or_hvo, int):
             return self.project.Object(fs_or_hvo)
         return fs_or_hvo
-
 
     # ========== SYNC INTEGRATION METHODS ==========
 
@@ -912,7 +887,6 @@ class InflectionFeatureOperations(BaseOperations):
                     props[prop_name] = ws_values
 
         return props
-
 
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
@@ -972,7 +946,6 @@ class InflectionFeatureOperations(BaseOperations):
                 differences[key] = (val1, val2)
 
         return (is_different, differences)
-
 
     # ========================================================================
     # PRIVATE HELPER METHODS

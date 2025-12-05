@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 import System
 
 # Import FLEx LCM types
@@ -52,7 +49,6 @@ from ..FLExProject import (
 # Import FLExLCM types
 from .. import FLExLCM  # Fixed: was "from ." (wrong path)
 from ..BaseOperations import BaseOperations
-
 
 class CustomFieldOperations(BaseOperations):
     """
@@ -113,7 +109,6 @@ class CustomFieldOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     # --- Field Definition Management ---
 
     def GetAllFields(self, owner_class):
@@ -171,7 +166,6 @@ class CustomFieldOperations(BaseOperations):
                 custom_fields.append((flid, label))
 
         return custom_fields
-
 
     def CreateField(self, owner_class, name, field_type, ws_type=None):
         """
@@ -282,7 +276,6 @@ class CustomFieldOperations(BaseOperations):
             "Use FindField() to access existing custom fields."
         )
 
-
     def DeleteField(self, field_id):
         """
         Delete a custom field from the project.
@@ -332,7 +325,6 @@ class CustomFieldOperations(BaseOperations):
             "Custom field deletion must be done through FLEx UI: "
             "Tools > Configure > Custom Fields"
         )
-
 
     def FindField(self, owner_class, name):
         """
@@ -384,7 +376,6 @@ class CustomFieldOperations(BaseOperations):
 
         return None
 
-
     def GetFieldType(self, field_id):
         """
         Get the data type of a custom field.
@@ -430,7 +421,6 @@ class CustomFieldOperations(BaseOperations):
         except (AttributeError, KeyError, ValueError, System.Exception):
             raise FP_ParameterError("Invalid field ID")
 
-
     def GetFieldName(self, field_id):
         """
         Get the name/label of a custom field.
@@ -468,7 +458,6 @@ class CustomFieldOperations(BaseOperations):
             return mdc.GetFieldLabel(field_id) or ""
         except (AttributeError, KeyError, ValueError, System.Exception):
             raise FP_ParameterError("Invalid field ID")
-
 
     def SetFieldName(self, field_id, name):
         """
@@ -524,7 +513,6 @@ class CustomFieldOperations(BaseOperations):
             "Custom field renaming must be done through FLEx UI: "
             "Tools > Configure > Custom Fields"
         )
-
 
     # --- Field Values (Generic) ---
 
@@ -602,7 +590,6 @@ class CustomFieldOperations(BaseOperations):
             ws_handle = self._GetWSHandle(ws)
 
         return self.project.GetCustomFieldValue(obj, field_id, ws_handle)
-
 
     def SetValue(self, obj, field_name, value, ws=None):
         """
@@ -691,7 +678,6 @@ class CustomFieldOperations(BaseOperations):
                 "For list fields, use AddListValue or SetListFieldSingle/Multiple."
             )
 
-
     def ClearValue(self, obj, field_name, ws=None):
         """
         Clear the value of a custom field for an object.
@@ -756,7 +742,6 @@ class CustomFieldOperations(BaseOperations):
         else:
             # Clear all writing systems (or single-value field)
             self.project.LexiconClearField(obj, field_id)
-
 
     # --- List Field Operations ---
 
@@ -825,7 +810,6 @@ class CustomFieldOperations(BaseOperations):
             return result
         return []
 
-
     def AddListValue(self, obj, field_name, value):
         """
         Add a value to a ReferenceCollection custom field.
@@ -891,7 +875,6 @@ class CustomFieldOperations(BaseOperations):
             current_values.append(value)
             # Set the updated list
             self.project.LexiconSetListFieldMultiple(obj, field_id, current_values)
-
 
     def RemoveListValue(self, obj, field_name, value):
         """
@@ -962,7 +945,6 @@ class CustomFieldOperations(BaseOperations):
                 # Clear the field if no values remain
                 self.project.LexiconClearField(obj, field_id)
 
-
     # --- Utility Methods ---
 
     def GetOwnerClass(self, field_id):
@@ -1010,7 +992,6 @@ class CustomFieldOperations(BaseOperations):
         except (AttributeError, KeyError, ValueError, System.Exception):
             raise FP_ParameterError("Invalid field ID")
 
-
     def IsMultiString(self, field_id):
         """
         Check if a custom field is a multi-string type.
@@ -1052,7 +1033,6 @@ class CustomFieldOperations(BaseOperations):
 
         field_type = self.GetFieldType(field_id)
         return field_type in FLExLCM.CellarMultiStringTypes
-
 
     def IsListType(self, field_id):
         """
@@ -1107,7 +1087,6 @@ class CustomFieldOperations(BaseOperations):
         return field_type in (CellarPropertyType.ReferenceAtom,
                              CellarPropertyType.ReferenceCollection)
 
-
     def IsStringType(self, field_id):
         """
         Check if a custom field is a string type.
@@ -1158,7 +1137,6 @@ class CustomFieldOperations(BaseOperations):
         field_type = self.GetFieldType(field_id)
         return field_type in FLExLCM.CellarAllStringTypes
 
-
     def ClearField(self, obj, field_name, ws=None):
         """
         Clear a custom field value for an object.
@@ -1196,7 +1174,6 @@ class CustomFieldOperations(BaseOperations):
             ClearValue, SetValue, GetValue
         """
         return self.ClearValue(obj, field_name, ws)
-
 
     def SetListFieldSingle(self, obj, field_name, value):
         """
@@ -1258,7 +1235,6 @@ class CustomFieldOperations(BaseOperations):
 
         # Set the value
         self.project.LexiconSetListFieldSingle(obj, field_id, value)
-
 
     def SetListFieldMultiple(self, obj, field_name, values):
         """
@@ -1330,7 +1306,6 @@ class CustomFieldOperations(BaseOperations):
         else:
             self.project.LexiconSetListFieldMultiple(obj, field_id, values)
 
-
     # --- Private Helper Methods ---
 
     def _GetClassID(self, class_name):
@@ -1364,7 +1339,6 @@ class CustomFieldOperations(BaseOperations):
         except (AttributeError, KeyError, ValueError, System.Exception):
             raise FP_ParameterError(f"Invalid class name: {class_name}")
 
-
     def _GetHvo(self, obj):
         """
         Get HVO from object or HVO.
@@ -1382,7 +1356,6 @@ class CustomFieldOperations(BaseOperations):
         except AttributeError:
             raise FP_ParameterError("Invalid object - must have Hvo attribute")
 
-
     def _GetWSHandle(self, ws):
         """
         Get writing system handle from tag or handle.
@@ -1399,7 +1372,6 @@ class CustomFieldOperations(BaseOperations):
                 raise FP_ParameterError(f"Invalid writing system: {ws}")
             return handle
         return ws
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -1422,7 +1394,6 @@ class CustomFieldOperations(BaseOperations):
         raise NotImplementedError(
             "Custom fields cannot be duplicated. Use CreateField() to create a new field."
         )
-
 
     # ========== SYNC INTEGRATION METHODS ==========
 

@@ -24,12 +24,10 @@ import shutil
 import logging
 logger = logging.getLogger(__name__)
 
-
 from .. import version
 logger.info("flexlibs version: %s" % version)
 
 logger.info("Python version: %s" % sys.version)
-
 
 import clr
 
@@ -37,12 +35,10 @@ import clr
 from . import FLExGlobals
 FLExGlobals.InitialiseFWGlobals() 
 
-
 clr.AddReference("FwUtils")
 from SIL.FieldWorks.Common.FwUtils import FwRegistryHelper, FwUtils
 clr.AddReference("SIL.WritingSystems")
 from SIL.WritingSystems import Sldr
-
 
 # -------------------------------------------------------------------
 
@@ -62,7 +58,6 @@ def FLExInitialize ():
     # Sldr.Initialize() can fail silently. If it doesn't return, 
     # then it is likely a dll issue.
     logger.debug("FLExInit.Initialize complete")
-
 
 def FLExCleanup():
     """

@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -34,7 +31,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 class PhonemeOperations(BaseOperations):
     """
@@ -78,14 +74,12 @@ class PhonemeOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     def _GetSequence(self, parent):
         """
         Specify which sequence to reorder for phonemes.
         For Phoneme, we reorder parent.PhonemesOS
         """
         return parent.PhonemesOS
-
 
     def GetAll(self):
         """
@@ -119,7 +113,6 @@ class PhonemeOperations(BaseOperations):
             phoneme_set = phon_data.PhonemeSetsOS[0]
             for phoneme in phoneme_set.PhonemesOC:
                 yield phoneme
-
 
     def Create(self, representation, wsHandle=None):
         """
@@ -196,7 +189,6 @@ class PhonemeOperations(BaseOperations):
 
         return new_phoneme
 
-
     def Delete(self, phoneme_or_hvo):
         """
         Delete a phoneme.
@@ -241,7 +233,6 @@ class PhonemeOperations(BaseOperations):
         if phon_data and phon_data.PhonemeSetsOS.Count > 0:
             phoneme_set = phon_data.PhonemeSetsOS[0]
             phoneme_set.PhonemesOC.Remove(phoneme)
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -333,7 +324,6 @@ class PhonemeOperations(BaseOperations):
 
         return duplicate
 
-
     def Exists(self, representation, wsHandle=None):
         """
         Check if a phoneme with the given representation exists.
@@ -365,7 +355,6 @@ class PhonemeOperations(BaseOperations):
             raise FP_NullParameterError()
 
         return self.Find(representation, wsHandle) is not None
-
 
     def Find(self, representation, wsHandle=None):
         """
@@ -414,7 +403,6 @@ class PhonemeOperations(BaseOperations):
 
         return None
 
-
     def GetRepresentation(self, phoneme_or_hvo, wsHandle=None):
         """
         Get the representation of a phoneme.
@@ -451,7 +439,6 @@ class PhonemeOperations(BaseOperations):
 
         representation = ITsString(phoneme.Name.get_String(wsHandle)).Text
         return representation or ""
-
 
     def SetRepresentation(self, phoneme_or_hvo, representation, wsHandle=None):
         """
@@ -496,7 +483,6 @@ class PhonemeOperations(BaseOperations):
 
         mkstr = TsStringUtils.MakeString(representation, wsHandle)
         phoneme.Name.set_String(wsHandle, mkstr)
-
 
     def GetDescription(self, phoneme_or_hvo, wsHandle=None):
         """
@@ -549,7 +535,6 @@ class PhonemeOperations(BaseOperations):
 
         desc_str = ITsString(phoneme.Description.get_String(wsHandle)).Text
         return desc_str or ""
-
 
     def SetDescription(self, phoneme_or_hvo, description, wsHandle=None):
         """
@@ -605,7 +590,6 @@ class PhonemeOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(description, wsHandle)
         phoneme.Description.set_String(wsHandle, mkstr)
 
-
     def GetFeatures(self, phoneme_or_hvo):
         """
         Get the feature structure of a phoneme.
@@ -643,7 +627,6 @@ class PhonemeOperations(BaseOperations):
 
         phoneme = self.__GetPhonemeObject(phoneme_or_hvo)
         return phoneme.FeaturesOA if phoneme.FeaturesOA else None
-
 
     # --- Advanced Operations ---
 
@@ -1012,7 +995,6 @@ class PhonemeOperations(BaseOperations):
 
         return False
 
-
     # --- Private Helper Methods ---
 
     def __GetPhonemeObject(self, phoneme_or_hvo):
@@ -1042,7 +1024,6 @@ class PhonemeOperations(BaseOperations):
         if isinstance(code_or_hvo, int):
             return self.project.Object(code_or_hvo)
         return code_or_hvo
-
 
     # ========== SYNC INTEGRATION METHODS ==========
 
@@ -1096,7 +1077,6 @@ class PhonemeOperations(BaseOperations):
             props['FeaturesGuid'] = str(phoneme.FeaturesOA.Guid)
 
         return props
-
 
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
@@ -1156,7 +1136,6 @@ class PhonemeOperations(BaseOperations):
                 differences[key] = (val1, val2)
 
         return (is_different, differences)
-
 
     # --- Private Helper Methods ---
 

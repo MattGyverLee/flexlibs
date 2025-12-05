@@ -11,9 +11,6 @@ import unittest
 from unittest.mock import Mock, MagicMock, patch
 from datetime import datetime
 
-import sys
-sys.path.insert(0, 'D:\\Github\\flexlibs')
-
 from flexlibs.sync.selective_import import SelectiveImport
 from flexlibs.sync.validation import ValidationResult, ValidationIssue, ValidationSeverity
 from flexlibs.sync.engine import SyncResult

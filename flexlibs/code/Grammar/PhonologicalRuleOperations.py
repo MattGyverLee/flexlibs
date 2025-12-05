@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -35,7 +32,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 class PhonologicalRuleOperations(BaseOperations):
     """
@@ -84,14 +80,12 @@ class PhonologicalRuleOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     def _GetSequence(self, parent):
         """
         Specify which sequence to reorder for phonological rules.
         For PhonologicalRule, we reorder parent.PhonRulesOS
         """
         return parent.PhonRulesOS
-
 
     def GetAll(self):
         """
@@ -125,7 +119,6 @@ class PhonologicalRuleOperations(BaseOperations):
         if hasattr(phon_data, 'PhonRulesOS'):
             for rule in phon_data.PhonRulesOS:
                 yield rule
-
 
     def Create(self, name, description=None):
         """
@@ -199,7 +192,6 @@ class PhonologicalRuleOperations(BaseOperations):
 
         return new_rule
 
-
     def Delete(self, rule_or_hvo):
         """
         Delete a phonological rule.
@@ -240,7 +232,6 @@ class PhonologicalRuleOperations(BaseOperations):
             if rule in phon_data.PhonRulesOS:
                 phon_data.PhonRulesOS.Remove(rule)
 
-
     def Exists(self, name):
         """
         Check if a phonological rule with the given name exists.
@@ -268,7 +259,6 @@ class PhonologicalRuleOperations(BaseOperations):
             raise FP_NullParameterError()
 
         return self.Find(name) is not None
-
 
     def Find(self, name):
         """
@@ -312,7 +302,6 @@ class PhonologicalRuleOperations(BaseOperations):
 
         return None
 
-
     def GetName(self, rule_or_hvo, wsHandle=None):
         """
         Get the name of a phonological rule.
@@ -346,7 +335,6 @@ class PhonologicalRuleOperations(BaseOperations):
 
         name = ITsString(rule.Name.get_String(wsHandle)).Text
         return name or ""
-
 
     def SetName(self, rule_or_hvo, name, wsHandle=None):
         """
@@ -387,7 +375,6 @@ class PhonologicalRuleOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         rule.Name.set_String(wsHandle, mkstr)
 
-
     def GetDescription(self, rule_or_hvo, wsHandle=None):
         """
         Get the description of a phonological rule.
@@ -420,7 +407,6 @@ class PhonologicalRuleOperations(BaseOperations):
 
         desc = ITsString(rule.Description.get_String(wsHandle)).Text
         return desc or ""
-
 
     def SetDescription(self, rule_or_hvo, description, wsHandle=None):
         """
@@ -457,7 +443,6 @@ class PhonologicalRuleOperations(BaseOperations):
 
         mkstr = TsStringUtils.MakeString(description, wsHandle)
         rule.Description.set_String(wsHandle, mkstr)
-
 
     def GetStratum(self, rule_or_hvo):
         """
@@ -496,7 +481,6 @@ class PhonologicalRuleOperations(BaseOperations):
             return rule.StratumRA
 
         return None
-
 
     def SetStratum(self, rule_or_hvo, stratum):
         """
@@ -538,7 +522,6 @@ class PhonologicalRuleOperations(BaseOperations):
                     stratum = self.project.Object(stratum)
                 rule.StratumRA = stratum
 
-
     def GetDirection(self, rule_or_hvo):
         """
         Get the direction of rule application.
@@ -572,7 +555,6 @@ class PhonologicalRuleOperations(BaseOperations):
             return rule.Direction
 
         return 0  # Default: left-to-right
-
 
     def SetDirection(self, rule_or_hvo, direction):
         """
@@ -609,7 +591,6 @@ class PhonologicalRuleOperations(BaseOperations):
 
         if hasattr(rule, 'Direction'):
             rule.Direction = direction
-
 
     def AddInputSegment(self, rule_or_hvo, phoneme_or_class):
         """
@@ -666,7 +647,6 @@ class PhonologicalRuleOperations(BaseOperations):
             input_context = rule.StrucDescOS[0]
             if hasattr(input_context, 'FeatureStructureRA'):
                 input_context.FeatureStructureRA = phoneme_or_class
-
 
     def AddOutputSegment(self, rule_or_hvo, phoneme_or_class):
         """
@@ -725,7 +705,6 @@ class PhonologicalRuleOperations(BaseOperations):
                 output_seg.FeatureStructureRA = phoneme_or_class
                 rhs.StrucChangeOS.Add(output_seg)
 
-
     def SetLeftContext(self, rule_or_hvo, context_item):
         """
         Set the left context (environment before the target) for the rule.
@@ -777,7 +756,6 @@ class PhonologicalRuleOperations(BaseOperations):
                     left_ctx = ctx_factory.Create()
                     left_ctx.FeatureStructureRA = context_item
                     input_context.LeftContextOA = left_ctx
-
 
     def SetRightContext(self, rule_or_hvo, context_item):
         """
@@ -831,7 +809,6 @@ class PhonologicalRuleOperations(BaseOperations):
                     right_ctx = ctx_factory.Create()
                     right_ctx.FeatureStructureRA = context_item
                     input_context.RightContextOA = right_ctx
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -935,7 +912,6 @@ class PhonologicalRuleOperations(BaseOperations):
 
         return duplicate
 
-
     def __CopyPhonRuleObject(self, source_obj):
         """
         Helper method to deep copy a phonological rule object (StrucDesc or RHS).
@@ -961,7 +937,6 @@ class PhonologicalRuleOperations(BaseOperations):
         # The rule will still be duplicated, just without these complex objects
         return None
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, rule_or_hvo):
@@ -977,7 +952,6 @@ class PhonologicalRuleOperations(BaseOperations):
         if isinstance(rule_or_hvo, int):
             return self.project.Object(rule_or_hvo)
         return rule_or_hvo
-
 
     # ========== SYNC INTEGRATION METHODS ==========
 
@@ -1035,7 +1009,6 @@ class PhonologicalRuleOperations(BaseOperations):
             props['StratumGuid'] = str(rule.StratumRA.Guid)
 
         return props
-
 
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
@@ -1095,7 +1068,6 @@ class PhonologicalRuleOperations(BaseOperations):
                 differences[key] = (val1, val2)
 
         return (is_different, differences)
-
 
     # --- Private Helper Methods ---
 

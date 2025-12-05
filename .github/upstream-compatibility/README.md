@@ -120,10 +120,10 @@ strategy:
 
 ## Future Enhancements
 
-- [ ] Implement automated FieldWorks installation
-- [ ] Add notification via email/Slack when breaking changes detected
-- [ ] Test against multiple FieldWorks versions simultaneously
-- [ ] Generate compatibility matrix showing which upstream versions work
-- [ ] Add performance regression detection
-- [ ] Integration with upstream release notes/changelog
-- [ ] Bisect to find exact breaking commit if multiple commits since last test
+- Implement automated FieldWorks installation
+- Add notification via email/Slack when breaking changes detected
+- Test against multiple FieldWorks versions simultaneously
+- Generate compatibility matrix showing which upstream versions work
+- Add performance regression detection
+- Integration with upstream release notes/changelog
+- Bisect to find exact breaking commit if multiple commits since last test

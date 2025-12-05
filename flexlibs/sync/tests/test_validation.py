@@ -11,9 +11,6 @@ import unittest
 from unittest.mock import Mock, MagicMock
 from datetime import datetime
 
-import sys
-sys.path.insert(0, 'D:\\Github\\flexlibs')
-
 from flexlibs.sync.validation import (
     LinguisticValidator,
     ValidationResult,

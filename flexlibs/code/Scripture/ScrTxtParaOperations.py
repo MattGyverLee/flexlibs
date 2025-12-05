@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -33,7 +30,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 class ScrTxtParaOperations(BaseOperations):
     """
@@ -80,7 +76,6 @@ class ScrTxtParaOperations(BaseOperations):
             project: The FLExProject instance to operate on.
         """
         super().__init__(project)
-
 
     # --- Core CRUD Operations ---
 
@@ -164,7 +159,6 @@ class ScrTxtParaOperations(BaseOperations):
 
         return new_para
 
-
     def Delete(self, para_or_hvo):
         """
         Delete a Scripture paragraph from the FLEx project.
@@ -203,7 +197,6 @@ class ScrTxtParaOperations(BaseOperations):
 
         # Delete the paragraph (LCM handles removal from repository)
         para.Delete()
-
 
     def Find(self, section_or_hvo, index):
         """
@@ -255,7 +248,6 @@ class ScrTxtParaOperations(BaseOperations):
 
         return section.ContentOA.ParagraphsOS[index]
 
-
     def GetAll(self, section_or_hvo):
         """
         Get all Scripture paragraphs in a section.
@@ -294,7 +286,6 @@ class ScrTxtParaOperations(BaseOperations):
             return []
 
         return list(section.ContentOA.ParagraphsOS)
-
 
     # --- Paragraph Properties ---
 
@@ -337,7 +328,6 @@ class ScrTxtParaOperations(BaseOperations):
 
         text = ITsString(para.Contents.get_String(wsHandle)).Text
         return text or ""
-
 
     def SetText(self, para_or_hvo, text, wsHandle=None):
         """
@@ -387,7 +377,6 @@ class ScrTxtParaOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         para.Contents.set_String(wsHandle, mkstr)
 
-
     def GetStyleName(self, para_or_hvo):
         """
         Get the style name of a Scripture paragraph.
@@ -423,7 +412,6 @@ class ScrTxtParaOperations(BaseOperations):
             return ""
 
         return para.StyleRules.Name or ""
-
 
     def SetStyleName(self, para_or_hvo, style_name):
         """
@@ -472,7 +460,6 @@ class ScrTxtParaOperations(BaseOperations):
 
         para.StyleRules = style
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, para_or_hvo):
@@ -495,7 +482,6 @@ class ScrTxtParaOperations(BaseOperations):
             return obj
         return para_or_hvo
 
-
     def __ResolveSection(self, section_or_hvo):
         """
         Resolve HVO or object to IScrSection.
@@ -516,7 +502,6 @@ class ScrTxtParaOperations(BaseOperations):
             return obj
         return section_or_hvo
 
-
     def __WSHandle(self, wsHandle):
         """
         Get writing system handle, defaulting to vernacular WS.
@@ -533,7 +518,6 @@ class ScrTxtParaOperations(BaseOperations):
             wsHandle,
             self.project.project.DefaultVernWs
         )
-
 
     def __FindStyle(self, style_name):
         """

@@ -31,7 +31,6 @@ from ..FLExProject import (
 )
 from ..BaseOperations import BaseOperations
 
-
 class ProjectSettingsOperations(BaseOperations):
     """
     This class provides operations for managing project-level settings and
@@ -98,7 +97,6 @@ class ProjectSettingsOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     # --- Project Information ---
 
     def GetProjectName(self):
@@ -125,7 +123,6 @@ class ProjectSettingsOperations(BaseOperations):
             ts = ITsString(self.project.lp.Name)
             return ts.Text if ts else ""
         return ""
-
 
     def SetProjectName(self, name):
         """
@@ -167,7 +164,6 @@ class ProjectSettingsOperations(BaseOperations):
         ts = TsStringUtils.MakeString(name, ws_handle)
         self.project.lp.Name = ts
 
-
     def GetDescription(self, ws_handle_or_tag=None):
         """
         Get the project description in the specified writing system.
@@ -206,7 +202,6 @@ class ProjectSettingsOperations(BaseOperations):
             ts = ITsString(self.project.lp.Description.get_String(ws_handle))
             return ts.Text if ts else ""
         return ""
-
 
     def SetDescription(self, description, ws_handle_or_tag=None):
         """
@@ -261,7 +256,6 @@ class ProjectSettingsOperations(BaseOperations):
         ts = TsStringUtils.MakeString(description, ws_handle)
         self.project.lp.Description.set_String(ws_handle, ts)
 
-
     # --- Language Settings ---
 
     def GetVernacularWSs(self):
@@ -293,7 +287,6 @@ class ProjectSettingsOperations(BaseOperations):
             return self.project.lp.CurVernWss.split()
         return []
 
-
     def GetAnalysisWSs(self):
         """
         Get the list of analysis writing system tags.
@@ -323,7 +316,6 @@ class ProjectSettingsOperations(BaseOperations):
         if hasattr(self.project.lp, 'CurAnalysisWss') and self.project.lp.CurAnalysisWss:
             return self.project.lp.CurAnalysisWss.split()
         return []
-
 
     def SetDefaultVernacular(self, ws_handle_or_tag):
         """
@@ -377,7 +369,6 @@ class ProjectSettingsOperations(BaseOperations):
         # Set as default
         self.project.lp.DefaultVernacularWritingSystem = ws
 
-
     def SetDefaultAnalysis(self, ws_handle_or_tag):
         """
         Set the default analysis writing system.
@@ -430,7 +421,6 @@ class ProjectSettingsOperations(BaseOperations):
         # Set as default
         self.project.lp.DefaultAnalysisWritingSystem = ws
 
-
     # --- UI Settings ---
 
     def GetInterfaceLanguage(self):
@@ -459,7 +449,6 @@ class ProjectSettingsOperations(BaseOperations):
             return self.project.lp.UserWs
         # Fall back to default analysis
         return self.project.lp.DefaultAnalysisWritingSystem
-
 
     def SetInterfaceLanguage(self, ws_handle_or_tag):
         """
@@ -502,7 +491,6 @@ class ProjectSettingsOperations(BaseOperations):
         # Set the UI language
         if hasattr(self.project.lp, 'UserWs'):
             self.project.lp.UserWs = ws
-
 
     # --- Default Font Settings ---
 
@@ -552,7 +540,6 @@ class ProjectSettingsOperations(BaseOperations):
             return ws.DefaultFont
         return ""
 
-
     def SetDefaultFont(self, ws_handle_or_tag, font_name):
         """
         Set the default font name for a writing system.
@@ -601,7 +588,6 @@ class ProjectSettingsOperations(BaseOperations):
         elif hasattr(ws, 'DefaultFont'):
             ws.DefaultFont = font_name
 
-
     def GetDefaultFontSize(self, ws_handle_or_tag):
         """
         Get the default font size for a writing system.
@@ -639,7 +625,6 @@ class ProjectSettingsOperations(BaseOperations):
         if hasattr(ws, 'DefaultFontSize') and ws.DefaultFontSize:
             return float(ws.DefaultFontSize)
         return 12.0  # Default size
-
 
     def SetDefaultFontSize(self, ws_handle_or_tag, size):
         """
@@ -691,7 +676,6 @@ class ProjectSettingsOperations(BaseOperations):
         if hasattr(ws, 'DefaultFontSize'):
             ws.DefaultFontSize = float(size)
 
-
     # --- Advanced Settings ---
 
     def GetLinkedFilesRootDir(self):
@@ -718,7 +702,6 @@ class ProjectSettingsOperations(BaseOperations):
         if hasattr(self.project.lp, 'LinkedFilesRootDir') and self.project.lp.LinkedFilesRootDir:
             return self.project.lp.LinkedFilesRootDir
         return ""
-
 
     def SetLinkedFilesRootDir(self, path):
         """
@@ -757,7 +740,6 @@ class ProjectSettingsOperations(BaseOperations):
 
         self.project.lp.LinkedFilesRootDir = path
 
-
     def GetExtLinkRootDir(self):
         """
         Get the external link root directory.
@@ -782,7 +764,6 @@ class ProjectSettingsOperations(BaseOperations):
         if hasattr(self.project.lp, 'ExtLinkRootDir') and self.project.lp.ExtLinkRootDir:
             return self.project.lp.ExtLinkRootDir
         return ""
-
 
     def SetExtLinkRootDir(self, path):
         """
@@ -821,7 +802,6 @@ class ProjectSettingsOperations(BaseOperations):
 
         self.project.lp.ExtLinkRootDir = path
 
-
     def GetAnalysisWritingSystems(self):
         """
         Get the list of analysis writing system tags.
@@ -853,7 +833,6 @@ class ProjectSettingsOperations(BaseOperations):
             return self.project.lp.AnalysisWss.split()
         return []
 
-
     def GetVernacularWritingSystems(self):
         """
         Get the list of vernacular writing system tags.
@@ -884,7 +863,6 @@ class ProjectSettingsOperations(BaseOperations):
             return self.project.lp.CurVernWss.split()
         return []
 
-
     # --- Project Metadata ---
 
     def GetDateCreated(self):
@@ -912,7 +890,6 @@ class ProjectSettingsOperations(BaseOperations):
             return self.project.lp.DateCreated
         return None
 
-
     def GetDateModified(self):
         """
         Get the date the project was last modified.
@@ -938,7 +915,6 @@ class ProjectSettingsOperations(BaseOperations):
         if hasattr(self.project.lp, 'DateModified'):
             return self.project.lp.DateModified
         return None
-
 
     # --- Private Helper Methods ---
 
@@ -969,7 +945,6 @@ class ProjectSettingsOperations(BaseOperations):
             # Assume it's a handle
             return ws_handle_or_tag
 
-
     def _ResolveWS(self, ws_handle_or_tag):
         """
         Resolve a writing system parameter to a WS object.
@@ -989,7 +964,6 @@ class ProjectSettingsOperations(BaseOperations):
             # Handle - resolve to WS object
             return self._GetWSByHandle(ws_handle_or_tag)
 
-
     def _GetWSByTag(self, language_tag):
         """
         Get writing system object by language tag.
@@ -1007,7 +981,6 @@ class ProjectSettingsOperations(BaseOperations):
                 return ws
         return None
 
-
     def _GetWSByHandle(self, handle):
         """
         Get writing system object by handle.
@@ -1023,7 +996,6 @@ class ProjectSettingsOperations(BaseOperations):
                 return ws
         return None
 
-
     def _NormalizeLangTag(self, language_tag):
         """
         Normalize language tag for comparison (lowercase, underscores to hyphens).
@@ -1035,7 +1007,6 @@ class ProjectSettingsOperations(BaseOperations):
             str: Normalized tag
         """
         return language_tag.replace("_", "-").lower()
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -1057,7 +1028,6 @@ class ProjectSettingsOperations(BaseOperations):
         raise NotImplementedError(
             "Project settings cannot be duplicated. Project settings are singleton configuration objects."
         )
-
 
     # ========== SYNC INTEGRATION METHODS ==========
 

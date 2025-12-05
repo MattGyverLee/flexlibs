@@ -40,7 +40,6 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
-
 class LexSenseOperations(BaseOperations):
     """
     This class provides operations for managing lexical senses in a FieldWorks project.
@@ -87,14 +86,12 @@ class LexSenseOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     def _GetSequence(self, parent):
         """
         Specify which sequence to reorder for senses.
         For LexSense, we reorder entry.SensesOS
         """
         return parent.SensesOS
-
 
     # --- Core CRUD Operations ---
 
@@ -145,7 +142,6 @@ class LexSenseOperations(BaseOperations):
             entry = self.__GetEntryObject(entry_or_hvo)
             for sense in entry.SensesOS:
                 yield sense
-
 
     def Create(self, entry_or_hvo, gloss, wsHandle=None):
         """
@@ -210,7 +206,6 @@ class LexSenseOperations(BaseOperations):
 
         return new_sense
 
-
     def Delete(self, sense_or_hvo):
         """
         Delete a sense from its owning entry.
@@ -260,7 +255,6 @@ class LexSenseOperations(BaseOperations):
         elif hasattr(owner, 'SensesOS'):
             # Subsense owned by another sense
             owner.SensesOS.Remove(sense)
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -389,7 +383,6 @@ class LexSenseOperations(BaseOperations):
                 new_pic.ScaleFactor = picture.ScaleFactor
 
         return duplicate
-
 
     # ========== SYNC INTEGRATION METHODS ==========
 
@@ -558,7 +551,6 @@ class LexSenseOperations(BaseOperations):
 
         return props
 
-
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two lexical senses and return their differences.
@@ -588,7 +580,6 @@ class LexSenseOperations(BaseOperations):
 
         is_different = len(differences) > 0
         return is_different, differences
-
 
     def Reorder(self, entry_or_hvo, sense_list):
         """
@@ -647,7 +638,6 @@ class LexSenseOperations(BaseOperations):
         for sense in resolved_senses:
             entry.SensesOS.Add(sense)
 
-
     # --- Gloss & Definition Operations ---
 
     def GetGloss(self, sense_or_hvo, wsHandle=None):
@@ -694,7 +684,6 @@ class LexSenseOperations(BaseOperations):
 
         gloss = ITsString(sense.Gloss.get_String(wsHandle)).Text
         return gloss or ""
-
 
     def SetGloss(self, sense_or_hvo, text, wsHandle=None):
         """
@@ -745,7 +734,6 @@ class LexSenseOperations(BaseOperations):
         # set_String handles building a tss for us
         sense.Gloss.set_String(wsHandle, text)
 
-
     def GetDefinition(self, sense_or_hvo, wsHandle=None):
         """
         Get the definition for a sense.
@@ -785,7 +773,6 @@ class LexSenseOperations(BaseOperations):
         # Definition is a MultiString
         defn = ITsString(sense.Definition.get_String(wsHandle)).Text
         return defn or ""
-
 
     def SetDefinition(self, sense_or_hvo, text, wsHandle=None):
         """
@@ -831,7 +818,6 @@ class LexSenseOperations(BaseOperations):
 
         # Definition is a MultiString - set_String handles building tss
         sense.Definition.set_String(wsHandle, text)
-
 
     def GetDefinitionOrGloss(self, sense_or_hvo, wsHandle=None):
         """
@@ -880,7 +866,6 @@ class LexSenseOperations(BaseOperations):
         gloss = ITsString(sense.Gloss.get_String(wsHandle)).Text
         return gloss or ""
 
-
     # --- Grammatical Information Operations ---
 
     def GetPartOfSpeech(self, sense_or_hvo):
@@ -921,7 +906,6 @@ class LexSenseOperations(BaseOperations):
             return sense.MorphoSyntaxAnalysisRA.InterlinearAbbr
         else:
             return ""
-
 
     def SetPartOfSpeech(self, sense_or_hvo, pos):
         """
@@ -995,7 +979,6 @@ class LexSenseOperations(BaseOperations):
             msa.PartOfSpeechRA = pos_obj
             sense.MorphoSyntaxAnalysisRA = msa
 
-
     def GetGrammaticalInfo(self, sense_or_hvo):
         """
         Get the full grammatical information (MSA) for a sense.
@@ -1030,7 +1013,6 @@ class LexSenseOperations(BaseOperations):
 
         sense = self.__GetSenseObject(sense_or_hvo)
         return sense.MorphoSyntaxAnalysisRA
-
 
     def SetGrammaticalInfo(self, sense_or_hvo, msa):
         """
@@ -1069,7 +1051,6 @@ class LexSenseOperations(BaseOperations):
 
         sense = self.__GetSenseObject(sense_or_hvo)
         sense.MorphoSyntaxAnalysisRA = msa
-
 
     # --- Semantic Domain Operations ---
 
@@ -1110,7 +1091,6 @@ class LexSenseOperations(BaseOperations):
 
         sense = self.__GetSenseObject(sense_or_hvo)
         return list(sense.SemanticDomainsRC)
-
 
     def AddSemanticDomain(self, sense_or_hvo, domain_or_hvo):
         """
@@ -1156,7 +1136,6 @@ class LexSenseOperations(BaseOperations):
 
         sense.SemanticDomainsRC.Add(domain)
 
-
     def RemoveSemanticDomain(self, sense_or_hvo, domain_or_hvo):
         """
         Remove a semantic domain from a sense.
@@ -1200,7 +1179,6 @@ class LexSenseOperations(BaseOperations):
         if domain in sense.SemanticDomainsRC:
             sense.SemanticDomainsRC.Remove(domain)
 
-
     # --- Example Sentence Operations ---
 
     def GetExamples(self, sense_or_hvo):
@@ -1241,7 +1219,6 @@ class LexSenseOperations(BaseOperations):
         sense = self.__GetSenseObject(sense_or_hvo)
         return list(sense.ExamplesOS)
 
-
     def GetExampleCount(self, sense_or_hvo):
         """
         Get the count of example sentences for a sense.
@@ -1275,7 +1252,6 @@ class LexSenseOperations(BaseOperations):
 
         sense = self.__GetSenseObject(sense_or_hvo)
         return sense.ExamplesOS.Count
-
 
     def AddExample(self, sense_or_hvo, text, wsHandle=None):
         """
@@ -1340,7 +1316,6 @@ class LexSenseOperations(BaseOperations):
 
         return new_example
 
-
     # --- Subsense Operations ---
 
     def GetSubsenses(self, sense_or_hvo):
@@ -1380,7 +1355,6 @@ class LexSenseOperations(BaseOperations):
 
         sense = self.__GetSenseObject(sense_or_hvo)
         return list(sense.SensesOS)
-
 
     def CreateSubsense(self, parent_sense_or_hvo, gloss, wsHandle=None):
         """
@@ -1442,7 +1416,6 @@ class LexSenseOperations(BaseOperations):
 
         return new_subsense
 
-
     def GetParentSense(self, sense_or_hvo):
         """
         Get the parent sense if this is a subsense.
@@ -1488,7 +1461,6 @@ class LexSenseOperations(BaseOperations):
         else:
             return None
 
-
     # --- Status & Type Operations ---
 
     def GetStatus(self, sense_or_hvo):
@@ -1528,7 +1500,6 @@ class LexSenseOperations(BaseOperations):
 
         sense = self.__GetSenseObject(sense_or_hvo)
         return sense.StatusRA
-
 
     def SetStatus(self, sense_or_hvo, status):
         """
@@ -1570,7 +1541,6 @@ class LexSenseOperations(BaseOperations):
         sense = self.__GetSenseObject(sense_or_hvo)
         sense.StatusRA = status
 
-
     def GetSenseType(self, sense_or_hvo):
         """
         Get the sense type (e.g., literal, figurative, idiom).
@@ -1608,7 +1578,6 @@ class LexSenseOperations(BaseOperations):
 
         sense = self.__GetSenseObject(sense_or_hvo)
         return sense.SenseTypeRA
-
 
     def SetSenseType(self, sense_or_hvo, sense_type):
         """
@@ -1649,7 +1618,6 @@ class LexSenseOperations(BaseOperations):
 
         sense = self.__GetSenseObject(sense_or_hvo)
         sense.SenseTypeRA = sense_type
-
 
     # --- Reversal Entry Operations ---
 
@@ -1710,7 +1678,6 @@ class LexSenseOperations(BaseOperations):
 
         return reversal_entries
 
-
     def GetReversalCount(self, sense_or_hvo):
         """
         Get the count of reversal entries for a sense.
@@ -1744,7 +1711,6 @@ class LexSenseOperations(BaseOperations):
 
         sense = self.__GetSenseObject(sense_or_hvo)
         return len(list(sense.ReferringReversalIndexEntries))
-
 
     # --- Picture Operations ---
 
@@ -1785,7 +1751,6 @@ class LexSenseOperations(BaseOperations):
         sense = self.__GetSenseObject(sense_or_hvo)
         return list(sense.PicturesOS)
 
-
     def GetPictureCount(self, sense_or_hvo):
         """
         Get the count of pictures for a sense.
@@ -1819,7 +1784,6 @@ class LexSenseOperations(BaseOperations):
 
         sense = self.__GetSenseObject(sense_or_hvo)
         return sense.PicturesOS.Count
-
 
     def AddPicture(self, sense_or_hvo, image_path, caption=None, wsHandle=None):
         """
@@ -1911,7 +1875,6 @@ class LexSenseOperations(BaseOperations):
 
         return picture
 
-
     def RemovePicture(self, sense_or_hvo, picture, delete_file=False):
         """
         Remove a picture from a lexical sense.
@@ -1981,7 +1944,6 @@ class LexSenseOperations(BaseOperations):
             logger.info(f"Deleted image file: {file_path}")
 
         logger.info("Removed picture from sense")
-
 
     def MovePicture(self, picture, from_sense_or_hvo, to_sense_or_hvo):
         """
@@ -2075,7 +2037,6 @@ class LexSenseOperations(BaseOperations):
 
         return True
 
-
     def SetCaption(self, picture, caption, wsHandle=None):
         """
         Set or update the caption for a picture.
@@ -2128,7 +2089,6 @@ class LexSenseOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(caption, wsHandle)
         picture.Caption.set_String(wsHandle, mkstr)
 
-
     def GetCaption(self, picture, wsHandle=None):
         """
         Get the caption for a picture.
@@ -2173,7 +2133,6 @@ class LexSenseOperations(BaseOperations):
         wsHandle = self.__WSHandleVernacular(wsHandle)
         caption = ITsString(picture.Caption.get_String(wsHandle)).Text
         return caption or ""
-
 
     def RenamePicture(self, picture, new_filename):
         """
@@ -2270,7 +2229,6 @@ class LexSenseOperations(BaseOperations):
 
         return new_internal_path
 
-
     # --- Additional Utility Operations ---
 
     def GetGuid(self, sense_or_hvo):
@@ -2308,7 +2266,6 @@ class LexSenseOperations(BaseOperations):
 
         sense = self.__GetSenseObject(sense_or_hvo)
         return sense.Guid
-
 
     def GetOwningEntry(self, sense_or_hvo):
         """
@@ -2362,7 +2319,6 @@ class LexSenseOperations(BaseOperations):
         # Shouldn't reach here, but return owner if we do
         return owner
 
-
     def GetSenseNumber(self, sense_or_hvo):
         """
         Get the sense number string for a sense.
@@ -2404,7 +2360,6 @@ class LexSenseOperations(BaseOperations):
         sense_number = ReflectionHelper.GetProperty(sense, "SenseNumber")
         return sense_number
 
-
     def GetAnalysesCount(self, sense_or_hvo):
         """
         Get the count of analyses in texts that reference this sense.
@@ -2444,7 +2399,6 @@ class LexSenseOperations(BaseOperations):
         # is a public member of LexSense, which we can access by reflection.
         count = ReflectionHelper.GetProperty(sense, "SenseAnalysesCount")
         return count
-
 
     # --- Additional Text Properties ---
 
@@ -2686,7 +2640,6 @@ class LexSenseOperations(BaseOperations):
         sense = self.__GetSenseObject(sense_or_hvo)
         sense.ImportResidue = text
 
-
     # --- Reference Collection Properties ---
 
     def GetUsageTypes(self, sense_or_hvo):
@@ -2785,7 +2738,6 @@ class LexSenseOperations(BaseOperations):
         if anthro_code in sense.AnthroCodesRC:
             sense.AnthroCodesRC.Remove(anthro_code)
 
-
     # --- Private Helper Methods ---
 
     # --- Back-Reference Methods (Pattern 3) ---
@@ -2831,7 +2783,6 @@ class LexSenseOperations(BaseOperations):
         except AttributeError:
             logger.warning("VisibleComplexFormBackRefs not available, returning empty list")
             return []
-
 
     def GetComplexFormsNotSubentries(self, sense_or_hvo):
         """
@@ -2886,7 +2837,6 @@ class LexSenseOperations(BaseOperations):
 
         return result
 
-
     def GetMinimalLexReferences(self, sense_or_hvo):
         """
         Get essential lexical references for this sense.
@@ -2933,7 +2883,6 @@ class LexSenseOperations(BaseOperations):
         except AttributeError:
             logger.warning("MinimalLexReferences not available, returning empty list")
             return []
-
 
     def GetAllSenses(self, sense_or_hvo):
         """
@@ -2984,7 +2933,6 @@ class LexSenseOperations(BaseOperations):
                 for subsense in sense.SensesOS:
                     result.extend(self.GetAllSenses(subsense))
             return result
-
 
     # --- Pattern 7: MergeObject (Sense merging) ---
 
@@ -3078,7 +3026,6 @@ class LexSenseOperations(BaseOperations):
         logger.info(f"Deleting merged sense (HVO: {victim.Hvo})")
         victim.OwningList.Remove(victim)
 
-
     # --- Private Helper Methods for MergeObject ---
 
     def __MergeMultiStringProperty(self, dest_multi, src_multi, concatenate, separator=" "):
@@ -3136,7 +3083,6 @@ class LexSenseOperations(BaseOperations):
 
             # else: keep dest unchanged (dest has value or src empty)
 
-
     def __MergeAllSenseProperties(self, survivor, victim, fLoseNoStringData):
         """
         Merge all properties from victim to survivor (except Definition/Gloss).
@@ -3185,7 +3131,6 @@ class LexSenseOperations(BaseOperations):
 
             # Apply type-specific merge
             self.__MergeSensePropertyByType(survivor, victim, flid, field_type, fLoseNoStringData)
-
 
     def __MergeSensePropertyByType(self, survivor, victim, flid, field_type, concatenate):
         """
@@ -3242,7 +3187,6 @@ class LexSenseOperations(BaseOperations):
                     if hvo not in dest_seq:
                         dest_seq.Add(hvo)
 
-
     # --- Private Helper Methods ---
 
     def __GetEntryObject(self, entry_or_hvo):
@@ -3259,7 +3203,6 @@ class LexSenseOperations(BaseOperations):
             return self.project.Object(entry_or_hvo)
         return entry_or_hvo
 
-
     def __GetSenseObject(self, sense_or_hvo):
         """
         Resolve HVO or object to ILexSense.
@@ -3273,7 +3216,6 @@ class LexSenseOperations(BaseOperations):
         if isinstance(sense_or_hvo, int):
             return self.project.Object(sense_or_hvo)
         return sense_or_hvo
-
 
     def __GetSemanticDomainObject(self, domain_or_hvo):
         """
@@ -3289,7 +3231,6 @@ class LexSenseOperations(BaseOperations):
             return self.project.Object(domain_or_hvo)
         return domain_or_hvo
 
-
     def __WSHandleAnalysis(self, wsHandle):
         """
         Get writing system handle, defaulting to analysis WS.
@@ -3303,7 +3244,6 @@ class LexSenseOperations(BaseOperations):
         if wsHandle is None:
             return self.project.project.DefaultAnalWs
         return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultAnalWs)
-
 
     def __WSHandleVernacular(self, wsHandle):
         """

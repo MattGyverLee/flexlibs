@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -34,7 +31,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 class WfiAnalysisOperations(BaseOperations):
     """
@@ -84,7 +80,6 @@ class WfiAnalysisOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     # --- Core CRUD Operations ---
 
     def GetAll(self, wordform_or_hvo):
@@ -126,7 +121,6 @@ class WfiAnalysisOperations(BaseOperations):
 
         for analysis in wordform.AnalysesOC:
             yield analysis
-
 
     def Create(self, wordform_or_hvo):
         """
@@ -180,7 +174,6 @@ class WfiAnalysisOperations(BaseOperations):
 
         return new_analysis
 
-
     def Delete(self, analysis_or_hvo):
         """
         Delete a wordform analysis.
@@ -226,7 +219,6 @@ class WfiAnalysisOperations(BaseOperations):
         # Delete the analysis (LCM handles removal from collections)
         analysis.Delete()
 
-
     def Find(self, wordform_or_hvo, index):
         """
         Find an analysis by its index in the wordform's analyses.
@@ -266,7 +258,6 @@ class WfiAnalysisOperations(BaseOperations):
 
         return wordform.AnalysesOC[index]
 
-
     # --- Category (Part of Speech) ---
 
     def GetCategory(self, analysis_or_hvo):
@@ -304,7 +295,6 @@ class WfiAnalysisOperations(BaseOperations):
         analysis = self.__ResolveObject(analysis_or_hvo)
 
         return analysis.CategoryRA if hasattr(analysis, 'CategoryRA') else None
-
 
     def SetCategory(self, analysis_or_hvo, pos):
         """
@@ -345,7 +335,6 @@ class WfiAnalysisOperations(BaseOperations):
 
         if hasattr(analysis, 'CategoryRA'):
             analysis.CategoryRA = pos
-
 
     # --- Human Approval ---
 
@@ -394,7 +383,6 @@ class WfiAnalysisOperations(BaseOperations):
             return wordform.HumanApprovedAnalysesRS.Contains(analysis)
 
         return False
-
 
     def Approve(self, analysis_or_hvo):
         """
@@ -446,7 +434,6 @@ class WfiAnalysisOperations(BaseOperations):
         wordform.HumanApprovedAnalysesRS.Clear()
         wordform.HumanApprovedAnalysesRS.Add(analysis)
 
-
     # --- Morph Bundles ---
 
     def GetMorphBundles(self, analysis_or_hvo):
@@ -489,7 +476,6 @@ class WfiAnalysisOperations(BaseOperations):
 
         return list(analysis.MorphBundlesOS)
 
-
     # --- Glosses ---
 
     def GetGlosses(self, analysis_or_hvo):
@@ -529,7 +515,6 @@ class WfiAnalysisOperations(BaseOperations):
 
         return list(analysis.MeaningsOC)
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, analysis_or_hvo):
@@ -551,7 +536,6 @@ class WfiAnalysisOperations(BaseOperations):
                 raise FP_ParameterError("HVO does not refer to a wordform analysis")
             return obj
         return analysis_or_hvo
-
 
     def __GetWordformObject(self, wordform_or_hvo):
         """

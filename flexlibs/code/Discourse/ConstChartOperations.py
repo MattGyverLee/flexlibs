@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -35,7 +32,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 class ConstChartOperations(BaseOperations):
     """
@@ -78,7 +74,6 @@ class ConstChartOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     # --- Core CRUD Operations ---
 
     def GetAll(self):
@@ -114,7 +109,6 @@ class ConstChartOperations(BaseOperations):
             for chart in discourse.ChartsOC:
                 if isinstance(chart, IDsConstChart):
                     yield chart
-
 
     def Create(self, name, template=None):
         """
@@ -183,7 +177,6 @@ class ConstChartOperations(BaseOperations):
 
         return new_chart
 
-
     def Delete(self, chart_or_hvo):
         """
         Delete a constituent chart from the project.
@@ -228,7 +221,6 @@ class ConstChartOperations(BaseOperations):
 
         # Delete the chart (LCM handles removal from repository)
         chart.Delete()
-
 
     def Find(self, name):
         """
@@ -275,7 +267,6 @@ class ConstChartOperations(BaseOperations):
 
         return None
 
-
     def FindByHvo(self, hvo):
         """
         Find a constituent chart by its HVO (database ID).
@@ -309,11 +300,10 @@ class ConstChartOperations(BaseOperations):
             obj = self.project.Object(hvo)
             if isinstance(obj, IDsConstChart):
                 return obj
-        except:
+        except Exception:
             pass
 
         return None
-
 
     # --- Chart Properties ---
 
@@ -350,7 +340,6 @@ class ConstChartOperations(BaseOperations):
         wsHandle = self.__WSHandleAnalysis()
 
         return ITsString(chart.Name.get_String(wsHandle)).Text or ""
-
 
     def SetName(self, chart_or_hvo, name):
         """
@@ -395,7 +384,6 @@ class ConstChartOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         chart.Name.set_String(wsHandle, mkstr)
 
-
     def GetTemplate(self, chart_or_hvo):
         """
         Get the template associated with a constituent chart.
@@ -429,7 +417,6 @@ class ConstChartOperations(BaseOperations):
         chart = self.__ResolveObject(chart_or_hvo)
 
         return chart.TemplateRA if hasattr(chart, 'TemplateRA') else None
-
 
     def SetTemplate(self, chart_or_hvo, template):
         """
@@ -469,7 +456,6 @@ class ConstChartOperations(BaseOperations):
 
         chart.TemplateRA = template
 
-
     def GetRows(self, chart_or_hvo):
         """
         Get all rows in a constituent chart.
@@ -506,7 +492,6 @@ class ConstChartOperations(BaseOperations):
 
         return list(chart.RowsOS)
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, chart_or_hvo):
@@ -529,7 +514,6 @@ class ConstChartOperations(BaseOperations):
             return obj
         return chart_or_hvo
 
-
     def __WSHandleAnalysis(self):
         """
         Get writing system handle for analysis writing system.
@@ -538,7 +522,6 @@ class ConstChartOperations(BaseOperations):
             int: The analysis writing system handle
         """
         return self.project.project.DefaultAnalWs
-
 
     def __GetOrCreateDiscourse(self):
         """
@@ -561,7 +544,6 @@ class ConstChartOperations(BaseOperations):
             self.project.lp.DiscourseDataOA = discourse
 
         return discourse
-
 
     # --- Reordering Support ---
 

@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -31,7 +28,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 class ScrAnnotationsOperations(BaseOperations):
     """
@@ -73,7 +69,6 @@ class ScrAnnotationsOperations(BaseOperations):
             project: The FLExProject instance to operate on.
         """
         super().__init__(project)
-
 
     # --- Core CRUD Operations ---
 
@@ -137,7 +132,6 @@ class ScrAnnotationsOperations(BaseOperations):
 
         return new_annotations
 
-
     def Delete(self, annotations_or_hvo):
         """
         Delete a Scripture book annotations container from the FLEx project.
@@ -177,7 +171,6 @@ class ScrAnnotationsOperations(BaseOperations):
 
         # Delete the annotations (LCM handles removal from repository)
         annotations.Delete()
-
 
     def GetForBook(self, book_or_hvo):
         """
@@ -219,7 +212,6 @@ class ScrAnnotationsOperations(BaseOperations):
 
         return None
 
-
     # --- Annotations Properties ---
 
     def GetNotes(self, annotations_or_hvo):
@@ -257,7 +249,6 @@ class ScrAnnotationsOperations(BaseOperations):
         annotations = self.__ResolveObject(annotations_or_hvo)
         return list(annotations.NotesOS)
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, annotations_or_hvo):
@@ -279,7 +270,6 @@ class ScrAnnotationsOperations(BaseOperations):
                 raise FP_ParameterError("HVO does not refer to Scripture annotations")
             return obj
         return annotations_or_hvo
-
 
     def __ResolveBook(self, book_or_hvo):
         """

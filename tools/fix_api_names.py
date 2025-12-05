@@ -67,7 +67,15 @@ FILENAME_TO_API_MAP = {
 
 
 def get_api_name(filename):
-    """Get correct API name for a demo file."""
+    """
+    Get correct API name for a demo file.
+
+    Args:
+        filename: Name of the demo file (e.g., 'grammar_pos_operations_demo.py')
+
+    Returns:
+        Correct API name from the mapping, or None if not found
+    """
     # Remove _operations_demo.py suffix
     base = filename.replace('_operations_demo.py', '')
 
@@ -80,7 +88,15 @@ def get_api_name(filename):
 
 
 def fix_api_names_in_file(filepath):
-    """Fix API attribute names in a demo file."""
+    """
+    Fix API attribute names in a demo file.
+
+    Args:
+        filepath: Path to the demo file to fix
+
+    Returns:
+        True if changes were made, False otherwise
+    """
     print(f"Fixing {filepath.name}...")
 
     correct_api_name = get_api_name(filepath.name)
@@ -131,12 +147,17 @@ def fix_api_names_in_file(filepath):
 
 
 def main():
-    """Fix all demo files."""
+    """
+    Fix all demo files in the examples directory.
+
+    Scans for files matching *_operations_demo.py and corrects
+    their project.XXX API references.
+    """
     examples_dir = Path(__file__).parent
 
     demo_files = sorted(examples_dir.glob('*_operations_demo.py'))
 
-    print("="*70)
+    print("=" * 70)
     print("COMPREHENSIVE API NAME FIXER")
     print("="*70)
     print(f"\nFound {len(demo_files)} demo files\n")
@@ -152,10 +173,10 @@ def main():
             print(f"  ERROR: {e}")
             error_count += 1
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print(f"\nFixed: {fixed_count} files")
     print(f"Errors: {error_count} files")
-    print("="*70)
+    print("=" * 70)
 
 
 if __name__ == "__main__":

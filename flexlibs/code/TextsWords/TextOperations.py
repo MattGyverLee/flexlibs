@@ -8,9 +8,6 @@
 #   Copyright Craig Farrow, 2008 - 2024
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 import clr
 clr.AddReference("System")
 import System
@@ -35,7 +32,6 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
-
 
 class TextOperations(BaseOperations):
     """
@@ -213,7 +209,6 @@ class TextOperations(BaseOperations):
         # Remove from collection
         self.project.lp.TextsOC.Remove(text_obj)
 
-
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
         Duplicate a text, creating a new text with the same properties.
@@ -319,7 +314,6 @@ class TextOperations(BaseOperations):
 
         return new_text
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -372,7 +366,6 @@ class TextOperations(BaseOperations):
             props['MediaFilesRC'] = [str(m.Guid) for m in item.MediaFilesRC]
 
         return props
-
 
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """

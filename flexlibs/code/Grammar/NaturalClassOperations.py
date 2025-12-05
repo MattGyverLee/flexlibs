@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -33,7 +30,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 class NaturalClassOperations(BaseOperations):
     """
@@ -77,7 +73,6 @@ class NaturalClassOperations(BaseOperations):
             project: The FLExProject instance to operate on.
         """
         super().__init__(project)
-
 
     def _GetSequence(self, parent):
         """
@@ -270,7 +265,6 @@ class NaturalClassOperations(BaseOperations):
         # Remove from the natural classes collection
         phon_data = self.project.lp.PhonologicalDataOA
         phon_data.NaturalClassesOS.Remove(nc)
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -659,7 +653,6 @@ class NaturalClassOperations(BaseOperations):
         # Remove the phoneme
         nc.SegmentsRC.Remove(phoneme)
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -712,7 +705,6 @@ class NaturalClassOperations(BaseOperations):
                 props['PhonemeGuids'] = phoneme_guids
 
         return props
-
 
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """

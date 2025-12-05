@@ -43,7 +43,6 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
-
 class LexEntryOperations(BaseOperations):
     """
     This class provides operations for managing lexical entries in a
@@ -88,7 +87,6 @@ class LexEntryOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     # --- Core CRUD Operations ---
 
     def GetAll(self):
@@ -120,7 +118,6 @@ class LexEntryOperations(BaseOperations):
             Find, Create, GetHeadword
         """
         return self.project.ObjectsIn(ILexEntryRepository)
-
 
     def Create(self, lexeme_form, morph_type_name=None, wsHandle=None, create_blank_sense=True):
         """
@@ -240,7 +237,6 @@ class LexEntryOperations(BaseOperations):
 
         return new_entry
 
-
     def Delete(self, entry_or_hvo):
         """
         Delete a lexical entry from the FLEx project.
@@ -287,7 +283,6 @@ class LexEntryOperations(BaseOperations):
 
         # Delete the entry (LCM handles removal from repository)
         entry.Delete()
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -424,7 +419,6 @@ class LexEntryOperations(BaseOperations):
 
         return new_entry
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -515,7 +509,6 @@ class LexEntryOperations(BaseOperations):
 
         return props
 
-
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two lexical entries and return their differences.
@@ -545,7 +538,6 @@ class LexEntryOperations(BaseOperations):
 
         is_different = len(differences) > 0
         return is_different, differences
-
 
     def Exists(self, lexeme_form, wsHandle=None):
         """
@@ -586,7 +578,6 @@ class LexEntryOperations(BaseOperations):
             return False
 
         return self.Find(lexeme_form, wsHandle) is not None
-
 
     def Find(self, lexeme_form, wsHandle=None):
         """
@@ -640,7 +631,6 @@ class LexEntryOperations(BaseOperations):
 
         return None
 
-
     # --- Headword & Form Management ---
 
     def GetHeadword(self, entry_or_hvo):
@@ -686,7 +676,6 @@ class LexEntryOperations(BaseOperations):
 
         return entry.HeadWord.Text or ""
 
-
     def SetHeadword(self, entry_or_hvo, text, wsHandle=None):
         """
         Set the headword by setting the lexeme form.
@@ -719,7 +708,6 @@ class LexEntryOperations(BaseOperations):
             GetHeadword, SetLexemeForm, SetHomographNumber
         """
         self.SetLexemeForm(entry_or_hvo, text, wsHandle)
-
 
     def GetLexemeForm(self, entry_or_hvo, wsHandle=None):
         """
@@ -767,7 +755,6 @@ class LexEntryOperations(BaseOperations):
 
         form = ITsString(entry.LexemeFormOA.Form.get_String(wsHandle)).Text
         return form or ""
-
 
     def SetLexemeForm(self, entry_or_hvo, text, wsHandle=None):
         """
@@ -822,7 +809,6 @@ class LexEntryOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         entry.LexemeFormOA.Form.set_String(wsHandle, mkstr)
 
-
     def GetCitationForm(self, entry_or_hvo, wsHandle=None):
         """
         Get the citation form of a lexical entry.
@@ -869,7 +855,6 @@ class LexEntryOperations(BaseOperations):
         form = ITsString(entry.CitationForm.get_String(wsHandle)).Text
         return form or ""
 
-
     def SetCitationForm(self, entry_or_hvo, text, wsHandle=None):
         """
         Set the citation form of a lexical entry.
@@ -915,7 +900,6 @@ class LexEntryOperations(BaseOperations):
 
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         entry.CitationForm.set_String(wsHandle, mkstr)
-
 
     def GetBestVernacularAlternative(self, entry_or_hvo):
         """
@@ -971,7 +955,6 @@ class LexEntryOperations(BaseOperations):
         # Last resort: headword (computed property, always returns something)
         return self.GetHeadword(entry)
 
-
     # --- Computed Properties (Pattern 2) ---
 
     def GetShortName(self, entry_or_hvo, wsHandle=None):
@@ -1010,7 +993,6 @@ class LexEntryOperations(BaseOperations):
 
         # Short name is typically the headword
         return self.GetHeadword(entry)
-
 
     def GetLongName(self, entry_or_hvo, wsHandle=None):
         """
@@ -1059,7 +1041,6 @@ class LexEntryOperations(BaseOperations):
 
         return long_name
 
-
     def GetLIFTid(self, entry_or_hvo):
         """
         Get LIFT XML identifier for entry (Pattern 2 - computed property).
@@ -1095,7 +1076,6 @@ class LexEntryOperations(BaseOperations):
 
         # LIFT id is the GUID as string
         return str(entry.Guid)
-
 
     # --- Entry Properties ---
 
@@ -1141,7 +1121,6 @@ class LexEntryOperations(BaseOperations):
         entry = self.__ResolveObject(entry_or_hvo)
 
         return entry.HomographNumber
-
 
     def SetHomographNumber(self, entry_or_hvo, number):
         """
@@ -1194,7 +1173,6 @@ class LexEntryOperations(BaseOperations):
 
         entry.HomographNumber = number
 
-
     def GetDateCreated(self, entry_or_hvo):
         """
         Get the creation date of a lexical entry.
@@ -1236,7 +1214,6 @@ class LexEntryOperations(BaseOperations):
 
         return entry.DateCreated
 
-
     def GetDateModified(self, entry_or_hvo):
         """
         Get the last modification date of a lexical entry.
@@ -1277,7 +1254,6 @@ class LexEntryOperations(BaseOperations):
         entry = self.__ResolveObject(entry_or_hvo)
 
         return entry.DateModified
-
 
     def GetMorphType(self, entry_or_hvo):
         """
@@ -1328,7 +1304,6 @@ class LexEntryOperations(BaseOperations):
             return None
 
         return entry.LexemeFormOA.MorphTypeRA
-
 
     def SetMorphType(self, entry_or_hvo, morph_type_or_name):
         """
@@ -1392,7 +1367,6 @@ class LexEntryOperations(BaseOperations):
 
         entry.LexemeFormOA.MorphTypeRA = morph_type
 
-
     def GetAvailableMorphTypes(self, include_subcategories=True):
         """
         Get a list of all available morph types in the project.
@@ -1450,7 +1424,6 @@ class LexEntryOperations(BaseOperations):
         collect_types(morph_types.PossibilitiesOS)
         return result
 
-
     def ValidateMorphType(self, morph_type_name):
         """
         Check if a morph type name exists in the project.
@@ -1494,7 +1467,6 @@ class LexEntryOperations(BaseOperations):
 
         return (False, None, None)
 
-
     # --- Sense Management ---
 
     def GetSenses(self, entry_or_hvo):
@@ -1536,7 +1508,6 @@ class LexEntryOperations(BaseOperations):
 
         return list(entry.SensesOS)
 
-
     def GetSenseCount(self, entry_or_hvo):
         """
         Get the count of senses for a lexical entry.
@@ -1574,7 +1545,6 @@ class LexEntryOperations(BaseOperations):
         entry = self.__ResolveObject(entry_or_hvo)
 
         return entry.SensesOS.Count
-
 
     def AddSense(self, entry_or_hvo, gloss, wsHandle=None):
         """
@@ -1640,7 +1610,6 @@ class LexEntryOperations(BaseOperations):
 
         return new_sense
 
-
     # --- Additional Properties ---
 
     def GetGuid(self, entry_or_hvo):
@@ -1688,7 +1657,6 @@ class LexEntryOperations(BaseOperations):
 
         return entry.Guid
 
-
     def GetImportResidue(self, entry_or_hvo):
         """
         Get the import residue of a lexical entry.
@@ -1726,7 +1694,6 @@ class LexEntryOperations(BaseOperations):
         entry = self.__ResolveObject(entry_or_hvo)
 
         return entry.ImportResidue or ""
-
 
     def SetImportResidue(self, entry_or_hvo, residue):
         """
@@ -1769,7 +1736,6 @@ class LexEntryOperations(BaseOperations):
 
         entry.ImportResidue = residue
 
-
     # --- MultiString/MultiUnicode Properties ---
 
     def GetBibliography(self, entry_or_hvo, wsHandle=None):
@@ -1797,7 +1763,6 @@ class LexEntryOperations(BaseOperations):
 
         return ITsString(entry.Bibliography.get_String(wsHandle)).Text or ""
 
-
     def SetBibliography(self, entry_or_hvo, text, wsHandle=None):
         """
         Set the bibliography of a lexical entry.
@@ -1820,7 +1785,6 @@ class LexEntryOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         entry.Bibliography.set_String(wsHandle, mkstr)
 
-
     def GetComment(self, entry_or_hvo, wsHandle=None):
         """
         Get the comment of a lexical entry.
@@ -1839,7 +1803,6 @@ class LexEntryOperations(BaseOperations):
         wsHandle = self.__WSHandleAnalysis(wsHandle)
 
         return ITsString(entry.Comment.get_String(wsHandle)).Text or ""
-
 
     def SetComment(self, entry_or_hvo, text, wsHandle=None):
         """
@@ -1863,7 +1826,6 @@ class LexEntryOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         entry.Comment.set_String(wsHandle, mkstr)
 
-
     def GetLiteralMeaning(self, entry_or_hvo, wsHandle=None):
         """
         Get the literal meaning of a lexical entry.
@@ -1882,7 +1844,6 @@ class LexEntryOperations(BaseOperations):
         wsHandle = self.__WSHandleAnalysis(wsHandle)
 
         return ITsString(entry.LiteralMeaning.get_String(wsHandle)).Text or ""
-
 
     def SetLiteralMeaning(self, entry_or_hvo, text, wsHandle=None):
         """
@@ -1906,7 +1867,6 @@ class LexEntryOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         entry.LiteralMeaning.set_String(wsHandle, mkstr)
 
-
     def GetRestrictions(self, entry_or_hvo, wsHandle=None):
         """
         Get the restrictions of a lexical entry.
@@ -1925,7 +1885,6 @@ class LexEntryOperations(BaseOperations):
         wsHandle = self.__WSHandleAnalysis(wsHandle)
 
         return ITsString(entry.Restrictions.get_String(wsHandle)).Text or ""
-
 
     def SetRestrictions(self, entry_or_hvo, text, wsHandle=None):
         """
@@ -1949,7 +1908,6 @@ class LexEntryOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         entry.Restrictions.set_String(wsHandle, mkstr)
 
-
     def GetSummaryDefinition(self, entry_or_hvo, wsHandle=None):
         """
         Get the summary definition of a lexical entry.
@@ -1968,7 +1926,6 @@ class LexEntryOperations(BaseOperations):
         wsHandle = self.__WSHandleAnalysis(wsHandle)
 
         return ITsString(entry.SummaryDefinition.get_String(wsHandle)).Text or ""
-
 
     def SetSummaryDefinition(self, entry_or_hvo, text, wsHandle=None):
         """
@@ -1992,7 +1949,6 @@ class LexEntryOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         entry.SummaryDefinition.set_String(wsHandle, mkstr)
 
-
     # --- Boolean Properties ---
 
     def GetDoNotUseForParsing(self, entry_or_hvo):
@@ -2010,7 +1966,6 @@ class LexEntryOperations(BaseOperations):
 
         entry = self.__ResolveObject(entry_or_hvo)
         return entry.DoNotUseForParsing
-
 
     def SetDoNotUseForParsing(self, entry_or_hvo, value):
         """
@@ -2030,7 +1985,6 @@ class LexEntryOperations(BaseOperations):
         entry = self.__ResolveObject(entry_or_hvo)
         entry.DoNotUseForParsing = bool(value)
 
-
     def GetExcludeAsHeadword(self, entry_or_hvo):
         """
         Check if an entry is excluded as a headword.
@@ -2046,7 +2000,6 @@ class LexEntryOperations(BaseOperations):
 
         entry = self.__ResolveObject(entry_or_hvo)
         return entry.ExcludeAsHeadword
-
 
     def SetExcludeAsHeadword(self, entry_or_hvo, value):
         """
@@ -2065,7 +2018,6 @@ class LexEntryOperations(BaseOperations):
 
         entry = self.__ResolveObject(entry_or_hvo)
         entry.ExcludeAsHeadword = bool(value)
-
 
     # --- Collection Properties ---
 
@@ -2096,7 +2048,6 @@ class LexEntryOperations(BaseOperations):
             result.append(name)
         return result
 
-
     def AddDoNotPublishIn(self, entry_or_hvo, publication):
         """
         Add a publication to exclude this entry from.
@@ -2123,7 +2074,6 @@ class LexEntryOperations(BaseOperations):
 
         if publication not in entry.DoNotPublishIn:
             entry.DoNotPublishIn.Add(publication)
-
 
     def RemoveDoNotPublishIn(self, entry_or_hvo, publication):
         """
@@ -2152,7 +2102,6 @@ class LexEntryOperations(BaseOperations):
         if publication in entry.DoNotPublishIn:
             entry.DoNotPublishIn.Remove(publication)
 
-
     def GetDoNotShowMainEntryIn(self, entry_or_hvo):
         """
         Get the publications where this entry should not be shown as main entry.
@@ -2173,7 +2122,6 @@ class LexEntryOperations(BaseOperations):
             name = pub.Name.BestAnalysisAlternative.Text if pub.Name else str(pub.Guid)
             result.append(name)
         return result
-
 
     def AddDoNotShowMainEntryIn(self, entry_or_hvo, publication):
         """
@@ -2202,7 +2150,6 @@ class LexEntryOperations(BaseOperations):
         if publication not in entry.DoNotShowMainEntryIn:
             entry.DoNotShowMainEntryIn.Add(publication)
 
-
     def RemoveDoNotShowMainEntryIn(self, entry_or_hvo, publication):
         """
         Remove a publication from the no-main-entry list.
@@ -2230,7 +2177,6 @@ class LexEntryOperations(BaseOperations):
         if publication in entry.DoNotShowMainEntryIn:
             entry.DoNotShowMainEntryIn.Remove(publication)
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, entry_or_hvo):
@@ -2253,7 +2199,6 @@ class LexEntryOperations(BaseOperations):
             return obj
         return entry_or_hvo
 
-
     def __WSHandle(self, wsHandle):
         """
         Get writing system handle, defaulting to vernacular WS.
@@ -2270,7 +2215,6 @@ class LexEntryOperations(BaseOperations):
             wsHandle,
             self.project.project.DefaultVernWs
         )
-
 
     # --- Back-Reference Methods (Pattern 3) ---
 
@@ -2317,7 +2261,6 @@ class LexEntryOperations(BaseOperations):
             logger.warning("VisibleComplexFormBackRefs not available, returning empty list")
             return []
 
-
     def GetComplexFormsNotSubentries(self, entry_or_hvo):
         """
         Get complex forms that reference this entry, excluding subentries.
@@ -2362,12 +2305,11 @@ class LexEntryOperations(BaseOperations):
                 is_subentry = any(item.Hvo == entry.Hvo for item in lex_ref.PrimaryLexemesRS)
                 if not is_subentry:
                     result.append(lex_ref)
-            except:
+            except Exception:
                 # If we can't check, include it
                 result.append(lex_ref)
 
         return result
-
 
     def GetMinimalLexReferences(self, entry_or_hvo):
         """
@@ -2414,7 +2356,6 @@ class LexEntryOperations(BaseOperations):
             # Fallback if property not available
             logger.warning("MinimalLexReferences not available, returning empty list")
             return []
-
 
     def GetAllSenses(self, entry_or_hvo):
         """
@@ -2464,14 +2405,13 @@ class LexEntryOperations(BaseOperations):
                 # Use LexSenseOperations to get all subsenses
                 try:
                     result.extend(list(sense.AllSenses))
-                except:
+                except Exception:
                     # Manual recursive collection as last resort
                     result.append(sense)
                     if sense.SensesOS and sense.SensesOS.Count > 0:
                         for subsense in sense.SensesOS:
                             result.extend(self.__CollectSubsenses(subsense))
             return result
-
 
     def __CollectSubsenses(self, sense):
         """
@@ -2488,7 +2428,6 @@ class LexEntryOperations(BaseOperations):
             for subsense in sense.SensesOS:
                 result.extend(self.__CollectSubsenses(subsense))
         return result
-
 
     # --- Complex Form Helper Methods (Pattern 4) ---
 
@@ -2567,7 +2506,6 @@ class LexEntryOperations(BaseOperations):
         if not any(item.Hvo == component.Hvo for item in entry_ref.ShowComplexFormsInRS):
             entry_ref.ShowComplexFormsInRS.Add(component)
 
-
     def RemoveComplexFormComponent(self, complex_entry_or_hvo, component_or_hvo):
         """
         Remove a component from a complex form.
@@ -2620,7 +2558,6 @@ class LexEntryOperations(BaseOperations):
                     entry_ref.ShowComplexFormsInRS.Remove(item)
                 break
 
-
     def GetComplexFormComponents(self, complex_entry_or_hvo):
         """
         Get all components of a complex form.
@@ -2657,7 +2594,6 @@ class LexEntryOperations(BaseOperations):
                 return list(entry_ref.ComponentLexemesRS)
 
         return []
-
 
     # --- Pattern 7: MergeObject (Entry/Sense merging) ---
 
@@ -2795,7 +2731,6 @@ class LexEntryOperations(BaseOperations):
         logger.info(f"Deleting merged entry (HVO: {victim.Hvo})")
         victim.OwningList.Remove(victim)
 
-
     # --- Private Helper Methods for MergeObject ---
 
     def __MergeMultiStringProperty(self, dest_multi, src_multi, concatenate, separator=" "):
@@ -2850,7 +2785,6 @@ class LexEntryOperations(BaseOperations):
 
             # else: keep dest unchanged (dest has value or src empty)
 
-
     def __MergeAllProperties(self, survivor, victim, fLoseNoStringData):
         """
         Merge all properties from victim to survivor.
@@ -2886,7 +2820,6 @@ class LexEntryOperations(BaseOperations):
 
             # Apply type-specific merge
             self.__MergePropertyByType(survivor, victim, flid, field_type, fLoseNoStringData)
-
 
     def __MergePropertyByType(self, survivor, victim, flid, field_type, concatenate):
         """
@@ -2944,7 +2877,6 @@ class LexEntryOperations(BaseOperations):
                     if hvo not in dest_seq:
                         dest_seq.Add(hvo)
 
-
     def __RemoveCircularReferences(self, survivor, victim):
         """
         Remove any references that would create cycles.
@@ -2969,7 +2901,6 @@ class LexEntryOperations(BaseOperations):
         for entry_ref in victim.EntryRefsOS:
             # TODO: Check ComponentLexemesRS for survivor
             pass
-
 
     def __FixComponentReferences(self, survivor, victim):
         """
@@ -3018,7 +2949,6 @@ class LexEntryOperations(BaseOperations):
                     entry_ref.ShowComplexFormsInRS.RemoveAt(idx)
                     entry_ref.ShowComplexFormsInRS.Insert(idx, survivor)
 
-
     def __ReplaceIncomingReferences(self, survivor, victim):
         """
         Replace all incoming references to victim with survivor.
@@ -3035,7 +2965,6 @@ class LexEntryOperations(BaseOperations):
         # TODO: Implementation requires access to incoming references cache
         # This is complex and requires LCM's internal reference tracking
         pass
-
 
     # --- Private Helper Methods ---
 
@@ -3073,7 +3002,6 @@ class LexEntryOperations(BaseOperations):
 
         return morph_type.Guid in stem_guids
 
-
     def __WSHandleAnalysis(self, wsHandle):
         """
         Get writing system handle, defaulting to analysis WS.
@@ -3090,7 +3018,6 @@ class LexEntryOperations(BaseOperations):
             wsHandle,
             self.project.project.DefaultAnalWs
         )
-
 
     def __FindMorphType(self, name):
         """

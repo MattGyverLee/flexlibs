@@ -35,7 +35,6 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
-
 class PronunciationOperations(BaseOperations):
     """
     This class provides operations for managing pronunciations in a FieldWorks project.
@@ -82,14 +81,12 @@ class PronunciationOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     def _GetSequence(self, parent):
         """
         Specify which sequence to reorder for pronunciations.
         For Pronunciation, we reorder entry.PronunciationsOS
         """
         return parent.PronunciationsOS
-
 
     # --- Core CRUD Operations ---
 
@@ -144,7 +141,6 @@ class PronunciationOperations(BaseOperations):
             if hasattr(entry, 'PronunciationsOS'):
                 for pronunciation in entry.PronunciationsOS:
                     yield pronunciation
-
 
     def Create(self, entry_or_hvo, form, wsHandle=None):
         """
@@ -214,7 +210,6 @@ class PronunciationOperations(BaseOperations):
 
         return pronunciation
 
-
     def Delete(self, pronunciation_or_hvo):
         """
         Delete a pronunciation.
@@ -253,7 +248,6 @@ class PronunciationOperations(BaseOperations):
         entry = pronunciation.Owner
         if hasattr(entry, 'PronunciationsOS'):
             entry.PronunciationsOS.Remove(pronunciation)
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         # TODO: determine if this is needed.
@@ -352,7 +346,6 @@ class PronunciationOperations(BaseOperations):
 
         return duplicate
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -390,7 +383,6 @@ class PronunciationOperations(BaseOperations):
 
         return props
 
-
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two pronunciations and return their differences.
@@ -420,7 +412,6 @@ class PronunciationOperations(BaseOperations):
 
         is_different = len(differences) > 0
         return is_different, differences
-
 
     def Reorder(self, entry_or_hvo, pronunciation_list):
         """
@@ -477,7 +468,6 @@ class PronunciationOperations(BaseOperations):
         for pron in pronunciation_list:
             entry.PronunciationsOS.Add(pron)
 
-
     # --- Form Management ---
 
     def GetForm(self, pronunciation_or_hvo, wsHandle=None):
@@ -523,7 +513,6 @@ class PronunciationOperations(BaseOperations):
         # MultiUnicodeAccessor
         form = ITsString(pronunciation.Form.get_String(wsHandle)).Text
         return form or ""
-
 
     def SetForm(self, pronunciation_or_hvo, text, wsHandle=None):
         """
@@ -571,7 +560,6 @@ class PronunciationOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         pronunciation.Form.set_String(wsHandle, mkstr)
 
-
     # --- Media Files ---
 
     def GetMediaFiles(self, pronunciation_or_hvo):
@@ -613,7 +601,6 @@ class PronunciationOperations(BaseOperations):
             return list(pronunciation.MediaFilesOS)
         return []
 
-
     def GetMediaCount(self, pronunciation_or_hvo):
         """
         Get the count of media files associated with a pronunciation.
@@ -649,7 +636,6 @@ class PronunciationOperations(BaseOperations):
         if hasattr(pronunciation, 'MediaFilesOS'):
             return pronunciation.MediaFilesOS.Count
         return 0
-
 
     def AddMediaFile(self, pronunciation_or_hvo, file_path, label=None):
         """
@@ -721,7 +707,6 @@ class PronunciationOperations(BaseOperations):
 
         return media_file
 
-
     def RemoveMediaFile(self, pronunciation_or_hvo, media_or_hvo):
         """
         Remove a media file from a pronunciation.
@@ -768,7 +753,6 @@ class PronunciationOperations(BaseOperations):
         # Remove from collection
         if hasattr(pronunciation, 'MediaFilesOS'):
             pronunciation.MediaFilesOS.Remove(media)
-
 
     def MoveMediaFile(self, media, from_pronunciation_or_hvo, to_pronunciation_or_hvo):
         """
@@ -847,7 +831,6 @@ class PronunciationOperations(BaseOperations):
 
         return True
 
-
     # --- CV Pattern/Location ---
 
     def GetLocation(self, pronunciation_or_hvo):
@@ -889,7 +872,6 @@ class PronunciationOperations(BaseOperations):
         if hasattr(pronunciation, 'LocationRA'):
             return pronunciation.LocationRA
         return None
-
 
     def SetLocation(self, pronunciation_or_hvo, location):
         """
@@ -933,7 +915,6 @@ class PronunciationOperations(BaseOperations):
         if hasattr(pronunciation, 'LocationRA'):
             pronunciation.LocationRA = location
 
-
     # --- Utilities ---
 
     def GetOwningEntry(self, pronunciation_or_hvo):
@@ -970,7 +951,6 @@ class PronunciationOperations(BaseOperations):
         pronunciation = self.__GetPronunciationObject(pronunciation_or_hvo)
         return pronunciation.Owner
 
-
     def GetGuid(self, pronunciation_or_hvo):
         """
         Get the GUID of a pronunciation.
@@ -1005,7 +985,6 @@ class PronunciationOperations(BaseOperations):
         pronunciation = self.__GetPronunciationObject(pronunciation_or_hvo)
         return pronunciation.Guid
 
-
     # --- Private Helper Methods ---
 
     def __GetEntryObject(self, entry_or_hvo):
@@ -1022,7 +1001,6 @@ class PronunciationOperations(BaseOperations):
             return self.project.Object(entry_or_hvo)
         return entry_or_hvo
 
-
     def __GetPronunciationObject(self, pronunciation_or_hvo):
         """
         Resolve HVO or object to ILexPronunciation.
@@ -1036,7 +1014,6 @@ class PronunciationOperations(BaseOperations):
         if isinstance(pronunciation_or_hvo, int):
             return self.project.Object(pronunciation_or_hvo)
         return pronunciation_or_hvo
-
 
     def __WSHandle(self, wsHandle):
         """
@@ -1060,7 +1037,6 @@ class PronunciationOperations(BaseOperations):
             return handle
 
         return wsHandle
-
 
     def __WSHandleVern(self, wsHandle):
         """

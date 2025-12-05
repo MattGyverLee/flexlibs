@@ -39,7 +39,6 @@ from ..FLExProject import (
 )
 from ..BaseOperations import BaseOperations
 
-
 class CheckOperations(BaseOperations):
     """
     This class provides operations for managing consistency checks and
@@ -97,7 +96,6 @@ class CheckOperations(BaseOperations):
         self._check_last_run = {}
         self._check_enabled = {}
 
-
     # --- Core CRUD Operations ---
 
     def GetAllCheckTypes(self):
@@ -137,7 +135,6 @@ class CheckOperations(BaseOperations):
             for check_type in check_list.PossibilitiesOS:
                 for subcheck in check_type.SubPossibilitiesOS:
                     yield subcheck
-
 
     def CreateCheckType(self, name, description=None, wsHandle=None):
         """
@@ -225,7 +222,6 @@ class CheckOperations(BaseOperations):
 
         return new_check
 
-
     def DeleteCheckType(self, check_or_hvo):
         """
         Delete a consistency check type from the project.
@@ -290,7 +286,6 @@ class CheckOperations(BaseOperations):
         if guid in self._check_enabled:
             del self._check_enabled[guid]
 
-
     def FindCheckType(self, name):
         """
         Find a check type by its name.
@@ -348,7 +343,6 @@ class CheckOperations(BaseOperations):
 
         return None
 
-
     # --- Property Methods ---
 
     def GetName(self, check_or_hvo, wsHandle=None):
@@ -388,7 +382,6 @@ class CheckOperations(BaseOperations):
 
         name = ITsString(check_obj.Name.get_String(wsHandle)).Text
         return name or ""
-
 
     def SetName(self, check_or_hvo, name, wsHandle=None):
         """
@@ -437,7 +430,6 @@ class CheckOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         check_obj.Name.set_String(wsHandle, mkstr)
 
-
     def GetDescription(self, check_or_hvo, wsHandle=None):
         """
         Get the description of a check type.
@@ -472,7 +464,6 @@ class CheckOperations(BaseOperations):
 
         desc = ITsString(check_obj.Description.get_String(wsHandle)).Text
         return desc or ""
-
 
     def SetDescription(self, check_or_hvo, description, wsHandle=None):
         """
@@ -513,7 +504,6 @@ class CheckOperations(BaseOperations):
 
         mkstr = TsStringUtils.MakeString(description, wsHandle)
         check_obj.Description.set_String(wsHandle, mkstr)
-
 
     # --- Execution Methods ---
 
@@ -597,7 +587,6 @@ class CheckOperations(BaseOperations):
 
         return results
 
-
     def GetCheckStatus(self, check_or_hvo):
         """
         Get the current status of a check type.
@@ -647,7 +636,6 @@ class CheckOperations(BaseOperations):
         else:
             return 'Never Run'
 
-
     def GetLastRun(self, check_or_hvo):
         """
         Get the timestamp when a check was last executed.
@@ -682,7 +670,6 @@ class CheckOperations(BaseOperations):
         guid = check_obj.Guid
 
         return self._check_last_run.get(guid, None)
-
 
     # --- Results Methods ---
 
@@ -729,7 +716,6 @@ class CheckOperations(BaseOperations):
 
         return self._check_results.get(guid, None)
 
-
     def GetErrorCount(self, check_or_hvo):
         """
         Get the number of errors found by a check.
@@ -766,7 +752,6 @@ class CheckOperations(BaseOperations):
             return len(results.get('errors', []))
         return 0
 
-
     def GetWarningCount(self, check_or_hvo):
         """
         Get the number of warnings found by a check.
@@ -802,7 +787,6 @@ class CheckOperations(BaseOperations):
         if results:
             return len(results.get('warnings', []))
         return 0
-
 
     # --- Filter Methods ---
 
@@ -842,7 +826,6 @@ class CheckOperations(BaseOperations):
             if self.IsEnabled(check_type):
                 yield check_type
 
-
     def EnableCheck(self, check_or_hvo):
         """
         Enable a consistency check type.
@@ -876,7 +859,6 @@ class CheckOperations(BaseOperations):
         check_obj = self.__GetCheckObject(check_or_hvo)
         guid = check_obj.Guid
         self._check_enabled[guid] = True
-
 
     def DisableCheck(self, check_or_hvo):
         """
@@ -913,7 +895,6 @@ class CheckOperations(BaseOperations):
         guid = check_obj.Guid
         self._check_enabled[guid] = False
 
-
     def IsEnabled(self, check_or_hvo):
         """
         Check if a consistency check type is enabled.
@@ -945,7 +926,6 @@ class CheckOperations(BaseOperations):
         check_obj = self.__GetCheckObject(check_or_hvo)
         guid = check_obj.Guid
         return self._check_enabled.get(guid, False)
-
 
     # --- Query Methods ---
 
@@ -1018,7 +998,6 @@ class CheckOperations(BaseOperations):
 
         return items
 
-
     def GetIssuesForObject(self, check_or_hvo, obj):
         """
         Get all issues found for a specific object.
@@ -1084,7 +1063,6 @@ class CheckOperations(BaseOperations):
 
         return issues
 
-
     # --- Metadata Methods ---
 
     def GetGuid(self, check_or_hvo):
@@ -1128,7 +1106,6 @@ class CheckOperations(BaseOperations):
         check_obj = self.__GetCheckObject(check_or_hvo)
         return check_obj.Guid
 
-
     # --- Private Helper Methods ---
 
     def __GetCheckObject(self, check_or_hvo):
@@ -1156,9 +1133,8 @@ class CheckOperations(BaseOperations):
             else:
                 # Already a possibility object
                 return ICmPossibility(check_or_hvo)
-        except:
+        except Exception:
             raise FP_ParameterError(f"Invalid check type object or HVO: {check_or_hvo}")
-
 
     def __WSHandle(self, wsHandle):
         """
@@ -1177,7 +1153,6 @@ class CheckOperations(BaseOperations):
             self.project.project.DefaultAnalWs
         )
 
-
     def _GetCheckList(self):
         """
         Get the check possibility list.
@@ -1190,7 +1165,6 @@ class CheckOperations(BaseOperations):
         # For now, return None if not found
         # Implementation would depend on actual FLEx data model
         return None
-
 
     def _GetOrCreateCheckList(self):
         """
@@ -1216,7 +1190,6 @@ class CheckOperations(BaseOperations):
 
         return new_list
 
-
     def _GetDefaultCheckTargets(self, check_obj):
         """
         Get default target objects for a check.
@@ -1230,7 +1203,6 @@ class CheckOperations(BaseOperations):
         # Default to all lexical entries
         # Actual implementation would vary based on check type
         return list(self.project.LexiconGetAllEntries())
-
 
     def _ExecuteCheck(self, check_obj, target_objects):
         """
@@ -1344,7 +1316,6 @@ class CheckOperations(BaseOperations):
 
         return results
 
-
     def _GetIssueDescription(self, obj):
         """
         Get a human-readable description of an issue for an object.
@@ -1360,7 +1331,6 @@ class CheckOperations(BaseOperations):
         if hasattr(obj, 'HeadWord'):
             return f"Issue with '{obj.HeadWord.Text}'"
         return "Issue found"
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -1435,7 +1405,6 @@ class CheckOperations(BaseOperations):
                 self.Duplicate(sub, insert_after=False, deep=True)
 
         return duplicate
-
 
     # ========== SYNC INTEGRATION METHODS ==========
 

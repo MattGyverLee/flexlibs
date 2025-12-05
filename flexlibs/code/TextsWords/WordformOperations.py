@@ -33,7 +33,6 @@ from ..FLExProject import (
 )
 from ..BaseOperations import BaseOperations
 
-
 # --- Spelling Status Enum ---
 
 class SpellingStatusStates:
@@ -41,7 +40,6 @@ class SpellingStatusStates:
     UNDECIDED = 0
     INCORRECT = 1
     CORRECT = 2
-
 
 # --- WordformOperations Class ---
 
@@ -710,7 +708,6 @@ class WordformOperations(BaseOperations):
 
         wordform.SpellingStatus = SpellingStatusStates.CORRECT
 
-
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
         Duplicate a wordform, creating a new copy with a new GUID.
@@ -786,7 +783,6 @@ class WordformOperations(BaseOperations):
 
         return duplicate
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -822,7 +818,6 @@ class WordformOperations(BaseOperations):
             props['SpellingStatus'] = int(item.SpellingStatus)
 
         return props
-
 
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """

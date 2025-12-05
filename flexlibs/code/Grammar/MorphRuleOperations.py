@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -33,7 +30,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 class MorphRuleOperations(BaseOperations):
     """
@@ -79,14 +75,12 @@ class MorphRuleOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     def _GetSequence(self, parent):
         """
         Specify which sequence to reorder for morph rules.
         For MorphRule, we reorder parent.RulesOS
         """
         return parent.RulesOS
-
 
     def GetAll(self):
         """
@@ -128,7 +122,6 @@ class MorphRuleOperations(BaseOperations):
         if hasattr(morph_data, 'TemplatesOS'):
             for rule in morph_data.TemplatesOS:
                 yield rule
-
 
     def Create(self, name, description=None):
         """
@@ -198,7 +191,6 @@ class MorphRuleOperations(BaseOperations):
 
         return new_rule
 
-
     def Delete(self, rule_or_hvo):
         """
         Delete a morphological rule.
@@ -247,7 +239,6 @@ class MorphRuleOperations(BaseOperations):
         elif hasattr(morph_data, 'TemplatesOS') and rule in morph_data.TemplatesOS:
             morph_data.TemplatesOS.Remove(rule)
 
-
     def GetName(self, rule_or_hvo, wsHandle=None):
         """
         Get the name of a morphological rule.
@@ -286,7 +277,6 @@ class MorphRuleOperations(BaseOperations):
 
         name = ITsString(rule.Name.get_String(wsHandle)).Text
         return name or ""
-
 
     def SetName(self, rule_or_hvo, name, wsHandle=None):
         """
@@ -335,7 +325,6 @@ class MorphRuleOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         rule.Name.set_String(wsHandle, mkstr)
 
-
     def GetDescription(self, rule_or_hvo, wsHandle=None):
         """
         Get the description of a morphological rule.
@@ -374,7 +363,6 @@ class MorphRuleOperations(BaseOperations):
 
         desc = ITsString(rule.Description.get_String(wsHandle)).Text
         return desc or ""
-
 
     def SetDescription(self, rule_or_hvo, description, wsHandle=None):
         """
@@ -421,7 +409,6 @@ class MorphRuleOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(description, wsHandle)
         rule.Description.set_String(wsHandle, mkstr)
 
-
     def GetStratum(self, rule_or_hvo):
         """
         Get the stratum of a morphological rule.
@@ -461,7 +448,6 @@ class MorphRuleOperations(BaseOperations):
             return rule.StratumRA
 
         return None
-
 
     def SetStratum(self, rule_or_hvo, stratum):
         """
@@ -515,7 +501,6 @@ class MorphRuleOperations(BaseOperations):
                     stratum = self.project.Object(stratum)
                 rule.StratumRA = stratum
 
-
     def IsActive(self, rule_or_hvo):
         """
         Check if a morphological rule is active.
@@ -563,7 +548,6 @@ class MorphRuleOperations(BaseOperations):
             return rule.Active
 
         return False
-
 
     def SetActive(self, rule_or_hvo, active):
         """
@@ -614,7 +598,6 @@ class MorphRuleOperations(BaseOperations):
         # Set active state
         if hasattr(rule, 'Active'):
             rule.Active = bool(active)
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -716,7 +699,6 @@ class MorphRuleOperations(BaseOperations):
 
         return duplicate
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, rule_or_hvo):
@@ -732,7 +714,6 @@ class MorphRuleOperations(BaseOperations):
         if isinstance(rule_or_hvo, int):
             return self.project.Object(rule_or_hvo)
         return rule_or_hvo
-
 
     # ========== SYNC INTEGRATION METHODS ==========
 
@@ -789,7 +770,6 @@ class MorphRuleOperations(BaseOperations):
             props['StratumGuid'] = str(rule.StratumRA.Guid)
 
         return props
-
 
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
@@ -849,7 +829,6 @@ class MorphRuleOperations(BaseOperations):
                 differences[key] = (val1, val2)
 
         return (is_different, differences)
-
 
     # --- Private Helper Methods ---
 

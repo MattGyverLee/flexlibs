@@ -29,7 +29,6 @@ clr.AddReference("SIL.Core.Desktop")
 clr.AddReference("SIL.LCModel")
 clr.AddReference("SIL.LCModel.Core")
 
-
 # Classes needed for loading the Cache
 from SIL.LCModel import LcmCache, LcmSettings, LcmFileHelper
 from SIL.LCModel.Core.Cellar import CellarPropertyType
@@ -41,7 +40,6 @@ from SIL.FieldWorks.Common.FwUtils import FwDirectoryFinder
 from SIL.FieldWorks.Common.FwUtils import FwUtils
 from SIL.FieldWorks.FdoUi import FwLcmUI
 from SIL.FieldWorks.FwCoreDlgs import ChooseLangProjectDialog
-
 
 #--- Globals --------------------------------------------------------
 
@@ -80,8 +78,6 @@ def OpenProject(projectName):
 
     projectFileName = LcmFileHelper.GetXmlDataFileName(projectName)
 
-    # print "FLExLCM.OpenProject:", projectFileName
-    
     projId = ProjectId(projectFileName)
 
     th = ThreadHelper()

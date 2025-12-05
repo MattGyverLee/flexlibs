@@ -7,7 +7,7 @@ Date: 2025-11-26
 
 import unittest
 from unittest.mock import Mock, MagicMock
-import sys
+
 
 # Mock System.Guid for testing
 class MockGuid:
@@ -20,7 +20,6 @@ class MockGuid:
     def __eq__(self, other):
         return str(self) == str(other)
 
-sys.path.insert(0, 'D:\\Github\\flexlibs')
 
 from flexlibs.sync.match_strategies import (
     GuidMatchStrategy,

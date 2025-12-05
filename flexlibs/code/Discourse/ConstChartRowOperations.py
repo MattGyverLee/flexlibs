@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -33,7 +30,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 class ConstChartRowOperations(BaseOperations):
     """
@@ -75,7 +71,6 @@ class ConstChartRowOperations(BaseOperations):
             project: The FLExProject instance to operate on.
         """
         super().__init__(project)
-
 
     # --- Core CRUD Operations ---
 
@@ -144,7 +139,6 @@ class ConstChartRowOperations(BaseOperations):
 
         return new_row
 
-
     def Delete(self, row_or_hvo):
         """
         Delete a row from its constituent chart.
@@ -189,7 +183,6 @@ class ConstChartRowOperations(BaseOperations):
         # Delete the row (LCM handles removal from repository)
         row.Delete()
 
-
     def Find(self, chart_or_hvo, index):
         """
         Find a row in a chart by its index position.
@@ -228,7 +221,6 @@ class ConstChartRowOperations(BaseOperations):
             return None
 
         return chart.RowsOS[index]
-
 
     def GetAll(self, chart_or_hvo):
         """
@@ -269,7 +261,6 @@ class ConstChartRowOperations(BaseOperations):
 
         return list(chart.RowsOS)
 
-
     # --- Row Properties ---
 
     def GetLabel(self, row_or_hvo, ws=None):
@@ -306,7 +297,6 @@ class ConstChartRowOperations(BaseOperations):
         wsHandle = self.__WSHandle(ws)
 
         return ITsString(row.Label.get_String(wsHandle)).Text or ""
-
 
     def SetLabel(self, row_or_hvo, text, ws=None):
         """
@@ -349,7 +339,6 @@ class ConstChartRowOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         row.Label.set_String(wsHandle, mkstr)
 
-
     def GetNotes(self, row_or_hvo, ws=None):
         """
         Get the notes of a chart row.
@@ -385,7 +374,6 @@ class ConstChartRowOperations(BaseOperations):
         wsHandle = self.__WSHandle(ws)
 
         return ITsString(row.Notes.get_String(wsHandle)).Text or ""
-
 
     def SetNotes(self, row_or_hvo, text, ws=None):
         """
@@ -427,7 +415,6 @@ class ConstChartRowOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         row.Notes.set_String(wsHandle, mkstr)
 
-
     def GetWordGroups(self, row_or_hvo):
         """
         Get all word groups in a chart row.
@@ -463,7 +450,6 @@ class ConstChartRowOperations(BaseOperations):
         row = self.__ResolveObject(row_or_hvo)
 
         return list(row.CellsOS)
-
 
     def MoveTo(self, row_or_hvo, chart_or_hvo, index):
         """
@@ -543,7 +529,6 @@ class ConstChartRowOperations(BaseOperations):
             source_chart.RowsOS.Remove(row)
             target_chart.RowsOS.Insert(index, row)
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, row_or_hvo):
@@ -566,7 +551,6 @@ class ConstChartRowOperations(BaseOperations):
             return obj
         return row_or_hvo
 
-
     def __ResolveChart(self, chart_or_hvo):
         """
         Resolve HVO or object to IDsConstChart.
@@ -587,7 +571,6 @@ class ConstChartRowOperations(BaseOperations):
             return obj
         return chart_or_hvo
 
-
     def __WSHandle(self, ws):
         """
         Get writing system handle, defaulting to analysis WS.
@@ -605,7 +588,6 @@ class ConstChartRowOperations(BaseOperations):
             self.project.project.DefaultAnalWs
         )
 
-
     def __WSHandleAnalysis(self):
         """
         Get writing system handle for analysis writing system.
@@ -614,7 +596,6 @@ class ConstChartRowOperations(BaseOperations):
             int: The analysis writing system handle
         """
         return self.project.project.DefaultAnalWs
-
 
     # --- Reordering Support ---
 

@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -28,7 +25,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 class EnvironmentOperations(BaseOperations):
     """
@@ -74,14 +70,12 @@ class EnvironmentOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     def _GetSequence(self, parent):
         """
         Specify which sequence to reorder for environments.
         For Environment, we reorder parent.EnvironmentsOA.PossibilitiesOS
         """
         return parent.EnvironmentsOA.PossibilitiesOS
-
 
     def GetAll(self):
         """
@@ -113,7 +107,6 @@ class EnvironmentOperations(BaseOperations):
         if phon_data:
             for env in phon_data.EnvironmentsOS:
                 yield env
-
 
     def Create(self, name, description=None):
         """
@@ -183,7 +176,6 @@ class EnvironmentOperations(BaseOperations):
 
         return new_env
 
-
     def Delete(self, env_or_hvo):
         """
         Delete a phonological environment.
@@ -225,7 +217,6 @@ class EnvironmentOperations(BaseOperations):
         phon_data = self.project.lp.PhonologicalDataOA
         phon_data.EnvironmentsOS.Remove(env)
 
-
     def GetName(self, env_or_hvo, wsHandle=None):
         """
         Get the name of a phonological environment.
@@ -264,7 +255,6 @@ class EnvironmentOperations(BaseOperations):
 
         name = ITsString(env.Name.get_String(wsHandle)).Text
         return name or ""
-
 
     def SetName(self, env_or_hvo, name, wsHandle=None):
         """
@@ -311,7 +301,6 @@ class EnvironmentOperations(BaseOperations):
 
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         env.Name.set_String(wsHandle, mkstr)
-
 
     def GetStringRepresentation(self, env_or_hvo, wsHandle=None):
         """
@@ -374,7 +363,6 @@ class EnvironmentOperations(BaseOperations):
 
         notation = ITsString(env.StringRepresentation.get_String(wsHandle)).Text
         return notation or ""
-
 
     def SetStringRepresentation(self, env_or_hvo, notation, wsHandle=None):
         """
@@ -439,7 +427,6 @@ class EnvironmentOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(notation, wsHandle)
         env.StringRepresentation.set_String(wsHandle, mkstr)
 
-
     def GetLeftContextPattern(self, env_or_hvo):
         """
         Get the left context pattern of a phonological environment (READ-ONLY).
@@ -496,7 +483,6 @@ class EnvironmentOperations(BaseOperations):
 
         return None
 
-
     def GetRightContextPattern(self, env_or_hvo):
         """
         Get the right context pattern of a phonological environment (READ-ONLY).
@@ -552,7 +538,6 @@ class EnvironmentOperations(BaseOperations):
             return env.RightContextOA
 
         return None
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -633,7 +618,6 @@ class EnvironmentOperations(BaseOperations):
 
         return duplicate
 
-
     def __CopyContextObject(self, source_context):
         """
         Helper method to deep copy a phonological context object.
@@ -658,7 +642,6 @@ class EnvironmentOperations(BaseOperations):
         # The environment will still be duplicated, just without contexts
         return None
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, env_or_hvo):
@@ -674,7 +657,6 @@ class EnvironmentOperations(BaseOperations):
         if isinstance(env_or_hvo, int):
             return self.project.Object(env_or_hvo)
         return env_or_hvo
-
 
     # ========== SYNC INTEGRATION METHODS ==========
 
@@ -721,7 +703,6 @@ class EnvironmentOperations(BaseOperations):
                 props[prop_name] = ws_values
 
         return props
-
 
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
@@ -781,7 +762,6 @@ class EnvironmentOperations(BaseOperations):
                 differences[key] = (val1, val2)
 
         return (is_different, differences)
-
 
     # --- Private Helper Methods ---
 

@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -34,7 +31,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 class ScrBookOperations(BaseOperations):
     """
@@ -80,7 +76,6 @@ class ScrBookOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     # --- Core CRUD Operations ---
 
     def GetAll(self):
@@ -116,7 +111,6 @@ class ScrBookOperations(BaseOperations):
             return iter([])
 
         return iter(scripture.ScriptureBooksOS)
-
 
     def Create(self, canonical_num, title=None):
         """
@@ -192,7 +186,6 @@ class ScrBookOperations(BaseOperations):
 
         return new_book
 
-
     def Delete(self, book_or_hvo):
         """
         Delete a Scripture book from the FLEx project.
@@ -236,7 +229,6 @@ class ScrBookOperations(BaseOperations):
 
         # Delete the book (LCM handles removal from repository)
         book.Delete()
-
 
     def Find(self, canonical_num):
         """
@@ -282,7 +274,6 @@ class ScrBookOperations(BaseOperations):
                 return book
 
         return None
-
 
     def FindByName(self, name):
         """
@@ -337,7 +328,6 @@ class ScrBookOperations(BaseOperations):
 
         return None
 
-
     # --- Book Properties ---
 
     def GetCanonicalNum(self, book_or_hvo):
@@ -375,7 +365,6 @@ class ScrBookOperations(BaseOperations):
 
         book = self.__ResolveObject(book_or_hvo)
         return book.CanonicalNum
-
 
     def GetTitle(self, book_or_hvo, wsHandle=None):
         """
@@ -416,7 +405,6 @@ class ScrBookOperations(BaseOperations):
 
         title = ITsString(book.Title.get_String(wsHandle)).Text
         return title or ""
-
 
     def SetTitle(self, book_or_hvo, title, wsHandle=None):
         """
@@ -460,7 +448,6 @@ class ScrBookOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(title, wsHandle)
         book.Title.set_String(wsHandle, mkstr)
 
-
     # --- Section Management ---
 
     def GetSections(self, book_or_hvo):
@@ -497,7 +484,6 @@ class ScrBookOperations(BaseOperations):
         book = self.__ResolveObject(book_or_hvo)
         return list(book.SectionsOS)
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, book_or_hvo):
@@ -520,7 +506,6 @@ class ScrBookOperations(BaseOperations):
             return obj
         return book_or_hvo
 
-
     def __WSHandle(self, wsHandle):
         """
         Get writing system handle, defaulting to vernacular WS.
@@ -537,7 +522,6 @@ class ScrBookOperations(BaseOperations):
             wsHandle,
             self.project.project.DefaultVernWs
         )
-
 
     def __GetScripture(self):
         """

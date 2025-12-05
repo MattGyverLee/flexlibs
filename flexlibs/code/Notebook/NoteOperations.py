@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import FLEx LCM types
 from SIL.LCModel import (
     IScrScriptureNote,
@@ -34,7 +31,6 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
-
 
 class NoteOperations(BaseOperations):
     """
@@ -84,7 +80,6 @@ class NoteOperations(BaseOperations):
             project: The FLExProject instance to operate on.
         """
         super().__init__(project)
-
 
     # --- Core CRUD Operations ---
 
@@ -137,7 +132,6 @@ class NoteOperations(BaseOperations):
             if hasattr(annotation, 'Owner'):
                 if annotation.Owner == owner_object:
                     yield annotation
-
 
     def Create(self, owner_object, content, wsHandle=None):
         """
@@ -213,7 +207,6 @@ class NoteOperations(BaseOperations):
 
         return note
 
-
     def Delete(self, note):
         """
         Delete a note.
@@ -259,7 +252,6 @@ class NoteOperations(BaseOperations):
         # Delete the note object
         if hasattr(note, 'Delete'):
             note.Delete()
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -361,7 +353,6 @@ class NoteOperations(BaseOperations):
 
         return duplicate
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -409,7 +400,6 @@ class NoteOperations(BaseOperations):
 
         return props
 
-
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two notes and return detailed differences.
@@ -456,7 +446,6 @@ class NoteOperations(BaseOperations):
                 }
 
         return is_different, differences
-
 
     def Reorder(self, owner_object, note_list):
         """
@@ -516,7 +505,6 @@ class NoteOperations(BaseOperations):
         for note in note_list:
             annotations.Add(note)
 
-
     # --- Content Operations ---
 
     def GetContent(self, note, wsHandle=None):
@@ -562,7 +550,6 @@ class NoteOperations(BaseOperations):
             text = ITsString(note.Comment.get_String(wsHandle)).Text
             return text or ""
         return ""
-
 
     def SetContent(self, note, text, wsHandle=None):
         """
@@ -610,7 +597,6 @@ class NoteOperations(BaseOperations):
             # Update modification date
             note.DateModified = DateTime.Now
 
-
     # --- Note Type Operations ---
 
     def GetNoteType(self, note):
@@ -652,7 +638,6 @@ class NoteOperations(BaseOperations):
         if hasattr(note, 'AnnotationTypeRA'):
             return note.AnnotationTypeRA
         return None
-
 
     def SetNoteType(self, note, note_type):
         """
@@ -706,7 +691,6 @@ class NoteOperations(BaseOperations):
 
         note.AnnotationTypeRA = note_type
 
-
     # --- Metadata Operations ---
 
     def GetDateCreated(self, note):
@@ -749,7 +733,6 @@ class NoteOperations(BaseOperations):
         if hasattr(note, 'DateCreated'):
             return note.DateCreated
         return None
-
 
     def GetDateModified(self, note):
         """
@@ -796,7 +779,6 @@ class NoteOperations(BaseOperations):
             return note.DateModified
         return None
 
-
     def GetAuthor(self, note):
         """
         Get the author of a note.
@@ -840,7 +822,6 @@ class NoteOperations(BaseOperations):
             return text or ""
         return ""
 
-
     def SetAuthor(self, note, author_name):
         """
         Set the author of a note.
@@ -880,7 +861,6 @@ class NoteOperations(BaseOperations):
             ws = self.project.project.DefaultAnalWs
             mkstr = TsStringUtils.MakeString(author_name, ws)
             note.Source.set_String(ws, mkstr)
-
 
     # --- Discussion/Threading Operations ---
 
@@ -926,7 +906,6 @@ class NoteOperations(BaseOperations):
         if hasattr(note, 'RepliesOS'):
             for reply in note.RepliesOS:
                 yield reply
-
 
     def AddReply(self, parent_note, content, wsHandle=None):
         """
@@ -999,7 +978,6 @@ class NoteOperations(BaseOperations):
 
         return reply
 
-
     # --- Utility Operations ---
 
     def GetOwner(self, note):
@@ -1048,7 +1026,6 @@ class NoteOperations(BaseOperations):
 
         return None
 
-
     def GetGuid(self, note):
         """
         Get the GUID of a note.
@@ -1083,7 +1060,6 @@ class NoteOperations(BaseOperations):
 
         return note.Guid
 
-
     # --- Private Helper Methods ---
 
     def __WSHandle(self, wsHandle):
@@ -1101,7 +1077,6 @@ class NoteOperations(BaseOperations):
         return self.project._FLExProject__WSHandle(
             wsHandle, self.project.project.DefaultAnalWs
         )
-
 
     def __FindAnnotationDefn(self, name):
         """

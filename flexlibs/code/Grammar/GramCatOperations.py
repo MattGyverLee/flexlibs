@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -28,7 +25,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 class GramCatOperations(BaseOperations):
     """
@@ -76,14 +72,12 @@ class GramCatOperations(BaseOperations):
         """
         super().__init__(project)
 
-
     def _GetSequence(self, parent):
         """
         Specify which sequence to reorder for grammatical categories.
         For GramCat, we reorder parent.SubPossibilitiesOS
         """
         return parent.SubPossibilitiesOS
-
 
     def GetAll(self):
         """
@@ -117,7 +111,6 @@ class GramCatOperations(BaseOperations):
         if feature_system:
             for cat in feature_system.TypesOC:
                 yield cat
-
 
     def Create(self, name, parent=None):
         """
@@ -195,7 +188,6 @@ class GramCatOperations(BaseOperations):
 
         return new_cat
 
-
     def Delete(self, cat_or_hvo):
         """
         Delete a grammatical category.
@@ -236,7 +228,6 @@ class GramCatOperations(BaseOperations):
         feature_system = self.project.lp.MsFeatureSystemOA
         feature_system.TypesOC.Remove(cat)
 
-
     def GetName(self, cat_or_hvo, wsHandle=None):
         """
         Get the name of a grammatical category.
@@ -276,7 +267,6 @@ class GramCatOperations(BaseOperations):
 
         name = ITsString(cat.Name.get_String(wsHandle)).Text
         return name or ""
-
 
     def SetName(self, cat_or_hvo, name, wsHandle=None):
         """
@@ -319,7 +309,6 @@ class GramCatOperations(BaseOperations):
 
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         cat.Name.set_String(wsHandle, mkstr)
-
 
     def GetSubcategories(self, cat_or_hvo):
         """
@@ -366,7 +355,6 @@ class GramCatOperations(BaseOperations):
         cat = self.__ResolveObject(cat_or_hvo)
 
         return list(cat.SubPossibilitiesOS)
-
 
     def GetParent(self, cat_or_hvo):
         """
@@ -428,7 +416,6 @@ class GramCatOperations(BaseOperations):
                 return None
 
         return None
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -495,7 +482,7 @@ class GramCatOperations(BaseOperations):
         try:
             parent_cat = ICmPossibility(source.Owner)
             parent_is_possibility = True
-        except:
+        except Exception:
             parent_is_possibility = False
 
         if parent_is_possibility:
@@ -528,7 +515,6 @@ class GramCatOperations(BaseOperations):
 
         return duplicate
 
-
     def __DuplicateSubcategory(self, source_sub, parent_duplicate):
         """
         Helper method to recursively duplicate a subcategory.
@@ -559,7 +545,6 @@ class GramCatOperations(BaseOperations):
 
         return sub_duplicate
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, cat_or_hvo):
@@ -575,7 +560,6 @@ class GramCatOperations(BaseOperations):
         if isinstance(cat_or_hvo, int):
             return self.project.Object(cat_or_hvo)
         return cat_or_hvo
-
 
     # ========== SYNC INTEGRATION METHODS ==========
 
@@ -622,7 +606,6 @@ class GramCatOperations(BaseOperations):
                 props[prop_name] = ws_values
 
         return props
-
 
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
@@ -682,7 +665,6 @@ class GramCatOperations(BaseOperations):
                 differences[key] = (val1, val2)
 
         return (is_different, differences)
-
 
     # --- Private Helper Methods ---
 

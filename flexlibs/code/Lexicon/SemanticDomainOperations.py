@@ -11,9 +11,6 @@
 #   Copyright 2025
 #
 
-import logging
-logger = logging.getLogger(__name__)
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -32,7 +29,6 @@ from ..FLExProject import (
     FP_NullParameterError,
     FP_ParameterError,
 )
-
 
 class SemanticDomainOperations(BaseOperations):
     """
@@ -80,7 +76,6 @@ class SemanticDomainOperations(BaseOperations):
             project: The FLExProject instance to operate on.
         """
         super().__init__(project)
-
 
     # --- Core Read Operations ---
 
@@ -137,7 +132,6 @@ class SemanticDomainOperations(BaseOperations):
             flat
         ))
 
-
     def Find(self, number):
         """
         Find a semantic domain by its number.
@@ -190,7 +184,6 @@ class SemanticDomainOperations(BaseOperations):
                 return domain
 
         return None
-
 
     def FindByName(self, name):
         """
@@ -245,7 +238,6 @@ class SemanticDomainOperations(BaseOperations):
 
         return None
 
-
     def Exists(self, number):
         """
         Check if a semantic domain with the given number exists.
@@ -280,7 +272,6 @@ class SemanticDomainOperations(BaseOperations):
             raise FP_NullParameterError()
 
         return self.Find(number) is not None
-
 
     # --- Domain Properties ---
 
@@ -327,7 +318,6 @@ class SemanticDomainOperations(BaseOperations):
         name = ITsString(domain.Name.get_String(wsHandle)).Text
         return name or ""
 
-
     def SetName(self, domain_or_hvo, name, wsHandle=None):
         """
         Set the name of a semantic domain.
@@ -369,7 +359,6 @@ class SemanticDomainOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         domain.Name.set_String(wsHandle, mkstr)
 
-
     def GetDescription(self, domain_or_hvo, wsHandle=None):
         """
         Get the description of a semantic domain.
@@ -409,7 +398,6 @@ class SemanticDomainOperations(BaseOperations):
         desc = ITsString(domain.Description.get_String(wsHandle)).Text
         return desc or ""
 
-
     def SetDescription(self, domain_or_hvo, description, wsHandle=None):
         """
         Set the description of a semantic domain.
@@ -444,7 +432,6 @@ class SemanticDomainOperations(BaseOperations):
 
         # Description is a MultiString
         domain.Description.set_String(wsHandle, description)
-
 
     def GetAbbreviation(self, domain_or_hvo, wsHandle=None):
         """
@@ -484,7 +471,6 @@ class SemanticDomainOperations(BaseOperations):
 
         abbr = ITsString(domain.Abbreviation.get_String(wsHandle)).Text
         return abbr or ""
-
 
     def GetNumber(self, domain_or_hvo):
         """
@@ -530,7 +516,6 @@ class SemanticDomainOperations(BaseOperations):
         number = ITsString(domain.Abbreviation.get_String(wsHandle)).Text
         return number or ""
 
-
     def GetQuestions(self, domain_or_hvo, wsHandle=None):
         """
         Get elicitation questions for a semantic domain.
@@ -574,7 +559,6 @@ class SemanticDomainOperations(BaseOperations):
         questions = ITsString(domain.Questions.get_String(wsHandle)).Text
         return questions or ""
 
-
     def GetOcmCodes(self, domain_or_hvo):
         """
         Get OCM (Outline of Cultural Materials) codes for a semantic domain.
@@ -613,7 +597,6 @@ class SemanticDomainOperations(BaseOperations):
         # OcmCodes is a MultiUnicode
         ocm = ITsString(domain.OcmCodes.get_String(wsHandle)).Text
         return ocm or ""
-
 
     # --- Hierarchy Operations ---
 
@@ -658,7 +641,6 @@ class SemanticDomainOperations(BaseOperations):
         domain = self.__ResolveObject(domain_or_hvo)
 
         return list(domain.SubPossibilitiesOS)
-
 
     def GetParent(self, domain_or_hvo):
         """
@@ -711,7 +693,6 @@ class SemanticDomainOperations(BaseOperations):
 
         return None
 
-
     def GetDepth(self, domain_or_hvo):
         """
         Get the depth of a semantic domain in the hierarchy.
@@ -763,7 +744,6 @@ class SemanticDomainOperations(BaseOperations):
             current = parent
 
         return depth
-
 
     # --- Usage Operations ---
 
@@ -820,7 +800,6 @@ class SemanticDomainOperations(BaseOperations):
 
         return senses
 
-
     def GetSenseCount(self, domain_or_hvo):
         """
         Get the count of lexical senses that belong to this semantic domain.
@@ -871,7 +850,6 @@ class SemanticDomainOperations(BaseOperations):
                 count += 1
 
         return count
-
 
     # --- Custom Domain Management ---
 
@@ -965,7 +943,6 @@ class SemanticDomainOperations(BaseOperations):
 
         return new_domain
 
-
     def Delete(self, domain_or_hvo):
         """
         Delete a semantic domain.
@@ -1017,7 +994,6 @@ class SemanticDomainOperations(BaseOperations):
             # Remove from top-level list
             domain_list = self.project.lp.SemanticDomainListOA
             domain_list.PossibilitiesOS.Remove(domain)
-
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -1119,7 +1095,6 @@ class SemanticDomainOperations(BaseOperations):
 
         return duplicate
 
-
     # ========== SYNC INTEGRATION METHODS ==========
 
     def GetSyncableProperties(self, item):
@@ -1190,7 +1165,6 @@ class SemanticDomainOperations(BaseOperations):
 
         return props
 
-
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two semantic domains and return their differences.
@@ -1221,7 +1195,6 @@ class SemanticDomainOperations(BaseOperations):
         is_different = len(differences) > 0
         return is_different, differences
 
-
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, domain_or_hvo):
@@ -1243,7 +1216,6 @@ class SemanticDomainOperations(BaseOperations):
                 raise FP_ParameterError("HVO does not refer to a semantic domain")
             return obj
         return domain_or_hvo
-
 
     def __WSHandle(self, wsHandle):
         """
