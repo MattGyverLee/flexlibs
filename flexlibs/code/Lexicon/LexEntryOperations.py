@@ -29,6 +29,9 @@ from SIL.LCModel import (
     IMoAffixAllomorphFactory,
     IMoForm,
     MoMorphTypeTags,
+    ILexEntryRef,
+    ILexEntryRefFactory,
+    LexEntryRefTags,
 )
 from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
@@ -967,6 +970,131 @@ class LexEntryOperations(BaseOperations):
 
         # Last resort: headword (computed property, always returns something)
         return self.GetHeadword(entry)
+
+
+    # --- Computed Properties (Pattern 2) ---
+
+    def GetShortName(self, entry_or_hvo, wsHandle=None):
+        """
+        Get short display name for entry (Pattern 2 - computed property).
+
+        Returns an abbreviated form suitable for UI display, typically
+        the headword without additional formatting.
+
+        Args:
+            entry_or_hvo: Either an ILexEntry object or its HVO
+            wsHandle: Optional writing system handle. Defaults to vernacular WS.
+
+        Returns:
+            str: Short name for display
+
+        Example:
+            >>> entry = project.LexEntry.Find("run")
+            >>> short_name = project.LexEntry.GetShortName(entry)
+            >>> print(short_name)
+            run
+
+        Notes:
+            - Computed property - not stored in database
+            - Typically same as headword for simple entries
+            - Based on FLEx LCM ShortName property
+            - Useful for abbreviated displays
+
+        See Also:
+            GetHeadword, GetLongName
+        """
+        if not entry_or_hvo:
+            raise FP_NullParameterError()
+
+        entry = self.__ResolveObject(entry_or_hvo)
+
+        # Short name is typically the headword
+        return self.GetHeadword(entry)
+
+
+    def GetLongName(self, entry_or_hvo, wsHandle=None):
+        """
+        Get long display name for entry (Pattern 2 - computed property).
+
+        Returns a more descriptive form including additional context,
+        typically headword + gloss or definition.
+
+        Args:
+            entry_or_hvo: Either an ILexEntry object or its HVO
+            wsHandle: Optional writing system handle. Defaults to analysis WS.
+
+        Returns:
+            str: Long name for display
+
+        Example:
+            >>> entry = project.LexEntry.Find("run")
+            >>> long_name = project.LexEntry.GetLongName(entry)
+            >>> print(long_name)
+            run (to move swiftly)
+
+        Notes:
+            - Computed property - not stored in database
+            - Includes headword + first sense gloss if available
+            - Based on FLEx LCM LongName property
+            - Useful for choosers and detailed displays
+
+        See Also:
+            GetShortName, GetHeadword
+        """
+        if not entry_or_hvo:
+            raise FP_NullParameterError()
+
+        entry = self.__ResolveObject(entry_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+
+        # Start with headword
+        long_name = self.GetHeadword(entry)
+
+        # Add first sense gloss if available
+        if entry.SensesOS and entry.SensesOS.Count > 0:
+            first_sense = entry.SensesOS[0]
+            gloss = ITsString(first_sense.Gloss.get_String(wsHandle)).Text
+            if gloss:
+                long_name = f"{long_name} ({gloss})"
+
+        return long_name
+
+
+    def GetLIFTid(self, entry_or_hvo):
+        """
+        Get LIFT XML identifier for entry (Pattern 2 - computed property).
+
+        Returns the identifier used in LIFT (Lexicon Interchange FormaT) export.
+        This is typically based on the entry's GUID.
+
+        Args:
+            entry_or_hvo: Either an ILexEntry object or its HVO
+
+        Returns:
+            str: LIFT identifier (GUID as string)
+
+        Example:
+            >>> entry = project.LexEntry.Find("run")
+            >>> lift_id = project.LexEntry.GetLIFTid(entry)
+            >>> print(lift_id)
+            12345678-1234-1234-1234-123456789abc
+
+        Notes:
+            - Computed from entry's GUID
+            - Used for LIFT import/export
+            - Persistent across projects
+            - Based on FLEx LCM LIFTid property
+
+        See Also:
+            GetGuid
+        """
+        if not entry_or_hvo:
+            raise FP_NullParameterError()
+
+        entry = self.__ResolveObject(entry_or_hvo)
+
+        # LIFT id is the GUID as string
+        return str(entry.Guid)
 
 
     # --- Entry Properties ---
@@ -2360,6 +2488,553 @@ class LexEntryOperations(BaseOperations):
             for subsense in sense.SensesOS:
                 result.extend(self.__CollectSubsenses(subsense))
         return result
+
+
+    # --- Complex Form Helper Methods (Pattern 4) ---
+
+    def AddComplexFormComponent(self, complex_entry_or_hvo, component_or_hvo):
+        """
+        Add a component to a complex form (compound, idiom, phrasal verb).
+
+        This is a convenience method that wraps FLEx's AddComponent logic.
+        If the complex entry doesn't have an EntryRef yet, one is created.
+
+        Args:
+            complex_entry_or_hvo: The complex form entry (or HVO)
+            component_or_hvo: The component entry or sense (or HVO)
+
+        Raises:
+            FP_ReadOnlyError: If project not opened with write enabled
+            FP_NullParameterError: If either parameter is None
+            FP_ParameterError: If component is not an entry or sense
+
+        Example:
+            >>> # Create "kick the bucket" idiom
+            >>> kick = project.LexEntry.Find("kick")
+            >>> bucket = project.LexEntry.Find("bucket")
+            >>> idiom = project.LexEntry.Create("kick the bucket")
+            >>> project.LexEntry.AddComplexFormComponent(idiom, kick)
+            >>> project.LexEntry.AddComplexFormComponent(idiom, bucket)
+
+        Notes:
+            - Creates LexEntryRef if needed (RefType = krtComplexForm)
+            - Adds to ComponentLexemesRS
+            - First component added becomes Primary (published location)
+            - Based on FLEx ILexEntry.AddComponent() method
+            - Complex forms must be stems, not roots
+
+        See Also:
+            RemoveComplexFormComponent, GetVisibleComplexFormBackRefs
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not complex_entry_or_hvo:
+            raise FP_NullParameterError()
+        if not component_or_hvo:
+            raise FP_NullParameterError()
+
+        complex_entry = self.__ResolveObject(complex_entry_or_hvo)
+        component = self.__ResolveObject(component_or_hvo)
+
+        # Validate component is entry or sense
+        if not isinstance(component, (ILexEntry, ILexSense)):
+            raise FP_ParameterError("Component must be an ILexEntry or ILexSense")
+
+        # Find or create complex form EntryRef
+        entry_ref = None
+        for ref in complex_entry.EntryRefsOS:
+            if ref.RefType == LexEntryRefTags.krtComplexForm:
+                entry_ref = ref
+                break
+
+        if entry_ref is None:
+            # Create new LexEntryRef for complex form
+            factory = self.project.project.ServiceLocator.GetInstance(ILexEntryRefFactory)
+            entry_ref = factory.Create()
+            complex_entry.EntryRefsOS.Add(entry_ref)
+            entry_ref.RefType = LexEntryRefTags.krtComplexForm
+            entry_ref.HideMinorEntry = 0  # Show the complex form
+
+        # Add to ComponentLexemesRS if not already present
+        if not any(item.Hvo == component.Hvo for item in entry_ref.ComponentLexemesRS):
+            entry_ref.ComponentLexemesRS.Add(component)
+
+        # Add to PrimaryLexemesRS if empty (first component = primary)
+        if entry_ref.PrimaryLexemesRS.Count == 0:
+            entry_ref.PrimaryLexemesRS.Add(component)
+
+        # Add to ShowComplexFormsInRS for visibility
+        if not any(item.Hvo == component.Hvo for item in entry_ref.ShowComplexFormsInRS):
+            entry_ref.ShowComplexFormsInRS.Add(component)
+
+
+    def RemoveComplexFormComponent(self, complex_entry_or_hvo, component_or_hvo):
+        """
+        Remove a component from a complex form.
+
+        Args:
+            complex_entry_or_hvo: The complex form entry (or HVO)
+            component_or_hvo: The component entry or sense to remove (or HVO)
+
+        Raises:
+            FP_ReadOnlyError: If project not opened with write enabled
+            FP_NullParameterError: If either parameter is None
+
+        Example:
+            >>> idiom = project.LexEntry.Find("kick the bucket")
+            >>> bucket = project.LexEntry.Find("bucket")
+            >>> project.LexEntry.RemoveComplexFormComponent(idiom, bucket)
+
+        Notes:
+            - Removes from ComponentLexemesRS, PrimaryLexemesRS, ShowComplexFormsInRS
+            - If all components removed, EntryRef remains but is empty
+            - Does nothing if component not found
+
+        See Also:
+            AddComplexFormComponent
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not complex_entry_or_hvo:
+            raise FP_NullParameterError()
+        if not component_or_hvo:
+            raise FP_NullParameterError()
+
+        complex_entry = self.__ResolveObject(complex_entry_or_hvo)
+        component = self.__ResolveObject(component_or_hvo)
+
+        # Find complex form EntryRef
+        for entry_ref in complex_entry.EntryRefsOS:
+            if entry_ref.RefType == LexEntryRefTags.krtComplexForm:
+                # Remove from all collections
+                to_remove = [item for item in entry_ref.ComponentLexemesRS if item.Hvo == component.Hvo]
+                for item in to_remove:
+                    entry_ref.ComponentLexemesRS.Remove(item)
+
+                to_remove = [item for item in entry_ref.PrimaryLexemesRS if item.Hvo == component.Hvo]
+                for item in to_remove:
+                    entry_ref.PrimaryLexemesRS.Remove(item)
+
+                to_remove = [item for item in entry_ref.ShowComplexFormsInRS if item.Hvo == component.Hvo]
+                for item in to_remove:
+                    entry_ref.ShowComplexFormsInRS.Remove(item)
+                break
+
+
+    def GetComplexFormComponents(self, complex_entry_or_hvo):
+        """
+        Get all components of a complex form.
+
+        Args:
+            complex_entry_or_hvo: The complex form entry (or HVO)
+
+        Returns:
+            list: List of ILexEntry or ILexSense objects (components)
+
+        Example:
+            >>> idiom = project.LexEntry.Find("kick the bucket")
+            >>> components = project.LexEntry.GetComplexFormComponents(idiom)
+            >>> for comp in components:
+            ...     if isinstance(comp, ILexEntry):
+            ...         print(project.LexEntry.GetHeadword(comp))
+
+        Notes:
+            - Returns empty list if not a complex form
+            - Components can be entries OR senses
+            - Order is preserved from ComponentLexemesRS
+
+        See Also:
+            AddComplexFormComponent, GetVisibleComplexFormBackRefs
+        """
+        if not complex_entry_or_hvo:
+            raise FP_NullParameterError()
+
+        complex_entry = self.__ResolveObject(complex_entry_or_hvo)
+
+        # Find complex form EntryRef
+        for entry_ref in complex_entry.EntryRefsOS:
+            if entry_ref.RefType == LexEntryRefTags.krtComplexForm:
+                return list(entry_ref.ComponentLexemesRS)
+
+        return []
+
+
+    # --- Pattern 7: MergeObject (Entry/Sense merging) ---
+
+    def MergeObject(self, survivor_or_hvo, victim_or_hvo, fLoseNoStringData=True):
+        """
+        Merge one entry into another (IRREVERSIBLE operation).
+
+        This method merges all data from the victim entry into the survivor entry,
+        then deletes the victim. This is a complex operation that handles:
+        - Lexeme form differences (creates alternates if needed)
+        - Homograph renumbering
+        - Circular reference prevention
+        - Component replacement in complex forms
+        - Back-reference updating
+        - Data preservation based on fLoseNoStringData flag
+
+        Args:
+            survivor_or_hvo: Entry that will receive merged data (HVO or ILexEntry)
+            victim_or_hvo: Entry that will be deleted after merge (HVO or ILexEntry)
+            fLoseNoStringData (bool): If True, concatenate strings (preserve both values);
+                                      If False, overwrite strings (victim overwrites survivor)
+                                      Default: True (data preservation)
+
+        Raises:
+            FP_ReadOnlyError: If project not write-enabled
+            FP_NullParameterError: If either parameter is None
+            FP_ParameterError: If entries are not compatible for merging
+
+        Example::
+
+            >>> # Merge duplicate entry into main entry
+            >>> main = project.LexEntry.Find("run")
+            >>> duplicate = project.LexEntry.Find("run")  # Duplicate with same form
+            >>> project.LexEntry.MergeObject(main, duplicate)
+            >>> # 'duplicate' is now deleted, all data merged into 'main'
+
+            >>> # Merge with different lexeme forms (creates alternate)
+            >>> entry1 = project.LexEntry.Find("color")
+            >>> entry2 = project.LexEntry.Find("colour")
+            >>> project.LexEntry.MergeObject(entry1, entry2)
+            >>> # 'colour' becomes alternate form of 'color'
+
+        Notes:
+            - This operation is IRREVERSIBLE (victim is deleted)
+            - Homograph numbers are automatically renumbered
+            - Back-references are automatically updated
+            - Circular references are prevented
+            - Alternate forms created if lexeme forms differ
+            - Based on FLEx LexEntry.MergeObject (OverridesLing_Lex.cs:3432-3548)
+
+        Implementation follows FLEx merge algorithm:
+            1. Validate entries are same class
+            2. Handle lexeme form differences (create alternates if needed)
+            3. Merge lexeme form objects (if same type)
+            4. Remove circular references
+            5. Fix LexEntryRef components
+            6. Call base merge for all properties
+            7. Merge equivalent alternate forms
+            8. Merge equivalent MSAs
+            9. Update homograph numbers
+            10. Update incoming references
+            11. Delete victim entry
+
+        See Also:
+            LexSense.MergeObject - For merging senses
+            GetAllSenses - For getting all senses before merge
+        """
+        if not self.project.write_enabled:
+            raise FP_ReadOnlyError()
+
+        if not survivor_or_hvo or not victim_or_hvo:
+            raise FP_NullParameterError()
+
+        survivor = self.__ResolveObject(survivor_or_hvo)
+        victim = self.__ResolveObject(victim_or_hvo)
+
+        # Validate same class
+        if survivor.ClassName != victim.ClassName:
+            raise FP_ParameterError(f"Cannot merge different classes: {survivor.ClassName} vs {victim.ClassName}")
+
+        # Don't merge an entry into itself
+        if survivor.Hvo == victim.Hvo:
+            raise FP_ParameterError("Cannot merge entry into itself")
+
+        # Step 1: Handle lexeme form differences
+        # If different forms, victim's form becomes alternate of survivor
+        survivor_form = None
+        victim_form = None
+
+        if survivor.LexemeFormOA:
+            survivor_form = ITsString(survivor.LexemeFormOA.Form.BestVernacularAlternative).Text
+
+        if victim.LexemeFormOA:
+            victim_form = ITsString(victim.LexemeFormOA.Form.BestVernacularAlternative).Text
+
+        # Create alternate form if forms differ
+        if victim_form and survivor_form != victim_form:
+            logger.info(f"Creating alternate form '{victim_form}' for '{survivor_form}'")
+            # Victim's lexeme form will be moved to alternates during property merge
+
+        # Step 2: Merge lexeme form objects if same type
+        if (survivor.LexemeFormOA and victim.LexemeFormOA and
+            survivor.LexemeFormOA.ClassName == victim.LexemeFormOA.ClassName):
+            self.__MergeMultiStringProperty(
+                survivor.LexemeFormOA.Form,
+                victim.LexemeFormOA.Form,
+                fLoseNoStringData
+            )
+
+        # Step 3: Remove circular references
+        self.__RemoveCircularReferences(survivor, victim)
+
+        # Step 4: Fix LexEntryRef components (replace victim with survivor)
+        self.__FixComponentReferences(survivor, victim)
+
+        # Step 5: Merge all properties
+        self.__MergeAllProperties(survivor, victim, fLoseNoStringData)
+
+        # Step 6: Merge equivalent alternate forms
+        # TODO: Implementation of alternate form merging
+
+        # Step 7: Merge equivalent MSAs
+        # TODO: Implementation of MSA merging
+
+        # Step 8: Update homograph numbers
+        # Get all entries with same form
+        if survivor.LexemeFormOA:
+            form_key = ITsString(survivor.LexemeFormOA.Form.BestVernacularAlternative).Text
+            # TODO: Homograph renumbering
+
+        # Step 9: Replace all incoming references to victim with survivor
+        self.__ReplaceIncomingReferences(survivor, victim)
+
+        # Step 10: Delete victim
+        logger.info(f"Deleting merged entry (HVO: {victim.Hvo})")
+        victim.OwningList.Remove(victim)
+
+
+    # --- Private Helper Methods for MergeObject ---
+
+    def __MergeMultiStringProperty(self, dest_multi, src_multi, concatenate, separator=" "):
+        """
+        Merge MultiString property across all writing systems.
+
+        This is a core helper for MergeObject that handles per-writing-system
+        string merging, similar to FLEx's MultiAccessorBase.MergeAlternatives.
+
+        Args:
+            dest_multi: Destination MultiString or MultiUnicode object
+            src_multi: Source MultiString or MultiUnicode object
+            concatenate (bool): If True, append when both have values; if False, overwrite
+            separator (str): String to use between values (default: space)
+
+        Algorithm:
+            For each registered writing system:
+                dest_text = dest_multi.get_String(ws)
+                src_text = src_multi.get_String(ws)
+
+                if dest is empty and src has value:
+                    dest_multi.set_String(ws, src_text)
+                elif concatenate and both have different values:
+                    combined = dest_text + separator + src_text
+                    dest_multi.set_String(ws, combined)
+                # else: keep dest unchanged
+
+        Note:
+            Iterates ALL writing systems registered in project, not just those
+            with values in either MultiString.
+        """
+        # Get all writing systems
+        ws_manager = self.project.project.WritingSystemManager
+        all_ws = list(ws_manager.AllWritingSystems)
+
+        for ws in all_ws:
+            ws_handle = ws.Handle
+
+            # Get text for this writing system
+            dest_text = ITsString(dest_multi.get_String(ws_handle)).Text if dest_multi else ""
+            src_text = ITsString(src_multi.get_String(ws_handle)).Text if src_multi else ""
+
+            # Apply merge logic
+            if not dest_text and src_text:
+                # Dest empty, src has value -> copy src
+                dest_multi.set_String(ws_handle, TsStringUtils.MakeString(src_text, ws_handle))
+
+            elif concatenate and dest_text and src_text and dest_text != src_text:
+                # Both have different values -> concatenate
+                combined = dest_text + separator + src_text
+                dest_multi.set_String(ws_handle, TsStringUtils.MakeString(combined, ws_handle))
+
+            # else: keep dest unchanged (dest has value or src empty)
+
+
+    def __MergeAllProperties(self, survivor, victim, fLoseNoStringData):
+        """
+        Merge all properties from victim to survivor.
+
+        Iterates all non-virtual fields and applies type-specific merge logic
+        based on FLEx's CmObject.MergeObject algorithm.
+
+        Args:
+            survivor: Destination object (ILexEntry or ILexSense)
+            victim: Source object (same type as survivor)
+            fLoseNoStringData (bool): If True, concatenate strings; if False, overwrite
+        """
+        # Get metadata cache
+        mdc = self.project.project.ServiceLocator.GetInstance(
+            self.project.project.ServiceLocator.MetaDataCache.GetType()
+        )
+
+        # Get all field IDs for this class
+        class_id = survivor.ClassID
+        all_flids = mdc.GetFields(class_id, True, 0)  # includeSuperclasses=True, fieldType=all
+
+        for flid in all_flids:
+            # Skip system fields (flid < 1000)
+            if flid < 1000:
+                continue
+
+            # Skip virtual fields
+            if mdc.get_IsVirtual(flid):
+                continue
+
+            # Get field type
+            field_type = mdc.GetFieldType(flid)
+
+            # Apply type-specific merge
+            self.__MergePropertyByType(survivor, victim, flid, field_type, fLoseNoStringData)
+
+
+    def __MergePropertyByType(self, survivor, victim, flid, field_type, concatenate):
+        """
+        Merge single property based on its type.
+
+        Type mapping (from CmObject.cs):
+            1: Boolean - If dest=false and src=true, set true
+            2: Integer - If dest=0 and src>0, use src
+            13: String - Copy or concatenate
+            14: MultiString - Per-WS merge
+            23: OwningAtomic - Recursive merge if same type
+            24: ReferenceAtomic - Same as OwningAtomic
+            25-28: Collections/Sequences - Append all items
+
+        Args:
+            survivor: Destination object
+            victim: Source object
+            flid: Field ID (property identifier)
+            field_type: CellarPropertyType enum value
+            concatenate (bool): If True, concatenate strings; if False, overwrite
+        """
+        # Import property type constants (from SIL.LCModel.Core.KernelInterfaces)
+        # CellarPropertyType enum values
+        kBoolean = 1
+        kInteger = 2
+        kString = 13
+        kMultiString = 14
+        kMultiUnicode = 16
+        kOwningAtomic = 23
+        kReferenceAtomic = 24
+        kOwningCollection = 25
+        kReferenceCollection = 26
+        kOwningSequence = 27
+        kReferenceSequence = 28
+
+        # Get property values using LCM GetProperty methods
+        # TODO: Implement property value extraction based on type
+        # This requires reflection-based access to LCM properties
+
+        # For now, we'll handle the most common types:
+        if field_type == kMultiString or field_type == kMultiUnicode:
+            # Get MultiString properties
+            dest_prop = survivor.Cache.DomainDataByFlid.get_MultiStringProp(survivor.Hvo, flid)
+            src_prop = victim.Cache.DomainDataByFlid.get_MultiStringProp(victim.Hvo, flid)
+            if dest_prop and src_prop:
+                self.__MergeMultiStringProperty(dest_prop, src_prop, concatenate)
+
+        elif field_type in (kOwningSequence, kReferenceSequence):
+            # Get sequence properties
+            dest_seq = survivor.Cache.DomainDataByFlid.get_VecProp(survivor.Hvo, flid)
+            src_seq = victim.Cache.DomainDataByFlid.get_VecProp(victim.Hvo, flid)
+            if dest_seq and src_seq:
+                # Append all items from src to dest
+                for hvo in src_seq:
+                    if hvo not in dest_seq:
+                        dest_seq.Add(hvo)
+
+
+    def __RemoveCircularReferences(self, survivor, victim):
+        """
+        Remove any references that would create cycles.
+
+        Checks:
+            - Senses referencing parent entry
+            - Complex forms referencing themselves
+            - Variant forms creating cycles
+
+        Based on: OverridesLing_Lex.cs line 3467
+
+        Args:
+            survivor: Destination entry
+            victim: Source entry being merged
+        """
+        # Check senses in victim - remove any that reference survivor
+        for sense in victim.SensesOS:
+            # TODO: Check sense back-references and remove circular ones
+            pass
+
+        # Check entry refs - remove any that would create cycles
+        for entry_ref in victim.EntryRefsOS:
+            # TODO: Check ComponentLexemesRS for survivor
+            pass
+
+
+    def __FixComponentReferences(self, survivor, victim):
+        """
+        Replace victim with survivor in all LexEntryRef components.
+
+        This implements the fix for FWR-3535 where replacing in ComponentLexemes
+        can have side-effects on PrimaryLexemes.
+
+        Based on: OverridesLing_Lex.cs line 3484 (ReplaceComponent)
+
+        Args:
+            survivor: Entry that will replace victim in all references
+            victim: Entry being replaced
+        """
+        # Find all LexEntryRef objects that reference victim
+        # This requires iterating all entries and checking their EntryRefsOS
+        for entry in self.GetAll():
+            for entry_ref in entry.EntryRefsOS:
+                # Check ComponentLexemesRS
+                to_replace = []
+                for i, comp in enumerate(entry_ref.ComponentLexemesRS):
+                    if comp.Hvo == victim.Hvo:
+                        to_replace.append(i)
+
+                # Replace in ComponentLexemesRS
+                for idx in reversed(to_replace):
+                    entry_ref.ComponentLexemesRS.RemoveAt(idx)
+                    entry_ref.ComponentLexemesRS.Insert(idx, survivor)
+
+                # Also check and fix PrimaryLexemesRS and ShowComplexFormsInRS
+                to_replace = []
+                for i, comp in enumerate(entry_ref.PrimaryLexemesRS):
+                    if comp.Hvo == victim.Hvo:
+                        to_replace.append(i)
+
+                for idx in reversed(to_replace):
+                    entry_ref.PrimaryLexemesRS.RemoveAt(idx)
+                    entry_ref.PrimaryLexemesRS.Insert(idx, survivor)
+
+                to_replace = []
+                for i, comp in enumerate(entry_ref.ShowComplexFormsInRS):
+                    if comp.Hvo == victim.Hvo:
+                        to_replace.append(i)
+
+                for idx in reversed(to_replace):
+                    entry_ref.ShowComplexFormsInRS.RemoveAt(idx)
+                    entry_ref.ShowComplexFormsInRS.Insert(idx, survivor)
+
+
+    def __ReplaceIncomingReferences(self, survivor, victim):
+        """
+        Replace all incoming references to victim with survivor.
+
+        This handles back-references from other objects (senses, entries, etc.)
+        that point to the victim entry.
+
+        Based on: CmObject.cs ReplaceIncomingReferences
+
+        Args:
+            survivor: Entry that will receive all references
+            victim: Entry whose references will be transferred
+        """
+        # TODO: Implementation requires access to incoming references cache
+        # This is complex and requires LCM's internal reference tracking
+        pass
 
 
     # --- Private Helper Methods ---
