@@ -347,6 +347,89 @@ class ConfidenceOperations(BaseOperations):
         return duplicate
 
 
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """
+        Get syncable properties for cross-project synchronization.
+
+        Returns all syncable properties of a confidence level including
+        MultiString fields.
+
+        Args:
+            item: The ICmPossibility object (confidence level)
+
+        Returns:
+            dict: Dictionary of syncable properties
+
+        Example:
+            >>> props = project.Confidence.GetSyncableProperties(level)
+            >>> print(props)
+            {'Name': 'High Confidence', 'Description': 'Verified analysis'}
+        """
+        if not item:
+            raise FP_NullParameterError()
+
+        level = self.__ResolveObject(item)
+        wsHandle = self.project.project.DefaultAnalWs
+
+        props = {}
+
+        # MultiString properties
+        props['Name'] = ITsString(level.Name.get_String(wsHandle)).Text or ""
+        props['Description'] = ITsString(level.Description.get_String(wsHandle)).Text or ""
+
+        return props
+
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """
+        Compare two confidence levels and return detailed differences.
+
+        Args:
+            item1: First confidence level (from source project)
+            item2: Second confidence level (from target project)
+            ops1: Operations instance for item1's project (defaults to self)
+            ops2: Operations instance for item2's project (defaults to self)
+
+        Returns:
+            tuple: (is_different, differences_dict) where differences_dict contains
+                   'properties' dict with changed property details
+
+        Example:
+            >>> is_diff, diffs = ops1.CompareTo(level1, level2, ops1, ops2)
+            >>> if is_diff:
+            ...     for prop, details in diffs['properties'].items():
+            ...         print(f"{prop}: {details['source']} -> {details['target']}")
+        """
+        if ops1 is None:
+            ops1 = self
+        if ops2 is None:
+            ops2 = self
+
+        is_different = False
+        differences = {'properties': {}}
+
+        # Get syncable properties from both items
+        props1 = ops1.GetSyncableProperties(item1)
+        props2 = ops2.GetSyncableProperties(item2)
+
+        # Compare each property
+        for key in set(props1.keys()) | set(props2.keys()):
+            val1 = props1.get(key)
+            val2 = props2.get(key)
+
+            if val1 != val2:
+                is_different = True
+                differences['properties'][key] = {
+                    'source': val1,
+                    'target': val2,
+                    'type': 'modified'
+                }
+
+        return is_different, differences
+
+
     def Find(self, name):
         """
         Find a confidence level by its name.

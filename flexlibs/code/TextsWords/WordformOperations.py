@@ -785,3 +785,92 @@ class WordformOperations(BaseOperations):
         # specific text segments in the corpus
 
         return duplicate
+
+
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """
+        Get all syncable properties of a wordform.
+
+        Args:
+            item: The IWfiWordform object.
+
+        Returns:
+            dict: Dictionary of syncable properties with their values.
+
+        Example:
+            >>> props = project.Wordforms.GetSyncableProperties(wordform)
+            >>> print(props['Form'])
+            {'en': 'running'}
+            >>> print(props['SpellingStatus'])
+            2  # CORRECT
+
+        Notes:
+            - MultiString property: Form
+            - Integer property: SpellingStatus (0=UNDECIDED, 1=INCORRECT, 2=CORRECT)
+            - Does NOT include owned collections (analyses) - those are children
+        """
+        props = {}
+
+        # MultiString property - Form
+        if hasattr(item, 'Form') and item.Form:
+            props['Form'] = self.project.GetMultiStringDict(item.Form)
+
+        # Integer property - SpellingStatus
+        if hasattr(item, 'SpellingStatus'):
+            props['SpellingStatus'] = int(item.SpellingStatus)
+
+        return props
+
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """
+        Compare two wordforms for differences.
+
+        Args:
+            item1: First wordform object (from project 1)
+            item2: Second wordform object (from project 2)
+            ops1: Optional WordformOperations instance for project 1 (defaults to self)
+            ops2: Optional WordformOperations instance for project 2 (defaults to self)
+
+        Returns:
+            tuple: (is_different, differences_dict)
+                - is_different (bool): True if wordforms differ, False if identical
+                - differences_dict (dict): Maps property names to (value1, value2) tuples
+
+        Example:
+            >>> is_diff, diffs = ops1.CompareTo(wf1, wf2, ops1, ops2)
+            >>> if is_diff:
+            ...     for prop, (val1, val2) in diffs.items():
+            ...         print(f"{prop}: {val1} != {val2}")
+
+        Notes:
+            - Compares Form MultiString across all writing systems
+            - Compares SpellingStatus integer value
+            - Empty/null values are treated as equivalent
+        """
+        if ops1 is None:
+            ops1 = self
+        if ops2 is None:
+            ops2 = self
+
+        props1 = ops1.GetSyncableProperties(item1)
+        props2 = ops2.GetSyncableProperties(item2)
+
+        differences = {}
+
+        # Get all property keys from both items
+        all_keys = set(props1.keys()) | set(props2.keys())
+
+        for key in all_keys:
+            val1 = props1.get(key)
+            val2 = props2.get(key)
+
+            # Compare values
+            if self.project._CompareValues(val1, val2):
+                # Values are different
+                differences[key] = (val1, val2)
+
+        is_different = len(differences) > 0
+        return (is_different, differences)

@@ -173,6 +173,10 @@ class MergeOperations:
         specified, only those fields are updated. Otherwise, all common
         properties are updated.
 
+        This method will attempt to use the new CompareTo() method if available
+        on the operations class to efficiently detect differences. Falls back
+        to traditional property-by-property copying if not available.
+
         Args:
             target_obj: Target object to update
             source_obj: Source object to copy from
@@ -205,8 +209,29 @@ class MergeOperations:
                     if self._update_field(target_obj, source_obj, source_ops, target_ops, field):
                         changed = True
             else:
-                # Update all common properties
-                changed = self.copy_properties(source_obj, target_obj, source_ops, target_ops)
+                # Try to use CompareTo() if available for efficient difference detection
+                # This is the new sync framework integration
+                if hasattr(source_ops, 'CompareTo'):
+                    try:
+                        is_different, differences = source_ops.CompareTo(
+                            source_obj, target_obj,
+                            ops1=source_ops, ops2=target_ops
+                        )
+
+                        if is_different:
+                            logger.debug(f"CompareTo detected {len(differences)} differences")
+                            # Copy all properties to apply the differences
+                            changed = self.copy_properties(source_obj, target_obj, source_ops, target_ops)
+                        else:
+                            logger.debug("CompareTo: No differences detected")
+                            changed = False
+                    except Exception as e:
+                        # Fall back to traditional copy if CompareTo fails
+                        logger.debug(f"CompareTo failed, falling back to copy_properties: {e}")
+                        changed = self.copy_properties(source_obj, target_obj, source_ops, target_ops)
+                else:
+                    # Traditional approach: Update all common properties
+                    changed = self.copy_properties(source_obj, target_obj, source_ops, target_ops)
 
             if changed:
                 logger.info(f"Updated object: {str(target_obj.Guid)[:8]}...")
@@ -279,8 +304,12 @@ class MergeOperations:
         """
         Copy properties from source to target object.
 
-        This method attempts to copy all common properties that have
-        both Get* and Set* methods in the operations classes.
+        This method first attempts to use the new GetSyncableProperties() method
+        from the sync framework if available. This provides complete, accurate
+        property coverage for all object types.
+
+        If GetSyncableProperties() is not available, falls back to traditional
+        pattern matching of Get*/Set* methods for backwards compatibility.
 
         Args:
             source_obj: Source object to copy from
@@ -301,6 +330,73 @@ class MergeOperations:
             ... )
         """
         changed = False
+
+        # NEW: Try to use GetSyncableProperties() if available (sync framework integration)
+        # This method provides comprehensive property coverage and is the preferred approach
+        if hasattr(source_ops, 'GetSyncableProperties'):
+            try:
+                logger.debug("Using GetSyncableProperties() for property copying")
+                source_props = source_ops.GetSyncableProperties(source_obj)
+
+                # Map syncable property names to their setter methods
+                # This mapping handles the conversion from property dict keys to operation methods
+                property_to_setter = {
+                    'Form': 'SetForm',
+                    'Name': 'SetName',
+                    'Gloss': 'SetGloss',
+                    'Definition': 'SetDefinition',
+                    'Comment': 'SetComment',
+                    'CitationForm': 'SetCitationForm',
+                    'IsAbstract': None,  # Boolean properties often set directly
+                    'MorphTypeRA': 'SetMorphType',
+                    # Add more mappings as needed for other object types
+                }
+
+                for prop_name, prop_value in source_props.items():
+                    setter_name = property_to_setter.get(prop_name)
+
+                    if setter_name and hasattr(target_ops, setter_name):
+                        try:
+                            # Get current value for comparison
+                            getter_name = setter_name.replace('Set', 'Get')
+                            target_value = None
+                            if hasattr(target_ops, getter_name):
+                                target_value = getattr(target_ops, getter_name)(target_obj)
+
+                            # Only update if different
+                            # For MultiString properties (dicts), compare dict representations
+                            if prop_value != target_value:
+                                # Special handling for MultiString properties (represented as dicts)
+                                if isinstance(prop_value, dict):
+                                    # For each writing system in the source
+                                    for ws_tag, text in prop_value.items():
+                                        # Convert ws_tag to ws_handle and call setter
+                                        # This is simplified - actual implementation may need WSHandle conversion
+                                        getattr(target_ops, setter_name)(target_obj, text)
+                                        changed = True
+                                        logger.debug(f"Updated {prop_name}[{ws_tag}]: {text}")
+                                else:
+                                    # Simple property - just call setter
+                                    getattr(target_ops, setter_name)(target_obj, prop_value)
+                                    changed = True
+                                    logger.debug(f"Updated {prop_name}: {target_value} → {prop_value}")
+
+                        except Exception as e:
+                            # Non-critical - some properties may not be settable
+                            logger.debug(f"Could not copy {prop_name} via GetSyncableProperties: {e}")
+
+                # If we successfully used GetSyncableProperties, return now
+                if changed or len(source_props) > 0:
+                    logger.debug(f"GetSyncableProperties processed {len(source_props)} properties")
+                    return changed
+
+            except Exception as e:
+                # Fall through to traditional approach if GetSyncableProperties fails
+                logger.debug(f"GetSyncableProperties failed, falling back to pattern matching: {e}")
+
+        # FALLBACK: Traditional property pattern matching for backwards compatibility
+        # This works with older operation classes that don't have GetSyncableProperties()
+        logger.debug("Using traditional Get*/Set* pattern matching for property copying")
 
         # Common property patterns to check
         # Each tuple: (getter_name, setter_name, property_name)

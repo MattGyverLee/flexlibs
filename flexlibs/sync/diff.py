@@ -593,13 +593,48 @@ class DiffEngine:
         Returns:
             (is_modified, details_dict)
         """
-        # Phase 1: Basic comparison
-        # More sophisticated comparison in later phases
-
         details = {}
         is_modified = False
 
-        # Compare common properties based on object type
+        # Try to use CompareTo() method if available (sync framework integration)
+        # CompareTo() provides detailed property-level comparison using GetSyncableProperties()
+        if hasattr(source_ops, 'CompareTo'):
+            try:
+                # Call CompareTo with both operation instances for cross-project comparison
+                # Returns: (is_different, differences_dict) where differences_dict maps
+                # property names to (value1, value2) tuples
+                is_different, differences = source_ops.CompareTo(
+                    source_obj,
+                    target_obj,
+                    ops1=source_ops,
+                    ops2=target_ops
+                )
+
+                if is_different:
+                    is_modified = True
+                    # Convert differences format from (val1, val2) to "val1 → val2" for display
+                    for prop, (val1, val2) in differences.items():
+                        # Format MultiString dicts and other values appropriately
+                        if isinstance(val1, dict) and isinstance(val2, dict):
+                            # MultiString comparison - show which writing systems differ
+                            all_ws = set(val1.keys()) | set(val2.keys())
+                            diff_ws = [ws for ws in all_ws if val1.get(ws) != val2.get(ws)]
+                            if diff_ws:
+                                details[prop] = f"Changed in {len(diff_ws)} writing system(s)"
+                        else:
+                            details[prop] = f"{val2} → {val1}"
+
+                # Return early if CompareTo() succeeded
+                return is_modified, details
+
+            except Exception as e:
+                # Log error but fall through to basic comparison
+                logger.debug(f"CompareTo() failed, falling back to basic comparison: {e}")
+
+        # Fallback: Basic comparison for classes without CompareTo()
+        # This preserves backwards compatibility with operation classes that
+        # haven't implemented the sync framework methods yet
+
         # Try form comparison (for Allomorphs, etc.)
         if hasattr(source_ops, 'GetForm'):
             try:

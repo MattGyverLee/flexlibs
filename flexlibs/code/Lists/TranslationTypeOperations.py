@@ -368,6 +368,88 @@ class TranslationTypeOperations(BaseOperations):
         return duplicate
 
 
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """
+        Get syncable properties for cross-project synchronization.
+
+        Returns all syncable properties of a translation type including MultiString fields.
+
+        Args:
+            item: The ICmPossibility object (translation type)
+
+        Returns:
+            dict: Dictionary of syncable properties
+
+        Example:
+            >>> props = project.TranslationType.GetSyncableProperties(trans_type)
+            >>> print(props)
+            {'Name': 'Free Translation', 'Abbreviation': 'ft'}
+        """
+        if not item:
+            raise FP_NullParameterError()
+
+        trans_type = self.__ResolveObject(item)
+        wsHandle = self.project.project.DefaultAnalWs
+
+        props = {}
+
+        # MultiString properties
+        props['Name'] = ITsString(trans_type.Name.get_String(wsHandle)).Text or ""
+        props['Abbreviation'] = ITsString(trans_type.Abbreviation.get_String(wsHandle)).Text or ""
+
+        return props
+
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """
+        Compare two translation types and return detailed differences.
+
+        Args:
+            item1: First translation type (from source project)
+            item2: Second translation type (from target project)
+            ops1: Operations instance for item1's project (defaults to self)
+            ops2: Operations instance for item2's project (defaults to self)
+
+        Returns:
+            tuple: (is_different, differences_dict) where differences_dict contains
+                   'properties' dict with changed property details
+
+        Example:
+            >>> is_diff, diffs = ops1.CompareTo(type1, type2, ops1, ops2)
+            >>> if is_diff:
+            ...     for prop, details in diffs['properties'].items():
+            ...         print(f"{prop}: {details['source']} -> {details['target']}")
+        """
+        if ops1 is None:
+            ops1 = self
+        if ops2 is None:
+            ops2 = self
+
+        is_different = False
+        differences = {'properties': {}}
+
+        # Get syncable properties from both items
+        props1 = ops1.GetSyncableProperties(item1)
+        props2 = ops2.GetSyncableProperties(item2)
+
+        # Compare each property
+        for key in set(props1.keys()) | set(props2.keys()):
+            val1 = props1.get(key)
+            val2 = props2.get(key)
+
+            if val1 != val2:
+                is_different = True
+                differences['properties'][key] = {
+                    'source': val1,
+                    'target': val2,
+                    'type': 'modified'
+                }
+
+        return is_different, differences
+
+
     def Find(self, name):
         """
         Find a translation type by name.

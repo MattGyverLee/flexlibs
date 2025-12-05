@@ -1120,6 +1120,108 @@ class SemanticDomainOperations(BaseOperations):
         return duplicate
 
 
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """
+        Get all syncable properties of a semantic domain for comparison.
+
+        Args:
+            item: The ICmSemanticDomain object.
+
+        Returns:
+            dict: Dictionary mapping property names to their values.
+        """
+        props = {}
+
+        # MultiString properties
+        # Name - domain name
+        name_dict = {}
+        if hasattr(item, 'Name'):
+            for ws_handle in self.project.GetAllWritingSystems():
+                text = ITsString(item.Name.get_String(ws_handle)).Text
+                if text:
+                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
+                    name_dict[ws_tag] = text
+        props['Name'] = name_dict
+
+        # Description - domain description
+        description_dict = {}
+        if hasattr(item, 'Description'):
+            for ws_handle in self.project.GetAllWritingSystems():
+                text = ITsString(item.Description.get_String(ws_handle)).Text
+                if text:
+                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
+                    description_dict[ws_tag] = text
+        props['Description'] = description_dict
+
+        # Abbreviation - domain number
+        abbreviation_dict = {}
+        if hasattr(item, 'Abbreviation'):
+            for ws_handle in self.project.GetAllWritingSystems():
+                text = ITsString(item.Abbreviation.get_String(ws_handle)).Text
+                if text:
+                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
+                    abbreviation_dict[ws_tag] = text
+        props['Abbreviation'] = abbreviation_dict
+
+        # Questions - elicitation questions
+        questions_dict = {}
+        if hasattr(item, 'Questions'):
+            for ws_handle in self.project.GetAllWritingSystems():
+                text = ITsString(item.Questions.get_String(ws_handle)).Text
+                if text:
+                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
+                    questions_dict[ws_tag] = text
+        props['Questions'] = questions_dict
+
+        # OcmCodes - OCM codes
+        ocm_dict = {}
+        if hasattr(item, 'OcmCodes'):
+            for ws_handle in self.project.GetAllWritingSystems():
+                text = ITsString(item.OcmCodes.get_String(ws_handle)).Text
+                if text:
+                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
+                    ocm_dict[ws_tag] = text
+        props['OcmCodes'] = ocm_dict
+
+        # Note: SubPossibilitiesOS is an Owning Sequence (OS) - not included
+        # Note: OccurrencesRS is a Reference Sequence (complex) - not included
+
+        return props
+
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """
+        Compare two semantic domains and return their differences.
+
+        Args:
+            item1: The first ICmSemanticDomain object.
+            item2: The second ICmSemanticDomain object.
+            ops1: Optional SemanticDomainOperations instance for item1.
+            ops2: Optional SemanticDomainOperations instance for item2.
+
+        Returns:
+            tuple: (is_different, differences_dict)
+        """
+        ops1 = ops1 or self
+        ops2 = ops2 or self
+
+        props1 = ops1.GetSyncableProperties(item1)
+        props2 = ops2.GetSyncableProperties(item2)
+
+        differences = {}
+        all_keys = set(props1.keys()) | set(props2.keys())
+        for key in all_keys:
+            val1 = props1.get(key)
+            val2 = props2.get(key)
+            if val1 != val2:
+                differences[key] = (val1, val2)
+
+        is_different = len(differences) > 0
+        return is_different, differences
+
+
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, domain_or_hvo):

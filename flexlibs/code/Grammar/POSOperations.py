@@ -944,6 +944,122 @@ class POSOperations(BaseOperations):
         return pos_or_hvo
 
 
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """
+        Get dictionary of syncable properties for cross-project synchronization.
+
+        Args:
+            item: The IPartOfSpeech object.
+
+        Returns:
+            dict: Dictionary mapping property names to their values.
+                Keys are property names, values are the property values.
+
+        Example:
+            >>> posOps = POSOperations(project)
+            >>> pos = list(posOps.GetAll())[0]
+            >>> props = posOps.GetSyncableProperties(pos)
+            >>> print(props.keys())
+            dict_keys(['Name', 'Abbreviation', 'Description', 'CatalogSourceId'])
+
+        Notes:
+            - Returns all MultiString properties (all writing systems)
+            - Returns CatalogSourceId string property
+            - Does not include SubPossibilitiesOS (subcategories)
+            - Does not include InflectionClassesOC or AffixSlotsOC
+            - Does not include GUID or HVO of the POS itself
+        """
+        pos = self.__ResolveObject(item)
+
+        # Get all writing systems for MultiString properties
+        ws_factory = self.project.project.WritingSystemFactory
+        all_ws = {ws.Id: ws.Handle for ws in ws_factory.WritingSystems}
+
+        props = {}
+
+        # MultiString properties
+        for prop_name in ['Name', 'Abbreviation', 'Description']:
+            if hasattr(pos, prop_name):
+                prop_obj = getattr(pos, prop_name)
+                ws_values = {}
+                for ws_id, ws_handle in all_ws.items():
+                    text = ITsString(prop_obj.get_String(ws_handle)).Text
+                    if text:  # Only include non-empty values
+                        ws_values[ws_id] = text
+                if ws_values:  # Only include property if it has values
+                    props[prop_name] = ws_values
+
+        # String properties
+        if hasattr(pos, 'CatalogSourceId') and pos.CatalogSourceId:
+            props['CatalogSourceId'] = pos.CatalogSourceId
+
+        return props
+
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """
+        Compare two parts of speech and return detailed differences.
+
+        Args:
+            item1: First POS to compare (from source project).
+            item2: Second POS to compare (from target project).
+            ops1: Optional POSOperations instance for item1's project.
+                 Defaults to self.
+            ops2: Optional POSOperations instance for item2's project.
+                 Defaults to self.
+
+        Returns:
+            tuple: (is_different, differences) where:
+                - is_different (bool): True if items differ
+                - differences (dict): Maps property names to (value1, value2) tuples
+
+        Example:
+            >>> pos1 = project1_posOps.Find("Noun")
+            >>> pos2 = project2_posOps.Find("Noun")
+            >>> is_diff, diffs = project1_posOps.CompareTo(
+            ...     pos1, pos2,
+            ...     ops1=project1_posOps,
+            ...     ops2=project2_posOps
+            ... )
+            >>> if is_diff:
+            ...     for prop, (val1, val2) in diffs.items():
+            ...         print(f"{prop}: {val1} -> {val2}")
+
+        Notes:
+            - Compares all MultiString properties across all writing systems
+            - Compares string properties
+            - Returns empty dict if items are identical
+            - Handles cross-project comparison via ops1/ops2
+        """
+        if ops1 is None:
+            ops1 = self
+        if ops2 is None:
+            ops2 = self
+
+        # Get syncable properties from both items
+        props1 = ops1.GetSyncableProperties(item1)
+        props2 = ops2.GetSyncableProperties(item2)
+
+        is_different = False
+        differences = {}
+
+        # Compare each property
+        all_keys = set(props1.keys()) | set(props2.keys())
+        for key in all_keys:
+            val1 = props1.get(key)
+            val2 = props2.get(key)
+
+            if val1 != val2:
+                is_different = True
+                differences[key] = (val1, val2)
+
+        return (is_different, differences)
+
+
+    # --- Private Helper Methods ---
+
     def __WSHandle(self, wsHandle):
         """
         Get writing system handle, defaulting to analysis WS.

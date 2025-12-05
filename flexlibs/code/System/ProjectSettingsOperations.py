@@ -956,3 +956,36 @@ class ProjectSettingsOperations(BaseOperations):
         raise NotImplementedError(
             "Project settings cannot be duplicated. Project settings are singleton configuration objects."
         )
+
+
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """
+        Get syncable properties - NOT IMPLEMENTED for project settings.
+
+        Project settings are configuration data unique to each project and should
+        not be synced between projects.
+
+        Raises:
+            NotImplementedError: Project settings are not syncable
+        """
+        raise NotImplementedError(
+            "Project settings cannot be synced between projects. "
+            "Settings are configuration data unique to each project."
+        )
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """
+        Compare project settings - NOT IMPLEMENTED.
+
+        Project settings are configuration data unique to each project and should
+        not be synced between projects.
+
+        Raises:
+            NotImplementedError: Project settings are not syncable
+        """
+        raise NotImplementedError(
+            "Project settings cannot be compared for sync. "
+            "Settings are configuration data unique to each project."
+        )

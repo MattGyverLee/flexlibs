@@ -1332,3 +1332,36 @@ class CustomFieldOperations(BaseOperations):
         raise NotImplementedError(
             "Custom fields cannot be duplicated. Use CreateField() to create a new field."
         )
+
+
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """
+        Get syncable properties - NOT IMPLEMENTED for custom fields.
+
+        Custom fields are project schema definitions that cannot be safely synced
+        between projects due to their structural nature.
+
+        Raises:
+            NotImplementedError: Custom fields are not syncable
+        """
+        raise NotImplementedError(
+            "Custom fields cannot be synced between projects. "
+            "Custom fields are schema definitions unique to each project."
+        )
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """
+        Compare custom fields - NOT IMPLEMENTED.
+
+        Custom fields are project schema definitions that cannot be safely synced
+        between projects due to their structural nature.
+
+        Raises:
+            NotImplementedError: Custom fields are not syncable
+        """
+        raise NotImplementedError(
+            "Custom fields cannot be compared for sync. "
+            "Custom fields are schema definitions unique to each project."
+        )

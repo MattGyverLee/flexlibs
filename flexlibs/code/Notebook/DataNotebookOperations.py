@@ -2361,6 +2361,69 @@ class DataNotebookOperations(BaseOperations):
         return duplicate
 
 
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """Get syncable properties for cross-project synchronization."""
+        if not item:
+            raise FP_NullParameterError()
+
+        record = self.__ResolveObject(item)
+        wsHandle = self.project.project.DefaultAnalWs
+
+        props = {}
+        props['Title'] = ITsString(record.Title.get_String(wsHandle)).Text or ""
+        props['Text'] = ITsString(record.Text.get_String(wsHandle)).Text or ""
+
+        if hasattr(record, 'Type') and record.Type:
+            props['Type'] = str(record.Type.Guid)
+        else:
+            props['Type'] = None
+
+        if hasattr(record, 'Status') and record.Status:
+            props['Status'] = str(record.Status.Guid)
+        else:
+            props['Status'] = None
+
+        if hasattr(record, 'Confidence') and record.Confidence:
+            props['Confidence'] = str(record.Confidence.Guid)
+        else:
+            props['Confidence'] = None
+
+        if hasattr(record, 'DateOfEvent') and record.DateOfEvent:
+            props['DateOfEvent'] = str(record.DateOfEvent)
+        else:
+            props['DateOfEvent'] = None
+
+        return props
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """Compare two notebook records and return detailed differences."""
+        if ops1 is None:
+            ops1 = self
+        if ops2 is None:
+            ops2 = self
+
+        is_different = False
+        differences = {'properties': {}}
+
+        props1 = ops1.GetSyncableProperties(item1)
+        props2 = ops2.GetSyncableProperties(item2)
+
+        for key in set(props1.keys()) | set(props2.keys()):
+            val1 = props1.get(key)
+            val2 = props2.get(key)
+            if val1 != val2:
+                is_different = True
+                differences['properties'][key] = {
+                    'source': val1,
+                    'target': val2,
+                    'type': 'modified'
+                }
+
+        return is_different, differences
+
+
     # --- Metadata Operations ---
 
     def GetGuid(self, record_or_hvo):

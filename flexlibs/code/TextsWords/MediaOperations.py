@@ -369,6 +369,95 @@ class MediaOperations(BaseOperations):
 
         return new_media
 
+
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """
+        Get all syncable properties of a media file.
+
+        Args:
+            item: The ICmFile object.
+
+        Returns:
+            dict: Dictionary of syncable properties with their values.
+
+        Example:
+            >>> props = project.Media.GetSyncableProperties(media)
+            >>> print(props['InternalPath'])
+            'LinkedFiles/AudioVisual/audio.wav'
+            >>> print(props['Description'])
+            {'en': 'Speaker 1 recording'}
+
+        Notes:
+            - InternalPath is a string property
+            - Description is a MultiString property (dict with WS keys)
+            - Does NOT include file content or metadata
+        """
+        props = {}
+
+        # String property - InternalPath
+        if hasattr(item, 'InternalPath') and item.InternalPath:
+            props['InternalPath'] = item.InternalPath
+
+        # MultiString property - Description
+        if hasattr(item, 'Description') and item.Description:
+            props['Description'] = self.project.GetMultiStringDict(item.Description)
+
+        return props
+
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """
+        Compare two media files for differences.
+
+        Args:
+            item1: First media object (from project 1)
+            item2: Second media object (from project 2)
+            ops1: Optional MediaOperations instance for project 1 (defaults to self)
+            ops2: Optional MediaOperations instance for project 2 (defaults to self)
+
+        Returns:
+            tuple: (is_different, differences_dict)
+                - is_different (bool): True if media files differ, False if identical
+                - differences_dict (dict): Maps property names to (value1, value2) tuples
+
+        Example:
+            >>> is_diff, diffs = ops1.CompareTo(media1, media2, ops1, ops2)
+            >>> if is_diff:
+            ...     for prop, (val1, val2) in diffs.items():
+            ...         print(f"{prop}: {val1} != {val2}")
+
+        Notes:
+            - Compares InternalPath and Description
+            - MultiStrings are compared across all writing systems
+            - Empty/null values are treated as equivalent
+        """
+        if ops1 is None:
+            ops1 = self
+        if ops2 is None:
+            ops2 = self
+
+        props1 = ops1.GetSyncableProperties(item1)
+        props2 = ops2.GetSyncableProperties(item2)
+
+        differences = {}
+
+        # Get all property keys from both items
+        all_keys = set(props1.keys()) | set(props2.keys())
+
+        for key in all_keys:
+            val1 = props1.get(key)
+            val2 = props2.get(key)
+
+            # Compare values
+            if self.project._CompareValues(val1, val2):
+                # Values are different
+                differences[key] = (val1, val2)
+
+        is_different = len(differences) > 0
+        return (is_different, differences)
+
     def Find(self, filename):
         """
         Find a media file by its filename (internal path).

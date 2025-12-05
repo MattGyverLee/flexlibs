@@ -1044,6 +1044,122 @@ class PhonemeOperations(BaseOperations):
         return code_or_hvo
 
 
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """
+        Get dictionary of syncable properties for cross-project synchronization.
+
+        Args:
+            item: The IPhPhoneme object.
+
+        Returns:
+            dict: Dictionary mapping property names to their values.
+                Keys are property names, values are the property values.
+
+        Example:
+            >>> phonemeOps = PhonemeOperations(project)
+            >>> phoneme = list(phonemeOps.GetAll())[0]
+            >>> props = phonemeOps.GetSyncableProperties(phoneme)
+            >>> print(props.keys())
+            dict_keys(['Name', 'Description', 'BasicIPASymbol', 'FeaturesGuid'])
+
+        Notes:
+            - Returns all MultiString properties (all writing systems)
+            - Returns FeaturesGuid as string (GUID of referenced feature structure)
+            - Does not include CodesOS (owned allophonic codes)
+            - Does not include GUID or HVO of the phoneme itself
+        """
+        phoneme = self.__GetPhonemeObject(item)
+
+        # Get all writing systems for MultiString properties
+        ws_factory = self.project.project.WritingSystemFactory
+        all_ws = {ws.Id: ws.Handle for ws in ws_factory.WritingSystems}
+
+        props = {}
+
+        # MultiString properties (Name = representation)
+        for prop_name in ['Name', 'Description', 'BasicIPASymbol']:
+            if hasattr(phoneme, prop_name):
+                prop_obj = getattr(phoneme, prop_name)
+                if prop_obj:  # Check if property exists
+                    ws_values = {}
+                    for ws_id, ws_handle in all_ws.items():
+                        text = ITsString(prop_obj.get_String(ws_handle)).Text
+                        if text:  # Only include non-empty values
+                            ws_values[ws_id] = text
+                    if ws_values:  # Only include property if it has values
+                        props[prop_name] = ws_values
+
+        # Reference Atomic (RA) properties - return GUID as string
+        if hasattr(phoneme, 'FeaturesOA') and phoneme.FeaturesOA:
+            props['FeaturesGuid'] = str(phoneme.FeaturesOA.Guid)
+
+        return props
+
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """
+        Compare two phonemes and return detailed differences.
+
+        Args:
+            item1: First phoneme to compare (from source project).
+            item2: Second phoneme to compare (from target project).
+            ops1: Optional PhonemeOperations instance for item1's project.
+                 Defaults to self.
+            ops2: Optional PhonemeOperations instance for item2's project.
+                 Defaults to self.
+
+        Returns:
+            tuple: (is_different, differences) where:
+                - is_different (bool): True if items differ
+                - differences (dict): Maps property names to (value1, value2) tuples
+
+        Example:
+            >>> phoneme1 = project1_phonemeOps.Find("/p/")
+            >>> phoneme2 = project2_phonemeOps.Find("/p/")
+            >>> is_diff, diffs = project1_phonemeOps.CompareTo(
+            ...     phoneme1, phoneme2,
+            ...     ops1=project1_phonemeOps,
+            ...     ops2=project2_phonemeOps
+            ... )
+            >>> if is_diff:
+            ...     for prop, (val1, val2) in diffs.items():
+            ...         print(f"{prop}: {val1} -> {val2}")
+
+        Notes:
+            - Compares all MultiString properties across all writing systems
+            - Compares feature structure reference by GUID
+            - Returns empty dict if items are identical
+            - Handles cross-project comparison via ops1/ops2
+        """
+        if ops1 is None:
+            ops1 = self
+        if ops2 is None:
+            ops2 = self
+
+        # Get syncable properties from both items
+        props1 = ops1.GetSyncableProperties(item1)
+        props2 = ops2.GetSyncableProperties(item2)
+
+        is_different = False
+        differences = {}
+
+        # Compare each property
+        all_keys = set(props1.keys()) | set(props2.keys())
+        for key in all_keys:
+            val1 = props1.get(key)
+            val2 = props2.get(key)
+
+            if val1 != val2:
+                is_different = True
+                differences[key] = (val1, val2)
+
+        return (is_different, differences)
+
+
+    # --- Private Helper Methods ---
+
     def __WSHandle(self, wsHandle):
         """
         Get writing system handle, defaulting to vernacular WS for phoneme representations.

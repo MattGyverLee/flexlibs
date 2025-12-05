@@ -329,6 +329,108 @@ class WfiMorphBundleOperations(BaseOperations):
         return duplicate
 
 
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """
+        Get all syncable properties of a morpheme bundle.
+
+        Args:
+            item: The IWfiMorphBundle object.
+
+        Returns:
+            dict: Dictionary of syncable properties with their values.
+
+        Example:
+            >>> props = project.MorphBundles.GetSyncableProperties(bundle)
+            >>> print(props['Form'])
+            {'en': 'run'}
+            >>> print(props['Gloss'])
+            {'en': 'run'}
+            >>> print(props['SenseRA'])
+            'abc123...'  # GUID of linked sense
+
+        Notes:
+            - MultiString properties: Form, Gloss
+            - Reference Atomic properties: SenseRA, MsaRA, MorphRA, InflClassRA (GUIDs)
+        """
+        props = {}
+
+        # MultiString properties
+        if hasattr(item, 'Form') and item.Form:
+            props['Form'] = self.project.GetMultiStringDict(item.Form)
+
+        if hasattr(item, 'Gloss') and item.Gloss:
+            props['Gloss'] = self.project.GetMultiStringDict(item.Gloss)
+
+        # Reference Atomic properties (return GUIDs)
+        if hasattr(item, 'SenseRA') and item.SenseRA:
+            props['SenseRA'] = str(item.SenseRA.Guid)
+
+        if hasattr(item, 'MsaRA') and item.MsaRA:
+            props['MsaRA'] = str(item.MsaRA.Guid)
+
+        if hasattr(item, 'MorphRA') and item.MorphRA:
+            props['MorphRA'] = str(item.MorphRA.Guid)
+
+        if hasattr(item, 'InflClassRA') and item.InflClassRA:
+            props['InflClassRA'] = str(item.InflClassRA.Guid)
+
+        return props
+
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """
+        Compare two morpheme bundles for differences.
+
+        Args:
+            item1: First bundle object (from project 1)
+            item2: Second bundle object (from project 2)
+            ops1: Optional WfiMorphBundleOperations instance for project 1 (defaults to self)
+            ops2: Optional WfiMorphBundleOperations instance for project 2 (defaults to self)
+
+        Returns:
+            tuple: (is_different, differences_dict)
+                - is_different (bool): True if bundles differ, False if identical
+                - differences_dict (dict): Maps property names to (value1, value2) tuples
+
+        Example:
+            >>> is_diff, diffs = ops1.CompareTo(bundle1, bundle2, ops1, ops2)
+            >>> if is_diff:
+            ...     for prop, (val1, val2) in diffs.items():
+            ...         print(f"{prop}: {val1} != {val2}")
+
+        Notes:
+            - Compares Form and Gloss MultiStrings
+            - Compares reference properties by GUID
+            - Empty/null values are treated as equivalent
+        """
+        if ops1 is None:
+            ops1 = self
+        if ops2 is None:
+            ops2 = self
+
+        props1 = ops1.GetSyncableProperties(item1)
+        props2 = ops2.GetSyncableProperties(item2)
+
+        differences = {}
+
+        # Get all property keys from both items
+        all_keys = set(props1.keys()) | set(props2.keys())
+
+        for key in all_keys:
+            val1 = props1.get(key)
+            val2 = props2.get(key)
+
+            # Compare values
+            if self.project._CompareValues(val1, val2):
+                # Values are different
+                differences[key] = (val1, val2)
+
+        is_different = len(differences) > 0
+        return (is_different, differences)
+
+
     def Reorder(self, analysis_or_hvo, bundle_list):
         """
         Reorder morph bundles within an analysis.

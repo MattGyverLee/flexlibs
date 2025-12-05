@@ -1126,3 +1126,88 @@ class DiscourseOperations(BaseOperations):
                 # For now, we create empty rows
 
         return duplicate
+
+
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """
+        Get all syncable properties of a discourse chart.
+
+        Args:
+            item: The chart object (IConstChart or IDsChart).
+
+        Returns:
+            dict: Dictionary of syncable properties with their values.
+                Keys are property names, values are the property values.
+
+        Example:
+            >>> props = discourse_ops.GetSyncableProperties(chart)
+            >>> print(props['Name'])
+            {'en': 'Main Chart'}
+
+        Notes:
+            - MultiString properties are returned as dicts with WS keys
+            - Reference Atomic properties return GUID strings
+            - Does NOT include owned sequences (rows, cells) - those are children
+        """
+        props = {}
+
+        # MultiString properties
+        if hasattr(item, 'Name') and item.Name:
+            props['Name'] = self.project.GetMultiStringDict(item.Name)
+
+        return props
+
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """
+        Compare two discourse charts for differences.
+
+        Args:
+            item1: First chart object (from project 1)
+            item2: Second chart object (from project 2)
+            ops1: Optional DiscourseOperations instance for project 1 (defaults to self)
+            ops2: Optional DiscourseOperations instance for project 2 (defaults to self)
+
+        Returns:
+            tuple: (is_different, differences_dict)
+                - is_different (bool): True if charts differ, False if identical
+                - differences_dict (dict): Maps property names to (value1, value2) tuples
+                    for properties that differ
+
+        Example:
+            >>> is_diff, diffs = ops1.CompareTo(chart1, chart2, ops1, ops2)
+            >>> if is_diff:
+            ...     for prop, (val1, val2) in diffs.items():
+            ...         print(f"{prop}: {val1} != {val2}")
+
+        Notes:
+            - Compares all syncable properties
+            - MultiStrings are compared across all writing systems
+            - Empty/null values are treated as equivalent
+        """
+        if ops1 is None:
+            ops1 = self
+        if ops2 is None:
+            ops2 = self
+
+        props1 = ops1.GetSyncableProperties(item1)
+        props2 = ops2.GetSyncableProperties(item2)
+
+        differences = {}
+
+        # Get all property keys from both items
+        all_keys = set(props1.keys()) | set(props2.keys())
+
+        for key in all_keys:
+            val1 = props1.get(key)
+            val2 = props2.get(key)
+
+            # Compare values
+            if self.project._CompareValues(val1, val2):
+                # Values are different
+                differences[key] = (val1, val2)
+
+        is_different = len(differences) > 0
+        return (is_different, differences)

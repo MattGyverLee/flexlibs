@@ -209,6 +209,87 @@ class WfiGlossOperations(BaseOperations):
 
         return new_gloss
 
+
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """
+        Get all syncable properties of a wordform gloss.
+
+        Args:
+            item: The IWfiGloss object.
+
+        Returns:
+            dict: Dictionary of syncable properties with their values.
+
+        Example:
+            >>> props = project.WfiGlosses.GetSyncableProperties(gloss)
+            >>> print(props['Form'])
+            {'en': 'running', 'es': 'corriendo'}
+
+        Notes:
+            - MultiString property: Form
+            - Form contains gloss text in multiple writing systems
+        """
+        props = {}
+
+        # MultiString property - Form
+        if hasattr(item, 'Form') and item.Form:
+            props['Form'] = self.project.GetMultiStringDict(item.Form)
+
+        return props
+
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """
+        Compare two wordform glosses for differences.
+
+        Args:
+            item1: First gloss object (from project 1)
+            item2: Second gloss object (from project 2)
+            ops1: Optional WfiGlossOperations instance for project 1 (defaults to self)
+            ops2: Optional WfiGlossOperations instance for project 2 (defaults to self)
+
+        Returns:
+            tuple: (is_different, differences_dict)
+                - is_different (bool): True if glosses differ, False if identical
+                - differences_dict (dict): Maps property names to (value1, value2) tuples
+
+        Example:
+            >>> is_diff, diffs = ops1.CompareTo(gloss1, gloss2, ops1, ops2)
+            >>> if is_diff:
+            ...     for prop, (val1, val2) in diffs.items():
+            ...         print(f"{prop}: {val1} != {val2}")
+
+        Notes:
+            - Compares Form MultiString across all writing systems
+            - Empty/null values are treated as equivalent
+        """
+        if ops1 is None:
+            ops1 = self
+        if ops2 is None:
+            ops2 = self
+
+        props1 = ops1.GetSyncableProperties(item1)
+        props2 = ops2.GetSyncableProperties(item2)
+
+        differences = {}
+
+        # Get all property keys from both items
+        all_keys = set(props1.keys()) | set(props2.keys())
+
+        for key in all_keys:
+            val1 = props1.get(key)
+            val2 = props2.get(key)
+
+            # Compare values
+            if self.project._CompareValues(val1, val2):
+                # Values are different
+                differences[key] = (val1, val2)
+
+        is_different = len(differences) > 0
+        return (is_different, differences)
+
     def Delete(self, gloss_or_hvo):
         """
         Delete a gloss from its owning analysis.

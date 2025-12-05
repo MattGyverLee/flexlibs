@@ -683,6 +683,258 @@ class BaseOperations:
         return True
 
 
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """
+        Get dictionary of syncable properties for cross-project synchronization.
+
+        This method is OPTIONAL for sync framework integration. Subclasses that
+        want to support the sync framework (flexlibs.sync) should implement this
+        method to specify which properties can be safely synchronized between
+        projects.
+
+        The sync framework uses this method to:
+        - Extract property values for comparison (DiffEngine)
+        - Build property-level diffs showing what changed
+        - Enable selective merging of individual properties (MergeOperations)
+        - Support conflict resolution in multi-way syncs
+
+        Args:
+            item: The FLEx object to extract properties from.
+
+        Returns:
+            dict: Property names mapped to their values. Keys should be property
+                  names (strings), values should be JSON-serializable when possible.
+                  For complex FLEx objects (MultiString, etc.), return appropriate
+                  representations.
+
+        Raises:
+            NotImplementedError: If subclass doesn't implement sync support.
+
+        Example Implementation (in LexSenseOperations):
+            >>> def GetSyncableProperties(self, sense):
+            ...     '''Get syncable properties from a sense.'''
+            ...     return {
+            ...         'Gloss': self.GetGloss(sense),
+            ...         'Definition': self.GetDefinition(sense),
+            ...         'PartOfSpeech': self.GetPartOfSpeech(sense),
+            ...         'SemanticDomains': self.GetSemanticDomains(sense),
+            ...         'ExampleCount': sense.ExamplesOS.Count,
+            ...         # Note: Don't include order-dependent items in properties
+            ...         # The sync framework handles OS sequences separately
+            ...     }
+
+        Example Usage (by sync framework):
+            >>> from flexlibs.sync import DiffEngine
+            >>>
+            >>> # Compare senses between two projects
+            >>> props1 = project1.Senses.GetSyncableProperties(sense1)
+            >>> props2 = project2.Senses.GetSyncableProperties(sense2)
+            >>>
+            >>> diff_engine = DiffEngine()
+            >>> is_different, differences = diff_engine.CompareProperties(
+            ...     props1, props2
+            ... )
+            >>>
+            >>> if is_different:
+            ...     print(f"Properties changed: {list(differences.keys())}")
+            ...     for prop, (old_val, new_val) in differences.items():
+            ...         print(f"  {prop}: {old_val} -> {new_val}")
+
+        Notes:
+            - Return only properties that make sense to sync (not GUIDs, HVOs)
+            - Don't include computed properties that depend on context
+            - Don't include owning sequences (OS) - sync framework handles those
+            - Return None or empty string for missing/empty properties
+            - Complex objects: return string representations or dicts
+            - This method is optional - subclasses that don't implement it
+              simply won't support property-level sync
+
+        What to Include:
+            - Text fields (gloss, definition, notes)
+            - References (part of speech, semantic domains)
+            - Simple flags/enums (morpheme type, status)
+            - Counts (for validation)
+
+        What to Exclude:
+            - GUIDs (sync framework uses these for matching)
+            - HVOs (project-specific IDs)
+            - Owner references (implicit in structure)
+            - Owning sequences (handled separately by sync framework)
+            - DateCreated/DateModified (use merge strategy instead)
+
+        Sync Framework Integration:
+            Used by: flexlibs.sync.DiffEngine.CompareItems()
+            Used by: flexlibs.sync.MergeOperations.MergeProperties()
+            See also: CompareTo() for full item comparison
+
+        See Also:
+            CompareTo, flexlibs.sync.DiffEngine, flexlibs.sync.MergeOperations
+        """
+        raise NotImplementedError(
+            f"{self.__class__.__name__} does not implement GetSyncableProperties(). "
+            "This method is OPTIONAL for sync framework integration. "
+            "Implement it if you want to enable property-level synchronization "
+            "for this item type. See flexlibs.sync documentation for details."
+        )
+
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """
+        Compare two items and return detailed differences.
+
+        This method is OPTIONAL for sync framework integration. Subclasses that
+        want to support the sync framework (flexlibs.sync) should implement this
+        method to enable intelligent comparison and merging between projects.
+
+        The sync framework uses this method to:
+        - Detect if two items (matched by GUID) have diverged
+        - Generate detailed diff reports showing what changed
+        - Support conflict detection in multi-way merges
+        - Enable selective merge operations
+
+        Args:
+            item1: First item to compare (from source project).
+            item2: Second item to compare (from target project).
+            ops1: Optional. Operations instance for item1's project.
+                  If None, uses self (assumes items from same project).
+            ops2: Optional. Operations instance for item2's project.
+                  If None, uses self (assumes items from same project).
+
+        Returns:
+            tuple: (is_different, differences) where:
+                - is_different (bool): True if items differ in any way
+                - differences (dict): Detailed differences with structure:
+                    {
+                        'properties': {
+                            'PropertyName': {
+                                'source': value_in_item1,
+                                'target': value_in_item2,
+                                'type': 'modified'|'added'|'removed'
+                            },
+                            ...
+                        },
+                        'children': {
+                            'ChildSequenceName': {
+                                'added': [guid1, guid2, ...],
+                                'removed': [guid3, guid4, ...],
+                                'modified': [guid5, guid6, ...]
+                            },
+                            ...
+                        }
+                    }
+
+        Raises:
+            NotImplementedError: If subclass doesn't implement sync support.
+
+        Example Implementation (in LexSenseOperations):
+            >>> def CompareTo(self, sense1, sense2, ops1=None, ops2=None):
+            ...     '''Compare two senses for differences.'''
+            ...     if ops1 is None:
+            ...         ops1 = self
+            ...     if ops2 is None:
+            ...         ops2 = self
+            ...
+            ...     is_different = False
+            ...     differences = {'properties': {}, 'children': {}}
+            ...
+            ...     # Compare properties
+            ...     props1 = ops1.GetSyncableProperties(sense1)
+            ...     props2 = ops2.GetSyncableProperties(sense2)
+            ...
+            ...     for key in set(props1.keys()) | set(props2.keys()):
+            ...         val1 = props1.get(key)
+            ...         val2 = props2.get(key)
+            ...         if val1 != val2:
+            ...             is_different = True
+            ...             differences['properties'][key] = {
+            ...                 'source': val1,
+            ...                 'target': val2,
+            ...                 'type': 'modified'
+            ...             }
+            ...
+            ...     # Compare child sequences (examples)
+            ...     guids1 = {ex.Guid for ex in sense1.ExamplesOS}
+            ...     guids2 = {ex.Guid for ex in sense2.ExamplesOS}
+            ...
+            ...     added = guids2 - guids1
+            ...     removed = guids1 - guids2
+            ...
+            ...     if added or removed:
+            ...         is_different = True
+            ...         differences['children']['Examples'] = {
+            ...             'added': list(added),
+            ...             'removed': list(removed),
+            ...             'modified': []
+            ...         }
+            ...
+            ...     return is_different, differences
+
+        Example Usage (by sync framework):
+            >>> from flexlibs.sync import DiffEngine
+            >>>
+            >>> # Find matching senses by GUID in two projects
+            >>> sense1 = project1.Senses.FindByGuid(guid)
+            >>> sense2 = project2.Senses.FindByGuid(guid)
+            >>>
+            >>> # Compare them
+            >>> is_diff, diffs = project1.Senses.CompareTo(
+            ...     sense1, sense2,
+            ...     ops1=project1.Senses,
+            ...     ops2=project2.Senses
+            ... )
+            >>>
+            >>> if is_diff:
+            ...     print("Sense has diverged between projects:")
+            ...     for prop, details in diffs['properties'].items():
+            ...         print(f"  {prop}: {details['source']} -> {details['target']}")
+            ...
+            ...     for child_name, child_diffs in diffs['children'].items():
+            ...         if child_diffs['added']:
+            ...             print(f"  {child_name} added: {len(child_diffs['added'])}")
+            ...         if child_diffs['removed']:
+            ...             print(f"  {child_name} removed: {len(child_diffs['removed'])}")
+
+        Notes:
+            - Compare items by content, not identity (different objects, same data)
+            - Use GetSyncableProperties() for property comparison
+            - Compare child sequences by GUID (not position or count alone)
+            - Return empty differences dict if items are identical
+            - This method is optional - subclasses that don't implement it
+              simply won't support detailed diff/merge operations
+
+        Comparison Strategy:
+            1. Extract properties using GetSyncableProperties()
+            2. Compare property values (use appropriate equality for types)
+            3. Compare child sequences by GUID membership
+            4. Optionally recurse to compare child content (use ops1/ops2)
+            5. Build structured differences dict
+
+        Cross-Project Comparison:
+            - ops1/ops2 allow comparing items from different projects
+            - Each ops instance knows how to extract properties from its project
+            - Handles differences in project structure gracefully
+            - Use GUID for matching children across projects
+
+        Sync Framework Integration:
+            Used by: flexlibs.sync.DiffEngine.GenerateDiff()
+            Used by: flexlibs.sync.MergeOperations.DetectConflicts()
+            See also: GetSyncableProperties() for property extraction
+
+        See Also:
+            GetSyncableProperties, flexlibs.sync.DiffEngine,
+            flexlibs.sync.MergeOperations
+        """
+        raise NotImplementedError(
+            f"{self.__class__.__name__} does not implement CompareTo(). "
+            "This method is OPTIONAL for sync framework integration. "
+            "Implement it if you want to enable detailed comparison and "
+            "conflict detection for this item type. See flexlibs.sync "
+            "documentation for details."
+        )
+
+
     # ========== HELPER METHODS ==========
 
     def _GetSequence(self, parent):

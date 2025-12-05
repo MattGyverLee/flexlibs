@@ -353,6 +353,75 @@ class PronunciationOperations(BaseOperations):
         return duplicate
 
 
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """
+        Get all syncable properties of a pronunciation for comparison.
+
+        Args:
+            item: The ILexPronunciation object.
+
+        Returns:
+            dict: Dictionary mapping property names to their values.
+        """
+        props = {}
+
+        # MultiString properties
+        # Form - the pronunciation form (typically IPA)
+        form_dict = {}
+        if hasattr(item, 'Form'):
+            for ws_handle in self.project.GetAllWritingSystems():
+                from SIL.LCModel.Core.KernelInterfaces import ITsString
+                text = ITsString(item.Form.get_String(ws_handle)).Text
+                if text:
+                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
+                    form_dict[ws_tag] = text
+        props['Form'] = form_dict
+
+        # Reference Atomic (RA) properties
+        # LocationRA - CV pattern location
+        if hasattr(item, 'LocationRA') and item.LocationRA:
+            props['LocationRA'] = str(item.LocationRA.Guid)
+        else:
+            props['LocationRA'] = None
+
+        # Note: MediaFilesOS is an Owning Sequence (OS) - not included
+
+        return props
+
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """
+        Compare two pronunciations and return their differences.
+
+        Args:
+            item1: The first ILexPronunciation object.
+            item2: The second ILexPronunciation object.
+            ops1: Optional PronunciationOperations instance for item1.
+            ops2: Optional PronunciationOperations instance for item2.
+
+        Returns:
+            tuple: (is_different, differences_dict)
+        """
+        ops1 = ops1 or self
+        ops2 = ops2 or self
+
+        props1 = ops1.GetSyncableProperties(item1)
+        props2 = ops2.GetSyncableProperties(item2)
+
+        differences = {}
+        all_keys = set(props1.keys()) | set(props2.keys())
+        for key in all_keys:
+            val1 = props1.get(key)
+            val2 = props2.get(key)
+            if val1 != val2:
+                differences[key] = (val1, val2)
+
+        is_different = len(differences) > 0
+        return is_different, differences
+
+
     def Reorder(self, entry_or_hvo, pronunciation_list):
         """
         Reorder pronunciations for a lexical entry.

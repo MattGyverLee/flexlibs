@@ -249,6 +249,88 @@ class WfiAnalysisOperations(BaseOperations):
 
         return new_analysis
 
+
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """
+        Get all syncable properties of a wordform analysis.
+
+        Args:
+            item: The IWfiAnalysis object.
+
+        Returns:
+            dict: Dictionary of syncable properties with their values.
+
+        Example:
+            >>> props = project.WfiAnalyses.GetSyncableProperties(analysis)
+            >>> print(props['CategoryRA'])
+            'abc123...'  # GUID of the category (POS)
+
+        Notes:
+            - Reference Atomic property: CategoryRA (returns GUID string)
+            - Does NOT include owned collections (glosses, morph bundles) - those are children
+            - Does NOT include approval status (metadata)
+        """
+        props = {}
+
+        # Reference Atomic property - CategoryRA (Part of Speech)
+        if hasattr(item, 'CategoryRA') and item.CategoryRA:
+            props['CategoryRA'] = str(item.CategoryRA.Guid)
+
+        return props
+
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """
+        Compare two wordform analyses for differences.
+
+        Args:
+            item1: First analysis object (from project 1)
+            item2: Second analysis object (from project 2)
+            ops1: Optional WfiAnalysisOperations instance for project 1 (defaults to self)
+            ops2: Optional WfiAnalysisOperations instance for project 2 (defaults to self)
+
+        Returns:
+            tuple: (is_different, differences_dict)
+                - is_different (bool): True if analyses differ, False if identical
+                - differences_dict (dict): Maps property names to (value1, value2) tuples
+
+        Example:
+            >>> is_diff, diffs = ops1.CompareTo(analysis1, analysis2, ops1, ops2)
+            >>> if is_diff:
+            ...     for prop, (val1, val2) in diffs.items():
+            ...         print(f"{prop}: {val1} != {val2}")
+
+        Notes:
+            - Compares CategoryRA (POS) by GUID
+            - Empty/null values are treated as equivalent
+        """
+        if ops1 is None:
+            ops1 = self
+        if ops2 is None:
+            ops2 = self
+
+        props1 = ops1.GetSyncableProperties(item1)
+        props2 = ops2.GetSyncableProperties(item2)
+
+        differences = {}
+
+        # Get all property keys from both items
+        all_keys = set(props1.keys()) | set(props2.keys())
+
+        for key in all_keys:
+            val1 = props1.get(key)
+            val2 = props2.get(key)
+
+            # Compare values
+            if self.project._CompareValues(val1, val2):
+                # Values are different
+                differences[key] = (val1, val2)
+
+        is_different = len(differences) > 0
+        return (is_different, differences)
+
     def Delete(self, analysis_or_hvo):
         """
         Delete an analysis from its owning wordform.

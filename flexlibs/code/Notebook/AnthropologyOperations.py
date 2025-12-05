@@ -1798,6 +1798,60 @@ class AnthropologyOperations(BaseOperations):
         return duplicate
 
 
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """Get syncable properties for cross-project synchronization."""
+        if not item:
+            raise FP_NullParameterError()
+
+        anthro_item = self.__ResolveObject(item)
+        wsHandle = self.project.project.DefaultAnalWs
+
+        props = {}
+        props['Name'] = ITsString(anthro_item.Name.get_String(wsHandle)).Text or ""
+        props['Abbreviation'] = ITsString(anthro_item.Abbreviation.get_String(wsHandle)).Text or ""
+        props['Description'] = ITsString(anthro_item.Description.get_String(wsHandle)).Text or ""
+
+        if hasattr(anthro_item, 'AnthroCode') and anthro_item.AnthroCode:
+            props['AnthroCode'] = anthro_item.AnthroCode
+        else:
+            props['AnthroCode'] = None
+
+        if hasattr(anthro_item, 'CategoryRA') and anthro_item.CategoryRA:
+            props['Category'] = str(anthro_item.CategoryRA.Guid)
+        else:
+            props['Category'] = None
+
+        return props
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """Compare two anthropology items and return detailed differences."""
+        if ops1 is None:
+            ops1 = self
+        if ops2 is None:
+            ops2 = self
+
+        is_different = False
+        differences = {'properties': {}}
+
+        props1 = ops1.GetSyncableProperties(item1)
+        props2 = ops2.GetSyncableProperties(item2)
+
+        for key in set(props1.keys()) | set(props2.keys()):
+            val1 = props1.get(key)
+            val2 = props2.get(key)
+            if val1 != val2:
+                is_different = True
+                differences['properties'][key] = {
+                    'source': val1,
+                    'target': val2,
+                    'type': 'modified'
+                }
+
+        return is_different, differences
+
+
     # --- Metadata Operations ---
 
     def GetGuid(self, item_or_hvo):

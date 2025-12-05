@@ -1040,3 +1040,36 @@ class WritingSystemOperations(BaseOperations):
         raise NotImplementedError(
             "Writing systems cannot be duplicated. Use Create() to create a new writing system."
         )
+
+
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """
+        Get syncable properties - NOT IMPLEMENTED for writing systems.
+
+        Writing systems are linguistic configuration unique to each project and
+        should not be synced between projects.
+
+        Raises:
+            NotImplementedError: Writing systems are not syncable
+        """
+        raise NotImplementedError(
+            "Writing systems cannot be synced between projects. "
+            "Writing systems are linguistic configuration unique to each project."
+        )
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """
+        Compare writing systems - NOT IMPLEMENTED.
+
+        Writing systems are linguistic configuration unique to each project and
+        should not be synced between projects.
+
+        Raises:
+            NotImplementedError: Writing systems are not syncable
+        """
+        raise NotImplementedError(
+            "Writing systems cannot be compared for sync. "
+            "Writing systems are linguistic configuration unique to each project."
+        )

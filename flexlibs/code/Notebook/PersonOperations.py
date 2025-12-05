@@ -1103,6 +1103,117 @@ class PersonOperations(BaseOperations):
         return duplicate
 
 
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """
+        Get syncable properties for cross-project synchronization.
+
+        Returns all syncable properties of a person including MultiString fields
+        and reference collections (as GUIDs).
+
+        Args:
+            item: The ICmPerson object
+
+        Returns:
+            dict: Dictionary of syncable properties
+
+        Example:
+            >>> props = project.Person.GetSyncableProperties(person)
+            >>> print(props)
+            {'Name': 'John Smith', 'Gender': 'Male', 'Email': 'john@...', ...}
+        """
+        if not item:
+            raise FP_NullParameterError()
+
+        person = self.__ResolveObject(item)
+        wsHandle = self.project.project.DefaultAnalWs
+
+        props = {}
+
+        # MultiString properties
+        props['Name'] = ITsString(person.Name.get_String(wsHandle)).Text or ""
+        props['Gender'] = ITsString(person.Gender.get_String(wsHandle)).Text or ""
+        props['Email'] = ITsString(person.Email.get_String(wsHandle)).Text or ""
+        props['Abbreviation'] = ITsString(person.Abbreviation.get_String(wsHandle)).Text or ""  # Address
+        props['Description'] = ITsString(person.Description.get_String(wsHandle)).Text or ""     # Education
+        props['Comment'] = ITsString(person.Comment.get_String(wsHandle)).Text or ""             # Notes
+        props['PlaceOfBirth'] = ITsString(person.PlaceOfBirth.get_String(wsHandle)).Text or ""  # Phone
+
+        # GenDate field
+        if hasattr(person, 'DateOfBirth') and person.DateOfBirth:
+            props['DateOfBirth'] = str(person.DateOfBirth)
+        else:
+            props['DateOfBirth'] = None
+
+        # Reference Collection (RC) properties - return GUIDs as strings
+        if hasattr(person, 'PositionsRC'):
+            props['Positions'] = [str(pos.Guid) for pos in person.PositionsRC]
+        if hasattr(person, 'PlacesOfResidenceRC'):
+            props['PlacesOfResidence'] = [str(place.Guid) for place in person.PlacesOfResidenceRC]
+        if hasattr(person, 'LanguagesRC'):
+            props['Languages'] = [str(lang.Guid) for lang in person.LanguagesRC]
+
+        return props
+
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """
+        Compare two persons and return detailed differences.
+
+        Args:
+            item1: First person (from source project)
+            item2: Second person (from target project)
+            ops1: Operations instance for item1's project (defaults to self)
+            ops2: Operations instance for item2's project (defaults to self)
+
+        Returns:
+            tuple: (is_different, differences_dict) where differences_dict contains
+                   'properties' dict with changed property details
+
+        Example:
+            >>> is_diff, diffs = ops1.CompareTo(person1, person2, ops1, ops2)
+            >>> if is_diff:
+            ...     for prop, details in diffs['properties'].items():
+            ...         print(f"{prop}: {details['source']} -> {details['target']}")
+        """
+        if ops1 is None:
+            ops1 = self
+        if ops2 is None:
+            ops2 = self
+
+        is_different = False
+        differences = {'properties': {}}
+
+        # Get syncable properties from both items
+        props1 = ops1.GetSyncableProperties(item1)
+        props2 = ops2.GetSyncableProperties(item2)
+
+        # Compare each property
+        for key in set(props1.keys()) | set(props2.keys()):
+            val1 = props1.get(key)
+            val2 = props2.get(key)
+
+            # Handle list comparisons (for RC properties)
+            if isinstance(val1, list) and isinstance(val2, list):
+                if set(val1) != set(val2):
+                    is_different = True
+                    differences['properties'][key] = {
+                        'source': val1,
+                        'target': val2,
+                        'type': 'modified'
+                    }
+            elif val1 != val2:
+                is_different = True
+                differences['properties'][key] = {
+                    'source': val1,
+                    'target': val2,
+                    'type': 'modified'
+                }
+
+        return is_different, differences
+
+
     # --- Metadata ---
 
     def GetGuid(self, person_or_hvo):

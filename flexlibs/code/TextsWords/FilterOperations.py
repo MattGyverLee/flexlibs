@@ -1322,3 +1322,99 @@ class FilterOperations:
         self._filter_cache[filter_guid] = duplicate
 
         return duplicate
+
+
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """
+        Get all syncable properties of a filter.
+
+        Args:
+            item: The filter dict object.
+
+        Returns:
+            dict: Dictionary of syncable properties with their values.
+
+        Example:
+            >>> props = project.Filter.GetSyncableProperties(filter_obj)
+            >>> print(props['name'])
+            'Verbs'
+            >>> print(props['filter_type'])
+            'LexEntry'
+
+        Notes:
+            - Filters are dict-based, not LCM objects
+            - Returns name, filter_type, and criteria
+            - Does NOT include guid, date_created, date_modified (metadata)
+        """
+        props = {}
+
+        # String properties
+        if 'name' in item:
+            props['name'] = item['name']
+
+        if 'filter_type' in item:
+            props['filter_type'] = item['filter_type']
+
+        # Dict property
+        if 'criteria' in item:
+            props['criteria'] = item['criteria']
+
+        return props
+
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """
+        Compare two filters for differences.
+
+        Args:
+            item1: First filter dict object (from project 1)
+            item2: Second filter dict object (from project 2)
+            ops1: Optional FilterOperations instance for project 1 (defaults to self)
+            ops2: Optional FilterOperations instance for project 2 (defaults to self)
+
+        Returns:
+            tuple: (is_different, differences_dict)
+                - is_different (bool): True if filters differ, False if identical
+                - differences_dict (dict): Maps property names to (value1, value2) tuples
+
+        Example:
+            >>> is_diff, diffs = ops1.CompareTo(filter1, filter2, ops1, ops2)
+            >>> if is_diff:
+            ...     for prop, (val1, val2) in diffs.items():
+            ...         print(f"{prop}: {val1} != {val2}")
+
+        Notes:
+            - Compares name, filter_type, and criteria
+            - Empty/null values are treated as equivalent
+        """
+        if ops1 is None:
+            ops1 = self
+        if ops2 is None:
+            ops2 = self
+
+        props1 = ops1.GetSyncableProperties(item1)
+        props2 = ops2.GetSyncableProperties(item2)
+
+        differences = {}
+
+        # Get all property keys from both items
+        all_keys = set(props1.keys()) | set(props2.keys())
+
+        for key in all_keys:
+            val1 = props1.get(key)
+            val2 = props2.get(key)
+
+            # Compare values (handle dicts specially for criteria)
+            if key == 'criteria':
+                # Deep comparison for criteria dict
+                if val1 != val2:
+                    differences[key] = (val1, val2)
+            else:
+                # Simple comparison for strings
+                if val1 != val2:
+                    differences[key] = (val1, val2)
+
+        is_different = len(differences) > 0
+        return (is_different, differences)

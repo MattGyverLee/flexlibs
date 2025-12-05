@@ -1317,6 +1317,84 @@ class LexReferenceOperations(BaseOperations):
         return components
 
 
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """
+        Get all syncable properties of a lexical reference for comparison.
+
+        Args:
+            item: The ILexReference object.
+
+        Returns:
+            dict: Dictionary mapping property names to their values.
+        """
+        props = {}
+
+        # MultiString properties
+        # Name - optional name of the relationship
+        name_dict = {}
+        if hasattr(item, 'Name'):
+            for ws_handle in self.project.GetAllWritingSystems():
+                from SIL.LCModel.Core.KernelInterfaces import ITsString
+                text = ITsString(item.Name.get_String(ws_handle)).Text
+                if text:
+                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
+                    name_dict[ws_tag] = text
+        props['Name'] = name_dict
+
+        # Comment - additional notes
+        comment_dict = {}
+        if hasattr(item, 'Comment'):
+            for ws_handle in self.project.GetAllWritingSystems():
+                from SIL.LCModel.Core.KernelInterfaces import ITsString
+                text = ITsString(item.Comment.get_String(ws_handle)).Text
+                if text:
+                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
+                    comment_dict[ws_tag] = text
+        props['Comment'] = comment_dict
+
+        # Reference Atomic (RA) properties
+        # ReferenceTypeRA - the type of reference relationship
+        if hasattr(item, 'ReferenceTypeRA') and item.ReferenceTypeRA:
+            props['ReferenceTypeRA'] = str(item.ReferenceTypeRA.Guid)
+        else:
+            props['ReferenceTypeRA'] = None
+
+        return props
+
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """
+        Compare two lexical references and return their differences.
+
+        Args:
+            item1: The first ILexReference object.
+            item2: The second ILexReference object.
+            ops1: Optional LexReferenceOperations instance for item1.
+            ops2: Optional LexReferenceOperations instance for item2.
+
+        Returns:
+            tuple: (is_different, differences_dict)
+        """
+        ops1 = ops1 or self
+        ops2 = ops2 or self
+
+        props1 = ops1.GetSyncableProperties(item1)
+        props2 = ops2.GetSyncableProperties(item2)
+
+        differences = {}
+        all_keys = set(props1.keys()) | set(props2.keys())
+        for key in all_keys:
+            val1 = props1.get(key)
+            val2 = props2.get(key)
+            if val1 != val2:
+                differences[key] = (val1, val2)
+
+        is_different = len(differences) > 0
+        return is_different, differences
+
+
     # --- Private Helper Methods ---
 
     def __ResolveRefType(self, ref_type_or_hvo):

@@ -586,6 +586,71 @@ class VariantOperations(BaseOperations):
         return duplicate
 
 
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """
+        Get all syncable properties of a variant reference for comparison.
+
+        Args:
+            item: The ILexEntryRef object.
+
+        Returns:
+            dict: Dictionary mapping property names to their values.
+        """
+        props = {}
+
+        # Atomic properties
+        # RefType - type of reference (0 = Variant, 1 = Complex Form)
+        if hasattr(item, 'RefType'):
+            props['RefType'] = item.RefType
+
+        # HideMinorEntry - whether to hide minor entry
+        if hasattr(item, 'HideMinorEntry'):
+            props['HideMinorEntry'] = item.HideMinorEntry
+
+        # ShowComplexFormsIn - flags for showing complex forms
+        if hasattr(item, 'ShowComplexFormsIn'):
+            props['ShowComplexFormsIn'] = item.ShowComplexFormsIn
+
+        # Note: The variant form itself is stored on the owning entry's LexemeFormOA
+        # Note: VariantEntryTypesRS is a Reference Sequence (complex relationships) - not included as simple property
+        # Note: ComponentLexemesRS is a Reference Sequence (complex relationships) - not included as simple property
+
+        return props
+
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """
+        Compare two variant references and return their differences.
+
+        Args:
+            item1: The first ILexEntryRef object.
+            item2: The second ILexEntryRef object.
+            ops1: Optional VariantOperations instance for item1.
+            ops2: Optional VariantOperations instance for item2.
+
+        Returns:
+            tuple: (is_different, differences_dict)
+        """
+        ops1 = ops1 or self
+        ops2 = ops2 or self
+
+        props1 = ops1.GetSyncableProperties(item1)
+        props2 = ops2.GetSyncableProperties(item2)
+
+        differences = {}
+        all_keys = set(props1.keys()) | set(props2.keys())
+        for key in all_keys:
+            val1 = props1.get(key)
+            val2 = props2.get(key)
+            if val1 != val2:
+                differences[key] = (val1, val2)
+
+        is_different = len(differences) > 0
+        return is_different, differences
+
+
     def GetForm(self, variant_or_hvo, wsHandle=None):
         """
         Get the form of a variant.

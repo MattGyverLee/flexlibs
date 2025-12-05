@@ -477,6 +477,99 @@ class OverlayOperations(BaseOperations):
         return duplicate
 
 
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """
+        Get syncable properties for cross-project synchronization.
+
+        Returns all syncable properties of an overlay including MultiString fields
+        and boolean/atomic properties.
+
+        Args:
+            item: The overlay object (ICmPossibility or similar)
+
+        Returns:
+            dict: Dictionary of syncable properties
+
+        Example:
+            >>> props = overlay_ops.GetSyncableProperties(overlay)
+            >>> print(props)
+            {'Name': 'Participants', 'Description': '...', 'Hidden': False, 'SortSpec': 0}
+        """
+        if not item:
+            raise FP_NullParameterError()
+
+        overlay = self.__GetOverlayObject(item)
+        wsHandle = self.__WSHandle(None)
+
+        props = {}
+
+        # MultiString properties
+        if hasattr(overlay, 'Name'):
+            props['Name'] = ITsString(overlay.Name.get_String(wsHandle)).Text or ""
+        if hasattr(overlay, 'Description'):
+            props['Description'] = ITsString(overlay.Description.get_String(wsHandle)).Text or ""
+        if hasattr(overlay, 'Abbreviation'):
+            props['Abbreviation'] = ITsString(overlay.Abbreviation.get_String(wsHandle)).Text or ""
+
+        # Atomic properties
+        if hasattr(overlay, 'Hidden'):
+            props['Hidden'] = bool(overlay.Hidden)
+        if hasattr(overlay, 'SortSpec'):
+            props['SortSpec'] = int(overlay.SortSpec) if overlay.SortSpec else 0
+
+        return props
+
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """
+        Compare two overlays and return detailed differences.
+
+        Args:
+            item1: First overlay (from source project)
+            item2: Second overlay (from target project)
+            ops1: Operations instance for item1's project (defaults to self)
+            ops2: Operations instance for item2's project (defaults to self)
+
+        Returns:
+            tuple: (is_different, differences_dict) where differences_dict contains
+                   'properties' dict with changed property details
+
+        Example:
+            >>> is_diff, diffs = ops1.CompareTo(overlay1, overlay2, ops1, ops2)
+            >>> if is_diff:
+            ...     for prop, details in diffs['properties'].items():
+            ...         print(f"{prop}: {details['source']} -> {details['target']}")
+        """
+        if ops1 is None:
+            ops1 = self
+        if ops2 is None:
+            ops2 = self
+
+        is_different = False
+        differences = {'properties': {}}
+
+        # Get syncable properties from both items
+        props1 = ops1.GetSyncableProperties(item1)
+        props2 = ops2.GetSyncableProperties(item2)
+
+        # Compare each property
+        for key in set(props1.keys()) | set(props2.keys()):
+            val1 = props1.get(key)
+            val2 = props2.get(key)
+
+            if val1 != val2:
+                is_different = True
+                differences['properties'][key] = {
+                    'source': val1,
+                    'target': val2,
+                    'type': 'modified'
+                }
+
+        return is_different, differences
+
+
     def Find(self, chart_or_hvo, name):
         """
         Find an overlay by name within a chart.

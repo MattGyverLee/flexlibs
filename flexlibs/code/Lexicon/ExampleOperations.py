@@ -346,6 +346,80 @@ class ExampleOperations(BaseOperations):
         return duplicate
 
 
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """
+        Get all syncable properties of an example sentence for comparison.
+
+        Args:
+            item: The ILexExampleSentence object.
+
+        Returns:
+            dict: Dictionary mapping property names to their values:
+                - MultiString properties as dicts {ws: text}
+                - Atomic properties as simple values
+                - Does NOT include Owning Sequence (OS) properties (translations)
+        """
+        props = {}
+
+        # MultiString properties
+        # Example - the example sentence in various writing systems
+        example_dict = {}
+        if hasattr(item, 'Example'):
+            for ws_handle in self.project.GetAllWritingSystems():
+                from SIL.LCModel.Core.KernelInterfaces import ITsString
+                text = ITsString(item.Example.get_String(ws_handle)).Text
+                if text:
+                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
+                    example_dict[ws_tag] = text
+        props['Example'] = example_dict
+
+        # Reference - bibliographic reference (MultiString)
+        reference_dict = {}
+        if hasattr(item, 'Reference'):
+            for ws_handle in self.project.GetAllWritingSystems():
+                from SIL.LCModel.Core.KernelInterfaces import ITsString
+                text = ITsString(item.Reference.get_String(ws_handle)).Text
+                if text:
+                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
+                    reference_dict[ws_tag] = text
+        props['Reference'] = reference_dict
+
+        return props
+
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """
+        Compare two example sentences and return their differences.
+
+        Args:
+            item1: The first ILexExampleSentence object.
+            item2: The second ILexExampleSentence object.
+            ops1: Optional ExampleOperations instance for item1.
+            ops2: Optional ExampleOperations instance for item2.
+
+        Returns:
+            tuple: (is_different, differences_dict)
+        """
+        ops1 = ops1 or self
+        ops2 = ops2 or self
+
+        props1 = ops1.GetSyncableProperties(item1)
+        props2 = ops2.GetSyncableProperties(item2)
+
+        differences = {}
+        all_keys = set(props1.keys()) | set(props2.keys())
+        for key in all_keys:
+            val1 = props1.get(key)
+            val2 = props2.get(key)
+            if val1 != val2:
+                differences[key] = (val1, val2)
+
+        is_different = len(differences) > 0
+        return is_different, differences
+
+
     def Reorder(self, sense_or_hvo, example_list):
         """
         Reorder the examples for a sense.

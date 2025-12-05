@@ -1435,3 +1435,45 @@ class CheckOperations(BaseOperations):
                 self.Duplicate(sub, insert_after=False, deep=True)
 
         return duplicate
+
+
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """Get syncable properties for cross-project synchronization."""
+        check_obj = self.__GetCheckObject(item)
+        wsHandle = self.__WSHandle(None)
+
+        props = {}
+        props['Name'] = ITsString(check_obj.Name.get_String(wsHandle)).Text or ""
+        if hasattr(check_obj, 'Description') and check_obj.Description:
+            props['Description'] = ITsString(check_obj.Description.get_String(wsHandle)).Text or ""
+
+        return props
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """Compare two checks and return detailed differences."""
+        if ops1 is None:
+            ops1 = self
+        if ops2 is None:
+            ops2 = self
+
+        is_different = False
+        differences = {'properties': {}}
+
+        props1 = ops1.GetSyncableProperties(item1)
+        props2 = ops2.GetSyncableProperties(item2)
+
+        for key in set(props1.keys()) | set(props2.keys()):
+            val1 = props1.get(key)
+            val2 = props2.get(key)
+            if val1 != val2:
+                is_different = True
+                differences['properties'][key] = {
+                    'source': val1,
+                    'target': val2,
+                    'type': 'modified'
+                }
+
+        return is_different, differences
+

@@ -658,3 +658,126 @@ class NaturalClassOperations(BaseOperations):
 
         # Remove the phoneme
         nc.SegmentsRC.Remove(phoneme)
+
+
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """
+        Get dictionary of syncable properties for cross-project synchronization.
+
+        Args:
+            item: The IPhNaturalClass object.
+
+        Returns:
+            dict: Dictionary mapping property names to their values.
+                Keys are property names, values are the property values.
+
+        Example:
+            >>> ncOps = NaturalClassOperations(project)
+            >>> nc = list(ncOps.GetAll())[0]
+            >>> props = ncOps.GetSyncableProperties(nc)
+            >>> print(props.keys())
+            dict_keys(['Name', 'Abbreviation', 'Description', 'PhonemeGuids'])
+
+        Notes:
+            - Returns all MultiString properties (all writing systems)
+            - Returns PhonemeGuids as list of GUID strings (SegmentsRC members)
+            - Does not include GUID or HVO of the natural class itself
+        """
+        nc = self.__GetNaturalClassObject(item)
+
+        # Get all writing systems for MultiString properties
+        ws_factory = self.project.project.WritingSystemFactory
+        all_ws = {ws.Id: ws.Handle for ws in ws_factory.WritingSystems}
+
+        props = {}
+
+        # MultiString properties
+        for prop_name in ['Name', 'Abbreviation', 'Description']:
+            if hasattr(nc, prop_name):
+                prop_obj = getattr(nc, prop_name)
+                ws_values = {}
+                for ws_id, ws_handle in all_ws.items():
+                    text = ITsString(prop_obj.get_String(ws_handle)).Text
+                    if text:  # Only include non-empty values
+                        ws_values[ws_id] = text
+                if ws_values:  # Only include property if it has values
+                    props[prop_name] = ws_values
+
+        # Reference Collection (RC) properties - return list of GUIDs
+        if hasattr(nc, 'SegmentsRC'):
+            phoneme_guids = [str(phoneme.Guid) for phoneme in nc.SegmentsRC]
+            if phoneme_guids:
+                props['PhonemeGuids'] = phoneme_guids
+
+        return props
+
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """
+        Compare two natural classes and return detailed differences.
+
+        Args:
+            item1: First natural class to compare (from source project).
+            item2: Second natural class to compare (from target project).
+            ops1: Optional NaturalClassOperations instance for item1's project.
+                 Defaults to self.
+            ops2: Optional NaturalClassOperations instance for item2's project.
+                 Defaults to self.
+
+        Returns:
+            tuple: (is_different, differences) where:
+                - is_different (bool): True if items differ
+                - differences (dict): Maps property names to (value1, value2) tuples
+
+        Example:
+            >>> nc1 = project1_ncOps.Find("Voiceless Stops")
+            >>> nc2 = project2_ncOps.Find("Voiceless Stops")
+            >>> is_diff, diffs = project1_ncOps.CompareTo(
+            ...     nc1, nc2,
+            ...     ops1=project1_ncOps,
+            ...     ops2=project2_ncOps
+            ... )
+            >>> if is_diff:
+            ...     for prop, (val1, val2) in diffs.items():
+            ...         print(f"{prop}: {val1} -> {val2}")
+
+        Notes:
+            - Compares all MultiString properties across all writing systems
+            - Compares phoneme membership by GUID
+            - Returns empty dict if items are identical
+            - Handles cross-project comparison via ops1/ops2
+        """
+        if ops1 is None:
+            ops1 = self
+        if ops2 is None:
+            ops2 = self
+
+        # Get syncable properties from both items
+        props1 = ops1.GetSyncableProperties(item1)
+        props2 = ops2.GetSyncableProperties(item2)
+
+        is_different = False
+        differences = {}
+
+        # Compare each property
+        all_keys = set(props1.keys()) | set(props2.keys())
+        for key in all_keys:
+            val1 = props1.get(key)
+            val2 = props2.get(key)
+
+            # For PhonemeGuids, compare as sets (order doesn't matter)
+            if key == 'PhonemeGuids':
+                set1 = set(val1) if val1 else set()
+                set2 = set(val2) if val2 else set()
+                if set1 != set2:
+                    is_different = True
+                    differences[key] = (val1, val2)
+            else:
+                # For other properties, direct comparison
+                if val1 != val2:
+                    is_different = True
+                    differences[key] = (val1, val2)
+
+        return (is_different, differences)

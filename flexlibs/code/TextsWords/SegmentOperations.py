@@ -664,6 +664,111 @@ class SegmentOperations(BaseOperations):
 
         return new_segment
 
+
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """
+        Get all syncable properties of a segment.
+
+        Args:
+            item: The ISegment object.
+
+        Returns:
+            dict: Dictionary of syncable properties with their values.
+
+        Example:
+            >>> props = project.Segments.GetSyncableProperties(segment)
+            >>> print(props['BaselineText'])
+            {'en': 'In the beginning...'}
+            >>> print(props['IsLabel'])
+            False
+            >>> print(props['BeginOffset'])
+            0
+
+        Notes:
+            - MultiString properties: BaselineText, FreeTranslation, LiteralTranslation
+            - Boolean property: IsLabel
+            - Integer properties: BeginOffset, EndOffset
+            - Does NOT include analyses (those are children)
+        """
+        props = {}
+
+        # MultiString properties
+        if hasattr(item, 'BaselineText') and item.BaselineText:
+            props['BaselineText'] = self.project.GetMultiStringDict(item.BaselineText)
+
+        if hasattr(item, 'FreeTranslation') and item.FreeTranslation:
+            props['FreeTranslation'] = self.project.GetMultiStringDict(item.FreeTranslation)
+
+        if hasattr(item, 'LiteralTranslation') and item.LiteralTranslation:
+            props['LiteralTranslation'] = self.project.GetMultiStringDict(item.LiteralTranslation)
+
+        # Boolean property
+        if hasattr(item, 'IsLabel'):
+            props['IsLabel'] = bool(item.IsLabel)
+
+        # Integer properties
+        if hasattr(item, 'BeginOffset'):
+            props['BeginOffset'] = int(item.BeginOffset)
+
+        if hasattr(item, 'EndOffset'):
+            props['EndOffset'] = int(item.EndOffset)
+
+        return props
+
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """
+        Compare two segments for differences.
+
+        Args:
+            item1: First segment object (from project 1)
+            item2: Second segment object (from project 2)
+            ops1: Optional SegmentOperations instance for project 1 (defaults to self)
+            ops2: Optional SegmentOperations instance for project 2 (defaults to self)
+
+        Returns:
+            tuple: (is_different, differences_dict)
+                - is_different (bool): True if segments differ, False if identical
+                - differences_dict (dict): Maps property names to (value1, value2) tuples
+
+        Example:
+            >>> is_diff, diffs = ops1.CompareTo(seg1, seg2, ops1, ops2)
+            >>> if is_diff:
+            ...     for prop, (val1, val2) in diffs.items():
+            ...         print(f"{prop}: {val1} != {val2}")
+
+        Notes:
+            - Compares all syncable properties
+            - MultiStrings are compared across all writing systems
+            - Empty/null values are treated as equivalent
+        """
+        if ops1 is None:
+            ops1 = self
+        if ops2 is None:
+            ops2 = self
+
+        props1 = ops1.GetSyncableProperties(item1)
+        props2 = ops2.GetSyncableProperties(item2)
+
+        differences = {}
+
+        # Get all property keys from both items
+        all_keys = set(props1.keys()) | set(props2.keys())
+
+        for key in all_keys:
+            val1 = props1.get(key)
+            val2 = props2.get(key)
+
+            # Compare values
+            if self.project._CompareValues(val1, val2):
+                # Values are different
+                differences[key] = (val1, val2)
+
+        is_different = len(differences) > 0
+        return (is_different, differences)
+
     def Exists(self, paragraph_or_hvo, segment_or_hvo):
         """
         Check if a segment exists in a paragraph.

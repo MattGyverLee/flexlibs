@@ -1318,6 +1318,74 @@ class LocationOperations(BaseOperations):
         return duplicate
 
 
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """
+        Get syncable properties for cross-project synchronization.
+
+        Args:
+            item: The ICmLocation object
+
+        Returns:
+            dict: Dictionary of syncable properties
+        """
+        if not item:
+            raise FP_NullParameterError()
+
+        location = self.__ResolveObject(item)
+        wsHandle = self.project.project.DefaultAnalWs
+
+        props = {}
+        props['Name'] = ITsString(location.Name.get_String(wsHandle)).Text or ""
+        props['Abbreviation'] = ITsString(location.Abbreviation.get_String(wsHandle)).Text or ""
+        if hasattr(location, 'Description'):
+            props['Description'] = ITsString(location.Description.get_String(wsHandle)).Text or ""
+
+        coords = self.GetCoordinates(location)
+        props['Coordinates'] = coords if coords else None
+        props['Elevation'] = self.GetElevation(location)
+
+        return props
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """
+        Compare two locations and return detailed differences.
+
+        Args:
+            item1: First location
+            item2: Second location
+            ops1: Operations for item1's project (defaults to self)
+            ops2: Operations for item2's project (defaults to self)
+
+        Returns:
+            tuple: (is_different, differences_dict)
+        """
+        if ops1 is None:
+            ops1 = self
+        if ops2 is None:
+            ops2 = self
+
+        is_different = False
+        differences = {'properties': {}}
+
+        props1 = ops1.GetSyncableProperties(item1)
+        props2 = ops2.GetSyncableProperties(item2)
+
+        for key in set(props1.keys()) | set(props2.keys()):
+            val1 = props1.get(key)
+            val2 = props2.get(key)
+            if val1 != val2:
+                is_different = True
+                differences['properties'][key] = {
+                    'source': val1,
+                    'target': val2,
+                    'type': 'modified'
+                }
+
+        return is_different, differences
+
+
     # --- Metadata Operations ---
 
     def GetGuid(self, location_or_hvo):

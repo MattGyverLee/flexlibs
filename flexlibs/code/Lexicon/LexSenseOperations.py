@@ -389,6 +389,205 @@ class LexSenseOperations(BaseOperations):
         return duplicate
 
 
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """
+        Get all syncable properties of a lexical sense for comparison.
+
+        Args:
+            item: The ILexSense object.
+
+        Returns:
+            dict: Dictionary mapping property names to their values.
+        """
+        props = {}
+
+        # MultiString properties
+        # Gloss - short definition
+        gloss_dict = {}
+        if hasattr(item, 'Gloss'):
+            for ws_handle in self.project.GetAllWritingSystems():
+                from SIL.LCModel.Core.KernelInterfaces import ITsString
+                text = ITsString(item.Gloss.get_String(ws_handle)).Text
+                if text:
+                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
+                    gloss_dict[ws_tag] = text
+        props['Gloss'] = gloss_dict
+
+        # Definition - longer definition
+        definition_dict = {}
+        if hasattr(item, 'Definition'):
+            for ws_handle in self.project.GetAllWritingSystems():
+                from SIL.LCModel.Core.KernelInterfaces import ITsString
+                text = ITsString(item.Definition.get_String(ws_handle)).Text
+                if text:
+                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
+                    definition_dict[ws_tag] = text
+        props['Definition'] = definition_dict
+
+        # DiscourseNote - discourse function notes
+        discourse_dict = {}
+        if hasattr(item, 'DiscourseNote'):
+            for ws_handle in self.project.GetAllWritingSystems():
+                from SIL.LCModel.Core.KernelInterfaces import ITsString
+                text = ITsString(item.DiscourseNote.get_String(ws_handle)).Text
+                if text:
+                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
+                    discourse_dict[ws_tag] = text
+        props['DiscourseNote'] = discourse_dict
+
+        # EncyclopedicInfo - encyclopedic information
+        encyclo_dict = {}
+        if hasattr(item, 'EncyclopedicInfo'):
+            for ws_handle in self.project.GetAllWritingSystems():
+                from SIL.LCModel.Core.KernelInterfaces import ITsString
+                text = ITsString(item.EncyclopedicInfo.get_String(ws_handle)).Text
+                if text:
+                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
+                    encyclo_dict[ws_tag] = text
+        props['EncyclopedicInfo'] = encyclo_dict
+
+        # GeneralNote - general notes
+        general_dict = {}
+        if hasattr(item, 'GeneralNote'):
+            for ws_handle in self.project.GetAllWritingSystems():
+                from SIL.LCModel.Core.KernelInterfaces import ITsString
+                text = ITsString(item.GeneralNote.get_String(ws_handle)).Text
+                if text:
+                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
+                    general_dict[ws_tag] = text
+        props['GeneralNote'] = general_dict
+
+        # GrammarNote - grammatical notes
+        grammar_dict = {}
+        if hasattr(item, 'GrammarNote'):
+            for ws_handle in self.project.GetAllWritingSystems():
+                from SIL.LCModel.Core.KernelInterfaces import ITsString
+                text = ITsString(item.GrammarNote.get_String(ws_handle)).Text
+                if text:
+                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
+                    grammar_dict[ws_tag] = text
+        props['GrammarNote'] = grammar_dict
+
+        # PhonologyNote - phonology notes
+        phonology_dict = {}
+        if hasattr(item, 'PhonologyNote'):
+            for ws_handle in self.project.GetAllWritingSystems():
+                from SIL.LCModel.Core.KernelInterfaces import ITsString
+                text = ITsString(item.PhonologyNote.get_String(ws_handle)).Text
+                if text:
+                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
+                    phonology_dict[ws_tag] = text
+        props['PhonologyNote'] = phonology_dict
+
+        # SemanticsNote - semantics notes
+        semantics_dict = {}
+        if hasattr(item, 'SemanticsNote'):
+            for ws_handle in self.project.GetAllWritingSystems():
+                from SIL.LCModel.Core.KernelInterfaces import ITsString
+                text = ITsString(item.SemanticsNote.get_String(ws_handle)).Text
+                if text:
+                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
+                    semantics_dict[ws_tag] = text
+        props['SemanticsNote'] = semantics_dict
+
+        # SocioLinguisticsNote - sociolinguistics notes
+        socio_dict = {}
+        if hasattr(item, 'SocioLinguisticsNote'):
+            for ws_handle in self.project.GetAllWritingSystems():
+                from SIL.LCModel.Core.KernelInterfaces import ITsString
+                text = ITsString(item.SocioLinguisticsNote.get_String(ws_handle)).Text
+                if text:
+                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
+                    socio_dict[ws_tag] = text
+        props['SocioLinguisticsNote'] = socio_dict
+
+        # Source - bibliographic source
+        source_dict = {}
+        if hasattr(item, 'Source'):
+            for ws_handle in self.project.GetAllWritingSystems():
+                from SIL.LCModel.Core.KernelInterfaces import ITsString
+                text = ITsString(item.Source.get_String(ws_handle)).Text
+                if text:
+                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
+                    source_dict[ws_tag] = text
+        props['Source'] = source_dict
+
+        # Restrictions - usage restrictions
+        restrictions_dict = {}
+        if hasattr(item, 'Restrictions'):
+            for ws_handle in self.project.GetAllWritingSystems():
+                from SIL.LCModel.Core.KernelInterfaces import ITsString
+                text = ITsString(item.Restrictions.get_String(ws_handle)).Text
+                if text:
+                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
+                    restrictions_dict[ws_tag] = text
+        props['Restrictions'] = restrictions_dict
+
+        # Bibliography - bibliographic reference
+        bibliography_dict = {}
+        if hasattr(item, 'Bibliography'):
+            for ws_handle in self.project.GetAllWritingSystems():
+                from SIL.LCModel.Core.KernelInterfaces import ITsString
+                text = ITsString(item.Bibliography.get_String(ws_handle)).Text
+                if text:
+                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
+                    bibliography_dict[ws_tag] = text
+        props['Bibliography'] = bibliography_dict
+
+        # Reference Atomic (RA) properties
+        # MorphoSyntaxAnalysisRA - grammatical info
+        if hasattr(item, 'MorphoSyntaxAnalysisRA') and item.MorphoSyntaxAnalysisRA:
+            props['MorphoSyntaxAnalysisRA'] = str(item.MorphoSyntaxAnalysisRA.Guid)
+        else:
+            props['MorphoSyntaxAnalysisRA'] = None
+
+        # StatusRA - status (e.g., confirmed, tentative)
+        if hasattr(item, 'StatusRA') and item.StatusRA:
+            props['StatusRA'] = str(item.StatusRA.Guid)
+        else:
+            props['StatusRA'] = None
+
+        # Atomic properties
+        # ImportResidue - import residue from LIFT files
+        if hasattr(item, 'ImportResidue'):
+            props['ImportResidue'] = item.ImportResidue
+
+        return props
+
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """
+        Compare two lexical senses and return their differences.
+
+        Args:
+            item1: The first ILexSense object.
+            item2: The second ILexSense object.
+            ops1: Optional LexSenseOperations instance for item1.
+            ops2: Optional LexSenseOperations instance for item2.
+
+        Returns:
+            tuple: (is_different, differences_dict)
+        """
+        ops1 = ops1 or self
+        ops2 = ops2 or self
+
+        props1 = ops1.GetSyncableProperties(item1)
+        props2 = ops2.GetSyncableProperties(item2)
+
+        differences = {}
+        all_keys = set(props1.keys()) | set(props2.keys())
+        for key in all_keys:
+            val1 = props1.get(key)
+            val2 = props2.get(key)
+            if val1 != val2:
+                differences[key] = (val1, val2)
+
+        is_different = len(differences) > 0
+        return is_different, differences
+
+
     def Reorder(self, entry_or_hvo, sense_list):
         """
         Reorder senses for a lexical entry.

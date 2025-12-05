@@ -1072,6 +1072,69 @@ class ReversalOperations(BaseOperations):
         return duplicate
 
 
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """
+        Get all syncable properties of a reversal entry for comparison.
+
+        Args:
+            item: The IReversalIndexEntry object.
+
+        Returns:
+            dict: Dictionary mapping property names to their values.
+        """
+        props = {}
+
+        # MultiString properties
+        # ReversalForm - the reversal form text
+        form_dict = {}
+        if hasattr(item, 'ReversalForm'):
+            for ws_handle in self.project.GetAllWritingSystems():
+                text = ITsString(item.ReversalForm.get_String(ws_handle)).Text
+                if text:
+                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
+                    form_dict[ws_tag] = text
+        props['ReversalForm'] = form_dict
+
+        # Note: SensesRS is a Reference Sequence (complex relationships) - not included
+        # Note: SubentriesOS is an Owning Sequence (OS) - not included
+        # Note: PartsOfSpeechRC is a Reference Collection (complex) - not included
+
+        return props
+
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """
+        Compare two reversal entries and return their differences.
+
+        Args:
+            item1: The first IReversalIndexEntry object.
+            item2: The second IReversalIndexEntry object.
+            ops1: Optional ReversalOperations instance for item1.
+            ops2: Optional ReversalOperations instance for item2.
+
+        Returns:
+            tuple: (is_different, differences_dict)
+        """
+        ops1 = ops1 or self
+        ops2 = ops2 or self
+
+        props1 = ops1.GetSyncableProperties(item1)
+        props2 = ops2.GetSyncableProperties(item2)
+
+        differences = {}
+        all_keys = set(props1.keys()) | set(props2.keys())
+        for key in all_keys:
+            val1 = props1.get(key)
+            val2 = props2.get(key)
+            if val1 != val2:
+                differences[key] = (val1, val2)
+
+        is_different = len(differences) > 0
+        return is_different, differences
+
+
     # --- Private Helper Methods ---
 
     def __WSHandleAnalysis(self, wsHandleOrTag):

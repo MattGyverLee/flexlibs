@@ -319,6 +319,113 @@ class TextOperations(BaseOperations):
 
         return new_text
 
+
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """
+        Get all syncable properties of a text.
+
+        Args:
+            item: The IText object.
+
+        Returns:
+            dict: Dictionary of syncable properties with their values.
+
+        Example:
+            >>> props = project.Texts.GetSyncableProperties(text)
+            >>> print(props['Title'])
+            {'en': 'Genesis'}
+            >>> print(props['Description'])
+            {'en': 'First book of the Bible'}
+
+        Notes:
+            - MultiString properties: Title, Description, Source
+            - DateTime properties: DateCreated, DateModified
+            - Reference Collection properties: GenresRC, MediaFilesRC (GUIDs)
+            - Does NOT include owned sequences (paragraphs) - those are children
+        """
+        props = {}
+
+        # MultiString properties
+        if hasattr(item, 'Title') and item.Title:
+            props['Title'] = self.project.GetMultiStringDict(item.Title)
+
+        if hasattr(item, 'Description') and item.Description:
+            props['Description'] = self.project.GetMultiStringDict(item.Description)
+
+        if hasattr(item, 'Source') and item.Source:
+            props['Source'] = self.project.GetMultiStringDict(item.Source)
+
+        # DateTime properties
+        if hasattr(item, 'DateCreated') and item.DateCreated:
+            props['DateCreated'] = str(item.DateCreated)
+
+        if hasattr(item, 'DateModified') and item.DateModified:
+            props['DateModified'] = str(item.DateModified)
+
+        # Reference Collection properties (return list of GUIDs)
+        if hasattr(item, 'GenresRC') and item.GenresRC:
+            props['GenresRC'] = [str(g.Guid) for g in item.GenresRC]
+
+        if hasattr(item, 'MediaFilesRC') and item.MediaFilesRC:
+            props['MediaFilesRC'] = [str(m.Guid) for m in item.MediaFilesRC]
+
+        return props
+
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """
+        Compare two texts for differences.
+
+        Args:
+            item1: First text object (from project 1)
+            item2: Second text object (from project 2)
+            ops1: Optional TextOperations instance for project 1 (defaults to self)
+            ops2: Optional TextOperations instance for project 2 (defaults to self)
+
+        Returns:
+            tuple: (is_different, differences_dict)
+                - is_different (bool): True if texts differ, False if identical
+                - differences_dict (dict): Maps property names to (value1, value2) tuples
+
+        Example:
+            >>> is_diff, diffs = ops1.CompareTo(text1, text2, ops1, ops2)
+            >>> if is_diff:
+            ...     for prop, (val1, val2) in diffs.items():
+            ...         print(f"{prop}: {val1} != {val2}")
+
+        Notes:
+            - Compares all syncable properties
+            - MultiStrings are compared across all writing systems
+            - Reference collections are compared by GUID
+            - Empty/null values are treated as equivalent
+        """
+        if ops1 is None:
+            ops1 = self
+        if ops2 is None:
+            ops2 = self
+
+        props1 = ops1.GetSyncableProperties(item1)
+        props2 = ops2.GetSyncableProperties(item2)
+
+        differences = {}
+
+        # Get all property keys from both items
+        all_keys = set(props1.keys()) | set(props2.keys())
+
+        for key in all_keys:
+            val1 = props1.get(key)
+            val2 = props2.get(key)
+
+            # Compare values
+            if self.project._CompareValues(val1, val2):
+                # Values are different
+                differences[key] = (val1, val2)
+
+        is_different = len(differences) > 0
+        return (is_different, differences)
+
     def Exists(self, name):
         """
         Check if a text with the given name exists in the project.

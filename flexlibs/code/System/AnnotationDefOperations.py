@@ -1185,6 +1185,62 @@ class AnnotationDefOperations(BaseOperations):
         return duplicate
 
 
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """Get syncable properties for cross-project synchronization."""
+        if not item:
+            raise FP_NullParameterError()
+
+        anno_def = item if not isinstance(item, int) else self.project.Object(item)
+        wsHandle = self.__WSHandle(None)
+
+        props = {}
+        props['Name'] = ITsString(anno_def.Name.get_String(wsHandle)).Text or ""
+
+        if hasattr(anno_def, 'HelpString'):
+            props['HelpString'] = ITsString(anno_def.HelpString.get_String(wsHandle)).Text or ""
+        if hasattr(anno_def, 'Prompt'):
+            props['Prompt'] = ITsString(anno_def.Prompt.get_String(wsHandle)).Text or ""
+
+        if hasattr(anno_def, 'AnnotationType'):
+            props['AnnotationType'] = int(anno_def.AnnotationType)
+        if hasattr(anno_def, 'InstanceOf'):
+            props['InstanceOf'] = int(anno_def.InstanceOf)
+        if hasattr(anno_def, 'UserCanCreate'):
+            props['UserCanCreate'] = bool(anno_def.UserCanCreate)
+        if hasattr(anno_def, 'AllowsMultiple'):
+            props['AllowsMultiple'] = bool(anno_def.AllowsMultiple)
+
+        return props
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """Compare two annotation definitions and return detailed differences."""
+        if ops1 is None:
+            ops1 = self
+        if ops2 is None:
+            ops2 = self
+
+        is_different = False
+        differences = {'properties': {}}
+
+        props1 = ops1.GetSyncableProperties(item1)
+        props2 = ops2.GetSyncableProperties(item2)
+
+        for key in set(props1.keys()) | set(props2.keys()):
+            val1 = props1.get(key)
+            val2 = props2.get(key)
+            if val1 != val2:
+                is_different = True
+                differences['properties'][key] = {
+                    'source': val1,
+                    'target': val2,
+                    'type': 'modified'
+                }
+
+        return is_different, differences
+
+
     # --- Private Helper Methods ---
 
     def __WSHandle(self, wsHandle):

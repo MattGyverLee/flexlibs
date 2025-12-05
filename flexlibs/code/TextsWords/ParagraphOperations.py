@@ -343,6 +343,95 @@ class ParagraphOperations(BaseOperations):
 
         return new_para
 
+
+    # ========== SYNC INTEGRATION METHODS ==========
+
+    def GetSyncableProperties(self, item):
+        """
+        Get all syncable properties of a paragraph.
+
+        Args:
+            item: The IStTxtPara object.
+
+        Returns:
+            dict: Dictionary of syncable properties with their values.
+
+        Example:
+            >>> props = project.Paragraphs.GetSyncableProperties(para)
+            >>> print(props['Contents'])
+            {'en': 'In the beginning...'}
+
+        Notes:
+            - Contents is a TsString property (returned as dict with WS keys)
+            - Does NOT include owned sequences (segments) - those are children
+        """
+        props = {}
+
+        # TsString property - Contents (paragraph text)
+        if hasattr(item, 'Contents') and item.Contents:
+            # Convert TsString to dict with WS keys
+            ws_dict = {}
+            text = ITsString(item.Contents).Text
+            if text:
+                # Get the writing system of the TsString
+                ws = item.Contents.get_WritingSystemAt(0) if item.Contents.Length > 0 else None
+                if ws:
+                    ws_dict[self.project.GetWritingSystemTag(ws)] = text
+            props['Contents'] = ws_dict
+
+        return props
+
+
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """
+        Compare two paragraphs for differences.
+
+        Args:
+            item1: First paragraph object (from project 1)
+            item2: Second paragraph object (from project 2)
+            ops1: Optional ParagraphOperations instance for project 1 (defaults to self)
+            ops2: Optional ParagraphOperations instance for project 2 (defaults to self)
+
+        Returns:
+            tuple: (is_different, differences_dict)
+                - is_different (bool): True if paragraphs differ, False if identical
+                - differences_dict (dict): Maps property names to (value1, val2) tuples
+
+        Example:
+            >>> is_diff, diffs = ops1.CompareTo(para1, para2, ops1, ops2)
+            >>> if is_diff:
+            ...     for prop, (val1, val2) in diffs.items():
+            ...         print(f"{prop}: {val1} != {val2}")
+
+        Notes:
+            - Compares paragraph Contents (text)
+            - Empty/null values are treated as equivalent
+        """
+        if ops1 is None:
+            ops1 = self
+        if ops2 is None:
+            ops2 = self
+
+        props1 = ops1.GetSyncableProperties(item1)
+        props2 = ops2.GetSyncableProperties(item2)
+
+        differences = {}
+
+        # Get all property keys from both items
+        all_keys = set(props1.keys()) | set(props2.keys())
+
+        for key in all_keys:
+            val1 = props1.get(key)
+            val2 = props2.get(key)
+
+            # Compare values
+            if self.project._CompareValues(val1, val2):
+                # Values are different
+                differences[key] = (val1, val2)
+
+        is_different = len(differences) > 0
+        return (is_different, differences)
+
     def GetAll(self, text_or_hvo):
         """
         Get all paragraphs in a text.
