@@ -12,6 +12,7 @@
 #
 
 import logging
+import os
 logger = logging.getLogger(__name__)
 
 # Import BaseOperations parent class
@@ -25,6 +26,7 @@ from SIL.LCModel import (
     ILexExampleSentenceFactory,
     ICmSemanticDomain,
     ICmPicture,
+    ICmPictureFactory,
     IReversalIndexEntry,
 )
 from SIL.LCModel.Core.KernelInterfaces import ITsString
@@ -1769,6 +1771,456 @@ class LexSenseOperations(BaseOperations):
 
         sense = self.__GetSenseObject(sense_or_hvo)
         return sense.PicturesOS.Count
+
+
+    def AddPicture(self, sense_or_hvo, image_path, caption=None, wsHandle=None):
+        """
+        Add a picture (image) to a lexical sense.
+
+        Pictures illustrate the meaning of a sense. The image file is copied into
+        the project's LinkedFiles/Pictures directory and a reference is created.
+
+        Args:
+            sense_or_hvo: The ILexSense object or HVO.
+            image_path (str): Path to the image file (will be copied to project).
+            caption (str): Optional caption text for the picture.
+            wsHandle: Optional writing system handle for caption. Defaults to vernacular WS.
+
+        Returns:
+            ICmPicture: The newly created picture object.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If sense_or_hvo or image_path is None.
+            FP_ParameterError: If image file doesn't exist.
+
+        Example:
+            >>> entry = list(project.LexiconAllEntries())[0]
+            >>> senses = list(project.Senses.GetAll(entry))
+            >>> if senses:
+            ...     # Add picture to sense
+            ...     picture = project.Senses.AddPicture(
+            ...         senses[0],
+            ...         "/path/to/dog.jpg",
+            ...         caption="A friendly dog"
+            ...     )
+            ...     print(f"Added picture with caption: {project.Senses.GetCaption(picture)}")
+            Added picture with caption: A friendly dog
+
+            >>> # Add picture without caption
+            >>> picture = project.Senses.AddPicture(senses[0], "/path/to/cat.jpg")
+
+            >>> # Get all pictures
+            >>> pictures = project.Senses.GetPictures(senses[0])
+            >>> print(f"Sense has {len(pictures)} pictures")
+            Sense has 2 pictures
+
+        Notes:
+            - Image file is copied to LinkedFiles/Pictures/ directory
+            - Supported formats: JPG, PNG, GIF, BMP, TIFF
+            - Caption can be edited later with SetCaption()
+            - Pictures are stored in the sense's PicturesOS collection
+            - Uses ICmPictureFactory to create ICmPicture object
+            - The physical file is copied to preserve the original
+
+        See Also:
+            RemovePicture, GetPictures, SetCaption, RenamePicture, MovePicture
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not sense_or_hvo:
+            raise FP_NullParameterError()
+        if not image_path:
+            raise FP_NullParameterError()
+
+        sense = self.__GetSenseObject(sense_or_hvo)
+
+        # Verify image file exists
+        if not os.path.exists(image_path):
+            raise FP_ParameterError(f"Image file not found: {image_path}")
+
+        # Copy image to Pictures folder using Media operations
+        media_file = self.project.Media.CopyToProject(image_path, internal_subdir="Pictures")
+
+        # Create ICmPicture object
+        factory = self.project.project.ServiceLocator.GetService(ICmPictureFactory)
+        picture = factory.Create()
+
+        # Add to sense (must be done before setting properties)
+        sense.PicturesOS.Add(picture)
+
+        # Set the picture file reference
+        picture.PictureFileRA = media_file
+
+        # Set caption if provided
+        if caption:
+            wsHandle = self.__WSHandleVernacular(wsHandle)
+            mkstr = TsStringUtils.MakeString(caption, wsHandle)
+            picture.Caption.set_String(wsHandle, mkstr)
+
+        logger.info(f"Added picture to sense: {os.path.basename(image_path)}")
+
+        return picture
+
+
+    def RemovePicture(self, sense_or_hvo, picture, delete_file=False):
+        """
+        Remove a picture from a lexical sense.
+
+        Args:
+            sense_or_hvo: The ILexSense object or HVO.
+            picture: The ICmPicture object to remove.
+            delete_file (bool): If True, also delete the physical image file (default: False).
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If sense_or_hvo or picture is None.
+            FP_ParameterError: If picture not in sense's collection.
+
+        Example:
+            >>> entry = list(project.LexiconAllEntries())[0]
+            >>> senses = list(project.Senses.GetAll(entry))
+            >>> if senses:
+            ...     pictures = project.Senses.GetPictures(senses[0])
+            ...     if pictures:
+            ...         # Remove picture but keep file
+            ...         project.Senses.RemovePicture(senses[0], pictures[0])
+            ...
+            ...         # Remove picture AND delete file
+            ...         project.Senses.RemovePicture(senses[0], pictures[1], delete_file=True)
+
+        Warning:
+            - With delete_file=True, the image is permanently deleted from disk
+            - Other senses or objects referencing the same file will lose access
+            - Deletion cannot be undone
+            - Use delete_file=True with caution
+
+        Notes:
+            - Picture is removed from the sense's PicturesOS collection
+            - By default, the physical file is preserved in LinkedFiles/Pictures
+            - If delete_file=True, the file is deleted from the file system
+            - No error if picture is not in collection (silently ignored)
+
+        See Also:
+            AddPicture, GetPictures, MovePicture
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not sense_or_hvo:
+            raise FP_NullParameterError()
+        if not picture:
+            raise FP_NullParameterError()
+
+        sense = self.__GetSenseObject(sense_or_hvo)
+
+        # Verify picture is in collection
+        if picture not in sense.PicturesOS:
+            raise FP_ParameterError("Picture not found in sense's picture collection")
+
+        # Get file path before removing (for optional deletion)
+        file_path = None
+        if delete_file and hasattr(picture, 'PictureFileRA') and picture.PictureFileRA:
+            file_path = self.project.Media.GetExternalPath(picture.PictureFileRA)
+
+        # Remove from collection
+        sense.PicturesOS.Remove(picture)
+
+        # Delete physical file if requested
+        if delete_file and file_path and os.path.exists(file_path):
+            os.remove(file_path)
+            logger.info(f"Deleted image file: {file_path}")
+
+        logger.info("Removed picture from sense")
+
+
+    def MovePicture(self, picture, from_sense_or_hvo, to_sense_or_hvo):
+        """
+        Move a picture from one sense to another sense.
+
+        This is useful when reorganizing sense structure or correcting misplaced pictures.
+        The picture object itself is moved (not copied), preserving its caption and file reference.
+
+        Args:
+            picture: The ICmPicture object to move.
+            from_sense_or_hvo: Source ILexSense object or HVO.
+            to_sense_or_hvo: Destination ILexSense object or HVO.
+
+        Returns:
+            bool: True if move was successful, False if source and destination are the same.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If any parameter is None.
+            FP_ParameterError: If picture not in source sense's collection.
+
+        Example:
+            >>> entry = list(project.LexiconAllEntries())[0]
+            >>> senses = list(project.Senses.GetAll(entry))
+            >>> if len(senses) >= 2:
+            ...     # Move picture from one sense to another
+            ...     sense1 = senses[0]  # "to run (move fast)"
+            ...     sense2 = senses[1]  # "to run (operate a machine)"
+            ...     pictures = project.Senses.GetPictures(sense1)
+            ...
+            ...     if pictures:
+            ...         # Move the picture of a person running to the correct sense
+            ...         success = project.Senses.MovePicture(pictures[0], sense1, sense2)
+            ...
+            ...         # Verify the move
+            ...         print(f"Move successful: {success}")
+            ...         print(f"Sense 1 pictures: {project.Senses.GetPictureCount(sense1)}")
+            ...         print(f"Sense 2 pictures: {project.Senses.GetPictureCount(sense2)}")
+            Move successful: True
+            Sense 1 pictures: 0
+            Sense 2 pictures: 1
+
+            >>> # Can also move between entries
+            >>> entry2 = list(project.LexiconAllEntries())[1]
+            >>> other_sense = entry2.SensesOS[0]
+            >>> project.Senses.MovePicture(pictures[1], sense1, other_sense)
+
+        Notes:
+            - Picture is removed from source PicturesOS and added to destination PicturesOS
+            - Caption and file reference are preserved
+            - The physical image file is NOT moved/copied
+            - Cannot move to the same sense (returns False)
+            - Picture object's GUID remains the same
+            - The picture will appear in the new sense's illustration area
+
+        Warning:
+            - Moving pictures between entries is allowed but should be done carefully
+            - Ensure the picture is semantically appropriate for the target sense
+            - The picture will no longer be associated with the source sense
+
+        See Also:
+            AddPicture, RemovePicture, GetPictures
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not picture:
+            raise FP_NullParameterError()
+        if not from_sense_or_hvo:
+            raise FP_NullParameterError()
+        if not to_sense_or_hvo:
+            raise FP_NullParameterError()
+
+        from_sense = self.__GetSenseObject(from_sense_or_hvo)
+        to_sense = self.__GetSenseObject(to_sense_or_hvo)
+
+        # Can't move to same sense
+        if from_sense == to_sense:
+            logger.warning("Source and destination are the same sense")
+            return False
+
+        # Verify picture is in source collection
+        if picture not in from_sense.PicturesOS:
+            raise FP_ParameterError("Picture not found in source sense's picture collection")
+
+        # Move the picture (remove from source, add to destination)
+        from_sense.PicturesOS.Remove(picture)
+        to_sense.PicturesOS.Add(picture)
+
+        logger.info(f"Moved picture from sense {from_sense.Guid} to sense {to_sense.Guid}")
+
+        return True
+
+
+    def SetCaption(self, picture, caption, wsHandle=None):
+        """
+        Set or update the caption for a picture.
+
+        Args:
+            picture: The ICmPicture object.
+            caption (str): The caption text to set.
+            wsHandle: Optional writing system handle. Defaults to vernacular WS.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If picture or caption is None.
+
+        Example:
+            >>> entry = list(project.LexiconAllEntries())[0]
+            >>> senses = list(project.Senses.GetAll(entry))
+            >>> if senses:
+            ...     pictures = project.Senses.GetPictures(senses[0])
+            ...     if pictures:
+            ...         # Set caption in default vernacular
+            ...         project.Senses.SetCaption(pictures[0], "A brown dog")
+            ...
+            ...         # Set caption in specific writing system
+            ...         project.Senses.SetCaption(pictures[0], "Un chien brun",
+            ...                                   project.WSHandle('fr'))
+            ...
+            ...         # Verify
+            ...         caption = project.Senses.GetCaption(pictures[0])
+            ...         print(f"Caption: {caption}")
+            Caption: A brown dog
+
+        Notes:
+            - Captions can be set in multiple writing systems
+            - Empty string is allowed (clears the caption)
+            - Caption is stored in the picture's Caption multistring field
+            - Captions help describe the image content
+
+        See Also:
+            GetCaption, AddPicture
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not picture:
+            raise FP_NullParameterError()
+        if caption is None:
+            raise FP_NullParameterError()
+
+        wsHandle = self.__WSHandleVernacular(wsHandle)
+        mkstr = TsStringUtils.MakeString(caption, wsHandle)
+        picture.Caption.set_String(wsHandle, mkstr)
+
+
+    def GetCaption(self, picture, wsHandle=None):
+        """
+        Get the caption for a picture.
+
+        Args:
+            picture: The ICmPicture object.
+            wsHandle: Optional writing system handle. Defaults to vernacular WS.
+
+        Returns:
+            str: The caption text, or empty string if not set.
+
+        Raises:
+            FP_NullParameterError: If picture is None.
+
+        Example:
+            >>> entry = list(project.LexiconAllEntries())[0]
+            >>> senses = list(project.Senses.GetAll(entry))
+            >>> if senses:
+            ...     pictures = project.Senses.GetPictures(senses[0])
+            ...     if pictures:
+            ...         caption = project.Senses.GetCaption(pictures[0])
+            ...         print(f"Picture caption: {caption}")
+            Picture caption: A friendly dog
+            ...
+            ...         # Get caption in specific writing system
+            ...         caption_fr = project.Senses.GetCaption(pictures[0],
+            ...                                                project.WSHandle('fr'))
+            ...         print(f"French caption: {caption_fr}")
+            French caption: Un chien amical
+
+        Notes:
+            - Returns empty string if caption not set in specified writing system
+            - Captions can be stored in multiple writing systems
+            - Default writing system is the default vernacular WS
+
+        See Also:
+            SetCaption, AddPicture, GetPictures
+        """
+        if not picture:
+            raise FP_NullParameterError()
+
+        wsHandle = self.__WSHandleVernacular(wsHandle)
+        caption = ITsString(picture.Caption.get_String(wsHandle)).Text
+        return caption or ""
+
+
+    def RenamePicture(self, picture, new_filename):
+        """
+        Rename the image file for a picture and update the reference.
+
+        This renames the physical file in the LinkedFiles/Pictures directory
+        and updates the ICmFile reference to point to the new filename.
+
+        Args:
+            picture: The ICmPicture object.
+            new_filename (str): The new filename for the image (e.g., "dog_brown.jpg").
+
+        Returns:
+            str: The new internal path to the renamed file.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If picture or new_filename is None.
+            FP_ParameterError: If picture has no associated file, or rename fails.
+
+        Example:
+            >>> entry = list(project.LexiconAllEntries())[0]
+            >>> senses = list(project.Senses.GetAll(entry))
+            >>> if senses:
+            ...     pictures = project.Senses.GetPictures(senses[0])
+            ...     if pictures:
+            ...         # Rename the picture file
+            ...         new_path = project.Senses.RenamePicture(pictures[0], "dog_brown.jpg")
+            ...         print(f"Renamed to: {new_path}")
+            Renamed to: Pictures/dog_brown.jpg
+
+        Notes:
+            - Renames the physical file in the file system
+            - Updates the ICmFile object's InternalPath
+            - File extension should match the original file type
+            - New filename must be valid for the file system
+            - The file remains in the same directory (Pictures/)
+
+        Warning:
+            - Ensure new_filename is unique to avoid conflicts
+            - File extension should match the image type
+            - Other objects referencing the same file are also affected
+
+        See Also:
+            AddPicture, GetPictures, MediaOperations.RenameMediaFile
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not picture:
+            raise FP_NullParameterError()
+        if not new_filename:
+            raise FP_NullParameterError()
+
+        # Verify picture has an associated file
+        if not hasattr(picture, 'PictureFileRA') or not picture.PictureFileRA:
+            raise FP_ParameterError("Picture has no associated file")
+
+        # Get the current file object
+        file_obj = picture.PictureFileRA
+
+        # Get current internal path
+        current_path = self.project.Media.GetInternalPath(file_obj)
+        if not current_path:
+            raise FP_ParameterError("Cannot determine current file path")
+
+        # Get the directory part (e.g., "Pictures")
+        path_parts = current_path.replace('\\', '/').split('/')
+        if len(path_parts) > 1:
+            directory = '/'.join(path_parts[:-1])
+            new_internal_path = f"{directory}/{new_filename}"
+        else:
+            new_internal_path = new_filename
+
+        # Get external paths
+        old_external_path = self.project.Media.GetExternalPath(file_obj)
+
+        # Construct new external path
+        if old_external_path:
+            old_dir = os.path.dirname(old_external_path)
+            new_external_path = os.path.join(old_dir, new_filename)
+
+            # Rename the physical file
+            if os.path.exists(old_external_path):
+                os.rename(old_external_path, new_external_path)
+                logger.info(f"Renamed file: {old_external_path} -> {new_external_path}")
+            else:
+                raise FP_ParameterError(f"File not found: {old_external_path}")
+
+        # Update the ICmFile internal path
+        file_obj.InternalPath = new_internal_path
+
+        logger.info(f"Updated picture reference to: {new_internal_path}")
+
+        return new_internal_path
 
 
     # --- Additional Utility Operations ---

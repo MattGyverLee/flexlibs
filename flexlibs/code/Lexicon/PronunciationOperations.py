@@ -770,6 +770,84 @@ class PronunciationOperations(BaseOperations):
             pronunciation.MediaFilesOS.Remove(media)
 
 
+    def MoveMediaFile(self, media, from_pronunciation_or_hvo, to_pronunciation_or_hvo):
+        """
+        Move a media file from one pronunciation to another pronunciation.
+
+        This is useful when reorganizing pronunciations or moving audio recordings to the
+        correct pronunciation variant.
+
+        Args:
+            media: ICmFile object to move
+            from_pronunciation_or_hvo: Source ILexPronunciation object or HVO
+            to_pronunciation_or_hvo: Destination ILexPronunciation object or HVO
+
+        Returns:
+            bool: True if media was successfully moved, False if source and destination
+                 are the same pronunciation (no-op)
+
+        Raises:
+            FP_ReadOnlyError: If project not writable
+            FP_ParameterError: If media not in source pronunciation's collection
+
+        Example:
+            >>> # Move audio from one pronunciation to another
+            >>> entry = list(project.LexiconAllEntries())[0]
+            >>> pron1 = entry.PronunciationsOS[0]  # IPA: [rʌn]
+            >>> pron2 = entry.PronunciationsOS[1]  # IPA: [ɹʌn]
+            >>>
+            >>> media_files = project.Pronunciations.GetMediaFiles(pron1)
+            >>> # Move the audio to the correct pronunciation variant
+            >>> project.Pronunciations.MoveMediaFile(media_files[0], pron1, pron2)
+            >>>
+            >>> # Verify the move
+            >>> print(f"Pron 1 media: {project.Pronunciations.GetMediaCount(pron1)}")
+            >>> print(f"Pron 2 media: {project.Pronunciations.GetMediaCount(pron2)}")
+
+            >>> # Can also move between different entries
+            >>> entry2 = list(project.LexiconAllEntries())[1]
+            >>> other_pron = entry2.PronunciationsOS[0]
+            >>> project.Pronunciations.MoveMediaFile(media_files[1], pron1, other_pron)
+
+        Notes:
+            - Media is removed from source MediaFilesOS and added to destination
+            - File reference and description are preserved
+            - The physical media file is NOT moved/copied
+            - Cannot move to the same pronunciation (no-op, returns False)
+            - Media object's GUID remains the same
+
+        Warning:
+            - Moving media between different entries' pronunciations is allowed
+            - Ensure the audio is appropriate for the target pronunciation
+            - The media will be associated with the new pronunciation
+
+        See Also:
+            AddMediaFile, RemoveMediaFile, GetMediaFiles
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        from_pron = self.__GetPronunciationObject(from_pronunciation_or_hvo) if isinstance(from_pronunciation_or_hvo, int) else from_pronunciation_or_hvo
+        to_pron = self.__GetPronunciationObject(to_pronunciation_or_hvo) if isinstance(to_pronunciation_or_hvo, int) else to_pronunciation_or_hvo
+
+        # Can't move to same pronunciation
+        if from_pron == to_pron:
+            logger.warning("Source and destination are the same pronunciation")
+            return False
+
+        # Verify media is in source collection
+        if media not in from_pron.MediaFilesOS:
+            raise FP_ParameterError("Media file not found in source pronunciation's media collection")
+
+        # Move the media (remove from source, add to destination)
+        from_pron.MediaFilesOS.Remove(media)
+        to_pron.MediaFilesOS.Add(media)
+
+        logger.info(f"Moved media from pronunciation {from_pron.Guid} to pronunciation {to_pron.Guid}")
+
+        return True
+
+
     # --- CV Pattern/Location ---
 
     def GetLocation(self, pronunciation_or_hvo):

@@ -595,6 +595,196 @@ class AllomorphOperations(BaseOperations):
         allomorph.Form.set_String(wsHandle, mkstr)
 
 
+    def SetFormAudio(self, allomorph_or_hvo, file_path, wsHandle=None):
+        """
+        Set an audio recording for an allomorph's Form field.
+
+        This is a convenience method for working with audio writing systems.
+        The audio file is embedded as a file path reference in the Form field
+        for an audio writing system (e.g., en-Zxxx-x-audio).
+
+        Args:
+            allomorph_or_hvo: The IMoForm object or HVO.
+            file_path: Path to audio file. This should be either:
+                      - A path within LinkedFiles (e.g., "LinkedFiles/AudioVisual/audio.wav")
+                      - An external path (will be copied to LinkedFiles automatically)
+            wsHandle: Optional audio writing system handle. If None, uses the first
+                     audio writing system found in the project.
+
+        Returns:
+            str: The internal path where the audio file was stored (relative to project).
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If allomorph_or_hvo or file_path is None.
+            FP_ParameterError: If no audio writing system is available, or if the
+                              wsHandle provided is not an audio writing system.
+
+        Example:
+            >>> allomorphOps = AllomorphOperations(project)
+            >>> entry = project.LexiconAllEntries()[0]
+            >>> allomorph = list(allomorphOps.GetAll(entry))[0]
+            >>>
+            >>> # Set audio from external file (will be copied to LinkedFiles)
+            >>> audio_path = allomorphOps.SetFormAudio(
+            ...     allomorph,
+            ...     "/path/to/recordings/pronunciation.wav"
+            ... )
+            >>> print(f"Audio stored at: {audio_path}")
+            LinkedFiles/AudioVisual/pronunciation.wav
+
+            >>> # Set audio with specific audio writing system
+            >>> audio_ws = project.WSHandle('en-Zxxx-x-audio')
+            >>> allomorphOps.SetFormAudio(allomorph, "/path/to/audio.wav", audio_ws)
+
+        Notes:
+            - Audio writing systems use the Zxxx script code (ISO 15924 for "no written form")
+            - Tag format: {lang}-Zxxx-x-audio (e.g., "en-Zxxx-x-audio")
+            - The audio WS must already exist in the project (create it in FLEx UI first)
+            - If file_path is external, it will be copied to LinkedFiles/AudioVisual
+            - The file path is embedded as an ORC (Object Replacement Character) reference
+            - FLEx will display this as a playable audio control in the UI
+            - This is different from attaching media files via MediaFilesOS
+
+        See Also:
+            GetFormAudio, SetForm, project.SetAudioPath, project.IsAudioWritingSystem
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not allomorph_or_hvo:
+            raise FP_NullParameterError()
+        if file_path is None:
+            raise FP_NullParameterError()
+
+        allomorph = self.__GetAllomorphObject(allomorph_or_hvo)
+
+        # Find or validate audio writing system
+        if wsHandle is None:
+            # Auto-detect first audio WS
+            for ws_handle in self.project.GetAllWritingSystems():
+                if self.project.IsAudioWritingSystem(ws_handle):
+                    wsHandle = ws_handle
+                    break
+
+            if wsHandle is None:
+                raise FP_ParameterError(
+                    "No audio writing system found in project. "
+                    "Create one in FLEx first (e.g., en-Zxxx-x-audio)"
+                )
+        else:
+            # Validate that provided WS is audio
+            if not self.project.IsAudioWritingSystem(wsHandle):
+                raise FP_ParameterError(
+                    "The provided writing system is not an audio writing system. "
+                    "Use project.IsAudioWritingSystem() to check."
+                )
+
+        # Determine if we need to copy the file to LinkedFiles
+        import os
+        internal_path = file_path
+
+        # If file_path is an external file (not already in LinkedFiles)
+        if os.path.isabs(file_path) or not file_path.startswith("LinkedFiles"):
+            # Copy file to project using Media operations
+            try:
+                from ..Shared.MediaOperations import MediaOperations
+                media_ops = MediaOperations(self.project)
+
+                # Copy file to LinkedFiles/AudioVisual
+                media_file = media_ops.CopyToProject(
+                    file_path,
+                    internal_subdir="AudioVisual"
+                )
+                internal_path = media_ops.GetInternalPath(media_file)
+            except Exception as e:
+                # If Media operations fail, just use the path as-is
+                logger.warning(f"Could not copy audio file to LinkedFiles: {e}")
+                internal_path = file_path
+
+        # Set audio path in Form field
+        self.project.SetAudioPath(allomorph.Form, wsHandle, internal_path)
+
+        return internal_path
+
+
+    def GetFormAudio(self, allomorph_or_hvo, wsHandle=None):
+        """
+        Get the audio file path from an allomorph's Form field.
+
+        This is a convenience method for extracting audio file references from
+        audio writing system fields.
+
+        Args:
+            allomorph_or_hvo: The IMoForm object or HVO.
+            wsHandle: Optional audio writing system handle. If None, uses the first
+                     audio writing system found in the project.
+
+        Returns:
+            str: Path to audio file (relative to project root), or None if no audio is set.
+
+        Raises:
+            FP_NullParameterError: If allomorph_or_hvo is None.
+
+        Example:
+            >>> allomorphOps = AllomorphOperations(project)
+            >>> entry = project.LexiconAllEntries()[0]
+            >>> allomorph = list(allomorphOps.GetAll(entry))[0]
+            >>>
+            >>> # Get audio file path
+            >>> audio_path = allomorphOps.GetFormAudio(allomorph)
+            >>> if audio_path:
+            ...     print(f"Audio file: {audio_path}")
+            ...     # Construct full path if needed
+            ...     import os
+            ...     full_path = os.path.join(
+            ...         project.GetLinkedFilesDir(),
+            ...         audio_path.replace("LinkedFiles/", "")
+            ...     )
+            ...     print(f"Full path: {full_path}")
+            ... else:
+            ...     print("No audio recording")
+            Audio file: LinkedFiles/AudioVisual/pronunciation.wav
+
+            >>> # Get audio with specific writing system
+            >>> audio_ws = project.WSHandle('en-Zxxx-x-audio')
+            >>> audio_path = allomorphOps.GetFormAudio(allomorph, audio_ws)
+
+        Notes:
+            - Returns None if no audio writing system is found in the project
+            - Returns None if the specified writing system has no audio data
+            - The returned path is relative to the project root
+            - Use project.GetLinkedFilesDir() to construct absolute paths
+            - Audio must have been set using SetFormAudio() or project.SetAudioPath()
+            - This only retrieves the file path; it doesn't play the audio
+
+        See Also:
+            SetFormAudio, GetForm, project.GetAudioPath, project.IsAudioWritingSystem
+        """
+        if not allomorph_or_hvo:
+            raise FP_NullParameterError()
+
+        allomorph = self.__GetAllomorphObject(allomorph_or_hvo)
+
+        # Find audio writing system if not provided
+        if wsHandle is None:
+            for ws_handle in self.project.GetAllWritingSystems():
+                if self.project.IsAudioWritingSystem(ws_handle):
+                    wsHandle = ws_handle
+                    break
+
+            if wsHandle is None:
+                # No audio WS in project
+                return None
+
+        # Get audio path from Form field
+        try:
+            return self.project.GetAudioPath(allomorph.Form, wsHandle)
+        except FP_ParameterError:
+            # Not an audio writing system
+            return None
+
+
     def GetMorphType(self, allomorph_or_hvo):
         """
         Get the morpheme type of an allomorph.

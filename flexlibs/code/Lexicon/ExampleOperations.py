@@ -997,6 +997,258 @@ class ExampleOperations(BaseOperations):
         return 0
 
 
+    def AddMediaFile(self, example_or_hvo, file_path, label=None):
+        """
+        Add a media file (typically audio) to an example sentence.
+
+        Copies the file to the project's LinkedFiles directory and creates
+        a media reference linked to the example.
+
+        Args:
+            example_or_hvo: The ILexExampleSentence object or HVO.
+            file_path (str): Path to the external media file to import.
+            label (str, optional): Descriptive label for the media file.
+
+        Returns:
+            ICmFile: The created media file object with proper path.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If example_or_hvo or file_path is None.
+            FP_ParameterError: If file_path is empty or file doesn't exist.
+
+        Example:
+            >>> exampleOps = ExampleOperations(project)
+            >>> entry = project.LexiconAllEntries().__next__()
+            >>> sense = entry.SensesOS[0]
+            >>> example = exampleOps.Create(sense, "The dog barked loudly.")
+            >>> # Add audio recording
+            >>> media = exampleOps.AddMediaFile(
+            ...     example,
+            ...     "/path/to/audio.wav",
+            ...     label="Native speaker pronunciation"
+            ... )
+            >>> print(f"Added media file")
+            Added media file
+
+            >>> # Verify the media was added
+            >>> count = exampleOps.GetMediaCount(example)
+            >>> print(f"Example now has {count} media file(s)")
+            Example now has 1 media file(s)
+
+        Notes:
+            - File is copied to LinkedFiles/AudioVisual directory
+            - Unique filename generated if collision occurs (audio_1.wav, etc.)
+            - Creates ICmFile object with proper LinkedFiles path
+            - Supported formats: WAV, MP3, OGG, WMA (audio), MP4, AVI (video)
+            - Multiple media files can be added to one example
+            - Label is stored in the default analysis writing system
+
+        See Also:
+            RemoveMediaFile, MoveMediaFile, GetMediaFiles, GetMediaCount
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not example_or_hvo:
+            raise FP_NullParameterError()
+        if file_path is None:
+            raise FP_NullParameterError()
+
+        if not file_path or not file_path.strip():
+            raise FP_ParameterError("File path cannot be empty")
+
+        example = self.__GetExampleObject(example_or_hvo)
+
+        # Use MediaOperations to properly copy file and create ICmFile
+        # Copy file to project and get ICmFile reference
+        media_file = self.project.Media.CopyToProject(
+            file_path,
+            internal_subdir="AudioVisual",
+            label=label
+        )
+
+        # Add to example's media collection
+        if hasattr(example, 'MediaFilesOS'):
+            example.MediaFilesOS.Add(media_file)
+        else:
+            raise FP_ParameterError("Example does not support media files")
+
+        return media_file
+
+
+    def RemoveMediaFile(self, example_or_hvo, media_or_hvo):
+        """
+        Remove a media file from an example sentence.
+
+        Args:
+            example_or_hvo: The ILexExampleSentence object or HVO.
+            media_or_hvo: The ICmFile object or HVO to remove.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If example_or_hvo or media_or_hvo is None.
+
+        Example:
+            >>> exampleOps = ExampleOperations(project)
+            >>> entry = project.LexiconAllEntries().__next__()
+            >>> sense = entry.SensesOS[0]
+            >>> examples = list(exampleOps.GetAll(sense))
+            >>> if examples:
+            ...     media_files = exampleOps.GetMediaFiles(examples[0])
+            ...     if media_files:
+            ...         exampleOps.RemoveMediaFile(examples[0], media_files[0])
+            ...         print("Media file removed")
+            Media file removed
+
+        Notes:
+            - Removes the media file reference from the example
+            - Does NOT delete the actual file from disk
+            - The media file object is deleted from the database
+            - Cannot be undone
+            - If you need to delete the physical file, use project.Media methods
+
+        Warning:
+            - This operation cannot be undone
+            - The media file reference is permanently removed
+            - Other examples may still reference the same physical file
+
+        See Also:
+            AddMediaFile, MoveMediaFile, GetMediaFiles
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not example_or_hvo:
+            raise FP_NullParameterError()
+        if media_or_hvo is None:
+            raise FP_NullParameterError()
+
+        example = self.__GetExampleObject(example_or_hvo)
+
+        # Resolve media object
+        if isinstance(media_or_hvo, int):
+            media = self.project.Object(media_or_hvo)
+        else:
+            media = media_or_hvo
+
+        # Remove from collection
+        if hasattr(example, 'MediaFilesOS'):
+            example.MediaFilesOS.Remove(media)
+
+
+    def MoveMediaFile(self, media, from_example_or_hvo, to_example_or_hvo):
+        """
+        Move a media file from one example sentence to another example sentence.
+
+        This is useful when reorganizing examples or moving audio recordings to the
+        correct example sentence.
+
+        Args:
+            media: ICmFile object to move.
+            from_example_or_hvo: Source ILexExampleSentence object or HVO.
+            to_example_or_hvo: Destination ILexExampleSentence object or HVO.
+
+        Returns:
+            bool: True if media was moved, False if source and destination are same.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If any parameter is None.
+            FP_ParameterError: If media not in source example's collection.
+
+        Example:
+            >>> exampleOps = ExampleOperations(project)
+            >>> entry = project.LexiconAllEntries().__next__()
+            >>> sense = entry.SensesOS[0]
+            >>> # Get two examples from the sense
+            >>> examples = list(exampleOps.GetAll(sense))
+            >>> if len(examples) >= 2:
+            ...     example1 = examples[0]
+            ...     example2 = examples[1]
+            ...
+            ...     # Get media from first example
+            ...     media_files = exampleOps.GetMediaFiles(example1)
+            ...     if media_files:
+            ...         # Move the first audio file
+            ...         moved = exampleOps.MoveMediaFile(media_files[0], example1, example2)
+            ...         if moved:
+            ...             print("Media file moved successfully")
+            ...
+            ...         # Verify the move
+            ...         count1 = exampleOps.GetMediaCount(example1)
+            ...         count2 = exampleOps.GetMediaCount(example2)
+            ...         print(f"Example 1 media: {count1}")
+            ...         print(f"Example 2 media: {count2}")
+            Media file moved successfully
+            Example 1 media: 0
+            Example 2 media: 1
+
+            >>> # Can also move between different senses
+            >>> other_sense = entry.SensesOS[1] if entry.SensesOS.Count > 1 else None
+            >>> if other_sense:
+            ...     other_examples = list(exampleOps.GetAll(other_sense))
+            ...     if other_examples:
+            ...         other_example = other_examples[0]
+            ...         media_files = exampleOps.GetMediaFiles(example2)
+            ...         if media_files:
+            ...             exampleOps.MoveMediaFile(media_files[0], example2, other_example)
+
+        Notes:
+            - Media is removed from source MediaFilesOS and added to destination
+            - File reference and description are preserved
+            - The physical media file is NOT moved/copied
+            - Cannot move to the same example (returns False)
+            - Media object's GUID remains the same
+            - No changes are made to the physical file location
+
+        Warning:
+            - Moving media between different sense's examples is allowed
+            - Ensure the media is semantically appropriate for the target example
+            - The media will be associated with the new example
+            - Consider adding/updating labels to clarify context after moving
+
+        See Also:
+            AddMediaFile, RemoveMediaFile, GetMediaFiles, GetMediaCount
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not media:
+            raise FP_NullParameterError()
+        if not from_example_or_hvo:
+            raise FP_NullParameterError()
+        if not to_example_or_hvo:
+            raise FP_NullParameterError()
+
+        from_example = self.__GetExampleObject(from_example_or_hvo)
+        to_example = self.__GetExampleObject(to_example_or_hvo)
+
+        # Can't move to same example
+        if from_example == to_example:
+            logger.warning("Source and destination are the same example")
+            return False
+
+        # Verify media is in source collection
+        if not hasattr(from_example, 'MediaFilesOS'):
+            raise FP_ParameterError("Source example does not support media files")
+
+        if media not in from_example.MediaFilesOS:
+            raise FP_ParameterError("Media file not found in source example's media collection")
+
+        # Verify destination supports media
+        if not hasattr(to_example, 'MediaFilesOS'):
+            raise FP_ParameterError("Destination example does not support media files")
+
+        # Move the media (remove from source, add to destination)
+        from_example.MediaFilesOS.Remove(media)
+        to_example.MediaFilesOS.Add(media)
+
+        logger.info(f"Moved media from example {from_example.Guid} to example {to_example.Guid}")
+
+        return True
+
+
     def GetOwningSense(self, example_or_hvo):
         """
         Get the lexical sense that owns this example sentence.

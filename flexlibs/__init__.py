@@ -144,12 +144,12 @@ from .code.TextsWords.WfiMorphBundleOperations import (
     WfiMorphBundleOperations,
     )
 
-from .code.TextsWords.MediaOperations import (
+from .code.Shared.MediaOperations import (
     MediaOperations,
     MediaType,
     )
 
-from .code.TextsWords.FilterOperations import (
+from .code.Shared.FilterOperations import (
     FilterOperations,
     )
 

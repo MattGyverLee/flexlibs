@@ -1160,7 +1160,7 @@ class FLExProject (object):
             >>> print(f"Found {len(orphans)} orphaned files")
         """
         if not hasattr(self, '_media_ops'):
-            from .TextsWords.MediaOperations import MediaOperations
+            from .Shared.MediaOperations import MediaOperations
             self._media_ops = MediaOperations(self)
         return self._media_ops
 
@@ -1218,7 +1218,7 @@ class FLExProject (object):
             >>> json_str = project.Filters.ExportFilter(filter_obj)
         """
         if not hasattr(self, '_filter_ops'):
-            from .TextsWords.FilterOperations import FilterOperations
+            from .Shared.FilterOperations import FilterOperations
             self._filter_ops = FilterOperations(self)
         return self._filter_ops
 
@@ -1753,6 +1753,193 @@ class FLExProject (object):
         ws = self.WritingSystems.GetDefaultAnalysis()
         return (self.WritingSystems.GetLanguageTag(ws),
                 self.WritingSystems.GetDisplayName(ws))
+
+
+    # --- Media and LinkedFiles support ---
+
+    def GetLinkedFilesDir(self):
+        """
+        Get the full path to the project's LinkedFiles directory.
+
+        The LinkedFiles directory contains media files organized in subdirectories:
+        - AudioVisual/ - Audio and video files
+        - Pictures/ - Image files
+        - Others/ - Other linked files
+
+        Returns:
+            str: Absolute path to LinkedFiles directory
+
+        Example:
+            >>> proj = FLExProject()
+            >>> linked_files = proj.GetLinkedFilesDir()
+            >>> print(linked_files)
+            C:\\FLExData\\MyProject\\LinkedFiles
+
+        See also:
+            :meth:`MediaOperations.GetInternalPath` - Get relative path within LinkedFiles
+            :meth:`MediaOperations.GetExternalPath` - Get full filesystem path
+        """
+        import os
+
+        # Try to get LinkedFilesRootDir from project
+        if hasattr(self.project, 'LinkedFilesRootDir') and self.project.LinkedFilesRootDir:
+            return self.project.LinkedFilesRootDir
+
+        # Fallback: construct default path from project folder
+        if hasattr(self.project, 'ProjectId') and hasattr(self.project.ProjectId, 'ProjectFolder'):
+            return os.path.join(self.project.ProjectId.ProjectFolder, "LinkedFiles")
+
+        # Last resort: raise error
+        raise RuntimeError("Could not determine LinkedFiles directory path")
+
+
+    def IsAudioWritingSystem(self, wsHandle):
+        """
+        Check if a writing system is an audio writing system.
+
+        Audio writing systems use the special script code "Zxxx" (no written form)
+        and typically have "audio" in their tag. They store audio file paths
+        instead of text content.
+
+        Args:
+            wsHandle (int): Writing system handle to check
+
+        Returns:
+            bool: True if this is an audio writing system, False otherwise
+
+        Example:
+            >>> ws_handle = proj.WSHandle("en-Zxxx-x-audio")
+            >>> if proj.IsAudioWritingSystem(ws_handle):
+            ...     print("This is an audio writing system")
+
+        See also:
+            :meth:`GetAudioPath` - Extract audio file path from audio WS field
+            :meth:`SetAudioPath` - Set audio file path in audio WS field
+        """
+        try:
+            ws = self.project.WritingSystemFactory.get_EngineOrNull(wsHandle)
+            if ws is None:
+                return False
+
+            ws_tag = ws.Id
+            # Audio writing systems use Zxxx script code and typically contain "audio"
+            return "-Zxxx-" in ws_tag and "audio" in ws_tag.lower()
+
+        except Exception:
+            return False
+
+
+    def GetAudioPath(self, multistring_field, wsHandle):
+        """
+        Extract the audio file path from an audio writing system field.
+
+        Audio writing systems embed file paths in ITsString objects using
+        Object Replacement Characters (ORC, U+FFFC) with FwObjDataTypes.kodtExternalPathName.
+
+        Args:
+            multistring_field: ITsMultiString or similar field containing audio data
+            wsHandle (int): Audio writing system handle
+
+        Returns:
+            str: Audio file path, or None if not found
+
+        Example:
+            >>> # Get audio path from allomorph form
+            >>> form = proj.Allomorph.GetForm(allomorph)
+            >>> audio_ws = proj.WSHandle("en-Zxxx-x-audio")
+            >>> audio_path = proj.GetAudioPath(form, audio_ws)
+            >>> if audio_path:
+            ...     print(f"Audio file: {audio_path}")
+
+        See also:
+            :meth:`IsAudioWritingSystem` - Check if WS is audio type
+            :meth:`SetAudioPath` - Set audio file path
+        """
+        try:
+            # Get ITsString for this writing system
+            ts_string = multistring_field.get_String(wsHandle)
+            if ts_string is None or ts_string.Length == 0:
+                return None
+
+            # Look for ORC character with embedded path
+            text = ts_string.Text
+            if text is None or '\ufffc' not in text:
+                return None
+
+            # Get the ObjData property which contains the file path
+            # Format: first char is FwObjDataTypes.kodtExternalPathName, rest is path
+            for i in range(ts_string.Length):
+                run_props = ts_string.get_Properties(i)
+                obj_data = run_props.GetStrPropValue(
+                    self.project.ServiceLocator.GetInstance("FwKernelLib.ITsPropsBldr").GetIntPropValues(
+                        ord('k'), None
+                    )[0]
+                )
+                if obj_data and len(obj_data) > 1:
+                    # Skip first character (type code), return path
+                    return obj_data[1:]
+
+            return None
+
+        except Exception as e:
+            import logging
+            logging.warning(f"Could not extract audio path: {e}")
+            return None
+
+
+    def SetAudioPath(self, multistring_field, wsHandle, file_path):
+        """
+        Set the audio file path in an audio writing system field.
+
+        Embeds the file path using Object Replacement Character (ORC) with
+        FwObjDataTypes.kodtExternalPathName.
+
+        Args:
+            multistring_field: ITsMultiString or similar field to update
+            wsHandle (int): Audio writing system handle
+            file_path (str): Path to audio file (can be relative or absolute)
+
+        Example:
+            >>> # Set audio for allomorph form
+            >>> allomorph = proj.Allomorph.GetAll()[0]
+            >>> audio_ws = proj.WSHandle("en-Zxxx-x-audio")
+            >>> audio_path = "LinkedFiles/AudioVisual/hello.wav"
+            >>> proj.Allomorph.SetFormAudio(allomorph, audio_path, audio_ws)
+
+        See also:
+            :meth:`IsAudioWritingSystem` - Check if WS is audio type
+            :meth:`GetAudioPath` - Get audio file path
+        """
+        try:
+            # Create ITsString with embedded file path
+            bldr = self.project.ServiceLocator.GetInstance("TsStrBldr")
+            bldr.Clear()
+
+            # Add ORC character
+            bldr.Replace(0, 0, "\ufffc", None)
+
+            # Create properties with embedded path
+            # Format: kodtExternalPathName character + file path
+            from SIL.LCModel.Core.KernelInterfaces import FwObjDataTypes
+            obj_data = chr(FwObjDataTypes.kodtExternalPathName) + file_path
+
+            # Set the ObjData property on the character
+            props_bldr = self.project.ServiceLocator.GetInstance("ITsPropsBldr")
+            props_bldr.SetStrPropValue(
+                ord('k'),  # Property tag for ObjData
+                obj_data
+            )
+
+            # Apply properties to the ORC character
+            bldr.SetProperties(0, 1, props_bldr.GetTextProps())
+
+            # Set the string in the multistring field
+            multistring_field.set_String(wsHandle, bldr.GetString())
+
+        except Exception as e:
+            import logging
+            logging.error(f"Could not set audio path: {e}")
+            raise
 
     # --- Global: other information ---
     

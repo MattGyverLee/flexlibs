@@ -216,7 +216,7 @@ def RenameMediaFile(self, media_or_hvo, new_filename):
     return new_internal_path
 ```
 
-**File**: `flexlibs/code/TextsWords/MediaOperations.py`
+**File**: `flexlibs/code/Shared/MediaOperations.py`
 **Line**: After `SetInternalPath()` (~700-800)
 
 ---
@@ -443,8 +443,84 @@ def RenamePicture(self, picture, new_filename):
     return self.project.Media.RenameMediaFile(picture.PictureFileRA, new_filename)
 ```
 
+#### MovePicture()
+
+```python
+def MovePicture(self, picture, from_sense_or_hvo, to_sense_or_hvo):
+    """
+    Move a picture from one sense to another sense.
+
+    This is useful when reorganizing sense structure or correcting misplaced pictures.
+    The picture object itself is moved (not copied), preserving its caption and file reference.
+
+    Args:
+        picture: ICmPicture object to move
+        from_sense_or_hvo: Source ILexSense object or HVO
+        to_sense_or_hvo: Destination ILexSense object or HVO
+
+    Raises:
+        FP_ReadOnlyError: If project not writable
+        FP_ParameterError: If picture not in source sense's collection
+
+    Example:
+        >>> # Move picture from one sense to another
+        >>> sense1 = entry.SensesOS[0]  # "to run (move fast)"
+        >>> sense2 = entry.SensesOS[1]  # "to run (operate a machine)"
+        >>> pictures = project.Senses.GetPictures(sense1)
+        >>>
+        >>> # Move the picture of a person running to the correct sense
+        >>> project.Senses.MovePicture(pictures[0], sense1, sense2)
+        >>>
+        >>> # Verify the move
+        >>> print(f"Sense 1 pictures: {project.Senses.GetPictureCount(sense1)}")
+        >>> print(f"Sense 2 pictures: {project.Senses.GetPictureCount(sense2)}")
+
+        >>> # Can also move between entries
+        >>> entry2 = list(project.LexiconAllEntries())[1]
+        >>> other_sense = entry2.SensesOS[0]
+        >>> project.Senses.MovePicture(pictures[1], sense1, other_sense)
+
+    Notes:
+        - Picture is removed from source PicturesOS and added to destination PicturesOS
+        - Caption and file reference are preserved
+        - The physical image file is NOT moved/copied
+        - Cannot move to the same sense (no-op, returns False)
+        - Picture object's GUID remains the same
+
+    Warning:
+        - Moving pictures between entries is allowed but should be done carefully
+        - Ensure the picture is semantically appropriate for the target sense
+        - The picture will appear in the new sense's illustration area
+
+    See Also:
+        AddPicture, RemovePicture, GetPictures
+    """
+    if not self.project.writeEnabled:
+        raise FP_ReadOnlyError()
+
+    from_sense = self._GetObject(from_sense_or_hvo) if isinstance(from_sense_or_hvo, int) else from_sense_or_hvo
+    to_sense = self._GetObject(to_sense_or_hvo) if isinstance(to_sense_or_hvo, int) else to_sense_or_hvo
+
+    # Can't move to same sense
+    if from_sense == to_sense:
+        logger.warning("Source and destination are the same sense")
+        return False
+
+    # Verify picture is in source collection
+    if picture not in from_sense.PicturesOS:
+        raise FP_ParameterError("Picture not found in source sense's picture collection")
+
+    # Move the picture (remove from source, add to destination)
+    from_sense.PicturesOS.Remove(picture)
+    to_sense.PicturesOS.Add(picture)
+
+    logger.info(f"Moved picture from sense {from_sense.Guid} to sense {to_sense.Guid}")
+
+    return True
+```
+
 **File**: `flexlibs/code/Lexicon/LexSenseOperations.py`
-**Line**: After existing `GetPictureCount()` (~1770-1950)
+**Line**: After existing `GetPictureCount()` (~1770-2000)
 
 ---
 
@@ -549,8 +625,174 @@ def RemoveMediaFile(self, example_or_hvo, media, delete_file=False):
     logger.info("Removed media file from example")
 ```
 
+#### MoveMediaFile()
+
+```python
+def MoveMediaFile(self, media, from_example_or_hvo, to_example_or_hvo):
+    """
+    Move a media file from one example to another example.
+
+    This is useful when reorganizing examples or moving audio recordings to the
+    correct example sentence.
+
+    Args:
+        media: ICmFile object to move
+        from_example_or_hvo: Source ILexExampleSentence object or HVO
+        to_example_or_hvo: Destination ILexExampleSentence object or HVO
+
+    Raises:
+        FP_ReadOnlyError: If project not writable
+        FP_ParameterError: If media not in source example's collection
+
+    Example:
+        >>> # Move audio recording from one example to another
+        >>> example1 = sense.ExamplesOS[0]
+        >>> example2 = sense.ExamplesOS[1]
+        >>>
+        >>> media_files = project.Examples.GetMediaFiles(example1)
+        >>> # Move the first audio file
+        >>> project.Examples.MoveMediaFile(media_files[0], example1, example2)
+        >>>
+        >>> # Verify the move
+        >>> print(f"Example 1 media: {project.Examples.GetMediaCount(example1)}")
+        >>> print(f"Example 2 media: {project.Examples.GetMediaCount(example2)}")
+
+        >>> # Can also move between different senses
+        >>> other_sense = entry.SensesOS[1]
+        >>> other_example = other_sense.ExamplesOS[0]
+        >>> project.Examples.MoveMediaFile(media_files[1], example1, other_example)
+
+    Notes:
+        - Media is removed from source MediaFilesOS and added to destination
+        - File reference and description are preserved
+        - The physical media file is NOT moved/copied
+        - Cannot move to the same example (no-op, returns False)
+        - Media object's GUID remains the same
+
+    Warning:
+        - Moving media between different sense's examples is allowed
+        - Ensure the media is semantically appropriate for the target example
+        - The media will be associated with the new example
+
+    See Also:
+        AddMediaFile, RemoveMediaFile, GetMediaFiles
+    """
+    if not self.project.writeEnabled:
+        raise FP_ReadOnlyError()
+
+    from_example = self._GetObject(from_example_or_hvo) if isinstance(from_example_or_hvo, int) else from_example_or_hvo
+    to_example = self._GetObject(to_example_or_hvo) if isinstance(to_example_or_hvo, int) else to_example_or_hvo
+
+    # Can't move to same example
+    if from_example == to_example:
+        logger.warning("Source and destination are the same example")
+        return False
+
+    # Verify media is in source collection
+    if media not in from_example.MediaFilesOS:
+        raise FP_ParameterError("Media file not found in source example's media collection")
+
+    # Move the media (remove from source, add to destination)
+    from_example.MediaFilesOS.Remove(media)
+    to_example.MediaFilesOS.Add(media)
+
+    logger.info(f"Moved media from example {from_example.Guid} to example {to_example.Guid}")
+
+    return True
+```
+
 **File**: `flexlibs/code/Lexicon/ExampleOperations.py`
-**Line**: After existing `GetMediaCount()` (~995-1100)
+**Line**: After existing `GetMediaCount()` (~995-1150)
+
+---
+
+### 5. PronunciationOperations Move Method
+
+**Purpose**: Move media files between pronunciations for consistency with Examples.
+
+**Location**: Add to `PronunciationOperations` class
+
+**Note**: PronunciationOperations already has AddMediaFile() and RemoveMediaFile(). Adding MoveMediaFile() for completeness.
+
+#### MoveMediaFile()
+
+```python
+def MoveMediaFile(self, media, from_pronunciation_or_hvo, to_pronunciation_or_hvo):
+    """
+    Move a media file from one pronunciation to another pronunciation.
+
+    This is useful when reorganizing pronunciations or moving audio recordings to the
+    correct pronunciation variant.
+
+    Args:
+        media: ICmFile object to move
+        from_pronunciation_or_hvo: Source ILexPronunciation object or HVO
+        to_pronunciation_or_hvo: Destination ILexPronunciation object or HVO
+
+    Raises:
+        FP_ReadOnlyError: If project not writable
+        FP_ParameterError: If media not in source pronunciation's collection
+
+    Example:
+        >>> # Move audio from one pronunciation to another
+        >>> entry = list(project.LexiconAllEntries())[0]
+        >>> pron1 = entry.PronunciationsOS[0]  # IPA: [rʌn]
+        >>> pron2 = entry.PronunciationsOS[1]  # IPA: [ɹʌn]
+        >>>
+        >>> media_files = project.Pronunciations.GetMediaFiles(pron1)
+        >>> # Move the audio to the correct pronunciation variant
+        >>> project.Pronunciations.MoveMediaFile(media_files[0], pron1, pron2)
+        >>>
+        >>> # Verify the move
+        >>> print(f"Pron 1 media: {project.Pronunciations.GetMediaCount(pron1)}")
+        >>> print(f"Pron 2 media: {project.Pronunciations.GetMediaCount(pron2)}")
+
+        >>> # Can also move between different entries
+        >>> entry2 = list(project.LexiconAllEntries())[1]
+        >>> other_pron = entry2.PronunciationsOS[0]
+        >>> project.Pronunciations.MoveMediaFile(media_files[1], pron1, other_pron)
+
+    Notes:
+        - Media is removed from source MediaFilesOS and added to destination
+        - File reference and description are preserved
+        - The physical media file is NOT moved/copied
+        - Cannot move to the same pronunciation (no-op, returns False)
+        - Media object's GUID remains the same
+
+    Warning:
+        - Moving media between different entries' pronunciations is allowed
+        - Ensure the audio is appropriate for the target pronunciation
+        - The media will be associated with the new pronunciation
+
+    See Also:
+        AddMediaFile, RemoveMediaFile, GetMediaFiles
+    """
+    if not self.project.writeEnabled:
+        raise FP_ReadOnlyError()
+
+    from_pron = self._GetObject(from_pronunciation_or_hvo) if isinstance(from_pronunciation_or_hvo, int) else from_pronunciation_or_hvo
+    to_pron = self._GetObject(to_pronunciation_or_hvo) if isinstance(to_pronunciation_or_hvo, int) else to_pronunciation_or_hvo
+
+    # Can't move to same pronunciation
+    if from_pron == to_pron:
+        logger.warning("Source and destination are the same pronunciation")
+        return False
+
+    # Verify media is in source collection
+    if media not in from_pron.MediaFilesOS:
+        raise FP_ParameterError("Media file not found in source pronunciation's media collection")
+
+    # Move the media (remove from source, add to destination)
+    from_pron.MediaFilesOS.Remove(media)
+    to_pron.MediaFilesOS.Add(media)
+
+    logger.info(f"Moved media from pronunciation {from_pron.Guid} to pronunciation {to_pron.Guid}")
+
+    return True
+```
+
+**File**: `flexlibs/code/Lexicon/PronunciationOperations.py`
+**Line**: After existing `RemoveMediaFile()` (~770-850)
 
 ---
 
@@ -630,18 +872,21 @@ def GetAudioForField(self, obj, field_name, wsHandle):
 1. ✅ `FLExProject.GetLinkedFilesDir()` - Simple, widely useful
 2. ✅ `LexSenseOperations.AddPicture()` - Core functionality gap
 3. ✅ `LexSenseOperations.RemovePicture()` - Pairs with Add
-4. ✅ `ExampleOperations.AddMediaFile()` - Core functionality gap
-5. ✅ `ExampleOperations.RemoveMediaFile()` - Pairs with Add
+4. ✅ `LexSenseOperations.MovePicture()` - User requested, very practical
+5. ✅ `ExampleOperations.AddMediaFile()` - Core functionality gap
+6. ✅ `ExampleOperations.RemoveMediaFile()` - Pairs with Add
+7. ✅ `ExampleOperations.MoveMediaFile()` - User requested, very practical
 
 ### Phase 2 (Medium Priority):
-6. ✅ `MediaOperations.RenameMediaFile()` - User requested, very useful
-7. ✅ `LexSenseOperations.RenamePicture()` - Wrapper around RenameMediaFile
-8. ✅ `LexSenseOperations.SetPictureCaption()` - Nice to have
-9. ✅ `LexSenseOperations.GetPictureCaption()` - Pairs with Set
+8. ✅ `MediaOperations.RenameMediaFile()` - User requested, very useful
+9. ✅ `LexSenseOperations.RenamePicture()` - Wrapper around RenameMediaFile
+10. ✅ `LexSenseOperations.SetPictureCaption()` - Nice to have
+11. ✅ `LexSenseOperations.GetPictureCaption()` - Pairs with Set
+12. ✅ `PronunciationOperations.MoveMediaFile()` - Consistency with Examples
 
 ### Phase 3 (Future/Advanced):
-10. ⏳ Audio Writing Systems support - Complex, needs research
-11. ⏳ Move MediaOperations to better location - Architectural cleanup
+13. ⏳ Audio Writing Systems support - Complex, needs research
+14. ⏳ Move MediaOperations to better location - Architectural cleanup
 12. ⏳ Add media to other objects (Text, Notebook entries, etc.)
 
 ---
@@ -709,8 +954,9 @@ def test_rename_media_file():
 |-----------|---------|---------|
 | FLExProject | GetLinkedFilesDir() | Access LinkedFiles path |
 | MediaOperations | RenameMediaFile() | Rename file + update ref |
-| LexSenseOperations | AddPicture()<br>RemovePicture()<br>SetPictureCaption()<br>GetPictureCaption()<br>RenamePicture() | Full picture management |
-| ExampleOperations | AddMediaFile()<br>RemoveMediaFile() | Media attachment support |
+| LexSenseOperations | AddPicture()<br>RemovePicture()<br>MovePicture()<br>SetPictureCaption()<br>GetPictureCaption()<br>RenamePicture() | Full picture management |
+| ExampleOperations | AddMediaFile()<br>RemoveMediaFile()<br>MoveMediaFile() | Media attachment support |
+| PronunciationOperations | MoveMediaFile() | Move media between pronunciations |
 
 ### What's Complete Already:
 

@@ -699,6 +699,156 @@ class MediaOperations(BaseOperations):
 
         media.InternalPath = path.strip()
 
+    def RenameMediaFile(self, media_or_hvo, new_filename):
+        """
+        Rename a media file on disk and update the database reference.
+
+        This is an atomic operation that:
+        1. Validates parameters and checks write permissions
+        2. Gets current internal and external paths
+        3. Constructs new paths with new filename
+        4. Renames the physical file in LinkedFiles directory
+        5. Updates the InternalPath in the database
+        6. Handles filename conflicts (adds suffix if needed)
+
+        Args:
+            media_or_hvo: Either an ICmFile object or its HVO (database ID)
+            new_filename: New filename (without path, just filename.ext)
+
+        Returns:
+            str: The actual new internal path (may differ if conflict occurred)
+
+        Raises:
+            FP_ReadOnlyError: If project is not opened with write enabled
+            FP_NullParameterError: If media_or_hvo or new_filename is None
+            FP_ParameterError: If media doesn't exist, filename is invalid,
+                or contains path separators
+            OSError: If file doesn't exist or rename operation fails
+
+        Example:
+            >>> # Rename an audio file
+            >>> media = project.Media.Find("LinkedFiles/AudioVisual/old_name.wav")
+            >>> new_path = project.Media.RenameMediaFile(media, "new_name.wav")
+            >>> print(new_path)
+            LinkedFiles/AudioVisual/new_name.wav
+
+            >>> # Handles conflicts automatically
+            >>> media2 = project.Media.Find("LinkedFiles/AudioVisual/temp.wav")
+            >>> new_path = project.Media.RenameMediaFile(media2, "new_name.wav")
+            >>> print(new_path)
+            LinkedFiles/AudioVisual/new_name_1.wav
+
+            >>> # Rename by HVO
+            >>> new_path = project.Media.RenameMediaFile(12345, "recording.wav")
+
+        Warning:
+            - Renames the physical file on disk
+            - This is a destructive operation
+            - If new filename already exists, adds _1, _2, etc. suffix
+            - Cannot be undone
+
+        Notes:
+            - Preserves the subdirectory (AudioVisual, Pictures, etc.)
+            - Only changes the filename, not the directory path
+            - Handles filename conflicts by adding _1, _2, etc.
+            - Updates InternalPath in database automatically
+            - Old file must exist on disk
+            - New filename cannot contain path separators (/ or \\)
+            - Validates that new_filename is just a filename, not a path
+
+        See Also:
+            SetInternalPath, CopyToProject, GetExternalPath, GetInternalPath
+        """
+        # Check write permissions
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        # Validate parameters
+        if media_or_hvo is None:
+            raise FP_NullParameterError("media_or_hvo cannot be None")
+
+        if new_filename is None:
+            raise FP_NullParameterError("new_filename cannot be None")
+
+        if not new_filename or not new_filename.strip():
+            raise FP_ParameterError("New filename cannot be empty")
+
+        new_filename = new_filename.strip()
+
+        # Validate that new_filename is just a filename, not a path
+        if os.sep in new_filename or '/' in new_filename or '\\' in new_filename:
+            raise FP_ParameterError(
+                f"New filename cannot contain path separators: {new_filename}"
+            )
+
+        # Resolve to media object
+        if isinstance(media_or_hvo, int):
+            media = self.project.Object(media_or_hvo)
+            if not isinstance(media, ICmFile):
+                raise FP_ParameterError("HVO does not refer to a media file")
+        else:
+            media = media_or_hvo
+
+        # Get current paths
+        old_internal_path = self.GetInternalPath(media)
+        if not old_internal_path:
+            raise FP_ParameterError("Media file has no internal path set")
+
+        old_external_path = self.GetExternalPath(media)
+
+        # Check if old file exists
+        if not os.path.exists(old_external_path):
+            logger.error(f"File not found: {old_external_path}")
+            raise FP_ParameterError(f"File not found: {old_external_path}")
+
+        # Construct new path (preserve directory)
+        dir_name = os.path.dirname(old_internal_path)
+        new_internal_path = os.path.join(dir_name, new_filename)
+
+        # Get the external directory path for constructing new external path
+        old_external_dir = os.path.dirname(old_external_path)
+        new_external_path = os.path.join(old_external_dir, new_filename)
+
+        # Handle conflicts - check if target file already exists
+        if os.path.exists(new_external_path):
+            base, ext = os.path.splitext(new_filename)
+            counter = 1
+            while True:
+                new_filename_conflict = f"{base}_{counter}{ext}"
+                new_internal_path = os.path.join(dir_name, new_filename_conflict)
+                new_external_path = os.path.join(old_external_dir, new_filename_conflict)
+                if not os.path.exists(new_external_path):
+                    break
+                counter += 1
+
+            logger.warning(
+                f"File {new_filename} already exists, using {new_filename_conflict}"
+            )
+
+        # Rename the physical file
+        try:
+            os.rename(old_external_path, new_external_path)
+            logger.info(f"Renamed media file: {old_external_path} -> {new_external_path}")
+        except OSError as e:
+            logger.error(f"Failed to rename file: {e}")
+            raise
+
+        # Update database reference
+        try:
+            self.SetInternalPath(media, new_internal_path)
+            logger.info(f"Updated internal path: {old_internal_path} -> {new_internal_path}")
+        except Exception as e:
+            # If database update fails, try to roll back the file rename
+            logger.error(f"Failed to update database, attempting rollback: {e}")
+            try:
+                os.rename(new_external_path, old_external_path)
+                logger.info(f"Rolled back file rename")
+            except OSError as rollback_error:
+                logger.error(f"Rollback failed: {rollback_error}")
+            raise
+
+        return new_internal_path
+
     def GetLabel(self, media_or_hvo, wsHandle=None):
         """
         Get the label/description of a media file.
