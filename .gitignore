@@ -76,3 +76,12 @@ ENV/
 env.bak/
 venv.bak/
 
+# Test artifacts
+*_output.txt
+test_results.txt
+
+# Temporary directories
+Temp/
+temp/
+tmp/
+
