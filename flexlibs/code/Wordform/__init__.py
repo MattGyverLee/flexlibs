@@ -1,0 +1,1 @@
+# Wordform Inventory module

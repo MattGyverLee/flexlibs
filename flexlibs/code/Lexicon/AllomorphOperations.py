@@ -21,8 +21,10 @@ from ..BaseOperations import BaseOperations
 from SIL.LCModel import (
     IMoForm,
     IMoStemAllomorphFactory,
+    IMoAffixAllomorphFactory,
     ILexEntry,
     IPhEnvironment,
+    MoMorphTypeTags,
 )
 from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
@@ -153,14 +155,16 @@ class AllomorphOperations(BaseOperations):
                 yield allomorph
 
 
-    def Create(self, entry_or_hvo, form, morphType, wsHandle=None):
+    def Create(self, entry_or_hvo, form, morphType=None, wsHandle=None):
         """
         Create a new allomorph for a lexical entry.
 
         Args:
             entry_or_hvo: The ILexEntry object or HVO.
             form (str): The allomorph form (e.g., "-ing", "walk", "pre-").
-            morphType: The morpheme type (IMoMorphType object).
+            morphType (IMoMorphType, optional): The morpheme type object.
+                If None (default), inherits from the entry's LexemeFormOA morph type,
+                matching FLEx GUI behavior.
             wsHandle: Optional writing system handle. Defaults to vernacular WS.
 
         Returns:
@@ -168,26 +172,32 @@ class AllomorphOperations(BaseOperations):
 
         Raises:
             FP_ReadOnlyError: If the project is not opened with write enabled.
-            FP_NullParameterError: If entry_or_hvo, form, or morphType is None.
-            FP_ParameterError: If form is empty.
+            FP_NullParameterError: If entry_or_hvo or form is None.
+            FP_ParameterError: If form is empty or entry has no LexemeFormOA when
+                morphType is not provided.
 
         Example:
-            >>> allomorphOps = AllomorphOperations(project)
-            >>> entry = project.LexiconAllEntries()[0]
-            >>> morphType = project.lp.MorphTypesOA.PossibilitiesOS[0]
-            >>> allomorph = allomorphOps.Create(entry, "walk", morphType)
-            >>> print(allomorphOps.GetForm(allomorph))
-            walk
+            >>> # Create allomorph with inherited morph type (default)
+            >>> entry = project.LexEntry.Create("run")
+            >>> allomorph = project.Allomorphs.Create(entry, "running")
+            >>> print(project.Allomorphs.GetForm(allomorph))
+            running
+
+            >>> # Create with explicit morph type
+            >>> morphType = project.lexDB.MorphTypesOA.PossibilitiesOS[0]
+            >>> allomorph = project.Allomorphs.Create(entry, "ran", morphType)
 
             >>> # Create with specific writing system
-            >>> allomorph = allomorphOps.Create(entry, "wɔk", morphType,
-            ...                                  project.WSHandle('en-fonipa'))
+            >>> allomorph = project.Allomorphs.Create(entry, "rʌn",
+            ...                                        wsHandle=project.WSHandle('en-fonipa'))
 
         Notes:
             - The allomorph is added to the entry's alternate forms list
             - If the entry has no lexeme form, this becomes the lexeme form
             - Otherwise, it's added as an alternate form
-            - MorphType determines how the allomorph is analyzed in parsing
+            - By default, inherits morph type from entry's LexemeFormOA (matches FLEx)
+            - Correct allomorph class (MoStemAllomorph vs MoAffixAllomorph) is
+              automatically chosen based on morph type
 
         See Also:
             Delete, GetAll, SetForm
@@ -199,8 +209,6 @@ class AllomorphOperations(BaseOperations):
             raise FP_NullParameterError()
         if form is None:
             raise FP_NullParameterError()
-        if morphType is None:
-            raise FP_NullParameterError()
 
         if not form or not form.strip():
             raise FP_ParameterError("Form cannot be empty")
@@ -208,8 +216,20 @@ class AllomorphOperations(BaseOperations):
         entry = self.__GetEntryObject(entry_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
 
-        # Create the new allomorph using the factory
-        factory = self.project.project.ServiceLocator.GetService(IMoStemAllomorphFactory)
+        # If no morphType provided, inherit from entry's LexemeFormOA (FLEx behavior)
+        if morphType is None:
+            if not entry.LexemeFormOA or not entry.LexemeFormOA.MorphTypeRA:
+                raise FP_ParameterError(
+                    "Cannot inherit morph type: entry has no LexemeFormOA with MorphTypeRA. "
+                    "Either provide morphType parameter or ensure entry has a lexeme form."
+                )
+            morphType = entry.LexemeFormOA.MorphTypeRA
+
+        # Create the new allomorph using the appropriate factory based on morph type
+        if self.__IsStemType(morphType):
+            factory = self.project.project.ServiceLocator.GetService(IMoStemAllomorphFactory)
+        else:
+            factory = self.project.project.ServiceLocator.GetService(IMoAffixAllomorphFactory)
         allomorph = factory.Create()
 
         # Add to entry (must be done before setting properties)
@@ -1050,6 +1070,39 @@ class AllomorphOperations(BaseOperations):
         if isinstance(env_or_hvo, int):
             return self.project.Object(env_or_hvo)
         return env_or_hvo
+
+
+    def __IsStemType(self, morph_type):
+        """
+        Determine if a morph type should use MoStemAllomorph or MoAffixAllomorph.
+
+        Args:
+            morph_type: IMoMorphType object
+
+        Returns:
+            bool: True if stem type (uses MoStemAllomorph), False if affix type
+
+        Notes:
+            Based on FLEx logic - matches LexEntryOperations.__IsStemType
+        """
+        if morph_type is None:
+            return True  # Default to stem
+
+        # Check GUID against known stem types
+        stem_guids = {
+            MoMorphTypeTags.kguidMorphStem,
+            MoMorphTypeTags.kguidMorphRoot,
+            MoMorphTypeTags.kguidMorphBoundRoot,
+            MoMorphTypeTags.kguidMorphBoundStem,
+            MoMorphTypeTags.kguidMorphClitic,
+            MoMorphTypeTags.kguidMorphEnclitic,
+            MoMorphTypeTags.kguidMorphProclitic,
+            MoMorphTypeTags.kguidMorphParticle,
+            MoMorphTypeTags.kguidMorphPhrase,
+            MoMorphTypeTags.kguidMorphDiscontiguousPhrase,
+        }
+
+        return morph_type.Guid in stem_guids
 
 
     def __WSHandle(self, wsHandle):

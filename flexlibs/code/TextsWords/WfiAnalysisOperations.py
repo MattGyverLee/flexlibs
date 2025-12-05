@@ -1319,6 +1319,55 @@ class WfiAnalysisOperations(BaseOperations):
 
         return None
 
+    def GetEvaluations(self, analysis_or_hvo):
+        """
+        Get all agent evaluations for an analysis.
+
+        Retrieves all ICmAgentEvaluation objects from the analysis's
+        EvaluationsRC (Reference Collection). This is a read-only property
+        that returns evaluations created by both human linguists and automated
+        agents (e.g., morphological parser).
+
+        Args:
+            analysis_or_hvo: Either an IWfiAnalysis object or its HVO
+
+        Returns:
+            list: List of ICmAgentEvaluation objects. Returns empty list if
+                no evaluations exist.
+
+        Raises:
+            FP_NullParameterError: If analysis_or_hvo is None
+            FP_ParameterError: If analysis doesn't exist
+
+        Example:
+            >>> analysis = analyses[0]
+            >>> evaluations = project.WfiAnalyses.GetEvaluations(analysis)
+            >>> for evaluation in evaluations:
+            ...     if hasattr(evaluation, 'Agent') and evaluation.Agent:
+            ...         agent_name = evaluation.Agent.Name.BestAnalysisAlternative.Text
+            ...         is_accepted = evaluation.Accepted if hasattr(evaluation, 'Accepted') else None
+            ...         print(f"Agent: {agent_name}, Accepted: {is_accepted}")
+
+        Notes:
+            - This is a READ-ONLY property (Reference Collection)
+            - Returns all evaluations (human and computer/parser)
+            - Empty list indicates no evaluations have been created
+            - Evaluations track approval/disapproval status
+            - Each evaluation links to an ICmAgent (human or parser)
+            - Use IsHumanApproved() or IsComputerApproved() for simple checks
+            - Evaluations are added/removed via SetApprovalStatus()
+
+        See Also:
+            GetAgentEvaluation, GetHumanEvaluation, IsHumanApproved,
+            IsComputerApproved, SetApprovalStatus
+        """
+        if not analysis_or_hvo:
+            raise FP_NullParameterError()
+
+        analysis = self.__GetAnalysisObject(analysis_or_hvo)
+
+        return list(analysis.EvaluationsRC)
+
 
     # --- Utility Operations ---
 

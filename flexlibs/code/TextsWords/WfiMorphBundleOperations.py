@@ -971,6 +971,103 @@ class WfiMorphBundleOperations(BaseOperations):
 
     # ==================== INFLECTION OPERATIONS ====================
 
+    def GetInflType(self, bundle_or_hvo):
+        """
+        Get the inflection type of a bundle.
+
+        Args:
+            bundle_or_hvo: The IWfiMorphBundle object or HVO.
+
+        Returns:
+            ICmPossibility or None: The inflection type object, or None if not set.
+
+        Raises:
+            FP_NullParameterError: If bundle_or_hvo is None.
+
+        Example:
+            >>> morphBundleOps = WfiMorphBundleOperations(project)
+            >>> bundles = list(morphBundleOps.GetAll(analysis))
+            >>> if bundles:
+            ...     inflType = morphBundleOps.GetInflType(bundles[0])
+            ...     if inflType:
+            ...         wsHandle = project.project.DefaultAnalWs
+            ...         type_name = ITsString(inflType.Name.get_String(wsHandle)).Text
+            ...         print(f"Inflection type: {type_name}")
+            Inflection type: past tense
+
+        Notes:
+            - Returns None if inflection type not set
+            - Inflection type specifies the grammatical category
+            - Examples: past tense, plural, comparative, etc.
+            - References an ICmPossibility from the inflection type list
+            - Used in morphological analysis and parsing
+            - Complements the inflection class information
+
+        See Also:
+            SetInflType, GetInflectionClass, GetMSA
+        """
+        if not bundle_or_hvo:
+            raise FP_NullParameterError()
+
+        bundle = self.__GetBundleObject(bundle_or_hvo)
+        return bundle.InflType if bundle.InflType else None
+
+
+    def SetInflType(self, bundle_or_hvo, infl_type_or_hvo):
+        """
+        Set the inflection type of a bundle.
+
+        Args:
+            bundle_or_hvo: The IWfiMorphBundle object or HVO.
+            infl_type_or_hvo: The ICmPossibility inflection type object or HVO, or None to unset.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If bundle_or_hvo is None.
+
+        Example:
+            >>> morphBundleOps = WfiMorphBundleOperations(project)
+            >>> bundles = list(morphBundleOps.GetAll(analysis))
+            >>> if bundles:
+            ...     # Get an inflection type from the list
+            ...     if project.lp.MorphologicalDataOA:
+            ...         inflTypes = project.lp.MorphologicalDataOA.InflectionTypesOA
+            ...         if inflTypes and inflTypes.PossibilitiesOS.Count > 0:
+            ...             past_tense = inflTypes.PossibilitiesOS[0]
+            ...             morphBundleOps.SetInflType(bundles[0], past_tense)
+
+            >>> # Clear inflection type
+            >>> morphBundleOps.SetInflType(bundles[0], None)
+
+        Notes:
+            - Inflection type specifies the grammatical inflection
+            - Setting to None clears the type reference
+            - Type should match the morpheme's grammatical function
+            - May be automatically set when linking to lexical entry
+            - Affects morphological analysis and display
+
+        See Also:
+            GetInflType, SetInflectionClass, SetMSA
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not bundle_or_hvo:
+            raise FP_NullParameterError()
+
+        bundle = self.__GetBundleObject(bundle_or_hvo)
+
+        if infl_type_or_hvo is None:
+            bundle.InflType = None
+        else:
+            # Resolve to ICmPossibility object
+            if isinstance(infl_type_or_hvo, int):
+                infl_type = self.project.Object(infl_type_or_hvo)
+            else:
+                infl_type = infl_type_or_hvo
+            bundle.InflType = infl_type
+
+
     def GetInflectionClass(self, bundle_or_hvo):
         """
         Get the inflection class of a bundle.

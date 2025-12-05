@@ -777,11 +777,112 @@ class ProjectSettingsOperations(BaseOperations):
             - Used for organizing external reference materials
 
         See Also:
-            GetLinkedFilesRootDir
+            SetExtLinkRootDir, GetLinkedFilesRootDir
         """
         if hasattr(self.project.lp, 'ExtLinkRootDir') and self.project.lp.ExtLinkRootDir:
             return self.project.lp.ExtLinkRootDir
         return ""
+
+
+    def SetExtLinkRootDir(self, path):
+        """
+        Set the external link root directory.
+
+        Args:
+            path (str): Path to the external link root directory
+
+        Raises:
+            FP_ReadOnlyError: If project is not opened with write enabled
+            FP_NullParameterError: If path is None
+
+        Example:
+            >>> # Set absolute path
+            >>> project.ProjectSettings.SetExtLinkRootDir(
+            ...     "C:\\\\Users\\\\username\\\\Documents\\\\ExternalResources"
+            ... )
+
+            >>> # Set relative path
+            >>> project.ProjectSettings.SetExtLinkRootDir("ExternalLinks")
+
+        Notes:
+            - Can be absolute or relative path
+            - Relative paths are relative to the project directory
+            - Directory should exist before setting
+            - Used for organizing external linked resources
+
+        See Also:
+            GetExtLinkRootDir, SetLinkedFilesRootDir
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if path is None:
+            raise FP_NullParameterError()
+
+        self.project.lp.ExtLinkRootDir = path
+
+
+    def GetAnalysisWritingSystems(self):
+        """
+        Get the list of analysis writing system tags.
+
+        Returns:
+            list: List of analysis writing system language tags (e.g., ["en", "fr"])
+
+        Example:
+            >>> anal_wss = project.ProjectSettings.GetAnalysisWritingSystems()
+            >>> print("Analysis writing systems:")
+            >>> for ws_tag in anal_wss:
+            ...     print(f"  - {ws_tag}")
+            Analysis writing systems:
+              - en
+              - fr
+              - es
+
+        Notes:
+            - Returns list of language tags, not WS objects
+            - These are the writing systems for metadata and analysis
+            - READ-ONLY: Use other methods to modify the writing system list
+            - Empty list if no analysis writing systems configured
+            - This is an alias for GetAnalysisWSs() for consistency
+
+        See Also:
+            GetVernacularWritingSystems, GetAnalysisWSs
+        """
+        if hasattr(self.project.lp, 'AnalysisWss') and self.project.lp.AnalysisWss:
+            return self.project.lp.AnalysisWss.split()
+        return []
+
+
+    def GetVernacularWritingSystems(self):
+        """
+        Get the list of vernacular writing system tags.
+
+        Returns:
+            list: List of vernacular writing system language tags (e.g., ["qaa-x-kal"])
+
+        Example:
+            >>> vern_wss = project.ProjectSettings.GetVernacularWritingSystems()
+            >>> print("Vernacular writing systems:")
+            >>> for ws_tag in vern_wss:
+            ...     print(f"  - {ws_tag}")
+            Vernacular writing systems:
+              - qaa-x-kal
+              - qaa-x-kal-fonipa
+
+        Notes:
+            - Returns list of language tags, not WS objects
+            - These are the writing systems for the object language(s)
+            - READ-ONLY: Use other methods to modify the writing system list
+            - Empty list if no vernacular writing systems configured
+            - This is an alias for GetVernacularWSs() for consistency
+
+        See Also:
+            GetAnalysisWritingSystems, GetVernacularWSs
+        """
+        if hasattr(self.project.lp, 'CurVernWss') and self.project.lp.CurVernWss:
+            return self.project.lp.CurVernWss.split()
+        return []
 
 
     # --- Project Metadata ---

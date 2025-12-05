@@ -1588,6 +1588,322 @@ class DataNotebookOperations(BaseOperations):
                 record.Participants.Remove(person)
 
 
+    # --- Linking Operations: Locations ---
+
+    def GetLocations(self, record_or_hvo):
+        """
+        Get all locations associated with a notebook record.
+
+        Locations are places (ICmLocation objects) where the documented
+        event or data collection occurred.
+
+        Args:
+            record_or_hvo: The notebook record object (IRnGenericRec) or its HVO.
+
+        Returns:
+            list: List of ICmLocation objects representing locations.
+
+        Raises:
+            FP_NullParameterError: If record_or_hvo is None.
+            FP_ParameterError: If the record doesn't exist.
+
+        Example:
+            >>> record = project.DataNotebook.Find("Interview 1")
+            >>> locations = project.DataNotebook.GetLocations(record)
+            >>> print(f"Locations ({len(locations)}):")
+            >>> for location in locations:
+            ...     name = project.Location.GetName(location)
+            ...     coords = project.Location.GetCoordinates(location)
+            ...     print(f"  - {name}: {coords}")
+            Locations (2):
+              - Barasana Village: (-1.2345, -70.6789)
+              - Papurí River Area: (1.1234, -70.5678)
+
+        Notes:
+            - Returns empty list if no locations assigned
+            - Locations are ICmLocation objects
+            - Multiple locations can be assigned to one record
+            - Useful for tracking where fieldwork occurred
+
+        See Also:
+            AddLocation, RemoveLocation, GetResearchers
+        """
+        record = self.__GetRecordObject(record_or_hvo)
+
+        if hasattr(record, 'LocationsRC') and record.LocationsRC:
+            return list(record.LocationsRC)
+
+        return []
+
+
+    def AddLocation(self, record_or_hvo, location):
+        """
+        Add a location to a notebook record.
+
+        Associates a geographic location with the notebook record, indicating
+        where the documented event or data collection took place.
+
+        Args:
+            record_or_hvo: The notebook record object (IRnGenericRec) or its HVO.
+            location: The location object (ICmLocation) to add.
+
+        Raises:
+            FP_ReadOnlyError: If project is not opened with write enabled.
+            FP_NullParameterError: If record_or_hvo or location is None.
+            FP_ParameterError: If the record or location doesn't exist.
+
+        Example:
+            >>> # Add single location
+            >>> record = project.DataNotebook.Find("Interview 1")
+            >>> location = project.Location.Find("Barasana Village")
+            >>> if location:
+            ...     project.DataNotebook.AddLocation(record, location)
+
+            >>> # Add multiple locations
+            >>> locations = ["Village A", "Village B", "Recording Site"]
+            >>> for name in locations:
+            ...     loc = project.Location.Find(name)
+            ...     if loc:
+            ...         project.DataNotebook.AddLocation(record, loc)
+
+            >>> # Create and add new location
+            >>> new_location = project.Location.Create("New Site", "en")
+            >>> project.Location.SetCoordinates(new_location, -1.23, -70.45)
+            >>> project.DataNotebook.AddLocation(record, new_location)
+
+        Notes:
+            - Adding same location twice has no effect (no duplicates)
+            - Locations are not deleted when removed from records
+            - Use Location operations to manage location objects
+            - Useful for documenting fieldwork sites
+
+        See Also:
+            GetLocations, RemoveLocation, AddResearcher
+        """
+        if not self.project.project.CanEdit:
+            raise FP_ReadOnlyError()
+
+        if location is None:
+            raise FP_NullParameterError()
+
+        record = self.__GetRecordObject(record_or_hvo)
+
+        self.project.project.UndoableUnitOfWorkHelper.Do(
+            "Add Location",
+            "Undo Add Location",
+            lambda: None
+        )
+
+        if hasattr(record, 'LocationsRC'):
+            if location not in record.LocationsRC:
+                record.LocationsRC.Add(location)
+
+
+    def RemoveLocation(self, record_or_hvo, location):
+        """
+        Remove a location from a notebook record.
+
+        Removes the association between a location and a notebook record. The
+        location object itself is not deleted.
+
+        Args:
+            record_or_hvo: The notebook record object (IRnGenericRec) or its HVO.
+            location: The location object (ICmLocation) to remove.
+
+        Raises:
+            FP_ReadOnlyError: If project is not opened with write enabled.
+            FP_NullParameterError: If record_or_hvo or location is None.
+            FP_ParameterError: If the record or location doesn't exist.
+
+        Example:
+            >>> record = project.DataNotebook.Find("Interview 1")
+            >>> location = project.Location.Find("Old Site")
+            >>> project.DataNotebook.RemoveLocation(record, location)
+
+        Notes:
+            - Only removes the link, doesn't delete the location
+            - No error if location wasn't linked to record
+
+        See Also:
+            AddLocation, GetLocations
+        """
+        if not self.project.project.CanEdit:
+            raise FP_ReadOnlyError()
+
+        if location is None:
+            raise FP_NullParameterError()
+
+        record = self.__GetRecordObject(record_or_hvo)
+
+        self.project.project.UndoableUnitOfWorkHelper.Do(
+            "Remove Location",
+            "Undo Remove Location",
+            lambda: None
+        )
+
+        if hasattr(record, 'LocationsRC'):
+            if location in record.LocationsRC:
+                record.LocationsRC.Remove(location)
+
+
+    # --- Linking Operations: Sources ---
+
+    def GetSources(self, record_or_hvo):
+        """
+        Get all bibliographic sources associated with a notebook record.
+
+        Sources are references or publications (typically ICmPossibility objects
+        from the project's bibliography) that are cited or related to the
+        notebook record.
+
+        Args:
+            record_or_hvo: The notebook record object (IRnGenericRec) or its HVO.
+
+        Returns:
+            list: List of source/reference objects.
+
+        Raises:
+            FP_NullParameterError: If record_or_hvo is None.
+            FP_ParameterError: If the record doesn't exist.
+
+        Example:
+            >>> record = project.DataNotebook.Find("Interview 1")
+            >>> sources = project.DataNotebook.GetSources(record)
+            >>> print(f"Sources ({len(sources)}):")
+            >>> for source in sources:
+            ...     # Display source information
+            ...     print(f"  - {source}")
+            Sources (2):
+              - Smith 2020
+              - Johnson & Garcia 2018
+
+        Notes:
+            - Returns empty list if no sources assigned
+            - Sources can be bibliographic references or other citation objects
+            - Multiple sources can be assigned to one record
+            - Useful for documenting which publications relate to the data
+
+        See Also:
+            AddSource, RemoveSource, GetResearchers
+        """
+        record = self.__GetRecordObject(record_or_hvo)
+
+        if hasattr(record, 'SourcesRC') and record.SourcesRC:
+            return list(record.SourcesRC)
+
+        return []
+
+
+    def AddSource(self, record_or_hvo, source):
+        """
+        Add a bibliographic source/reference to a notebook record.
+
+        Associates a source or bibliographic reference with the notebook record,
+        indicating which publications or materials are relevant to the documented
+        data.
+
+        Args:
+            record_or_hvo: The notebook record object (IRnGenericRec) or its HVO.
+            source: The source/reference object to add.
+
+        Raises:
+            FP_ReadOnlyError: If project is not opened with write enabled.
+            FP_NullParameterError: If record_or_hvo or source is None.
+            FP_ParameterError: If the record or source doesn't exist.
+
+        Example:
+            >>> # Add single source
+            >>> record = project.DataNotebook.Find("Interview 1")
+            >>> source = project.Bibliography.Find("Smith 2020")
+            >>> if source:
+            ...     project.DataNotebook.AddSource(record, source)
+
+            >>> # Add multiple sources
+            >>> sources = ["Smith 2020", "Johnson & Garcia 2018"]
+            >>> for name in sources:
+            ...     src = project.Bibliography.Find(name)
+            ...     if src:
+            ...         project.DataNotebook.AddSource(record, src)
+
+            >>> # Create and add new source
+            >>> new_source = project.Bibliography.Create("Doe 2024")
+            >>> project.DataNotebook.AddSource(record, new_source)
+
+        Notes:
+            - Adding same source twice has no effect (no duplicates)
+            - Sources are not deleted when removed from records
+            - Use Bibliography operations to manage source objects
+            - Useful for tracking citations and references
+
+        See Also:
+            GetSources, RemoveSource, AddResearcher
+        """
+        if not self.project.project.CanEdit:
+            raise FP_ReadOnlyError()
+
+        if source is None:
+            raise FP_NullParameterError()
+
+        record = self.__GetRecordObject(record_or_hvo)
+
+        self.project.project.UndoableUnitOfWorkHelper.Do(
+            "Add Source",
+            "Undo Add Source",
+            lambda: None
+        )
+
+        if hasattr(record, 'SourcesRC'):
+            if source not in record.SourcesRC:
+                record.SourcesRC.Add(source)
+
+
+    def RemoveSource(self, record_or_hvo, source):
+        """
+        Remove a bibliographic source/reference from a notebook record.
+
+        Removes the association between a source and a notebook record. The
+        source object itself is not deleted.
+
+        Args:
+            record_or_hvo: The notebook record object (IRnGenericRec) or its HVO.
+            source: The source/reference object to remove.
+
+        Raises:
+            FP_ReadOnlyError: If project is not opened with write enabled.
+            FP_NullParameterError: If record_or_hvo or source is None.
+            FP_ParameterError: If the record or source doesn't exist.
+
+        Example:
+            >>> record = project.DataNotebook.Find("Interview 1")
+            >>> source = project.Bibliography.Find("Old Reference")
+            >>> project.DataNotebook.RemoveSource(record, source)
+
+        Notes:
+            - Only removes the link, doesn't delete the source
+            - No error if source wasn't linked to record
+
+        See Also:
+            AddSource, GetSources
+        """
+        if not self.project.project.CanEdit:
+            raise FP_ReadOnlyError()
+
+        if source is None:
+            raise FP_NullParameterError()
+
+        record = self.__GetRecordObject(record_or_hvo)
+
+        self.project.project.UndoableUnitOfWorkHelper.Do(
+            "Remove Source",
+            "Undo Remove Source",
+            lambda: None
+        )
+
+        if hasattr(record, 'SourcesRC'):
+            if source in record.SourcesRC:
+                record.SourcesRC.Remove(source)
+
+
     # --- Text Linking Operations ---
 
     def GetTexts(self, record_or_hvo):

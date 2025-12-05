@@ -1327,6 +1327,157 @@ class ExampleOperations(BaseOperations):
         return example.Guid
 
 
+    # --- Additional Properties ---
+
+    def GetLiteralTranslation(self, example_or_hvo, wsHandle=None):
+        """
+        Get the literal translation of an example sentence.
+
+        Args:
+            example_or_hvo: Either an ILexExampleSentence object or its HVO
+            wsHandle: Optional writing system handle. Defaults to analysis WS.
+
+        Returns:
+            str: The literal translation text
+
+        Example:
+            >>> sense = list(project.Senses.GetAll())[0]
+            >>> examples = project.Examples.GetAll(sense)
+            >>> if examples:
+            ...     lit_trans = project.Examples.GetLiteralTranslation(examples[0])
+            ...     print(lit_trans)
+        """
+        if not example_or_hvo:
+            raise FP_NullParameterError()
+
+        example = self.__GetExampleObject(example_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+
+        return ITsString(example.LiteralTranslation.get_String(wsHandle)).Text or ""
+
+
+    def SetLiteralTranslation(self, example_or_hvo, text, wsHandle=None):
+        """
+        Set the literal translation of an example sentence.
+
+        Args:
+            example_or_hvo: Either an ILexExampleSentence object or its HVO
+            text (str): The literal translation text
+            wsHandle: Optional writing system handle. Defaults to analysis WS.
+
+        Raises:
+            FP_ReadOnlyError: If project is not opened with write enabled
+            FP_NullParameterError: If example_or_hvo or text is None
+
+        Example:
+            >>> sense = list(project.Senses.GetAll())[0]
+            >>> examples = project.Examples.GetAll(sense)
+            >>> if examples:
+            ...     project.Examples.SetLiteralTranslation(examples[0], "word-for-word translation")
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not example_or_hvo or text is None:
+            raise FP_NullParameterError()
+
+        example = self.__GetExampleObject(example_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+
+        mkstr = TsStringUtils.MakeString(text, wsHandle)
+        example.LiteralTranslation.set_String(wsHandle, mkstr)
+
+
+    def GetDoNotPublishIn(self, example_or_hvo):
+        """
+        Get the publications this example should not be published in.
+
+        Args:
+            example_or_hvo: Either an ILexExampleSentence object or its HVO
+
+        Returns:
+            list: List of publication names
+
+        Example:
+            >>> sense = list(project.Senses.GetAll())[0]
+            >>> examples = project.Examples.GetAll(sense)
+            >>> if examples:
+            ...     pubs = project.Examples.GetDoNotPublishIn(examples[0])
+            ...     print(pubs)
+        """
+        if not example_or_hvo:
+            raise FP_NullParameterError()
+
+        example = self.__GetExampleObject(example_or_hvo)
+
+        result = []
+        for pub in example.DoNotPublishIn:
+            name = pub.Name.BestAnalysisAlternative.Text if pub.Name else str(pub.Guid)
+            result.append(name)
+        return result
+
+
+    def AddDoNotPublishIn(self, example_or_hvo, publication):
+        """
+        Add a publication to exclude this example from.
+
+        Args:
+            example_or_hvo: Either an ILexExampleSentence object or its HVO
+            publication: Publication name (str) or ICmPossibility object
+
+        Raises:
+            FP_ReadOnlyError: If project is not opened with write enabled
+            FP_NullParameterError: If example_or_hvo or publication is None
+            FP_ParameterError: If publication name not found
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not example_or_hvo or not publication:
+            raise FP_NullParameterError()
+
+        example = self.__GetExampleObject(example_or_hvo)
+
+        # Find publication object if string provided
+        if isinstance(publication, str):
+            pub_obj = self.project.Publications.Find(publication)
+            if not pub_obj:
+                raise FP_ParameterError(f"Publication '{publication}' not found")
+            publication = pub_obj
+
+        if publication not in example.DoNotPublishIn:
+            example.DoNotPublishIn.Add(publication)
+
+
+    def RemoveDoNotPublishIn(self, example_or_hvo, publication):
+        """
+        Remove a publication from the exclude list for this example.
+
+        Args:
+            example_or_hvo: Either an ILexExampleSentence object or its HVO
+            publication: Publication name (str) or ICmPossibility object
+
+        Raises:
+            FP_ReadOnlyError: If project is not opened with write enabled
+            FP_NullParameterError: If example_or_hvo or publication is None
+            FP_ParameterError: If publication name not found
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not example_or_hvo or not publication:
+            raise FP_NullParameterError()
+
+        example = self.__GetExampleObject(example_or_hvo)
+
+        # Find publication object if string provided
+        if isinstance(publication, str):
+            pub_obj = self.project.Publications.Find(publication)
+            if not pub_obj:
+                raise FP_ParameterError(f"Publication '{publication}' not found")
+            publication = pub_obj
+
+        if publication in example.DoNotPublishIn:
+            example.DoNotPublishIn.Remove(publication)
+
+
     # --- Private Helper Methods ---
 
     def __GetSenseObject(self, sense_or_hvo):

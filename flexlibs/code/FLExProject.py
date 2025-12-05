@@ -370,32 +370,33 @@ class FLExProject (object):
     @property
     def Wordforms(self):
         """
-        Access to wordform operations.
+        Access to wordform operations (Work Stream 3 - MOST ACTIVE: 727+ commits in 2024).
 
         Returns:
-            WordformOperations: Instance providing wordform management methods
+            WfiWordformOperations: Instance providing wordform inventory management methods
 
         Example:
             >>> project = FLExProject()
             >>> project.OpenProject("MyProject", writeEnabled=True)
-            >>> # Get all wordforms
-            >>> for wf in project.Wordforms.GetAll():
-            ...     print(project.Wordforms.GetForm(wf))
-            >>> # Create a new wordform
-            >>> wf = project.Wordforms.Create("running")
-            >>> # Set spelling status
-            >>> from flexlibs import SpellingStatusStates
-            >>> project.Wordforms.SetSpellingStatus(wf, SpellingStatusStates.CORRECT)
+            >>> # Find or create wordform (most common pattern)
+            >>> wf = project.Wordforms.FindOrCreate("hlauka")
+            >>> # Get all analyses
+            >>> for analysis in project.Wordforms.GetAnalyses(wf):
+            ...     approved = project.WfiAnalyses.IsHumanApproved(analysis)
+            ...     print(f"Analysis: {'approved' if approved else 'parser guess'}")
+            >>> # Set approved analysis
+            >>> if wf.AnalysesOC.Count > 0:
+            ...     project.Wordforms.SetApprovedAnalysis(wf, wf.AnalysesOC[0])
         """
         if not hasattr(self, '_wordform_ops'):
-            from .TextsWords.WordformOperations import WordformOperations
-            self._wordform_ops = WordformOperations(self)
+            from .Wordform.WfiWordformOperations import WfiWordformOperations
+            self._wordform_ops = WfiWordformOperations(self)
         return self._wordform_ops
 
     @property
     def WfiAnalyses(self):
         """
-        Access to wordform analysis operations.
+        Access to wordform analysis operations (Work Stream 3).
 
         Returns:
             WfiAnalysisOperations: Instance providing wordform analysis management methods
@@ -403,25 +404,20 @@ class FLExProject (object):
         Example:
             >>> project = FLExProject()
             >>> project.OpenProject("MyProject", writeEnabled=True)
-            >>> # Get wordform and its analyses
-            >>> wf = project.Wordforms.Find("running")
-            >>> analyses = project.WfiAnalyses.GetAll(wf)
-            >>> for analysis in analyses:
-            ...     glosses = project.WfiAnalyses.GetGlosses(analysis)
-            ...     print(f"Analysis: {glosses}")
-            >>> # Create new analysis
-            >>> new_analysis = project.WfiAnalyses.Create(wf)
-            >>> # Add gloss
-            >>> project.WfiAnalyses.AddGloss(new_analysis, "running", "en")
-            >>> # Set category
-            >>> verb = project.POS.Find("Verb")
+            >>> # Get wordform and create analysis
+            >>> wf = project.Wordforms.FindOrCreate("hlauka")
+            >>> analysis = project.WfiAnalyses.Create(wf)
+            >>> # Set category (part of speech)
+            >>> verb = project.POS.Find("verb")
             >>> if verb:
-            ...     project.WfiAnalyses.SetCategory(new_analysis, verb)
-            >>> # Approve analysis
-            >>> project.WfiAnalyses.ApproveAnalysis(new_analysis)
+            ...     project.WfiAnalyses.SetCategory(analysis, verb)
+            >>> # Mark as human-approved
+            >>> project.WfiAnalyses.Approve(analysis)
+            >>> # Get morph bundles
+            >>> bundles = project.WfiAnalyses.GetMorphBundles(analysis)
         """
         if not hasattr(self, '_wfianalysis_ops'):
-            from .TextsWords.WfiAnalysisOperations import WfiAnalysisOperations
+            from .Wordform.WfiAnalysisOperations import WfiAnalysisOperations
             self._wfianalysis_ops = WfiAnalysisOperations(self)
         return self._wfianalysis_ops
 
@@ -817,6 +813,58 @@ class FLExProject (object):
         return self._reversal_ops
 
     @property
+    def ReversalIndexes(self):
+        """
+        Access to reversal index operations (Work Stream 3).
+
+        Returns:
+            ReversalIndexOperations: Instance providing reversal index management methods
+
+        Example:
+            >>> project = FLExProject()
+            >>> project.OpenProject("MyProject", writeEnabled=True)
+            >>> # Create English reversal index
+            >>> en_ws = project.WSHandle('en')
+            >>> idx = project.ReversalIndexes.Create("English", en_ws)
+            >>> # Find by writing system
+            >>> idx = project.ReversalIndexes.FindByWritingSystem(en_ws)
+            >>> # Get all entries in index
+            >>> for entry in project.ReversalIndexes.GetEntries(idx):
+            ...     form = project.ReversalEntries.GetForm(entry)
+            ...     print(f"Reversal: {form}")
+        """
+        if not hasattr(self, '_reversalindex_ops'):
+            from .Reversal.ReversalIndexOperations import ReversalIndexOperations
+            self._reversalindex_ops = ReversalIndexOperations(self)
+        return self._reversalindex_ops
+
+    @property
+    def ReversalEntries(self):
+        """
+        Access to reversal index entry operations (Work Stream 3).
+
+        Returns:
+            ReversalIndexEntryOperations: Instance providing reversal entry management methods
+
+        Example:
+            >>> project = FLExProject()
+            >>> project.OpenProject("MyProject", writeEnabled=True)
+            >>> # Get reversal index
+            >>> idx = project.ReversalIndexes.FindByWritingSystem('en')
+            >>> # Create reversal entry
+            >>> entry = project.ReversalEntries.Create(idx, "run")
+            >>> # Link to lexical sense
+            >>> lex_entry = project.LexEntry.Find("hlauka")
+            >>> if lex_entry and lex_entry.SensesOS.Count > 0:
+            ...     sense = lex_entry.SensesOS[0]
+            ...     project.ReversalEntries.AddSense(entry, sense)
+        """
+        if not hasattr(self, '_reversalentry_ops'):
+            from .Reversal.ReversalIndexEntryOperations import ReversalIndexEntryOperations
+            self._reversalentry_ops = ReversalIndexEntryOperations(self)
+        return self._reversalentry_ops
+
+    @property
     def SemanticDomains(self):
         """
         Access to semantic domain operations.
@@ -1046,41 +1094,9 @@ class FLExProject (object):
         return self._writingsystem_ops
 
     @property
-    def WfiAnalyses(self):
-        """
-        Access to wordform analysis operations.
-
-        Returns:
-            WfiAnalysisOperations: Instance providing wordform analysis management methods
-
-        Example:
-            >>> project = FLExProject()
-            >>> project.OpenProject("MyProject", writeEnabled=True)
-            >>> # Get all analyses for a wordform
-            >>> wordform = project.Wordforms.FindOrCreate("running")
-            >>> for analysis in project.WfiAnalyses.GetAll(wordform):
-            ...     category = project.WfiAnalyses.GetCategory(analysis)
-            ...     bundles = project.WfiAnalyses.GetMorphBundles(analysis)
-            ...     print(f"Category: {category}, Morphemes: {len(bundles)}")
-            >>> # Create a new analysis
-            >>> analysis = project.WfiAnalyses.Create(wordform)
-            >>> # Approve the analysis
-            >>> project.WfiAnalyses.ApproveAnalysis(analysis)
-            >>> # Get all unapproved analyses
-            >>> for analysis in project.WfiAnalyses.GetUnapprovedAnalyses():
-            ...     wf = project.WfiAnalyses.GetWordform(analysis)
-            ...     form = project.Wordforms.GetForm(wf)
-            ...     print(f"Unapproved: {form}")
-        """
-        if not hasattr(self, '_wfianalysis_ops'):
-            from .TextsWords.WfiAnalysisOperations import WfiAnalysisOperations
-            self._wfianalysis_ops = WfiAnalysisOperations(self)
-        return self._wfianalysis_ops
-
-    @property
     def WfiGlosses(self):
         """
-        Access to wordform gloss operations.
+        Access to wordform gloss operations (Work Stream 3).
 
         Returns:
             WfiGlossOperations: Instance providing wordform gloss management methods
@@ -1088,27 +1104,25 @@ class FLExProject (object):
         Example:
             >>> project = FLExProject()
             >>> project.OpenProject("MyProject", writeEnabled=True)
-            >>> # Get an analysis
-            >>> wordform = project.Wordforms.FindOrCreate("running")
-            >>> analyses = project.WfiAnalyses.GetAll(wordform)
-            >>> if analyses:
-            ...     analysis = analyses[0]
-            ...     # Create a gloss
-            ...     gloss = project.WfiGlosses.Create(analysis, "running", "en")
-            ...     # Get all glosses for an analysis
-            ...     for g in project.WfiGlosses.GetAll(analysis):
+            >>> # Get analysis and create gloss
+            >>> analysis = project.WfiAnalyses.Create(wordform)
+            >>> gloss = project.WfiGlosses.Create(analysis, "run", project.WSHandle('en'))
+            >>> # Mark as human-approved
+            >>> project.WfiGlosses.Approve(gloss)
+            >>> # Get all glosses
+            >>> for g in project.WfiGlosses.GetAll(analysis):
             ...         form = project.WfiGlosses.GetForm(g, "en")
             ...         print(f"Gloss: {form}")
         """
         if not hasattr(self, '_wfigloss_ops'):
-            from .TextsWords.WfiGlossOperations import WfiGlossOperations
+            from .Wordform.WfiGlossOperations import WfiGlossOperations
             self._wfigloss_ops = WfiGlossOperations(self)
         return self._wfigloss_ops
 
     @property
     def WfiMorphBundles(self):
         """
-        Access to wordform morpheme bundle operations.
+        Access to wordform morpheme bundle operations (Work Stream 3).
 
         Returns:
             WfiMorphBundleOperations: Instance providing morpheme bundle management methods
@@ -1116,22 +1130,19 @@ class FLExProject (object):
         Example:
             >>> project = FLExProject()
             >>> project.OpenProject("MyProject", writeEnabled=True)
-            >>> # Get an analysis
-            >>> wordform = project.Wordforms.FindOrCreate("running")
+            >>> # Create morpheme bundles for morphological breakdown
             >>> analysis = project.WfiAnalyses.Create(wordform)
-            >>> # Create morpheme bundles
-            >>> run_sense = project.LexEntry.Find("run").SensesOS[0]
-            >>> bundle1 = project.WfiMorphBundles.Create(analysis, run_sense, "run")
-            >>> ing_sense = project.LexEntry.Find("-ing").SensesOS[0]
-            >>> bundle2 = project.WfiMorphBundles.Create(analysis, ing_sense, "-ing")
-            >>> # Get all bundles
-            >>> for bundle in project.WfiMorphBundles.GetAll(analysis):
-            ...     form = project.WfiMorphBundles.GetForm(bundle)
-            ...     sense = project.WfiMorphBundles.GetSense(bundle)
-            ...     print(f"Morpheme: {form}")
+            >>> stem = project.WfiMorphBundles.Create(analysis, "hlauk-")
+            >>> suffix = project.WfiMorphBundles.Create(analysis, "-a")
+            >>> # Link to lexical entries
+            >>> stem_entry = project.LexEntry.Find("hlauk")
+            >>> if stem_entry and stem_entry.SensesOS.Count > 0:
+            ...     project.WfiMorphBundles.SetSense(stem, stem_entry.SensesOS[0])
+            >>> # Set morpheme type
+            >>> project.WfiMorphBundles.SetMorphemeType(stem, "stem")
         """
         if not hasattr(self, '_wfimorphbundle_ops'):
-            from .TextsWords.WfiMorphBundleOperations import WfiMorphBundleOperations
+            from .Wordform.WfiMorphBundleOperations import WfiMorphBundleOperations
             self._wfimorphbundle_ops = WfiMorphBundleOperations(self)
         return self._wfimorphbundle_ops
 
@@ -1596,6 +1607,174 @@ class FLExProject (object):
             from .Notebook.DataNotebookOperations import DataNotebookOperations
             self._datanotebook_ops = DataNotebookOperations(self)
         return self._datanotebook_ops
+
+    @property
+    def ConstCharts(self):
+        """
+        Access to constituent chart operations for discourse analysis.
+
+        Returns:
+            ConstChartOperations: Instance providing constituent chart management methods
+
+        Example:
+            >>> project = FLExProject()
+            >>> project.OpenProject("MyProject", writeEnabled=True)
+            >>> # Create a constituent chart
+            >>> chart = project.ConstCharts.Create("Genesis 1 Analysis")
+            >>> # Set properties
+            >>> project.ConstCharts.SetName(chart, "Genesis 1 - Updated")
+            >>> # Get all charts
+            >>> for chart in project.ConstCharts.GetAll():
+            ...     name = project.ConstCharts.GetName(chart)
+            ...     rows = project.ConstCharts.GetRows(chart)
+            ...     print(f"Chart: {name} ({len(rows)} rows)")
+        """
+        if not hasattr(self, '_constchart_ops'):
+            from .Discourse.ConstChartOperations import ConstChartOperations
+            self._constchart_ops = ConstChartOperations(self)
+        return self._constchart_ops
+
+    @property
+    def ConstChartRows(self):
+        """
+        Access to constituent chart row operations for discourse analysis.
+
+        Returns:
+            ConstChartRowOperations: Instance providing chart row management methods
+
+        Example:
+            >>> project = FLExProject()
+            >>> project.OpenProject("MyProject", writeEnabled=True)
+            >>> # Get a chart
+            >>> chart = project.ConstCharts.Find("Genesis 1 Analysis")
+            >>> # Create a row
+            >>> row = project.ConstChartRows.Create(chart, label="Verse 1")
+            >>> # Set properties
+            >>> project.ConstChartRows.SetLabel(row, "Verse 1a")
+            >>> project.ConstChartRows.SetNotes(row, "Complex structure")
+            >>> # Get all rows
+            >>> for row in project.ConstChartRows.GetAll(chart):
+            ...     label = project.ConstChartRows.GetLabel(row)
+            ...     print(f"Row: {label}")
+        """
+        if not hasattr(self, '_constchartrow_ops'):
+            from .Discourse.ConstChartRowOperations import ConstChartRowOperations
+            self._constchartrow_ops = ConstChartRowOperations(self)
+        return self._constchartrow_ops
+
+    @property
+    def ConstChartWordGroups(self):
+        """
+        Access to word group operations for constituent chart rows.
+
+        Returns:
+            ConstChartWordGroupOperations: Instance providing word group management methods
+
+        Example:
+            >>> project = FLExProject()
+            >>> project.OpenProject("MyProject", writeEnabled=True)
+            >>> # Get text segments
+            >>> text = project.Texts.Find("Genesis 1")
+            >>> para = text.ContentsOA.ParagraphsOS[0]
+            >>> segments = list(para.SegmentsOS)
+            >>> # Create word group
+            >>> row = project.ConstChartRows.Find(chart, 0)
+            >>> wg = project.ConstChartWordGroups.Create(row, segments[0], segments[2])
+            >>> # Get all word groups
+            >>> for wg in project.ConstChartWordGroups.GetAll(row):
+            ...     begin = project.ConstChartWordGroups.GetBeginSegment(wg)
+            ...     print(f"Word group starts at segment {begin.Hvo}")
+        """
+        if not hasattr(self, '_constchartwordgroup_ops'):
+            from .Discourse.ConstChartWordGroupOperations import ConstChartWordGroupOperations
+            self._constchartwordgroup_ops = ConstChartWordGroupOperations(self)
+        return self._constchartwordgroup_ops
+
+    @property
+    def ConstChartMovedText(self):
+        """
+        Access to moved text marker operations for constituent charts.
+
+        Returns:
+            ConstChartMovedTextOperations: Instance providing moved text marker methods
+
+        Example:
+            >>> project = FLExProject()
+            >>> project.OpenProject("MyProject", writeEnabled=True)
+            >>> # Get a word group
+            >>> wg = project.ConstChartWordGroups.Find(row, 0)
+            >>> # Mark as preposed text
+            >>> marker = project.ConstChartMovedText.Create(wg, preposed=True)
+            >>> # Check if preposed
+            >>> if project.ConstChartMovedText.IsPreposed(marker):
+            ...     print("Text is preposed")
+            >>> # Get all moved text markers in chart
+            >>> chart = project.ConstCharts.Find("Genesis 1 Analysis")
+            >>> for marker in project.ConstChartMovedText.GetAll(chart):
+            ...     wg = project.ConstChartMovedText.GetWordGroup(marker)
+            ...     print(f"Moved text in word group {wg.Hvo}")
+        """
+        if not hasattr(self, '_constchartmovedtext_ops'):
+            from .Discourse.ConstChartMovedTextOperations import ConstChartMovedTextOperations
+            self._constchartmovedtext_ops = ConstChartMovedTextOperations(self)
+        return self._constchartmovedtext_ops
+
+    @property
+    def ConstChartTags(self):
+        """
+        Access to chart tag operations for constituent charts.
+
+        Returns:
+            ConstChartTagOperations: Instance providing chart tag management methods
+
+        Example:
+            >>> project = FLExProject()
+            >>> project.OpenProject("MyProject", writeEnabled=True)
+            >>> # Get a chart
+            >>> chart = project.ConstCharts.Find("Genesis 1 Analysis")
+            >>> # Create a tag
+            >>> tag = project.ConstChartTags.Create(chart, "Topic")
+            >>> project.ConstChartTags.SetDescription(tag, "Marks sentence topic")
+            >>> # Get all tags
+            >>> for tag in project.ConstChartTags.GetAll(chart):
+            ...     name = project.ConstChartTags.GetName(tag)
+            ...     desc = project.ConstChartTags.GetDescription(tag)
+            ...     print(f"Tag: {name} - {desc}")
+        """
+        if not hasattr(self, '_constcharttag_ops'):
+            from .Discourse.ConstChartTagOperations import ConstChartTagOperations
+            self._constcharttag_ops = ConstChartTagOperations(self)
+        return self._constcharttag_ops
+
+    @property
+    def ConstChartClauseMarkers(self):
+        """
+        Access to clause marker operations for constituent chart rows.
+
+        Returns:
+            ConstChartClauseMarkerOperations: Instance providing clause marker methods
+
+        Example:
+            >>> project = FLExProject()
+            >>> project.OpenProject("MyProject", writeEnabled=True)
+            >>> # Get a row and word group
+            >>> row = project.ConstChartRows.Find(chart, 0)
+            >>> wg = project.ConstChartWordGroups.Find(row, 0)
+            >>> # Create clause marker
+            >>> marker = project.ConstChartClauseMarkers.Create(row, wg)
+            >>> # Add dependent clause
+            >>> dep_wg = project.ConstChartWordGroups.Find(row, 1)
+            >>> dep_marker = project.ConstChartClauseMarkers.Create(row, dep_wg)
+            >>> project.ConstChartClauseMarkers.AddDependentClause(marker, dep_marker)
+            >>> # Get all markers
+            >>> for marker in project.ConstChartClauseMarkers.GetAll(row):
+            ...     wg = project.ConstChartClauseMarkers.GetWordGroup(marker)
+            ...     print(f"Clause marker for word group {wg.Hvo}")
+        """
+        if not hasattr(self, '_constchartclausemarker_ops'):
+            from .Discourse.ConstChartClauseMarkerOperations import ConstChartClauseMarkerOperations
+            self._constchartclausemarker_ops = ConstChartClauseMarkerOperations(self)
+        return self._constchartclausemarker_ops
 
     # --- General ---
 
@@ -2910,7 +3089,567 @@ class FLExProject (object):
         """
         return self.CustomFields.FindField("LexSense", fieldName)
 
-        
+
+    # --- Entry/Sense Operations (FlexTools Compatibility) ---
+
+    def LexiconGetMorphType(self, entry):
+        """
+        Get the morph type of a lexical entry.
+
+        Args:
+            entry: ILexEntry object or HVO
+
+        Returns:
+            IMoMorphType: The morph type object
+
+        Example:
+            >>> entry = project.LexEntry.Find("run")
+            >>> morph_type = project.LexiconGetMorphType(entry)
+            >>> print(morph_type.Name.BestAnalysisAlternative.Text)
+            stem
+
+        Note:
+            Delegates to: LexEntry.GetMorphType(entry)
+        """
+        return self.LexEntry.GetMorphType(entry)
+
+
+    def LexiconSetMorphType(self, entry, morph_type_or_name):
+        """
+        Set the morph type of a lexical entry.
+
+        Args:
+            entry: ILexEntry object or HVO
+            morph_type_or_name: IMoMorphType object or name string
+                ("stem", "root", "prefix", "suffix", etc.)
+
+        Example:
+            >>> entry = project.LexEntry.Find("-ing")
+            >>> project.LexiconSetMorphType(entry, "suffix")
+
+        Note:
+            Delegates to: LexEntry.SetMorphType(entry, morph_type_or_name)
+        """
+        return self.LexEntry.SetMorphType(entry, morph_type_or_name)
+
+
+    def LexiconAllAllomorphs(self):
+        """
+        Get all allomorphs in the entire project.
+
+        Yields:
+            IMoForm: Each allomorph in the project
+
+        Example:
+            >>> for allomorph in project.LexiconAllAllomorphs():
+            ...     form = project.Allomorphs.GetForm(allomorph)
+            ...     print(form)
+
+        Note:
+            Delegates to: Allomorphs.GetAll()
+        """
+        return self.Allomorphs.GetAll()
+
+
+    def LexiconNumberOfSenses(self, entry):
+        """
+        Get the number of senses in a lexical entry.
+
+        Args:
+            entry: ILexEntry object or HVO
+
+        Returns:
+            int: Number of senses
+
+        Example:
+            >>> entry = project.LexEntry.Find("run")
+            >>> count = project.LexiconNumberOfSenses(entry)
+            >>> print(f"Entry has {count} senses")
+
+        Note:
+            Delegates to: LexEntry.GetSenseCount(entry)
+        """
+        return self.LexEntry.GetSenseCount(entry)
+
+
+    def LexiconGetSenseByName(self, entry, gloss_text, languageTagOrHandle=None):
+        """
+        Find a sense by its gloss text.
+
+        Args:
+            entry: ILexEntry object or HVO
+            gloss_text (str): The gloss text to search for
+            languageTagOrHandle: Optional writing system
+
+        Returns:
+            ILexSense or None: The first sense with matching gloss, or None
+
+        Example:
+            >>> entry = project.LexEntry.Find("run")
+            >>> sense = project.LexiconGetSenseByName(entry, "to move rapidly")
+            >>> if sense:
+            ...     print(f"Found sense: {sense.Guid}")
+
+        Note:
+            This searches for exact match (case-sensitive).
+            Returns first match if multiple senses have same gloss.
+        """
+        if languageTagOrHandle is None:
+            languageTagOrHandle = self.GetDefaultAnalysisWS()[0]
+
+        for sense in self.Senses.GetAll(entry):
+            gloss = self.Senses.GetGloss(sense, languageTagOrHandle)
+            if gloss == gloss_text:
+                return sense
+        return None
+
+
+    def LexiconAddEntry(self, lexeme_form, morph_type_name="stem", languageTagOrHandle=None):
+        """
+        Create a new lexical entry.
+
+        Args:
+            lexeme_form (str): The lexeme form (headword)
+            morph_type_name (str): Morph type ("stem", "root", "prefix", etc.)
+            languageTagOrHandle: Optional writing system
+
+        Returns:
+            ILexEntry: The newly created entry
+
+        Example:
+            >>> entry = project.LexiconAddEntry("walk", "stem")
+            >>> print(project.LexEntry.GetHeadword(entry))
+            walk
+
+        Note:
+            Delegates to: LexEntry.Create(lexeme_form, morph_type_name, wsHandle)
+        """
+        wsHandle = None
+        if languageTagOrHandle is not None:
+            if isinstance(languageTagOrHandle, str):
+                wsHandle = self.WSHandle(languageTagOrHandle)
+            else:
+                wsHandle = languageTagOrHandle
+
+        return self.LexEntry.Create(lexeme_form, morph_type_name, wsHandle)
+
+
+    def LexiconGetEntry(self, index):
+        """
+        Get a lexical entry by index.
+
+        Args:
+            index (int): Zero-based index into all entries
+
+        Returns:
+            ILexEntry: The entry at the specified index
+
+        Example:
+            >>> first_entry = project.LexiconGetEntry(0)
+            >>> tenth_entry = project.LexiconGetEntry(9)
+
+        Warning:
+            Inefficient for large lexicons - iterates through all entries.
+            Consider using LexEntry.Find() or LexEntry.GetAll() instead.
+
+        Note:
+            Returns entry in database order (not alphabetical).
+        """
+        for i, entry in enumerate(self.LexEntry.GetAll()):
+            if i == index:
+                return entry
+        return None
+
+
+    def LexiconAddSense(self, entry, gloss, languageTagOrHandle=None):
+        """
+        Add a sense to a lexical entry.
+
+        Args:
+            entry: ILexEntry object or HVO
+            gloss (str): The gloss text
+            languageTagOrHandle: Optional writing system
+
+        Returns:
+            ILexSense: The newly created sense
+
+        Example:
+            >>> entry = project.LexEntry.Find("run")
+            >>> sense = project.LexiconAddSense(entry, "to move rapidly")
+
+        Note:
+            Delegates to: LexEntry.AddSense(entry, gloss, wsHandle)
+        """
+        wsHandle = None
+        if languageTagOrHandle is not None:
+            if isinstance(languageTagOrHandle, str):
+                wsHandle = self.WSHandle(languageTagOrHandle)
+            else:
+                wsHandle = languageTagOrHandle
+
+        return self.LexEntry.AddSense(entry, gloss, wsHandle)
+
+
+    def LexiconGetSense(self, entry, index):
+        """
+        Get a sense by index from an entry.
+
+        Args:
+            entry: ILexEntry object or HVO
+            index (int): Zero-based index
+
+        Returns:
+            ILexSense or None: The sense at the index, or None if out of range
+
+        Example:
+            >>> entry = project.LexEntry.Find("run")
+            >>> first_sense = project.LexiconGetSense(entry, 0)
+            >>> second_sense = project.LexiconGetSense(entry, 1)
+
+        Note:
+            Direct access via entry.SensesOS[index] is more efficient.
+        """
+        senses = list(self.Senses.GetAll(entry))
+        if 0 <= index < len(senses):
+            return senses[index]
+        return None
+
+
+    def LexiconDeleteObject(self, obj):
+        """
+        Delete an object from the database.
+
+        Args:
+            obj: The object to delete (ILexEntry, ILexSense, IMoForm, etc.)
+
+        Example:
+            >>> sense = entry.SensesOS[0]
+            >>> project.LexiconDeleteObject(sense)
+            >>> # Or delete entire entry:
+            >>> project.LexiconDeleteObject(entry)
+
+        Warning:
+            This is a destructive operation and cannot be undone.
+
+        Note:
+            Delegates to appropriate Operations class Delete() method based on type.
+        """
+        class_name = obj.ClassName
+
+        if class_name == "LexEntry":
+            return self.LexEntry.Delete(obj)
+        elif class_name == "LexSense":
+            return self.Senses.Delete(obj)
+        elif class_name in ("MoStemAllomorph", "MoAffixAllomorph", "MoForm"):
+            return self.Allomorphs.Delete(obj)
+        elif class_name == "LexPronunciation":
+            return self.Pronunciations.Delete(obj)
+        elif class_name == "LexExampleSentence":
+            return self.Examples.Delete(obj)
+        elif class_name == "LexEtymology":
+            return self.Etymology.Delete(obj)
+        elif class_name in ("LexEntryRef", "VariantEntryRef"):
+            return self.Variants.Delete(obj)
+        else:
+            # Generic delete using LCM
+            if hasattr(obj, 'Owner') and obj.Owner:
+                owner = obj.Owner
+                # Try to find and remove from owning collection
+                for prop_name in dir(owner):
+                    if prop_name.endswith('OS') or prop_name.endswith('OC'):
+                        try:
+                            collection = getattr(owner, prop_name)
+                            if hasattr(collection, 'Remove') and obj in collection:
+                                collection.Remove(obj)
+                                return
+                        except:
+                            pass
+
+            # Fallback: use DeleteUnderlyingObject
+            from SIL.LCModel.Infrastructure import IDataReader
+            self.project.ServiceLocator.GetInstance(IDataReader).DeleteUnderlyingObject(obj.Hvo)
+
+
+    def LexiconGetHeadWord(self, entry):
+        """
+        Get the headword of an entry.
+
+        This is an alias for LexiconGetHeadword() for FlexTools compatibility.
+
+        Args:
+            entry: ILexEntry object or HVO
+
+        Returns:
+            str: The headword
+
+        Example:
+            >>> entry = project.LexEntry.Find("run")
+            >>> headword = project.LexiconGetHeadWord(entry)
+            >>> print(headword)
+            run
+
+        Note:
+            Delegates to: LexiconGetHeadword(entry)
+        """
+        return self.LexiconGetHeadword(entry)
+
+
+    def LexiconGetAllomorphForms(self, entry, languageTagOrHandle=None):
+        """
+        Get all allomorph forms for an entry.
+
+        Args:
+            entry: ILexEntry object or HVO
+            languageTagOrHandle: Optional writing system
+
+        Returns:
+            list: List of allomorph form strings
+
+        Example:
+            >>> entry = project.LexEntry.Find("run")
+            >>> forms = project.LexiconGetAllomorphForms(entry)
+            >>> print(forms)
+            ['run', 'ran', 'runn-']
+
+        Note:
+            Returns forms from lexeme form and all alternate forms.
+        """
+        wsHandle = None
+        if languageTagOrHandle is not None:
+            if isinstance(languageTagOrHandle, str):
+                wsHandle = self.WSHandle(languageTagOrHandle)
+            else:
+                wsHandle = languageTagOrHandle
+
+        forms = []
+        for allomorph in self.Allomorphs.GetAll(entry):
+            form = self.Allomorphs.GetForm(allomorph, wsHandle)
+            if form:
+                forms.append(form)
+        return forms
+
+
+    def LexiconAddAllomorph(self, entry, form, morphType, languageTagOrHandle=None):
+        """
+        Add an allomorph to an entry.
+
+        Args:
+            entry: ILexEntry object or HVO
+            form (str): The allomorph form
+            morphType: IMoMorphType object or name string
+            languageTagOrHandle: Optional writing system
+
+        Returns:
+            IMoForm: The newly created allomorph
+
+        Example:
+            >>> entry = project.LexEntry.Find("run")
+            >>> morph_type = project.LexEntry.GetMorphType(entry)
+            >>> allomorph = project.LexiconAddAllomorph(entry, "runn-", morph_type)
+
+        Note:
+            Delegates to: Allomorphs.Create(entry, form, morphType, wsHandle)
+        """
+        wsHandle = None
+        if languageTagOrHandle is not None:
+            if isinstance(languageTagOrHandle, str):
+                wsHandle = self.WSHandle(languageTagOrHandle)
+            else:
+                wsHandle = languageTagOrHandle
+
+        return self.Allomorphs.Create(entry, form, morphType, wsHandle)
+
+
+    def LexiconGetPronunciations(self, entry):
+        """
+        Get all pronunciations for an entry.
+
+        Args:
+            entry: ILexEntry object or HVO
+
+        Returns:
+            iterator: Iterator of ILexPronunciation objects
+
+        Example:
+            >>> entry = project.LexEntry.Find("run")
+            >>> for pron in project.LexiconGetPronunciations(entry):
+            ...     form = project.Pronunciations.GetForm(pron)
+            ...     print(form)
+
+        Note:
+            Delegates to: Pronunciations.GetAll(entry)
+        """
+        return self.Pronunciations.GetAll(entry)
+
+
+    def LexiconAddPronunciation(self, entry, form, languageTagOrHandle=None):
+        """
+        Add a pronunciation to an entry.
+
+        Args:
+            entry: ILexEntry object or HVO
+            form (str): The pronunciation form (IPA, etc.)
+            languageTagOrHandle: Optional writing system
+
+        Returns:
+            ILexPronunciation: The newly created pronunciation
+
+        Example:
+            >>> entry = project.LexEntry.Find("run")
+            >>> pron = project.LexiconAddPronunciation(entry, "rʌn")
+
+        Note:
+            Delegates to: Pronunciations.Create(entry, form, wsHandle)
+        """
+        wsHandle = None
+        if languageTagOrHandle is not None:
+            if isinstance(languageTagOrHandle, str):
+                wsHandle = self.WSHandle(languageTagOrHandle)
+            else:
+                wsHandle = languageTagOrHandle
+
+        return self.Pronunciations.Create(entry, form, wsHandle)
+
+
+    def LexiconGetVariantType(self, variant):
+        """
+        Get the variant type of a variant entry reference.
+
+        Args:
+            variant: ILexEntryRef object
+
+        Returns:
+            ILexEntryType: The variant type
+
+        Example:
+            >>> for variant_ref in entry.EntryRefsOS:
+            ...     var_type = project.LexiconGetVariantType(variant_ref)
+            ...     if var_type:
+            ...         print(var_type.Name.BestAnalysisAlternative.Text)
+
+        Note:
+            Delegates to: Variants.GetVariantType(variant)
+        """
+        return self.Variants.GetVariantType(variant)
+
+
+    def LexiconAddVariantForm(self, entry, form, variant_type, languageTagOrHandle=None):
+        """
+        Add a variant form to an entry.
+
+        Args:
+            entry: ILexEntry object or HVO
+            form (str): The variant form
+            variant_type: ILexEntryType object or name string
+            languageTagOrHandle: Optional writing system
+
+        Returns:
+            ILexEntryRef: The newly created variant entry reference
+
+        Example:
+            >>> entry = project.LexEntry.Find("color")
+            >>> # This would typically need a variant type from the project
+            >>> # variant = project.LexiconAddVariantForm(entry, "colour", variant_type)
+
+        Note:
+            Delegates to: Variants.Create(entry, form, variant_type, wsHandle)
+        """
+        wsHandle = None
+        if languageTagOrHandle is not None:
+            if isinstance(languageTagOrHandle, str):
+                wsHandle = self.WSHandle(languageTagOrHandle)
+            else:
+                wsHandle = languageTagOrHandle
+
+        return self.Variants.Create(entry, form, variant_type, wsHandle)
+
+
+    def LexiconGetComplexFormType(self, entry_ref):
+        """
+        Get the complex form type of an entry reference.
+
+        Args:
+            entry_ref: ILexEntryRef object
+
+        Returns:
+            ILexEntryType or None: The complex form type
+
+        Example:
+            >>> for ref in entry.EntryRefsOS:
+            ...     cf_type = project.LexiconGetComplexFormType(ref)
+            ...     if cf_type:
+            ...         print(cf_type.Name.BestAnalysisAlternative.Text)
+
+        Note:
+            Returns None if the entry reference is not a complex form type.
+        """
+        if hasattr(entry_ref, 'ComplexEntryTypesRS') and entry_ref.ComplexEntryTypesRS.Count > 0:
+            return entry_ref.ComplexEntryTypesRS[0]
+        return None
+
+
+    def LexiconSetComplexFormType(self, entry_ref, complex_form_type):
+        """
+        Set the complex form type of an entry reference.
+
+        Args:
+            entry_ref: ILexEntryRef object
+            complex_form_type: ILexEntryType object
+
+        Example:
+            >>> # Get or create complex form type
+            >>> # cf_type = ... (from project)
+            >>> # entry_ref = entry.EntryRefsOS[0]
+            >>> # project.LexiconSetComplexFormType(entry_ref, cf_type)
+
+        Note:
+            Replaces any existing complex form types with the specified one.
+        """
+        if hasattr(entry_ref, 'ComplexEntryTypesRS'):
+            entry_ref.ComplexEntryTypesRS.Clear()
+            entry_ref.ComplexEntryTypesRS.Append(complex_form_type)
+
+
+    def LexiconAddComplexForm(self, entry, components, complex_form_type):
+        """
+        Add a complex form entry.
+
+        Args:
+            entry: ILexEntry - The complex form entry
+            components: list of ILexEntry or ILexSense - The component parts
+            complex_form_type: ILexEntryType - The type of complex form
+
+        Returns:
+            ILexEntryRef: The newly created entry reference
+
+        Example:
+            >>> # Create a compound "blackboard" from "black" + "board"
+            >>> blackboard = project.LexEntry.Create("blackboard", "stem")
+            >>> black = project.LexEntry.Find("black")
+            >>> board = project.LexEntry.Find("board")
+            >>> # Would need complex_form_type from project
+            >>> # ref = project.LexiconAddComplexForm(blackboard, [black, board], cf_type)
+
+        Note:
+            Creates an entry reference linking the complex form to its components.
+        """
+        from SIL.LCModel import ILexEntryRefFactory
+
+        factory = self.project.ServiceLocator.GetInstance(ILexEntryRefFactory)
+        entry_ref = factory.Create()
+        entry.EntryRefsOS.Add(entry_ref)
+
+        # Add components
+        for component in components:
+            entry_ref.ComponentLexemesRS.Append(component)
+
+        # Set complex form type
+        if complex_form_type:
+            entry_ref.ComplexEntryTypesRS.Append(complex_form_type)
+
+        return entry_ref
+
+
     # --- Lexical Relations ---
     
     def GetLexicalRelationTypes(self):

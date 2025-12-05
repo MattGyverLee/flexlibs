@@ -1375,6 +1375,59 @@ class PublicationOperations(BaseOperations):
         return ""
 
 
+    def GetIsLandscape(self, publication_or_hvo):
+        """
+        Check if publication uses landscape orientation.
+
+        Args:
+            publication_or_hvo: Either an ICmPossibility publication object or its HVO.
+
+        Returns:
+            bool: True if landscape orientation, False if portrait or not set.
+
+        Raises:
+            FP_NullParameterError: If publication_or_hvo is None.
+
+        Example:
+            >>> pub = project.Publications.Find("Main Dictionary")
+            >>> is_landscape = project.Publications.GetIsLandscape(pub)
+            >>> if is_landscape:
+            ...     print("Landscape orientation")
+            ... else:
+            ...     print("Portrait orientation")
+            Portrait orientation
+
+            >>> # Check orientation and page dimensions
+            >>> width = project.Publications.GetPageWidth(pub)
+            >>> height = project.Publications.GetPageHeight(pub)
+            >>> is_landscape = project.Publications.GetIsLandscape(pub)
+            >>> orientation = "Landscape" if is_landscape else "Portrait"
+            >>> print(f"{orientation}: {width}\" x {height}\"")
+            Portrait: 8.5" x 11.0"
+
+        Notes:
+            - READ-ONLY property - cannot be set directly
+            - Orientation is typically inferred from page width vs. height
+            - True indicates landscape (width > height)
+            - False indicates portrait (height >= width)
+            - Returns False if orientation not set or if dimensions are equal
+            - Used when exporting dictionaries or texts
+
+        See Also:
+            GetPageWidth, GetPageHeight, GetPageLayout
+        """
+        if publication_or_hvo is None:
+            raise FP_NullParameterError()
+
+        publication = self.__ResolveObject(publication_or_hvo)
+
+        # Check for IsLandscape property
+        if hasattr(publication, 'IsLandscape'):
+            return bool(publication.IsLandscape)
+
+        return False
+
+
     # --- Hierarchical Operations ---
 
     def GetSubPublications(self, publication_or_hvo):

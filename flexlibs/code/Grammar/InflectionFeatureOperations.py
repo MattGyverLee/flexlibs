@@ -629,6 +629,176 @@ class InflectionFeatureOperations(BaseOperations):
         return []
 
 
+    def GetFeatures(self, feature_system_or_hvo):
+        """
+        Get all features in the feature system (READ-ONLY).
+
+        Args:
+            feature_system_or_hvo: The feature system object or HVO.
+
+        Returns:
+            list: List of feature definition objects (IFsFeatDefn).
+
+        Raises:
+            FP_NullParameterError: If feature_system_or_hvo is None.
+
+        Example:
+            >>> inflOps = InflectionFeatureOperations(project)
+            >>> # Get the feature system
+            >>> feature_system = project.lp.MsFeatureSystemOA
+            >>> if feature_system:
+            ...     features = inflOps.GetFeatures(feature_system)
+            ...     print(f"Feature system has {len(features)} features")
+            ...     for feature in features:
+            ...         wsHandle = project.project.DefaultAnalWs
+            ...         name = ITsString(feature.Name.get_String(wsHandle)).Text
+            ...         print(f"  - {name}")
+            Feature system has 3 features
+              - person
+              - number
+              - tense
+
+        Notes:
+            - READ-ONLY property - returns the collection
+            - Access via feature_system.Features
+            - Returns empty list if no features defined
+            - Features represent grammatical categories
+            - Each feature can have multiple values
+
+        See Also:
+            GetFeatureConstraints, FeatureGetAll, FeatureCreate
+        """
+        if not feature_system_or_hvo:
+            raise FP_NullParameterError()
+
+        # Resolve to feature system object
+        if isinstance(feature_system_or_hvo, int):
+            feature_system = self.project.Object(feature_system_or_hvo)
+        else:
+            feature_system = feature_system_or_hvo
+
+        # Return features collection if it exists
+        if hasattr(feature_system, 'FeaturesOS'):
+            return list(feature_system.FeaturesOS)
+
+        return []
+
+
+    def GetFeatureConstraints(self, feature_system_or_hvo):
+        """
+        Get all feature constraints in the feature system (READ-ONLY).
+
+        Args:
+            feature_system_or_hvo: The feature system object or HVO.
+
+        Returns:
+            list: List of feature constraint objects.
+
+        Raises:
+            FP_NullParameterError: If feature_system_or_hvo is None.
+
+        Example:
+            >>> inflOps = InflectionFeatureOperations(project)
+            >>> # Get the feature system
+            >>> feature_system = project.lp.MsFeatureSystemOA
+            >>> if feature_system:
+            ...     constraints = inflOps.GetFeatureConstraints(feature_system)
+            ...     print(f"Feature system has {len(constraints)} constraints")
+            ...     for constraint in constraints:
+            ...         print(f"  - Constraint HVO: {constraint.Hvo}")
+
+        Notes:
+            - READ-ONLY property - returns the collection
+            - Access via feature_system.FeatureConstraints
+            - Returns empty list if no constraints defined
+            - Constraints restrict valid feature combinations
+            - Used for modeling co-occurrence restrictions
+            - Example: agreement constraints between features
+
+        See Also:
+            GetFeatures, FeatureGetAll
+        """
+        if not feature_system_or_hvo:
+            raise FP_NullParameterError()
+
+        # Resolve to feature system object
+        if isinstance(feature_system_or_hvo, int):
+            feature_system = self.project.Object(feature_system_or_hvo)
+        else:
+            feature_system = feature_system_or_hvo
+
+        # Return feature constraints collection if it exists
+        if hasattr(feature_system, 'FeatureConstraintsOC'):
+            return list(feature_system.FeatureConstraintsOC)
+
+        return []
+
+
+    def GetTypes(self, feature_system_or_hvo):
+        """
+        Get the feature types collection from a feature system (READ-ONLY).
+
+        This is a getter-only method that returns the collection of feature types
+        defined in the morphosyntactic feature system. Feature types categorize
+        features into groups (e.g., inflectional features, agreement features).
+
+        Args:
+            feature_system_or_hvo: The IFsFeatureSystem object or HVO, or None to
+                use the project's default feature system.
+
+        Returns:
+            list: List of feature type objects (IFsFeatDefn) from the TypesOC
+                collection, or empty list if none defined.
+
+        Raises:
+            FP_NullParameterError: If feature_system_or_hvo is explicitly None
+                and no default feature system exists.
+
+        Example:
+            >>> inflOps = InflectionFeatureOperations(project)
+            >>> # Get types from default feature system
+            >>> types = inflOps.GetTypes(None)
+            >>> for ftype in types:
+            ...     print(f"Feature type: {ftype}")
+
+            >>> # Get types from specific feature system
+            >>> fs = project.lp.MsFeatureSystemOA
+            >>> types = inflOps.GetTypes(fs)
+            >>> print(f"Found {len(types)} feature types")
+
+            >>> # Iterate and display type names
+            >>> for ftype in types:
+            ...     ws = project.project.DefaultAnalWs
+            ...     name = ITsString(ftype.Name.get_String(ws)).Text
+            ...     print(f"Type: {name}")
+
+        Notes:
+            - This is a READ-ONLY property (no setter provided)
+            - Returns the TypesOC collection from the feature system
+            - TypesOC contains feature type definitions
+            - Returns empty list if feature system has no types
+            - Feature types organize and categorize features
+            - If feature_system_or_hvo is None, uses MsFeatureSystemOA
+            - Common feature types include inflectional, derivational, agreement
+
+        See Also:
+            FeatureGetAll, FeatureCreate, FeatureStructureGetAll
+        """
+        # Get the feature system
+        if feature_system_or_hvo is None:
+            feature_system = self.project.lp.MsFeatureSystemOA
+            if not feature_system:
+                raise FP_NullParameterError("No default feature system exists")
+        else:
+            feature_system = self.__ResolveFeatureSystem(feature_system_or_hvo)
+
+        # Return the types collection if it exists
+        if hasattr(feature_system, 'TypesOC'):
+            return list(feature_system.TypesOC)
+
+        return []
+
+
     # ========================================================================
     # PRIVATE HELPER METHODS
     # ========================================================================
@@ -676,6 +846,21 @@ class InflectionFeatureOperations(BaseOperations):
         if isinstance(feature_or_hvo, int):
             return self.project.Object(feature_or_hvo)
         return feature_or_hvo
+
+
+    def __ResolveFeatureSystem(self, fs_or_hvo):
+        """
+        Resolve HVO or object to IFsFeatureSystem.
+
+        Args:
+            fs_or_hvo: Either an IFsFeatureSystem object or an HVO (int).
+
+        Returns:
+            IFsFeatureSystem: The resolved feature system object.
+        """
+        if isinstance(fs_or_hvo, int):
+            return self.project.Object(fs_or_hvo)
+        return fs_or_hvo
 
 
     # ========== SYNC INTEGRATION METHODS ==========

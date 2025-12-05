@@ -7,7 +7,11 @@
       "Bash(do echo \"=== $file ===\")",
       "Bash(done)",
       "Read(//d/**)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(for file in LexEntryOperations LexSenseOperations AllomorphOperations PronunciationOperations VariantOperations ExampleOperations EtymologyOperations)",
+      "Read(//c/Users/thoua/Downloads/FlexTools Modules-20251205T020944Z-1-001/FlexTools Modules/From Matthew/**)",
+      "Read(//c/Users/thoua/Downloads/FlexTools Modules-20251205T020944Z-1-001/FlexTools Modules/**)",
+      "Bash(sed:*)"
     ],
     "deny": [],
     "ask": []

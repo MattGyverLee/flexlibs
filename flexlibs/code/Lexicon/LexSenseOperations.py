@@ -833,6 +833,54 @@ class LexSenseOperations(BaseOperations):
         sense.Definition.set_String(wsHandle, text)
 
 
+    def GetDefinitionOrGloss(self, sense_or_hvo, wsHandle=None):
+        """
+        Get definition if available, otherwise fallback to gloss (Pattern 5).
+
+        This is a common FLEx pattern that returns the definition if it exists,
+        otherwise returns the gloss. Useful for display where either is acceptable.
+
+        Args:
+            sense_or_hvo: The ILexSense object or HVO
+            wsHandle: Optional writing system handle. Defaults to analysis WS.
+
+        Returns:
+            str: The definition if available, otherwise the gloss, or empty string
+
+        Example:
+            >>> entry = list(project.LexiconAllEntries())[0]
+            >>> sense = entry.SensesOS[0]
+            >>> # Returns definition if set, otherwise gloss
+            >>> text = project.Senses.GetDefinitionOrGloss(sense)
+            >>> print(text)
+            to run
+
+        Notes:
+            - Common FLEx pattern for display purposes
+            - Tries definition first (more detailed)
+            - Falls back to gloss (shorter)
+            - Returns empty string if both are empty
+            - Based on FLEx LCM GetDefinitionOrGloss method
+
+        See Also:
+            GetDefinition, GetGloss
+        """
+        if not sense_or_hvo:
+            raise FP_NullParameterError()
+
+        sense = self.__GetSenseObject(sense_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+
+        # Try definition first
+        definition = ITsString(sense.Definition.get_String(wsHandle)).Text
+        if definition:
+            return definition
+
+        # Fallback to gloss
+        gloss = ITsString(sense.Gloss.get_String(wsHandle)).Text
+        return gloss or ""
+
+
     # --- Grammatical Information Operations ---
 
     def GetPartOfSpeech(self, sense_or_hvo):
@@ -2396,6 +2444,546 @@ class LexSenseOperations(BaseOperations):
         # is a public member of LexSense, which we can access by reflection.
         count = ReflectionHelper.GetProperty(sense, "SenseAnalysesCount")
         return count
+
+
+    # --- Additional Text Properties ---
+
+    def GetBibliography(self, sense_or_hvo, wsHandle=None):
+        """Get the bibliography of a sense."""
+        if not sense_or_hvo:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+        return ITsString(sense.Bibliography.get_String(wsHandle)).Text or ""
+
+    def SetBibliography(self, sense_or_hvo, text, wsHandle=None):
+        """Set the bibliography of a sense."""
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not sense_or_hvo or text is None:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+        mkstr = TsStringUtils.MakeString(text, wsHandle)
+        sense.Bibliography.set_String(wsHandle, mkstr)
+
+    def GetGeneralNote(self, sense_or_hvo, wsHandle=None):
+        """Get the general note of a sense."""
+        if not sense_or_hvo:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+        return ITsString(sense.GeneralNote.get_String(wsHandle)).Text or ""
+
+    def SetGeneralNote(self, sense_or_hvo, text, wsHandle=None):
+        """Set the general note of a sense."""
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not sense_or_hvo or text is None:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+        mkstr = TsStringUtils.MakeString(text, wsHandle)
+        sense.GeneralNote.set_String(wsHandle, mkstr)
+
+    def GetDiscourseNote(self, sense_or_hvo, wsHandle=None):
+        """Get the discourse note of a sense."""
+        if not sense_or_hvo:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+        return ITsString(sense.DiscourseNote.get_String(wsHandle)).Text or ""
+
+    def SetDiscourseNote(self, sense_or_hvo, text, wsHandle=None):
+        """Set the discourse note of a sense."""
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not sense_or_hvo or text is None:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+        mkstr = TsStringUtils.MakeString(text, wsHandle)
+        sense.DiscourseNote.set_String(wsHandle, mkstr)
+
+    def GetEncyclopedicInfo(self, sense_or_hvo, wsHandle=None):
+        """Get the encyclopedic info of a sense."""
+        if not sense_or_hvo:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+        return ITsString(sense.EncyclopedicInfo.get_String(wsHandle)).Text or ""
+
+    def SetEncyclopedicInfo(self, sense_or_hvo, text, wsHandle=None):
+        """Set the encyclopedic info of a sense."""
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not sense_or_hvo or text is None:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+        mkstr = TsStringUtils.MakeString(text, wsHandle)
+        sense.EncyclopedicInfo.set_String(wsHandle, mkstr)
+
+    def GetGrammarNote(self, sense_or_hvo, wsHandle=None):
+        """Get the grammar note of a sense."""
+        if not sense_or_hvo:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+        return ITsString(sense.GrammarNote.get_String(wsHandle)).Text or ""
+
+    def SetGrammarNote(self, sense_or_hvo, text, wsHandle=None):
+        """Set the grammar note of a sense."""
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not sense_or_hvo or text is None:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+        mkstr = TsStringUtils.MakeString(text, wsHandle)
+        sense.GrammarNote.set_String(wsHandle, mkstr)
+
+    def GetPhonologyNote(self, sense_or_hvo, wsHandle=None):
+        """Get the phonology note of a sense."""
+        if not sense_or_hvo:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+        return ITsString(sense.PhonologyNote.get_String(wsHandle)).Text or ""
+
+    def SetPhonologyNote(self, sense_or_hvo, text, wsHandle=None):
+        """Set the phonology note of a sense."""
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not sense_or_hvo or text is None:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+        mkstr = TsStringUtils.MakeString(text, wsHandle)
+        sense.PhonologyNote.set_String(wsHandle, mkstr)
+
+    def GetSemanticsNote(self, sense_or_hvo, wsHandle=None):
+        """Get the semantics note of a sense."""
+        if not sense_or_hvo:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+        return ITsString(sense.SemanticsNote.get_String(wsHandle)).Text or ""
+
+    def SetSemanticsNote(self, sense_or_hvo, text, wsHandle=None):
+        """Set the semantics note of a sense."""
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not sense_or_hvo or text is None:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+        mkstr = TsStringUtils.MakeString(text, wsHandle)
+        sense.SemanticsNote.set_String(wsHandle, mkstr)
+
+    def GetSocioLinguisticsNote(self, sense_or_hvo, wsHandle=None):
+        """Get the socio-linguistics note of a sense."""
+        if not sense_or_hvo:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+        return ITsString(sense.SocioLinguisticsNote.get_String(wsHandle)).Text or ""
+
+    def SetSocioLinguisticsNote(self, sense_or_hvo, text, wsHandle=None):
+        """Set the socio-linguistics note of a sense."""
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not sense_or_hvo or text is None:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+        mkstr = TsStringUtils.MakeString(text, wsHandle)
+        sense.SocioLinguisticsNote.set_String(wsHandle, mkstr)
+
+    def GetAnthroNote(self, sense_or_hvo, wsHandle=None):
+        """Get the anthropology note of a sense."""
+        if not sense_or_hvo:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+        return ITsString(sense.AnthroNote.get_String(wsHandle)).Text or ""
+
+    def SetAnthroNote(self, sense_or_hvo, text, wsHandle=None):
+        """Set the anthropology note of a sense."""
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not sense_or_hvo or text is None:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+        mkstr = TsStringUtils.MakeString(text, wsHandle)
+        sense.AnthroNote.set_String(wsHandle, mkstr)
+
+    def GetRestrictions(self, sense_or_hvo, wsHandle=None):
+        """Get the restrictions of a sense."""
+        if not sense_or_hvo:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+        return ITsString(sense.Restrictions.get_String(wsHandle)).Text or ""
+
+    def SetRestrictions(self, sense_or_hvo, text, wsHandle=None):
+        """Set the restrictions of a sense."""
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not sense_or_hvo or text is None:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+        mkstr = TsStringUtils.MakeString(text, wsHandle)
+        sense.Restrictions.set_String(wsHandle, mkstr)
+
+    def GetSource(self, sense_or_hvo):
+        """Get the source of a sense."""
+        if not sense_or_hvo:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        return sense.Source or ""
+
+    def SetSource(self, sense_or_hvo, text):
+        """Set the source of a sense."""
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not sense_or_hvo or text is None:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        sense.Source = text
+
+    def GetScientificName(self, sense_or_hvo):
+        """Get the scientific name of a sense."""
+        if not sense_or_hvo:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        return sense.ScientificName or ""
+
+    def SetScientificName(self, sense_or_hvo, text):
+        """Set the scientific name of a sense."""
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not sense_or_hvo or text is None:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        sense.ScientificName = text
+
+    def GetImportResidue(self, sense_or_hvo):
+        """Get the import residue of a sense."""
+        if not sense_or_hvo:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        return sense.ImportResidue or ""
+
+    def SetImportResidue(self, sense_or_hvo, text):
+        """Set the import residue of a sense."""
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not sense_or_hvo or text is None:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        sense.ImportResidue = text
+
+
+    # --- Reference Collection Properties ---
+
+    def GetUsageTypes(self, sense_or_hvo):
+        """Get the usage types of a sense."""
+        if not sense_or_hvo:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        result = []
+        for item in sense.UsageTypesRC:
+            name = item.Name.BestAnalysisAlternative.Text if item.Name else str(item.Guid)
+            result.append(name)
+        return result
+
+    def AddUsageType(self, sense_or_hvo, usage_type):
+        """Add a usage type to a sense."""
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not sense_or_hvo or not usage_type:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        # TODO: Find usage type object from name if string provided
+        if usage_type not in sense.UsageTypesRC:
+            sense.UsageTypesRC.Add(usage_type)
+
+    def RemoveUsageType(self, sense_or_hvo, usage_type):
+        """Remove a usage type from a sense."""
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not sense_or_hvo or not usage_type:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        if usage_type in sense.UsageTypesRC:
+            sense.UsageTypesRC.Remove(usage_type)
+
+    def GetDomainTypes(self, sense_or_hvo):
+        """Get the domain types of a sense."""
+        if not sense_or_hvo:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        result = []
+        for item in sense.DomainTypesRC:
+            name = item.Name.BestAnalysisAlternative.Text if item.Name else str(item.Guid)
+            result.append(name)
+        return result
+
+    def AddDomainType(self, sense_or_hvo, domain_type):
+        """Add a domain type to a sense."""
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not sense_or_hvo or not domain_type:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        # TODO: Find domain type object from name if string provided
+        if domain_type not in sense.DomainTypesRC:
+            sense.DomainTypesRC.Add(domain_type)
+
+    def RemoveDomainType(self, sense_or_hvo, domain_type):
+        """Remove a domain type from a sense."""
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not sense_or_hvo or not domain_type:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        if domain_type in sense.DomainTypesRC:
+            sense.DomainTypesRC.Remove(domain_type)
+
+    def GetAnthroCodes(self, sense_or_hvo):
+        """Get the anthropology codes of a sense."""
+        if not sense_or_hvo:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        result = []
+        for item in sense.AnthroCodesRC:
+            name = item.Name.BestAnalysisAlternative.Text if item.Name else str(item.Guid)
+            result.append(name)
+        return result
+
+    def AddAnthroCode(self, sense_or_hvo, anthro_code):
+        """Add an anthropology code to a sense."""
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not sense_or_hvo or not anthro_code:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        # TODO: Find anthro code object from name if string provided
+        if anthro_code not in sense.AnthroCodesRC:
+            sense.AnthroCodesRC.Add(anthro_code)
+
+    def RemoveAnthroCode(self, sense_or_hvo, anthro_code):
+        """Remove an anthropology code from a sense."""
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not sense_or_hvo or not anthro_code:
+            raise FP_NullParameterError()
+        sense = self.__GetSenseObject(sense_or_hvo)
+        if anthro_code in sense.AnthroCodesRC:
+            sense.AnthroCodesRC.Remove(anthro_code)
+
+
+    # --- Private Helper Methods ---
+
+    # --- Back-Reference Methods (Pattern 3) ---
+
+    def GetVisibleComplexFormBackRefs(self, sense_or_hvo):
+        """
+        Get all complex forms that reference this sense.
+
+        Returns all LexEntryRef objects where this sense appears in
+        ShowComplexFormsIn and RefType is ComplexForm.
+
+        Args:
+            sense_or_hvo: Either an ILexSense object or its HVO
+
+        Returns:
+            list: List of ILexEntryRef objects (complex forms referencing this sense)
+
+        Example:
+            >>> entry = project.LexEntry.Find("run")
+            >>> sense = entry.SensesOS[0]
+            >>> complex_forms = project.Senses.GetVisibleComplexFormBackRefs(sense)
+            >>> for lex_ref in complex_forms:
+            ...     complex_entry = lex_ref.OwningEntry
+            ...     print(f"Complex form: {project.LexEntry.GetHeadword(complex_entry)}")
+
+        Notes:
+            - Returns complex forms (compounds, idioms, phrasal verbs, etc.)
+            - Includes subentries (use GetComplexFormsNotSubentries to exclude)
+            - Based on FLEx LCM VisibleComplexFormBackRefs property
+
+        See Also:
+            GetComplexFormsNotSubentries, GetAllSenses
+        """
+        if not sense_or_hvo:
+            raise FP_NullParameterError()
+
+        sense = self.__GetSenseObject(sense_or_hvo)
+
+        # Use the LCM property directly
+        try:
+            back_refs = list(sense.VisibleComplexFormBackRefs)
+            return back_refs
+        except AttributeError:
+            logger.warning("VisibleComplexFormBackRefs not available, returning empty list")
+            return []
+
+
+    def GetComplexFormsNotSubentries(self, sense_or_hvo):
+        """
+        Get complex forms that reference this sense, excluding subentries.
+
+        Returns complex forms (compounds, idioms, etc.) but excludes any
+        where the owner entry appears as a subentry (in PrimaryLexemesRS).
+
+        Args:
+            sense_or_hvo: Either an ILexSense object or its HVO
+
+        Returns:
+            list: List of ILexEntryRef objects (complex forms, excluding subentries)
+
+        Example:
+            >>> entry = project.LexEntry.Find("run")
+            >>> sense = entry.SensesOS[0]
+            >>> complex_forms = project.Senses.GetComplexFormsNotSubentries(sense)
+            >>> for lex_ref in complex_forms:
+            ...     cf_entry = lex_ref.OwningEntry
+            ...     print(f"Complex form: {project.LexEntry.GetHeadword(cf_entry)}")
+
+        Notes:
+            - Filters out subentries from VisibleComplexFormBackRefs
+            - A subentry is where the owner entry appears in PrimaryLexemesRS
+            - Based on FLEx LCM ComplexFormsNotSubentries property
+
+        See Also:
+            GetVisibleComplexFormBackRefs
+        """
+        if not sense_or_hvo:
+            raise FP_NullParameterError()
+
+        sense = self.__GetSenseObject(sense_or_hvo)
+
+        # Get all complex form back refs
+        all_complex_forms = self.GetVisibleComplexFormBackRefs(sense)
+
+        # Filter out subentries (where owner entry is in PrimaryLexemesRS)
+        result = []
+        owner_entry = sense.OwnerOfClass(ILexEntry)
+        if not owner_entry:
+            return result
+
+        for lex_ref in all_complex_forms:
+            try:
+                is_subentry = any(item.Hvo == owner_entry.Hvo for item in lex_ref.PrimaryLexemesRS)
+                if not is_subentry:
+                    result.append(lex_ref)
+            except:
+                result.append(lex_ref)
+
+        return result
+
+
+    def GetMinimalLexReferences(self, sense_or_hvo):
+        """
+        Get essential lexical references for this sense.
+
+        Returns only "minimal" lexical references - those that are multi-target
+        or have specific mapping types (sequence types).
+
+        Args:
+            sense_or_hvo: Either an ILexSense object or its HVO
+
+        Returns:
+            list: List of ILexReference objects (minimal references)
+
+        Example:
+            >>> entry = project.LexEntry.Find("big")
+            >>> sense = entry.SensesOS[0]
+            >>> lex_refs = project.Senses.GetMinimalLexReferences(sense)
+            >>> for lex_ref in lex_refs:
+            ...     ref_type = lex_ref.Owner  # ILexRefType
+            ...     print(f"Reference type: {ref_type.Name.BestAnalysisAlternative.Text}")
+            ...     for target in lex_ref.TargetsRS:
+            ...         if target.Hvo != sense.Hvo:
+            ...             gloss = project.Senses.GetGloss(target)
+            ...             print(f"  -> {gloss}")
+
+        Notes:
+            - Includes multi-target references (synonyms, antonyms, etc.)
+            - Includes sequence-type references
+            - Excludes single-target non-sequence references
+            - Based on FLEx LCM MinimalLexReferences property
+
+        See Also:
+            GetVisibleComplexFormBackRefs
+        """
+        if not sense_or_hvo:
+            raise FP_NullParameterError()
+
+        sense = self.__GetSenseObject(sense_or_hvo)
+
+        # Use the LCM property directly
+        try:
+            lex_refs = list(sense.MinimalLexReferences)
+            return lex_refs
+        except AttributeError:
+            logger.warning("MinimalLexReferences not available, returning empty list")
+            return []
+
+
+    def GetAllSenses(self, sense_or_hvo):
+        """
+        Get this sense and all its subsenses recursively.
+
+        Returns all senses in a flattened list, including the sense itself
+        and recursively including all subsenses at any depth.
+
+        Args:
+            sense_or_hvo: Either an ILexSense object or its HVO
+
+        Returns:
+            list: List of ILexSense objects (this sense + all subsenses)
+
+        Example:
+            >>> entry = project.LexEntry.Find("run")
+            >>> sense = entry.SensesOS[0]
+            >>> all_senses = project.Senses.GetAllSenses(sense)
+            >>> print(f"Total (including subsenses): {len(all_senses)}")
+            >>> for s in all_senses:
+            ...     gloss = project.Senses.GetGloss(s)
+            ...     depth = len(list(s.PathToRoot)) - 2
+            ...     indent = "  " * depth
+            ...     print(f"{indent}{gloss}")
+
+        Notes:
+            - Recursively collects all subsenses at any depth
+            - INCLUDES the sense itself in the result (unlike LexEntry.AllSenses)
+            - Based on FLEx LCM AllSenses property
+            - For counting: use len(GetAllSenses(sense))
+
+        See Also:
+            GetSubsenses, CreateSubsense
+        """
+        if not sense_or_hvo:
+            raise FP_NullParameterError()
+
+        sense = self.__GetSenseObject(sense_or_hvo)
+
+        # Use the LCM property directly
+        try:
+            all_senses = list(sense.AllSenses)
+            return all_senses
+        except AttributeError:
+            # Fallback: manually collect recursively
+            result = [sense]  # Include self
+            if sense.SensesOS and sense.SensesOS.Count > 0:
+                for subsense in sense.SensesOS:
+                    result.extend(self.GetAllSenses(subsense))
+            return result
 
 
     # --- Private Helper Methods ---

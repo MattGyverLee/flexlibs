@@ -919,3 +919,91 @@ class TextOperations(BaseOperations):
 
         abbr_str = ITsString(text_obj.Abbreviation.get_String(wsHandle)).Text
         return abbr_str or ""
+
+    def GetIsTranslated(self, text_or_hvo):
+        """
+        Check if a text's translation is marked as complete.
+
+        Retrieves the IsTranslated boolean property indicating whether the
+        text has been fully translated or not.
+
+        Args:
+            text_or_hvo: Either an IText object or its HVO (integer identifier).
+
+        Returns:
+            bool: True if the text is marked as translated, False otherwise.
+
+        Raises:
+            FP_NullParameterError: If text_or_hvo is None.
+            FP_ParameterError: If the text does not exist or is invalid.
+
+        Example:
+            >>> text = list(project.Texts.GetAll())[0]
+            >>> is_translated = project.Texts.GetIsTranslated(text)
+            >>> if is_translated:
+            ...     print("Text translation is complete")
+            ... else:
+            ...     print("Text translation is incomplete")
+
+        Notes:
+            - This is a boolean property on the IText object
+            - Used to track translation workflow status
+            - Independent of the actual translation content
+            - Can be set manually or programmatically
+
+        See Also:
+            SetIsTranslated
+        """
+        text_obj = self.__GetTextObject(text_or_hvo)
+        return bool(text_obj.IsTranslated)
+
+    def SetIsTranslated(self, text_or_hvo, value):
+        """
+        Mark a text as translated or untranslated.
+
+        Sets the IsTranslated boolean property to indicate whether the text
+        has been fully translated.
+
+        Args:
+            text_or_hvo: Either an IText object or its HVO (integer identifier).
+            value (bool): True to mark as translated, False to mark as untranslated.
+
+        Raises:
+            FP_ReadOnlyError: If project was not opened with writeEnabled=True.
+            FP_NullParameterError: If text_or_hvo is None.
+            FP_ParameterError: If the text does not exist or is invalid, or if
+                value is not a boolean.
+
+        Example:
+            >>> text = list(project.Texts.GetAll())[0]
+            >>>
+            >>> # Mark text as translated
+            >>> project.Texts.SetIsTranslated(text, True)
+            >>>
+            >>> # Verify
+            >>> if project.Texts.GetIsTranslated(text):
+            ...     print("Text is now marked as translated")
+            >>>
+            >>> # Mark text as untranslated
+            >>> project.Texts.SetIsTranslated(text, False)
+
+        Notes:
+            - value must be a boolean (True or False)
+            - Used to track translation workflow status
+            - Does not affect the actual content
+            - Useful for managing translation progress
+
+        See Also:
+            GetIsTranslated
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if text_or_hvo is None:
+            raise FP_NullParameterError()
+
+        if not isinstance(value, bool):
+            raise FP_ParameterError("value must be a boolean (True or False)")
+
+        text_obj = self.__GetTextObject(text_or_hvo)
+        text_obj.IsTranslated = value

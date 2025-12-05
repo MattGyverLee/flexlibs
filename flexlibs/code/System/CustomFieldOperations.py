@@ -1108,6 +1108,96 @@ class CustomFieldOperations(BaseOperations):
                              CellarPropertyType.ReferenceCollection)
 
 
+    def IsStringType(self, field_id):
+        """
+        Check if a custom field is a string type.
+
+        String fields store text data (single or multiple writing systems).
+
+        Args:
+            field_id (int): The field ID
+
+        Returns:
+            bool: True if field is String, MultiString, or MultiUnicode,
+                False otherwise
+
+        Raises:
+            FP_NullParameterError: If field_id is None
+            FP_ParameterError: If field_id is invalid
+
+        Example:
+            >>> field_id = project.CustomFields.FindField("LexEntry", "Etymology")
+            >>> if project.CustomFields.IsStringType(field_id):
+            ...     # Can use GetValue/SetValue with string
+            ...     value = project.CustomFields.GetValue(entry, "Etymology")
+            ...     project.CustomFields.SetValue(entry, "Etymology", "New value")
+            ... else:
+            ...     # Use type-specific methods (Integer, List, etc.)
+            ...     pass
+
+            >>> # Determine if it's single vs multi-string
+            >>> if project.CustomFields.IsStringType(field_id):
+            ...     if project.CustomFields.IsMultiString(field_id):
+            ...         print("Multi-string field (multiple writing systems)")
+            ...     else:
+            ...         print("Single string field")
+
+        Notes:
+            - Returns True for String, MultiString, and MultiUnicode types
+            - Returns False for Integer, GenDate, Reference types
+            - String types can use GetValue/SetValue with str values
+            - Use IsMultiString() to distinguish single vs multi-string
+            - Useful for type checking before operations
+
+        See Also:
+            IsMultiString, IsListType, GetFieldType
+        """
+        if field_id is None:
+            raise FP_NullParameterError()
+
+        field_type = self.GetFieldType(field_id)
+        return field_type in FLExLCM.CellarAllStringTypes
+
+
+    def ClearField(self, obj, field_name, ws=None):
+        """
+        Clear a custom field value for an object.
+
+        This is an alias for ClearValue() provided for FlexTools compatibility.
+
+        Args:
+            obj: The object (ILexEntry, ILexSense, etc.) or HVO
+            field_name (str): The custom field name
+            ws (str or int, optional): Writing system for multi-string fields.
+                If None, clears all writing systems.
+
+        Raises:
+            FP_ReadOnlyError: If project is not opened with write enabled
+            FP_NullParameterError: If obj or field_name is None
+            FP_ParameterError: If field not found or obj invalid
+
+        Example:
+            >>> entry = project.LexEntry.Find("run")
+            >>> # Clear a field (FlexTools-style API)
+            >>> project.CustomFields.ClearField(entry, "Etymology Source")
+
+            >>> # This is equivalent to:
+            >>> project.CustomFields.ClearValue(entry, "Etymology Source")
+
+        Notes:
+            - This is a convenience alias for ClearValue()
+            - Provided for compatibility with FlexTools scripts
+            - Both methods do exactly the same thing
+            - For multi-string fields without ws, clears all writing systems
+            - For integer fields, sets to 0
+            - For list fields, removes all references
+
+        See Also:
+            ClearValue, SetValue, GetValue
+        """
+        return self.ClearValue(obj, field_name, ws)
+
+
     def SetListFieldSingle(self, obj, field_name, value):
         """
         Set the value of a ReferenceAtom (single-select list) custom field.

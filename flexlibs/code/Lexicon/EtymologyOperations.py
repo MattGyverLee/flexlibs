@@ -1115,6 +1115,63 @@ class EtymologyOperations(BaseOperations):
         return etymology.Guid
 
 
+    # --- Additional Properties ---
+
+    def GetLanguage(self, etymology_or_hvo):
+        """
+        Get the source language of an etymology.
+
+        Args:
+            etymology_or_hvo: Either an ILexEtymology object or its HVO
+
+        Returns:
+            ICmPossibility: The language possibility object, or None
+
+        Example:
+            >>> entry = project.LexEntry.Find("loanword")
+            >>> etymologies = project.Etymology.GetAll(entry)
+            >>> if etymologies:
+            ...     lang = project.Etymology.GetLanguage(etymologies[0])
+            ...     if lang:
+            ...         print(lang.Name.BestAnalysisAlternative.Text)
+        """
+        if not etymology_or_hvo:
+            raise FP_NullParameterError()
+
+        etymology = self.__GetEtymologyObject(etymology_or_hvo)
+        return etymology.LanguageRA
+
+
+    def SetLanguage(self, etymology_or_hvo, language):
+        """
+        Set the source language of an etymology.
+
+        Args:
+            etymology_or_hvo: Either an ILexEtymology object or its HVO
+            language: ICmPossibility object (language) or None
+
+        Raises:
+            FP_ReadOnlyError: If project is not opened with write enabled
+            FP_NullParameterError: If etymology_or_hvo is None
+
+        Example:
+            >>> entry = project.LexEntry.Find("loanword")
+            >>> etymologies = project.Etymology.GetAll(entry)
+            >>> if etymologies:
+            ...     # Find language possibility (implementation depends on your project structure)
+            ...     # language_obj = ... (get from languages list)
+            ...     # project.Etymology.SetLanguage(etymologies[0], language_obj)
+            ...     pass
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not etymology_or_hvo:
+            raise FP_NullParameterError()
+
+        etymology = self.__GetEtymologyObject(etymology_or_hvo)
+        etymology.LanguageRA = language
+
+
     # --- Private Helper Methods ---
 
     def __GetEntryObject(self, entry_or_hvo):

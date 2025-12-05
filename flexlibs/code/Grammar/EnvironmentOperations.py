@@ -440,6 +440,120 @@ class EnvironmentOperations(BaseOperations):
         env.StringRepresentation.set_String(wsHandle, mkstr)
 
 
+    def GetLeftContextPattern(self, env_or_hvo):
+        """
+        Get the left context pattern of a phonological environment (READ-ONLY).
+
+        This is a computed property that returns the left context specification
+        of the environment, representing what must precede the target position.
+
+        Args:
+            env_or_hvo: The IPhEnvironment object or HVO.
+
+        Returns:
+            object or None: The left context object (IPhPhonContext) if set,
+                None otherwise.
+
+        Raises:
+            FP_NullParameterError: If env_or_hvo is None.
+
+        Example:
+            >>> envOps = EnvironmentOperations(project)
+            >>> env = envOps.Create("After Vowel")
+            >>> left_ctx = envOps.GetLeftContextPattern(env)
+            >>> if left_ctx:
+            ...     print(f"Has left context: {left_ctx}")
+            >>> else:
+            ...     print("No left context constraint")
+
+            >>> # Check all environments for left context
+            >>> for env in envOps.GetAll():
+            ...     name = envOps.GetName(env)
+            ...     left_ctx = envOps.GetLeftContextPattern(env)
+            ...     if left_ctx:
+            ...         print(f"{name} has left context")
+
+        Notes:
+            - This is a READ-ONLY property (no setter)
+            - Returns the LeftContextOA object if present
+            - Left context specifies what must precede the target
+            - Returns None if no left context is defined
+            - The returned object is typically an IPhPhonContext
+            - Use this to inspect or analyze environment structure
+            - Not intended for modification (use SetLeftContext for that)
+
+        See Also:
+            GetRightContextPattern, GetStringRepresentation, GetName
+        """
+        if not env_or_hvo:
+            raise FP_NullParameterError()
+
+        env = self.__ResolveObject(env_or_hvo)
+
+        # Return the left context if it exists
+        if hasattr(env, 'LeftContextOA') and env.LeftContextOA:
+            return env.LeftContextOA
+
+        return None
+
+
+    def GetRightContextPattern(self, env_or_hvo):
+        """
+        Get the right context pattern of a phonological environment (READ-ONLY).
+
+        This is a computed property that returns the right context specification
+        of the environment, representing what must follow the target position.
+
+        Args:
+            env_or_hvo: The IPhEnvironment object or HVO.
+
+        Returns:
+            object or None: The right context object (IPhPhonContext) if set,
+                None otherwise.
+
+        Raises:
+            FP_NullParameterError: If env_or_hvo is None.
+
+        Example:
+            >>> envOps = EnvironmentOperations(project)
+            >>> env = envOps.Create("Before Consonant")
+            >>> right_ctx = envOps.GetRightContextPattern(env)
+            >>> if right_ctx:
+            ...     print(f"Has right context: {right_ctx}")
+            >>> else:
+            ...     print("No right context constraint")
+
+            >>> # Check all environments for right context
+            >>> for env in envOps.GetAll():
+            ...     name = envOps.GetName(env)
+            ...     right_ctx = envOps.GetRightContextPattern(env)
+            ...     if right_ctx:
+            ...         print(f"{name} has right context")
+
+        Notes:
+            - This is a READ-ONLY property (no setter)
+            - Returns the RightContextOA object if present
+            - Right context specifies what must follow the target
+            - Returns None if no right context is defined
+            - The returned object is typically an IPhPhonContext
+            - Use this to inspect or analyze environment structure
+            - Not intended for modification (use SetRightContext for that)
+
+        See Also:
+            GetLeftContextPattern, GetStringRepresentation, GetName
+        """
+        if not env_or_hvo:
+            raise FP_NullParameterError()
+
+        env = self.__ResolveObject(env_or_hvo)
+
+        # Return the right context if it exists
+        if hasattr(env, 'RightContextOA') and env.RightContextOA:
+            return env.RightContextOA
+
+        return None
+
+
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
         Duplicate a phonological environment, creating a new copy with a new GUID.

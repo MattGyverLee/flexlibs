@@ -26,7 +26,9 @@ from SIL.LCModel import (
     ILexSenseFactory,
     IMoMorphType,
     IMoStemAllomorphFactory,
+    IMoAffixAllomorphFactory,
     IMoForm,
+    MoMorphTypeTags,
 )
 from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
@@ -117,15 +119,20 @@ class LexEntryOperations(BaseOperations):
         return self.project.ObjectsIn(ILexEntryRepository)
 
 
-    def Create(self, lexeme_form, morph_type_name="stem", wsHandle=None):
+    def Create(self, lexeme_form, morph_type_name=None, wsHandle=None, create_blank_sense=True):
         """
         Create a new lexical entry in the FLEx project.
 
         Args:
             lexeme_form (str): The lexeme form (headword) of the entry
-            morph_type_name (str): Name of the morph type ("stem", "root",
-                "affix", etc.). Defaults to "stem".
+            morph_type_name (str, optional): Name of the morph type ("stem", "root",
+                "prefix", "suffix", etc.). If None (default), uses "stem".
+                Use "prefix", "suffix", "infix" for affixes (creates MoAffixAllomorph).
+                Use "stem", "root", "clitic", etc. for stems (creates MoStemAllomorph).
             wsHandle: Optional writing system handle. Defaults to vernacular WS.
+            create_blank_sense (bool): If True (default), creates a blank sense
+                automatically, matching FLEx GUI behavior. Set to False to create
+                entry without senses.
 
         Returns:
             ILexEntry: The newly created lexical entry object
@@ -136,15 +143,22 @@ class LexEntryOperations(BaseOperations):
             FP_ParameterError: If lexeme_form is empty or morph type not found
 
         Example:
-            >>> # Create a basic stem entry
+            >>> # Create a basic stem entry with blank sense (default - no type needed!)
             >>> entry = project.LexEntry.Create("run")
             >>> print(project.LexEntry.GetHeadword(entry))
             run
+            >>> print(project.LexEntry.GetSenseCount(entry))
+            1
 
-            >>> # Create an affix entry
+            >>> # Create entry without sense
+            >>> entry = project.LexEntry.Create("run", create_blank_sense=False)
+            >>> print(project.LexEntry.GetSenseCount(entry))
+            0
+
+            >>> # Create an affix entry (auto-creates MoAffixAllomorph)
             >>> suffix = project.LexEntry.Create("-ing", "suffix")
-            >>> print(project.LexEntry.GetLexemeForm(suffix))
-            -ing
+            >>> print(suffix.LexemeFormOA.ClassName)
+            MoAffixAllomorph
 
             >>> # Create with specific writing system
             >>> entry = project.LexEntry.Create("maison", "stem",
@@ -152,9 +166,12 @@ class LexEntryOperations(BaseOperations):
 
         Notes:
             - The entry is added to the lexicon database
-            - A morph type must exist in the project (stem, root, affix, etc.)
+            - Morph type defaults to "stem" if not specified
+            - Correct allomorph type (MoStemAllomorph vs MoAffixAllomorph) is
+              automatically chosen based on morph type
             - The lexeme form is set as the primary form
-            - No senses are created automatically - use AddSense()
+            - By default, a blank sense is created (matches FLEx GUI behavior)
+            - Use create_blank_sense=False for entries without senses
             - Entry GUID is auto-generated
 
         See Also:
@@ -171,6 +188,10 @@ class LexEntryOperations(BaseOperations):
 
         wsHandle = self.__WSHandle(wsHandle)
 
+        # Default to "stem" if no morph type specified
+        if morph_type_name is None:
+            morph_type_name = "stem"
+
         # Find the morph type
         morph_type = self.__FindMorphType(morph_type_name)
         if not morph_type:
@@ -183,10 +204,16 @@ class LexEntryOperations(BaseOperations):
         factory = self.project.project.ServiceLocator.GetService(ILexEntryFactory)
         new_entry = factory.Create()
 
-        # Create the lexeme form allomorph
-        allomorph_factory = self.project.project.ServiceLocator.GetService(
-            IMoStemAllomorphFactory
-        )
+        # Create the lexeme form allomorph using the appropriate factory
+        # Stems use IMoStemAllomorphFactory, affixes use IMoAffixAllomorphFactory
+        if self.__IsStemType(morph_type):
+            allomorph_factory = self.project.project.ServiceLocator.GetService(
+                IMoStemAllomorphFactory
+            )
+        else:
+            allomorph_factory = self.project.project.ServiceLocator.GetService(
+                IMoAffixAllomorphFactory
+            )
         lexeme_form_obj = allomorph_factory.Create()
 
         # Attach lexeme form to entry FIRST (must be done before setting properties)
@@ -199,8 +226,14 @@ class LexEntryOperations(BaseOperations):
         # Set the morph type
         lexeme_form_obj.MorphTypeRA = morph_type
 
-        # Add entry to lexicon
-        self.project.lexDB.EntriesOC.Add(new_entry)
+        # Create a blank sense by default (matches FLEx GUI behavior)
+        if create_blank_sense:
+            sense_factory = self.project.project.ServiceLocator.GetService(ILexSenseFactory)
+            blank_sense = sense_factory.Create()
+            new_entry.SensesOS.Add(blank_sense)
+
+        # Note: Factory.Create() automatically adds the entry to the repository
+        # No explicit Add() call needed - the entry is already in the database
 
         return new_entry
 
@@ -249,8 +282,8 @@ class LexEntryOperations(BaseOperations):
         # Resolve to entry object
         entry = self.__ResolveObject(entry_or_hvo)
 
-        # Remove from lexicon
-        self.project.lexDB.EntriesOC.Remove(entry)
+        # Delete the entry (LCM handles removal from repository)
+        entry.Delete()
 
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
@@ -881,6 +914,61 @@ class LexEntryOperations(BaseOperations):
         entry.CitationForm.set_String(wsHandle, mkstr)
 
 
+    def GetBestVernacularAlternative(self, entry_or_hvo):
+        """
+        Get best available vernacular form (Pattern 5 - fallback logic).
+
+        Returns the "best" vernacular form for the entry using FLEx's standard
+        fallback logic: Citation Form → Lexeme Form → Headword.
+
+        Args:
+            entry_or_hvo: Either an ILexEntry object or its HVO
+
+        Returns:
+            str: The best available vernacular form
+
+        Example:
+            >>> entry = project.LexEntry.Find("run")
+            >>> best_form = project.LexEntry.GetBestVernacularAlternative(entry)
+            >>> print(best_form)
+            run
+
+            >>> # Useful for display when you want the "best" form
+            >>> for entry in project.LexiconAllEntries():
+            ...     form = project.LexEntry.GetBestVernacularAlternative(entry)
+            ...     print(form)
+
+        Notes:
+            - Common FLEx pattern for display purposes
+            - Fallback order: CitationForm → LexemeForm → Headword
+            - Always returns a non-empty string (Headword is last resort)
+            - Based on FLEx LCM BestVernacularAlternative property
+            - Uses default vernacular writing system
+
+        See Also:
+            GetCitationForm, GetLexemeForm, GetHeadword
+        """
+        if not entry_or_hvo:
+            raise FP_NullParameterError()
+
+        entry = self.__ResolveObject(entry_or_hvo)
+        ws_handle = self.project.project.DefaultVernWs
+
+        # Try citation form first
+        citation = ITsString(entry.CitationForm.get_String(ws_handle)).Text
+        if citation:
+            return citation
+
+        # Try lexeme form
+        if entry.LexemeFormOA:
+            lexeme = ITsString(entry.LexemeFormOA.Form.get_String(ws_handle)).Text
+            if lexeme:
+                return lexeme
+
+        # Last resort: headword (computed property, always returns something)
+        return self.GetHeadword(entry)
+
+
     # --- Entry Properties ---
 
     def GetHomographNumber(self, entry_or_hvo):
@@ -1149,7 +1237,7 @@ class LexEntryOperations(BaseOperations):
             - Project must have the morph type defined
 
         See Also:
-            GetMorphType, Create
+            GetMorphType, Create, GetAvailableMorphTypes, ValidateMorphType
         """
         if not self.project.writeEnabled:
             raise FP_ReadOnlyError()
@@ -1175,6 +1263,108 @@ class LexEntryOperations(BaseOperations):
             morph_type = morph_type_or_name
 
         entry.LexemeFormOA.MorphTypeRA = morph_type
+
+
+    def GetAvailableMorphTypes(self, include_subcategories=True):
+        """
+        Get a list of all available morph types in the project.
+
+        Args:
+            include_subcategories (bool): If True (default), includes subcategories.
+                If False, only returns top-level morph types.
+
+        Returns:
+            list: List of tuples (name, IMoMorphType, is_stem_type) where:
+                - name (str): The morph type name
+                - IMoMorphType: The morph type object
+                - is_stem_type (bool): True if stem type, False if affix type
+
+        Example:
+            >>> morph_types = project.LexEntry.GetAvailableMorphTypes()
+            >>> for name, mt, is_stem in morph_types:
+            ...     type_str = "stem" if is_stem else "affix"
+            ...     print(f"{name}: {type_str}")
+            stem: stem
+            root: stem
+            prefix: affix
+            suffix: affix
+            infix: affix
+
+            >>> # Get only top-level types
+            >>> top_level = project.LexEntry.GetAvailableMorphTypes(include_subcategories=False)
+
+        Notes:
+            - Returns morph types defined in the project's MorphTypesOA list
+            - Useful for building UI dropdowns or validating user input
+            - is_stem_type indicates whether to use MoStemAllomorph or MoAffixAllomorph
+
+        See Also:
+            ValidateMorphType, SetMorphType, Create
+        """
+        morph_types = self.project.lp.LexDbOA.MorphTypesOA
+        if not morph_types:
+            return []
+
+        result = []
+        wsHandle = self.project.project.DefaultAnalWs
+
+        def collect_types(possibilities):
+            for mt in possibilities:
+                name = mt.Name.BestAnalysisAlternative.Text
+                if name:
+                    is_stem = self.__IsStemType(mt)
+                    result.append((name, mt, is_stem))
+
+                # Include subcategories if requested
+                if include_subcategories and mt.SubPossibilitiesOS.Count > 0:
+                    collect_types(mt.SubPossibilitiesOS)
+
+        collect_types(morph_types.PossibilitiesOS)
+        return result
+
+
+    def ValidateMorphType(self, morph_type_name):
+        """
+        Check if a morph type name exists in the project.
+
+        Args:
+            morph_type_name (str): The morph type name to validate (case-insensitive)
+
+        Returns:
+            tuple: (is_valid, morph_type_obj, is_stem_type) where:
+                - is_valid (bool): True if morph type exists
+                - morph_type_obj (IMoMorphType or None): The morph type object if found
+                - is_stem_type (bool or None): True if stem type, False if affix, None if not found
+
+        Example:
+            >>> is_valid, mt, is_stem = project.LexEntry.ValidateMorphType("suffix")
+            >>> if is_valid:
+            ...     print(f"Valid morph type: {mt.Name.BestAnalysisAlternative.Text}")
+            ...     print(f"Is stem type: {is_stem}")
+            Valid morph type: suffix
+            Is stem type: False
+
+            >>> is_valid, mt, is_stem = project.LexEntry.ValidateMorphType("invalid")
+            >>> print(f"Valid: {is_valid}")
+            Valid: False
+
+        Notes:
+            - Search is case-insensitive
+            - Searches through all morph types including subcategories
+            - Useful for validating user input before creating entries
+
+        See Also:
+            GetAvailableMorphTypes, Create, SetMorphType
+        """
+        if not morph_type_name:
+            return (False, None, None)
+
+        morph_type = self.__FindMorphType(morph_type_name)
+        if morph_type:
+            is_stem = self.__IsStemType(morph_type)
+            return (True, morph_type, is_stem)
+
+        return (False, None, None)
 
 
     # --- Sense Management ---
@@ -1452,6 +1642,467 @@ class LexEntryOperations(BaseOperations):
         entry.ImportResidue = residue
 
 
+    # --- MultiString/MultiUnicode Properties ---
+
+    def GetBibliography(self, entry_or_hvo, wsHandle=None):
+        """
+        Get the bibliography of a lexical entry.
+
+        Args:
+            entry_or_hvo: Either an ILexEntry object or its HVO
+            wsHandle: Optional writing system handle. Defaults to analysis WS.
+
+        Returns:
+            str: The bibliography text
+
+        Example:
+            >>> entry = project.LexEntry.Find("anthropology")
+            >>> bib = project.LexEntry.GetBibliography(entry)
+            >>> print(bib)
+            Smith 2015: 42-43
+        """
+        if not entry_or_hvo:
+            raise FP_NullParameterError()
+
+        entry = self.__ResolveObject(entry_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+
+        return ITsString(entry.Bibliography.get_String(wsHandle)).Text or ""
+
+
+    def SetBibliography(self, entry_or_hvo, text, wsHandle=None):
+        """
+        Set the bibliography of a lexical entry.
+
+        Args:
+            entry_or_hvo: Either an ILexEntry object or its HVO
+            text (str): The bibliography text
+            wsHandle: Optional writing system handle. Defaults to analysis WS.
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not entry_or_hvo:
+            raise FP_NullParameterError()
+        if text is None:
+            raise FP_NullParameterError()
+
+        entry = self.__ResolveObject(entry_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+
+        mkstr = TsStringUtils.MakeString(text, wsHandle)
+        entry.Bibliography.set_String(wsHandle, mkstr)
+
+
+    def GetComment(self, entry_or_hvo, wsHandle=None):
+        """
+        Get the comment of a lexical entry.
+
+        Args:
+            entry_or_hvo: Either an ILexEntry object or its HVO
+            wsHandle: Optional writing system handle. Defaults to analysis WS.
+
+        Returns:
+            str: The comment text
+        """
+        if not entry_or_hvo:
+            raise FP_NullParameterError()
+
+        entry = self.__ResolveObject(entry_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+
+        return ITsString(entry.Comment.get_String(wsHandle)).Text or ""
+
+
+    def SetComment(self, entry_or_hvo, text, wsHandle=None):
+        """
+        Set the comment of a lexical entry.
+
+        Args:
+            entry_or_hvo: Either an ILexEntry object or its HVO
+            text (str): The comment text
+            wsHandle: Optional writing system handle. Defaults to analysis WS.
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not entry_or_hvo:
+            raise FP_NullParameterError()
+        if text is None:
+            raise FP_NullParameterError()
+
+        entry = self.__ResolveObject(entry_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+
+        mkstr = TsStringUtils.MakeString(text, wsHandle)
+        entry.Comment.set_String(wsHandle, mkstr)
+
+
+    def GetLiteralMeaning(self, entry_or_hvo, wsHandle=None):
+        """
+        Get the literal meaning of a lexical entry.
+
+        Args:
+            entry_or_hvo: Either an ILexEntry object or its HVO
+            wsHandle: Optional writing system handle. Defaults to analysis WS.
+
+        Returns:
+            str: The literal meaning text
+        """
+        if not entry_or_hvo:
+            raise FP_NullParameterError()
+
+        entry = self.__ResolveObject(entry_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+
+        return ITsString(entry.LiteralMeaning.get_String(wsHandle)).Text or ""
+
+
+    def SetLiteralMeaning(self, entry_or_hvo, text, wsHandle=None):
+        """
+        Set the literal meaning of a lexical entry.
+
+        Args:
+            entry_or_hvo: Either an ILexEntry object or its HVO
+            text (str): The literal meaning text
+            wsHandle: Optional writing system handle. Defaults to analysis WS.
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not entry_or_hvo:
+            raise FP_NullParameterError()
+        if text is None:
+            raise FP_NullParameterError()
+
+        entry = self.__ResolveObject(entry_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+
+        mkstr = TsStringUtils.MakeString(text, wsHandle)
+        entry.LiteralMeaning.set_String(wsHandle, mkstr)
+
+
+    def GetRestrictions(self, entry_or_hvo, wsHandle=None):
+        """
+        Get the restrictions of a lexical entry.
+
+        Args:
+            entry_or_hvo: Either an ILexEntry object or its HVO
+            wsHandle: Optional writing system handle. Defaults to analysis WS.
+
+        Returns:
+            str: The restrictions text
+        """
+        if not entry_or_hvo:
+            raise FP_NullParameterError()
+
+        entry = self.__ResolveObject(entry_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+
+        return ITsString(entry.Restrictions.get_String(wsHandle)).Text or ""
+
+
+    def SetRestrictions(self, entry_or_hvo, text, wsHandle=None):
+        """
+        Set the restrictions of a lexical entry.
+
+        Args:
+            entry_or_hvo: Either an ILexEntry object or its HVO
+            text (str): The restrictions text
+            wsHandle: Optional writing system handle. Defaults to analysis WS.
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not entry_or_hvo:
+            raise FP_NullParameterError()
+        if text is None:
+            raise FP_NullParameterError()
+
+        entry = self.__ResolveObject(entry_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+
+        mkstr = TsStringUtils.MakeString(text, wsHandle)
+        entry.Restrictions.set_String(wsHandle, mkstr)
+
+
+    def GetSummaryDefinition(self, entry_or_hvo, wsHandle=None):
+        """
+        Get the summary definition of a lexical entry.
+
+        Args:
+            entry_or_hvo: Either an ILexEntry object or its HVO
+            wsHandle: Optional writing system handle. Defaults to analysis WS.
+
+        Returns:
+            str: The summary definition text
+        """
+        if not entry_or_hvo:
+            raise FP_NullParameterError()
+
+        entry = self.__ResolveObject(entry_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+
+        return ITsString(entry.SummaryDefinition.get_String(wsHandle)).Text or ""
+
+
+    def SetSummaryDefinition(self, entry_or_hvo, text, wsHandle=None):
+        """
+        Set the summary definition of a lexical entry.
+
+        Args:
+            entry_or_hvo: Either an ILexEntry object or its HVO
+            text (str): The summary definition text
+            wsHandle: Optional writing system handle. Defaults to analysis WS.
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not entry_or_hvo:
+            raise FP_NullParameterError()
+        if text is None:
+            raise FP_NullParameterError()
+
+        entry = self.__ResolveObject(entry_or_hvo)
+        wsHandle = self.__WSHandleAnalysis(wsHandle)
+
+        mkstr = TsStringUtils.MakeString(text, wsHandle)
+        entry.SummaryDefinition.set_String(wsHandle, mkstr)
+
+
+    # --- Boolean Properties ---
+
+    def GetDoNotUseForParsing(self, entry_or_hvo):
+        """
+        Check if an entry is excluded from parsing.
+
+        Args:
+            entry_or_hvo: Either an ILexEntry object or its HVO
+
+        Returns:
+            bool: True if excluded from parsing, False otherwise
+        """
+        if not entry_or_hvo:
+            raise FP_NullParameterError()
+
+        entry = self.__ResolveObject(entry_or_hvo)
+        return entry.DoNotUseForParsing
+
+
+    def SetDoNotUseForParsing(self, entry_or_hvo, value):
+        """
+        Set whether an entry is excluded from parsing.
+
+        Args:
+            entry_or_hvo: Either an ILexEntry object or its HVO
+            value (bool): True to exclude from parsing, False to include
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not entry_or_hvo:
+            raise FP_NullParameterError()
+        if value is None:
+            raise FP_NullParameterError()
+
+        entry = self.__ResolveObject(entry_or_hvo)
+        entry.DoNotUseForParsing = bool(value)
+
+
+    def GetExcludeAsHeadword(self, entry_or_hvo):
+        """
+        Check if an entry is excluded as a headword.
+
+        Args:
+            entry_or_hvo: Either an ILexEntry object or its HVO
+
+        Returns:
+            bool: True if excluded as headword, False otherwise
+        """
+        if not entry_or_hvo:
+            raise FP_NullParameterError()
+
+        entry = self.__ResolveObject(entry_or_hvo)
+        return entry.ExcludeAsHeadword
+
+
+    def SetExcludeAsHeadword(self, entry_or_hvo, value):
+        """
+        Set whether an entry is excluded as a headword.
+
+        Args:
+            entry_or_hvo: Either an ILexEntry object or its HVO
+            value (bool): True to exclude as headword, False to include
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not entry_or_hvo:
+            raise FP_NullParameterError()
+        if value is None:
+            raise FP_NullParameterError()
+
+        entry = self.__ResolveObject(entry_or_hvo)
+        entry.ExcludeAsHeadword = bool(value)
+
+
+    # --- Collection Properties ---
+
+    def GetDoNotPublishIn(self, entry_or_hvo):
+        """
+        Get the publications this entry should not be published in.
+
+        Args:
+            entry_or_hvo: Either an ILexEntry object or its HVO
+
+        Returns:
+            list: List of publication names
+
+        Example:
+            >>> entry = project.LexEntry.Find("obscure")
+            >>> pubs = project.LexEntry.GetDoNotPublishIn(entry)
+            >>> print(pubs)
+            ['Main Dictionary', 'Student Edition']
+        """
+        if not entry_or_hvo:
+            raise FP_NullParameterError()
+
+        entry = self.__ResolveObject(entry_or_hvo)
+
+        result = []
+        for pub in entry.DoNotPublishIn:
+            name = pub.Name.BestAnalysisAlternative.Text if pub.Name else str(pub.Guid)
+            result.append(name)
+        return result
+
+
+    def AddDoNotPublishIn(self, entry_or_hvo, publication):
+        """
+        Add a publication to exclude this entry from.
+
+        Args:
+            entry_or_hvo: Either an ILexEntry object or its HVO
+            publication: Publication name (str) or ICmPossibility object
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not entry_or_hvo:
+            raise FP_NullParameterError()
+        if not publication:
+            raise FP_NullParameterError()
+
+        entry = self.__ResolveObject(entry_or_hvo)
+
+        # Find publication object if string provided
+        if isinstance(publication, str):
+            pub_obj = self.project.Publications.Find(publication)
+            if not pub_obj:
+                raise FP_ParameterError(f"Publication '{publication}' not found")
+            publication = pub_obj
+
+        if publication not in entry.DoNotPublishIn:
+            entry.DoNotPublishIn.Add(publication)
+
+
+    def RemoveDoNotPublishIn(self, entry_or_hvo, publication):
+        """
+        Remove a publication from the exclude list.
+
+        Args:
+            entry_or_hvo: Either an ILexEntry object or its HVO
+            publication: Publication name (str) or ICmPossibility object
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not entry_or_hvo:
+            raise FP_NullParameterError()
+        if not publication:
+            raise FP_NullParameterError()
+
+        entry = self.__ResolveObject(entry_or_hvo)
+
+        # Find publication object if string provided
+        if isinstance(publication, str):
+            pub_obj = self.project.Publications.Find(publication)
+            if not pub_obj:
+                raise FP_ParameterError(f"Publication '{publication}' not found")
+            publication = pub_obj
+
+        if publication in entry.DoNotPublishIn:
+            entry.DoNotPublishIn.Remove(publication)
+
+
+    def GetDoNotShowMainEntryIn(self, entry_or_hvo):
+        """
+        Get the publications where this entry should not be shown as main entry.
+
+        Args:
+            entry_or_hvo: Either an ILexEntry object or its HVO
+
+        Returns:
+            list: List of publication names
+        """
+        if not entry_or_hvo:
+            raise FP_NullParameterError()
+
+        entry = self.__ResolveObject(entry_or_hvo)
+
+        result = []
+        for pub in entry.DoNotShowMainEntryIn:
+            name = pub.Name.BestAnalysisAlternative.Text if pub.Name else str(pub.Guid)
+            result.append(name)
+        return result
+
+
+    def AddDoNotShowMainEntryIn(self, entry_or_hvo, publication):
+        """
+        Add a publication to not show this entry as main entry.
+
+        Args:
+            entry_or_hvo: Either an ILexEntry object or its HVO
+            publication: Publication name (str) or ICmPossibility object
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not entry_or_hvo:
+            raise FP_NullParameterError()
+        if not publication:
+            raise FP_NullParameterError()
+
+        entry = self.__ResolveObject(entry_or_hvo)
+
+        # Find publication object if string provided
+        if isinstance(publication, str):
+            pub_obj = self.project.Publications.Find(publication)
+            if not pub_obj:
+                raise FP_ParameterError(f"Publication '{publication}' not found")
+            publication = pub_obj
+
+        if publication not in entry.DoNotShowMainEntryIn:
+            entry.DoNotShowMainEntryIn.Add(publication)
+
+
+    def RemoveDoNotShowMainEntryIn(self, entry_or_hvo, publication):
+        """
+        Remove a publication from the no-main-entry list.
+
+        Args:
+            entry_or_hvo: Either an ILexEntry object or its HVO
+            publication: Publication name (str) or ICmPossibility object
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+        if not entry_or_hvo:
+            raise FP_NullParameterError()
+        if not publication:
+            raise FP_NullParameterError()
+
+        entry = self.__ResolveObject(entry_or_hvo)
+
+        # Find publication object if string provided
+        if isinstance(publication, str):
+            pub_obj = self.project.Publications.Find(publication)
+            if not pub_obj:
+                raise FP_ParameterError(f"Publication '{publication}' not found")
+            publication = pub_obj
+
+        if publication in entry.DoNotShowMainEntryIn:
+            entry.DoNotShowMainEntryIn.Remove(publication)
+
+
     # --- Private Helper Methods ---
 
     def __ResolveObject(self, entry_or_hvo):
@@ -1491,6 +2142,261 @@ class LexEntryOperations(BaseOperations):
             wsHandle,
             self.project.project.DefaultVernWs
         )
+
+
+    # --- Back-Reference Methods (Pattern 3) ---
+
+    def GetVisibleComplexFormBackRefs(self, entry_or_hvo):
+        """
+        Get all complex forms that reference this entry.
+
+        Returns all LexEntryRef objects where this entry appears in
+        ShowComplexFormsIn and RefType is ComplexForm.
+
+        Args:
+            entry_or_hvo: Either an ILexEntry object or its HVO
+
+        Returns:
+            list: List of ILexEntryRef objects (complex forms referencing this entry)
+
+        Example:
+            >>> entry = project.LexEntry.Find("run")
+            >>> complex_forms = project.LexEntry.GetVisibleComplexFormBackRefs(entry)
+            >>> for lex_ref in complex_forms:
+            ...     complex_entry = lex_ref.OwningEntry
+            ...     print(f"Complex form: {project.LexEntry.GetHeadword(complex_entry)}")
+
+        Notes:
+            - Returns complex forms (compounds, idioms, phrasal verbs, etc.)
+            - Includes subentries (use GetComplexFormsNotSubentries to exclude)
+            - Based on FLEx LCM VisibleComplexFormBackRefs property
+
+        See Also:
+            GetComplexFormsNotSubentries, GetAllSenses
+        """
+        if not entry_or_hvo:
+            raise FP_NullParameterError()
+
+        entry = self.__ResolveObject(entry_or_hvo)
+
+        # Use the LCM property directly (it handles all the complexity)
+        # This is a virtual property that loads incoming references
+        try:
+            back_refs = list(entry.VisibleComplexFormBackRefs)
+            return back_refs
+        except AttributeError:
+            # Fallback if property not available
+            logger.warning("VisibleComplexFormBackRefs not available, returning empty list")
+            return []
+
+
+    def GetComplexFormsNotSubentries(self, entry_or_hvo):
+        """
+        Get complex forms that reference this entry, excluding subentries.
+
+        Returns complex forms (compounds, idioms, etc.) but excludes any
+        where this entry appears as a subentry (in PrimaryLexemesRS).
+
+        Args:
+            entry_or_hvo: Either an ILexEntry object or its HVO
+
+        Returns:
+            list: List of ILexEntryRef objects (complex forms, excluding subentries)
+
+        Example:
+            >>> entry = project.LexEntry.Find("run")
+            >>> complex_forms = project.LexEntry.GetComplexFormsNotSubentries(entry)
+            >>> for lex_ref in complex_forms:
+            ...     cf_entry = lex_ref.OwningEntry
+            ...     print(f"Complex form: {project.LexEntry.GetHeadword(cf_entry)}")
+
+        Notes:
+            - Filters out subentries from VisibleComplexFormBackRefs
+            - A subentry is where the entry appears in PrimaryLexemesRS
+            - Based on FLEx LCM ComplexFormsNotSubentries property
+
+        See Also:
+            GetVisibleComplexFormBackRefs
+        """
+        if not entry_or_hvo:
+            raise FP_NullParameterError()
+
+        entry = self.__ResolveObject(entry_or_hvo)
+
+        # Get all complex form back refs
+        all_complex_forms = self.GetVisibleComplexFormBackRefs(entry)
+
+        # Filter out subentries (where entry is in PrimaryLexemesRS)
+        result = []
+        for lex_ref in all_complex_forms:
+            try:
+                # Check if entry is in PrimaryLexemesRS (makes it a subentry)
+                is_subentry = any(item.Hvo == entry.Hvo for item in lex_ref.PrimaryLexemesRS)
+                if not is_subentry:
+                    result.append(lex_ref)
+            except:
+                # If we can't check, include it
+                result.append(lex_ref)
+
+        return result
+
+
+    def GetMinimalLexReferences(self, entry_or_hvo):
+        """
+        Get essential lexical references for this entry.
+
+        Returns only "minimal" lexical references - those that are multi-target
+        or have specific mapping types (sequence types).
+
+        Args:
+            entry_or_hvo: Either an ILexEntry object or its HVO
+
+        Returns:
+            list: List of ILexReference objects (minimal references)
+
+        Example:
+            >>> entry = project.LexEntry.Find("big")
+            >>> lex_refs = project.LexEntry.GetMinimalLexReferences(entry)
+            >>> for lex_ref in lex_refs:
+            ...     ref_type = lex_ref.Owner  # ILexRefType
+            ...     print(f"Reference type: {ref_type.Name.BestAnalysisAlternative.Text}")
+            ...     for target in lex_ref.TargetsRS:
+            ...         if target.Hvo != entry.Hvo:
+            ...             print(f"  -> {project.LexEntry.GetHeadword(target)}")
+
+        Notes:
+            - Includes multi-target references (synonyms, antonyms, etc.)
+            - Includes sequence-type references
+            - Excludes single-target non-sequence references
+            - Based on FLEx LCM MinimalLexReferences property
+
+        See Also:
+            GetVisibleComplexFormBackRefs
+        """
+        if not entry_or_hvo:
+            raise FP_NullParameterError()
+
+        entry = self.__ResolveObject(entry_or_hvo)
+
+        # Use the LCM property directly
+        try:
+            lex_refs = list(entry.MinimalLexReferences)
+            return lex_refs
+        except AttributeError:
+            # Fallback if property not available
+            logger.warning("MinimalLexReferences not available, returning empty list")
+            return []
+
+
+    def GetAllSenses(self, entry_or_hvo):
+        """
+        Get all senses owned by this entry, including subsenses recursively.
+
+        Returns all senses in a flattened list, recursively including all
+        subsenses at any depth.
+
+        Args:
+            entry_or_hvo: Either an ILexEntry object or its HVO
+
+        Returns:
+            list: List of ILexSense objects (all senses and subsenses)
+
+        Example:
+            >>> entry = project.LexEntry.Find("run")
+            >>> all_senses = project.LexEntry.GetAllSenses(entry)
+            >>> print(f"Total senses (including subsenses): {len(all_senses)}")
+            >>> for sense in all_senses:
+            ...     gloss = project.Senses.GetGloss(sense)
+            ...     depth = len(list(sense.PathToRoot)) - 2  # Approximate depth
+            ...     indent = "  " * depth
+            ...     print(f"{indent}{gloss}")
+
+        Notes:
+            - Recursively collects all subsenses at any depth
+            - Based on FLEx LCM AllSenses property
+            - For counting: use GetSenseCount or len(GetAllSenses(entry))
+            - Entry.AllSenses does NOT include the entry itself
+
+        See Also:
+            GetSenseCount, GetSenses
+        """
+        if not entry_or_hvo:
+            raise FP_NullParameterError()
+
+        entry = self.__ResolveObject(entry_or_hvo)
+
+        # Use the LCM property directly
+        try:
+            all_senses = list(entry.AllSenses)
+            return all_senses
+        except AttributeError:
+            # Fallback: manually collect recursively
+            result = []
+            for sense in entry.SensesOS:
+                # Use LexSenseOperations to get all subsenses
+                try:
+                    result.extend(list(sense.AllSenses))
+                except:
+                    # Manual recursive collection as last resort
+                    result.append(sense)
+                    if sense.SensesOS and sense.SensesOS.Count > 0:
+                        for subsense in sense.SensesOS:
+                            result.extend(self.__CollectSubsenses(subsense))
+            return result
+
+
+    def __CollectSubsenses(self, sense):
+        """
+        Helper to recursively collect subsenses.
+
+        Args:
+            sense: ILexSense object
+
+        Returns:
+            list: All subsenses including the sense itself
+        """
+        result = [sense]
+        if sense.SensesOS and sense.SensesOS.Count > 0:
+            for subsense in sense.SensesOS:
+                result.extend(self.__CollectSubsenses(subsense))
+        return result
+
+
+    # --- Private Helper Methods ---
+
+    def __IsStemType(self, morph_type):
+        """
+        Determine if a morph type should use MoStemAllomorph or MoAffixAllomorph.
+
+        Args:
+            morph_type: IMoMorphType object
+
+        Returns:
+            bool: True if stem type (uses MoStemAllomorph), False if affix type
+
+        Notes:
+            Based on FLEx logic in MorphTypeAtomicLauncher.cs
+            Stem types include: stem, root, bound root/stem, clitics, particles, phrases
+            Affix types include: prefix, suffix, infix, circumfix, etc.
+        """
+        if morph_type is None:
+            return True  # Default to stem
+
+        # Check GUID against known stem types (from MoMorphTypeTags)
+        stem_guids = {
+            MoMorphTypeTags.kguidMorphStem,
+            MoMorphTypeTags.kguidMorphRoot,
+            MoMorphTypeTags.kguidMorphBoundRoot,
+            MoMorphTypeTags.kguidMorphBoundStem,
+            MoMorphTypeTags.kguidMorphClitic,
+            MoMorphTypeTags.kguidMorphEnclitic,
+            MoMorphTypeTags.kguidMorphProclitic,
+            MoMorphTypeTags.kguidMorphParticle,
+            MoMorphTypeTags.kguidMorphPhrase,
+            MoMorphTypeTags.kguidMorphDiscontiguousPhrase,
+        }
+
+        return morph_type.Guid in stem_guids
 
 
     def __WSHandleAnalysis(self, wsHandle):
