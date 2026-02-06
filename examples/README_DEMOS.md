@@ -292,7 +292,7 @@ All demos follow this structure:
 
 ```python
 #!/usr/bin/env python3
-from flexlibs import FLExProject, FLExInitialize, FLExCleanup
+from flexlibs2 import FLExProject, FLExInitialize, FLExCleanup
 
 def demo_operations():
     FLExInitialize()

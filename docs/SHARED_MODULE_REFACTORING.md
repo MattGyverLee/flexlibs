@@ -111,13 +111,13 @@ All imports verified successful:
 
 ```python
 # Top-level imports
-from flexlibs import MediaOperations, FilterOperations, MediaType  # ✓
+from flexlibs2 import MediaOperations, FilterOperations, MediaType  # ✓
 
 # FLExProject can load them
-from flexlibs import FLExProject  # ✓
+from flexlibs2 import FLExProject  # ✓
 
 # Lexicon can import them
-from flexlibs.code.Lexicon.AllomorphOperations import AllomorphOperations  # ✓
+from flexlibs2.code.Lexicon.AllomorphOperations import AllomorphOperations  # ✓
 ```
 
 ## Backward Compatibility
@@ -125,18 +125,18 @@ from flexlibs.code.Lexicon.AllomorphOperations import AllomorphOperations  # ✓
 **Breaking Change**: This is a breaking change for any code that directly imports:
 ```python
 # Old (no longer works):
-from flexlibs.code.TextsWords.MediaOperations import MediaOperations
-from flexlibs.code.TextsWords.FilterOperations import FilterOperations
+from flexlibs2.code.TextsWords.MediaOperations import MediaOperations
+from flexlibs2.code.TextsWords.FilterOperations import FilterOperations
 
 # New (required):
-from flexlibs.code.Shared.MediaOperations import MediaOperations
-from flexlibs.code.Shared.FilterOperations import FilterOperations
+from flexlibs2.code.Shared.MediaOperations import MediaOperations
+from flexlibs2.code.Shared.FilterOperations import FilterOperations
 ```
 
 **However**, top-level imports remain unchanged:
 ```python
 # This still works (recommended usage):
-from flexlibs import MediaOperations, FilterOperations
+from flexlibs2 import MediaOperations, FilterOperations
 ```
 
 Users who import from the top-level `flexlibs` package (recommended) are unaffected.

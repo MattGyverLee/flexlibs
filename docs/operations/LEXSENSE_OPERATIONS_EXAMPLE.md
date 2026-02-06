@@ -7,7 +7,7 @@ The `LexSenseOperations` class provides comprehensive operations for managing le
 ## Basic Usage
 
 ```python
-from flexlibs import FLExProject
+from flexlibs2 import FLExProject
 
 # Open project
 project = FLExProject()
@@ -252,7 +252,7 @@ print(f"This sense is used {count} times in texts")
 ## Complete Example: Creating a Full Sense
 
 ```python
-from flexlibs import FLExProject
+from flexlibs2 import FLExProject
 from SIL.LCModel.Core.KernelInterfaces import ITsString
 
 # Open project
@@ -314,7 +314,7 @@ project.CloseProject()
 ## Error Handling
 
 ```python
-from flexlibs import FP_ReadOnlyError, FP_NullParameterError, FP_ParameterError
+from flexlibs2 import FP_ReadOnlyError, FP_NullParameterError, FP_ParameterError
 
 try:
     # Attempt to modify without write access

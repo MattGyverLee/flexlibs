@@ -4,7 +4,7 @@ flexlibs library
 :mod:`FLExProject` class
 ------------------------
 
-.. autoclass:: flexlibs.FLExProject
+.. autoclass:: flexlibs2.FLExProject
     :members: 
     :undoc-members:
 

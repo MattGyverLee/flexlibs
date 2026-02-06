@@ -281,8 +281,8 @@ The following configurations have been explicitly tested with flexlibs 2.0.0:
 
 #### Check flexlibs Version
 ```python
-import flexlibs
-print(flexlibs.__version__)  # Expected: "2.0.0"
+import flexlibs2
+print(flexlibs2.__version__)  # Expected: "2.0.0"
 ```
 
 #### Check Python Version
@@ -305,9 +305,9 @@ print(platform.architecture()[0])
 
 Or programmatically:
 ```python
-import flexlibs
-flexlibs.FLExInitialize()
-project = flexlibs.FLExProject()
+import flexlibs2
+flexlibs2.FLExInitialize()
+project = flexlibs2.FLExProject()
 # Check FLEx installation via registry or file system
 ```
 
@@ -337,7 +337,7 @@ Update this compatibility matrix when:
 1. **Test New Configuration**:
    ```bash
    pytest flexlibs/tests/
-   python -m flexlibs.tests.integration_test
+   python -m flexlibs2.tests.integration_test
    ```
 
 2. **Document Results**:
@@ -392,7 +392,7 @@ Before declaring a version compatible:
 
 When reporting a compatibility issue, include:
 
-1. **flexlibs version**: `import flexlibs; print(flexlibs.__version__)`
+1. **flexlibs version**: `import flexlibs; print(flexlibs2.__version__)`
 2. **Python version**: `python --version`
 3. **Python architecture**: `import platform; print(platform.architecture())`
 4. **FLEx version**: From Help → About

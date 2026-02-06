@@ -72,7 +72,7 @@ def main():
     print("=" * 70)
 
     # Import the initialization code
-    from flexlibs.code import FLExGlobals
+    from flexlibs2.code import FLExGlobals
     FLExGlobals.InitialiseFWGlobals()
 
     print(f"FieldWorks Code Dir: {FLExGlobals.FWCodeDir}")

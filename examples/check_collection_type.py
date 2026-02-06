@@ -12,7 +12,7 @@ Author: FlexTools Development Team
 Date: 2025-12-04
 """
 
-from flexlibs import FLExProject, FLExInitialize, FLExCleanup
+from flexlibs2 import FLExProject, FLExInitialize, FLExCleanup
 
 def check_property_type(obj, property_name):
     """

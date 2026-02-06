@@ -342,8 +342,8 @@ differences = {
 ### Example 1: Sync Allomorphs Between Projects
 
 ```python
-from flexlibs import FLExProject
-from flexlibs.sync import SyncEngine
+from flexlibs2 import FLExProject
+from flexlibs2.sync import SyncEngine
 
 # Open both projects
 source = FLExProject()

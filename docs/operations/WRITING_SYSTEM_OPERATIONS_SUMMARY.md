@@ -149,7 +149,7 @@ from SIL.WritingSystems import IWritingSystemDefinition
 
 ### Basic Usage
 ```python
-from flexlibs import FLExProject
+from flexlibs2 import FLExProject
 
 project = FLExProject()
 project.OpenProject("MyProject", writeEnabled=True)

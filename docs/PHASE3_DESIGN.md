@@ -361,7 +361,7 @@ class DependencyConfig:
 
 ### Basic Hierarchical Import
 ```python
-from flexlibs.sync import HierarchicalImporter
+from flexlibs2.sync import HierarchicalImporter
 
 importer = HierarchicalImporter(source_project, target_project)
 
@@ -382,7 +382,7 @@ for change in result.changes:
 
 ### Advanced Configuration
 ```python
-from flexlibs.sync import HierarchicalImporter, DependencyConfig
+from flexlibs2.sync import HierarchicalImporter, DependencyConfig
 
 config = DependencyConfig(
     include_owned=True,

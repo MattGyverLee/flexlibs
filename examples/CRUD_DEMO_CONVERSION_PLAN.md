@@ -26,7 +26,7 @@ Full CRUD Demo: [OperationName]Operations for flexlibs
 Performs actual create, read, update, and delete operations on test data.
 """
 
-from flexlibs import FLExProject, FLExInitialize, FLExCleanup
+from flexlibs2 import FLExProject, FLExInitialize, FLExCleanup
 
 def demo_[operation]_crud():
     """Demonstrate full CRUD operations."""

@@ -25,8 +25,8 @@ Phase 3 adds **intelligent dependency management** to the FLEx Sync Framework. I
 ### Basic Usage
 
 ```python
-from flexlibs.sync import HierarchicalImporter
-from flexlibs import FLExProject
+from flexlibs2.sync import HierarchicalImporter
+from flexlibs2 import FLExProject
 
 # Open projects
 source = FLExProject("consultant_work.fwdata", writeEnabled=False)
@@ -107,7 +107,7 @@ Import order:
 Control dependency resolution with `DependencyConfig`:
 
 ```python
-from flexlibs.sync import DependencyConfig
+from flexlibs2.sync import DependencyConfig
 
 config = DependencyConfig(
     # What to include
@@ -137,7 +137,7 @@ config = DependencyConfig(
 **Use case**: Import a complete lexical entry with senses, examples, and allomorphs.
 
 ```python
-from flexlibs.sync import HierarchicalImporter, DependencyConfig
+from flexlibs2.sync import HierarchicalImporter, DependencyConfig
 
 importer = HierarchicalImporter(source, target)
 
@@ -244,7 +244,7 @@ result = importer.import_with_dependencies(
 If imported objects have missing references:
 
 ```python
-from flexlibs.sync.validation import ValidationError
+from flexlibs2.sync.validation import ValidationError
 
 try:
     result = importer.import_with_dependencies(
@@ -268,7 +268,7 @@ except ValidationError as e:
 If objects have circular references:
 
 ```python
-from flexlibs.sync import CircularDependencyError, DependencyConfig
+from flexlibs2.sync import CircularDependencyError, DependencyConfig
 
 try:
     result = importer.import_with_dependencies(
@@ -300,7 +300,7 @@ except CircularDependencyError as e:
 For complete control over what gets imported:
 
 ```python
-from flexlibs.sync import DependencyResolver
+from flexlibs2.sync import DependencyResolver
 
 resolver = DependencyResolver(source, target)
 
@@ -327,7 +327,7 @@ for guid, obj_type in graph.get_import_order():
 Directly manipulate the dependency graph:
 
 ```python
-from flexlibs.sync import DependencyGraph, DependencyType
+from flexlibs2.sync import DependencyGraph, DependencyType
 
 graph = DependencyGraph()
 

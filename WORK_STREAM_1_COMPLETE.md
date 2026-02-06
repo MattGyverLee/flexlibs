@@ -230,7 +230,7 @@ All classes use proper LCM interfaces:
 
 3. **Verification**:
    ```python
-   from flexlibs import FLExProject
+   from flexlibs2 import FLExProject
    project = FLExProject()
    project.OpenProject("YourProject")
 

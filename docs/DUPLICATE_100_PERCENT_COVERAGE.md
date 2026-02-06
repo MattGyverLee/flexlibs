@@ -557,7 +557,7 @@ dup = project.Senses.Duplicate(sense, insert_after=False)
 
 ## Conclusion
 
-**Duplicate() functionality is now available across ALL 42 applicable operation classes in flexlibs.**
+**Duplicate() functionality is now available across ALL 42 applicable operation classes in flexlibs2.**
 
 ### What Was Delivered
 

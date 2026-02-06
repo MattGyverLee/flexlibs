@@ -8,7 +8,7 @@ Date: 2025-11-27
 """
 
 from datetime import datetime
-from flexlibs.sync import (
+from flexlibs2.sync import (
     HierarchicalImporter,
     DependencyConfig,
     CircularDependencyError,
@@ -28,7 +28,7 @@ def demo_import_entry_with_senses():
     print("="*60)
 
     # Setup (in real usage, these would be actual FlexProject instances)
-    from flexlibs import FLExProject
+    from flexlibs2 import FLExProject
 
     source = FLExProject(
         "path/to/consultant_project.fwdata",
@@ -117,7 +117,7 @@ def demo_import_with_filtering():
     print("DEMO: Import with Filtered Owned Objects")
     print("="*60)
 
-    from flexlibs import FLExProject
+    from flexlibs2 import FLExProject
 
     source = FLExProject("source.fwdata", writeEnabled=False)
     target = FLExProject("target.fwdata", writeEnabled=True)
@@ -152,7 +152,7 @@ def demo_import_semantic_domain_with_entries():
     print("DEMO: Import Semantic Domain with All Referencing Entries")
     print("="*60)
 
-    from flexlibs import FLExProject
+    from flexlibs2 import FLExProject
 
     source = FLExProject("consultant.fwdata", writeEnabled=False)
     target = FLExProject("main.fwdata", writeEnabled=True)
@@ -188,7 +188,7 @@ def demo_batch_import_multiple_entries():
     print("DEMO: Batch Import Multiple Entries")
     print("="*60)
 
-    from flexlibs import FLExProject
+    from flexlibs2 import FLExProject
 
     source = FLExProject("consultant.fwdata", writeEnabled=False)
     target = FLExProject("main.fwdata", writeEnabled=True)
@@ -240,7 +240,7 @@ def demo_handle_validation_errors():
     print("DEMO: Handling Validation Errors")
     print("="*60)
 
-    from flexlibs import FLExProject
+    from flexlibs2 import FLExProject
 
     source = FLExProject("source.fwdata", writeEnabled=False)
     target = FLExProject("target.fwdata", writeEnabled=True)
@@ -280,7 +280,7 @@ def demo_handle_circular_dependencies():
     print("DEMO: Handling Circular Dependencies")
     print("="*60)
 
-    from flexlibs import FLExProject
+    from flexlibs2 import FLExProject
 
     source = FLExProject("source.fwdata", writeEnabled=False)
     target = FLExProject("target.fwdata", writeEnabled=True)
@@ -328,7 +328,7 @@ def demo_progress_tracking():
     print("DEMO: Progress Tracking")
     print("="*60)
 
-    from flexlibs import FLExProject
+    from flexlibs2 import FLExProject
 
     source = FLExProject("source.fwdata", writeEnabled=False)
     target = FLExProject("target.fwdata", writeEnabled=True)

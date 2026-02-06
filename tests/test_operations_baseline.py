@@ -69,98 +69,98 @@ def mock_flex_project():
 # =============================================================================
 
 GRAMMAR_OPERATIONS = [
-    ('POSOperations', 'flexlibs.code.Grammar.POSOperations'),
-    ('PhonemeOperations', 'flexlibs.code.Grammar.PhonemeOperations'),
-    ('NaturalClassOperations', 'flexlibs.code.Grammar.NaturalClassOperations'),
-    ('EnvironmentOperations', 'flexlibs.code.Grammar.EnvironmentOperations'),
-    ('PhonologicalRuleOperations', 'flexlibs.code.Grammar.PhonologicalRuleOperations'),
-    ('MorphRuleOperations', 'flexlibs.code.Grammar.MorphRuleOperations'),
-    ('GramCatOperations', 'flexlibs.code.Grammar.GramCatOperations'),
-    ('InflectionFeatureOperations', 'flexlibs.code.Grammar.InflectionFeatureOperations'),
+    ('POSOperations', 'flexlibs2.code.Grammar.POSOperations'),
+    ('PhonemeOperations', 'flexlibs2.code.Grammar.PhonemeOperations'),
+    ('NaturalClassOperations', 'flexlibs2.code.Grammar.NaturalClassOperations'),
+    ('EnvironmentOperations', 'flexlibs2.code.Grammar.EnvironmentOperations'),
+    ('PhonologicalRuleOperations', 'flexlibs2.code.Grammar.PhonologicalRuleOperations'),
+    ('MorphRuleOperations', 'flexlibs2.code.Grammar.MorphRuleOperations'),
+    ('GramCatOperations', 'flexlibs2.code.Grammar.GramCatOperations'),
+    ('InflectionFeatureOperations', 'flexlibs2.code.Grammar.InflectionFeatureOperations'),
 ]
 
 LEXICON_OPERATIONS = [
-    ('LexEntryOperations', 'flexlibs.code.Lexicon.LexEntryOperations'),
-    ('LexSenseOperations', 'flexlibs.code.Lexicon.LexSenseOperations'),
-    ('AllomorphOperations', 'flexlibs.code.Lexicon.AllomorphOperations'),
-    ('ExampleOperations', 'flexlibs.code.Lexicon.ExampleOperations'),
-    ('PronunciationOperations', 'flexlibs.code.Lexicon.PronunciationOperations'),
-    ('EtymologyOperations', 'flexlibs.code.Lexicon.EtymologyOperations'),
-    ('VariantOperations', 'flexlibs.code.Lexicon.VariantOperations'),
-    ('LexReferenceOperations', 'flexlibs.code.Lexicon.LexReferenceOperations'),
-    ('SemanticDomainOperations', 'flexlibs.code.Lexicon.SemanticDomainOperations'),
-    ('ReversalOperations', 'flexlibs.code.Lexicon.ReversalOperations'),
+    ('LexEntryOperations', 'flexlibs2.code.Lexicon.LexEntryOperations'),
+    ('LexSenseOperations', 'flexlibs2.code.Lexicon.LexSenseOperations'),
+    ('AllomorphOperations', 'flexlibs2.code.Lexicon.AllomorphOperations'),
+    ('ExampleOperations', 'flexlibs2.code.Lexicon.ExampleOperations'),
+    ('PronunciationOperations', 'flexlibs2.code.Lexicon.PronunciationOperations'),
+    ('EtymologyOperations', 'flexlibs2.code.Lexicon.EtymologyOperations'),
+    ('VariantOperations', 'flexlibs2.code.Lexicon.VariantOperations'),
+    ('LexReferenceOperations', 'flexlibs2.code.Lexicon.LexReferenceOperations'),
+    ('SemanticDomainOperations', 'flexlibs2.code.Lexicon.SemanticDomainOperations'),
+    ('ReversalOperations', 'flexlibs2.code.Lexicon.ReversalOperations'),
 ]
 
 TEXTSWORDS_OPERATIONS = [
-    ('TextOperations', 'flexlibs.code.TextsWords.TextOperations'),
-    ('ParagraphOperations', 'flexlibs.code.TextsWords.ParagraphOperations'),
-    ('SegmentOperations', 'flexlibs.code.TextsWords.SegmentOperations'),
-    ('WordformOperations', 'flexlibs.code.TextsWords.WordformOperations'),
-    ('WfiAnalysisOperations', 'flexlibs.code.TextsWords.WfiAnalysisOperations'),
-    ('WfiGlossOperations', 'flexlibs.code.TextsWords.WfiGlossOperations'),
-    ('WfiMorphBundleOperations', 'flexlibs.code.TextsWords.WfiMorphBundleOperations'),
-    ('DiscourseOperations', 'flexlibs.code.TextsWords.DiscourseOperations'),
+    ('TextOperations', 'flexlibs2.code.TextsWords.TextOperations'),
+    ('ParagraphOperations', 'flexlibs2.code.TextsWords.ParagraphOperations'),
+    ('SegmentOperations', 'flexlibs2.code.TextsWords.SegmentOperations'),
+    ('WordformOperations', 'flexlibs2.code.TextsWords.WordformOperations'),
+    ('WfiAnalysisOperations', 'flexlibs2.code.TextsWords.WfiAnalysisOperations'),
+    ('WfiGlossOperations', 'flexlibs2.code.TextsWords.WfiGlossOperations'),
+    ('WfiMorphBundleOperations', 'flexlibs2.code.TextsWords.WfiMorphBundleOperations'),
+    ('DiscourseOperations', 'flexlibs2.code.TextsWords.DiscourseOperations'),
 ]
 
 WORDFORM_OPERATIONS = [
-    ('WfiWordformOperations', 'flexlibs.code.Wordform.WfiWordformOperations'),
-    ('WfiAnalysisOperations', 'flexlibs.code.Wordform.WfiAnalysisOperations'),
-    ('WfiGlossOperations', 'flexlibs.code.Wordform.WfiGlossOperations'),
-    ('WfiMorphBundleOperations', 'flexlibs.code.Wordform.WfiMorphBundleOperations'),
+    ('WfiWordformOperations', 'flexlibs2.code.Wordform.WfiWordformOperations'),
+    ('WfiAnalysisOperations', 'flexlibs2.code.Wordform.WfiAnalysisOperations'),
+    ('WfiGlossOperations', 'flexlibs2.code.Wordform.WfiGlossOperations'),
+    ('WfiMorphBundleOperations', 'flexlibs2.code.Wordform.WfiMorphBundleOperations'),
 ]
 
 DISCOURSE_OPERATIONS = [
-    ('ConstChartOperations', 'flexlibs.code.Discourse.ConstChartOperations'),
-    ('ConstChartRowOperations', 'flexlibs.code.Discourse.ConstChartRowOperations'),
-    ('ConstChartTagOperations', 'flexlibs.code.Discourse.ConstChartTagOperations'),
-    ('ConstChartClauseMarkerOperations', 'flexlibs.code.Discourse.ConstChartClauseMarkerOperations'),
-    ('ConstChartWordGroupOperations', 'flexlibs.code.Discourse.ConstChartWordGroupOperations'),
-    ('ConstChartMovedTextOperations', 'flexlibs.code.Discourse.ConstChartMovedTextOperations'),
+    ('ConstChartOperations', 'flexlibs2.code.Discourse.ConstChartOperations'),
+    ('ConstChartRowOperations', 'flexlibs2.code.Discourse.ConstChartRowOperations'),
+    ('ConstChartTagOperations', 'flexlibs2.code.Discourse.ConstChartTagOperations'),
+    ('ConstChartClauseMarkerOperations', 'flexlibs2.code.Discourse.ConstChartClauseMarkerOperations'),
+    ('ConstChartWordGroupOperations', 'flexlibs2.code.Discourse.ConstChartWordGroupOperations'),
+    ('ConstChartMovedTextOperations', 'flexlibs2.code.Discourse.ConstChartMovedTextOperations'),
 ]
 
 SCRIPTURE_OPERATIONS = [
-    ('ScrBookOperations', 'flexlibs.code.Scripture.ScrBookOperations'),
-    ('ScrSectionOperations', 'flexlibs.code.Scripture.ScrSectionOperations'),
-    ('ScrTxtParaOperations', 'flexlibs.code.Scripture.ScrTxtParaOperations'),
-    ('ScrNoteOperations', 'flexlibs.code.Scripture.ScrNoteOperations'),
-    ('ScrAnnotationsOperations', 'flexlibs.code.Scripture.ScrAnnotationsOperations'),
-    ('ScrDraftOperations', 'flexlibs.code.Scripture.ScrDraftOperations'),
+    ('ScrBookOperations', 'flexlibs2.code.Scripture.ScrBookOperations'),
+    ('ScrSectionOperations', 'flexlibs2.code.Scripture.ScrSectionOperations'),
+    ('ScrTxtParaOperations', 'flexlibs2.code.Scripture.ScrTxtParaOperations'),
+    ('ScrNoteOperations', 'flexlibs2.code.Scripture.ScrNoteOperations'),
+    ('ScrAnnotationsOperations', 'flexlibs2.code.Scripture.ScrAnnotationsOperations'),
+    ('ScrDraftOperations', 'flexlibs2.code.Scripture.ScrDraftOperations'),
 ]
 
 NOTEBOOK_OPERATIONS = [
-    ('DataNotebookOperations', 'flexlibs.code.Notebook.DataNotebookOperations'),
-    ('NoteOperations', 'flexlibs.code.Notebook.NoteOperations'),
-    ('PersonOperations', 'flexlibs.code.Notebook.PersonOperations'),
-    ('LocationOperations', 'flexlibs.code.Notebook.LocationOperations'),
-    ('AnthropologyOperations', 'flexlibs.code.Notebook.AnthropologyOperations'),
+    ('DataNotebookOperations', 'flexlibs2.code.Notebook.DataNotebookOperations'),
+    ('NoteOperations', 'flexlibs2.code.Notebook.NoteOperations'),
+    ('PersonOperations', 'flexlibs2.code.Notebook.PersonOperations'),
+    ('LocationOperations', 'flexlibs2.code.Notebook.LocationOperations'),
+    ('AnthropologyOperations', 'flexlibs2.code.Notebook.AnthropologyOperations'),
 ]
 
 REVERSAL_OPERATIONS = [
-    ('ReversalIndexOperations', 'flexlibs.code.Reversal.ReversalIndexOperations'),
-    ('ReversalIndexEntryOperations', 'flexlibs.code.Reversal.ReversalIndexEntryOperations'),
+    ('ReversalIndexOperations', 'flexlibs2.code.Reversal.ReversalIndexOperations'),
+    ('ReversalIndexEntryOperations', 'flexlibs2.code.Reversal.ReversalIndexEntryOperations'),
 ]
 
 LISTS_OPERATIONS = [
-    ('PossibilityListOperations', 'flexlibs.code.Lists.PossibilityListOperations'),
-    ('AgentOperations', 'flexlibs.code.Lists.AgentOperations'),
-    ('ConfidenceOperations', 'flexlibs.code.Lists.ConfidenceOperations'),
-    ('PublicationOperations', 'flexlibs.code.Lists.PublicationOperations'),
-    ('TranslationTypeOperations', 'flexlibs.code.Lists.TranslationTypeOperations'),
-    ('OverlayOperations', 'flexlibs.code.Lists.OverlayOperations'),
+    ('PossibilityListOperations', 'flexlibs2.code.Lists.PossibilityListOperations'),
+    ('AgentOperations', 'flexlibs2.code.Lists.AgentOperations'),
+    ('ConfidenceOperations', 'flexlibs2.code.Lists.ConfidenceOperations'),
+    ('PublicationOperations', 'flexlibs2.code.Lists.PublicationOperations'),
+    ('TranslationTypeOperations', 'flexlibs2.code.Lists.TranslationTypeOperations'),
+    ('OverlayOperations', 'flexlibs2.code.Lists.OverlayOperations'),
 ]
 
 SYSTEM_OPERATIONS = [
-    ('WritingSystemOperations', 'flexlibs.code.System.WritingSystemOperations'),
-    ('ProjectSettingsOperations', 'flexlibs.code.System.ProjectSettingsOperations'),
-    ('CustomFieldOperations', 'flexlibs.code.System.CustomFieldOperations'),
-    ('CheckOperations', 'flexlibs.code.System.CheckOperations'),
-    ('AnnotationDefOperations', 'flexlibs.code.System.AnnotationDefOperations'),
+    ('WritingSystemOperations', 'flexlibs2.code.System.WritingSystemOperations'),
+    ('ProjectSettingsOperations', 'flexlibs2.code.System.ProjectSettingsOperations'),
+    ('CustomFieldOperations', 'flexlibs2.code.System.CustomFieldOperations'),
+    ('CheckOperations', 'flexlibs2.code.System.CheckOperations'),
+    ('AnnotationDefOperations', 'flexlibs2.code.System.AnnotationDefOperations'),
 ]
 
 SHARED_OPERATIONS = [
-    ('MediaOperations', 'flexlibs.code.Shared.MediaOperations'),
-    ('FilterOperations', 'flexlibs.code.Shared.FilterOperations'),
+    ('MediaOperations', 'flexlibs2.code.Shared.MediaOperations'),
+    ('FilterOperations', 'flexlibs2.code.Shared.FilterOperations'),
 ]
 
 # All operations classes
@@ -227,7 +227,7 @@ class TestOperationsInheritance:
         """Test that each operations class inherits from BaseOperations."""
         try:
             # Import BaseOperations
-            from flexlibs.code.BaseOperations import BaseOperations
+            from flexlibs2.code.BaseOperations import BaseOperations
 
             # Import operations class
             module = __import__(module_path, fromlist=[class_name])

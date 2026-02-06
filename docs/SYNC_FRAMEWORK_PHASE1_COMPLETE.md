@@ -130,8 +130,8 @@ Phase 1 of the Multi-Database Sync Framework has been successfully completed usi
 ### Basic Usage
 
 ```python
-from flexlibs import FLExProject
-from flexlibs.sync import SyncEngine, GuidMatchStrategy
+from flexlibs2 import FLExProject
+from flexlibs2.sync import SyncEngine, GuidMatchStrategy
 
 # Open projects (readonly for comparison)
 source = FLExProject()
@@ -171,7 +171,7 @@ target.CloseProject()
 #### Custom Match Strategy
 
 ```python
-from flexlibs.sync import FieldMatchStrategy
+from flexlibs2.sync import FieldMatchStrategy
 
 # Match by form (case-insensitive)
 strategy = FieldMatchStrategy(
@@ -479,7 +479,7 @@ python -m pytest flexlibs/sync/tests/ -v
 python -m pytest flexlibs/sync/tests/test_match_strategies.py -v
 
 # With coverage
-python -m pytest flexlibs/sync/tests/ --cov=flexlibs.sync
+python -m pytest flexlibs/sync/tests/ --cov=flexlibs2.sync
 ```
 
 ### Running Demo

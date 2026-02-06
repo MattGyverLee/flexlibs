@@ -120,10 +120,10 @@
 ### Running Tests
 ```bash
 # All tests
-python -m unittest flexlibs.sync.tests.test_base_operations -v
+python -m unittest flexlibs2.sync.tests.test_base_operations -v
 
 # Single class
-python -m unittest flexlibs.sync.tests.test_base_operations.TestBaseOperationsSortMethod -v
+python -m unittest flexlibs2.sync.tests.test_base_operations.TestBaseOperationsSortMethod -v
 ```
 
 ### After Running Tests

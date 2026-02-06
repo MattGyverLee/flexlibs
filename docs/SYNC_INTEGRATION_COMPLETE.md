@@ -570,7 +570,7 @@ def CompareTo(self, item1, item2, ops1=None, ops2=None):
 
 #### Basic Property Comparison
 ```python
-from flexlibs import FLExProject
+from flexlibs2 import FLExProject
 
 # Open two projects
 project1 = FLExProject()
@@ -607,8 +607,8 @@ if senses1 and senses2:
 ### Example: Syncing Allomorphs Between Projects
 
 ```python
-from flexlibs import FLExProject
-from flexlibs.sync import DiffEngine, MergeOperations
+from flexlibs2 import FLExProject
+from flexlibs2.sync import DiffEngine, MergeOperations
 
 # Open source and target projects
 source = FLExProject()
@@ -672,7 +672,7 @@ source.CloseProject()
 ### Example: Comparing Lexical Senses with Detailed Diffs
 
 ```python
-from flexlibs import FLExProject
+from flexlibs2 import FLExProject
 
 project1 = FLExProject()
 project1.OpenProject("Version1")
@@ -725,7 +725,7 @@ project2.CloseProject()
 ### Example: Selective Property Merging
 
 ```python
-from flexlibs import FLExProject
+from flexlibs2 import FLExProject
 
 source = FLExProject()
 source.OpenProject("ExpertEdits", writeEnabled=False)
@@ -987,7 +987,7 @@ def CompareTo(self, item1, item2, ops1=None, ops2=None):
 
 **Step 3: Test with Sync Framework**
 ```python
-from flexlibs.sync import DiffEngine
+from flexlibs2.sync import DiffEngine
 
 project1 = FLExProject()
 project1.OpenProject("Test1")
@@ -1132,7 +1132,7 @@ if is_diff:
 **Unit Tests** (Test Individual Methods):
 ```python
 import unittest
-from flexlibs import FLExProject
+from flexlibs2 import FLExProject
 
 class TestAllomorphSync(unittest.TestCase):
     def setUp(self):
@@ -1548,7 +1548,7 @@ target_item = guid_index.get(source_guid)
 
 ## Summary
 
-The sync framework integration with BaseOperations provides a robust, extensible foundation for cross-project synchronization in flexlibs. With **30 of 45 operation classes** already implementing sync methods, users can:
+The sync framework integration with BaseOperations provides a robust, extensible foundation for cross-project synchronization in flexlibs2. With **30 of 45 operation classes** already implementing sync methods, users can:
 
 - Compare lexical data between projects with property-level precision
 - Detect conflicts and divergences automatically

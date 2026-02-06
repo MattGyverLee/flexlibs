@@ -30,7 +30,7 @@ The sync framework v1.1.0 (Phase 2) was designed by software engineers without a
 ### ✅ SAFE: Selective Import (NEW in v1.2.0)
 
 ```python
-from flexlibs.sync import SelectiveImport
+from flexlibs2.sync import SelectiveImport
 from datetime import datetime
 
 # This is the SAFE way for linguistic data
@@ -53,7 +53,7 @@ result = importer.import_new_objects(
 ### ❌ UNSAFE: Bidirectional Sync
 
 ```python
-from flexlibs.sync import SyncEngine
+from flexlibs2.sync import SyncEngine
 
 # DON'T DO THIS with production linguistic data!
 sync = SyncEngine(source, target)
@@ -106,7 +106,7 @@ print(f"Backup timestamp: {backup_time}")
 #### Step 3: Preview Import (Dry Run)
 
 ```python
-from flexlibs.sync import SelectiveImport
+from flexlibs2.sync import SelectiveImport
 
 # Open projects
 # test_proj = flextools.OpenProject("GrammarTest")
@@ -518,7 +518,7 @@ with open("import_log.txt", "a") as f:
 
 Include:
 - FLEx version
-- flexlibs version (print `flexlibs.sync.__version__`)
+- flexlibs version (print `flexlibs2.sync.__version__`)
 - Object type being imported
 - Validation output
 - Error messages

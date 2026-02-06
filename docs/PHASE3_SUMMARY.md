@@ -386,7 +386,7 @@ result = importer.import_related(
 
 ### Basic Import
 ```python
-from flexlibs.sync import HierarchicalImporter
+from flexlibs2.sync import HierarchicalImporter
 
 importer = HierarchicalImporter(source, target)
 
@@ -401,7 +401,7 @@ print(result.summary())
 
 ### With Configuration
 ```python
-from flexlibs.sync import HierarchicalImporter, DependencyConfig
+from flexlibs2.sync import HierarchicalImporter, DependencyConfig
 
 config = DependencyConfig(
     include_owned=True,

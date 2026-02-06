@@ -479,7 +479,7 @@ def GetFormAudio(self, allomorph_or_hvo, wsHandle=None):
 ### Example 1: Basic Audio WS Detection
 
 ```python
-from flexlibs import FLExProject
+from flexlibs2 import FLExProject
 
 project = FLExProject()
 project.OpenProject("UnwrittenLanguage", writeEnabled=False)

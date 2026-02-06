@@ -338,7 +338,7 @@ importer.import_by_filter(
 ### New Exports
 
 ```python
-from flexlibs.sync import (
+from flexlibs2.sync import (
     # Phase 2.5 NEW exports:
     LinguisticValidator,     # Validation framework
     ValidationResult,        # Validation results
@@ -358,8 +358,8 @@ from flexlibs.sync import (
 ### Version Number
 
 ```python
-import flexlibs.sync
-print(flexlibs.sync.__version__)
+import flexlibs2.sync
+print(flexlibs2.sync.__version__)
 # Phase 2: "1.1.0"
 # Phase 2.5: "1.2.0"
 ```
@@ -373,7 +373,7 @@ print(flexlibs.sync.__version__)
 **STOP using this pattern** (unsafe):
 ```python
 # OLD - Phase 2 (unsafe for linguistic data)
-from flexlibs.sync import SyncEngine
+from flexlibs2.sync import SyncEngine
 
 sync = SyncEngine(source, target)
 result = sync.sync(
@@ -385,7 +385,7 @@ result = sync.sync(
 **START using this pattern** (safe):
 ```python
 # NEW - Phase 2.5 (safe for linguistic data)
-from flexlibs.sync import SelectiveImport
+from flexlibs2.sync import SelectiveImport
 from datetime import datetime
 
 # Record when you made backup

@@ -45,12 +45,12 @@ class TestWordformOperationsImport:
 
     def test_import_wordform_operations(self):
         """Test importing WfiWordformOperations class."""
-        from flexlibs.code.Wordform.WfiWordformOperations import WfiWordformOperations
+        from flexlibs2.code.Wordform.WfiWordformOperations import WfiWordformOperations
         assert WfiWordformOperations is not None
 
     def test_instantiate_with_mock_project(self, mock_flex_project):
         """Test instantiating WfiWordformOperations with mock project."""
-        from flexlibs.code.Wordform.WfiWordformOperations import WfiWordformOperations
+        from flexlibs2.code.Wordform.WfiWordformOperations import WfiWordformOperations
 
         ops = WfiWordformOperations(mock_flex_project)
         assert ops is not None
@@ -62,14 +62,14 @@ class TestWordformOperationsInheritance:
 
     def test_inherits_from_base_operations(self):
         """Test that WfiWordformOperations inherits from BaseOperations."""
-        from flexlibs.code.Wordform.WfiWordformOperations import WfiWordformOperations
-        from flexlibs.code.BaseOperations import BaseOperations
+        from flexlibs2.code.Wordform.WfiWordformOperations import WfiWordformOperations
+        from flexlibs2.code.BaseOperations import BaseOperations
 
         assert issubclass(WfiWordformOperations, BaseOperations)
 
     def test_has_all_reordering_methods(self, mock_flex_project):
         """Test that WfiWordformOperations has all reordering methods."""
-        from flexlibs.code.Wordform.WfiWordformOperations import WfiWordformOperations
+        from flexlibs2.code.Wordform.WfiWordformOperations import WfiWordformOperations
 
         ops = WfiWordformOperations(mock_flex_project)
         assert_has_reordering_methods(ops)
@@ -80,7 +80,7 @@ class TestWordformOperationsCRUDMethods:
 
     def test_has_getall_method(self, mock_flex_project):
         """Test that GetAll method exists and is callable."""
-        from flexlibs.code.Wordform.WfiWordformOperations import WfiWordformOperations
+        from flexlibs2.code.Wordform.WfiWordformOperations import WfiWordformOperations
 
         ops = WfiWordformOperations(mock_flex_project)
         assert hasattr(ops, 'GetAll')
@@ -88,7 +88,7 @@ class TestWordformOperationsCRUDMethods:
 
     def test_has_create_method(self, mock_flex_project):
         """Test that Create method exists and is callable."""
-        from flexlibs.code.Wordform.WfiWordformOperations import WfiWordformOperations
+        from flexlibs2.code.Wordform.WfiWordformOperations import WfiWordformOperations
 
         ops = WfiWordformOperations(mock_flex_project)
         assert hasattr(ops, 'Create')
@@ -96,7 +96,7 @@ class TestWordformOperationsCRUDMethods:
 
     def test_has_delete_method(self, mock_flex_project):
         """Test that Delete method exists and is callable."""
-        from flexlibs.code.Wordform.WfiWordformOperations import WfiWordformOperations
+        from flexlibs2.code.Wordform.WfiWordformOperations import WfiWordformOperations
 
         ops = WfiWordformOperations(mock_flex_project)
         assert hasattr(ops, 'Delete')
@@ -104,7 +104,7 @@ class TestWordformOperationsCRUDMethods:
 
     def test_has_find_method(self, mock_flex_project):
         """Test that Find method exists and is callable."""
-        from flexlibs.code.Wordform.WfiWordformOperations import WfiWordformOperations
+        from flexlibs2.code.Wordform.WfiWordformOperations import WfiWordformOperations
 
         ops = WfiWordformOperations(mock_flex_project)
         assert hasattr(ops, 'Find')
@@ -116,7 +116,7 @@ class TestWordformOperationsPropertyGetters:
 
     def test_has_getform_method(self, mock_flex_project):
         """Test that GetForm method exists."""
-        from flexlibs.code.Wordform.WfiWordformOperations import WfiWordformOperations
+        from flexlibs2.code.Wordform.WfiWordformOperations import WfiWordformOperations
 
         ops = WfiWordformOperations(mock_flex_project)
         assert hasattr(ops, 'GetForm')
@@ -124,7 +124,7 @@ class TestWordformOperationsPropertyGetters:
 
     def test_has_getanalyses_method(self, mock_flex_project):
         """Test that GetAnalyses or similar method exists."""
-        from flexlibs.code.Wordform.WfiWordformOperations import WfiWordformOperations
+        from flexlibs2.code.Wordform.WfiWordformOperations import WfiWordformOperations
 
         ops = WfiWordformOperations(mock_flex_project)
         # Check for analysis-related methods
@@ -136,7 +136,7 @@ class TestWordformOperationsPropertySetters:
 
     def test_has_setform_method(self, mock_flex_project):
         """Test that SetForm method exists."""
-        from flexlibs.code.Wordform.WfiWordformOperations import WfiWordformOperations
+        from flexlibs2.code.Wordform.WfiWordformOperations import WfiWordformOperations
 
         ops = WfiWordformOperations(mock_flex_project)
         assert hasattr(ops, 'SetForm')
@@ -148,7 +148,7 @@ class TestWordformOperationsAnalysisMethods:
 
     def test_has_addanalysis_method(self, mock_flex_project):
         """Test that AddAnalysis method exists."""
-        from flexlibs.code.Wordform.WfiWordformOperations import WfiWordformOperations
+        from flexlibs2.code.Wordform.WfiWordformOperations import WfiWordformOperations
 
         ops = WfiWordformOperations(mock_flex_project)
         # Check for analysis methods
@@ -167,7 +167,7 @@ class TestWordformOperationsMockBehavior:
 
     def test_getall_with_mock_repository(self, mock_flex_project):
         """Test GetAll returns iterator from mock repository."""
-        from flexlibs.code.Wordform.WfiWordformOperations import WfiWordformOperations
+        from flexlibs2.code.Wordform.WfiWordformOperations import WfiWordformOperations
 
         # Setup mock to return test wordforms
         mock_wordforms = [MockLCMObject(hvo=5000 + i) for i in range(3)]
@@ -184,7 +184,7 @@ class TestWordformOperationsMockBehavior:
 
     def test_getform_with_mock_wordform(self, mock_flex_project, mock_wordform):
         """Test GetForm with mock wordform."""
-        from flexlibs.code.Wordform.WfiWordformOperations import WfiWordformOperations
+        from flexlibs2.code.Wordform.WfiWordformOperations import WfiWordformOperations
 
         # Set form on mock
         mock_wordform.Form = MockMultiString({'en': 'running'})
@@ -200,8 +200,8 @@ class TestWordformOperationsValidation:
 
     def test_create_requires_write_enabled(self, mock_flex_project):
         """Test that Create raises error when project is read-only."""
-        from flexlibs.code.Wordform.WfiWordformOperations import WfiWordformOperations
-        from flexlibs.code.FLExProject import FP_ReadOnlyError
+        from flexlibs2.code.Wordform.WfiWordformOperations import WfiWordformOperations
+        from flexlibs2.code.FLExProject import FP_ReadOnlyError
 
         # Set project to read-only
         mock_flex_project.writeEnabled = False
@@ -230,7 +230,7 @@ class TestWordformOperationsIntegration:
         """Setup real FLEx project for integration testing."""
         pytest.importorskip("flexlibs")
 
-        from flexlibs import FLExInitialize, FLExCleanup, FLExProject, AllProjectNames
+        from flexlibs2 import FLExInitialize, FLExCleanup, FLExProject, AllProjectNames
 
         FLExInitialize()
         projects = AllProjectNames()
@@ -247,7 +247,7 @@ class TestWordformOperationsIntegration:
 
     def test_create_and_delete_wordform(self, flex_project):
         """Integration test: Create and delete a wordform."""
-        from flexlibs.code.Wordform.WfiWordformOperations import WfiWordformOperations
+        from flexlibs2.code.Wordform.WfiWordformOperations import WfiWordformOperations
 
         ops = WfiWordformOperations(flex_project)
 
@@ -264,7 +264,7 @@ class TestWordformOperationsIntegration:
 
     def test_getall_returns_wordforms(self, flex_project):
         """Integration test: GetAll returns wordforms."""
-        from flexlibs.code.Wordform.WfiWordformOperations import WfiWordformOperations
+        from flexlibs2.code.Wordform.WfiWordformOperations import WfiWordformOperations
 
         ops = WfiWordformOperations(flex_project)
         wordforms = list(ops.GetAll())
@@ -274,7 +274,7 @@ class TestWordformOperationsIntegration:
 
     def test_find_wordform(self, flex_project):
         """Integration test: Find wordform by form."""
-        from flexlibs.code.Wordform.WfiWordformOperations import WfiWordformOperations
+        from flexlibs2.code.Wordform.WfiWordformOperations import WfiWordformOperations
 
         ops = WfiWordformOperations(flex_project)
 

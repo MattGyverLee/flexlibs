@@ -209,7 +209,7 @@ pytest tests/ -v
 
 ```bash
 # Run with coverage
-pytest tests/ --cov=flexlibs.code --cov-report=html
+pytest tests/ --cov=flexlibs2.code --cov-report=html
 
 # Run specific test file
 pytest tests/operations/test_lexentry_operations.py -v
@@ -288,8 +288,8 @@ pytest tests/ -n auto -m "not integration"
 
 Example: Class renamed or moved
 ```python
-# Before: flexlibs.code.Lexicon.LexEntryOperations
-# After:  flexlibs.code.Lexicon.EntryOperations  # Renamed
+# Before: flexlibs2.code.Lexicon.LexEntryOperations
+# After:  flexlibs2.code.Lexicon.EntryOperations  # Renamed
 
 # Test fails: test_operations_class_import[LexEntryOperations]
 # Error: ImportError: cannot import name 'LexEntryOperations'

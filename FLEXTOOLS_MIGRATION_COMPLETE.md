@@ -214,7 +214,7 @@ for entry in project.LexiconAllEntries():
 
 **After (FlexLibs with wrappers):**
 ```python
-from flexlibs import FLExProject
+from flexlibs2 import FLExProject
 project = FLExProject()
 project.OpenProject("MyProject")
 
@@ -229,7 +229,7 @@ for entry in project.LexiconAllEntries():
 
 **Modernize incrementally:**
 ```python
-from flexlibs import FLExProject
+from flexlibs2 import FLExProject
 project = FLExProject()
 project.OpenProject("MyProject")
 

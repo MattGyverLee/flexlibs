@@ -312,7 +312,7 @@ class ExampleOperations(BaseOperations):
 ## Usage - Identical Across All Classes
 
 ```python
-from flexlibs import FLExProject, FLExInitialize, FLExCleanup
+from flexlibs2 import FLExProject, FLExInitialize, FLExCleanup
 
 FLExInitialize()
 project = FLExProject()

@@ -1,4 +1,4 @@
-# Libraries required for building and publishing flexlibs.
+# Libraries required for building and publishing flexlibs2.
 # pythonnet is needed because the sphinx builder imports FLExProject.py
 pytest
 sphinx

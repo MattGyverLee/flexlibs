@@ -123,7 +123,7 @@ DependencyConfig(
 
 ### Basic Hierarchical Import
 ```python
-from flexlibs.sync import HierarchicalImporter
+from flexlibs2.sync import HierarchicalImporter
 
 importer = HierarchicalImporter(source, target)
 
@@ -158,7 +158,7 @@ result = importer.import_with_dependencies(
 
 ### Filtered Import
 ```python
-from flexlibs.sync import DependencyConfig
+from flexlibs2.sync import DependencyConfig
 
 # Only import senses, not pronunciations
 config = DependencyConfig(
@@ -175,7 +175,7 @@ result = importer.import_with_dependencies(
 
 ### Dependency Analysis
 ```python
-from flexlibs.sync import DependencyResolver
+from flexlibs2.sync import DependencyResolver
 
 resolver = DependencyResolver(source, target)
 graph = resolver.resolve_dependencies(entry, "LexEntry")
@@ -467,7 +467,7 @@ python examples/sync_hierarchical_demo.py
 
 ### 3. Try It on Test Data
 ```python
-from flexlibs.sync import HierarchicalImporter
+from flexlibs2.sync import HierarchicalImporter
 
 importer = HierarchicalImporter(source, target)
 result = importer.import_with_dependencies(

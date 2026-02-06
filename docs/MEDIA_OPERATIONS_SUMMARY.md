@@ -86,7 +86,7 @@ def MoveMediaFile(self, media, from_pronunciation_or_hvo, to_pronunciation_or_hv
 ### Basic Workflow: Adding Pictures to Senses
 
 ```python
-from flexlibs import FLExProject
+from flexlibs2 import FLExProject
 
 project = FLExProject()
 project.OpenProject("MyDictionary", writeEnabled=True)
@@ -546,4 +546,4 @@ Implementation is complete when:
 - All operations are atomic (database + file system together)
 - Error handling ensures consistency between DB and filesystem
 
-This completes the media support enhancement design for flexlibs.
+This completes the media support enhancement design for flexlibs2.

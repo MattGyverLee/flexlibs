@@ -9,7 +9,7 @@ Author: FlexTools Development Team
 Date: 2025-11-27
 """
 
-from flexlibs import FLExProject, FLExInitialize, FLExCleanup
+from flexlibs2 import FLExProject, FLExInitialize, FLExCleanup
 
 def demo_wfianalysis_crud():
     """

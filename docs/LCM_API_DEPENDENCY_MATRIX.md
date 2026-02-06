@@ -6,7 +6,7 @@
 
 ## Overview
 
-This document provides a comprehensive matrix showing the LCM API dependencies for each operations class in flexlibs. Understanding these dependencies is critical for:
+This document provides a comprehensive matrix showing the LCM API dependencies for each operations class in flexlibs2. Understanding these dependencies is critical for:
 
 - **Risk Assessment**: Identifying which operations are most coupled to LCM
 - **Refactoring Planning**: Understanding the scope of changes needed

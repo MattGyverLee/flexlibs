@@ -406,7 +406,7 @@ This is the primary namespace containing all LCM data model interfaces, reposito
 - All Tags classes
 - Core exceptions and enums
 
-**Risk Level**: **HIGH** - This is the core dependency. Changes to LCM interfaces directly impact flexlibs.
+**Risk Level**: **HIGH** - This is the core dependency. Changes to LCM interfaces directly impact flexlibs2.
 
 ### SIL.LCModel.Core.KernelInterfaces
 

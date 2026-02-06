@@ -9,7 +9,7 @@ provides a class (FLExProject) for opening a FLEx project and working
 with its contents.
 
 For the GUI application that runs Python scripts/plugins
-on FLEx databases see FLExTools [2]_, which is built on flexlibs.
+on FLEx databases see FLExTools [2]_, which is built on flexlibs2.
 
 
 Requirements
@@ -41,18 +41,18 @@ Basic usage:
 .. code-block:: python
 
 
-  import flexlibs
-  flexlibs.FLExInitialize()
-  p = flexlibs.FLExProject()
+  import flexlibs2
+  flexlibs2.FLExInitialize()
+  p = flexlibs2.FLExProject()
   p.OpenProject('parser-experiments')
   p.GetPartsOfSpeech()
   # ['Adverb', 'Noun', 'Pro-form', 'Pronoun', 'Verb', 'Copulative verb', 'Ditransitive verb', 'Intransitive verb', 'Transitive verb', 'Coordinating connective']
 
   # The API documentation is an HTML file
-  os.startfile(flexlibs.APIHelpFile)
+  os.startfile(flexlibs2.APIHelpFile)
   ...
   p.CloseProject()
-  flexlibs.FLExCleanup()
+  flexlibs2.FLExCleanup()
 
 
 Version 2.0+ Operations Classes
@@ -73,10 +73,10 @@ Example usage:
 
 .. code-block:: python
 
-  import flexlibs
-  flexlibs.FLExInitialize()
+  import flexlibs2
+  flexlibs2.FLExInitialize()
 
-  project = flexlibs.FLExProject()
+  project = flexlibs2.FLExProject()
   project.OpenProject('MyProject', writeEnabled=True)
 
   # Create a new lexical entry
@@ -95,7 +95,7 @@ Example usage:
       "The dog runs in the park.", "en")
 
   project.CloseProject()
-  flexlibs.FLExCleanup()
+  flexlibs2.FLExCleanup()
 
 All v1.x API methods remain available for backward compatibility.
 

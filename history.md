@@ -39,10 +39,10 @@ This release introduces a complete set of Operations classes providing intuitive
 **Example Usage:**
 
 ```python
-import flexlibs
+import flexlibs2
 
-flexlibs.FLExInitialize()
-project = flexlibs.FLExProject()
+flexlibs2.FLExInitialize()
+project = flexlibs2.FLExProject()
 project.OpenProject('MyProject', writeEnabled=True)
 
 # Create a lexical entry with the new API
@@ -54,7 +54,7 @@ project.Senses.SetGloss(sense, "run", "en")
 allEntries = project.LexiconAllEntries()
 
 project.CloseProject()
-flexlibs.FLExCleanup()
+flexlibs2.FLExCleanup()
 ```
 
 **Breaking Changes:**

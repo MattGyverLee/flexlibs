@@ -436,7 +436,7 @@ def MoveDown(self, parent_or_hvo, item, positions=1):
 ### Use Case 1: Sort Allomorphs by Environment Complexity
 
 ```python
-from flexlibs import FLExProject, FLExInitialize, FLExCleanup
+from flexlibs2 import FLExProject, FLExInitialize, FLExCleanup
 
 FLExInitialize()
 project = FLExProject()

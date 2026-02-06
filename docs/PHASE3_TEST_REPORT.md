@@ -191,16 +191,16 @@ Each test class uses:
 ### Running Tests
 ```bash
 # Run all BaseOperations tests
-python -m unittest flexlibs.sync.tests.test_base_operations
+python -m unittest flexlibs2.sync.tests.test_base_operations
 
 # Run specific test class
-python -m unittest flexlibs.sync.tests.test_base_operations.TestBaseOperationsSortMethod
+python -m unittest flexlibs2.sync.tests.test_base_operations.TestBaseOperationsSortMethod
 
 # Run with verbose output
-python -m unittest flexlibs.sync.tests.test_base_operations -v
+python -m unittest flexlibs2.sync.tests.test_base_operations -v
 
 # Run single test
-python -m unittest flexlibs.sync.tests.test_base_operations.TestBaseOperationsSortMethod.test_sort_alphabetically_ascending
+python -m unittest flexlibs2.sync.tests.test_base_operations.TestBaseOperationsSortMethod.test_sort_alphabetically_ascending
 ```
 
 ### Expected Results

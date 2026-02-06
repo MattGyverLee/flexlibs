@@ -378,7 +378,7 @@ Files to update:
 
 import unittest
 from unittest.mock import Mock, MagicMock
-from flexlibs import FLExProject, FLExInitialize, FLExCleanup
+from flexlibs2 import FLExProject, FLExInitialize, FLExCleanup
 
 class TestBaseOperations(unittest.TestCase):
     """Test suite for BaseOperations reordering methods."""

@@ -312,7 +312,7 @@ for sense in project.Senses.GetAll(entry):
    from flextoolslib import *
 
    # New
-   from flexlibs import FLExProject
+   from flexlibs2 import FLExProject
    project = FLExProject()
    ```
 

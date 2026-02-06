@@ -38,8 +38,8 @@
 ### 🔴 BLOCKER #2: Tests Cannot Execute
 **Status**: ImportError prevents all 43 tests from running
 **Owner**: Programmer 3
-**Issue**: `from flexlibs import FLExProject` fails
-**Fix**: Change to `from flexlibs.code.FLExProject import FLExProject`
+**Issue**: `from flexlibs2 import FLExProject` fails
+**Fix**: Change to `from flexlibs2.code.FLExProject import FLExProject`
 **Estimated Time to Fix**: 30 minutes
 
 ---

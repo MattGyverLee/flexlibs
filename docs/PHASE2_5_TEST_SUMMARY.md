@@ -292,7 +292,7 @@ __version__ = "1.2.0"  # Phase 2.5 - Linguistic Safety
 
 ### Basic Selective Import
 ```python
-from flexlibs.sync import SelectiveImport
+from flexlibs2.sync import SelectiveImport
 from datetime import datetime
 
 # Initialize
@@ -333,7 +333,7 @@ result = importer.import_by_filter(
 
 ### Validation Handling
 ```python
-from flexlibs.sync.validation import ValidationError
+from flexlibs2.sync.validation import ValidationError
 
 try:
     result = importer.import_new_objects(
