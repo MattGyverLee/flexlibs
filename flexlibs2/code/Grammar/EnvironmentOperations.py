@@ -359,9 +359,9 @@ class EnvironmentOperations(BaseOperations):
             raise FP_NullParameterError()
 
         env = self.__ResolveObject(env_or_hvo)
-        wsHandle = self.__WSHandle(wsHandle)
-
-        notation = ITsString(env.StringRepresentation.get_String(wsHandle)).Text
+        # Note: StringRepresentation is ITsString, not IMultiUnicode
+        # so we access .Text directly (wsHandle is unused for this property)
+        notation = env.StringRepresentation.Text if env.StringRepresentation else ""
         return notation or ""
 
     def SetStringRepresentation(self, env_or_hvo, notation, wsHandle=None):

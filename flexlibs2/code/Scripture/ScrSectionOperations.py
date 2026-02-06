@@ -311,7 +311,8 @@ class ScrSectionOperations(BaseOperations):
             return ""
 
         para = section.HeadingOA.ParagraphsOS[0]
-        text = ITsString(para.Contents.get_String(wsHandle)).Text
+        # Note: Contents is ITsString, not IMultiUnicode
+        text = para.Contents.Text if para.Contents else ""
         return text or ""
 
     def SetHeading(self, section_or_hvo, text, wsHandle=None):

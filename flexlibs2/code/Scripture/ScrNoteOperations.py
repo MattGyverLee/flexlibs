@@ -381,7 +381,8 @@ class ScrNoteOperations(BaseOperations):
             return ""
 
         para = note.DiscussionOA.ParagraphsOS[0]
-        text = ITsString(para.Contents.get_String(wsHandle)).Text
+        # Note: Contents is ITsString, not IMultiUnicode
+        text = para.Contents.Text if para.Contents else ""
         return text or ""
 
     def SetText(self, note_or_hvo, text, wsHandle=None):

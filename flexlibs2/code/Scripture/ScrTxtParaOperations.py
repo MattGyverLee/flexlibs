@@ -324,9 +324,8 @@ class ScrTxtParaOperations(BaseOperations):
             raise FP_NullParameterError()
 
         para = self.__ResolveObject(para_or_hvo)
-        wsHandle = self.__WSHandle(wsHandle)
-
-        text = ITsString(para.Contents.get_String(wsHandle)).Text
+        # Note: Contents is ITsString, not IMultiUnicode
+        text = para.Contents.Text if para.Contents else ""
         return text or ""
 
     def SetText(self, para_or_hvo, text, wsHandle=None):
