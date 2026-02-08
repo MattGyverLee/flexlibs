@@ -171,17 +171,18 @@ class ScrNoteOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
 
         # Create discussion paragraph if needed
+        # Note: Contents is ITsString, assign directly
         if new_note.DiscussionOA:
             if new_note.DiscussionOA.ParagraphsOS.Count > 0:
                 para_obj = new_note.DiscussionOA.ParagraphsOS[0]
-                para_obj.Contents.set_String(wsHandle, mkstr)
+                para_obj.Contents = mkstr
             else:
                 # Create paragraph
                 from SIL.LCModel import IStTxtParaFactory
                 para_factory = self.project.project.ServiceLocator.GetService(IStTxtParaFactory)
                 para_obj = para_factory.Create()
                 new_note.DiscussionOA.ParagraphsOS.Add(para_obj)
-                para_obj.Contents.set_String(wsHandle, mkstr)
+                para_obj.Contents = mkstr
         else:
             # Create discussion StText
             from SIL.LCModel import IStTextFactory, IStTxtParaFactory
@@ -190,7 +191,7 @@ class ScrNoteOperations(BaseOperations):
             para_factory = self.project.project.ServiceLocator.GetService(IStTxtParaFactory)
             para_obj = para_factory.Create()
             new_note.DiscussionOA.ParagraphsOS.Add(para_obj)
-            para_obj.Contents.set_String(wsHandle, mkstr)
+            para_obj.Contents = mkstr
 
         # Set beginning reference to the paragraph
         # Note: This is a simplified approach - full implementation would set
@@ -444,10 +445,10 @@ class ScrNoteOperations(BaseOperations):
             para = para_factory.Create()
             note.DiscussionOA.ParagraphsOS.Add(para)
 
-        # Set the discussion text
+        # Set the discussion text (Contents is ITsString, assign directly)
         para = note.DiscussionOA.ParagraphsOS[0]
         mkstr = TsStringUtils.MakeString(text, wsHandle)
-        para.Contents.set_String(wsHandle, mkstr)
+        para.Contents = mkstr
 
     def GetType(self, note_or_hvo):
         """

@@ -1382,7 +1382,7 @@ class ExampleOperations(BaseOperations):
         example = self.__GetExampleObject(example_or_hvo)
 
         result = []
-        for pub in example.DoNotPublishIn:
+        for pub in example.DoNotPublishInRC:
             name = pub.Name.BestAnalysisAlternative.Text if pub.Name else str(pub.Guid)
             result.append(name)
         return result
@@ -1414,8 +1414,8 @@ class ExampleOperations(BaseOperations):
                 raise FP_ParameterError(f"Publication '{publication}' not found")
             publication = pub_obj
 
-        if publication not in example.DoNotPublishIn:
-            example.DoNotPublishIn.Add(publication)
+        if publication not in example.DoNotPublishInRC:
+            example.DoNotPublishInRC.Add(publication)
 
     def RemoveDoNotPublishIn(self, example_or_hvo, publication):
         """
@@ -1444,8 +1444,8 @@ class ExampleOperations(BaseOperations):
                 raise FP_ParameterError(f"Publication '{publication}' not found")
             publication = pub_obj
 
-        if publication in example.DoNotPublishIn:
-            example.DoNotPublishIn.Remove(publication)
+        if publication in example.DoNotPublishInRC:
+            example.DoNotPublishInRC.Remove(publication)
 
     # --- Private Helper Methods ---
 

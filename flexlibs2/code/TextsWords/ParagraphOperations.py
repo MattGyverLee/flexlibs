@@ -467,9 +467,9 @@ class ParagraphOperations(BaseOperations):
         if not text_obj.ContentsOA:
             return
 
-        # Yield each paragraph
+        # Yield each paragraph, cast to IStTxtPara to ensure SegmentsOS is accessible
         for para in text_obj.ContentsOA.ParagraphsOS:
-            yield para
+            yield IStTxtPara(para)
 
     def GetText(self, paragraph_or_hvo, wsHandle=None):
         """

@@ -470,7 +470,7 @@ class WfiWordformOperations(BaseOperations):
 
         # Check if there's a human-approved analysis
         for analysis in wordform.AnalysesOC:
-            if wordform.HumanApprovedAnalysesRS.Contains(analysis):
+            if wordform.HumanApprovedAnalyses.Contains(analysis):
                 return analysis
 
         return None
@@ -517,7 +517,7 @@ class WfiWordformOperations(BaseOperations):
         wordform = self.__ResolveObject(wordform_or_hvo)
 
         # Clear existing approval
-        wordform.HumanApprovedAnalysesRS.Clear()
+        wordform.HumanApprovedAnalyses.Clear()
 
         # Set new approval if provided
         if analysis:
@@ -525,7 +525,7 @@ class WfiWordformOperations(BaseOperations):
             if analysis not in wordform.AnalysesOC:
                 raise FP_ParameterError("Analysis does not belong to this wordform")
 
-            wordform.HumanApprovedAnalysesRS.Add(analysis)
+            wordform.HumanApprovedAnalyses.Add(analysis)
 
     def GetOccurrences(self, wordform_or_hvo):
         """

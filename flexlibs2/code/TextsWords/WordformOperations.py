@@ -516,7 +516,7 @@ class WordformOperations(BaseOperations):
         else:
             wordform = wordform_or_hvo
 
-        return wordform.OccurrencesRS.Count
+        return wordform.OccurrencesInTexts.Count
 
     def GetOccurrences(self, wordform_or_hvo):
         """
@@ -554,7 +554,7 @@ class WordformOperations(BaseOperations):
         else:
             wordform = wordform_or_hvo
 
-        return list(wordform.OccurrencesRS)
+        return list(wordform.OccurrencesInTexts)
 
     def GetChecksum(self, wordform_or_hvo):
         """

@@ -367,10 +367,10 @@ class ScrSectionOperations(BaseOperations):
             para = para_factory.Create()
             section.HeadingOA.ParagraphsOS.Add(para)
 
-        # Set the heading text
+        # Set the heading text (Contents is ITsString, assign directly)
         para = section.HeadingOA.ParagraphsOS[0]
         mkstr = TsStringUtils.MakeString(text, wsHandle)
-        para.Contents.set_String(wsHandle, mkstr)
+        para.Contents = mkstr
 
     def GetContent(self, section_or_hvo):
         """

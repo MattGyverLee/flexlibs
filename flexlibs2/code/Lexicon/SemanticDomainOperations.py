@@ -555,9 +555,16 @@ class SemanticDomainOperations(BaseOperations):
         domain = self.__ResolveObject(domain_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
 
-        # Questions is a MultiString
-        questions = ITsString(domain.Questions.get_String(wsHandle)).Text
-        return questions or ""
+        # Questions is an owning sequence of CmDomainQ objects (QuestionsOS)
+        # Each CmDomainQ has a Question property (MultiUnicode)
+        questions_list = []
+        if hasattr(domain, 'QuestionsOS'):
+            for domain_q in domain.QuestionsOS:
+                if hasattr(domain_q, 'Question'):
+                    q_text = ITsString(domain_q.Question.get_String(wsHandle)).Text
+                    if q_text:
+                        questions_list.append(q_text)
+        return "\n".join(questions_list)
 
     def GetOcmCodes(self, domain_or_hvo):
         """

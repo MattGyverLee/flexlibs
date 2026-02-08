@@ -380,7 +380,7 @@ class WfiAnalysisOperations(BaseOperations):
         # Check if owning wordform has this analysis as approved
         wordform = analysis.Owner
         if isinstance(wordform, IWfiWordform):
-            return wordform.HumanApprovedAnalysesRS.Contains(analysis)
+            return wordform.HumanApprovedAnalyses.Contains(analysis)
 
         return False
 
@@ -431,8 +431,8 @@ class WfiAnalysisOperations(BaseOperations):
             raise FP_ParameterError("Analysis does not have a wordform owner")
 
         # Clear existing approval and set new one
-        wordform.HumanApprovedAnalysesRS.Clear()
-        wordform.HumanApprovedAnalysesRS.Add(analysis)
+        wordform.HumanApprovedAnalyses.Clear()
+        wordform.HumanApprovedAnalyses.Add(analysis)
 
     # --- Morph Bundles ---
 

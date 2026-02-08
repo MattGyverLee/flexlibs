@@ -988,7 +988,7 @@ class WfiMorphBundleOperations(BaseOperations):
             raise FP_NullParameterError()
 
         bundle = self.__GetBundleObject(bundle_or_hvo)
-        return bundle.InflType if bundle.InflType else None
+        return bundle.InflTypeRA if bundle.InflTypeRA else None
 
     def SetInflType(self, bundle_or_hvo, infl_type_or_hvo):
         """
@@ -1035,14 +1035,14 @@ class WfiMorphBundleOperations(BaseOperations):
         bundle = self.__GetBundleObject(bundle_or_hvo)
 
         if infl_type_or_hvo is None:
-            bundle.InflType = None
+            bundle.InflTypeRA = None
         else:
             # Resolve to ICmPossibility object
             if isinstance(infl_type_or_hvo, int):
                 infl_type = self.project.Object(infl_type_or_hvo)
             else:
                 infl_type = infl_type_or_hvo
-            bundle.InflType = infl_type
+            bundle.InflTypeRA = infl_type
 
     def GetInflectionClass(self, bundle_or_hvo):
         """

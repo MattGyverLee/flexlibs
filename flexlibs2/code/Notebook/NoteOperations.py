@@ -191,8 +191,8 @@ class NoteOperations(BaseOperations):
         note = factory.Create()
 
         # Add to the annotations collection (must be done before setting properties)
-        if hasattr(owner_object, 'AnnotationsOS'):
-            owner_object.AnnotationsOS.Add(note)
+        if hasattr(owner_object, 'AnnotationsOC'):
+            owner_object.AnnotationsOC.Add(note)
 
         # Set the content
         mkstr = TsStringUtils.MakeString(content, wsHandle)
@@ -245,9 +245,9 @@ class NoteOperations(BaseOperations):
 
         # Remove from owner's collection
         owner = note.Owner
-        if hasattr(owner, 'AnnotationsOS'):
-            if note in owner.AnnotationsOS:
-                owner.AnnotationsOS.Remove(note)
+        if hasattr(owner, 'AnnotationsOC'):
+            if note in owner.AnnotationsOC:
+                owner.AnnotationsOC.Remove(note)
 
         # Delete the note object
         if hasattr(note, 'Delete'):
@@ -312,21 +312,21 @@ class NoteOperations(BaseOperations):
         duplicate = factory.Create()
 
         # Determine insertion position
-        # Notes can be in AnnotationsOS (when parent is owner object) or RepliesOS (when parent is another note)
+        # Notes can be in AnnotationsOC (when parent is owner object) or RepliesOS (when parent is another note)
         if insert_after:
             # Insert after source note
             if hasattr(parent, 'RepliesOS'):
                 source_index = parent.RepliesOS.IndexOf(source)
                 parent.RepliesOS.Insert(source_index + 1, duplicate)
-            elif hasattr(parent, 'AnnotationsOS'):
-                source_index = parent.AnnotationsOS.IndexOf(source)
-                parent.AnnotationsOS.Insert(source_index + 1, duplicate)
+            elif hasattr(parent, 'AnnotationsOC'):
+                source_index = parent.AnnotationsOC.IndexOf(source)
+                parent.AnnotationsOC.Insert(source_index + 1, duplicate)
         else:
             # Insert at end
             if hasattr(parent, 'RepliesOS'):
                 parent.RepliesOS.Add(duplicate)
-            elif hasattr(parent, 'AnnotationsOS'):
-                parent.AnnotationsOS.Add(duplicate)
+            elif hasattr(parent, 'AnnotationsOC'):
+                parent.AnnotationsOC.Add(duplicate)
 
         # Copy simple MultiString properties
         duplicate.Comment.CopyAlternatives(source.Comment)
@@ -487,7 +487,7 @@ class NoteOperations(BaseOperations):
         if note_list is None:
             raise FP_NullParameterError()
 
-        if not hasattr(owner_object, 'AnnotationsOS'):
+        if not hasattr(owner_object, 'AnnotationsOC'):
             raise FP_ParameterError(
                 "Owner object does not support annotations"
             )
@@ -500,7 +500,7 @@ class NoteOperations(BaseOperations):
                 )
 
         # Clear and re-add in new order
-        annotations = owner_object.AnnotationsOS
+        annotations = owner_object.AnnotationsOC
         annotations.Clear()
         for note in note_list:
             annotations.Add(note)

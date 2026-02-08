@@ -10,6 +10,15 @@
 #
 #   Copyright 2025
 #
+#   KNOWN ISSUE: The property AnthroCode referenced in this class does NOT
+#   exist on CmAnthroItem in LibLCM. CmAnthroItem has NO unique properties -
+#   it only inherits from CmPossibility (Name, Abbreviation, Description, etc.).
+#
+#   OCM (Outline of Cultural Materials) codes may need to be stored in the
+#   Abbreviation field instead. The AnthroCode methods use hasattr() checks
+#   to prevent runtime errors, but they will silently do nothing if the
+#   property doesn't exist.
+#
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -298,8 +307,8 @@ class AnthropologyOperations(BaseOperations):
             mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
             new_item.Abbreviation.set_String(wsHandle, mkstr_abbr)
 
-        # Set OCM code if provided
-        if anthro_code:
+        # Set OCM code if provided (note: AnthroCode may not exist on CmAnthroItem)
+        if anthro_code and hasattr(new_item, 'AnthroCode'):
             new_item.AnthroCode = anthro_code
 
         return new_item
@@ -389,8 +398,8 @@ class AnthropologyOperations(BaseOperations):
             mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
             new_item.Abbreviation.set_String(wsHandle, mkstr_abbr)
 
-        # Set OCM code if provided
-        if anthro_code:
+        # Set OCM code if provided (note: AnthroCode may not exist on CmAnthroItem)
+        if anthro_code and hasattr(new_item, 'AnthroCode'):
             new_item.AnthroCode = anthro_code
 
         return new_item
@@ -1029,7 +1038,10 @@ class AnthropologyOperations(BaseOperations):
             raise FP_NullParameterError()
 
         item = self.__GetItemObject(item_or_hvo)
-        item.AnthroCode = anthro_code
+
+        # Note: AnthroCode may not exist on CmAnthroItem
+        if hasattr(item, 'AnthroCode'):
+            item.AnthroCode = anthro_code
 
     def GetCategory(self, item_or_hvo):
         """

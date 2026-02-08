@@ -491,13 +491,13 @@ class LexEntryOperations(BaseOperations):
         if hasattr(item, 'HomographNumber'):
             props['HomographNumber'] = item.HomographNumber
 
-        # DoNotPublishIn - publication exclusion flags
-        if hasattr(item, 'DoNotPublishIn'):
-            props['DoNotPublishIn'] = item.DoNotPublishIn
+        # DoNotPublishInRC - publication exclusion flags
+        if hasattr(item, 'DoNotPublishInRC'):
+            props['DoNotPublishInRC'] = item.DoNotPublishInRC
 
-        # DoNotShowMainEntryIn - main entry display flags
-        if hasattr(item, 'DoNotShowMainEntryIn'):
-            props['DoNotShowMainEntryIn'] = item.DoNotShowMainEntryIn
+        # DoNotShowMainEntryInRC - main entry display flags
+        if hasattr(item, 'DoNotShowMainEntryInRC'):
+            props['DoNotShowMainEntryInRC'] = item.DoNotShowMainEntryInRC
 
         # ImportResidue - import residue from LIFT files
         if hasattr(item, 'ImportResidue'):
@@ -2043,7 +2043,7 @@ class LexEntryOperations(BaseOperations):
         entry = self.__ResolveObject(entry_or_hvo)
 
         result = []
-        for pub in entry.DoNotPublishIn:
+        for pub in entry.DoNotPublishInRC:
             name = pub.Name.BestAnalysisAlternative.Text if pub.Name else str(pub.Guid)
             result.append(name)
         return result
@@ -2072,8 +2072,8 @@ class LexEntryOperations(BaseOperations):
                 raise FP_ParameterError(f"Publication '{publication}' not found")
             publication = pub_obj
 
-        if publication not in entry.DoNotPublishIn:
-            entry.DoNotPublishIn.Add(publication)
+        if publication not in entry.DoNotPublishInRC:
+            entry.DoNotPublishInRC.Add(publication)
 
     def RemoveDoNotPublishIn(self, entry_or_hvo, publication):
         """
@@ -2099,8 +2099,8 @@ class LexEntryOperations(BaseOperations):
                 raise FP_ParameterError(f"Publication '{publication}' not found")
             publication = pub_obj
 
-        if publication in entry.DoNotPublishIn:
-            entry.DoNotPublishIn.Remove(publication)
+        if publication in entry.DoNotPublishInRC:
+            entry.DoNotPublishInRC.Remove(publication)
 
     def GetDoNotShowMainEntryIn(self, entry_or_hvo):
         """
@@ -2118,7 +2118,7 @@ class LexEntryOperations(BaseOperations):
         entry = self.__ResolveObject(entry_or_hvo)
 
         result = []
-        for pub in entry.DoNotShowMainEntryIn:
+        for pub in entry.DoNotShowMainEntryInRC:
             name = pub.Name.BestAnalysisAlternative.Text if pub.Name else str(pub.Guid)
             result.append(name)
         return result
@@ -2147,8 +2147,8 @@ class LexEntryOperations(BaseOperations):
                 raise FP_ParameterError(f"Publication '{publication}' not found")
             publication = pub_obj
 
-        if publication not in entry.DoNotShowMainEntryIn:
-            entry.DoNotShowMainEntryIn.Add(publication)
+        if publication not in entry.DoNotShowMainEntryInRC:
+            entry.DoNotShowMainEntryInRC.Add(publication)
 
     def RemoveDoNotShowMainEntryIn(self, entry_or_hvo, publication):
         """
@@ -2174,8 +2174,8 @@ class LexEntryOperations(BaseOperations):
                 raise FP_ParameterError(f"Publication '{publication}' not found")
             publication = pub_obj
 
-        if publication in entry.DoNotShowMainEntryIn:
-            entry.DoNotShowMainEntryIn.Remove(publication)
+        if publication in entry.DoNotShowMainEntryInRC:
+            entry.DoNotShowMainEntryInRC.Remove(publication)
 
     # --- Private Helper Methods ---
 

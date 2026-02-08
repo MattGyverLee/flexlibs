@@ -17,6 +17,7 @@ from SIL.LCModel import (
     ITextFactory,
     IStTextFactory,
     ITextRepository,
+    IStTxtPara,
     ICmPossibility,
     ICmMedia,
     ICmMediaFactory,
@@ -726,7 +727,8 @@ class TextOperations(BaseOperations):
         """
         text_obj = self.__GetTextObject(text_or_hvo)
         if text_obj.ContentsOA:
-            return list(text_obj.ContentsOA.ParagraphsOS)
+            # Cast each paragraph to IStTxtPara to ensure SegmentsOS is accessible
+            return [IStTxtPara(para) for para in text_obj.ContentsOA.ParagraphsOS]
         return []
 
     def GetParagraphCount(self, text_or_hvo):

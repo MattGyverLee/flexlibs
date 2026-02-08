@@ -757,14 +757,23 @@ class POSOperations(BaseOperations):
         pos = self.__ResolveObject(pos_or_hvo)
 
         # Search all lexical entries
+        # Check MSAs (Morpho-Syntactic Analyses) for PartOfSpeech reference
+        # Note: MoMorphType does NOT have PartOfSpeechRA; MSAs do
         count = 0
         entry_repo = self.project.project.ServiceLocator.GetService(ILexEntryRepository)
         for entry in entry_repo.AllInstances():
-            # Check if entry has a primary morph type and if it matches this POS
-            for morph in entry.AllAllomorphs:
-                if morph.MorphTypeRA and morph.MorphTypeRA.PartOfSpeechRAHvo == pos.Hvo:
-                    count += 1
-                    break  # Count each entry only once
+            # Check if any MSA on this entry references this POS
+            for msa in entry.MorphoSyntaxAnalysesOC:
+                # MoStemMsa has PartOfSpeechRA
+                if hasattr(msa, 'PartOfSpeechRA') and msa.PartOfSpeechRA:
+                    if msa.PartOfSpeechRA.Hvo == pos.Hvo:
+                        count += 1
+                        break  # Count each entry only once
+                # MoDerivAffMsa and MoInflAffMsa have ToPartOfSpeechRA
+                elif hasattr(msa, 'ToPartOfSpeechRA') and msa.ToPartOfSpeechRA:
+                    if msa.ToPartOfSpeechRA.Hvo == pos.Hvo:
+                        count += 1
+                        break
 
         return count
 

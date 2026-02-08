@@ -10,6 +10,20 @@
 #
 #   Copyright 2025
 #
+#   KNOWN ISSUE: The properties AffixRulesOS and TemplatesOS referenced in this
+#   class do NOT exist on MoMorphData in LibLCM. MoMorphData only has:
+#   - StrataOS (strata for morphological derivations)
+#   - CompoundRulesOS (compound rules)
+#   - AdhocCoProhibitionsOC (ad hoc co-occurrence prohibitions)
+#   - TestSetsOC, GlossSystemOA, ParserParameters, ProdRestrictOA
+#
+#   Morphological rules (affix processes, templates) are actually owned by:
+#   - PartOfSpeech.AffixTemplatesOS (affix templates)
+#   - MoStratum (which owns affix processes)
+#
+#   The hasattr() checks prevent runtime errors, but GetAll() will return
+#   empty results. This class needs redesign to use the correct architecture.
+#
 
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations

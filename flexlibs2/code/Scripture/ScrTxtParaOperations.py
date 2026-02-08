@@ -149,10 +149,10 @@ class ScrTxtParaOperations(BaseOperations):
         # Add to section content (must be done before setting properties)
         section.ContentOA.ParagraphsOS.Add(new_para)
 
-        # Set the text
+        # Set the text (Contents is ITsString, assign directly)
         wsHandle = self.project.project.DefaultVernWs
         mkstr = TsStringUtils.MakeString(text, wsHandle)
-        new_para.Contents.set_String(wsHandle, mkstr)
+        new_para.Contents = mkstr
 
         # Set the style
         new_para.StyleRules = style
@@ -373,8 +373,9 @@ class ScrTxtParaOperations(BaseOperations):
         para = self.__ResolveObject(para_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
 
+        # Contents is ITsString, assign directly
         mkstr = TsStringUtils.MakeString(text, wsHandle)
-        para.Contents.set_String(wsHandle, mkstr)
+        para.Contents = mkstr
 
     def GetStyleName(self, para_or_hvo):
         """

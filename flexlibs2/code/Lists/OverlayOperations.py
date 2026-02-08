@@ -214,8 +214,8 @@ class OverlayOperations(BaseOperations):
         # In FLEx, overlays may be stored in different properties depending on chart type
         if hasattr(chart_obj, 'TemplateRA'):
             template = chart_obj.TemplateRA
-            if template and hasattr(template, 'ColumnsPossibilitiesOC'):
-                for overlay in template.ColumnsPossibilitiesOC:
+            if template and hasattr(template, 'PossItemsRC'):
+                for overlay in template.PossItemsRC:
                     yield overlay
 
         # Alternative: Check if chart has direct overlay collection
@@ -292,8 +292,8 @@ class OverlayOperations(BaseOperations):
         # Add to the chart's template column possibilities (must be done before setting properties)
         if hasattr(chart_obj, 'TemplateRA'):
             template = chart_obj.TemplateRA
-            if template and hasattr(template, 'ColumnsPossibilitiesOC'):
-                template.ColumnsPossibilitiesOC.Add(overlay)
+            if template and hasattr(template, 'PossItemsRC'):
+                template.PossItemsRC.Add(overlay)
             else:
                 # If no template exists, we may need to create one
                 # For now, raise an error
@@ -352,8 +352,8 @@ class OverlayOperations(BaseOperations):
 
         # Remove from the owning collection
         owner = overlay_obj.Owner
-        if owner and hasattr(owner, 'ColumnsPossibilitiesOC'):
-            owner.ColumnsPossibilitiesOC.Remove(overlay_obj)
+        if owner and hasattr(owner, 'PossItemsRC'):
+            owner.PossItemsRC.Remove(overlay_obj)
         elif owner and hasattr(owner, 'PossibilitiesOS'):
             owner.PossibilitiesOS.Remove(overlay_obj)
         else:
@@ -421,12 +421,12 @@ class OverlayOperations(BaseOperations):
         duplicate = factory.Create()
 
         # ADD TO PARENT FIRST before copying properties (CRITICAL)
-        if hasattr(owner, 'ColumnsPossibilitiesOC'):
+        if hasattr(owner, 'PossItemsRC'):
             if insert_after:
-                source_index = owner.ColumnsPossibilitiesOC.IndexOf(source)
-                owner.ColumnsPossibilitiesOC.Insert(source_index + 1, duplicate)
+                source_index = owner.PossItemsRC.IndexOf(source)
+                owner.PossItemsRC.Insert(source_index + 1, duplicate)
             else:
-                owner.ColumnsPossibilitiesOC.Add(duplicate)
+                owner.PossItemsRC.Add(duplicate)
         elif hasattr(owner, 'PossibilitiesOS'):
             if insert_after:
                 source_index = owner.PossibilitiesOS.IndexOf(source)
@@ -952,9 +952,9 @@ class OverlayOperations(BaseOperations):
 
         # If part of an owning sequence, get position in sequence
         owner = overlay_obj.Owner
-        if owner and hasattr(owner, 'ColumnsPossibilitiesOC'):
+        if owner and hasattr(owner, 'PossItemsRC'):
             try:
-                return owner.ColumnsPossibilitiesOC.ToList().IndexOf(overlay_obj)
+                return owner.PossItemsRC.ToList().IndexOf(overlay_obj)
             except (IndexError, System.ArgumentException, System.InvalidOperationException) as e:
                 pass
 
@@ -1015,8 +1015,8 @@ class OverlayOperations(BaseOperations):
         else:
             # If part of an owning sequence, reorder within sequence
             owner = overlay_obj.Owner
-            if owner and hasattr(owner, 'ColumnsPossibilitiesOC'):
-                collection = owner.ColumnsPossibilitiesOC
+            if owner and hasattr(owner, 'PossItemsRC'):
+                collection = owner.PossItemsRC
                 try:
                     # Remove and re-insert at new position
                     collection.Remove(overlay_obj)

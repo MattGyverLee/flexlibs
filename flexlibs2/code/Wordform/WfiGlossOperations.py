@@ -381,9 +381,9 @@ class WfiGlossOperations(BaseOperations):
         analysis = gloss.Owner
         if isinstance(analysis, IWfiAnalysis):
             wordform = analysis.Owner
-            if hasattr(wordform, 'HumanApprovedAnalysesRS'):
+            if hasattr(wordform, 'HumanApprovedAnalyses'):
                 # If the analysis is approved, its glosses are implicitly approved
-                return wordform.HumanApprovedAnalysesRS.Contains(analysis)
+                return wordform.HumanApprovedAnalyses.Contains(analysis)
 
         return False
 
@@ -431,12 +431,12 @@ class WfiGlossOperations(BaseOperations):
             raise FP_ParameterError("Gloss does not have an analysis owner")
 
         wordform = analysis.Owner
-        if not hasattr(wordform, 'HumanApprovedAnalysesRS'):
+        if not hasattr(wordform, 'HumanApprovedAnalyses'):
             raise FP_ParameterError("Analysis does not have a wordform owner")
 
         # Approve the analysis (which implicitly approves the gloss)
-        wordform.HumanApprovedAnalysesRS.Clear()
-        wordform.HumanApprovedAnalysesRS.Add(analysis)
+        wordform.HumanApprovedAnalyses.Clear()
+        wordform.HumanApprovedAnalyses.Add(analysis)
 
     # --- Private Helper Methods ---
 
