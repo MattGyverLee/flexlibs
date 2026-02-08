@@ -224,3 +224,11 @@ from .code.System.CheckOperations import (
 from .code.System.CustomFieldOperations import (
     CustomFieldOperations,
     )
+
+# Pythonic Wrapper - suffix-free property access
+from .code.PythonicWrapper import (
+    wrap,
+    unwrap,
+    p,
+    PythonicWrapper,
+    )
