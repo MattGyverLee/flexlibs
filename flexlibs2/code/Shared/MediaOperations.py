@@ -1363,7 +1363,10 @@ class MediaOperations(BaseOperations):
             if not external_path:
                 return False
             return os.path.exists(external_path)
-        except:
+        except (OSError, FP_ParameterError, FP_NullParameterError):
+            return False
+        except Exception as e:
+            logger.warning(f"Unexpected error checking media file existence: {e}")
             return False
 
     def GetGuid(self, media_or_hvo):
@@ -1501,7 +1504,10 @@ class MediaOperations(BaseOperations):
             if not external_path or not os.path.exists(external_path):
                 return -1
             return os.path.getsize(external_path)
-        except:
+        except (OSError, FP_ParameterError, FP_NullParameterError):
+            return -1
+        except Exception as e:
+            logger.warning(f"Unexpected error getting media file size: {e}")
             return -1
 
     def GetAllByType(self, media_type):

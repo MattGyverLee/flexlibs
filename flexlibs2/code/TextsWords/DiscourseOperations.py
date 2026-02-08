@@ -523,14 +523,15 @@ class DiscourseOperations(BaseOperations):
             return "discourse"
         else:
             # Try to determine by checking for specific interfaces
+            # Catch TypeError (pythonnet casting) and any .NET exceptions
             try:
                 IConstChart(chart_obj)
                 return "constituent"
-            except:
+            except (TypeError, AttributeError, SystemError):
                 try:
                     IDsChart(chart_obj)
                     return "discourse"
-                except:
+                except (TypeError, AttributeError, SystemError):
                     return "unknown"
 
     # --- Chart Row/Structure Operations ---

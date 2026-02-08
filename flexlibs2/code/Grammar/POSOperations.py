@@ -26,6 +26,12 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+# Import LCM casting utilities for pythonnet interface casting
+from ..lcm_casting import get_pos_from_msa
+
+# Import string utilities
+from ..Shared.string_utils import normalize_text
+
 class POSOperations(BaseOperations):
     """
     This class provides operations for managing Parts of Speech in a
@@ -293,7 +299,7 @@ class POSOperations(BaseOperations):
         # Search recursively through POS hierarchy
         def search_pos_list(pos_collection):
             for pos in pos_collection:
-                pos_name = ITsString(pos.Name.get_String(wsHandle)).Text
+                pos_name = normalize_text(ITsString(pos.Name.get_String(wsHandle)).Text)
                 if pos_name and pos_name.lower() == name_lower:
                     return pos
                 # Search subcategories
@@ -759,21 +765,16 @@ class POSOperations(BaseOperations):
         # Search all lexical entries
         # Check MSAs (Morpho-Syntactic Analyses) for PartOfSpeech reference
         # Note: MoMorphType does NOT have PartOfSpeechRA; MSAs do
+        # Use get_pos_from_msa() to handle pythonnet interface casting
         count = 0
         entry_repo = self.project.project.ServiceLocator.GetService(ILexEntryRepository)
         for entry in entry_repo.AllInstances():
             # Check if any MSA on this entry references this POS
             for msa in entry.MorphoSyntaxAnalysesOC:
-                # MoStemMsa has PartOfSpeechRA
-                if hasattr(msa, 'PartOfSpeechRA') and msa.PartOfSpeechRA:
-                    if msa.PartOfSpeechRA.Hvo == pos.Hvo:
-                        count += 1
-                        break  # Count each entry only once
-                # MoDerivAffMsa and MoInflAffMsa have ToPartOfSpeechRA
-                elif hasattr(msa, 'ToPartOfSpeechRA') and msa.ToPartOfSpeechRA:
-                    if msa.ToPartOfSpeechRA.Hvo == pos.Hvo:
-                        count += 1
-                        break
+                msa_pos = get_pos_from_msa(msa)
+                if msa_pos and msa_pos.Hvo == pos.Hvo:
+                    count += 1
+                    break  # Count each entry only once
 
         return count
 

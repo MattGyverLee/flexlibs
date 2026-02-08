@@ -43,6 +43,9 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+# Import string utilities
+from ..Shared.string_utils import normalize_text, best_analysis_text, best_vernacular_text
+
 class LexEntryOperations(BaseOperations):
     """
     This class provides operations for managing lexical entries in a
@@ -674,7 +677,9 @@ class LexEntryOperations(BaseOperations):
 
         entry = self.__ResolveObject(entry_or_hvo)
 
-        return entry.HeadWord.Text or ""
+        if entry.HeadWord:
+            return normalize_text(entry.HeadWord.Text) or ""
+        return ""
 
     def SetHeadword(self, entry_or_hvo, text, wsHandle=None):
         """
@@ -1412,7 +1417,7 @@ class LexEntryOperations(BaseOperations):
 
         def collect_types(possibilities):
             for mt in possibilities:
-                name = mt.Name.BestAnalysisAlternative.Text
+                name = best_analysis_text(mt.Name)
                 if name:
                     is_stem = self.__IsStemType(mt)
                     result.append((name, mt, is_stem))
@@ -2044,7 +2049,7 @@ class LexEntryOperations(BaseOperations):
 
         result = []
         for pub in entry.DoNotPublishInRC:
-            name = pub.Name.BestAnalysisAlternative.Text if pub.Name else str(pub.Guid)
+            name = best_analysis_text(pub.Name) if pub.Name else str(pub.Guid)
             result.append(name)
         return result
 
@@ -2119,7 +2124,7 @@ class LexEntryOperations(BaseOperations):
 
         result = []
         for pub in entry.DoNotShowMainEntryInRC:
-            name = pub.Name.BestAnalysisAlternative.Text if pub.Name else str(pub.Guid)
+            name = best_analysis_text(pub.Name) if pub.Name else str(pub.Guid)
             result.append(name)
         return result
 
@@ -2684,10 +2689,10 @@ class LexEntryOperations(BaseOperations):
         victim_form = None
 
         if survivor.LexemeFormOA:
-            survivor_form = ITsString(survivor.LexemeFormOA.Form.BestVernacularAlternative).Text
+            survivor_form = best_vernacular_text(survivor.LexemeFormOA.Form)
 
         if victim.LexemeFormOA:
-            victim_form = ITsString(victim.LexemeFormOA.Form.BestVernacularAlternative).Text
+            victim_form = best_vernacular_text(victim.LexemeFormOA.Form)
 
         # Create alternate form if forms differ
         if victim_form and survivor_form != victim_form:
@@ -2721,7 +2726,7 @@ class LexEntryOperations(BaseOperations):
         # Step 8: Update homograph numbers
         # Get all entries with same form
         if survivor.LexemeFormOA:
-            form_key = ITsString(survivor.LexemeFormOA.Form.BestVernacularAlternative).Text
+            form_key = best_vernacular_text(survivor.LexemeFormOA.Form)
             # TODO: Homograph renumbering
 
         # Step 9: Replace all incoming references to victim with survivor
@@ -3039,7 +3044,7 @@ class LexEntryOperations(BaseOperations):
         # Search through all morph types (including subcategories)
         def search_morph_types(possibilities):
             for mt in possibilities:
-                mt_name = mt.Name.BestAnalysisAlternative.Text
+                mt_name = best_analysis_text(mt.Name)
                 if mt_name and mt_name.lower() == name_lower:
                     return mt
                 # Search subcategories

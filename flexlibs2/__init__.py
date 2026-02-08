@@ -154,6 +154,15 @@ from .code.Shared.FilterOperations import (
     FilterOperations,
     )
 
+from .code.Shared.string_utils import (
+    normalize_text,
+    is_empty_text,
+    best_analysis_text,
+    best_vernacular_text,
+    best_text,
+    FLEX_NULL_MARKER,
+    )
+
 from .code.TextsWords.DiscourseOperations import (
     DiscourseOperations,
     )

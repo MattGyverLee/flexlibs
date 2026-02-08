@@ -39,6 +39,9 @@ from ..FLExProject import (
 )
 from ..BaseOperations import BaseOperations
 
+# Import string utilities
+from ..Shared.string_utils import normalize_text
+
 class CheckOperations(BaseOperations):
     """
     This class provides operations for managing consistency checks and
@@ -1328,8 +1331,8 @@ class CheckOperations(BaseOperations):
         """
         # Placeholder implementation
         # Actual description would be based on check type and object
-        if hasattr(obj, 'HeadWord'):
-            return f"Issue with '{obj.HeadWord.Text}'"
+        if hasattr(obj, 'HeadWord') and obj.HeadWord:
+            return f"Issue with '{normalize_text(obj.HeadWord.Text)}'"
         return "Issue found"
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):

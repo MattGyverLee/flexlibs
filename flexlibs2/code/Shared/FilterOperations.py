@@ -43,6 +43,12 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+# Import LCM casting utilities for pythonnet interface casting
+from ..lcm_casting import get_pos_from_msa
+
+# Import string utilities
+from .string_utils import normalize_text
+
 # --- Filter Type Constants ---
 
 class FilterTypes:
@@ -1119,15 +1125,15 @@ class FilterOperations:
         if 'pos' in criteria:
             pos_name = criteria['pos'].lower()
             # Get entry's POS and compare
+            # Use get_pos_from_msa() to handle pythonnet interface casting
             try:
                 senses = list(entry.SensesOS)
                 if senses:
                     for sense in senses:
                         if sense.MorphoSyntaxAnalysisRA:
-                            msa = sense.MorphoSyntaxAnalysisRA
-                            if hasattr(msa, 'PartOfSpeechRA') and msa.PartOfSpeechRA:
-                                pos = msa.PartOfSpeechRA
-                                pos_text = ITsString(pos.Name.BestAnalysisAlternative).Text
+                            pos = get_pos_from_msa(sense.MorphoSyntaxAnalysisRA)
+                            if pos:
+                                pos_text = normalize_text(ITsString(pos.Name.BestAnalysisAlternative).Text)
                                 if pos_text and pos_text.lower() == pos_name:
                                     return True
                 return False
@@ -1140,7 +1146,7 @@ class FilterOperations:
             try:
                 if entry.LexemeFormOA and entry.LexemeFormOA.MorphTypeRA:
                     mt = entry.LexemeFormOA.MorphTypeRA
-                    mt_text = ITsString(mt.Name.BestAnalysisAlternative).Text
+                    mt_text = normalize_text(ITsString(mt.Name.BestAnalysisAlternative).Text)
                     if mt_text and mt_text.lower() != morph_type_name:
                         return False
             except (TypeError, AttributeError, KeyError) as e:
@@ -1151,7 +1157,7 @@ class FilterOperations:
             import re
             pattern = criteria['form_pattern']
             try:
-                form = ITsString(entry.LexemeFormOA.Form.BestVernacularAlternative).Text
+                form = normalize_text(ITsString(entry.LexemeFormOA.Form.BestVernacularAlternative).Text)
                 if form and not re.search(pattern, form):
                     return False
             except (TypeError, AttributeError, KeyError) as e:

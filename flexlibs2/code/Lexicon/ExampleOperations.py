@@ -35,6 +35,9 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+# Import string utilities
+from ..Shared.string_utils import normalize_text
+
 class ExampleOperations(BaseOperations):
     """
     This class provides operations for managing example sentences in a FieldWorks project.
@@ -1383,7 +1386,7 @@ class ExampleOperations(BaseOperations):
 
         result = []
         for pub in example.DoNotPublishInRC:
-            name = pub.Name.BestAnalysisAlternative.Text if pub.Name else str(pub.Guid)
+            name = normalize_text(pub.Name.BestAnalysisAlternative.Text) if pub.Name else str(pub.Guid)
             result.append(name)
         return result
 

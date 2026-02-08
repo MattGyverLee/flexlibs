@@ -30,6 +30,9 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+# Import string utilities
+from ..Shared.string_utils import normalize_text
+
 class EtymologyOperations(BaseOperations):
     """
     This class provides operations for managing etymological information in a
@@ -377,7 +380,7 @@ class EtymologyOperations(BaseOperations):
         if hasattr(item, 'Form'):
             for ws_handle in self.project.GetAllWritingSystems():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
-                text = ITsString(item.Form.get_String(ws_handle)).Text
+                text = normalize_text(ITsString(item.Form.get_String(ws_handle)).Text)
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     form_dict[ws_tag] = text
@@ -388,7 +391,7 @@ class EtymologyOperations(BaseOperations):
         if hasattr(item, 'Gloss'):
             for ws_handle in self.project.GetAllWritingSystems():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
-                text = ITsString(item.Gloss.get_String(ws_handle)).Text
+                text = normalize_text(ITsString(item.Gloss.get_String(ws_handle)).Text)
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     gloss_dict[ws_tag] = text
@@ -399,7 +402,7 @@ class EtymologyOperations(BaseOperations):
         if hasattr(item, 'Source'):
             for ws_handle in self.project.GetAllWritingSystems():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
-                text = ITsString(item.Source.get_String(ws_handle)).Text
+                text = normalize_text(ITsString(item.Source.get_String(ws_handle)).Text)
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     source_dict[ws_tag] = text
@@ -410,7 +413,7 @@ class EtymologyOperations(BaseOperations):
         if hasattr(item, 'Comment'):
             for ws_handle in self.project.GetAllWritingSystems():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
-                text = ITsString(item.Comment.get_String(ws_handle)).Text
+                text = normalize_text(ITsString(item.Comment.get_String(ws_handle)).Text)
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     comment_dict[ws_tag] = text
@@ -421,7 +424,7 @@ class EtymologyOperations(BaseOperations):
         if hasattr(item, 'Bibliography'):
             for ws_handle in self.project.GetAllWritingSystems():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
-                text = ITsString(item.Bibliography.get_String(ws_handle)).Text
+                text = normalize_text(ITsString(item.Bibliography.get_String(ws_handle)).Text)
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     bibliography_dict[ws_tag] = text

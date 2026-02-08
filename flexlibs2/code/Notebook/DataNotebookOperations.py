@@ -11,6 +11,9 @@
 #   Copyright 2025
 #
 
+import logging
+logger = logging.getLogger(__name__)
+
 # Import FLEx LCM types
 from SIL.LCModel import (
     IRnGenericRec,
@@ -34,6 +37,9 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
+
+# Import string utilities
+from ..Shared.string_utils import normalize_text
 
 class DataNotebookOperations(BaseOperations):
     """
@@ -518,8 +524,10 @@ class DataNotebookOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
 
         try:
-            return ITsString(record.Title.get_String(wsHandle)).Text
-        except:
+            text = ITsString(record.Title.get_String(wsHandle)).Text
+            return normalize_text(text) or ""
+        except (AttributeError, TypeError) as e:
+            logger.debug(f"Could not get record title: {e}")
             return ""
 
     def SetTitle(self, record_or_hvo, title, wsHandle=None):
@@ -618,8 +626,10 @@ class DataNotebookOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
 
         try:
-            return ITsString(record.Text.get_String(wsHandle)).Text
-        except:
+            text = ITsString(record.Text.get_String(wsHandle)).Text
+            return normalize_text(text) or ""
+        except (AttributeError, TypeError) as e:
+            logger.debug(f"Could not get record content: {e}")
             return ""
 
     def SetContent(self, record_or_hvo, content, wsHandle=None):

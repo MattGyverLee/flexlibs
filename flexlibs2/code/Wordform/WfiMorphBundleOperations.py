@@ -32,6 +32,9 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+# Import string utilities
+from ..Shared.string_utils import normalize_text
+
 class WfiMorphBundleOperations(BaseOperations):
     """
     This class provides operations for managing wordform morpheme bundles.
@@ -610,7 +613,7 @@ class WfiMorphBundleOperations(BaseOperations):
         # Search through all morph types (including subcategories)
         def search_morph_types(possibilities):
             for mt in possibilities:
-                mt_name = mt.Name.BestAnalysisAlternative.Text
+                mt_name = normalize_text(mt.Name.BestAnalysisAlternative.Text)
                 if mt_name and mt_name.lower() == name_lower:
                     return mt
                 # Search subcategories

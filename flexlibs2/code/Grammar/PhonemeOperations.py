@@ -32,6 +32,9 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+# Import string utilities
+from ..Shared.string_utils import normalize_text
+
 class PhonemeOperations(BaseOperations):
     """
     This class provides operations for managing Phonemes in a FieldWorks project.
@@ -397,7 +400,7 @@ class PhonemeOperations(BaseOperations):
 
         phoneme_set = phon_data.PhonemeSetsOS[0]
         for phoneme in phoneme_set.PhonemesOC:
-            phoneme_repr = ITsString(phoneme.Name.get_String(wsHandle)).Text
+            phoneme_repr = normalize_text(ITsString(phoneme.Name.get_String(wsHandle)).Text)
             if phoneme_repr == representation:
                 return phoneme
 
@@ -437,7 +440,7 @@ class PhonemeOperations(BaseOperations):
         phoneme = self.__GetPhonemeObject(phoneme_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
 
-        representation = ITsString(phoneme.Name.get_String(wsHandle)).Text
+        representation = normalize_text(ITsString(phoneme.Name.get_String(wsHandle)).Text)
         return representation or ""
 
     def SetRepresentation(self, phoneme_or_hvo, representation, wsHandle=None):

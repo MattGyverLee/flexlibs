@@ -40,6 +40,12 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+# Import LCM casting utilities for pythonnet interface casting
+from ..lcm_casting import cast_to_concrete
+
+# Import string utilities
+from ..Shared.string_utils import best_analysis_text
+
 class LexSenseOperations(BaseOperations):
     """
     This class provides operations for managing lexical senses in a FieldWorks project.
@@ -961,7 +967,8 @@ class LexSenseOperations(BaseOperations):
         # Check if sense already has an MSA
         if sense.MorphoSyntaxAnalysisRA is not None:
             # Update existing MSA's Category
-            msa = sense.MorphoSyntaxAnalysisRA
+            # Use cast_to_concrete() to handle pythonnet interface casting
+            msa = cast_to_concrete(sense.MorphoSyntaxAnalysisRA)
             if hasattr(msa, 'PartOfSpeechRA'):
                 msa.PartOfSpeechRA = pos_obj
             else:
@@ -2649,7 +2656,7 @@ class LexSenseOperations(BaseOperations):
         sense = self.__GetSenseObject(sense_or_hvo)
         result = []
         for item in sense.UsageTypesRC:
-            name = item.Name.BestAnalysisAlternative.Text if item.Name else str(item.Guid)
+            name = best_analysis_text(item.Name) if item.Name else str(item.Guid)
             result.append(name)
         return result
 
@@ -2681,7 +2688,7 @@ class LexSenseOperations(BaseOperations):
         sense = self.__GetSenseObject(sense_or_hvo)
         result = []
         for item in sense.DomainTypesRC:
-            name = item.Name.BestAnalysisAlternative.Text if item.Name else str(item.Guid)
+            name = best_analysis_text(item.Name) if item.Name else str(item.Guid)
             result.append(name)
         return result
 
@@ -2713,7 +2720,7 @@ class LexSenseOperations(BaseOperations):
         sense = self.__GetSenseObject(sense_or_hvo)
         result = []
         for item in sense.AnthroCodesRC:
-            name = item.Name.BestAnalysisAlternative.Text if item.Name else str(item.Guid)
+            name = best_analysis_text(item.Name) if item.Name else str(item.Guid)
             result.append(name)
         return result
 
