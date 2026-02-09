@@ -723,18 +723,14 @@ class WfiAnalysisOperations(BaseOperations):
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
-        # Check for human agent evaluation with approval
+        # Check for human evaluation with approval
+        # ICmAgentEvaluation has Human (bool) and Approves (bool) directly
         for evaluation in analysis.EvaluationsRC:
-            if hasattr(evaluation, 'Agent') and evaluation.Agent is not None:
-                # Check if agent is human (agent.Human is not None)
-                if hasattr(evaluation.Agent, 'Human') and evaluation.Agent.Human is not None:
-                    # Check if approved (Accepted = True)
-                    if hasattr(evaluation, 'Accepted'):
-                        if evaluation.Accepted:
-                            return True
-                    else:
-                        # If no Accepted property, presence of human evaluation = approved
-                        return True
+            # Check if this is a human evaluation (not parser/computer)
+            if hasattr(evaluation, 'Human') and evaluation.Human:
+                # Check if it approves this analysis
+                if hasattr(evaluation, 'Approves') and evaluation.Approves:
+                    return True
 
         return False
 
@@ -768,7 +764,7 @@ class WfiAnalysisOperations(BaseOperations):
             - Human approval typically overrides computer approval
             - Parser analyses may be approved automatically
             - Useful for identifying parser-generated content
-            - Checks for evaluations with parser agents and Accepted=True
+            - Checks for evaluations with Human=False and Approves=True
 
         See Also:
             IsHumanApproved, GetAgentEvaluation, GetApprovalStatus
@@ -778,18 +774,14 @@ class WfiAnalysisOperations(BaseOperations):
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
-        # Check for computer/parser agent evaluation with approval
+        # Check for computer/parser evaluation with approval
+        # ICmAgentEvaluation has Human (bool) directly - False for computer/parser
         for evaluation in analysis.EvaluationsRC:
-            if hasattr(evaluation, 'Agent') and evaluation.Agent is not None:
-                # Check if agent is parser (agent.Human is None)
-                if hasattr(evaluation.Agent, 'Human') and evaluation.Agent.Human is None:
-                    # Check if approved (Accepted = True)
-                    if hasattr(evaluation, 'Accepted'):
-                        if evaluation.Accepted:
-                            return True
-                    else:
-                        # If no Accepted property, presence of parser evaluation = approved
-                        return True
+            # Check if this is a computer evaluation (not human)
+            if hasattr(evaluation, 'Human') and not evaluation.Human:
+                # Check if it approves this analysis
+                if hasattr(evaluation, 'Approves') and evaluation.Approves:
+                    return True
 
         return False
 

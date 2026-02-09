@@ -378,9 +378,11 @@ class WfiAnalysisOperations(BaseOperations):
         analysis = self.__ResolveObject(analysis_or_hvo)
 
         # Check if owning wordform has this analysis as approved
+        # Note: HumanApprovedAnalyses is IEnumerable, not ILcmSet, so no .Contains()
         wordform = analysis.Owner
         if isinstance(wordform, IWfiWordform):
-            return wordform.HumanApprovedAnalyses.Contains(analysis)
+            # Iterate to check membership (IEnumerable has no .Contains() in Python.NET)
+            return any(a.Hvo == analysis.Hvo for a in wordform.HumanApprovedAnalyses)
 
         return False
 
