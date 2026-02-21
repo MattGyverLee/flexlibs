@@ -32,6 +32,9 @@ from SIL.LCModel import (
     ILexEntryRef,
     ILexEntryRefFactory,
     LexEntryRefTags,
+    ILexPronunciationFactory,
+    ILexEtymologyFactory,
+    ICmFileFactory,
 )
 from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
@@ -363,7 +366,6 @@ class LexEntryOperations(BaseOperations):
         # Get source properties
         wsHandle = self.project.project.DefaultVernWs
         lexeme_form = self.GetLexemeForm(source_entry, wsHandle)
-        citation_form = self.GetCitationForm(source_entry, wsHandle)
         morph_type = self.GetMorphType(source_entry)
 
         # Determine morph type name for Create()
@@ -373,12 +375,34 @@ class LexEntryOperations(BaseOperations):
             if morph_type_name_ts:
                 morph_type_name = ITsString(morph_type_name_ts).Text or "stem"
 
-        # Create the new entry
-        new_entry = self.Create(lexeme_form, morph_type_name, wsHandle)
+        # Create the new entry (skip blank sense when deep copying — we copy source senses)
+        new_entry = self.Create(lexeme_form, morph_type_name, wsHandle,
+                                create_blank_sense=(not deep))
 
-        # Copy citation form if different from lexeme form
-        if citation_form:
-            self.SetCitationForm(new_entry, citation_form, wsHandle)
+        # Copy lexeme form for all writing systems (Create only sets default vernacular)
+        if source_entry.LexemeFormOA and new_entry.LexemeFormOA:
+            new_entry.LexemeFormOA.Form.CopyAlternatives(source_entry.LexemeFormOA.Form)
+
+        # Copy citation form (all writing systems)
+        new_entry.CitationForm.CopyAlternatives(source_entry.CitationForm)
+
+        # Copy entry-level MultiString properties
+        new_entry.Comment.CopyAlternatives(source_entry.Comment)
+        new_entry.Bibliography.CopyAlternatives(source_entry.Bibliography)
+        new_entry.LiteralMeaning.CopyAlternatives(source_entry.LiteralMeaning)
+        new_entry.Restrictions.CopyAlternatives(source_entry.Restrictions)
+        new_entry.SummaryDefinition.CopyAlternatives(source_entry.SummaryDefinition)
+
+        # Copy boolean properties
+        new_entry.DoNotUseForParsing = source_entry.DoNotUseForParsing
+        if hasattr(source_entry, 'ExcludeAsHeadword'):
+            new_entry.ExcludeAsHeadword = source_entry.ExcludeAsHeadword
+
+        # Copy reference collections
+        for pub in source_entry.DoNotPublishInRC:
+            new_entry.DoNotPublishInRC.Add(pub)
+        for pub in source_entry.DoNotShowMainEntryInRC:
+            new_entry.DoNotShowMainEntryInRC.Add(pub)
 
         # Copy import residue if present
         residue = self.GetImportResidue(source_entry)
@@ -387,38 +411,83 @@ class LexEntryOperations(BaseOperations):
 
         # Deep duplication: duplicate all owned objects
         if deep:
-            # Duplicate senses - need to manually add to new_entry
+            # Duplicate senses (with all sub-objects: examples, subsenses, pictures)
             for sense in source_entry.SensesOS:
-                if hasattr(self.project, 'Senses') and hasattr(self.project.Senses, 'Duplicate'):
-                    # Create factory and duplicate manually to target new_entry
-                    factory = self.project.project.ServiceLocator.GetService(ILexSenseFactory)
-                    new_sense = factory.Create()
-                    new_entry.SensesOS.Add(new_sense)
-                    # Copy sense properties (gloss, definition, etc.)
-                    new_sense.Gloss.CopyAlternatives(sense.Gloss)
-                    new_sense.Definition.CopyAlternatives(sense.Definition)
-                    # Copy other simple properties and references as needed
+                self.project.Senses._deep_copy_sense_to(sense, new_entry)
 
-            # Duplicate alternate forms (allomorphs)
+            # Duplicate alternate forms (allomorphs) using correct factory type
             for allomorph in source_entry.AlternateFormsOS:
-                # Create allomorph factory and duplicate to new_entry
-                allomorph_factory = self.project.project.ServiceLocator.GetService(IMoStemAllomorphFactory)
+                class_name = allomorph.ClassName
+                if class_name == 'MoAffixAllomorph':
+                    allomorph_factory = self.project.project.ServiceLocator.GetService(
+                        IMoAffixAllomorphFactory)
+                else:
+                    allomorph_factory = self.project.project.ServiceLocator.GetService(
+                        IMoStemAllomorphFactory)
                 new_allomorph = allomorph_factory.Create()
                 new_entry.AlternateFormsOS.Add(new_allomorph)
-                # Copy form and morph type
                 new_allomorph.Form.CopyAlternatives(allomorph.Form)
-                if hasattr(allomorph, 'MorphTypeRA') and allomorph.MorphTypeRA:
+                if hasattr(allomorph, 'MorphTypeRA'):
                     new_allomorph.MorphTypeRA = allomorph.MorphTypeRA
+                for env in allomorph.PhoneEnvRC:
+                    new_allomorph.PhoneEnvRC.Add(env)
 
-            # Note: Pronunciations and etymologies are skipped in deep copy to avoid complexity
-            # Users can manually add these if needed
+            # Duplicate pronunciations (with media files)
+            for pronunciation in source_entry.PronunciationsOS:
+                pron_factory = self.project.project.ServiceLocator.GetService(
+                    ILexPronunciationFactory)
+                new_pron = pron_factory.Create()
+                new_entry.PronunciationsOS.Add(new_pron)
+                new_pron.Form.CopyAlternatives(pronunciation.Form)
+                if hasattr(pronunciation, 'LocationRA'):
+                    new_pron.LocationRA = pronunciation.LocationRA
+                # Copy media files
+                if hasattr(pronunciation, 'MediaFilesOS'):
+                    for media in pronunciation.MediaFilesOS:
+                        media_factory = self.project.project.ServiceLocator.GetService(
+                            ICmFileFactory)
+                        new_media = media_factory.Create()
+                        new_pron.MediaFilesOS.Add(new_media)
+                        new_media.InternalPath = media.InternalPath
+                        new_media.Description.CopyAlternatives(media.Description)
+                        if hasattr(media, 'Copyright'):
+                            new_media.Copyright.CopyAlternatives(media.Copyright)
 
-            # Duplicate variant forms
-            # Note: Variants create complex relationships, so we skip them in deep copy
-            # to avoid circular dependencies
-            # for variant in source_entry.VariantFormsOS:
-            #     if hasattr(self.project, 'Variants') and hasattr(self.project.Variants, 'Duplicate'):
-            #         self.project.Variants.Duplicate(variant, insert_after=True, deep=False)
+            # Duplicate etymologies
+            for etymology in source_entry.EtymologyOS:
+                etym_factory = self.project.project.ServiceLocator.GetService(
+                    ILexEtymologyFactory)
+                new_etym = etym_factory.Create()
+                new_entry.EtymologyOS.Add(new_etym)
+                new_etym.Source.CopyAlternatives(etymology.Source)
+                new_etym.Form.CopyAlternatives(etymology.Form)
+                new_etym.Gloss.CopyAlternatives(etymology.Gloss)
+                new_etym.Comment.CopyAlternatives(etymology.Comment)
+                new_etym.Bibliography.CopyAlternatives(etymology.Bibliography)
+                if hasattr(etymology, 'LanguageNotesRA') and etymology.LanguageNotesRA:
+                    new_etym.LanguageNotesRA = etymology.LanguageNotesRA
+
+            # Duplicate entry refs (variant/complex form references)
+            for entry_ref in source_entry.EntryRefsOS:
+                ref_factory = self.project.project.ServiceLocator.GetService(
+                    ILexEntryRefFactory)
+                new_ref = ref_factory.Create()
+                new_entry.EntryRefsOS.Add(new_ref)
+                new_ref.RefType = entry_ref.RefType
+                if hasattr(entry_ref, 'HideMinorEntry'):
+                    new_ref.HideMinorEntry = entry_ref.HideMinorEntry
+                if hasattr(entry_ref, 'ShowComplexFormsIn'):
+                    new_ref.ShowComplexFormsIn = entry_ref.ShowComplexFormsIn
+                for vtype in entry_ref.VariantEntryTypesRS:
+                    new_ref.VariantEntryTypesRS.Add(vtype)
+                for component in entry_ref.ComponentLexemesRS:
+                    new_ref.ComponentLexemesRS.Add(component)
+                if hasattr(entry_ref, 'ComplexEntryTypesRS'):
+                    for ctype in entry_ref.ComplexEntryTypesRS:
+                        new_ref.ComplexEntryTypesRS.Add(ctype)
+                if hasattr(entry_ref, 'PrimaryLexemesRS'):
+                    for plex in entry_ref.PrimaryLexemesRS:
+                        new_ref.PrimaryLexemesRS.Add(plex)
 
         return new_entry
 
