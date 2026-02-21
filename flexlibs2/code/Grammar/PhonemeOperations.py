@@ -309,14 +309,20 @@ class PhonemeOperations(BaseOperations):
         if hasattr(source, 'BasicIPASymbol') and source.BasicIPASymbol:
             duplicate.BasicIPASymbol.CopyAlternatives(source.BasicIPASymbol)
 
-        # Copy Reference Atomic (RA) properties
-        # Note: FeaturesOA is an owned object, but we only copy the reference here
-        # A deep copy would require creating a new feature structure
-        if hasattr(source, 'FeaturesOA') and source.FeaturesOA:
-            duplicate.FeaturesOA = source.FeaturesOA
+        # Note: FeaturesOA is an owned atomic object (OA), NOT a reference.
+        # Assigning it directly would TRANSFER ownership from source, corrupting it.
+        # Feature structures are complex (recursive), so we skip them in shallow
+        # copy and handle via deep copy below.
 
         # Handle owned objects if deep=True
         if deep:
+            # Deep copy FeaturesOA using LCM's CopyObject
+            if hasattr(source, 'FeaturesOA') and source.FeaturesOA:
+                cache = self.project.project.ServiceLocator.GetInstance(
+                    "ICmObjectRepository")
+                if hasattr(cache, 'CopyObject'):
+                    duplicate.FeaturesOA = cache.CopyObject(source.FeaturesOA)
+
             # Duplicate codes (allophonic representations)
             for code in source.CodesOS:
                 code_factory = self.project.project.ServiceLocator.GetService(IPhCodeFactory)

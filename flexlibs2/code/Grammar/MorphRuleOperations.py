@@ -10,31 +10,33 @@
 #
 #   Copyright 2025
 #
-#   KNOWN ISSUE: The properties AffixRulesOS and TemplatesOS referenced in this
-#   class do NOT exist on MoMorphData in LibLCM. MoMorphData only has:
-#   - StrataOS (strata for morphological derivations)
-#   - CompoundRulesOS (compound rules)
-#   - AdhocCoProhibitionsOC (ad hoc co-occurrence prohibitions)
-#   - TestSetsOC, GlossSystemOA, ParserParameters, ProdRestrictOA
+#   Morphological rules in the LCM data model are distributed across
+#   several locations:
 #
-#   Morphological rules (affix processes, templates) are actually owned by:
-#   - PartOfSpeech.AffixTemplatesOS (affix templates)
-#   - MoStratum (which owns affix processes)
+#   - Compound rules (MoEndoCompound, MoExoCompound):
+#     Owned by MoMorphData.CompoundRulesOS
 #
-#   The hasattr() checks prevent runtime errors, but GetAll() will return
-#   empty results. This class needs redesign to use the correct architecture.
+#   - Inflectional affix templates (MoInflAffixTemplate):
+#     Owned by PartOfSpeech.AffixTemplatesOS (per POS in hierarchy)
+#
+#   - Ad hoc co-prohibitions (MoAdhocProhib subclasses):
+#     Owned by MoMorphData.AdhocCoProhibitionsOC
+#     (Separate API — different property interface from rules/templates)
+#
+#   - Affix processes (MoAffixProcess):
+#     Owned by LexEntry as allomorphs (LexemeFormOA/AlternateFormsOS),
+#     managed through AllomorphOperations, not this class.
 #
 
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
 # Import FLEx LCM types
-# Note: Morph rule interfaces may not exist in current LCM API version
-# from SIL.LCModel import (
-#     IMoMorphRule,  # May not exist
-#     IMoAffixProcessFactory,
-#     IMoStratumFactory,
-# )
+from SIL.LCModel import (
+    IMoEndoCompoundFactory,
+    IMoExoCompoundFactory,
+    IMoInflAffixTemplateFactory,
+)
 from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
 
@@ -47,12 +49,16 @@ from ..FLExProject import (
 
 class MorphRuleOperations(BaseOperations):
     """
-    This class provides operations for managing morphological rules in a
-    FieldWorks project.
+    Operations for managing morphological rules in a FieldWorks project.
 
-    Morphological rules define systematic patterns of word formation, including
-    affixation processes, templates, and other morphological transformations
-    used in the language.
+    Morphological rules are distributed across the LCM data model:
+
+    - **Compound rules** (MoMorphData.CompoundRulesOS): Define compound word
+      formation patterns (endocentric and exocentric).
+    - **Affix templates** (PartOfSpeech.AffixTemplatesOS): Define inflectional
+      affix template morphology per part of speech.
+    - **Ad hoc co-prohibitions** (MoMorphData.AdhocCoProhibitionsOC): Define
+      morpheme co-occurrence restrictions (separate property interface).
 
     Usage::
 
@@ -63,19 +69,24 @@ class MorphRuleOperations(BaseOperations):
 
         ruleOps = MorphRuleOperations(project)
 
-        # Get all morphological rules
-        for rule in ruleOps.GetAll():
-            name = ruleOps.GetName(rule)
-            description = ruleOps.GetDescription(rule)
-            active = ruleOps.IsActive(rule)
-            print(f"{name}: {description} (active={active})")
+        # Get all compound rules
+        for rule in ruleOps.GetAllCompoundRules():
+            print(ruleOps.GetName(rule), rule.ClassName)
 
-        # Create a new rule
-        rule = ruleOps.Create("Plural Formation", "Adds plural suffix")
-        ruleOps.SetActive(rule, True)
+        # Get all affix templates across all parts of speech
+        for template in ruleOps.GetAllAffixTemplates():
+            print(ruleOps.GetName(template))
 
-        # Update rule
-        ruleOps.SetDescription(rule, "Forms plural nouns by adding -s")
+        # Get affix templates for a specific POS
+        verb = posOps.Find("Verb")
+        for template in ruleOps.GetAllAffixTemplatesForPOS(verb):
+            print(ruleOps.GetName(template))
+
+        # Create a compound rule
+        rule = ruleOps.CreateCompoundRule("Noun-Noun Compound")
+
+        # Create an affix template on a POS
+        template = ruleOps.CreateAffixTemplate(verb, "Verb Inflection")
 
         project.CloseProject()
     """
@@ -91,88 +102,195 @@ class MorphRuleOperations(BaseOperations):
 
     def _GetSequence(self, parent):
         """
-        Specify which sequence to reorder for morph rules.
-        For MorphRule, we reorder parent.RulesOS
+        Return the appropriate rule sequence for reordering.
+
+        Supports two parent types:
+        - MoMorphData → CompoundRulesOS
+        - PartOfSpeech → AffixTemplatesOS
+
+        Ad hoc co-prohibitions are in an owning collection (OC),
+        not an owning sequence (OS), so reordering does not apply.
         """
-        return parent.RulesOS
+        if hasattr(parent, 'CompoundRulesOS'):
+            return parent.CompoundRulesOS
+        elif hasattr(parent, 'AffixTemplatesOS'):
+            return parent.AffixTemplatesOS
+        raise ValueError(
+            "Parent must be MoMorphData (for compound rules) or "
+            "PartOfSpeech (for affix templates)"
+        )
+
+    # ========== ENUMERATION ==========
 
     def GetAll(self):
         """
-        Get all morphological rules in the project.
+        Get all compound rules and affix templates in the project.
+
+        Yields items from CompoundRulesOS and AffixTemplatesOS. All yielded
+        items support GetName, GetDescription, and GetStratum.
+
+        Ad hoc co-prohibitions are NOT included (different property interface);
+        use GetAllAdhocCoProhibitions() separately.
 
         Yields:
-            IMoMorphRule: Each morphological rule object in the project.
+            Each compound rule or affix template object.
 
         Example:
             >>> ruleOps = MorphRuleOperations(project)
             >>> for rule in ruleOps.GetAll():
             ...     name = ruleOps.GetName(rule)
-            ...     active = ruleOps.IsActive(rule)
-            ...     status = "active" if active else "inactive"
-            ...     print(f"{name} ({status})")
-            Plural Formation (active)
-            Past Tense (active)
-            Verb Template (inactive)
-
-        Notes:
-            - Returns rules from all rule collections (affixation, templates, etc.)
-            - Includes both active and inactive rules
-            - Returns empty if no morphological data defined
-            - Order depends on the order in each collection
+            ...     print(f"{name} ({rule.ClassName})")
+            Noun-Noun Compound (MoEndoCompound)
+            Verb Inflection (MoInflAffixTemplate)
 
         See Also:
-            Create, GetName, IsActive
+            GetAllCompoundRules, GetAllAffixTemplates, GetAllAdhocCoProhibitions
+        """
+        yield from self.GetAllCompoundRules()
+        yield from self.GetAllAffixTemplates()
+
+    def GetAllCompoundRules(self):
+        """
+        Get all compound rules from MoMorphData.CompoundRulesOS.
+
+        Yields:
+            IMoCompoundRule: Each compound rule (MoEndoCompound or MoExoCompound).
+
+        Example:
+            >>> for rule in ruleOps.GetAllCompoundRules():
+            ...     print(ruleOps.GetName(rule), rule.ClassName)
+            Noun-Noun MoEndoCompound
+
+        Notes:
+            - Compound rules define patterns for compound word formation
+            - MoEndoCompound: head is inside the compound
+            - MoExoCompound: head is outside (e.g., exocentric compounds)
+            - Returns empty if no morphological data defined
+
+        See Also:
+            CreateCompoundRule, GetAll
         """
         morph_data = self.project.lp.MorphologicalDataOA
-        if not morph_data:
-            return
-
-        # Get affixation rules
-        if hasattr(morph_data, 'AffixRulesOS'):
-            for rule in morph_data.AffixRulesOS:
+        if morph_data:
+            for rule in morph_data.CompoundRulesOS:
                 yield rule
 
-        # Get template rules
-        if hasattr(morph_data, 'TemplatesOS'):
-            for rule in morph_data.TemplatesOS:
-                yield rule
-
-    def Create(self, name, description=None):
+    def GetAllAffixTemplates(self):
         """
-        Create a new morphological rule.
+        Get all inflectional affix templates from all parts of speech.
+
+        Walks the entire POS hierarchy and yields templates from each POS.
+
+        Yields:
+            IMoInflAffixTemplate: Each affix template in the project.
+
+        Example:
+            >>> for template in ruleOps.GetAllAffixTemplates():
+            ...     pos_name = template.Owner.Name.BestAnalysisAlternative.Text
+            ...     print(f"{ruleOps.GetName(template)} (on {pos_name})")
+
+        Notes:
+            - Affix templates are owned by PartOfSpeech, not MoMorphData
+            - Each POS can have its own set of templates
+            - Subcategories are included (full hierarchy walk)
+
+        See Also:
+            GetAllAffixTemplatesForPOS, CreateAffixTemplate, GetAll
+        """
+        pos_list = self.project.lp.PartsOfSpeechOA
+        if pos_list:
+            for pos in pos_list.PossibilitiesOS:
+                yield from self.__WalkPOSForTemplates(pos)
+
+    def GetAllAffixTemplatesForPOS(self, pos_or_hvo):
+        """
+        Get affix templates for a specific part of speech (non-recursive).
 
         Args:
-            name (str): The name of the rule (e.g., "Plural Formation").
-            description (str, optional): Optional description of what this rule
-                does. Defaults to None.
+            pos_or_hvo: The IPartOfSpeech object or HVO.
+
+        Yields:
+            IMoInflAffixTemplate: Each affix template on the given POS.
+
+        Raises:
+            FP_NullParameterError: If pos_or_hvo is None.
+
+        Example:
+            >>> verb = posOps.Find("Verb")
+            >>> for template in ruleOps.GetAllAffixTemplatesForPOS(verb):
+            ...     print(ruleOps.GetName(template))
+
+        See Also:
+            GetAllAffixTemplates, CreateAffixTemplate
+        """
+        if not pos_or_hvo:
+            raise FP_NullParameterError()
+
+        pos = self.__ResolveObject(pos_or_hvo)
+        if hasattr(pos, 'AffixTemplatesOS'):
+            for template in pos.AffixTemplatesOS:
+                yield template
+
+    def GetAllAdhocCoProhibitions(self):
+        """
+        Get all ad hoc co-occurrence prohibitions from MoMorphData.
+
+        These have a different property interface from compound rules and
+        affix templates (no Name/Description). Use rule.ClassName to
+        determine the subtype: MoAdhocProhibGr, MoAdhocProhibMorph,
+        or MoAdhocProhibAllomorph.
+
+        Yields:
+            IMoAdhocProhib: Each co-occurrence prohibition.
+
+        Example:
+            >>> for prohib in ruleOps.GetAllAdhocCoProhibitions():
+            ...     print(prohib.ClassName)
+
+        Notes:
+            - These are in an owning collection (OC), not a sequence (OS)
+            - Reordering methods do not apply to co-prohibitions
+            - Not included in GetAll() due to different property interface
+
+        See Also:
+            GetAll
+        """
+        morph_data = self.project.lp.MorphologicalDataOA
+        if morph_data:
+            for prohib in morph_data.AdhocCoProhibitionsOC:
+                yield prohib
+
+    # ========== CREATION ==========
+
+    def CreateCompoundRule(self, name, endocentric=True, description=None):
+        """
+        Create a new compound rule in MoMorphData.CompoundRulesOS.
+
+        Args:
+            name (str): The name of the compound rule.
+            endocentric (bool): If True (default), creates MoEndoCompound.
+                If False, creates MoExoCompound.
+            description (str, optional): Optional description.
 
         Returns:
-            IMoMorphRule: The newly created rule object.
+            IMoCompoundRule: The newly created compound rule.
 
         Raises:
             FP_ReadOnlyError: If the project is not opened with write enabled.
             FP_NullParameterError: If name is None.
-            FP_ParameterError: If name is empty.
+            FP_ParameterError: If name is empty or no morphological data.
 
         Example:
-            >>> ruleOps = MorphRuleOperations(project)
-            >>> plural = ruleOps.Create("Plural Formation", "Adds -s suffix")
-            >>> print(ruleOps.GetName(plural))
-            Plural Formation
-
-            >>> past = ruleOps.Create("Past Tense")
-            >>> ruleOps.SetDescription(past, "Forms past tense verbs")
-            >>> ruleOps.SetActive(past, True)
+            >>> rule = ruleOps.CreateCompoundRule("Noun-Noun Compound")
+            >>> exo = ruleOps.CreateCompoundRule("Verb-Noun", endocentric=False)
 
         Notes:
-            - Name should be descriptive of the morphological process
-            - Description is optional but helpful for documentation
-            - Rule is created in the default analysis writing system
-            - New rules are added to the AffixRulesOS collection
-            - Rules start as inactive by default
+            - MoEndoCompound: head is inside the compound
+            - MoExoCompound: head is outside the compound
+            - New rules are added at the end of CompoundRulesOS
 
         See Also:
-            Delete, GetName, SetDescription, SetActive
+            CreateAffixTemplate, Delete, GetAllCompoundRules
         """
         if not self.project.writeEnabled:
             raise FP_ReadOnlyError()
@@ -183,56 +301,114 @@ class MorphRuleOperations(BaseOperations):
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
 
-        # Get the writing system handle
+        morph_data = self.project.lp.MorphologicalDataOA
+        if not morph_data:
+            raise FP_ParameterError("Project has no morphological data defined")
+
         wsHandle = self.project.project.DefaultAnalWs
 
-        # Create the new rule using the factory
-        factory = self.project.project.ServiceLocator.GetService(IMoAffixProcessFactory)
+        if endocentric:
+            factory = self.project.project.ServiceLocator.GetService(IMoEndoCompoundFactory)
+        else:
+            factory = self.project.project.ServiceLocator.GetService(IMoExoCompoundFactory)
+
         new_rule = factory.Create()
+        morph_data.CompoundRulesOS.Add(new_rule)
 
-        # Add to the morphological rules collection (must be done before setting properties)
-        morph_data = self.project.lp.MorphologicalDataOA
-        morph_data.AffixRulesOS.Add(new_rule)
-
-        # Set name
         mkstr_name = TsStringUtils.MakeString(name, wsHandle)
         new_rule.Name.set_String(wsHandle, mkstr_name)
 
-        # Set description if provided
         if description:
             mkstr_desc = TsStringUtils.MakeString(description, wsHandle)
             new_rule.Description.set_String(wsHandle, mkstr_desc)
 
         return new_rule
 
+    def CreateAffixTemplate(self, pos_or_hvo, name, description=None):
+        """
+        Create a new inflectional affix template on a part of speech.
+
+        Args:
+            pos_or_hvo: The IPartOfSpeech object or HVO to own the template.
+            name (str): The name of the template.
+            description (str, optional): Optional description.
+
+        Returns:
+            IMoInflAffixTemplate: The newly created affix template.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If pos_or_hvo or name is None.
+            FP_ParameterError: If name is empty.
+
+        Example:
+            >>> verb = posOps.Find("Verb")
+            >>> template = ruleOps.CreateAffixTemplate(verb, "Verb Inflection")
+            >>> print(ruleOps.GetName(template))
+            Verb Inflection
+
+        Notes:
+            - Templates are owned by PartOfSpeech, not MoMorphData
+            - New templates are added at the end of AffixTemplatesOS
+            - Slot assignments (prefix/suffix slots) must be configured separately
+
+        See Also:
+            CreateCompoundRule, Delete, GetAllAffixTemplates
+        """
+        if not self.project.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        if not pos_or_hvo:
+            raise FP_NullParameterError()
+        if name is None:
+            raise FP_NullParameterError()
+
+        if not name or not name.strip():
+            raise FP_ParameterError("Name cannot be empty")
+
+        pos = self.__ResolveObject(pos_or_hvo)
+        wsHandle = self.project.project.DefaultAnalWs
+
+        factory = self.project.project.ServiceLocator.GetService(IMoInflAffixTemplateFactory)
+        new_template = factory.Create()
+
+        pos.AffixTemplatesOS.Add(new_template)
+
+        mkstr_name = TsStringUtils.MakeString(name, wsHandle)
+        new_template.Name.set_String(wsHandle, mkstr_name)
+
+        if description:
+            mkstr_desc = TsStringUtils.MakeString(description, wsHandle)
+            new_template.Description.set_String(wsHandle, mkstr_desc)
+
+        return new_template
+
+    # ========== DELETION ==========
+
     def Delete(self, rule_or_hvo):
         """
         Delete a morphological rule.
 
+        Automatically determines the owning collection based on ClassName
+        and removes the rule from its parent.
+
         Args:
-            rule_or_hvo: The IMoMorphRule object or HVO to delete.
+            rule_or_hvo: The rule object or HVO to delete.
 
         Raises:
             FP_ReadOnlyError: If the project is not opened with write enabled.
             FP_NullParameterError: If rule_or_hvo is None.
 
         Example:
-            >>> ruleOps = MorphRuleOperations(project)
-            >>> obsolete = ruleOps.Create("Obsolete Rule")
-            >>> # ... realize it's not needed
-            >>> ruleOps.Delete(obsolete)
+            >>> ruleOps.Delete(rule)
 
         Warning:
-            - Deleting a rule that is in use may cause errors
-            - This includes rules referenced by:
-              - Morphological processes
-              - Allomorph conditions
-              - Other rule definitions
             - Deletion is permanent and cannot be undone
-            - Consider deactivating instead of deleting
+            - Deleting a rule that is referenced elsewhere may cause errors
+            - Consider disabling instead of deleting (SetDisabled)
 
         See Also:
-            Create, SetActive, GetAll
+            CreateCompoundRule, CreateAffixTemplate, SetDisabled
         """
         if not self.project.writeEnabled:
             raise FP_ReadOnlyError()
@@ -240,25 +416,32 @@ class MorphRuleOperations(BaseOperations):
         if not rule_or_hvo:
             raise FP_NullParameterError()
 
-        # Resolve to rule object
         rule = self.__ResolveObject(rule_or_hvo)
+        class_name = rule.ClassName
 
-        # Remove from the appropriate collection
         morph_data = self.project.lp.MorphologicalDataOA
 
-        # Try removing from affixation rules
-        if hasattr(morph_data, 'AffixRulesOS') and rule in morph_data.AffixRulesOS:
-            morph_data.AffixRulesOS.Remove(rule)
-        # Try removing from template rules
-        elif hasattr(morph_data, 'TemplatesOS') and rule in morph_data.TemplatesOS:
-            morph_data.TemplatesOS.Remove(rule)
+        if class_name in ('MoEndoCompound', 'MoExoCompound'):
+            if morph_data:
+                morph_data.CompoundRulesOS.Remove(rule)
+        elif class_name == 'MoInflAffixTemplate':
+            # Template is owned by a PartOfSpeech
+            owner = self._GetObject(rule.Owner.Hvo)
+            if hasattr(owner, 'AffixTemplatesOS'):
+                owner.AffixTemplatesOS.Remove(rule)
+        elif class_name in ('MoAdhocProhibGr', 'MoAdhocProhibMorph',
+                            'MoAdhocProhibAllomorph'):
+            if morph_data:
+                morph_data.AdhocCoProhibitionsOC.Remove(rule)
+
+    # ========== PROPERTIES ==========
 
     def GetName(self, rule_or_hvo, wsHandle=None):
         """
-        Get the name of a morphological rule.
+        Get the name of a morphological rule or template.
 
         Args:
-            rule_or_hvo: The IMoMorphRule object or HVO.
+            rule_or_hvo: The rule object or HVO.
             wsHandle: Optional writing system handle. Defaults to analysis WS.
 
         Returns:
@@ -268,17 +451,8 @@ class MorphRuleOperations(BaseOperations):
             FP_NullParameterError: If rule_or_hvo is None.
 
         Example:
-            >>> ruleOps = MorphRuleOperations(project)
             >>> for rule in ruleOps.GetAll():
-            ...     name = ruleOps.GetName(rule)
-            ...     print(name)
-            Plural Formation
-            Past Tense
-            Progressive Aspect
-
-            >>> # Get name in a specific writing system
-            >>> rule = list(ruleOps.GetAll())[0]
-            >>> name = ruleOps.GetName(rule, project.WSHandle('en'))
+            ...     print(ruleOps.GetName(rule))
 
         See Also:
             SetName, GetDescription
@@ -294,10 +468,10 @@ class MorphRuleOperations(BaseOperations):
 
     def SetName(self, rule_or_hvo, name, wsHandle=None):
         """
-        Set the name of a morphological rule.
+        Set the name of a morphological rule or template.
 
         Args:
-            rule_or_hvo: The IMoMorphRule object or HVO.
+            rule_or_hvo: The rule object or HVO.
             name (str): The new name.
             wsHandle: Optional writing system handle. Defaults to analysis WS.
 
@@ -307,17 +481,7 @@ class MorphRuleOperations(BaseOperations):
             FP_ParameterError: If name is empty.
 
         Example:
-            >>> ruleOps = MorphRuleOperations(project)
-            >>> rule = list(ruleOps.GetAll())[0]
-            >>> ruleOps.SetName(rule, "Noun Pluralization")
-
-            >>> # Use descriptive names
-            >>> ruleOps.SetName(rule, "Plural Formation (Regular Nouns)")
-
-        Notes:
-            - Use clear, descriptive names
-            - Names should indicate the morphological process
-            - Consider including the grammatical category affected
+            >>> ruleOps.SetName(rule, "Noun-Noun Compound")
 
         See Also:
             GetName, SetDescription
@@ -341,10 +505,10 @@ class MorphRuleOperations(BaseOperations):
 
     def GetDescription(self, rule_or_hvo, wsHandle=None):
         """
-        Get the description of a morphological rule.
+        Get the description of a morphological rule or template.
 
         Args:
-            rule_or_hvo: The IMoMorphRule object or HVO.
+            rule_or_hvo: The rule object or HVO.
             wsHandle: Optional writing system handle. Defaults to analysis WS.
 
         Returns:
@@ -354,17 +518,8 @@ class MorphRuleOperations(BaseOperations):
             FP_NullParameterError: If rule_or_hvo is None.
 
         Example:
-            >>> ruleOps = MorphRuleOperations(project)
             >>> for rule in ruleOps.GetAll():
-            ...     name = ruleOps.GetName(rule)
-            ...     desc = ruleOps.GetDescription(rule)
-            ...     print(f"{name}: {desc}")
-            Plural Formation: Adds -s suffix to form plural nouns
-            Past Tense: Adds -ed suffix to form past tense verbs
-
-            >>> # Get description in a specific writing system
-            >>> rule = list(ruleOps.GetAll())[0]
-            >>> desc = ruleOps.GetDescription(rule, project.WSHandle('en'))
+            ...     print(ruleOps.GetDescription(rule))
 
         See Also:
             SetDescription, GetName
@@ -380,10 +535,10 @@ class MorphRuleOperations(BaseOperations):
 
     def SetDescription(self, rule_or_hvo, description, wsHandle=None):
         """
-        Set the description of a morphological rule.
+        Set the description of a morphological rule or template.
 
         Args:
-            rule_or_hvo: The IMoMorphRule object or HVO.
+            rule_or_hvo: The rule object or HVO.
             description (str): The new description.
             wsHandle: Optional writing system handle. Defaults to analysis WS.
 
@@ -392,19 +547,7 @@ class MorphRuleOperations(BaseOperations):
             FP_NullParameterError: If rule_or_hvo or description is None.
 
         Example:
-            >>> ruleOps = MorphRuleOperations(project)
-            >>> rule = list(ruleOps.GetAll())[0]
-            >>> ruleOps.SetDescription(rule, "Adds -s suffix to form plural nouns")
-
-            >>> # Provide detailed descriptions
-            >>> desc = "Forms past tense by adding -ed to regular verb stems"
-            >>> ruleOps.SetDescription(rule, desc)
-
-        Notes:
-            - Descriptions can be empty string (but not None)
-            - Use descriptions to document the morphological process
-            - Include information about the grammatical context
-            - Consider mentioning exceptions or special cases
+            >>> ruleOps.SetDescription(rule, "Forms compound nouns")
 
         See Also:
             GetDescription, SetName
@@ -425,10 +568,10 @@ class MorphRuleOperations(BaseOperations):
 
     def GetStratum(self, rule_or_hvo):
         """
-        Get the stratum of a morphological rule.
+        Get the stratum of a morphological rule or template.
 
         Args:
-            rule_or_hvo: The IMoMorphRule object or HVO.
+            rule_or_hvo: The rule object or HVO.
 
         Returns:
             IMoStratum or None: The stratum object if set, None otherwise.
@@ -437,27 +580,23 @@ class MorphRuleOperations(BaseOperations):
             FP_NullParameterError: If rule_or_hvo is None.
 
         Example:
-            >>> ruleOps = MorphRuleOperations(project)
-            >>> rule = list(ruleOps.GetAll())[0]
             >>> stratum = ruleOps.GetStratum(rule)
             >>> if stratum:
-            ...     print(f"Rule uses stratum: {stratum.Name.BestAnalysisAlternative.Text}")
+            ...     print(stratum.Name.BestAnalysisAlternative.Text)
 
         Notes:
-            - Strata define ordering levels for morphological rules
-            - Rules in lower strata apply before rules in higher strata
+            - Both compound rules and affix templates can reference a stratum
+            - Strata define ordering levels for rule application
             - Returns None if no stratum is assigned
-            - Stratum assignment is optional
 
         See Also:
-            SetStratum, GetName
+            SetStratum
         """
         if not rule_or_hvo:
             raise FP_NullParameterError()
 
         rule = self.__ResolveObject(rule_or_hvo)
 
-        # Check if rule has stratum reference
         if hasattr(rule, 'StratumRA') and rule.StratumRA:
             return rule.StratumRA
 
@@ -465,10 +604,10 @@ class MorphRuleOperations(BaseOperations):
 
     def SetStratum(self, rule_or_hvo, stratum):
         """
-        Set the stratum of a morphological rule.
+        Set the stratum of a morphological rule or template.
 
         Args:
-            rule_or_hvo: The IMoMorphRule object or HVO.
+            rule_or_hvo: The rule object or HVO.
             stratum: The IMoStratum object, HVO, or None to clear.
 
         Raises:
@@ -476,26 +615,15 @@ class MorphRuleOperations(BaseOperations):
             FP_NullParameterError: If rule_or_hvo is None.
 
         Example:
-            >>> ruleOps = MorphRuleOperations(project)
-            >>> rule = list(ruleOps.GetAll())[0]
-
-            >>> # Create or get a stratum
             >>> morph_data = project.lp.MorphologicalDataOA
-            >>> if morph_data.StrataOS.Count > 0:
-            ...     stratum = morph_data.StrataOS[0]
-            ...     ruleOps.SetStratum(rule, stratum)
+            >>> if morph_data and morph_data.StrataOS.Count > 0:
+            ...     ruleOps.SetStratum(rule, morph_data.StrataOS[0])
 
             >>> # Clear stratum assignment
             >>> ruleOps.SetStratum(rule, None)
 
-        Notes:
-            - Strata control the order of rule application
-            - Pass None to remove stratum assignment
-            - Stratum must exist in the project's morphological data
-            - Rules without strata may apply in undefined order
-
         See Also:
-            GetStratum, SetActive
+            GetStratum
         """
         if not self.project.writeEnabled:
             raise FP_ReadOnlyError()
@@ -505,154 +633,126 @@ class MorphRuleOperations(BaseOperations):
 
         rule = self.__ResolveObject(rule_or_hvo)
 
-        # Set or clear stratum
         if hasattr(rule, 'StratumRA'):
             if stratum is None:
                 rule.StratumRA = None
             else:
-                # Resolve stratum if it's an HVO
                 if isinstance(stratum, int):
                     stratum = self.project.Object(stratum)
                 rule.StratumRA = stratum
 
-    def IsActive(self, rule_or_hvo):
+    def IsDisabled(self, rule_or_hvo):
         """
-        Check if a morphological rule is active.
+        Check if a morphological rule is disabled.
 
         Args:
-            rule_or_hvo: The IMoMorphRule object or HVO.
+            rule_or_hvo: The rule object or HVO.
 
         Returns:
-            bool: True if the rule is active, False otherwise.
+            bool: True if the rule is disabled, False otherwise.
 
         Raises:
             FP_NullParameterError: If rule_or_hvo is None.
 
         Example:
-            >>> ruleOps = MorphRuleOperations(project)
-            >>> for rule in ruleOps.GetAll():
-            ...     name = ruleOps.GetName(rule)
-            ...     active = ruleOps.IsActive(rule)
-            ...     status = "active" if active else "inactive"
-            ...     print(f"{name}: {status}")
-            Plural Formation: active
-            Obsolete Rule: inactive
-
-            >>> # Check before applying rule
-            >>> rule = list(ruleOps.GetAll())[0]
-            >>> if ruleOps.IsActive(rule):
-            ...     print(f"{ruleOps.GetName(rule)} will be applied")
+            >>> for rule in ruleOps.GetAllCompoundRules():
+            ...     status = "disabled" if ruleOps.IsDisabled(rule) else "active"
+            ...     print(f"{ruleOps.GetName(rule)}: {status}")
 
         Notes:
-            - Only active rules are applied during morphological analysis
-            - Inactive rules are retained but not used
-            - Use SetActive() to enable/disable rules
-            - Returns False if the rule doesn't have an Active property
+            - Returns False if the rule type does not have a Disabled property
 
         See Also:
-            SetActive, GetAll
+            SetDisabled
         """
         if not rule_or_hvo:
             raise FP_NullParameterError()
 
         rule = self.__ResolveObject(rule_or_hvo)
 
-        # Check if rule has Active property
-        if hasattr(rule, 'Active'):
-            return rule.Active
+        if hasattr(rule, 'Disabled'):
+            return rule.Disabled
 
         return False
 
-    def SetActive(self, rule_or_hvo, active):
+    def SetDisabled(self, rule_or_hvo, disabled):
         """
-        Set the active state of a morphological rule.
+        Set the disabled state of a morphological rule.
 
         Args:
-            rule_or_hvo: The IMoMorphRule object or HVO.
-            active (bool): True to activate the rule, False to deactivate.
+            rule_or_hvo: The rule object or HVO.
+            disabled (bool): True to disable the rule, False to enable.
 
         Raises:
             FP_ReadOnlyError: If the project is not opened with write enabled.
-            FP_NullParameterError: If rule_or_hvo or active is None.
+            FP_NullParameterError: If rule_or_hvo or disabled is None.
 
         Example:
-            >>> ruleOps = MorphRuleOperations(project)
-            >>> rule = list(ruleOps.GetAll())[0]
-
-            >>> # Activate a rule
-            >>> ruleOps.SetActive(rule, True)
-            >>> print(f"Active: {ruleOps.IsActive(rule)}")
-            Active: True
-
-            >>> # Deactivate obsolete rules
-            >>> for rule in ruleOps.GetAll():
-            ...     name = ruleOps.GetName(rule)
-            ...     if "obsolete" in name.lower():
-            ...         ruleOps.SetActive(rule, False)
+            >>> ruleOps.SetDisabled(rule, True)   # Disable
+            >>> ruleOps.SetDisabled(rule, False)  # Enable
 
         Notes:
-            - Active rules are used during morphological analysis
-            - Inactive rules are retained in the project but not applied
-            - Deactivating is safer than deleting (can be reactivated)
-            - Use to temporarily disable rules for testing
+            - No-op if the rule type does not have a Disabled property
 
         See Also:
-            IsActive, Delete, Create
+            IsDisabled
         """
         if not self.project.writeEnabled:
             raise FP_ReadOnlyError()
 
         if not rule_or_hvo:
             raise FP_NullParameterError()
-        if active is None:
+        if disabled is None:
             raise FP_NullParameterError()
 
         rule = self.__ResolveObject(rule_or_hvo)
 
-        # Set active state
-        if hasattr(rule, 'Active'):
-            rule.Active = bool(active)
+        if hasattr(rule, 'Disabled'):
+            rule.Disabled = bool(disabled)
+
+    # ========== DUPLICATION ==========
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
-        Duplicate a morphological rule, creating a new copy with a new GUID.
+        Duplicate a morphological rule or template, creating a copy with a new GUID.
+
+        Handles compound rules (MoEndoCompound, MoExoCompound) and affix
+        templates (MoInflAffixTemplate). Uses the appropriate factory for
+        each type and inserts into the correct owning collection.
 
         Args:
-            item_or_hvo: The IMoMorphRule object or HVO to duplicate.
-            insert_after (bool): If True (default), insert after the source rule.
-                                If False, insert at end of rules list.
-            deep (bool): Reserved for future use (rules have complex owned objects).
+            item_or_hvo: The rule object or HVO to duplicate.
+            insert_after (bool): If True (default), insert after the source.
+                If False, insert at end of collection.
+            deep (bool): If True, copy reference sequences (slot assignments
+                for affix templates). If False (default), only copy simple
+                properties.
 
         Returns:
-            IMoMorphRule: The newly created duplicate rule with a new GUID.
+            The newly created duplicate with a new GUID.
 
         Raises:
             FP_ReadOnlyError: If the project is not opened with write enabled.
             FP_NullParameterError: If item_or_hvo is None.
+            FP_ParameterError: If the rule type is not supported for duplication.
 
         Example:
-            >>> ruleOps = MorphRuleOperations(project)
-            >>> plural = ruleOps.Create("Plural Formation", "Adds -s suffix")
-            >>> # Duplicate the rule
-            >>> copy = ruleOps.Duplicate(plural)
+            >>> copy = ruleOps.Duplicate(compound_rule)
             >>> print(ruleOps.GetName(copy))
-            Plural Formation
 
-            >>> # Modify the duplicate
-            >>> ruleOps.SetName(copy, "Plural Formation (Variant)")
-            >>> ruleOps.SetActive(copy, True)
+            >>> # Deep copy affix template (includes slot references)
+            >>> copy = ruleOps.Duplicate(template, deep=True)
 
         Notes:
             - Factory.Create() automatically generates a new GUID
-            - insert_after=True preserves the original rule's position
             - Simple properties copied: Name, Description (MultiString)
             - Reference property copied: StratumRA
-            - Boolean property copied: Active
-            - deep parameter reserved for future complex owned object copying
-            - Rules may have complex owned objects (constraints, etc.) not copied
+            - Boolean properties copied: Disabled, HeadLast, Final (where applicable)
+            - deep=True for affix templates copies PrefixSlotsRS, SuffixSlotsRS,
+              ProcliticSlotsRS, EncliticSlotsRS (references to existing slot objects)
 
         See Also:
-            Create, Delete, SetActive
+            CreateCompoundRule, CreateAffixTemplate, Delete
         """
         if not self.project.writeEnabled:
             raise FP_ReadOnlyError()
@@ -660,46 +760,20 @@ class MorphRuleOperations(BaseOperations):
         if not item_or_hvo:
             raise FP_NullParameterError()
 
-        # Get source rule
         source = self.__ResolveObject(item_or_hvo)
+        class_name = source.ClassName
 
-        # Determine factory type - use IMoAffixProcessFactory as default
-        from SIL.LCModel import IMoAffixProcessFactory
-        factory = self.project.project.ServiceLocator.GetService(IMoAffixProcessFactory)
-
-        # Create new rule using factory (auto-generates new GUID)
-        duplicate = factory.Create()
-
-        # Add to appropriate rules collection
-        morph_data = self.project.lp.MorphologicalDataOA
-
-        # Determine which collection the source belongs to
-        is_affix_rule = False
-        is_template_rule = False
-
-        if hasattr(morph_data, 'AffixRulesOS') and source in morph_data.AffixRulesOS:
-            is_affix_rule = True
-        elif hasattr(morph_data, 'TemplatesOS') and source in morph_data.TemplatesOS:
-            is_template_rule = True
-
-        # Insert into appropriate collection
-        if is_affix_rule:
-            if insert_after:
-                source_index = morph_data.AffixRulesOS.IndexOf(source)
-                morph_data.AffixRulesOS.Insert(source_index + 1, duplicate)
-            else:
-                morph_data.AffixRulesOS.Add(duplicate)
-        elif is_template_rule:
-            if insert_after:
-                source_index = morph_data.TemplatesOS.IndexOf(source)
-                morph_data.TemplatesOS.Insert(source_index + 1, duplicate)
-            else:
-                morph_data.TemplatesOS.Add(duplicate)
+        # Create duplicate and add to owning collection
+        if class_name in ('MoEndoCompound', 'MoExoCompound'):
+            duplicate = self.__DuplicateCompoundRule(source, class_name, insert_after)
+        elif class_name == 'MoInflAffixTemplate':
+            duplicate = self.__DuplicateAffixTemplate(source, insert_after)
         else:
-            # Default to AffixRulesOS
-            morph_data.AffixRulesOS.Add(duplicate)
+            raise FP_ParameterError(
+                f"Unsupported rule type for duplication: {class_name}"
+            )
 
-        # Copy simple MultiString properties (AFTER adding to parent)
+        # Copy MultiString properties (AFTER adding to parent)
         duplicate.Name.CopyAlternatives(source.Name)
         duplicate.Description.CopyAlternatives(source.Description)
 
@@ -707,27 +781,58 @@ class MorphRuleOperations(BaseOperations):
         if hasattr(source, 'StratumRA') and source.StratumRA:
             duplicate.StratumRA = source.StratumRA
 
-        # Copy boolean properties
-        if hasattr(source, 'Active'):
-            duplicate.Active = source.Active
+        # Copy boolean properties (where applicable)
+        if hasattr(source, 'Disabled'):
+            duplicate.Disabled = source.Disabled
+        if hasattr(source, 'HeadLast'):
+            duplicate.HeadLast = source.HeadLast
+        if hasattr(source, 'Final'):
+            duplicate.Final = source.Final
+
+        # Deep copy: reference sequences for affix templates
+        if deep and class_name == 'MoInflAffixTemplate':
+            for slot_prop in ('PrefixSlotsRS', 'SuffixSlotsRS',
+                              'ProcliticSlotsRS', 'EncliticSlotsRS'):
+                if hasattr(source, slot_prop) and hasattr(duplicate, slot_prop):
+                    src_slots = getattr(source, slot_prop)
+                    dst_slots = getattr(duplicate, slot_prop)
+                    for slot in src_slots:
+                        dst_slots.Add(slot)
 
         return duplicate
 
-    # --- Private Helper Methods ---
+    def __DuplicateCompoundRule(self, source, class_name, insert_after):
+        """Create and insert a duplicate compound rule."""
+        if class_name == 'MoEndoCompound':
+            factory = self.project.project.ServiceLocator.GetService(IMoEndoCompoundFactory)
+        else:
+            factory = self.project.project.ServiceLocator.GetService(IMoExoCompoundFactory)
 
-    def __ResolveObject(self, rule_or_hvo):
-        """
-        Resolve HVO or object to IMoMorphRule.
+        duplicate = factory.Create()
+        morph_data = self.project.lp.MorphologicalDataOA
 
-        Args:
-            rule_or_hvo: Either an IMoMorphRule object or an HVO (int).
+        if insert_after:
+            idx = morph_data.CompoundRulesOS.IndexOf(source)
+            morph_data.CompoundRulesOS.Insert(idx + 1, duplicate)
+        else:
+            morph_data.CompoundRulesOS.Add(duplicate)
 
-        Returns:
-            IMoMorphRule: The resolved rule object.
-        """
-        if isinstance(rule_or_hvo, int):
-            return self.project.Object(rule_or_hvo)
-        return rule_or_hvo
+        return duplicate
+
+    def __DuplicateAffixTemplate(self, source, insert_after):
+        """Create and insert a duplicate affix template on the same POS."""
+        factory = self.project.project.ServiceLocator.GetService(IMoInflAffixTemplateFactory)
+        duplicate = factory.Create()
+
+        owner = self._GetObject(source.Owner.Hvo)
+
+        if insert_after:
+            idx = owner.AffixTemplatesOS.IndexOf(source)
+            owner.AffixTemplatesOS.Insert(idx + 1, duplicate)
+        else:
+            owner.AffixTemplatesOS.Add(duplicate)
+
+        return duplicate
 
     # ========== SYNC INTEGRATION METHODS ==========
 
@@ -736,24 +841,20 @@ class MorphRuleOperations(BaseOperations):
         Get dictionary of syncable properties for cross-project synchronization.
 
         Args:
-            item: The IMoMorphRule object.
+            item: The rule or template object.
 
         Returns:
             dict: Dictionary mapping property names to their values.
-                Keys are property names, values are the property values.
 
         Example:
-            >>> ruleOps = MorphRuleOperations(project)
-            >>> rule = list(ruleOps.GetAll())[0]
             >>> props = ruleOps.GetSyncableProperties(rule)
             >>> print(props.keys())
-            dict_keys(['Name', 'Description', 'Active', 'StratumGuid'])
+            dict_keys(['Name', 'Description', 'StratumGuid', 'Disabled'])
 
         Notes:
             - Returns all MultiString properties (all writing systems)
-            - Returns Active boolean property
+            - Returns boolean properties (Disabled, HeadLast, Final)
             - Returns StratumGuid as string (GUID of referenced stratum)
-            - Does not include owned objects or GUID/HVO of the rule itself
         """
         rule = self.__ResolveObject(item)
 
@@ -770,14 +871,15 @@ class MorphRuleOperations(BaseOperations):
                 ws_values = {}
                 for ws_id, ws_handle in all_ws.items():
                     text = ITsString(prop_obj.get_String(ws_handle)).Text
-                    if text:  # Only include non-empty values
+                    if text:
                         ws_values[ws_id] = text
-                if ws_values:  # Only include property if it has values
+                if ws_values:
                     props[prop_name] = ws_values
 
         # Boolean properties
-        if hasattr(rule, 'Active'):
-            props['Active'] = rule.Active
+        for prop_name in ['Disabled', 'HeadLast', 'Final']:
+            if hasattr(rule, prop_name):
+                props[prop_name] = getattr(rule, prop_name)
 
         # Reference Atomic (RA) properties - return GUID as string
         if hasattr(rule, 'StratumRA') and rule.StratumRA:
@@ -803,36 +905,22 @@ class MorphRuleOperations(BaseOperations):
                 - differences (dict): Maps property names to (value1, value2) tuples
 
         Example:
-            >>> rule1 = project1_ruleOps.Find("Plural Formation")
-            >>> rule2 = project2_ruleOps.Find("Plural Formation")
-            >>> is_diff, diffs = project1_ruleOps.CompareTo(
-            ...     rule1, rule2,
-            ...     ops1=project1_ruleOps,
-            ...     ops2=project2_ruleOps
-            ... )
+            >>> is_diff, diffs = ruleOps.CompareTo(rule1, rule2)
             >>> if is_diff:
             ...     for prop, (val1, val2) in diffs.items():
             ...         print(f"{prop}: {val1} -> {val2}")
-
-        Notes:
-            - Compares all MultiString properties across all writing systems
-            - Compares boolean and reference properties
-            - Returns empty dict if items are identical
-            - Handles cross-project comparison via ops1/ops2
         """
         if ops1 is None:
             ops1 = self
         if ops2 is None:
             ops2 = self
 
-        # Get syncable properties from both items
         props1 = ops1.GetSyncableProperties(item1)
         props2 = ops2.GetSyncableProperties(item2)
 
         is_different = False
         differences = {}
 
-        # Compare each property
         all_keys = set(props1.keys()) | set(props2.keys())
         for key in all_keys:
             val1 = props1.get(key)
@@ -844,18 +932,25 @@ class MorphRuleOperations(BaseOperations):
 
         return (is_different, differences)
 
-    # --- Private Helper Methods ---
+    # ========== PRIVATE HELPERS ==========
+
+    def __ResolveObject(self, rule_or_hvo):
+        """Resolve HVO or object to LCM object."""
+        if isinstance(rule_or_hvo, int):
+            return self.project.Object(rule_or_hvo)
+        return rule_or_hvo
 
     def __WSHandle(self, wsHandle):
-        """
-        Get writing system handle, defaulting to analysis WS.
-
-        Args:
-            wsHandle: Optional writing system handle.
-
-        Returns:
-            int: The writing system handle.
-        """
+        """Get writing system handle, defaulting to analysis WS."""
         if wsHandle is None:
             return self.project.project.DefaultAnalWs
         return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultAnalWs)
+
+    def __WalkPOSForTemplates(self, pos):
+        """Recursively yield affix templates from a POS and its subcategories."""
+        if hasattr(pos, 'AffixTemplatesOS'):
+            for template in pos.AffixTemplatesOS:
+                yield template
+        if hasattr(pos, 'SubPossibilitiesOS'):
+            for sub in pos.SubPossibilitiesOS:
+                yield from self.__WalkPOSForTemplates(sub)

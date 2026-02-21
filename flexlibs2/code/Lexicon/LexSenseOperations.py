@@ -27,6 +27,7 @@ from SIL.LCModel import (
     ICmSemanticDomain,
     ICmPicture,
     ICmPictureFactory,
+    ICmTranslationFactory,
     IReversalIndexEntry,
 )
 from SIL.LCModel.Core.KernelInterfaces import ITsString
@@ -332,7 +333,42 @@ class LexSenseOperations(BaseOperations):
             if hasattr(parent, 'SensesOS'):
                 parent.SensesOS.Add(duplicate)
 
-        # Copy simple MultiString properties (AFTER adding to parent)
+        # Copy all content from source to duplicate (including owned objects if deep)
+        self._copy_sense_content(source, duplicate, deep)
+
+        return duplicate
+
+    def _deep_copy_sense_to(self, source, target_parent):
+        """
+        Create a deep copy of a sense as a child of target_parent.
+
+        This is used by LexEntryOperations.Duplicate to copy senses into a
+        new entry, and internally for recursive subsense duplication.
+
+        Args:
+            source: The source ILexSense to copy from.
+            target_parent: The parent object (ILexEntry or ILexSense) that
+                          owns the new sense via its SensesOS collection.
+
+        Returns:
+            ILexSense: The newly created deep copy sense.
+        """
+        factory = self.project.project.ServiceLocator.GetService(ILexSenseFactory)
+        duplicate = factory.Create()
+        target_parent.SensesOS.Add(duplicate)
+        self._copy_sense_content(source, duplicate, deep=True)
+        return duplicate
+
+    def _copy_sense_content(self, source, duplicate, deep=False):
+        """
+        Copy all sense content from source to duplicate.
+
+        Args:
+            source: The source ILexSense to copy from.
+            duplicate: The target ILexSense to copy into.
+            deep (bool): If True, also copy owned objects (examples, subsenses, pictures).
+        """
+        # Copy simple MultiString properties
         duplicate.Gloss.CopyAlternatives(source.Gloss)
         duplicate.Definition.CopyAlternatives(source.Definition)
         duplicate.Bibliography.CopyAlternatives(source.Bibliography)
@@ -354,41 +390,43 @@ class LexSenseOperations(BaseOperations):
         # Copy Reference Collection (RC) properties
         for domain in source.SemanticDomainsRC:
             duplicate.SemanticDomainsRC.Add(domain)
-
         for anthro in source.AnthroCodesRC:
             duplicate.AnthroCodesRC.Add(anthro)
-
         for domain_q in source.DomainTypesRC:
             duplicate.DomainTypesRC.Add(domain_q)
-
         for usage in source.UsageTypesRC:
             duplicate.UsageTypesRC.Add(usage)
 
         # Handle owned objects if deep=True
         if deep:
-            # Duplicate examples
+            # Deep copy examples — targeting the duplicate sense, not source's parent
             for example in source.ExamplesOS:
-                self.project.Examples.Duplicate(example, insert_after=False)
+                ex_factory = self.project.project.ServiceLocator.GetService(ILexExampleSentenceFactory)
+                new_example = ex_factory.Create()
+                duplicate.ExamplesOS.Add(new_example)
+                new_example.Example.CopyAlternatives(example.Example)
+                new_example.Reference.CopyAlternatives(example.Reference)
+                # Deep copy translations
+                for translation in example.TranslationsOC:
+                    trans_factory = self.project.project.ServiceLocator.GetService(ICmTranslationFactory)
+                    new_trans = trans_factory.Create()
+                    new_example.TranslationsOC.Add(new_trans)
+                    new_trans.Translation.CopyAlternatives(translation.Translation)
+                    new_trans.TypeRA = translation.TypeRA
 
-            # Duplicate subsenses
+            # Deep copy subsenses — recursively targeting the duplicate sense
             for subsense in source.SensesOS:
-                self.Duplicate(subsense, insert_after=False, deep=True)
+                self._deep_copy_sense_to(subsense, duplicate)
 
-            # Duplicate pictures
+            # Deep copy pictures
             for picture in source.PicturesOS:
-                # Pictures require special handling - factory type varies
-                from SIL.LCModel import ICmPictureFactory
                 pic_factory = self.project.project.ServiceLocator.GetService(ICmPictureFactory)
                 new_pic = pic_factory.Create()
                 duplicate.PicturesOS.Add(new_pic)
-
-                # Copy picture properties
                 new_pic.Caption.CopyAlternatives(picture.Caption)
                 new_pic.PictureFileRA = picture.PictureFileRA
                 new_pic.LayoutPos = picture.LayoutPos
                 new_pic.ScaleFactor = picture.ScaleFactor
-
-        return duplicate
 
     # ========== SYNC INTEGRATION METHODS ==========
 

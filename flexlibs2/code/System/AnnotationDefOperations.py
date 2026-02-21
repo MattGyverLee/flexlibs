@@ -1150,12 +1150,39 @@ class AnnotationDefOperations(BaseOperations):
         if hasattr(source, 'AllowsMultiple'):
             duplicate.AllowsMultiple = source.AllowsMultiple
 
-        # Deep copy: duplicate sub-possibilities
+        # Deep copy: duplicate sub-possibilities into the NEW duplicate
         if deep and hasattr(source, 'SubPossibilitiesOS') and source.SubPossibilitiesOS.Count > 0:
             for sub in source.SubPossibilitiesOS:
-                self.Duplicate(sub, insert_after=False, deep=True)
+                self._DuplicateSubDefInto(sub, duplicate, deep=True)
 
         return duplicate
+
+    def _DuplicateSubDefInto(self, source_def, parent_dup, deep=True):
+        """Duplicate an annotation sub-definition into the specified parent."""
+        factory = self.project.project.ServiceLocator.GetService(ICmAnnotationDefnFactory)
+        dup_def = factory.Create()
+        parent_dup.SubPossibilitiesOS.Add(dup_def)
+
+        # Copy properties
+        dup_def.Name.CopyAlternatives(source_def.Name)
+        if hasattr(source_def, 'HelpString') and source_def.HelpString:
+            dup_def.HelpString.CopyAlternatives(source_def.HelpString)
+        if hasattr(source_def, 'Prompt') and source_def.Prompt:
+            dup_def.Prompt.CopyAlternatives(source_def.Prompt)
+
+        if hasattr(source_def, 'AnnotationType'):
+            dup_def.AnnotationType = source_def.AnnotationType
+        if hasattr(source_def, 'InstanceOf'):
+            dup_def.InstanceOf = source_def.InstanceOf
+        if hasattr(source_def, 'UserCanCreate'):
+            dup_def.UserCanCreate = source_def.UserCanCreate
+        if hasattr(source_def, 'AllowsMultiple'):
+            dup_def.AllowsMultiple = source_def.AllowsMultiple
+
+        # Recurse into nested sub-definitions
+        if deep and hasattr(source_def, 'SubPossibilitiesOS') and source_def.SubPossibilitiesOS.Count > 0:
+            for nested_def in source_def.SubPossibilitiesOS:
+                self._DuplicateSubDefInto(nested_def, dup_def, deep=True)
 
     # ========== SYNC INTEGRATION METHODS ==========
 
