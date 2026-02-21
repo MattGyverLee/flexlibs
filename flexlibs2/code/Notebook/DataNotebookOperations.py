@@ -29,6 +29,7 @@ from SIL.LCModel import (
 from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
 from System import Guid, DateTime
+import System
 
 # Import flexlibs exceptions
 from ..FLExProject import (
@@ -181,8 +182,8 @@ class DataNotebookOperations(BaseOperations):
         try:
             obj = self.project.project.GetObject(hvo)
             return IRnGenericRec(obj)
-        except:
-            raise FP_ParameterError(f"Invalid notebook record object or HVO: {record_or_hvo}")
+        except (TypeError, System.InvalidCastException, AttributeError, KeyError, System.Collections.Generic.KeyNotFoundException) as e:
+            raise FP_ParameterError(f"Invalid notebook record object or HVO: {record_or_hvo} - {e}")
 
     # --- Core CRUD Operations ---
 
@@ -223,7 +224,7 @@ class DataNotebookOperations(BaseOperations):
                 owner = record.Owner
                 if not IRnGenericRec.IsInstance(owner):
                     yield record
-            except:
+            except (AttributeError, System.NullReferenceException) as e:
                 yield record
 
     def Create(self, title, content=None, wsHandle=None):
@@ -916,7 +917,7 @@ class DataNotebookOperations(BaseOperations):
         try:
             if hasattr(record, 'DateCreated'):
                 return record.DateCreated
-        except:
+        except (AttributeError, System.NullReferenceException) as e:
             pass
 
         return None
@@ -955,7 +956,7 @@ class DataNotebookOperations(BaseOperations):
         try:
             if hasattr(record, 'DateModified'):
                 return record.DateModified
-        except:
+        except (AttributeError, System.NullReferenceException) as e:
             pass
 
         return None
@@ -999,7 +1000,7 @@ class DataNotebookOperations(BaseOperations):
         try:
             if hasattr(record, 'DateOfEvent') and record.DateOfEvent:
                 return record.DateOfEvent
-        except:
+        except (AttributeError, System.NullReferenceException) as e:
             pass
 
         return None
@@ -1053,9 +1054,9 @@ class DataNotebookOperations(BaseOperations):
         if isinstance(date, str):
             try:
                 date = DateTime.Parse(date)
-            except:
+            except (System.FormatException, ValueError, TypeError) as e:
                 raise FP_ParameterError(
-                    f"Invalid date format: {date}. Use 'YYYY-MM-DD' or 'YYYY-MM-DD HH:MM:SS'"
+                    f"Invalid date format: {date}. Use 'YYYY-MM-DD' or 'YYYY-MM-DD HH:MM:SS' - {e}"
                 )
 
         self.project.project.UndoableUnitOfWorkHelper.Do(
@@ -1260,7 +1261,7 @@ class DataNotebookOperations(BaseOperations):
             owner = record.Owner
             if IRnGenericRec.IsInstance(owner):
                 return IRnGenericRec(owner)
-        except:
+        except (AttributeError, TypeError, System.InvalidCastException) as e:
             pass
 
         return None

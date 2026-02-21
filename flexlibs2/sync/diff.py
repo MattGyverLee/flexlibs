@@ -560,19 +560,19 @@ class DiffEngine:
         if hasattr(ops, 'GetForm'):
             try:
                 return ops.GetForm(obj)
-            except:
+            except (AttributeError, KeyError):
                 pass
 
         if hasattr(ops, 'GetHeadword'):
             try:
                 return ops.GetHeadword(obj)
-            except:
+            except (AttributeError, KeyError):
                 pass
 
         if hasattr(ops, 'GetName'):
             try:
                 return ops.GetName(obj)
-            except:
+            except (AttributeError, KeyError):
                 pass
 
         # Fallback to GUID
@@ -643,7 +643,7 @@ class DiffEngine:
                 if source_form != target_form:
                     is_modified = True
                     details['Form'] = f"{target_form} → {source_form}"
-            except:
+            except (AttributeError, KeyError):
                 pass
 
         # Try name comparison (for POS, etc.)
@@ -654,7 +654,7 @@ class DiffEngine:
                 if source_name != target_name:
                     is_modified = True
                     details['Name'] = f"{target_name} → {source_name}"
-            except:
+            except (AttributeError, KeyError):
                 pass
 
         return is_modified, details

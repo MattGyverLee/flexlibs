@@ -378,7 +378,7 @@ class SelectiveImport:
         try:
             obj = self.target_project.Object(guid)
             return obj is not None
-        except:
+        except (AttributeError, KeyError):
             return False
 
     def _get_project_name(self, project: Any) -> str:

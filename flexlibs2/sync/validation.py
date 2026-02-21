@@ -423,7 +423,7 @@ class LinguisticValidator:
         try:
             guid = str(obj.Guid)
             return self._exists_in_target_by_guid(guid)
-        except:
+        except (AttributeError, KeyError):
             return False
 
     def _exists_in_target_by_guid(self, guid: str) -> bool:
@@ -431,7 +431,7 @@ class LinguisticValidator:
         try:
             target_obj = self.target_project.Object(guid)
             return target_obj is not None
-        except:
+        except (AttributeError, KeyError):
             return False
 
 

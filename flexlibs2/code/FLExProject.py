@@ -169,8 +169,11 @@ class FLExProject (object):
         try:
             project.OpenProject("my project",
                                 writeEnabled = True/False)
-        except:
+        except (FP_ProjectError, FP_FileNotFoundError, FP_FileLockedError,
+                System.IO.FileNotFoundException, System.IO.IOException,
+                LcmFileLockedException, LcmDataMigrationForbiddenException) as e:
             #"Failed to open project"
+            print(f"Error opening project: {e}")
             del project
             exit(1)
 
@@ -1760,6 +1763,58 @@ class FLExProject (object):
             from .Discourse.ConstChartClauseMarkerOperations import ConstChartClauseMarkerOperations
             self._constchartclausemarker_ops = ConstChartClauseMarkerOperations(self)
         return self._constchartclausemarker_ops
+
+    # Singular aliases for backward compatibility
+
+    @property
+    def Agent(self):
+        """Alias for Agents (singular form for backward compatibility)."""
+        return self.Agents
+
+    @property
+    def PossibilityList(self):
+        """Alias for PossibilityLists (singular form for backward compatibility)."""
+        return self.PossibilityLists
+
+    @property
+    def WritingSystem(self):
+        """Alias for WritingSystems (singular form for backward compatibility)."""
+        return self.WritingSystems
+
+    @property
+    def Overlay(self):
+        """Alias for Overlays (singular form for backward compatibility)."""
+        return self.Overlays
+
+    @property
+    def Publication(self):
+        """Alias for Publications (singular form for backward compatibility)."""
+        return self.Publications
+
+    @property
+    def TranslationType(self):
+        """Alias for TranslationTypes (singular form for backward compatibility)."""
+        return self.TranslationTypes
+
+    @property
+    def Note(self):
+        """Alias for Notes (singular form for backward compatibility)."""
+        return self.Notes
+
+    @property
+    def AnnotationDef(self):
+        """Alias for AnnotationDefs (singular form for backward compatibility)."""
+        return self.AnnotationDefs
+
+    @property
+    def Check(self):
+        """Alias for Checks (singular form for backward compatibility)."""
+        return self.Checks
+
+    @property
+    def CustomField(self):
+        """Alias for CustomFields (singular form for backward compatibility)."""
+        return self.CustomFields
 
     # --- General ---
 

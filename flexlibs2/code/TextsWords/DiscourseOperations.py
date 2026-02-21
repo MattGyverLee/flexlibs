@@ -137,7 +137,7 @@ class DiscourseOperations(BaseOperations):
         if isinstance(text_or_hvo, int):
             try:
                 return IText(self.project.Object(text_or_hvo))
-            except:
+            except (TypeError, System.InvalidCastException, KeyError, AttributeError, System.Collections.Generic.KeyNotFoundException) as e:
                 raise FP_ParameterError(f"Invalid text HVO: {text_or_hvo}")
         return text_or_hvo
 
@@ -164,10 +164,10 @@ class DiscourseOperations(BaseOperations):
                 # Try to cast to IDsConstChart first (most common)
                 try:
                     return IDsConstChart(obj)
-                except:
+                except (TypeError, System.InvalidCastException, KeyError, AttributeError, System.Collections.Generic.KeyNotFoundException):
                     # Fall back to IDsChart for discourse charts
                     return IDsChart(obj)
-            except:
+            except (TypeError, System.InvalidCastException, KeyError, AttributeError, System.Collections.Generic.KeyNotFoundException) as e:
                 raise FP_ParameterError(f"Invalid chart HVO: {chart_or_hvo}")
         return chart_or_hvo
 
@@ -192,7 +192,7 @@ class DiscourseOperations(BaseOperations):
             try:
                 obj = self.project.Object(row_or_hvo)
                 return IConstChartRow(obj)
-            except:
+            except (TypeError, System.InvalidCastException, KeyError, AttributeError, System.Collections.Generic.KeyNotFoundException) as e:
                 raise FP_ParameterError(f"Invalid row HVO: {row_or_hvo}")
         return row_or_hvo
 
@@ -908,7 +908,7 @@ class DiscourseOperations(BaseOperations):
                 label_str = ITsString(cell.Label.get_String(wsHandle)).Text
                 if label_str:
                     content = label_str
-            except:
+            except (AttributeError, System.NullReferenceException, TypeError) as e:
                 pass
 
         # Try Comment property
@@ -917,7 +917,7 @@ class DiscourseOperations(BaseOperations):
                 comment_str = ITsString(cell.Comment.get_String(wsHandle)).Text
                 if comment_str:
                     content = comment_str
-            except:
+            except (AttributeError, System.NullReferenceException, TypeError) as e:
                 pass
 
         # For word groups, get the baseline text
@@ -929,7 +929,7 @@ class DiscourseOperations(BaseOperations):
                     baseline = ITsString(segment.BaselineText).Text
                     if baseline:
                         content = baseline
-            except:
+            except (AttributeError, System.NullReferenceException, TypeError) as e:
                 pass
 
         return content or ""
@@ -980,7 +980,7 @@ class DiscourseOperations(BaseOperations):
             if text_owner:
                 try:
                     return IText(text_owner)
-                except:
+                except (TypeError, System.InvalidCastException) as e:
                     raise FP_ParameterError("Chart owner is not a valid text")
 
         raise FP_ParameterError("Chart has no valid owning text")

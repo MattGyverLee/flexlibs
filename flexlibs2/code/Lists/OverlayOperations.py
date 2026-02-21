@@ -1141,14 +1141,14 @@ class OverlayOperations(BaseOperations):
             try:
                 overlay_obj.CellsOS.Add(element)
                 return
-            except:
+            except (AttributeError, System.ArgumentException, System.InvalidOperationException):
                 pass
 
         if hasattr(overlay_obj, 'MarkersRS'):
             try:
                 overlay_obj.MarkersRS.Add(element)
                 return
-            except:
+            except (AttributeError, System.ArgumentException, System.InvalidOperationException):
                 pass
 
         raise FP_ParameterError("Could not add element to overlay")
@@ -1201,14 +1201,14 @@ class OverlayOperations(BaseOperations):
             try:
                 overlay_obj.CellsOS.Remove(element)
                 return
-            except:
+            except (AttributeError, ValueError, System.InvalidOperationException):
                 pass
 
         if hasattr(overlay_obj, 'MarkersRS'):
             try:
                 overlay_obj.MarkersRS.Remove(element)
                 return
-            except:
+            except (AttributeError, ValueError, System.InvalidOperationException):
                 pass
 
         # If we get here, element wasn't in any collection
@@ -1262,7 +1262,7 @@ class OverlayOperations(BaseOperations):
                 if chart_owner:
                     try:
                         return IConstChart(chart_owner)
-                    except:
+                    except (TypeError, System.InvalidCastException, AttributeError):
                         raise FP_ParameterError("Overlay owner is not a valid chart")
 
         raise FP_ParameterError("Overlay has no valid owning chart")

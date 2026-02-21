@@ -24,6 +24,9 @@ from SIL.LCModel import (
 from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
 
+# Import System for .NET exceptions
+import System
+
 # Import flexlibs exceptions
 from ..FLExProject import (
     FP_ReadOnlyError,
@@ -239,8 +242,8 @@ class AgentOperations(BaseOperations):
         try:
             person_obj = ICmPerson(person)
             agent.Human = person_obj
-        except:
-            raise FP_ParameterError("person must be a valid ICmPerson object")
+        except (TypeError, System.InvalidCastException, AttributeError) as e:
+            raise FP_ParameterError(f"person must be a valid ICmPerson object: {e}")
 
         return agent
 
@@ -954,8 +957,8 @@ class AgentOperations(BaseOperations):
             try:
                 person_obj = ICmPerson(person)
                 agent.Human = person_obj
-            except:
-                raise FP_ParameterError("person must be a valid ICmPerson object")
+            except (TypeError, System.InvalidCastException, AttributeError) as e:
+                raise FP_ParameterError(f"person must be a valid ICmPerson object: {e}")
 
     # --- Evaluations ---
 
@@ -1006,7 +1009,7 @@ class AgentOperations(BaseOperations):
             ):
                 if eval_obj.Owner == agent:
                     evaluations.append(eval_obj)
-        except:
+        except (AttributeError, System.NullReferenceException, RuntimeError) as e:
             # If collection not accessible, return empty list
             pass
 

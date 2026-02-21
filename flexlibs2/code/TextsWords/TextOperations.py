@@ -659,7 +659,7 @@ class TextOperations(BaseOperations):
                 # Validate it's a possibility
                 genre_poss = ICmPossibility(genre)
                 text_obj.GenresRC.Add(genre_poss)
-            except:
+            except (TypeError, System.InvalidCastException, AttributeError):
                 raise FP_ParameterError("genre must be a valid ICmPossibility object")
 
     # --- Advanced Text Content Operations ---
