@@ -2740,7 +2740,10 @@ class LexSenseOperations(BaseOperations):
         # If string, look it up
         if isinstance(usage_type, str):
             usage_type_name = usage_type
-            usage_type = self._find_possibility_by_name("Usage Types", usage_type_name)
+            # Try "Usages" (standard FLEx list name) first, then "Usage Types" for compatibility
+            usage_type = self._find_possibility_by_name("Usages", usage_type_name)
+            if not usage_type:
+                usage_type = self._find_possibility_by_name("Usage Types", usage_type_name)
             if not usage_type:
                 raise FP_ParameterError(f"Usage type '{usage_type_name}' not found")
 
@@ -3137,6 +3140,7 @@ class LexSenseOperations(BaseOperations):
         - Back-reference updating
         - Special semicolon separator for Definition and Gloss
         - Auto-deduplication of duplicate senses in victim's parent entry
+        - Auto-deduplication of duplicate examples in merged sense
 
         Auto-Deduplication:
             If the victim sense's parent entry contains other duplicate senses (senses
@@ -3144,10 +3148,15 @@ class LexSenseOperations(BaseOperations):
             survivor sense before the main merge. This prevents duplicate "simple" senses
             from accumulating during operations.
 
-            Duplicates are detected using a signature based on:
+            Additionally, after merging, any duplicate examples within the merged sense
+            are automatically removed. Examples with identical text and reference are
+            considered duplicates.
+
+            Duplicates are detected using signatures based on:
             - Gloss values (per writing system)
             - Definition values (per writing system)
             - Semantic domain references
+            - (Examples) Example text and reference text
 
         Args:
             survivor_or_hvo: Sense that will receive merged data (HVO or ILexSense)
@@ -3244,6 +3253,10 @@ class LexSenseOperations(BaseOperations):
         # Merge all other properties
         self.__MergeAllSenseProperties(survivor, victim, fLoseNoStringData)
 
+        # Step 3: Auto-deduplicate examples in merged sense
+        # After merging examples from victim to survivor, check for duplicates
+        self.__DeduplicateExamplesInSense(survivor)
+
         # Replace all incoming references to victim with survivor
         # TODO: Implement __ReplaceIncomingReferences for senses
 
@@ -3252,6 +3265,122 @@ class LexSenseOperations(BaseOperations):
         victim.OwningList.Remove(victim)
 
     # --- Private Helper Methods for MergeObject ---
+
+    def __GetExampleSignature(self, example):
+        """
+        Generate a signature for example duplicate detection.
+
+        Two examples with identical signatures are considered duplicates.
+        Signature is based on:
+        - Example text across all writing systems
+        - Reference text
+
+        Args:
+            example: The ILexExampleSentence object
+
+        Returns:
+            tuple: Hashable signature (example_dict, reference) that identifies the example
+        """
+        try:
+            # Get example text across all writing systems
+            example_dict = {}
+            for ws in self.project.project.WritingSystemManager.AllWritingSystems:
+                ws_handle = ws.Handle
+                ex_text = ITsString(example.Example.get_String(ws_handle)).Text if example.Example else ""
+                if ex_text:
+                    example_dict[ws_handle] = ex_text
+
+            # Get reference
+            ref_text = ITsString(example.Reference.get_String(0)).Text if example.Reference else ""
+
+            # Create signature tuple
+            sig = (frozenset(example_dict.items()), ref_text)
+            return sig
+
+        except Exception as e:
+            logger.debug(f"Could not generate example signature: {e}")
+            return None
+
+    def __FindDuplicateExamplesInSense(self, sense):
+        """
+        Find duplicate examples within a sense.
+
+        Returns a list of (first_example, [duplicate_examples]) tuples, where all examples
+        in each group have identical signatures.
+
+        Args:
+            sense: The ILexSense object
+
+        Returns:
+            list: List of tuples (master_example, [duplicate_example_list])
+                  Empty list if no duplicates found
+        """
+        if not sense.ExamplesOS:
+            return []
+
+        # Build signature map
+        sig_map = {}
+        for example in sense.ExamplesOS:
+            sig = self.__GetExampleSignature(example)
+            if sig:
+                if sig not in sig_map:
+                    sig_map[sig] = []
+                sig_map[sig].append(example)
+
+        # Find groups with duplicates
+        duplicates = []
+        for sig, examples in sig_map.items():
+            if len(examples) > 1:
+                master = examples[0]
+                dupes = examples[1:]
+                duplicates.append((master, dupes))
+                logger.debug(f"Found {len(dupes)} duplicate example(s) with text: {sig[0]}")
+
+        return duplicates
+
+    def __DeduplicateExamplesInSense(self, sense):
+        """
+        Detect and merge duplicate examples within a sense.
+
+        This is called after merging senses to clean up any duplicate examples
+        that resulted from the merge. Duplicates are detected by comparing:
+        - Example text (per writing system)
+        - Reference text
+
+        Examples with identical signatures are deleted (duplicates removed, content preserved).
+
+        Args:
+            sense: The ILexSense to deduplicate
+
+        Notes:
+            - Keeps first occurrence, removes duplicates
+            - Logs all removed duplicates
+        """
+        if not sense.ExamplesOS or len(sense.ExamplesOS) < 2:
+            return  # No duplicates possible
+
+        try:
+            duplicates = self.__FindDuplicateExamplesInSense(sense)
+            merged_count = 0
+
+            for master, dupes in duplicates:
+                for dupe in dupes:
+                    try:
+                        logger.info(
+                            f"Auto-removing duplicate example in sense (HVO: {dupe.Hvo}) "
+                            f"keeping master (HVO: {master.Hvo})"
+                        )
+                        # Simply remove the duplicate (don't merge content since they're identical)
+                        dupe.OwningList.Remove(dupe)
+                        merged_count += 1
+                    except Exception as e:
+                        logger.warning(f"Could not remove duplicate example (HVO: {dupe.Hvo}): {e}")
+
+            if merged_count > 0:
+                logger.info(f"Auto-deduplicated {merged_count} duplicate example(s) in sense (HVO: {sense.Hvo})")
+
+        except Exception as e:
+            logger.warning(f"Error during example deduplication: {e}")
 
     def __MergeMultiStringProperty(self, dest_multi, src_multi, concatenate, separator=" "):
         """

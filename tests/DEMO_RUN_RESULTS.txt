@@ -1,0 +1,62 @@
+=== DEMO RUN RESULTS ===
+Date: 2026-02-21
+Total Demos: 51
+
+[PASS] check_collection_type.py
+[PASS] convert_to_crud.py
+[PASS] enhance_parent_object_demos.py
+[PASS] grammar_environment_operations_demo.py
+[PASS] grammar_gramcat_operations_demo.py
+[PASS] grammar_inflection_operations_demo.py
+[PASS] grammar_morphrule_operations_demo.py
+[PASS] grammar_naturalclass_operations_demo.py
+[PASS] grammar_phoneme_operations_demo.py
+[PASS] grammar_phonrule_operations_demo.py
+[PASS] grammar_pos_operations_demo.py
+[PASS] hierarchical_import_demo.py
+[PASS] lexentry_operations_demo.py
+[PASS] lexicon_allomorph_operations_demo.py
+[PASS] lexicon_etymology_operations_demo.py
+[PASS] lexicon_example_operations_demo.py
+[PASS] lexicon_lexreference_operations_demo.py
+[PASS] lexicon_pronunciation_operations_demo.py
+[PASS] lexicon_reversal_operations_demo.py
+[PASS] lexicon_semanticdomain_operations_demo.py
+[PASS] lexicon_sense_operations_demo.py
+[PASS] lexicon_variant_operations_demo.py
+[PASS] lists_agent_operations_demo.py
+[PASS] lists_confidence_operations_demo.py
+[PASS] lists_overlay_operations_demo.py
+[PASS] lists_possibilitylist_operations_demo.py
+[PASS] lists_publication_operations_demo.py
+[PASS] lists_translationtype_operations_demo.py
+[PASS] notebook_anthropology_operations_demo.py
+[PASS] notebook_datanotebook_operations_demo.py
+[PASS] notebook_location_operations_demo.py
+[PASS] notebook_note_operations_demo.py
+[PASS] notebook_person_operations_demo.py
+[FAIL] run_all_crud_demos.py - TIMEOUT
+[FAIL] selective_import_demo.py - Exit code: 1
+[FAIL] sync_allomorphs_demo.py - Exit code: 1
+[FAIL] sync_execute_demo.py - Exit code: 1
+[PASS] sync_hierarchical_demo.py
+[PASS] system_annotationdef_operations_demo.py
+[PASS] system_check_operations_demo.py
+[PASS] system_customfield_operations_demo.py
+[PASS] system_projectsettings_operations_demo.py
+[PASS] system_writingsystem_operations_demo.py
+[PASS] textswords_discourse_operations_demo.py
+[PASS] textswords_media_operations_demo.py
+[PASS] textswords_paragraph_operations_demo.py
+[PASS] textswords_segment_operations_demo.py
+[PASS] textswords_text_operations_demo.py
+[PASS] textswords_wfianalysis_operations_demo.py
+[PASS] textswords_wfigloss_operations_demo.py
+[PASS] textswords_wfimorphbundle_operations_demo.py
+[PASS] textswords_wordform_operations_demo.py
+
+Summary:
+- Passed: 48
+- Failed: 4
+- Warnings: 0
+- Total: 52

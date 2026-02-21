@@ -2673,17 +2673,25 @@ class LexEntryOperations(BaseOperations):
         - Back-reference updating
         - Data preservation based on fLoseNoStringData flag
         - Auto-deduplication of duplicate senses
+        - Auto-deduplication of duplicate pronunciations
+        - Auto-deduplication of duplicate allomorphs
 
         Auto-Deduplication:
-            After merging senses from victim to survivor, any duplicate senses
-            (senses with identical gloss and definition) are automatically merged
-            together. This prevents "simple" duplicate senses from accumulating
-            during the merge operation.
+            After merging data from victim to survivor, multiple types of duplicates
+            are automatically detected and removed:
 
-            Duplicates are detected using a signature based on:
-            - Gloss values (per writing system)
-            - Definition values (per writing system)
-            - Semantic domain references
+            **Senses**: Senses with identical gloss and definition are merged together.
+
+            **Pronunciations**: Pronunciations with identical form (per writing system)
+            are deduplicated - first occurrence is kept, duplicates removed.
+
+            **Allomorphs**: Allomorphs with identical form and morph type are
+            deduplicated - first occurrence is kept, duplicates removed.
+
+            Duplicates are detected using signatures based on:
+            - (Senses) Gloss values, Definition values, Semantic domains
+            - (Pronunciations) Form per writing system
+            - (Allomorphs) Form per writing system + morph type GUID
 
         Args:
             survivor_or_hvo: Entry that will receive merged data (HVO or ILexEntry)
@@ -2729,11 +2737,13 @@ class LexEntryOperations(BaseOperations):
             5. Fix LexEntryRef components
             6. Call base merge for all properties
             7. Auto-deduplicate duplicate senses
-            8. Merge equivalent alternate forms
-            9. Merge equivalent MSAs
-            10. Update homograph numbers
-            11. Update incoming references
-            12. Delete victim entry
+            8. Auto-deduplicate duplicate pronunciations
+            9. Auto-deduplicate duplicate allomorphs
+            10. Merge equivalent alternate forms
+            11. Merge equivalent MSAs
+            12. Update homograph numbers
+            13. Update incoming references
+            14. Delete victim entry
 
         See Also:
             LexSense.MergeObject - For merging senses
@@ -2793,6 +2803,12 @@ class LexEntryOperations(BaseOperations):
         # Step 5b: Auto-deduplicate senses in merged entry
         # After merging senses from victim to survivor, check for duplicates
         self.__DeduplicateSensesInEntry(survivor)
+
+        # Step 5c: Auto-deduplicate pronunciations in merged entry
+        self.__DeduplicatePronunciationsInEntry(survivor)
+
+        # Step 5d: Auto-deduplicate allomorphs in merged entry
+        self.__DeduplicateAllomorphsInEntry(survivor)
 
         # Step 6: Merge equivalent alternate forms
         # TODO: Implementation of alternate form merging
@@ -3130,6 +3146,147 @@ class LexEntryOperations(BaseOperations):
         except Exception as e:
             logger.warning(f"Error during sense deduplication: {e}")
             # Don't fail the whole merge operation if deduplication fails
+
+    def __DeduplicatePronunciationsInEntry(self, entry):
+        """
+        Detect and remove duplicate pronunciations within an entry.
+
+        Duplicates are detected by comparing pronunciation forms across all writing systems.
+        Pronunciation form must match exactly in the same writing system to be considered
+        a duplicate.
+
+        Args:
+            entry: The ILexEntry to deduplicate
+
+        Notes:
+            - Keeps first occurrence, removes duplicates
+            - Logs all removed duplicates
+            - Continues on error to prevent merge failure
+        """
+        if not entry.PronunciationsOS or len(entry.PronunciationsOS) < 2:
+            return  # No duplicates possible
+
+        try:
+            # Build signature map for all pronunciations in entry
+            sig_map = {}
+            for pron in entry.PronunciationsOS:
+                # Get pronunciation form across all writing systems
+                pron_dict = {}
+                try:
+                    for ws in self.project.project.WritingSystemManager.AllWritingSystems:
+                        ws_handle = ws.Handle
+                        pron_text = ITsString(pron.Form.get_String(ws_handle)).Text if pron.Form else ""
+                        if pron_text:
+                            pron_dict[ws_handle] = pron_text
+                except Exception as e:
+                    logger.debug(f"Could not get pronunciation form: {e}")
+                    continue
+
+                if pron_dict:
+                    sig = frozenset(pron_dict.items())
+                    if sig not in sig_map:
+                        sig_map[sig] = []
+                    sig_map[sig].append(pron)
+
+            # Find and remove duplicate groups
+            removed_count = 0
+            for sig, prons in sig_map.items():
+                if len(prons) > 1:
+                    # Keep first, remove rest
+                    for dupe in prons[1:]:
+                        try:
+                            logger.info(
+                                f"Auto-removing duplicate pronunciation in entry (HVO: {dupe.Hvo}) "
+                                f"keeping master (HVO: {prons[0].Hvo})"
+                            )
+                            dupe.OwningList.Remove(dupe)
+                            removed_count += 1
+                        except Exception as e:
+                            logger.warning(
+                                f"Could not remove duplicate pronunciation (HVO: {dupe.Hvo}): {e}"
+                            )
+
+            if removed_count > 0:
+                logger.info(
+                    f"Auto-deduplicated {removed_count} duplicate pronunciation(s) in entry (HVO: {entry.Hvo})"
+                )
+
+        except Exception as e:
+            logger.warning(f"Error during pronunciation deduplication: {e}")
+
+    def __DeduplicateAllomorphsInEntry(self, entry):
+        """
+        Detect and remove duplicate allomorphs within an entry.
+
+        Duplicates are detected by comparing allomorph form and morph type.
+        Two allomorphs with identical form and morph type in the same writing system
+        are considered duplicates.
+
+        Args:
+            entry: The ILexEntry to deduplicate
+
+        Notes:
+            - Keeps first occurrence, removes duplicates
+            - Logs all removed duplicates
+            - Continues on error to prevent merge failure
+        """
+        if not entry.AlternateFormsOS or len(entry.AlternateFormsOS) < 2:
+            return  # No duplicates possible
+
+        try:
+            # Build signature map for all allomorphs in entry
+            sig_map = {}
+            for allomorph in entry.AlternateFormsOS:
+                # Get allomorph form and morph type
+                allomorph_dict = {}
+                morph_type_guid = ""
+
+                try:
+                    # Get form across all writing systems
+                    for ws in self.project.project.WritingSystemManager.AllWritingSystems:
+                        ws_handle = ws.Handle
+                        form_text = ITsString(allomorph.Form.get_String(ws_handle)).Text if allomorph.Form else ""
+                        if form_text:
+                            allomorph_dict[ws_handle] = form_text
+
+                    # Get morph type
+                    if hasattr(allomorph, 'MorphTypeRA') and allomorph.MorphTypeRA:
+                        morph_type_guid = str(allomorph.MorphTypeRA.Guid)
+                except Exception as e:
+                    logger.debug(f"Could not get allomorph form/type: {e}")
+                    continue
+
+                if allomorph_dict:
+                    sig = (frozenset(allomorph_dict.items()), morph_type_guid)
+                    if sig not in sig_map:
+                        sig_map[sig] = []
+                    sig_map[sig].append(allomorph)
+
+            # Find and remove duplicate groups
+            removed_count = 0
+            for sig, allomorphs in sig_map.items():
+                if len(allomorphs) > 1:
+                    # Keep first, remove rest
+                    for dupe in allomorphs[1:]:
+                        try:
+                            logger.info(
+                                f"Auto-removing duplicate allomorph in entry (HVO: {dupe.Hvo}) "
+                                f"keeping master (HVO: {allomorphs[0].Hvo})"
+                            )
+                            dupe.OwningList.Remove(dupe)
+                            removed_count += 1
+                        except Exception as e:
+                            logger.warning(
+                                f"Could not remove duplicate allomorph (HVO: {dupe.Hvo}): {e}"
+                            )
+
+            if removed_count > 0:
+                logger.info(
+                    f"Auto-deduplicated {removed_count} duplicate allomorph(s) in entry (HVO: {entry.Hvo})"
+                )
+
+        except Exception as e:
+            logger.warning(f"Error during allomorph deduplication: {e}")
 
     # --- Private Helper Methods ---
 

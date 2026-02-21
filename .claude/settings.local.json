@@ -5,7 +5,16 @@
       "Bash(python:*)",
       "Bash(find:*)",
       "Bash(sed:*)",
-      "Read(//d/**)"
+      "Read(//d/**)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(ls:*)",
+      "Bash(/tmp/phase0_final.md:*)",
+      "Bash(cd:*)",
+      "Bash(python3:*)",
+      "Bash(/d/Github/flexlibs2/tests/TEST_SUMMARY.md:*)",
+      "Bash(__NEW_LINE_e4c34fa10700405a__ sleep 45)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []
