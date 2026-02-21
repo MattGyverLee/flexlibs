@@ -14,6 +14,8 @@
 import logging
 logger = logging.getLogger(__name__)
 
+import System
+
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
@@ -322,8 +324,21 @@ class PronunciationOperations(BaseOperations):
             if hasattr(parent, 'PronunciationsOS'):
                 parent.PronunciationsOS.Add(duplicate)
 
-        # Copy simple MultiString properties
-        duplicate.Form.CopyAlternatives(source.Form)
+        # Copy simple MultiString properties (AFTER adding to parent)
+        # Use GetString/SetString instead of CopyAlternatives for safer copying
+        try:
+            duplicate.Form.CopyAlternatives(source.Form)
+        except (System.NullReferenceException, AttributeError):
+            # Fallback: copy string by string if CopyAlternatives fails
+            if hasattr(source, 'Form') and source.Form:
+                for ws_id in source.Form.AvailableWritingSystems:
+                    try:
+                        form_string = source.Form.get_String(ws_id)
+                        if form_string:
+                            duplicate.Form.set_String(ws_id, form_string)
+                    except Exception:
+                        # Skip individual strings that fail to copy
+                        pass
 
         # Copy Reference Atomic (RA) properties
         if hasattr(source, 'LocationRA'):
