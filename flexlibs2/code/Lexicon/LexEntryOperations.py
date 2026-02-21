@@ -297,7 +297,9 @@ class LexEntryOperations(BaseOperations):
         This method creates a copy of an existing entry. With deep=False, only
         the entry shell (lexeme form, citation form, morph type) is duplicated.
         With deep=True, all owned objects (senses, allomorphs, pronunciations,
-        etymologies, variants) are recursively duplicated.
+        etymologies) are recursively duplicated. Entry references (variants,
+        complex forms) are NOT copied since they describe inter-entry
+        relationships that don't apply to a duplicate.
 
         Args:
             item_or_hvo: Either an ILexEntry object or its HVO (database ID)
@@ -345,8 +347,12 @@ class LexEntryOperations(BaseOperations):
             - New GUID is auto-generated for the duplicate
             - Lexeme form and citation form are copied
             - Morph type is copied
-            - With deep=True, all senses, allomorphs, pronunciations, etymologies,
-              and variant forms are recursively duplicated
+            - With deep=True, senses (with examples, translations, subsenses,
+              pictures), allomorphs, pronunciations, and etymologies are
+              recursively duplicated
+            - EntryRefsOS (variant/complex form refs) are NOT copied — the
+              duplicate will likely become a homograph, not an actual variant
+              or complex form of the same components
             - Import residue is copied
             - Date created/modified are set to current time for duplicate
             - insert_after parameter has limited effect since lexicon is sorted
@@ -467,27 +473,10 @@ class LexEntryOperations(BaseOperations):
                 if hasattr(etymology, 'LanguageNotesRA') and etymology.LanguageNotesRA:
                     new_etym.LanguageNotesRA = etymology.LanguageNotesRA
 
-            # Duplicate entry refs (variant/complex form references)
-            for entry_ref in source_entry.EntryRefsOS:
-                ref_factory = self.project.project.ServiceLocator.GetService(
-                    ILexEntryRefFactory)
-                new_ref = ref_factory.Create()
-                new_entry.EntryRefsOS.Add(new_ref)
-                new_ref.RefType = entry_ref.RefType
-                if hasattr(entry_ref, 'HideMinorEntry'):
-                    new_ref.HideMinorEntry = entry_ref.HideMinorEntry
-                if hasattr(entry_ref, 'ShowComplexFormsIn'):
-                    new_ref.ShowComplexFormsIn = entry_ref.ShowComplexFormsIn
-                for vtype in entry_ref.VariantEntryTypesRS:
-                    new_ref.VariantEntryTypesRS.Add(vtype)
-                for component in entry_ref.ComponentLexemesRS:
-                    new_ref.ComponentLexemesRS.Add(component)
-                if hasattr(entry_ref, 'ComplexEntryTypesRS'):
-                    for ctype in entry_ref.ComplexEntryTypesRS:
-                        new_ref.ComplexEntryTypesRS.Add(ctype)
-                if hasattr(entry_ref, 'PrimaryLexemesRS'):
-                    for plex in entry_ref.PrimaryLexemesRS:
-                        new_ref.PrimaryLexemesRS.Add(plex)
+            # Note: EntryRefsOS (variant/complex form references) are NOT copied.
+            # These describe relationships between entries (variant-of, complex-form-of)
+            # which don't apply to a duplicate — the copy will likely become a
+            # homograph, not an actual variant or complex form of the same components.
 
         return new_entry
 
