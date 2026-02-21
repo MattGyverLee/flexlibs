@@ -346,12 +346,31 @@ class NoteOperations(BaseOperations):
 
         # Handle owned objects if deep=True
         if deep:
-            # Duplicate replies
+            # Duplicate replies into the NEW duplicate (not the original's parent)
             if hasattr(source, 'RepliesOS'):
                 for reply in source.RepliesOS:
-                    self.Duplicate(reply, insert_after=False, deep=True)
+                    self._DuplicateReplyInto(reply, duplicate, deep=True)
 
         return duplicate
+
+    def _DuplicateReplyInto(self, source_reply, parent_note, deep=True):
+        """Duplicate a reply note into the specified parent note's RepliesOS."""
+        factory = self.project.project.ServiceLocator.GetService(ICmBaseAnnotationFactory)
+        dup_reply = factory.Create()
+        parent_note.RepliesOS.Add(dup_reply)
+
+        # Copy properties
+        dup_reply.Comment.CopyAlternatives(source_reply.Comment)
+        dup_reply.Source.CopyAlternatives(source_reply.Source)
+        if hasattr(source_reply, 'AnnotationTypeRA'):
+            dup_reply.AnnotationTypeRA = source_reply.AnnotationTypeRA
+        if hasattr(source_reply, 'BeginObjectRA'):
+            dup_reply.BeginObjectRA = source_reply.BeginObjectRA
+
+        # Recurse into nested replies
+        if deep and hasattr(source_reply, 'RepliesOS'):
+            for nested_reply in source_reply.RepliesOS:
+                self._DuplicateReplyInto(nested_reply, dup_reply, deep=True)
 
     # ========== SYNC INTEGRATION METHODS ==========
 

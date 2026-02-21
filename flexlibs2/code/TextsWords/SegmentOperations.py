@@ -624,23 +624,22 @@ class SegmentOperations(BaseOperations):
         if not owner or not hasattr(owner, 'SegmentsOS'):
             raise FP_ParameterError("Segment has no valid owner paragraph")
 
-        # Get source properties
-        wsHandle_vern = self.__WSHandleVern(None)
-        wsHandle_anal = self.__WSHandle(None)
+        # Create the new segment (factory + add to parent)
+        factory = self.project.project.ServiceLocator.GetService(ISegmentFactory)
+        new_segment = factory.Create()
+        owner.SegmentsOS.Add(new_segment)
 
-        baseline_text = self.GetBaselineText(segment_obj, wsHandle_vern)
-        free_trans = self.GetFreeTranslation(segment_obj, wsHandle_anal)
-        literal_trans = self.GetLiteralTranslation(segment_obj, wsHandle_anal)
+        # Copy all writing systems of each MultiString property
+        if segment_obj.BaselineText:
+            new_segment.BaselineText.CopyAlternatives(segment_obj.BaselineText)
+        if segment_obj.FreeTranslation:
+            new_segment.FreeTranslation.CopyAlternatives(segment_obj.FreeTranslation)
+        if segment_obj.LiteralTranslation:
+            new_segment.LiteralTranslation.CopyAlternatives(segment_obj.LiteralTranslation)
 
-        # Create the new segment
-        new_segment = self.Create(owner, baseline_text, wsHandle_vern)
-
-        # Copy translations
-        if free_trans:
-            self.SetFreeTranslation(new_segment, free_trans, wsHandle_anal)
-
-        if literal_trans:
-            self.SetLiteralTranslation(new_segment, literal_trans, wsHandle_anal)
+        # Copy boolean properties
+        if hasattr(segment_obj, 'IsLabel'):
+            new_segment.IsLabel = segment_obj.IsLabel
 
         # Handle insert_after positioning
         if insert_after:

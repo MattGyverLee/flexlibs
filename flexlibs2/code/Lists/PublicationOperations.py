@@ -390,28 +390,31 @@ class PublicationOperations(BaseOperations):
         if hasattr(source, 'SortKey2') and hasattr(duplicate, 'SortKey2'):
             duplicate.SortKey2 = source.SortKey2  # PageHeight
 
-        # Copy date properties
-        if hasattr(source, 'DateCreated'):
-            duplicate.DateCreated = source.DateCreated
-        if hasattr(source, 'DateModified'):
-            duplicate.DateModified = source.DateModified
+        # Note: DateCreated/DateModified are NOT copied from source.
+        # The duplicate gets current timestamps automatically from the framework.
 
         # Deep copy: duplicate owned divisions (SubPossibilitiesOS)
         if deep and hasattr(source, 'SubPossibilitiesOS') and source.SubPossibilitiesOS.Count > 0:
             for division in source.SubPossibilitiesOS:
-                # Duplicate each division
-                div_factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
-                div_dup = div_factory.Create()
-                duplicate.SubPossibilitiesOS.Add(div_dup)
+                self._DuplicateDivisionInto(division, duplicate, deep=True)
 
-                # Copy division properties
-                div_dup.Name.CopyAlternatives(division.Name)
-                if hasattr(division, 'Description'):
-                    div_dup.Description.CopyAlternatives(division.Description)
-                if hasattr(division, 'Abbreviation'):
-                    div_dup.Abbreviation.CopyAlternatives(division.Abbreviation)
-                if hasattr(division, 'DateCreated'):
-                    div_dup.DateCreated = division.DateCreated
+    def _DuplicateDivisionInto(self, source_div, parent_dup, deep=True):
+        """Duplicate a division into the specified parent's SubPossibilitiesOS."""
+        div_factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
+        div_dup = div_factory.Create()
+        parent_dup.SubPossibilitiesOS.Add(div_dup)
+
+        # Copy division properties
+        div_dup.Name.CopyAlternatives(source_div.Name)
+        if hasattr(source_div, 'Description'):
+            div_dup.Description.CopyAlternatives(source_div.Description)
+        if hasattr(source_div, 'Abbreviation'):
+            div_dup.Abbreviation.CopyAlternatives(source_div.Abbreviation)
+
+        # Recurse into nested sub-divisions
+        if deep and hasattr(source_div, 'SubPossibilitiesOS') and source_div.SubPossibilitiesOS.Count > 0:
+            for nested_div in source_div.SubPossibilitiesOS:
+                self._DuplicateDivisionInto(nested_div, div_dup, deep=True)
 
         return duplicate
 

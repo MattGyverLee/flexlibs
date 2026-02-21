@@ -1274,10 +1274,11 @@ class LocationOperations(BaseOperations):
         coords = self.GetCoordinates(source)
         if coords:
             lat, lon = coords
-            # Note: SetCoordinates handles the DateOfEvent GenDate field
-            if hasattr(source, 'DateOfEvent') and source.DateOfEvent:
-                if hasattr(duplicate, 'DateOfEvent'):
-                    duplicate.DateOfEvent = source.DateOfEvent
+            self.SetCoordinates(duplicate, lat, lon)
+
+        if hasattr(source, 'DateOfEvent') and source.DateOfEvent:
+            if hasattr(duplicate, 'DateOfEvent'):
+                duplicate.DateOfEvent = source.DateOfEvent
 
         elevation = self.GetElevation(source)
         if elevation is not None:
@@ -1289,12 +1290,45 @@ class LocationOperations(BaseOperations):
 
         # Handle owned objects if deep=True
         if deep:
-            # Duplicate sublocations
+            # Duplicate sublocations into the NEW duplicate (not the original's parent)
             if hasattr(source, 'SubPossibilitiesOS'):
                 for sublocation in source.SubPossibilitiesOS:
-                    self.Duplicate(sublocation, insert_after=False, deep=True)
+                    self._DuplicateSublocationInto(sublocation, duplicate, deep=True)
 
         return duplicate
+
+    def _DuplicateSublocationInto(self, source_loc, parent_dup, deep=True):
+        """Duplicate a sublocation into the specified parent's SubPossibilitiesOS."""
+        factory = self.project.project.ServiceLocator.GetService(ICmLocationFactory)
+        dup_loc = factory.Create()
+        parent_dup.SubPossibilitiesOS.Add(dup_loc)
+
+        # Copy properties
+        dup_loc.Name.CopyAlternatives(source_loc.Name)
+        dup_loc.Abbreviation.CopyAlternatives(source_loc.Abbreviation)
+        if hasattr(source_loc, 'Description'):
+            dup_loc.Description.CopyAlternatives(source_loc.Description)
+
+        coords = self.GetCoordinates(source_loc)
+        if coords:
+            lat, lon = coords
+            self.SetCoordinates(dup_loc, lat, lon)
+
+        if hasattr(source_loc, 'DateOfEvent') and source_loc.DateOfEvent:
+            if hasattr(dup_loc, 'DateOfEvent'):
+                dup_loc.DateOfEvent = source_loc.DateOfEvent
+
+        elevation = self.GetElevation(source_loc)
+        if elevation is not None:
+            if hasattr(dup_loc, 'Elevation'):
+                dup_loc.Elevation = elevation
+
+        dup_loc.DateCreated = DateTime.Now
+
+        # Recurse into nested sublocations
+        if deep and hasattr(source_loc, 'SubPossibilitiesOS'):
+            for nested_loc in source_loc.SubPossibilitiesOS:
+                self._DuplicateSublocationInto(nested_loc, dup_loc, deep=True)
 
     # ========== SYNC INTEGRATION METHODS ==========
 

@@ -1766,12 +1766,33 @@ class AnthropologyOperations(BaseOperations):
 
         # Handle owned objects if deep=True
         if deep:
-            # Duplicate subitems
+            # Duplicate subitems into the NEW duplicate (not the original's parent)
             if hasattr(source, 'SubPossibilitiesOS'):
                 for subitem in source.SubPossibilitiesOS:
-                    self.Duplicate(subitem, insert_after=False, deep=True)
+                    self._DuplicateSubitemInto(subitem, duplicate, deep=True)
 
         return duplicate
+
+    def _DuplicateSubitemInto(self, source_item, parent_dup, deep=True):
+        """Duplicate an anthropology subitem into the specified parent's SubPossibilitiesOS."""
+        factory = self.project.project.ServiceLocator.GetService(ICmAnthroItemFactory)
+        dup_item = factory.Create()
+        parent_dup.SubPossibilitiesOS.Add(dup_item)
+
+        # Copy properties
+        dup_item.Name.CopyAlternatives(source_item.Name)
+        dup_item.Abbreviation.CopyAlternatives(source_item.Abbreviation)
+        dup_item.Description.CopyAlternatives(source_item.Description)
+
+        if hasattr(source_item, 'AnthroCode') and source_item.AnthroCode:
+            dup_item.AnthroCode = source_item.AnthroCode
+        if hasattr(source_item, 'CategoryRA') and source_item.CategoryRA:
+            dup_item.CategoryRA = source_item.CategoryRA
+
+        # Recurse into nested subitems
+        if deep and hasattr(source_item, 'SubPossibilitiesOS'):
+            for nested_item in source_item.SubPossibilitiesOS:
+                self._DuplicateSubitemInto(nested_item, dup_item, deep=True)
 
     # ========== SYNC INTEGRATION METHODS ==========
 

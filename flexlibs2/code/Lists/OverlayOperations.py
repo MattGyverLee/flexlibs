@@ -450,23 +450,34 @@ class OverlayOperations(BaseOperations):
         if hasattr(source, 'SortSpec') and hasattr(duplicate, 'SortSpec'):
             duplicate.SortSpec = source.SortSpec
 
-        # Deep copy: duplicate owned sub-possibilities
+        # Deep copy: recursively duplicate owned sub-possibilities
         if deep and hasattr(source, 'SubPossibilitiesOS') and source.SubPossibilitiesOS.Count > 0:
             for sub_item in source.SubPossibilitiesOS:
-                # Recursively duplicate each sub-possibility
-                sub_factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
-                sub_dup = sub_factory.Create()
-                duplicate.SubPossibilitiesOS.Add(sub_dup)
-
-                # Copy sub-item properties
-                if hasattr(sub_item, 'Name'):
-                    sub_dup.Name.CopyAlternatives(sub_item.Name)
-                if hasattr(sub_item, 'Description'):
-                    sub_dup.Description.CopyAlternatives(sub_item.Description)
-                if hasattr(sub_item, 'Abbreviation'):
-                    sub_dup.Abbreviation.CopyAlternatives(sub_item.Abbreviation)
+                self._DuplicateSubItemInto(sub_item, duplicate, deep=True)
 
         return duplicate
+
+    def _DuplicateSubItemInto(self, source_item, parent_dup, deep=True):
+        """Duplicate a sub-item into the specified parent's SubPossibilitiesOS."""
+        sub_factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
+        sub_dup = sub_factory.Create()
+        parent_dup.SubPossibilitiesOS.Add(sub_dup)
+
+        # Copy all properties (Name, Description, Abbreviation, Hidden, SortSpec)
+        sub_dup.Name.CopyAlternatives(source_item.Name)
+        if hasattr(source_item, 'Description'):
+            sub_dup.Description.CopyAlternatives(source_item.Description)
+        if hasattr(source_item, 'Abbreviation'):
+            sub_dup.Abbreviation.CopyAlternatives(source_item.Abbreviation)
+        if hasattr(source_item, 'Hidden'):
+            sub_dup.Hidden = source_item.Hidden
+        if hasattr(source_item, 'SortSpec'):
+            sub_dup.SortSpec = source_item.SortSpec
+
+        # Recurse into nested sub-items
+        if deep and hasattr(source_item, 'SubPossibilitiesOS') and source_item.SubPossibilitiesOS.Count > 0:
+            for nested_item in source_item.SubPossibilitiesOS:
+                self._DuplicateSubItemInto(nested_item, sub_dup, deep=True)
 
     # ========== SYNC INTEGRATION METHODS ==========
 

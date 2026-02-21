@@ -2626,12 +2626,37 @@ class DataNotebookOperations(BaseOperations):
 
         # Handle owned objects if deep=True
         if deep:
-            # Duplicate sub-records
+            # Duplicate sub-records into the NEW duplicate (not the original's parent)
             if hasattr(source, 'SubRecordsOS'):
                 for subrecord in source.SubRecordsOS:
-                    self.Duplicate(subrecord, insert_after=False, deep=True)
+                    self._DuplicateSubRecordInto(subrecord, duplicate, deep=True)
 
         return duplicate
+
+    def _DuplicateSubRecordInto(self, source_rec, parent_dup, deep=True):
+        """Duplicate a sub-record into the specified parent's SubRecordsOS."""
+        factory = self.project.project.ServiceLocator.GetService(IRnGenericRecFactory)
+        dup_rec = factory.Create()
+        parent_dup.SubRecordsOS.Add(dup_rec)
+
+        # Copy properties
+        dup_rec.Title.CopyAlternatives(source_rec.Title)
+        dup_rec.Text.CopyAlternatives(source_rec.Text)
+
+        if hasattr(source_rec, 'Type') and source_rec.Type:
+            dup_rec.Type = source_rec.Type
+        if hasattr(source_rec, 'Status') and source_rec.Status:
+            dup_rec.Status = source_rec.Status
+        if hasattr(source_rec, 'Confidence') and source_rec.Confidence:
+            dup_rec.Confidence = source_rec.Confidence
+
+        if hasattr(source_rec, 'DateOfEvent') and source_rec.DateOfEvent:
+            dup_rec.DateOfEvent = source_rec.DateOfEvent
+
+        # Recurse into nested sub-records
+        if deep and hasattr(source_rec, 'SubRecordsOS'):
+            for nested_rec in source_rec.SubRecordsOS:
+                self._DuplicateSubRecordInto(nested_rec, dup_rec, deep=True)
 
     # ========== SYNC INTEGRATION METHODS ==========
 

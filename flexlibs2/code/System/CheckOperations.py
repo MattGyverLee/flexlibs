@@ -1402,12 +1402,28 @@ class CheckOperations(BaseOperations):
         # Note: Check state and results are not copied
         # The duplicate starts as disabled with no results
 
-        # Deep copy: duplicate sub-checks
+        # Deep copy: duplicate sub-checks into the NEW duplicate
         if deep and hasattr(check_obj, 'SubPossibilitiesOS') and check_obj.SubPossibilitiesOS.Count > 0:
             for sub in check_obj.SubPossibilitiesOS:
-                self.Duplicate(sub, insert_after=False, deep=True)
+                self._DuplicateSubCheckInto(sub, duplicate, deep=True)
 
         return duplicate
+
+    def _DuplicateSubCheckInto(self, source_check, parent_dup, deep=True):
+        """Duplicate a sub-check into the specified parent's SubPossibilitiesOS."""
+        factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
+        dup_check = factory.Create()
+        parent_dup.SubPossibilitiesOS.Add(dup_check)
+
+        # Copy properties
+        dup_check.Name.CopyAlternatives(source_check.Name)
+        if hasattr(source_check, 'Description') and source_check.Description:
+            dup_check.Description.CopyAlternatives(source_check.Description)
+
+        # Recurse into nested sub-checks
+        if deep and hasattr(source_check, 'SubPossibilitiesOS') and source_check.SubPossibilitiesOS.Count > 0:
+            for nested_check in source_check.SubPossibilitiesOS:
+                self._DuplicateSubCheckInto(nested_check, dup_check, deep=True)
 
     # ========== SYNC INTEGRATION METHODS ==========
 

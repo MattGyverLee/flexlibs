@@ -16,6 +16,7 @@ from SIL.LCModel import (
     IText,
     ITextFactory,
     IStTextFactory,
+    IStTxtParaFactory,
     ITextRepository,
     IStTxtPara,
     ICmPossibility,
@@ -287,31 +288,30 @@ class TextOperations(BaseOperations):
             new_name = f"{source_name} (copy {counter})"
             counter += 1
 
-        # Create the new text
+        # Create the new text (sets Name and Genre via Create helper)
         new_text = self.Create(new_name, genre=source_genre)
 
-        # Copy abbreviation if present
-        abbrev = self.GetAbbreviation(text_obj, wsHandle)
-        if abbrev:
-            # Set abbreviation (we need to add this method if it doesn't exist)
-            # For now, we'll just skip it as there's no SetAbbreviation visible
-            pass
+        # Copy remaining MultiString properties (all writing systems)
+        if hasattr(text_obj, 'Abbreviation') and text_obj.Abbreviation:
+            new_text.Abbreviation.CopyAlternatives(text_obj.Abbreviation)
+        if hasattr(text_obj, 'Title') and text_obj.Title:
+            new_text.Title.CopyAlternatives(text_obj.Title)
+        if hasattr(text_obj, 'Description') and text_obj.Description:
+            new_text.Description.CopyAlternatives(text_obj.Description)
+        if hasattr(text_obj, 'Source') and text_obj.Source:
+            new_text.Source.CopyAlternatives(text_obj.Source)
 
-        # Deep duplication: duplicate all paragraphs
+        # Deep duplication: copy paragraph contents
         if deep:
             paragraphs = self.GetParagraphs(text_obj)
             for para in paragraphs:
-                if hasattr(self.project, 'Paragraphs') and hasattr(self.project.Paragraphs, 'Duplicate'):
-                    # Duplicate each paragraph into the new text
-                    # Note: We need to pass new_text as the target parent
-                    # For now, use Create to copy paragraph content
-                    para_text = para.Contents.Text if para.Contents else ""
-                    if para_text:
-                        # Get the writing system from the paragraph
-                        ws = self.project.project.DefaultVernWs
-                        # Use Paragraphs.Create to add to new text
-                        if hasattr(self.project, 'Paragraphs'):
-                            self.project.Paragraphs.Create(new_text, para_text, ws)
+                if para.Contents:
+                    # Copy the full TsString (preserves formatting and all WS runs)
+                    para_factory = self.project.project.ServiceLocator.GetService(
+                        IStTxtParaFactory)
+                    new_para = para_factory.Create()
+                    new_text.ContentsOA.ParagraphsOS.Add(new_para)
+                    new_para.Contents = para.Contents
 
         return new_text
 

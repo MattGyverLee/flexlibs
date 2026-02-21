@@ -364,6 +364,11 @@ class MediaOperations(BaseOperations):
         # Create the new media reference
         new_media = self.Create(new_path, label=new_label, wsHandle=wsHandle)
 
+        # Copy full Description MultiString (all writing systems)
+        # Create() only sets a single-WS label; CopyAlternatives preserves all WS
+        if hasattr(source_media, 'Description') and source_media.Description:
+            new_media.Description.CopyAlternatives(source_media.Description)
+
         return new_media
 
     # ========== SYNC INTEGRATION METHODS ==========
