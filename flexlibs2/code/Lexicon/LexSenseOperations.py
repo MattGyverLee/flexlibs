@@ -13,6 +13,7 @@
 
 import logging
 import os
+import System
 logger = logging.getLogger(__name__)
 
 # Import BaseOperations parent class
@@ -2687,6 +2688,36 @@ class LexSenseOperations(BaseOperations):
 
     # --- Reference Collection Properties ---
 
+    def _find_possibility_by_name(self, list_name, item_name):
+        """
+        Helper to find a possibility item by name in a possibility list.
+
+        Args:
+            list_name (str): Name of the possibility list (e.g., "Usage Types", "Semantic Domains")
+            item_name (str): Name of the item to find within the list
+
+        Returns:
+            The possibility item object if found, None otherwise
+        """
+        # Find the possibility list by name
+        poss_list = None
+        for plist in self.project.PossibilityLists.GetAllLists():
+            plist_name = best_analysis_text(plist.Name) if plist.Name else None
+            if plist_name == list_name:
+                poss_list = plist
+                break
+
+        if not poss_list:
+            return None
+
+        # Search through items in the list for name match
+        for item in self.project.PossibilityLists.GetItems(poss_list, flat=True):
+            item_text = best_analysis_text(item.Name) if item.Name else None
+            if item_text == item_name:
+                return item
+
+        return None
+
     def GetUsageTypes(self, sense_or_hvo):
         """Get the usage types of a sense."""
         if not sense_or_hvo:
@@ -2699,13 +2730,20 @@ class LexSenseOperations(BaseOperations):
         return result
 
     def AddUsageType(self, sense_or_hvo, usage_type):
-        """Add a usage type to a sense."""
+        """Add a usage type to a sense. Accepts string name or object."""
         if not self.project.writeEnabled:
             raise FP_ReadOnlyError()
         if not sense_or_hvo or not usage_type:
             raise FP_NullParameterError()
         sense = self.__GetSenseObject(sense_or_hvo)
-        # TODO: Find usage type object from name if string provided
+
+        # If string, look it up
+        if isinstance(usage_type, str):
+            usage_type_name = usage_type
+            usage_type = self._find_possibility_by_name("Usage Types", usage_type_name)
+            if not usage_type:
+                raise FP_ParameterError(f"Usage type '{usage_type_name}' not found")
+
         if usage_type not in sense.UsageTypesRC:
             sense.UsageTypesRC.Add(usage_type)
 
@@ -2731,13 +2769,20 @@ class LexSenseOperations(BaseOperations):
         return result
 
     def AddDomainType(self, sense_or_hvo, domain_type):
-        """Add a domain type to a sense."""
+        """Add a domain type to a sense. Accepts string name or object."""
         if not self.project.writeEnabled:
             raise FP_ReadOnlyError()
         if not sense_or_hvo or not domain_type:
             raise FP_NullParameterError()
         sense = self.__GetSenseObject(sense_or_hvo)
-        # TODO: Find domain type object from name if string provided
+
+        # If string, look it up
+        if isinstance(domain_type, str):
+            domain_type_name = domain_type
+            domain_type = self._find_possibility_by_name("Semantic Domains", domain_type_name)
+            if not domain_type:
+                raise FP_ParameterError(f"Domain type '{domain_type_name}' not found")
+
         if domain_type not in sense.DomainTypesRC:
             sense.DomainTypesRC.Add(domain_type)
 
@@ -2763,13 +2808,20 @@ class LexSenseOperations(BaseOperations):
         return result
 
     def AddAnthroCode(self, sense_or_hvo, anthro_code):
-        """Add an anthropology code to a sense."""
+        """Add an anthropology code to a sense. Accepts string name or object."""
         if not self.project.writeEnabled:
             raise FP_ReadOnlyError()
         if not sense_or_hvo or not anthro_code:
             raise FP_NullParameterError()
         sense = self.__GetSenseObject(sense_or_hvo)
-        # TODO: Find anthro code object from name if string provided
+
+        # If string, look it up
+        if isinstance(anthro_code, str):
+            anthro_code_name = anthro_code
+            anthro_code = self._find_possibility_by_name("Anthropology Categories", anthro_code_name)
+            if not anthro_code:
+                raise FP_ParameterError(f"Anthropology code '{anthro_code_name}' not found")
+
         if anthro_code not in sense.AnthroCodesRC:
             sense.AnthroCodesRC.Add(anthro_code)
 
@@ -2877,7 +2929,7 @@ class LexSenseOperations(BaseOperations):
                 is_subentry = any(item.Hvo == owner_entry.Hvo for item in lex_ref.PrimaryLexemesRS)
                 if not is_subentry:
                     result.append(lex_ref)
-            except:
+            except (AttributeError, System.NullReferenceException) as e:
                 result.append(lex_ref)
 
         return result
@@ -2981,16 +3033,121 @@ class LexSenseOperations(BaseOperations):
 
     # --- Pattern 7: MergeObject (Sense merging) ---
 
+    def __GetSenseSignature(self, sense):
+        """
+        Generate a signature for sense duplicate detection.
+
+        Two senses with identical signatures are considered duplicates and can be merged.
+        Signature is based on:
+        - Gloss values across all writing systems
+        - Definition values across all writing systems
+        - Semantic domain references
+
+        Args:
+            sense: The ILexSense object
+
+        Returns:
+            tuple: Hashable signature (gloss_dict, definition_dict, semantic_domains_tuple)
+                  that uniquely identifies the sense content
+        """
+        try:
+            # Get gloss across all writing systems
+            gloss_dict = {}
+            for ws in self.project.project.WritingSystemManager.AllWritingSystems:
+                ws_handle = ws.Handle
+                gloss_text = ITsString(sense.Gloss.get_String(ws_handle)).Text if sense.Gloss else ""
+                if gloss_text:
+                    gloss_dict[ws_handle] = gloss_text
+
+            # Get definition across all writing systems
+            definition_dict = {}
+            for ws in self.project.project.WritingSystemManager.AllWritingSystems:
+                ws_handle = ws.Handle
+                def_text = ITsString(sense.Definition.get_String(ws_handle)).Text if sense.Definition else ""
+                if def_text:
+                    definition_dict[ws_handle] = def_text
+
+            # Get semantic domains (as tuple of GUIDs for hashability)
+            semantic_domains = tuple(
+                sorted([str(domain.Guid) for domain in sense.SemanticDomainsRC])
+            )
+
+            # Create signature tuple
+            sig = (
+                frozenset(gloss_dict.items()),
+                frozenset(definition_dict.items()),
+                semantic_domains
+            )
+
+            return sig
+
+        except Exception as e:
+            logger.debug(f"Could not generate sense signature: {e}")
+            return None
+
+    def __FindDuplicateSensesInEntry(self, entry):
+        """
+        Find duplicate senses within an entry.
+
+        Returns a list of (first_sense, [duplicate_senses]) tuples, where all senses
+        in each group have identical signatures.
+
+        Args:
+            entry: The ILexEntry object
+
+        Returns:
+            list: List of tuples (master_sense, [duplicate_sense_list])
+                  Empty list if no duplicates found
+        """
+        if not entry.SensesOS:
+            return []
+
+        # Build signature map
+        sig_map = {}
+        for sense in entry.SensesOS:
+            sig = self.__GetSenseSignature(sense)
+            if sig:
+                if sig not in sig_map:
+                    sig_map[sig] = []
+                sig_map[sig].append(sense)
+
+        # Find groups with duplicates (more than one sense with same signature)
+        duplicates = []
+        for sig, senses in sig_map.items():
+            if len(senses) > 1:
+                # Keep first sense, mark rest as duplicates
+                master = senses[0]
+                dupes = senses[1:]
+                duplicates.append((master, dupes))
+                logger.debug(
+                    f"Found {len(dupes)} duplicate sense(s) with gloss/definition: "
+                    f"{sig[0]} / {sig[1]}"
+                )
+
+        return duplicates
+
     def MergeObject(self, survivor_or_hvo, victim_or_hvo, fLoseNoStringData=True):
         """
         Merge one sense into another (IRREVERSIBLE operation).
 
         This method merges all data from the victim sense into the survivor sense,
-        then deletes the victim. This is simpler than entry merging but still handles:
+        then deletes the victim. This handles:
         - MultiString merging (Definition, Gloss, etc.)
         - Collection merging (examples, subsenses, etc.)
         - Back-reference updating
         - Special semicolon separator for Definition and Gloss
+        - Auto-deduplication of duplicate senses in victim's parent entry
+
+        Auto-Deduplication:
+            If the victim sense's parent entry contains other duplicate senses (senses
+            with identical gloss and definition), they are automatically merged into the
+            survivor sense before the main merge. This prevents duplicate "simple" senses
+            from accumulating during operations.
+
+            Duplicates are detected using a signature based on:
+            - Gloss values (per writing system)
+            - Definition values (per writing system)
+            - Semantic domain references
 
         Args:
             survivor_or_hvo: Sense that will receive merged data (HVO or ILexSense)
@@ -3011,6 +3168,7 @@ class LexSenseOperations(BaseOperations):
             >>> remove = project.Senses.Find(...)
             >>> project.Senses.MergeObject(keep, remove, fLoseNoStringData=True)
             >>> # 'remove' is now deleted, data merged into 'keep'
+            >>> # Any other duplicates in the entry are also merged
 
             >>> # Result with fLoseNoStringData=True:
             >>> # Definition: "defn 1; defn 2" (SEMICOLON separator!)
@@ -3020,6 +3178,7 @@ class LexSenseOperations(BaseOperations):
             - This operation is IRREVERSIBLE (victim is deleted)
             - Definition and Gloss use SEMICOLON separator, not space!
             - Back-references are automatically updated
+            - Duplicate senses in victim's entry are auto-merged
             - Based on FLEx LexSense.MergeObject
 
         See Also:
@@ -3043,7 +3202,28 @@ class LexSenseOperations(BaseOperations):
         if survivor.Hvo == victim.Hvo:
             raise FP_ParameterError("Cannot merge sense into itself")
 
-        # Merge Definition with semicolon separator
+        # Step 1: Auto-deduplicate other senses in victim's entry
+        # If victim is part of an entry, find and merge any duplicate senses first
+        if victim.OwningList is not None:
+            entry = victim.Owner
+            if entry and hasattr(entry, 'SensesOS'):
+                duplicates = self.__FindDuplicateSensesInEntry(entry)
+                if duplicates:
+                    for master, dupes in duplicates:
+                        for dupe in dupes:
+                            # Skip if this dupe is the victim (it will be merged separately)
+                            if dupe.Hvo != victim.Hvo:
+                                logger.info(
+                                    f"Auto-merging duplicate sense (HVO: {dupe.Hvo}) "
+                                    f"into master (HVO: {master.Hvo})"
+                                )
+                                try:
+                                    self.MergeObject(master, dupe, fLoseNoStringData)
+                                except FP_ParameterError as e:
+                                    # Log but continue if a sense was already deleted
+                                    logger.debug(f"Could not auto-merge duplicate sense: {e}")
+
+        # Step 2: Merge Definition with semicolon separator
         if fLoseNoStringData:
             self.__MergeMultiStringProperty(
                 survivor.Definition,

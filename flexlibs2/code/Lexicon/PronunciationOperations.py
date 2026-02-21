@@ -250,7 +250,6 @@ class PronunciationOperations(BaseOperations):
             entry.PronunciationsOS.Remove(pronunciation)
 
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
-        # TODO: determine if this is needed.
         """
         Duplicate a pronunciation, creating a new copy with a new GUID.
 

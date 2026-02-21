@@ -10,6 +10,10 @@ Date: 2025-11-22
 """
 
 from typing import Union, Any, Optional
+import clr
+clr.AddReference("System")
+import System
+
 from .types import HVO
 
 
@@ -19,26 +23,40 @@ def resolve_object(obj_or_hvo: Union[Any, HVO], project: Any) -> Optional[Any]:
 
     This is a generic resolver that works with any FLEx object type.
 
+    Handles both direct object parameters (returns as-is) and integer HVO (Heap Variable
+    Object) IDs by looking them up via the FLEx API.
+
     Args:
         obj_or_hvo: Either a FLEx object or its HVO (integer identifier)
-        project: The FLExProject instance
+        project: The FLExProject instance for object lookups
 
     Returns:
-        The FLEx object, or None if not found
+        The FLEx object, or None if obj_or_hvo is None
+
+    Raises:
+        ValueError: If HVO not found in project
+        TypeError: If obj_or_hvo is neither object nor int, or project doesn't have Object method
 
     Example:
         >>> obj = resolve_object(text_or_hvo, self.project)
         >>> if obj is None:
         ...     raise ValueError("Object not found")
     """
-    if isinstance(obj_or_hvo, int):
-        # It's an HVO, look up the object
-        # TODO: Integrate with FLEx API
-        # return project.GetObject(obj_or_hvo)
-        raise NotImplementedError("FLEx API integration pending")
-    else:
-        # Assume it's already a FLEx object
+    # Handle None case
+    if obj_or_hvo is None:
+        return None
+
+    # If not an integer, assume it's already an object
+    if not isinstance(obj_or_hvo, int):
         return obj_or_hvo
+
+    # If integer HVO, look up via FLEx API
+    try:
+        return project.Object(obj_or_hvo)
+    except (KeyError, System.Collections.Generic.KeyNotFoundException) as e:
+        raise ValueError(f"Object with HVO {obj_or_hvo} not found: {e}")
+    except AttributeError as e:
+        raise TypeError(f"project.Object() not available: {e}")
 
 
 def resolve_text(text_or_hvo: Union[Any, HVO], project: Any) -> Optional[Any]:

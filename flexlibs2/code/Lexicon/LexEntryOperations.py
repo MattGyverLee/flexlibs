@@ -2672,6 +2672,18 @@ class LexEntryOperations(BaseOperations):
         - Component replacement in complex forms
         - Back-reference updating
         - Data preservation based on fLoseNoStringData flag
+        - Auto-deduplication of duplicate senses
+
+        Auto-Deduplication:
+            After merging senses from victim to survivor, any duplicate senses
+            (senses with identical gloss and definition) are automatically merged
+            together. This prevents "simple" duplicate senses from accumulating
+            during the merge operation.
+
+            Duplicates are detected using a signature based on:
+            - Gloss values (per writing system)
+            - Definition values (per writing system)
+            - Semantic domain references
 
         Args:
             survivor_or_hvo: Entry that will receive merged data (HVO or ILexEntry)
@@ -2692,6 +2704,7 @@ class LexEntryOperations(BaseOperations):
             >>> duplicate = project.LexEntry.Find("run")  # Duplicate with same form
             >>> project.LexEntry.MergeObject(main, duplicate)
             >>> # 'duplicate' is now deleted, all data merged into 'main'
+            >>> # Any duplicate senses are also auto-merged
 
             >>> # Merge with different lexeme forms (creates alternate)
             >>> entry1 = project.LexEntry.Find("color")
@@ -2705,6 +2718,7 @@ class LexEntryOperations(BaseOperations):
             - Back-references are automatically updated
             - Circular references are prevented
             - Alternate forms created if lexeme forms differ
+            - Duplicate senses are automatically merged
             - Based on FLEx LexEntry.MergeObject (OverridesLing_Lex.cs:3432-3548)
 
         Implementation follows FLEx merge algorithm:
@@ -2714,11 +2728,12 @@ class LexEntryOperations(BaseOperations):
             4. Remove circular references
             5. Fix LexEntryRef components
             6. Call base merge for all properties
-            7. Merge equivalent alternate forms
-            8. Merge equivalent MSAs
-            9. Update homograph numbers
-            10. Update incoming references
-            11. Delete victim entry
+            7. Auto-deduplicate duplicate senses
+            8. Merge equivalent alternate forms
+            9. Merge equivalent MSAs
+            10. Update homograph numbers
+            11. Update incoming references
+            12. Delete victim entry
 
         See Also:
             LexSense.MergeObject - For merging senses
@@ -2775,6 +2790,10 @@ class LexEntryOperations(BaseOperations):
         # Step 5: Merge all properties
         self.__MergeAllProperties(survivor, victim, fLoseNoStringData)
 
+        # Step 5b: Auto-deduplicate senses in merged entry
+        # After merging senses from victim to survivor, check for duplicates
+        self.__DeduplicateSensesInEntry(survivor)
+
         # Step 6: Merge equivalent alternate forms
         # TODO: Implementation of alternate form merging
 
@@ -2785,7 +2804,26 @@ class LexEntryOperations(BaseOperations):
         # Get all entries with same form
         if survivor.LexemeFormOA:
             form_key = best_vernacular_text(survivor.LexemeFormOA.Form)
-            # TODO: Homograph renumbering
+
+            # Get all entries with the same lexeme form
+            matching_entries = []
+            for entry in self.GetAll():
+                if entry.LexemeFormOA:
+                    entry_form = best_vernacular_text(entry.LexemeFormOA.Form)
+                    if entry_form == form_key:
+                        matching_entries.append(entry)
+
+            # Sort by HVO for stability (ensures consistent ordering)
+            matching_entries.sort(key=lambda e: e.Hvo)
+
+            # Renumber sequentially: 0 if single entry, 1,2,3... if multiple
+            for idx, entry in enumerate(matching_entries):
+                if len(matching_entries) > 1:
+                    entry.HomographNumber = idx + 1  # 1-based numbering for homographs
+                else:
+                    entry.HomographNumber = 0  # No homograph number for single entry
+
+            logger.debug(f"Renumbered {len(matching_entries)} entries with form '{form_key}'")
 
         # Step 9: Replace all incoming references to victim with survivor
         self.__ReplaceIncomingReferences(survivor, victim)
@@ -3028,6 +3066,70 @@ class LexEntryOperations(BaseOperations):
         # TODO: Implementation requires access to incoming references cache
         # This is complex and requires LCM's internal reference tracking
         pass
+
+    def __DeduplicateSensesInEntry(self, entry):
+        """
+        Detect and merge duplicate senses within an entry.
+
+        This is called after merging entries to clean up any duplicate senses
+        that resulted from the merge. Duplicates are detected by comparing:
+        - Gloss values (per writing system)
+        - Definition values (per writing system)
+        - Semantic domain references
+
+        Senses with identical signatures are merged into the first occurrence.
+
+        Args:
+            entry: The ILexEntry to deduplicate
+
+        Notes:
+            - Uses project.Senses.MergeObject() for actual merging
+            - Logs all auto-merged duplicates
+            - Stops on error to prevent cascading failures
+        """
+        if not entry.SensesOS or len(entry.SensesOS) < 2:
+            return  # No duplicates possible
+
+        try:
+            # Get sense operations instance
+            sense_ops = self.project.Senses
+
+            # Build signature map for all senses in entry
+            sig_map = {}
+            for sense in entry.SensesOS:
+                sig = sense_ops._LexSenseOperations__GetSenseSignature(sense)
+                if sig:
+                    if sig not in sig_map:
+                        sig_map[sig] = []
+                    sig_map[sig].append(sense)
+
+            # Find and merge duplicate groups
+            merged_count = 0
+            for sig, senses in sig_map.items():
+                if len(senses) > 1:
+                    # Keep first sense, merge rest into it
+                    master = senses[0]
+                    for dupe in senses[1:]:
+                        try:
+                            logger.info(
+                                f"Auto-merging duplicate sense in entry (HVO: {dupe.Hvo}) "
+                                f"into master sense (HVO: {master.Hvo})"
+                            )
+                            sense_ops.MergeObject(master, dupe, fLoseNoStringData=True)
+                            merged_count += 1
+                        except Exception as e:
+                            logger.warning(
+                                f"Could not auto-merge duplicate sense (HVO: {dupe.Hvo}): {e}"
+                            )
+
+            if merged_count > 0:
+                logger.info(
+                    f"Auto-deduplicated {merged_count} duplicate sense(s) in entry (HVO: {entry.Hvo})"
+                )
+
+        except Exception as e:
+            logger.warning(f"Error during sense deduplication: {e}")
+            # Don't fail the whole merge operation if deduplication fails
 
     # --- Private Helper Methods ---
 
