@@ -776,7 +776,7 @@ class ConfidenceOperations(BaseOperations):
         for analysis in analysis_repo.AllInstances():
             # Check if this analysis has this confidence level
             # Note: IWfiAnalysis may have Confidence property as reference
-            if hasattr(analysis, 'Confidence') and analysis.ConfidenceRA:
+            if hasattr(analysis, 'ConfidenceRA') and analysis.ConfidenceRA:
                 if analysis.ConfidenceRA.Hvo == level_hvo:
                     analyses.append(analysis)
 
@@ -840,7 +840,7 @@ class ConfidenceOperations(BaseOperations):
         for gloss in gloss_repo.AllInstances():
             # Check if this gloss has this confidence level
             # Note: IWfiGloss may have Confidence property as reference
-            if hasattr(gloss, 'Confidence') and gloss.ConfidenceRA:
+            if hasattr(gloss, 'ConfidenceRA') and gloss.ConfidenceRA:
                 if gloss.ConfidenceRA.Hvo == level_hvo:
                     glosses.append(gloss)
 
