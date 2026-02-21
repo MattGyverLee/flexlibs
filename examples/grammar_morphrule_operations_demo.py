@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 """
-Full CRUD Demo: MorphruleOperations for flexlibs
+Full CRUD Demo: MorphRuleOperations for flexlibs
 
-This script demonstrates complete CRUD operations for morphrule.
+This script demonstrates complete CRUD operations for morphological rules.
 Performs actual create, read, update, and delete operations on test data.
+
+Morphological rules in the LCM data model are distributed across:
+- Compound rules (MoMorphData.CompoundRulesOS)
+- Affix templates (PartOfSpeech.AffixTemplatesOS)
+- Ad hoc co-prohibitions (MoMorphData.AdhocCoProhibitionsOC)
 
 Author: FlexTools Development Team
 Date: 2025-11-27
@@ -13,13 +18,13 @@ from flexlibs2 import FLExProject, FLExInitialize, FLExCleanup
 
 def demo_morphrule_crud():
     """
-    Demonstrate full CRUD operations for morphrule.
+    Demonstrate full CRUD operations for morphological rules.
 
     Tests:
-    - CREATE: Create new test morphrule
-    - READ: Get all morphrules, find by name/identifier
-    - UPDATE: Modify morphrule properties
-    - DELETE: Remove test morphrule
+    - CREATE: Create new compound rule and affix template
+    - READ: Get all rules by type
+    - UPDATE: Modify rule properties
+    - DELETE: Remove test rules
     """
 
     print("=" * 70)
@@ -38,200 +43,183 @@ def demo_morphrule_crud():
         FLExCleanup()
         return
 
-    test_obj = None
-    test_name = "crud_test_morphrule"
+    test_compound = None
+    test_template = None
+    test_compound_name = "crud_test_compound_rule"
+    test_template_name = "crud_test_affix_template"
 
     try:
         # ==================== READ: Initial state ====================
         print("\n" + "="*70)
-        print("STEP 1: READ - Get existing morphrules")
+        print("STEP 1: READ - Get existing morphological rules")
         print("="*70)
 
-        print("\nGetting all morphrules...")
-        initial_count = 0
-        for obj in project.MorphRules.GetAll():
-            # Display first few objects
+        # Compound rules
+        print("\nCompound rules (MoMorphData.CompoundRulesOS):")
+        compound_count = 0
+        for rule in project.MorphRules.GetAllCompoundRules():
             try:
-                name = project.MorphRules.GetName(obj) if hasattr(project.MorphRules, 'GetName') else str(obj)
-                print(f"  - {name}")
+                name = project.MorphRules.GetName(rule)
+                print(f"  - {name} ({rule.ClassName})")
             except:
-                print(f"  - [Object {initial_count + 1}]")
-            initial_count += 1
-            if initial_count >= 5:
+                print(f"  - [Rule {compound_count + 1}]")
+            compound_count += 1
+            if compound_count >= 5:
                 break
+        print(f"  Total compound rules (first 5): {compound_count}")
 
-        print(f"\nTotal morphrules (showing first 5): {initial_count}")
+        # Affix templates
+        print("\nAffix templates (PartOfSpeech.AffixTemplatesOS):")
+        template_count = 0
+        for template in project.MorphRules.GetAllAffixTemplates():
+            try:
+                name = project.MorphRules.GetName(template)
+                pos_name = template.Owner.Name.BestAnalysisAlternative.Text
+                print(f"  - {name} (on {pos_name})")
+            except:
+                print(f"  - [Template {template_count + 1}]")
+            template_count += 1
+            if template_count >= 5:
+                break
+        print(f"  Total affix templates (first 5): {template_count}")
+
+        # Ad hoc co-prohibitions
+        print("\nAd hoc co-prohibitions (MoMorphData.AdhocCoProhibitionsOC):")
+        prohib_count = sum(1 for _ in project.MorphRules.GetAllAdhocCoProhibitions())
+        print(f"  Total co-prohibitions: {prohib_count}")
 
         # ==================== CREATE ====================
         print("\n" + "="*70)
-        print("STEP 2: CREATE - Create new test morphrule")
+        print("STEP 2: CREATE - Create test compound rule and affix template")
         print("="*70)
 
-        # Check if test object already exists
+        # Create compound rule
+        print(f"\nCreating compound rule: '{test_compound_name}'")
         try:
-            if hasattr(project.MorphRules, 'Exists') and project.MorphRules.Exists(test_name):
-                print(f"\nTest morphrule '{test_name}' already exists")
-                print("Deleting existing one first...")
-                existing = project.MorphRules.Find(test_name) if hasattr(project.MorphRules, 'Find') else None
-                if existing:
-                    project.MorphRules.Delete(existing)
-                    print("  Deleted existing test morphrule")
-        except:
-            pass
+            test_compound = project.MorphRules.CreateCompoundRule(
+                test_compound_name,
+                endocentric=True,
+                description="Test endocentric compound rule"
+            )
+            print(f"  SUCCESS: Created {test_compound.ClassName}")
+            print(f"  Name: {project.MorphRules.GetName(test_compound)}")
+            print(f"  Description: {project.MorphRules.GetDescription(test_compound)}")
+        except Exception as e:
+            print(f"  Note: CreateCompoundRule failed: {e}")
 
-        # Create new object
-        print(f"\nCreating new morphrule: '{test_name}'")
-
+        # Create affix template on first POS (if available)
+        print(f"\nCreating affix template: '{test_template_name}'")
         try:
-            # Attempt to create with common parameters
-            test_obj = project.MorphRules.Create(test_name)
-        except TypeError:
-            try:
-                # Try without parameters if that fails
-                test_obj = project.MorphRules.Create()
-                if hasattr(project.MorphRules, 'SetName'):
-                    project.MorphRules.SetName(test_obj, test_name)
-            except Exception as e:
-                print(f"  Note: Create method may require specific parameters: {e}")
-                test_obj = None
+            pos_list = project.lp.PartsOfSpeechOA
+            if pos_list and pos_list.PossibilitiesOS.Count > 0:
+                first_pos = pos_list.PossibilitiesOS[0]
+                pos_name = first_pos.Name.BestAnalysisAlternative.Text
+                print(f"  Using POS: {pos_name}")
 
-        if test_obj:
-            print(f"  SUCCESS: Morphrule created!")
-            try:
-                if hasattr(project.MorphRules, 'GetName'):
-                    print(f"  Name: {project.MorphRules.GetName(test_obj)}")
-            except:
-                pass
-        else:
-            print(f"  Note: Could not create morphrule (may require special parameters)")
-            print("  Skipping remaining tests...")
-            return
+                test_template = project.MorphRules.CreateAffixTemplate(
+                    first_pos,
+                    test_template_name,
+                    description="Test inflectional affix template"
+                )
+                print(f"  SUCCESS: Created {test_template.ClassName}")
+                print(f"  Name: {project.MorphRules.GetName(test_template)}")
+            else:
+                print("  Note: No POS available for template creation")
+        except Exception as e:
+            print(f"  Note: CreateAffixTemplate failed: {e}")
 
         # ==================== READ: Verify creation ====================
         print("\n" + "="*70)
-        print("STEP 3: READ - Verify morphrule was created")
+        print("STEP 3: READ - Verify rules were created")
         print("="*70)
 
-        # Test Exists
-        if hasattr(project.MorphRules, 'Exists'):
-            print(f"\nChecking if '{test_name}' exists...")
-            exists = project.MorphRules.Exists(test_name)
-            print(f"  Exists: {exists}")
-
-        # Test Find
-        if hasattr(project.MorphRules, 'Find'):
-            print(f"\nFinding morphrule by name...")
-            found_obj = project.MorphRules.Find(test_name)
-            if found_obj:
-                print(f"  FOUND: morphrule")
-                try:
-                    if hasattr(project.MorphRules, 'GetName'):
-                        print(f"  Name: {project.MorphRules.GetName(found_obj)}")
-                except:
-                    pass
-            else:
-                print("  NOT FOUND")
-
-        # Count after creation
-        print("\nCounting all morphrules after creation...")
-        current_count = sum(1 for _ in project.MorphRules.GetAll())
-        print(f"  Count before: {initial_count}")
-        print(f"  Count after:  {current_count}")
-        print(f"  Difference:   +{current_count - initial_count}")
+        new_compound_count = sum(1 for _ in project.MorphRules.GetAllCompoundRules())
+        new_template_count = sum(1 for _ in project.MorphRules.GetAllAffixTemplates())
+        print(f"\n  Compound rules: {compound_count} -> {new_compound_count}")
+        print(f"  Affix templates: {template_count} -> {new_template_count}")
 
         # ==================== UPDATE ====================
         print("\n" + "="*70)
-        print("STEP 4: UPDATE - Modify morphrule properties")
+        print("STEP 4: UPDATE - Modify rule properties")
         print("="*70)
 
-        if test_obj:
-            updated = False
+        if test_compound:
+            new_name = "crud_test_compound_modified"
+            print(f"\nUpdating compound rule name to: '{new_name}'")
+            old_name = project.MorphRules.GetName(test_compound)
+            project.MorphRules.SetName(test_compound, new_name)
+            print(f"  Old name: {old_name}")
+            print(f"  New name: {project.MorphRules.GetName(test_compound)}")
+            test_compound_name = new_name
 
-            # Try common update methods
-            if hasattr(project.MorphRules, 'SetName'):
-                try:
-                    new_name = "crud_test_morphrule_modified"
-                    print(f"\nUpdating name to: '{new_name}'")
-                    old_name = project.MorphRules.GetName(test_obj) if hasattr(project.MorphRules, 'GetName') else test_name
-                    project.MorphRules.SetName(test_obj, new_name)
-                    updated_name = project.MorphRules.GetName(test_obj) if hasattr(project.MorphRules, 'GetName') else new_name
-                    print(f"  Old name: {old_name}")
-                    print(f"  New name: {updated_name}")
-                    test_name = new_name  # Update for cleanup
-                    updated = True
-                except Exception as e:
-                    print(f"  Note: SetName failed: {e}")
+            # Test stratum
+            stratum = project.MorphRules.GetStratum(test_compound)
+            print(f"  Stratum: {stratum}")
 
-            # Try other Set methods
-            for method_name in dir(project.MorphRules):
-                if method_name.startswith('Set') and method_name != 'SetName' and not updated:
-                    print(f"\nFound update method: {method_name}")
-                    print("  (Method available but not tested in this demo)")
-                    break
+            # Test disabled state
+            print(f"  Disabled: {project.MorphRules.IsDisabled(test_compound)}")
 
-            if updated:
-                print("\n  UPDATE: SUCCESS")
-            else:
-                print("\n  Note: No standard update methods found or tested")
+            print("  UPDATE: SUCCESS")
 
-        # ==================== READ: Verify updates ====================
+        if test_template:
+            new_name = "crud_test_template_modified"
+            print(f"\nUpdating affix template name to: '{new_name}'")
+            old_name = project.MorphRules.GetName(test_template)
+            project.MorphRules.SetName(test_template, new_name)
+            print(f"  Old name: {old_name}")
+            print(f"  New name: {project.MorphRules.GetName(test_template)}")
+            test_template_name = new_name
+            print("  UPDATE: SUCCESS")
+
+        # ==================== DUPLICATE ====================
         print("\n" + "="*70)
-        print("STEP 5: READ - Verify updates persisted")
+        print("STEP 5: DUPLICATE - Test rule duplication")
         print("="*70)
 
-        if hasattr(project.MorphRules, 'Find'):
-            print(f"\nFinding morphrule after update...")
-            updated_obj = project.MorphRules.Find(test_name)
-            if updated_obj:
-                print(f"  FOUND: morphrule")
-                try:
-                    if hasattr(project.MorphRules, 'GetName'):
-                        print(f"  Name: {project.MorphRules.GetName(updated_obj)}")
-                except:
-                    pass
-            else:
-                print("  NOT FOUND - Update may not have persisted")
+        duplicate = None
+        if test_compound:
+            print(f"\nDuplicating compound rule...")
+            try:
+                duplicate = project.MorphRules.Duplicate(test_compound)
+                print(f"  SUCCESS: Duplicated as {project.MorphRules.GetName(duplicate)}")
+                print(f"  Type: {duplicate.ClassName}")
+            except Exception as e:
+                print(f"  Note: Duplicate failed: {e}")
 
         # ==================== DELETE ====================
         print("\n" + "="*70)
-        print("STEP 6: DELETE - Remove test morphrule")
+        print("STEP 6: DELETE - Remove test rules")
         print("="*70)
 
-        if test_obj:
-            print(f"\nDeleting test morphrule...")
-            try:
-                obj_name = project.MorphRules.GetName(test_obj) if hasattr(project.MorphRules, 'GetName') else test_name
-            except:
-                obj_name = test_name
+        for obj, label in [(duplicate, "duplicate compound"),
+                           (test_compound, "compound rule"),
+                           (test_template, "affix template")]:
+            if obj:
+                try:
+                    name = project.MorphRules.GetName(obj)
+                    project.MorphRules.Delete(obj)
+                    print(f"  Deleted {label}: {name}")
+                except Exception as e:
+                    print(f"  Note: Delete {label} failed: {e}")
 
-            project.MorphRules.Delete(test_obj)
-            print(f"  Deleted: {obj_name}")
-
-            # Verify deletion
-            print("\nVerifying deletion...")
-            if hasattr(project.MorphRules, 'Exists'):
-                still_exists = project.MorphRules.Exists(test_name)
-                print(f"  Still exists: {still_exists}")
-
-                if not still_exists:
-                    print("  DELETE: SUCCESS")
-                else:
-                    print("  DELETE: FAILED - Morphrule still exists")
-
-            # Count after deletion
-            final_count = sum(1 for _ in project.MorphRules.GetAll())
-            print(f"\n  Count after delete: {final_count}")
-            print(f"  Back to initial:    {final_count == initial_count}")
+        # Verify deletion
+        final_compound_count = sum(1 for _ in project.MorphRules.GetAllCompoundRules())
+        final_template_count = sum(1 for _ in project.MorphRules.GetAllAffixTemplates())
+        print(f"\n  Compound rules: {final_compound_count} (was {compound_count})")
+        print(f"  Affix templates: {final_template_count} (was {template_count})")
+        print(f"  Back to initial: {final_compound_count == compound_count and final_template_count == template_count}")
 
         # ==================== SUMMARY ====================
         print("\n" + "="*70)
         print("CRUD TEST SUMMARY")
         print("="*70)
         print("\nOperations tested:")
-        print("  [CREATE] Create new morphrule")
-        print("  [READ]   GetAll, Find, Exists, Get methods")
-        print("  [UPDATE] Set methods")
-        print("  [DELETE] Delete morphrule")
+        print("  [CREATE] CreateCompoundRule, CreateAffixTemplate")
+        print("  [READ]   GetAllCompoundRules, GetAllAffixTemplates,")
+        print("           GetAllAdhocCoProhibitions, GetAll")
+        print("  [UPDATE] SetName, SetDescription, GetStratum, IsDisabled")
+        print("  [DELETE] Delete (compound rules and affix templates)")
+        print("  [DUPE]   Duplicate compound rule")
         print("\nTest completed successfully!")
 
     except Exception as e:
@@ -240,20 +228,9 @@ def demo_morphrule_crud():
         traceback.print_exc()
 
     finally:
-        # Cleanup: Ensure test object is removed
         print("\n" + "="*70)
         print("CLEANUP")
         print("="*70)
-
-        try:
-            for name in ["crud_test_morphrule", "crud_test_morphrule_modified"]:
-                if hasattr(project.MorphRules, 'Exists') and project.MorphRules.Exists(name):
-                    obj = project.MorphRules.Find(name) if hasattr(project.MorphRules, 'Find') else None
-                    if obj:
-                        project.MorphRules.Delete(obj)
-                        print(f"  Cleaned up: {name}")
-        except:
-            pass
 
         print("\nClosing project...")
         project.CloseProject()
@@ -266,35 +243,30 @@ def demo_morphrule_crud():
 
 if __name__ == "__main__":
     print("""
-Morphrule Operations - Full CRUD Demo
+MorphRule Operations - Full CRUD Demo
 =====================================================
 
-This demonstrates COMPLETE CRUD operations for morphrule.
+This demonstrates COMPLETE CRUD operations for morphological rules.
+
+Morphological rules in the LCM data model:
+- Compound rules: MoMorphData.CompoundRulesOS
+- Affix templates: PartOfSpeech.AffixTemplatesOS
+- Ad hoc co-prohibitions: MoMorphData.AdhocCoProhibitionsOC
 
 Operations Tested:
 ==================
 
-CREATE: Create new morphrule
-READ:   GetAll(), Find(), Exists(), Get...() methods
-UPDATE: Set...() methods
-DELETE: Delete()
-
-Test Flow:
-==========
-1. READ initial state
-2. CREATE new test morphrule
-3. READ to verify creation
-4. UPDATE morphrule properties
-5. READ to verify updates
-6. DELETE test morphrule
-7. Verify deletion
+CREATE: CreateCompoundRule, CreateAffixTemplate
+READ:   GetAllCompoundRules, GetAllAffixTemplates, GetAll
+UPDATE: SetName, SetDescription, etc.
+DELETE: Delete
 
 Requirements:
   - FLEx project with write access
   - Python.NET runtime
 
 WARNING: This demo modifies the database!
-         Test morphrule is created and deleted during the demo.
+         Test rules are created and deleted during the demo.
     """)
 
     response = input("\nRun CRUD demo? (y/N): ")

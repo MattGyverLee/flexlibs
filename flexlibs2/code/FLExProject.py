@@ -576,13 +576,12 @@ class FLExProject (object):
         Example:
             >>> project = FLExProject()
             >>> project.OpenProject("MyProject", writeEnabled=True)
-            >>> # Get all morphological rules
-            >>> for rule in project.MorphRules.GetAll():
+            >>> # Get all compound rules
+            >>> for rule in project.MorphRules.GetAllCompoundRules():
             ...     name = project.MorphRules.GetName(rule)
-            ...     active = project.MorphRules.IsActive(rule)
-            ...     print(f"{name}: {'active' if active else 'inactive'}")
-            >>> # Create a new rule
-            >>> rule = project.MorphRules.Create("Plural formation", "Lexical")
+            ...     print(f"{name} ({rule.ClassName})")
+            >>> # Create a compound rule
+            >>> rule = project.MorphRules.CreateCompoundRule("Noun-Noun Compound")
         """
         if not hasattr(self, '_morphrule_ops'):
             from .Grammar.MorphRuleOperations import MorphRuleOperations
