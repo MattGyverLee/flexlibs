@@ -1201,15 +1201,15 @@ class OverlayOperations(BaseOperations):
             try:
                 overlay_obj.CellsOS.Remove(element)
                 return
-            except (AttributeError, ValueError, System.InvalidOperationException):
-                pass
+            except (AttributeError, ValueError, System.InvalidOperationException) as e:
+                logger.debug(f"Failed to remove element from CellsOS: {type(e).__name__}: {e}")
 
         if hasattr(overlay_obj, 'MarkersRS'):
             try:
                 overlay_obj.MarkersRS.Remove(element)
                 return
-            except (AttributeError, ValueError, System.InvalidOperationException):
-                pass
+            except (AttributeError, ValueError, System.InvalidOperationException) as e:
+                logger.debug(f"Failed to remove element from MarkersRS: {type(e).__name__}: {e}")
 
         # If we get here, element wasn't in any collection
         logger.warning("Element not found in overlay or could not be removed")
