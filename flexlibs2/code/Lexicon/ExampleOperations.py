@@ -179,16 +179,12 @@ class ExampleOperations(BaseOperations):
         See Also:
             Delete, SetExample, SetTranslation
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
-        if example_text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
+        self._ValidateParam(example_text, "example_text")
 
-        if not example_text or not example_text.strip():
-            raise FP_ParameterError("Example text cannot be empty")
+        self._ValidateStringNotEmpty(example_text, "example_text")
 
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleVern(wsHandle)
@@ -237,11 +233,9 @@ class ExampleOperations(BaseOperations):
         See Also:
             Create, GetAll
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not example_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(example_or_hvo, "example_or_hvo")
 
         example = self.__GetExampleObject(example_or_hvo)
 
@@ -297,11 +291,9 @@ class ExampleOperations(BaseOperations):
         See Also:
             Create, Delete, GetGuid
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Get source example and parent
         source = self.__GetExampleObject(item_or_hvo)
@@ -445,13 +437,10 @@ class ExampleOperations(BaseOperations):
         See Also:
             GetAll, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
-        if example_list is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
+        self._ValidateParam(example_list, "example_list")
 
         sense = self.__GetSenseObject(sense_or_hvo)
 
@@ -511,8 +500,7 @@ class ExampleOperations(BaseOperations):
         See Also:
             SetExample, Create
         """
-        if not example_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(example_or_hvo, "example_or_hvo")
 
         example = self.__GetExampleObject(example_or_hvo)
         wsHandle = self.__WSHandleVern(wsHandle)
@@ -551,13 +539,10 @@ class ExampleOperations(BaseOperations):
         See Also:
             GetExample, Create, SetTranslation
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not example_or_hvo:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(example_or_hvo, "example_or_hvo")
+        self._ValidateParam(text, "text")
 
         example = self.__GetExampleObject(example_or_hvo)
         wsHandle = self.__WSHandleVern(wsHandle)
@@ -601,8 +586,7 @@ class ExampleOperations(BaseOperations):
         See Also:
             GetTranslation, SetTranslation, AddTranslation
         """
-        if not example_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(example_or_hvo, "example_or_hvo")
 
         example = self.__GetExampleObject(example_or_hvo)
         return list(example.TranslationsOC)
@@ -646,8 +630,7 @@ class ExampleOperations(BaseOperations):
         See Also:
             SetTranslation, GetTranslations, GetExample
         """
-        if not example_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(example_or_hvo, "example_or_hvo")
 
         example = self.__GetExampleObject(example_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -697,13 +680,10 @@ class ExampleOperations(BaseOperations):
         See Also:
             GetTranslation, AddTranslation, RemoveTranslation
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not example_or_hvo:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(example_or_hvo, "example_or_hvo")
+        self._ValidateParam(text, "text")
 
         example = self.__GetExampleObject(example_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -793,11 +773,9 @@ class ExampleOperations(BaseOperations):
         See Also:
             SetTranslation, AddTranslation, GetTranslation
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not example_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(example_or_hvo, "example_or_hvo")
 
         example = self.__GetExampleObject(example_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -841,8 +819,7 @@ class ExampleOperations(BaseOperations):
         See Also:
             SetReference
         """
-        if not example_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(example_or_hvo, "example_or_hvo")
 
         example = self.__GetExampleObject(example_or_hvo)
 
@@ -884,13 +861,10 @@ class ExampleOperations(BaseOperations):
         See Also:
             GetReference
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not example_or_hvo:
-            raise FP_NullParameterError()
-        if reference_text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(example_or_hvo, "example_or_hvo")
+        self._ValidateParam(reference_text, "reference_text")
 
         example = self.__GetExampleObject(example_or_hvo)
         wsHandle = self.project.project.DefaultAnalWs
@@ -930,8 +904,7 @@ class ExampleOperations(BaseOperations):
         See Also:
             GetMediaCount
         """
-        if not example_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(example_or_hvo, "example_or_hvo")
 
         example = self.__GetExampleObject(example_or_hvo)
 
@@ -970,8 +943,7 @@ class ExampleOperations(BaseOperations):
         See Also:
             GetMediaFiles
         """
-        if not example_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(example_or_hvo, "example_or_hvo")
 
         example = self.__GetExampleObject(example_or_hvo)
 
@@ -1029,16 +1001,12 @@ class ExampleOperations(BaseOperations):
         See Also:
             RemoveMediaFile, MoveMediaFile, GetMediaFiles, GetMediaCount
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not example_or_hvo:
-            raise FP_NullParameterError()
-        if file_path is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(example_or_hvo, "example_or_hvo")
+        self._ValidateParam(file_path, "file_path")
 
-        if not file_path or not file_path.strip():
-            raise FP_ParameterError("File path cannot be empty")
+        self._ValidateStringNotEmpty(file_path, "file_path")
 
         example = self.__GetExampleObject(example_or_hvo)
 
@@ -1097,13 +1065,10 @@ class ExampleOperations(BaseOperations):
         See Also:
             AddMediaFile, MoveMediaFile, GetMediaFiles
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not example_or_hvo:
-            raise FP_NullParameterError()
-        if media_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(example_or_hvo, "example_or_hvo")
+        self._ValidateParam(media_or_hvo, "media_or_hvo")
 
         example = self.__GetExampleObject(example_or_hvo)
 
@@ -1191,15 +1156,11 @@ class ExampleOperations(BaseOperations):
         See Also:
             AddMediaFile, RemoveMediaFile, GetMediaFiles, GetMediaCount
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not media:
-            raise FP_NullParameterError()
-        if not from_example_or_hvo:
-            raise FP_NullParameterError()
-        if not to_example_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(media, "media")
+        self._ValidateParam(from_example_or_hvo, "from_example_or_hvo")
+        self._ValidateParam(to_example_or_hvo, "to_example_or_hvo")
 
         from_example = self.__GetExampleObject(from_example_or_hvo)
         to_example = self.__GetExampleObject(to_example_or_hvo)
@@ -1260,8 +1221,7 @@ class ExampleOperations(BaseOperations):
         See Also:
             GetAll, Create
         """
-        if not example_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(example_or_hvo, "example_or_hvo")
 
         example = self.__GetExampleObject(example_or_hvo)
         return ILexSense(example.Owner)
@@ -1298,8 +1258,7 @@ class ExampleOperations(BaseOperations):
         See Also:
             GetOwningSense
         """
-        if not example_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(example_or_hvo, "example_or_hvo")
 
         example = self.__GetExampleObject(example_or_hvo)
         return example.Guid
@@ -1324,8 +1283,7 @@ class ExampleOperations(BaseOperations):
             ...     lit_trans = project.Examples.GetLiteralTranslation(examples[0])
             ...     print(lit_trans)
         """
-        if not example_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(example_or_hvo, "example_or_hvo")
 
         example = self.__GetExampleObject(example_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -1351,8 +1309,7 @@ class ExampleOperations(BaseOperations):
             >>> if examples:
             ...     project.Examples.SetLiteralTranslation(examples[0], "word-for-word translation")
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
         if not example_or_hvo or text is None:
             raise FP_NullParameterError()
 
@@ -1379,8 +1336,7 @@ class ExampleOperations(BaseOperations):
             ...     pubs = project.Examples.GetDoNotPublishIn(examples[0])
             ...     print(pubs)
         """
-        if not example_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(example_or_hvo, "example_or_hvo")
 
         example = self.__GetExampleObject(example_or_hvo)
 
@@ -1403,8 +1359,7 @@ class ExampleOperations(BaseOperations):
             FP_NullParameterError: If example_or_hvo or publication is None
             FP_ParameterError: If publication name not found
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
         if not example_or_hvo or not publication:
             raise FP_NullParameterError()
 
@@ -1433,8 +1388,7 @@ class ExampleOperations(BaseOperations):
             FP_NullParameterError: If example_or_hvo or publication is None
             FP_ParameterError: If publication name not found
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
         if not example_or_hvo or not publication:
             raise FP_NullParameterError()
 
