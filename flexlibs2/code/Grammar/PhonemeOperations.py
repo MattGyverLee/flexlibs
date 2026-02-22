@@ -24,6 +24,7 @@ from SIL.LCModel import (
 )
 from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
+from SIL.LCModel.DomainServices import CopyObject
 
 # Import flexlibs exceptions
 from ..FLExProject import (
@@ -312,16 +313,19 @@ class PhonemeOperations(BaseOperations):
         # Note: FeaturesOA is an owned atomic object (OA), NOT a reference.
         # Assigning it directly would TRANSFER ownership from source, corrupting it.
         # Feature structures are complex (recursive), so we skip them in shallow
-        # copy and handle via deep copy below.
+        # copy and handle via deep copy below using LibLCM's CopyObject pattern.
 
         # Handle owned objects if deep=True
         if deep:
-            # Deep copy FeaturesOA using LCM's CopyObject
+            # Deep copy FeaturesOA using LibLCM's proven CopyObject<T> pattern
             if hasattr(source, 'FeaturesOA') and source.FeaturesOA:
-                cache = self.project.project.ServiceLocator.GetInstance(
-                    "ICmObjectRepository")
-                if hasattr(cache, 'CopyObject'):
-                    duplicate.FeaturesOA = cache.CopyObject(source.FeaturesOA)
+                # Define delegate to assign copied feature structure to duplicate
+                def assign_features(copied_feature_struct):
+                    duplicate.FeaturesOA = copied_feature_struct
+
+                # Use CopyObject<IFsFeatStruc>.CloneLcmObject() static method
+                # CloneLcmObject(source, ownerFunct) - ownerFunct receives copied object
+                CopyObject[IFsFeatStruc].CloneLcmObject(source.FeaturesOA, assign_features)
 
             # Duplicate codes (allophonic representations)
             for code in source.CodesOS:
