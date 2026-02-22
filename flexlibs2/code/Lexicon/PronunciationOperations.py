@@ -182,16 +182,12 @@ class PronunciationOperations(BaseOperations):
         See Also:
             Delete, SetForm, AddMediaFile
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
-        if form is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
+        self._ValidateParam(form, "form")
 
-        if not form or not form.strip():
-            raise FP_ParameterError("Pronunciation form cannot be empty")
+        self._ValidateStringNotEmpty(form, "form")
 
         entry = self.__GetEntryObject(entry_or_hvo)
         wsHandle = self.__WSHandleVern(wsHandle)
@@ -238,11 +234,9 @@ class PronunciationOperations(BaseOperations):
         See Also:
             Create, GetAll
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not pronunciation_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(pronunciation_or_hvo, "pronunciation_or_hvo")
 
         pronunciation = self.__GetPronunciationObject(pronunciation_or_hvo)
 
@@ -300,11 +294,9 @@ class PronunciationOperations(BaseOperations):
         See Also:
             Create, Delete, GetGuid
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Get source pronunciation and parent
         source = self.__GetPronunciationObject(item_or_hvo)
@@ -457,13 +449,10 @@ class PronunciationOperations(BaseOperations):
         See Also:
             GetAll, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
-        if pronunciation_list is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
+        self._ValidateParam(pronunciation_list, "pronunciation_list")
 
         entry = self.__GetEntryObject(entry_or_hvo)
 
@@ -518,8 +507,7 @@ class PronunciationOperations(BaseOperations):
         See Also:
             SetForm, Create
         """
-        if not pronunciation_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(pronunciation_or_hvo, "pronunciation_or_hvo")
 
         pronunciation = self.__GetPronunciationObject(pronunciation_or_hvo)
         wsHandle = self.__WSHandleVern(wsHandle)
@@ -559,13 +547,10 @@ class PronunciationOperations(BaseOperations):
         See Also:
             GetForm, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not pronunciation_or_hvo:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(pronunciation_or_hvo, "pronunciation_or_hvo")
+        self._ValidateParam(text, "text")
 
         pronunciation = self.__GetPronunciationObject(pronunciation_or_hvo)
         wsHandle = self.__WSHandleVern(wsHandle)
@@ -606,8 +591,7 @@ class PronunciationOperations(BaseOperations):
         See Also:
             GetMediaCount, AddMediaFile, RemoveMediaFile
         """
-        if not pronunciation_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(pronunciation_or_hvo, "pronunciation_or_hvo")
 
         pronunciation = self.__GetPronunciationObject(pronunciation_or_hvo)
 
@@ -642,8 +626,7 @@ class PronunciationOperations(BaseOperations):
         See Also:
             GetMediaFiles, AddMediaFile
         """
-        if not pronunciation_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(pronunciation_or_hvo, "pronunciation_or_hvo")
 
         pronunciation = self.__GetPronunciationObject(pronunciation_or_hvo)
 
@@ -692,16 +675,12 @@ class PronunciationOperations(BaseOperations):
         See Also:
             RemoveMediaFile, GetMediaFiles, GetMediaCount, project.Media.CopyToProject
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not pronunciation_or_hvo:
-            raise FP_NullParameterError()
-        if file_path is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(pronunciation_or_hvo, "pronunciation_or_hvo")
+        self._ValidateParam(file_path, "file_path")
 
-        if not file_path or not file_path.strip():
-            raise FP_ParameterError("File path cannot be empty")
+        self._ValidateStringNotEmpty(file_path, "file_path")
 
         pronunciation = self.__GetPronunciationObject(pronunciation_or_hvo)
 
@@ -748,13 +727,10 @@ class PronunciationOperations(BaseOperations):
         See Also:
             AddMediaFile, GetMediaFiles
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not pronunciation_or_hvo:
-            raise FP_NullParameterError()
-        if media_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(pronunciation_or_hvo, "pronunciation_or_hvo")
+        self._ValidateParam(media_or_hvo, "media_or_hvo")
 
         pronunciation = self.__GetPronunciationObject(pronunciation_or_hvo)
 
@@ -822,8 +798,7 @@ class PronunciationOperations(BaseOperations):
         See Also:
             AddMediaFile, RemoveMediaFile, GetMediaFiles
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
         from_pron = self.__GetPronunciationObject(from_pronunciation_or_hvo) if isinstance(from_pronunciation_or_hvo, int) else from_pronunciation_or_hvo
         to_pron = self.__GetPronunciationObject(to_pronunciation_or_hvo) if isinstance(to_pronunciation_or_hvo, int) else to_pronunciation_or_hvo
@@ -878,8 +853,7 @@ class PronunciationOperations(BaseOperations):
         See Also:
             SetLocation
         """
-        if not pronunciation_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(pronunciation_or_hvo, "pronunciation_or_hvo")
 
         pronunciation = self.__GetPronunciationObject(pronunciation_or_hvo)
 
@@ -918,11 +892,9 @@ class PronunciationOperations(BaseOperations):
         See Also:
             GetLocation
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not pronunciation_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(pronunciation_or_hvo, "pronunciation_or_hvo")
 
         pronunciation = self.__GetPronunciationObject(pronunciation_or_hvo)
 
@@ -959,8 +931,7 @@ class PronunciationOperations(BaseOperations):
         See Also:
             GetGuid, GetAll
         """
-        if not pronunciation_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(pronunciation_or_hvo, "pronunciation_or_hvo")
 
         pronunciation = self.__GetPronunciationObject(pronunciation_or_hvo)
         return pronunciation.Owner
@@ -993,8 +964,7 @@ class PronunciationOperations(BaseOperations):
         See Also:
             GetOwningEntry
         """
-        if not pronunciation_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(pronunciation_or_hvo, "pronunciation_or_hvo")
 
         pronunciation = self.__GetPronunciationObject(pronunciation_or_hvo)
         return pronunciation.Guid
