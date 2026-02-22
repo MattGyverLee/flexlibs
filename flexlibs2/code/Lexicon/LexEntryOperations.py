@@ -2668,6 +2668,21 @@ class LexEntryOperations(BaseOperations):
         all the complex merge logic. Optionally, it can then deduplicate senses,
         pronunciations, and allomorphs that result from the merge.
 
+        LibLCM Handles:
+            - Lexeme form differences (creates alternate forms if needed)
+            - Homograph renumbering
+            - Circular reference prevention (complex forms, variants)
+            - LexEntryRef component replacement (FWR-3535)
+            - Back-reference updating
+            - Per-writing-system MultiString merging
+            - **Alternate form deduplication** (identical form + morph type)
+            - **MSA deduplication** (equivalent grammatical analyses)
+
+        FlexLibs2 Adds (Optional):
+            - Sense deduplication (identical gloss + definition)
+            - Pronunciation deduplication (identical form per WS)
+            - Allomorph deduplication (identical form + morph type)
+
         Args:
             survivor_or_hvo: Entry that will receive merged data (HVO or ILexEntry)
             victim_or_hvo: Entry that will be deleted after merge (HVO or ILexEntry)
@@ -2689,7 +2704,8 @@ class LexEntryOperations(BaseOperations):
             >>> duplicate = project.LexEntry.Find("run")
             >>> project.LexEntry.MergeObject(main, duplicate)
             >>> # 'duplicate' is deleted, all data merged into 'main'
-            >>> # Any duplicate senses are also auto-merged
+            >>> # Senses, pronunciations, allomorphs are auto-deduplicated
+            >>> # Alternate forms and MSAs are already deduplicated by LibLCM
 
             >>> # Merge with deduplication disabled
             >>> entry1 = project.LexEntry.Find("color")
@@ -2698,8 +2714,8 @@ class LexEntryOperations(BaseOperations):
 
         Notes:
             - This operation is IRREVERSIBLE (victim is deleted)
-            - Delegates all merge logic to LibLCM's battle-tested ILexEntry.MergeObject()
-            - Optionally adds deduplication layer for senses, pronunciations, allomorphs
+            - Delegates all core merge logic to LibLCM's battle-tested ILexEntry.MergeObject()
+            - FlexLibs2 adds optional deduplication layer for senses/pronunciations/allomorphs
             - Based on FLEx LexEntry.MergeObject (OverridesLing_Lex.cs:3432-3548)
 
         See Also:
