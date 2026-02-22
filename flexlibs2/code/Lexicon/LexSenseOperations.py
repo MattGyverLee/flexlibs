@@ -1161,8 +1161,8 @@ class LexSenseOperations(BaseOperations):
             ...         project.Senses.AddSemanticDomain(senses[0], all_domains[0])
 
         Notes:
-            - If domain already exists in the list, it's still added
-              (duplicates are allowed but not recommended)
+            - If domain already exists in the list, it is not added again
+              (duplicates are prevented)
             - Semantic domains help organize the lexicon by meaning
             - Use project.GetAllSemanticDomains() to get available domains
 
@@ -1180,7 +1180,8 @@ class LexSenseOperations(BaseOperations):
         sense = self.__GetSenseObject(sense_or_hvo)
         domain = self.__GetSemanticDomainObject(domain_or_hvo)
 
-        sense.SemanticDomainsRC.Add(domain)
+        if domain not in sense.SemanticDomainsRC:
+            sense.SemanticDomainsRC.Add(domain)
 
     def RemoveSemanticDomain(self, sense_or_hvo, domain_or_hvo):
         """
