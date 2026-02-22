@@ -21,6 +21,9 @@ from SIL.LCModel import (
     IWfiWordformRepository,
     IWfiWordformFactory,
     IWfiWordform,
+    IWfiAnalysisFactory,
+    IWfiGlossFactory,
+    IWfiMorphBundleFactory,
 )
 
 from SIL.LCModel.Core.KernelInterfaces import ITsString
@@ -736,48 +739,33 @@ class WordformOperations(BaseOperations):
             - Factory.Create() automatically generates a new GUID
             - MultiString property: Form
             - Simple property: SpellingStatus
-            - Analyses duplicated only if deep=True
+            - Analyses duplicated with full nested structure when deep=True
             - Occurrences are NOT copied (they reference specific text segments)
 
-        Known Limitations (Analysis Deep Copy):
-            When deep=True is specified, analysis copying is NOT YET IMPLEMENTED.
-            A warning is logged instead, and only the wordform shell is duplicated.
+        Analysis Deep Copy (deep=True):
+            When deep=True, all analyses are duplicated with their nested structures:
 
-            What's Skipped:
-                - IWfiAnalysis objects associated with the wordform
-                - WfiMorphBundle nested structures (morpheme sequences with features)
-                - WfiGloss nested objects (gloss entries for each morpheme)
-                - All analysis-level metadata (e.g., human-approved status, analysis notes)
+            What's Copied:
+                - IWfiAnalysis objects (with new GUIDs)
+                - CategoryRA reference (part of speech)
+                - WfiGloss objects with Form MultiString (word-level translations)
+                - WfiMorphBundle objects with Form and Gloss MultiStrings
+                - Morph bundle references: SenseRA, MsaRA, MorphRA, InflClassRA
 
-            Why Not Implemented:
-                - Complex nested structure: Analyses contain multiple levels of
-                  referenced objects (IWfiAnalysis -> WfiMorphBundle -> WfiGloss)
-                - Validation requirements: Copy must preserve all constraints and
-                  relationships between morpheme bundles, glosses, and underlying entries
-                - Reference integrity: Analyses reference lexical entries and grammatical
-                  objects that may not exist in all contexts
-                - Testing complexity: Requires comprehensive test coverage for all
-                  nested object scenarios
+            What's NOT Copied:
+                - EvaluationsRC (approval status) - duplicates start unapproved
+                - OccurrencesRS (text segment references) - tied to original contexts
 
-            Impact:
-                - Duplicated wordforms will NOT have associated analyses
-                - Wordform form and spelling status are copied successfully
-                - User must manually re-analyze wordforms in FLEx after duplication
-                - Useful for creating variant wordforms with empty analysis slates
+            Use Cases:
+                - Creating variant wordforms with full linguistic analysis
+                - Duplicating analyzed forms for comparative study
+                - Preserving complex analyses when creating spelling variants
 
-            Workaround:
-                1. Duplicate with deep=False (default) to copy wordform properties
-                2. Let FLEx parser auto-generate analyses for duplicated wordform
-                3. OR manually re-analyze in FLEx interface
-                4. OR use copy/paste functionality in FLEx GUI for full deep copy
-
-            Future Implementation:
-                Implementation is planned when resources become available.
-                Would require:
-                - IWfiAnalysisFactory to create analysis objects
-                - Recursive morpheme bundle and gloss copying logic
-                - Comprehensive validation and error handling
-                - Performance optimization for wordforms with many analyses
+            Example:
+                >>> wf = project.Wordforms.Find("running")
+                >>> dup = project.Wordforms.Duplicate(wf, deep=True)
+                >>> len(project.Wordforms.GetAnalyses(wf)) == len(project.Wordforms.GetAnalyses(dup))
+                True
 
         See Also:
             Create, Delete, GetAnalyses
@@ -810,14 +798,55 @@ class WordformOperations(BaseOperations):
 
         # Deep copy: duplicate analyses
         if deep and hasattr(source, 'AnalysesOC') and source.AnalysesOC.Count > 0:
-            # FIXME: Implement analysis deep copy (estimated effort: 3-5 hours)
-            #   - Requires IWfiAnalysisFactory instantiation
-            #   - Must recursively copy WfiMorphBundle structures
-            #   - Must recursively copy WfiGloss nested objects
-            #   - Needs comprehensive validation of morpheme/gloss references
-            #   - Should handle edge cases: empty analyses, orphaned references, etc.
-            #   - See Known Limitations section in docstring for full context
-            logger.warning("Deep copy of wordform analyses not yet implemented")
+            # Get factories (retrieve once, reuse for all objects)
+            analysis_factory = self.project.project.ServiceLocator.GetService(IWfiAnalysisFactory)
+            gloss_factory = self.project.project.ServiceLocator.GetService(IWfiGlossFactory)
+            bundle_factory = self.project.project.ServiceLocator.GetService(IWfiMorphBundleFactory)
+
+            # Iterate through all analyses in the source wordform
+            for source_analysis in source.AnalysesOC:
+                # Create new analysis with auto-generated GUID
+                new_analysis = analysis_factory.Create()
+
+                # Add to duplicate wordform BEFORE copying properties (critical for MultiStrings)
+                duplicate.AnalysesOC.Add(new_analysis)
+
+                # Copy Reference Atomic (RA) properties
+                if hasattr(source_analysis, 'CategoryRA') and source_analysis.CategoryRA:
+                    new_analysis.CategoryRA = source_analysis.CategoryRA
+
+                # Note: We intentionally do NOT copy EvaluationsRC (approval status)
+                # New duplicate analysis should start as unapproved
+
+                # Deep copy glosses (MeaningsOC - owned collection)
+                if hasattr(source_analysis, 'MeaningsOC'):
+                    for gloss in source_analysis.MeaningsOC:
+                        new_gloss = gloss_factory.Create()
+                        new_analysis.MeaningsOC.Add(new_gloss)
+                        # Copy MultiString form
+                        new_gloss.Form.CopyAlternatives(gloss.Form)
+
+                # Deep copy morph bundles (MorphBundlesOS - owned sequence)
+                if hasattr(source_analysis, 'MorphBundlesOS'):
+                    for bundle in source_analysis.MorphBundlesOS:
+                        new_bundle = bundle_factory.Create()
+                        new_analysis.MorphBundlesOS.Add(new_bundle)
+
+                        # Copy MultiString properties
+                        new_bundle.Form.CopyAlternatives(bundle.Form)
+                        new_bundle.Gloss.CopyAlternatives(bundle.Gloss)
+
+                        # Copy Reference Atomic (RA) properties
+                        if hasattr(bundle, 'SenseRA') and bundle.SenseRA:
+                            new_bundle.SenseRA = bundle.SenseRA
+                        if hasattr(bundle, 'MsaRA') and bundle.MsaRA:
+                            new_bundle.MsaRA = bundle.MsaRA
+                        if hasattr(bundle, 'MorphRA') and bundle.MorphRA:
+                            new_bundle.MorphRA = bundle.MorphRA
+                        if hasattr(bundle, 'InflClassRA') and bundle.InflClassRA:
+                            new_bundle.InflClassRA = bundle.InflClassRA
+
+            logger.info(f"Deep copied {source.AnalysesOC.Count} analyses with nested structures")
 
         # Note: Occurrences (OccurrencesRS) are NOT copied as they reference
         # specific text segments in the corpus
