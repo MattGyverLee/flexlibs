@@ -151,8 +151,7 @@ class SegmentOperations(BaseOperations):
         See Also:
             GetBaselineText, GetFreeTranslation, GetAnalyses
         """
-        if not paragraph_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(paragraph_or_hvo, "paragraph_or_hvo")
 
         para_obj = self.__GetParagraphObject(paragraph_or_hvo)
         segments = list(para_obj.SegmentsOS)
@@ -186,8 +185,7 @@ class SegmentOperations(BaseOperations):
             Each analysis can be an IWfiWordform, IWfiGloss, or IWfiAnalysis object.
             These represent different levels of linguistic analysis for each word.
         """
-        if not segment_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(segment_or_hvo, "segment_or_hvo")
 
         segment_obj = self.__GetSegmentObject(segment_or_hvo)
         analyses = list(segment_obj.AnalysesRS)
@@ -216,8 +214,7 @@ class SegmentOperations(BaseOperations):
         See Also:
             SetBaselineText, GetFreeTranslation, GetLiteralTranslation
         """
-        if not segment_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(segment_or_hvo, "segment_or_hvo")
 
         segment_obj = self.__GetSegmentObject(segment_or_hvo)
         ws = self.__WSHandleVern(wsHandle)
@@ -254,11 +251,8 @@ class SegmentOperations(BaseOperations):
             Modifying baseline text may affect existing analyses and word glosses.
             The segment may need to be re-parsed after this operation.
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not segment_or_hvo:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(segment_or_hvo, "segment_or_hvo")
 
         segment_obj = self.__GetSegmentObject(segment_or_hvo)
         ws = self.__WSHandleVern(wsHandle)
@@ -293,8 +287,7 @@ class SegmentOperations(BaseOperations):
             Free translation is typically a natural, idiomatic translation
             of the segment, as opposed to a word-for-word literal translation.
         """
-        if not segment_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(segment_or_hvo, "segment_or_hvo")
 
         segment_obj = self.__GetSegmentObject(segment_or_hvo)
         ws = self.__WSHandle(wsHandle)
@@ -331,11 +324,8 @@ class SegmentOperations(BaseOperations):
             Free translation should be a natural, idiomatic translation.
             This is distinct from literal (word-for-word) translation.
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not segment_or_hvo:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(segment_or_hvo, "segment_or_hvo")
 
         segment_obj = self.__GetSegmentObject(segment_or_hvo)
         ws = self.__WSHandle(wsHandle)
@@ -370,8 +360,7 @@ class SegmentOperations(BaseOperations):
             Literal translation is typically a word-for-word gloss showing
             the grammatical structure, using hyphens to show morpheme boundaries.
         """
-        if not segment_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(segment_or_hvo, "segment_or_hvo")
 
         segment_obj = self.__GetSegmentObject(segment_or_hvo)
         ws = self.__WSHandle(wsHandle)
@@ -408,11 +397,8 @@ class SegmentOperations(BaseOperations):
             Literal translation should be a word-for-word gloss.
             Use hyphens to show morpheme boundaries within words.
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not segment_or_hvo:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(segment_or_hvo, "segment_or_hvo")
 
         segment_obj = self.__GetSegmentObject(segment_or_hvo)
         ws = self.__WSHandle(wsHandle)
@@ -446,8 +432,7 @@ class SegmentOperations(BaseOperations):
             Notes in FLEx can include translator notes, consultant notes,
             and other types of annotations attached to segments.
         """
-        if not segment_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(segment_or_hvo, "segment_or_hvo")
 
         segment_obj = self.__GetSegmentObject(segment_or_hvo)
 
@@ -491,14 +476,9 @@ class SegmentOperations(BaseOperations):
             Consider calling RebuildSegments after creating segments to ensure
             proper offsets and structure.
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not paragraph_or_hvo:
-            raise FP_NullParameterError("paragraph_or_hvo cannot be None")
-
-        if baseline_text is None:
-            raise FP_NullParameterError("baseline_text cannot be None")
+        self._EnsureWriteEnabled()
+        self._ValidateParam(paragraph_or_hvo, "paragraph_or_hvo")
+        self._ValidateParam(baseline_text, "baseline_text")
 
         text_str = baseline_text.strip() if isinstance(baseline_text, str) else str(baseline_text)
         if not text_str:
@@ -546,11 +526,8 @@ class SegmentOperations(BaseOperations):
             This operation cannot be undone. All data associated with the
             segment will be permanently deleted.
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not segment_or_hvo:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(segment_or_hvo, "segment_or_hvo")
 
         segment_obj = self.__GetSegmentObject(segment_or_hvo)
 
@@ -611,11 +588,8 @@ class SegmentOperations(BaseOperations):
         See Also:
             Create, Delete, GetAll, SetBaselineText
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         segment_obj = self.__GetSegmentObject(item_or_hvo)
 
@@ -785,11 +759,8 @@ class SegmentOperations(BaseOperations):
         See Also:
             Create, Delete, GetAll
         """
-        if not paragraph_or_hvo:
-            raise FP_NullParameterError("paragraph_or_hvo cannot be None")
-
-        if not segment_or_hvo:
-            raise FP_NullParameterError("segment_or_hvo cannot be None")
+        self._ValidateParam(paragraph_or_hvo, "paragraph_or_hvo")
+        self._ValidateParam(segment_or_hvo, "segment_or_hvo")
 
         para_obj = self.__GetParagraphObject(paragraph_or_hvo)
         segment_obj = self.__GetSegmentObject(segment_or_hvo)
@@ -837,11 +808,8 @@ class SegmentOperations(BaseOperations):
             All analyses and translations from the original segment are lost.
             You will need to re-parse the new segments.
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not segment_or_hvo:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(segment_or_hvo, "segment_or_hvo")
 
         if position is None or position < 0:
             raise FP_ParameterError("position must be a non-negative integer")
@@ -926,14 +894,9 @@ class SegmentOperations(BaseOperations):
             All analyses and translations from both segments are lost.
             You will need to re-parse the merged segment.
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not segment1_or_hvo:
-            raise FP_NullParameterError("segment1_or_hvo cannot be None")
-
-        if not segment2_or_hvo:
-            raise FP_NullParameterError("segment2_or_hvo cannot be None")
+        self._EnsureWriteEnabled()
+        self._ValidateParam(segment1_or_hvo, "segment1_or_hvo")
+        self._ValidateParam(segment2_or_hvo, "segment2_or_hvo")
 
         segment1 = self.__GetSegmentObject(segment1_or_hvo)
         segment2 = self.__GetSegmentObject(segment2_or_hvo)
@@ -1012,8 +975,7 @@ class SegmentOperations(BaseOperations):
             in the paragraph text. They are automatically maintained when
             using RebuildSegments.
         """
-        if not segment_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(segment_or_hvo, "segment_or_hvo")
 
         segment_obj = self.__GetSegmentObject(segment_or_hvo)
 
@@ -1051,8 +1013,7 @@ class SegmentOperations(BaseOperations):
             in the paragraph text. They are automatically maintained when
             using RebuildSegments.
         """
-        if not segment_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(segment_or_hvo, "segment_or_hvo")
 
         segment_obj = self.__GetSegmentObject(segment_or_hvo)
 
@@ -1089,14 +1050,10 @@ class SegmentOperations(BaseOperations):
             better to use RebuildSegments to automatically calculate correct offsets.
             Only use this if you know what you're doing.
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not segment_or_hvo:
-            raise FP_NullParameterError()
-
-        if begin_offset is None or end_offset is None:
-            raise FP_NullParameterError("begin_offset and end_offset cannot be None")
+        self._EnsureWriteEnabled()
+        self._ValidateParam(segment_or_hvo, "segment_or_hvo")
+        self._ValidateParam(begin_offset, "begin_offset")
+        self._ValidateParam(end_offset, "end_offset")
 
         if begin_offset < 0 or end_offset < 0:
             raise FP_ParameterError("Offsets cannot be negative")
@@ -1141,8 +1098,7 @@ class SegmentOperations(BaseOperations):
             Label segments are often used for chapter headings, section titles,
             and other non-content text in interlinear texts.
         """
-        if not segment_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(segment_or_hvo, "segment_or_hvo")
 
         segment_obj = self.__GetSegmentObject(segment_or_hvo)
 
@@ -1178,11 +1134,8 @@ class SegmentOperations(BaseOperations):
             Label segments are typically used for chapter headings and section titles.
             They may be displayed or processed differently than regular content segments.
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not segment_or_hvo:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(segment_or_hvo, "segment_or_hvo")
 
         segment_obj = self.__GetSegmentObject(segment_or_hvo)
 
@@ -1225,8 +1178,7 @@ class SegmentOperations(BaseOperations):
             This method performs non-destructive validation. It reports issues
             but doesn't modify the segments. Use RebuildSegments to fix issues.
         """
-        if not paragraph_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(paragraph_or_hvo, "paragraph_or_hvo")
 
         para_obj = self.__GetParagraphObject(paragraph_or_hvo)
         segments_list = list(para_obj.SegmentsOS)
@@ -1319,11 +1271,8 @@ class SegmentOperations(BaseOperations):
             Sentence boundaries are detected using basic punctuation rules
             (periods, question marks, exclamation marks followed by spaces).
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not paragraph_or_hvo:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(paragraph_or_hvo, "paragraph_or_hvo")
 
         para_obj = self.__GetParagraphObject(paragraph_or_hvo)
 

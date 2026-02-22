@@ -514,7 +514,7 @@ class PronunciationOperations(BaseOperations):
 
         # MultiUnicodeAccessor
         form = ITsString(pronunciation.Form.get_String(wsHandle)).Text
-        return form or ""
+        return self._NormalizeMultiString(form)
 
     def SetForm(self, pronunciation_or_hvo, text, wsHandle=None):
         """

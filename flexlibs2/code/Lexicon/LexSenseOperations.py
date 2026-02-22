@@ -716,7 +716,7 @@ class LexSenseOperations(BaseOperations):
         wsHandle = self.__WSHandleAnalysis(wsHandle)
 
         gloss = ITsString(sense.Gloss.get_String(wsHandle)).Text
-        return gloss or ""
+        return self._NormalizeMultiString(gloss)
 
     def SetGloss(self, sense_or_hvo, text, wsHandle=None):
         """
@@ -801,7 +801,7 @@ class LexSenseOperations(BaseOperations):
 
         # Definition is a MultiString
         defn = ITsString(sense.Definition.get_String(wsHandle)).Text
-        return defn or ""
+        return self._NormalizeMultiString(defn)
 
     def SetDefinition(self, sense_or_hvo, text, wsHandle=None):
         """
@@ -889,7 +889,7 @@ class LexSenseOperations(BaseOperations):
 
         # Fallback to gloss
         gloss = ITsString(sense.Gloss.get_String(wsHandle)).Text
-        return gloss or ""
+        return self._NormalizeMultiString(gloss)
 
     # --- Grammatical Information Operations ---
 
@@ -2109,7 +2109,7 @@ class LexSenseOperations(BaseOperations):
 
         wsHandle = self.__WSHandleVernacular(wsHandle)
         caption = ITsString(picture.Caption.get_String(wsHandle)).Text
-        return caption or ""
+        return self._NormalizeMultiString(caption)
 
     def RenamePicture(self, picture, new_filename):
         """
@@ -2377,7 +2377,7 @@ class LexSenseOperations(BaseOperations):
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
-        return ITsString(sense.Bibliography.get_String(wsHandle)).Text or ""
+        return self._NormalizeMultiString(ITsString(sense.Bibliography.get_String(wsHandle)).Text)
 
     def SetBibliography(self, sense_or_hvo, text, wsHandle=None):
         """Set the bibliography of a sense."""
@@ -2394,7 +2394,7 @@ class LexSenseOperations(BaseOperations):
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
-        return ITsString(sense.GeneralNote.get_String(wsHandle)).Text or ""
+        return self._NormalizeMultiString(ITsString(sense.GeneralNote.get_String(wsHandle)).Text)
 
     def SetGeneralNote(self, sense_or_hvo, text, wsHandle=None):
         """Set the general note of a sense."""
@@ -2411,7 +2411,7 @@ class LexSenseOperations(BaseOperations):
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
-        return ITsString(sense.DiscourseNote.get_String(wsHandle)).Text or ""
+        return self._NormalizeMultiString(ITsString(sense.DiscourseNote.get_String(wsHandle)).Text)
 
     def SetDiscourseNote(self, sense_or_hvo, text, wsHandle=None):
         """Set the discourse note of a sense."""
@@ -2428,7 +2428,7 @@ class LexSenseOperations(BaseOperations):
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
-        return ITsString(sense.EncyclopedicInfo.get_String(wsHandle)).Text or ""
+        return self._NormalizeMultiString(ITsString(sense.EncyclopedicInfo.get_String(wsHandle)).Text)
 
     def SetEncyclopedicInfo(self, sense_or_hvo, text, wsHandle=None):
         """Set the encyclopedic info of a sense."""
@@ -2445,7 +2445,7 @@ class LexSenseOperations(BaseOperations):
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
-        return ITsString(sense.GrammarNote.get_String(wsHandle)).Text or ""
+        return self._NormalizeMultiString(ITsString(sense.GrammarNote.get_String(wsHandle)).Text)
 
     def SetGrammarNote(self, sense_or_hvo, text, wsHandle=None):
         """Set the grammar note of a sense."""
@@ -2462,7 +2462,7 @@ class LexSenseOperations(BaseOperations):
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
-        return ITsString(sense.PhonologyNote.get_String(wsHandle)).Text or ""
+        return self._NormalizeMultiString(ITsString(sense.PhonologyNote.get_String(wsHandle)).Text)
 
     def SetPhonologyNote(self, sense_or_hvo, text, wsHandle=None):
         """Set the phonology note of a sense."""
@@ -2479,7 +2479,7 @@ class LexSenseOperations(BaseOperations):
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
-        return ITsString(sense.SemanticsNote.get_String(wsHandle)).Text or ""
+        return self._NormalizeMultiString(ITsString(sense.SemanticsNote.get_String(wsHandle)).Text)
 
     def SetSemanticsNote(self, sense_or_hvo, text, wsHandle=None):
         """Set the semantics note of a sense."""
@@ -2496,7 +2496,7 @@ class LexSenseOperations(BaseOperations):
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
-        return ITsString(sense.SocioLinguisticsNote.get_String(wsHandle)).Text or ""
+        return self._NormalizeMultiString(ITsString(sense.SocioLinguisticsNote.get_String(wsHandle)).Text)
 
     def SetSocioLinguisticsNote(self, sense_or_hvo, text, wsHandle=None):
         """Set the socio-linguistics note of a sense."""
@@ -2513,7 +2513,7 @@ class LexSenseOperations(BaseOperations):
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
-        return ITsString(sense.AnthroNote.get_String(wsHandle)).Text or ""
+        return self._NormalizeMultiString(ITsString(sense.AnthroNote.get_String(wsHandle)).Text)
 
     def SetAnthroNote(self, sense_or_hvo, text, wsHandle=None):
         """Set the anthropology note of a sense."""
@@ -2530,7 +2530,7 @@ class LexSenseOperations(BaseOperations):
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
-        return ITsString(sense.Restrictions.get_String(wsHandle)).Text or ""
+        return self._NormalizeMultiString(ITsString(sense.Restrictions.get_String(wsHandle)).Text)
 
     def SetRestrictions(self, sense_or_hvo, text, wsHandle=None):
         """Set the restrictions of a sense."""
@@ -2546,7 +2546,7 @@ class LexSenseOperations(BaseOperations):
         """Get the source of a sense."""
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
-        return sense.Source or ""
+        return self._NormalizeMultiString(sense.Source)
 
     def SetSource(self, sense_or_hvo, text):
         """Set the source of a sense."""
@@ -2560,7 +2560,7 @@ class LexSenseOperations(BaseOperations):
         """Get the scientific name of a sense."""
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
-        return sense.ScientificName or ""
+        return self._NormalizeMultiString(sense.ScientificName)
 
     def SetScientificName(self, sense_or_hvo, text):
         """Set the scientific name of a sense."""
@@ -2574,7 +2574,7 @@ class LexSenseOperations(BaseOperations):
         """Get the import residue of a sense."""
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
-        return sense.ImportResidue or ""
+        return self._NormalizeMultiString(sense.ImportResidue)
 
     def SetImportResidue(self, sense_or_hvo, text):
         """Set the import residue of a sense."""

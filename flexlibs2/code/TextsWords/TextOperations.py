@@ -94,8 +94,7 @@ class TextOperations(BaseOperations):
             FP_NullParameterError: If text_or_hvo is None.
             FP_ParameterError: If the HVO doesn't refer to a text object.
         """
-        if not text_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(text_or_hvo, "text_or_hvo")
 
         if isinstance(text_or_hvo, int):
             obj = self.project.Object(text_or_hvo)
@@ -140,15 +139,9 @@ class TextOperations(BaseOperations):
         See Also:
             Delete, Exists, GetAll
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not name:
-            raise FP_NullParameterError()
-
+        self._EnsureWriteEnabled()
+        self._ValidateStringNotEmpty(name, "text name")
         name = name.strip()
-        if not name:
-            raise FP_NullParameterError()
 
         # Check if text with this name already exists
         if self.Exists(name):
@@ -203,8 +196,7 @@ class TextOperations(BaseOperations):
         See Also:
             Create, Exists, GetAll
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
         text_obj = self.__GetTextObject(text_or_hvo)
 
@@ -269,8 +261,7 @@ class TextOperations(BaseOperations):
         See Also:
             Create, Delete, project.Paragraphs.Duplicate
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
         text_obj = self.__GetTextObject(item_or_hvo)
 
@@ -445,12 +436,8 @@ class TextOperations(BaseOperations):
         See Also:
             Create, GetAll, GetName
         """
-        if not name:
-            raise FP_NullParameterError()
-
+        self._ValidateStringNotEmpty(name, "text name")
         name = name.strip()
-        if not name:
-            raise FP_NullParameterError()
 
         # Check all texts for matching name
         for text in self.project.ObjectsIn(ITextRepository):

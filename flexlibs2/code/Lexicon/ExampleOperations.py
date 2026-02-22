@@ -506,7 +506,7 @@ class ExampleOperations(BaseOperations):
         wsHandle = self.__WSHandleVern(wsHandle)
 
         text = ITsString(example.Example.get_String(wsHandle)).Text
-        return text or ""
+        return self._NormalizeMultiString(text)
 
     def SetExample(self, example_or_hvo, text, wsHandle=None):
         """
@@ -825,7 +825,7 @@ class ExampleOperations(BaseOperations):
 
         if hasattr(example, 'Reference') and example.Reference:
             ref = ITsString(example.Reference).Text
-            return ref or ""
+            return self._NormalizeMultiString(ref)
         return ""
 
     def SetReference(self, example_or_hvo, reference_text):
@@ -1288,7 +1288,7 @@ class ExampleOperations(BaseOperations):
         example = self.__GetExampleObject(example_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
 
-        return ITsString(example.LiteralTranslation.get_String(wsHandle)).Text or ""
+        return self._NormalizeMultiString(ITsString(example.LiteralTranslation.get_String(wsHandle)).Text)
 
     def SetLiteralTranslation(self, example_or_hvo, text, wsHandle=None):
         """

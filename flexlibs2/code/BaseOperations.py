@@ -1488,3 +1488,46 @@ class BaseOperations:
                 f"{param_name} owner does not match expected owner. "
                 f"Object owner: {obj.Owner}, Expected: {expected_owner}"
             )
+
+    # ========== DATA TRANSFORMATION HELPERS ==========
+
+    def _NormalizeMultiString(self, value: str) -> str:
+        """
+        Convert FLEx empty placeholder to Python empty string.
+
+        LibLCM (the underlying C# library) represents empty multistring fields
+        with the placeholder "***". This helper converts it to Python's standard
+        empty string ("") for a more Pythonic API.
+
+        Args:
+            value: The string value from a LibLCM multistring field.
+                  May be "***", "", None, or actual text.
+
+        Returns:
+            str: The value converted to "" if it was "***", otherwise unchanged.
+                - "***" → ""
+                - "" → ""
+                - "word" → "word"
+                - None → None (unchanged)
+
+        Example:
+            >>> sense_gloss = sense.Gloss.BestAnalysisAlternative.Text  # Returns "***"
+            >>> normalized = self._NormalizeMultiString(sense_gloss)  # Returns ""
+            >>> if normalized:  # Python-standard empty check works
+            ...     print(f"Gloss: {normalized}")
+
+        Notes:
+            - This is called automatically by all public methods that return
+              multistring field values, so users don't need to call it directly
+            - See MIGRATION_GUIDE.md for breaking change details
+            - FLEx/LCM Convention: "***" is used to represent empty multistring
+              fields rather than None or empty string (for internal consistency)
+
+        Implementation Notes:
+            - Simple string comparison and replacement
+            - No side effects
+            - Preserves None (useful for optional fields)
+        """
+        if value == "***":
+            return ""
+        return value

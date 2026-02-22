@@ -180,8 +180,7 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             Create, Exists, Delete
         """
-        if not wordform_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(wordform_or_hvo, "wordform_or_hvo")
 
         wordform = self.__GetWordformObject(wordform_or_hvo)
         return list(wordform.AnalysesOC)
@@ -226,11 +225,8 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             Delete, AddGloss, SetCategory, ApproveAnalysis
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not wordform_or_hvo:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(wordform_or_hvo, "wordform_or_hvo")
 
         wordform = self.__GetWordformObject(wordform_or_hvo)
 
@@ -356,11 +352,8 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             Create, GetAll
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
@@ -413,11 +406,8 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             Create, Delete, GetGuid
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Get source analysis and parent
         source = self.__GetAnalysisObject(item_or_hvo)
@@ -562,8 +552,7 @@ class WfiAnalysisOperations(BaseOperations):
             SetApprovalStatus, IsHumanApproved, IsComputerApproved,
             ApproveAnalysis, RejectAnalysis
         """
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
@@ -626,11 +615,8 @@ class WfiAnalysisOperations(BaseOperations):
             GetApprovalStatus, ApproveAnalysis, RejectAnalysis,
             IsHumanApproved
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         if status not in (ApprovalStatusTypes.DISAPPROVED,
                          ApprovalStatusTypes.UNAPPROVED,
@@ -718,8 +704,7 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             IsComputerApproved, ApproveAnalysis, GetApprovalStatus
         """
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
@@ -769,8 +754,7 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             IsHumanApproved, GetAgentEvaluation, GetApprovalStatus
         """
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
@@ -820,11 +804,8 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             RejectAnalysis, SetApprovalStatus, IsHumanApproved
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
@@ -865,11 +846,8 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             ApproveAnalysis, SetApprovalStatus, Delete
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
@@ -911,8 +889,7 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             GetGlossCount, AddGloss
         """
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
@@ -946,8 +923,7 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             GetGlosses, AddGloss
         """
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
@@ -992,14 +968,9 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             GetGlosses, GetGlossCount
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
-
-        if gloss_text is None:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
+        self._ValidateParam(gloss_text, "gloss_text")
 
         if not gloss_text or not gloss_text.strip():
             raise FP_ParameterError("Gloss text cannot be empty")
@@ -1055,8 +1026,7 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             GetMorphBundleCount
         """
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
@@ -1091,8 +1061,7 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             GetMorphBundles
         """
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
@@ -1135,8 +1104,7 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             SetCategory, GetMorphBundles
         """
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
@@ -1181,14 +1149,9 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             GetCategory, project.POS.Find, project.POS.Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
-
-        if not category:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
+        self._ValidateParam(category, "category")
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
@@ -1238,8 +1201,7 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             GetHumanEvaluation, IsComputerApproved
         """
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
@@ -1282,8 +1244,7 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             GetAgentEvaluation, IsHumanApproved
         """
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
@@ -1339,8 +1300,7 @@ class WfiAnalysisOperations(BaseOperations):
             GetAgentEvaluation, GetHumanEvaluation, IsHumanApproved,
             IsComputerApproved, SetApprovalStatus
         """
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
@@ -1379,8 +1339,7 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             GetAll, project.Wordforms.GetForm
         """
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
@@ -1417,8 +1376,7 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             GetOwningWordform
         """
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 

@@ -120,8 +120,7 @@ class WfiGlossOperations(BaseOperations):
         See Also:
             Create, Find, GetForm
         """
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         # Resolve to analysis object
         if isinstance(analysis_or_hvo, int):
@@ -171,11 +170,9 @@ class WfiGlossOperations(BaseOperations):
         See Also:
             Delete, SetForm, GetAll
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
         if form is None:
             raise FP_NullParameterError()
 
@@ -314,11 +311,9 @@ class WfiGlossOperations(BaseOperations):
         See Also:
             Create, GetAll
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not gloss_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(gloss_or_hvo, "gloss_or_hvo")
 
         # Resolve to gloss object
         if isinstance(gloss_or_hvo, int):
@@ -380,11 +375,9 @@ class WfiGlossOperations(BaseOperations):
         See Also:
             Create, Delete, GetGuid
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Resolve to gloss object
         if isinstance(item_or_hvo, int):
@@ -449,11 +442,9 @@ class WfiGlossOperations(BaseOperations):
         See Also:
             GetAll, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
         if gloss_list is None:
             raise FP_NullParameterError()
 
@@ -519,8 +510,7 @@ class WfiGlossOperations(BaseOperations):
         See Also:
             SetForm, GetAllForms
         """
-        if not gloss_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(gloss_or_hvo, "gloss_or_hvo")
 
         # Resolve to gloss object
         if isinstance(gloss_or_hvo, int):
@@ -571,11 +561,9 @@ class WfiGlossOperations(BaseOperations):
         See Also:
             GetForm, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not gloss_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(gloss_or_hvo, "gloss_or_hvo")
         if text is None:
             raise FP_NullParameterError()
 
@@ -626,8 +614,7 @@ class WfiGlossOperations(BaseOperations):
         See Also:
             GetForm, SetForm
         """
-        if not gloss_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(gloss_or_hvo, "gloss_or_hvo")
 
         # Resolve to gloss object
         if isinstance(gloss_or_hvo, int):
@@ -680,8 +667,7 @@ class WfiGlossOperations(BaseOperations):
         See Also:
             GetAll, GetGuid
         """
-        if not gloss_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(gloss_or_hvo, "gloss_or_hvo")
 
         # Resolve to gloss object
         if isinstance(gloss_or_hvo, int):
@@ -725,8 +711,7 @@ class WfiGlossOperations(BaseOperations):
         See Also:
             GetOwningAnalysis, Find
         """
-        if not gloss_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(gloss_or_hvo, "gloss_or_hvo")
 
         # Resolve to gloss object
         if isinstance(gloss_or_hvo, int):
@@ -774,8 +759,7 @@ class WfiGlossOperations(BaseOperations):
         See Also:
             Exists, GetAll, Create
         """
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
         if form is None:
             raise FP_NullParameterError()
 
@@ -834,8 +818,7 @@ class WfiGlossOperations(BaseOperations):
         See Also:
             Find, Create
         """
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
         if form is None:
             raise FP_NullParameterError()
 
@@ -873,8 +856,7 @@ class WfiGlossOperations(BaseOperations):
         See Also:
             GetAll, Create
         """
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         # Resolve to analysis object
         if isinstance(analysis_or_hvo, int):
@@ -920,8 +902,7 @@ class WfiGlossOperations(BaseOperations):
         See Also:
             GetForm, GetAllForms
         """
-        if not gloss_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(gloss_or_hvo, "gloss_or_hvo")
 
         # Resolve to gloss object
         if isinstance(gloss_or_hvo, int):
@@ -981,13 +962,10 @@ class WfiGlossOperations(BaseOperations):
         See Also:
             Create, GetAllForms
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not gloss_or_hvo:
-            raise FP_NullParameterError()
-        if not target_analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(gloss_or_hvo, "gloss_or_hvo")
+        self._ValidateParam(target_analysis_or_hvo, "target_analysis_or_hvo")
 
         # Resolve to gloss object
         if isinstance(gloss_or_hvo, int):
@@ -1052,10 +1030,8 @@ class WfiGlossOperations(BaseOperations):
         See Also:
             SetForm, Delete
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not gloss_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(gloss_or_hvo, "gloss_or_hvo")
 
         self.SetForm(gloss_or_hvo, "", wsHandle)

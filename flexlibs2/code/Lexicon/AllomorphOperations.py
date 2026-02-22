@@ -541,7 +541,7 @@ class AllomorphOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
 
         form = ITsString(allomorph.Form.get_String(wsHandle)).Text
-        return form or ""
+        return self._NormalizeMultiString(form)
 
     def SetForm(self, allomorph_or_hvo, form, wsHandle=None):
         """

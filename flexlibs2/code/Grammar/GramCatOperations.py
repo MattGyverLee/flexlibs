@@ -158,8 +158,7 @@ class GramCatOperations(BaseOperations):
         See Also:
             Delete, GetSubcategories, GetParent
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
         if name is None:
             raise FP_NullParameterError()
@@ -215,11 +214,9 @@ class GramCatOperations(BaseOperations):
         See Also:
             Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not cat_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(cat_or_hvo, "cat_or_hvo")
 
         # Resolve to category object
         cat = self.__ResolveObject(cat_or_hvo)
@@ -259,8 +256,7 @@ class GramCatOperations(BaseOperations):
         See Also:
             SetName, GetSubcategories
         """
-        if not cat_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(cat_or_hvo, "cat_or_hvo")
 
         cat = self.__ResolveObject(cat_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -293,11 +289,9 @@ class GramCatOperations(BaseOperations):
         See Also:
             GetName
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not cat_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(cat_or_hvo, "cat_or_hvo")
         if name is None:
             raise FP_NullParameterError()
 
@@ -349,8 +343,7 @@ class GramCatOperations(BaseOperations):
         See Also:
             GetAll, GetParent, Create
         """
-        if not cat_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(cat_or_hvo, "cat_or_hvo")
 
         cat = self.__ResolveObject(cat_or_hvo)
 
@@ -399,8 +392,7 @@ class GramCatOperations(BaseOperations):
         See Also:
             GetSubcategories, Create
         """
-        if not cat_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(cat_or_hvo, "cat_or_hvo")
 
         cat = self.__ResolveObject(cat_or_hvo)
 
@@ -463,11 +455,9 @@ class GramCatOperations(BaseOperations):
         See Also:
             Create, Delete, GetSubcategories
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Get source category
         source = self.__ResolveObject(item_or_hvo)

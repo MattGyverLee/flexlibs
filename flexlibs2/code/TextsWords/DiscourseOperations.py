@@ -131,8 +131,7 @@ class DiscourseOperations(BaseOperations):
             FP_NullParameterError: If text_or_hvo is None.
             FP_ParameterError: If the object doesn't exist or isn't a valid text.
         """
-        if not text_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(text_or_hvo, "text_or_hvo")
 
         if isinstance(text_or_hvo, int):
             try:
@@ -155,8 +154,7 @@ class DiscourseOperations(BaseOperations):
             FP_NullParameterError: If chart_or_hvo is None.
             FP_ParameterError: If the object doesn't exist or isn't a valid chart.
         """
-        if not chart_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(chart_or_hvo, "chart_or_hvo")
 
         if isinstance(chart_or_hvo, int):
             try:
@@ -185,8 +183,7 @@ class DiscourseOperations(BaseOperations):
             FP_NullParameterError: If row_or_hvo is None.
             FP_ParameterError: If the object doesn't exist or isn't a valid row.
         """
-        if not row_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(row_or_hvo, "row_or_hvo")
 
         if isinstance(row_or_hvo, int):
             try:
@@ -292,15 +289,8 @@ class DiscourseOperations(BaseOperations):
         See Also:
             DeleteChart, GetAllCharts, SetChartName
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not name:
-            raise FP_NullParameterError()
-
-        name = name.strip()
-        if not name:
-            raise FP_ParameterError("Chart name cannot be empty")
+        self._EnsureWriteEnabled()
+        self._ValidateStringNotEmpty(name, "chart name")
 
         # Validate chart_type
         chart_type_lower = chart_type.lower() if chart_type else "constituent"
@@ -308,6 +298,8 @@ class DiscourseOperations(BaseOperations):
             raise FP_ParameterError(
                 f"chart_type must be 'constituent' or 'discourse', got '{chart_type}'"
             )
+
+        name = name.strip()
 
         text_obj = self.__GetTextObject(text_or_hvo)
 
@@ -371,8 +363,7 @@ class DiscourseOperations(BaseOperations):
         See Also:
             CreateChart, GetAllCharts
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
         chart_obj = self.__GetChartObject(chart_or_hvo)
 
@@ -454,15 +445,9 @@ class DiscourseOperations(BaseOperations):
         See Also:
             GetChartName, CreateChart
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not name:
-            raise FP_NullParameterError()
-
+        self._EnsureWriteEnabled()
+        self._ValidateStringNotEmpty(name, "chart name")
         name = name.strip()
-        if not name:
-            raise FP_ParameterError("Chart name cannot be empty")
 
         chart_obj = self.__GetChartObject(chart_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -667,8 +652,7 @@ class DiscourseOperations(BaseOperations):
         See Also:
             DeleteRow, GetRows, GetRowCount
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
         chart_obj = self.__GetChartObject(chart_or_hvo)
 
@@ -722,8 +706,7 @@ class DiscourseOperations(BaseOperations):
         See Also:
             AddRow, GetRows, GetRowCount
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
         row_obj = self.__GetRowObject(row_or_hvo)
 
@@ -827,13 +810,9 @@ class DiscourseOperations(BaseOperations):
         See Also:
             GetCellContent, GetCells
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if cell is None:
-            raise FP_NullParameterError()
-        if content is None:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(cell, "cell")
+        self._ValidateParam(content, "content")
 
         wsHandle = self.__WSHandle(wsHandle)
 
@@ -894,8 +873,7 @@ class DiscourseOperations(BaseOperations):
         See Also:
             SetCellContent, GetCells
         """
-        if cell is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(cell, "cell")
 
         wsHandle = self.__WSHandle(wsHandle)
 
@@ -1061,11 +1039,8 @@ class DiscourseOperations(BaseOperations):
         See Also:
             CreateChart, DeleteChart, GetGuid
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Get source chart and parent
         source = self.__GetChartObject(item_or_hvo)

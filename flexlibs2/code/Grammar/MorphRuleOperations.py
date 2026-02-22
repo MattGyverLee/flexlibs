@@ -223,8 +223,7 @@ class MorphRuleOperations(BaseOperations):
         See Also:
             GetAllAffixTemplates, CreateAffixTemplate
         """
-        if not pos_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(pos_or_hvo, "pos_or_hvo")
 
         pos = self.__ResolveObject(pos_or_hvo)
         if hasattr(pos, 'AffixTemplatesOS'):
@@ -292,8 +291,7 @@ class MorphRuleOperations(BaseOperations):
         See Also:
             CreateAffixTemplate, Delete, GetAllCompoundRules
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
         if name is None:
             raise FP_NullParameterError()
@@ -355,11 +353,9 @@ class MorphRuleOperations(BaseOperations):
         See Also:
             CreateCompoundRule, Delete, GetAllAffixTemplates
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not pos_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(pos_or_hvo, "pos_or_hvo")
         if name is None:
             raise FP_NullParameterError()
 
@@ -410,11 +406,9 @@ class MorphRuleOperations(BaseOperations):
         See Also:
             CreateCompoundRule, CreateAffixTemplate, SetDisabled
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not rule_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(rule_or_hvo, "rule_or_hvo")
 
         rule = self.__ResolveObject(rule_or_hvo)
         class_name = rule.ClassName
@@ -457,8 +451,7 @@ class MorphRuleOperations(BaseOperations):
         See Also:
             SetName, GetDescription
         """
-        if not rule_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(rule_or_hvo, "rule_or_hvo")
 
         rule = self.__ResolveObject(rule_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -486,11 +479,9 @@ class MorphRuleOperations(BaseOperations):
         See Also:
             GetName, SetDescription
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not rule_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(rule_or_hvo, "rule_or_hvo")
         if name is None:
             raise FP_NullParameterError()
 
@@ -524,8 +515,7 @@ class MorphRuleOperations(BaseOperations):
         See Also:
             SetDescription, GetName
         """
-        if not rule_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(rule_or_hvo, "rule_or_hvo")
 
         rule = self.__ResolveObject(rule_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -552,11 +542,9 @@ class MorphRuleOperations(BaseOperations):
         See Also:
             GetDescription, SetName
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not rule_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(rule_or_hvo, "rule_or_hvo")
         if description is None:
             raise FP_NullParameterError()
 
@@ -592,8 +580,7 @@ class MorphRuleOperations(BaseOperations):
         See Also:
             SetStratum
         """
-        if not rule_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(rule_or_hvo, "rule_or_hvo")
 
         rule = self.__ResolveObject(rule_or_hvo)
 
@@ -625,11 +612,9 @@ class MorphRuleOperations(BaseOperations):
         See Also:
             GetStratum
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not rule_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(rule_or_hvo, "rule_or_hvo")
 
         rule = self.__ResolveObject(rule_or_hvo)
 
@@ -665,8 +650,7 @@ class MorphRuleOperations(BaseOperations):
         See Also:
             SetDisabled
         """
-        if not rule_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(rule_or_hvo, "rule_or_hvo")
 
         rule = self.__ResolveObject(rule_or_hvo)
 
@@ -697,11 +681,9 @@ class MorphRuleOperations(BaseOperations):
         See Also:
             IsDisabled
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not rule_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(rule_or_hvo, "rule_or_hvo")
         if disabled is None:
             raise FP_NullParameterError()
 
@@ -754,11 +736,9 @@ class MorphRuleOperations(BaseOperations):
         See Also:
             CreateCompoundRule, CreateAffixTemplate, Delete
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         source = self.__ResolveObject(item_or_hvo)
         class_name = source.ClassName

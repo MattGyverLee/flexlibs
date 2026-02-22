@@ -88,8 +88,7 @@ class ParagraphOperations(BaseOperations):
             FP_NullParameterError: If text_or_hvo is None.
             FP_ParameterError: If the object doesn't exist or isn't a valid text.
         """
-        if not text_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(text_or_hvo, "text_or_hvo")
 
         if isinstance(text_or_hvo, int):
             try:
@@ -113,8 +112,7 @@ class ParagraphOperations(BaseOperations):
             FP_NullParameterError: If para_or_hvo is None.
             FP_ParameterError: If the object doesn't exist or isn't a valid paragraph.
         """
-        if not para_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(para_or_hvo, "para_or_hvo")
 
         if isinstance(para_or_hvo, int):
             try:
@@ -162,11 +160,8 @@ class ParagraphOperations(BaseOperations):
         See Also:
             Delete, InsertAt, GetAll, SetText
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if content is None:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(content, "content")
 
         content_str = content.strip() if isinstance(content, str) else str(content)
         if not content_str:
@@ -225,8 +220,7 @@ class ParagraphOperations(BaseOperations):
         See Also:
             Create, GetAll, InsertAt
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
         para_obj = self.__GetParagraphObject(paragraph_or_hvo)
 
@@ -287,8 +281,7 @@ class ParagraphOperations(BaseOperations):
         See Also:
             Create, Delete, InsertAt, project.Segments.Duplicate
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
         para_obj = self.__GetParagraphObject(item_or_hvo)
 
@@ -550,11 +543,8 @@ class ParagraphOperations(BaseOperations):
         See Also:
             GetText, Create, InsertAt
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if content is None:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(content, "content")
 
         content_str = content.strip() if isinstance(content, str) else str(content)
         if not content_str:
@@ -690,11 +680,8 @@ class ParagraphOperations(BaseOperations):
         See Also:
             Create, Delete, GetAll
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if content is None:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(content, "content")
 
         content_str = content.strip() if isinstance(content, str) else str(content)
         if not content_str:

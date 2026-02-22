@@ -726,7 +726,7 @@ class LexEntryOperations(BaseOperations):
         entry = self.__ResolveObject(entry_or_hvo)
 
         if entry.HeadWord:
-            return normalize_text(entry.HeadWord.Text) or ""
+            return self._NormalizeMultiString(normalize_text(entry.HeadWord.Text))
         return ""
 
     def SetHeadword(self, entry_or_hvo, text, wsHandle=None):
@@ -806,7 +806,7 @@ class LexEntryOperations(BaseOperations):
             return ""
 
         form = ITsString(entry.LexemeFormOA.Form.get_String(wsHandle)).Text
-        return form or ""
+        return self._NormalizeMultiString(form)
 
     def SetLexemeForm(self, entry_or_hvo, text, wsHandle=None):
         """
@@ -900,7 +900,7 @@ class LexEntryOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
 
         form = ITsString(entry.CitationForm.get_String(wsHandle)).Text
-        return form or ""
+        return self._NormalizeMultiString(form)
 
     def SetCitationForm(self, entry_or_hvo, text, wsHandle=None):
         """
@@ -1715,7 +1715,7 @@ class LexEntryOperations(BaseOperations):
 
         entry = self.__ResolveObject(entry_or_hvo)
 
-        return entry.ImportResidue or ""
+        return self._NormalizeMultiString(entry.ImportResidue)
 
     def SetImportResidue(self, entry_or_hvo, residue):
         """
@@ -1779,7 +1779,7 @@ class LexEntryOperations(BaseOperations):
         entry = self.__ResolveObject(entry_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
 
-        return ITsString(entry.Bibliography.get_String(wsHandle)).Text or ""
+        return self._NormalizeMultiString(ITsString(entry.Bibliography.get_String(wsHandle)).Text)
 
     def SetBibliography(self, entry_or_hvo, text, wsHandle=None):
         """
@@ -1816,7 +1816,7 @@ class LexEntryOperations(BaseOperations):
         entry = self.__ResolveObject(entry_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
 
-        return ITsString(entry.Comment.get_String(wsHandle)).Text or ""
+        return self._NormalizeMultiString(ITsString(entry.Comment.get_String(wsHandle)).Text)
 
     def SetComment(self, entry_or_hvo, text, wsHandle=None):
         """
@@ -1853,7 +1853,7 @@ class LexEntryOperations(BaseOperations):
         entry = self.__ResolveObject(entry_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
 
-        return ITsString(entry.LiteralMeaning.get_String(wsHandle)).Text or ""
+        return self._NormalizeMultiString(ITsString(entry.LiteralMeaning.get_String(wsHandle)).Text)
 
     def SetLiteralMeaning(self, entry_or_hvo, text, wsHandle=None):
         """
@@ -1890,7 +1890,7 @@ class LexEntryOperations(BaseOperations):
         entry = self.__ResolveObject(entry_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
 
-        return ITsString(entry.Restrictions.get_String(wsHandle)).Text or ""
+        return self._NormalizeMultiString(ITsString(entry.Restrictions.get_String(wsHandle)).Text)
 
     def SetRestrictions(self, entry_or_hvo, text, wsHandle=None):
         """
@@ -1927,7 +1927,7 @@ class LexEntryOperations(BaseOperations):
         entry = self.__ResolveObject(entry_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
 
-        return ITsString(entry.SummaryDefinition.get_String(wsHandle)).Text or ""
+        return self._NormalizeMultiString(ITsString(entry.SummaryDefinition.get_String(wsHandle)).Text)
 
     def SetSummaryDefinition(self, entry_or_hvo, text, wsHandle=None):
         """

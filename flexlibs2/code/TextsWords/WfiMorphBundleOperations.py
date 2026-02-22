@@ -123,8 +123,7 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             Create, Delete, Reorder
         """
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
@@ -168,11 +167,9 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             Delete, GetAll, SetForm, SetGloss
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
@@ -218,11 +215,9 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             Create, GetAll, Reorder
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not bundle_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(bundle_or_hvo, "bundle_or_hvo")
 
         bundle = self.__GetBundleObject(bundle_or_hvo)
 
@@ -279,11 +274,9 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             Create, Delete, GetGuid
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Get source bundle and parent
         source = self.__GetBundleObject(item_or_hvo)
@@ -455,11 +448,9 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             GetAll, Create, Delete
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         if bundle_list is None:
             raise FP_NullParameterError()
@@ -519,8 +510,7 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             SetForm, GetGloss, GetAll
         """
-        if not bundle_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(bundle_or_hvo, "bundle_or_hvo")
 
         bundle = self.__GetBundleObject(bundle_or_hvo)
         wsHandle = self.__WSHandleVern(wsHandle)
@@ -562,11 +552,9 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             GetForm, SetGloss, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not bundle_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(bundle_or_hvo, "bundle_or_hvo")
 
         if text is None:
             raise FP_NullParameterError()
@@ -614,8 +602,7 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             SetGloss, GetForm, GetSense
         """
-        if not bundle_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(bundle_or_hvo, "bundle_or_hvo")
 
         bundle = self.__GetBundleObject(bundle_or_hvo)
         wsHandle = self.__WSHandleAnal(wsHandle)
@@ -657,11 +644,9 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             GetGloss, SetForm, SetSense
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not bundle_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(bundle_or_hvo, "bundle_or_hvo")
 
         if text is None:
             raise FP_NullParameterError()
@@ -709,8 +694,7 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             SetSense, GetMSA, GetGloss
         """
-        if not bundle_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(bundle_or_hvo, "bundle_or_hvo")
 
         bundle = self.__GetBundleObject(bundle_or_hvo)
         return bundle.SenseRA if bundle.SenseRA else None
@@ -749,11 +733,9 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             GetSense, SetMSA, SetGloss
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not bundle_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(bundle_or_hvo, "bundle_or_hvo")
 
         bundle = self.__GetBundleObject(bundle_or_hvo)
 
@@ -800,8 +782,7 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             SetMorphType, GetSense, GetMSA
         """
-        if not bundle_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(bundle_or_hvo, "bundle_or_hvo")
 
         bundle = self.__GetBundleObject(bundle_or_hvo)
         return bundle.MorphRA if bundle.MorphRA else None
@@ -841,11 +822,9 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             GetMorphType, SetSense, SetMSA
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not bundle_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(bundle_or_hvo, "bundle_or_hvo")
 
         bundle = self.__GetBundleObject(bundle_or_hvo)
 
@@ -890,8 +869,7 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             SetMSA, GetSense, GetMorphType
         """
-        if not bundle_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(bundle_or_hvo, "bundle_or_hvo")
 
         bundle = self.__GetBundleObject(bundle_or_hvo)
         return bundle.MsaRA if bundle.MsaRA else None
@@ -933,11 +911,9 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             GetMSA, SetSense, SetMorphType
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not bundle_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(bundle_or_hvo, "bundle_or_hvo")
 
         bundle = self.__GetBundleObject(bundle_or_hvo)
 
@@ -984,8 +960,7 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             SetInflType, GetInflectionClass, GetMSA
         """
-        if not bundle_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(bundle_or_hvo, "bundle_or_hvo")
 
         bundle = self.__GetBundleObject(bundle_or_hvo)
         return bundle.InflTypeRA if bundle.InflTypeRA else None
@@ -1026,11 +1001,9 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             GetInflType, SetInflectionClass, SetMSA
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not bundle_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(bundle_or_hvo, "bundle_or_hvo")
 
         bundle = self.__GetBundleObject(bundle_or_hvo)
 
@@ -1079,8 +1052,7 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             SetInflectionClass, GetMSA, GetMorphType
         """
-        if not bundle_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(bundle_or_hvo, "bundle_or_hvo")
 
         bundle = self.__GetBundleObject(bundle_or_hvo)
         return bundle.InflClassRA if bundle.InflClassRA else None
@@ -1121,11 +1093,9 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             GetInflectionClass, SetMSA, SetMorphType
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not bundle_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(bundle_or_hvo, "bundle_or_hvo")
 
         bundle = self.__GetBundleObject(bundle_or_hvo)
 
@@ -1167,8 +1137,7 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             GetAll, Create, Delete
         """
-        if not bundle_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(bundle_or_hvo, "bundle_or_hvo")
 
         bundle = self.__GetBundleObject(bundle_or_hvo)
         return bundle.Owner
@@ -1204,8 +1173,7 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             GetOwningAnalysis, GetAll
         """
-        if not bundle_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(bundle_or_hvo, "bundle_or_hvo")
 
         bundle = self.__GetBundleObject(bundle_or_hvo)
         return str(bundle.Guid)

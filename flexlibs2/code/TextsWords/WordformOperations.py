@@ -146,8 +146,7 @@ class WordformOperations(BaseOperations):
         See Also:
             Exists, Find, Delete
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
         if not form or not form.strip():
             raise FP_NullParameterError()
@@ -192,8 +191,7 @@ class WordformOperations(BaseOperations):
         See Also:
             Create, SetSpellingStatus
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
         # Resolve to wordform object
         if isinstance(wordform_or_hvo, int):
@@ -344,8 +342,7 @@ class WordformOperations(BaseOperations):
         See Also:
             GetForm, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
         if not form or not form.strip():
             raise FP_NullParameterError()
@@ -430,8 +427,7 @@ class WordformOperations(BaseOperations):
         See Also:
             GetSpellingStatus, SpellingStatusStates
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
         if status not in (SpellingStatusStates.UNDECIDED,
                          SpellingStatusStates.INCORRECT,
@@ -699,8 +695,7 @@ class WordformOperations(BaseOperations):
         See Also:
             SetSpellingStatus, GetAllUnapproved, GetSpellingStatus
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
         # Resolve to wordform object
         if isinstance(wordform_or_hvo, int):
@@ -787,11 +782,9 @@ class WordformOperations(BaseOperations):
         See Also:
             Create, Delete, GetAnalyses
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Resolve to wordform object
         if isinstance(item_or_hvo, int):

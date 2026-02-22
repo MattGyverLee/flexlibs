@@ -148,8 +148,7 @@ class POSOperations(BaseOperations):
         See Also:
             Delete, Exists, Find
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
         if name is None:
             raise FP_NullParameterError()
@@ -216,11 +215,9 @@ class POSOperations(BaseOperations):
         See Also:
             Create, Exists, Find
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not pos_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(pos_or_hvo, "pos_or_hvo")
 
         # Resolve to POS object
         pos = self.__ResolveObject(pos_or_hvo)
@@ -342,8 +339,7 @@ class POSOperations(BaseOperations):
         See Also:
             SetName, GetAbbreviation
         """
-        if not pos_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(pos_or_hvo, "pos_or_hvo")
 
         pos = self.__ResolveObject(pos_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -374,11 +370,9 @@ class POSOperations(BaseOperations):
         See Also:
             GetName, SetAbbreviation
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not pos_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(pos_or_hvo, "pos_or_hvo")
         if name is None:
             raise FP_NullParameterError()
 
@@ -415,8 +409,7 @@ class POSOperations(BaseOperations):
         See Also:
             SetAbbreviation, GetName
         """
-        if not pos_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(pos_or_hvo, "pos_or_hvo")
 
         pos = self.__ResolveObject(pos_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -446,11 +439,9 @@ class POSOperations(BaseOperations):
         See Also:
             GetAbbreviation, SetName
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not pos_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(pos_or_hvo, "pos_or_hvo")
         if abbr is None:
             raise FP_NullParameterError()
 
@@ -495,8 +486,7 @@ class POSOperations(BaseOperations):
         See Also:
             GetAll, Find
         """
-        if not pos_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(pos_or_hvo, "pos_or_hvo")
 
         pos = self.__ResolveObject(pos_or_hvo)
 
@@ -535,11 +525,9 @@ class POSOperations(BaseOperations):
         See Also:
             RemoveSubcategory, GetSubcategories, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not pos_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(pos_or_hvo, "pos_or_hvo")
         if name is None:
             raise FP_NullParameterError()
         if abbreviation is None:
@@ -599,13 +587,10 @@ class POSOperations(BaseOperations):
         See Also:
             AddSubcategory, GetSubcategories, Delete
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not pos_or_hvo:
-            raise FP_NullParameterError()
-        if not subcat_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(pos_or_hvo, "pos_or_hvo")
+        self._ValidateParam(subcat_or_hvo, "subcat_or_hvo")
 
         pos = self.__ResolveObject(pos_or_hvo)
         subcat = self.__ResolveObject(subcat_or_hvo)
@@ -641,8 +626,7 @@ class POSOperations(BaseOperations):
         See Also:
             Create
         """
-        if not pos_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(pos_or_hvo, "pos_or_hvo")
 
         pos = self.__ResolveObject(pos_or_hvo)
 
@@ -680,8 +664,7 @@ class POSOperations(BaseOperations):
         See Also:
             GetAffixSlots
         """
-        if not pos_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(pos_or_hvo, "pos_or_hvo")
 
         pos = self.__ResolveObject(pos_or_hvo)
 
@@ -720,8 +703,7 @@ class POSOperations(BaseOperations):
         See Also:
             GetInflectionClasses
         """
-        if not pos_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(pos_or_hvo, "pos_or_hvo")
 
         pos = self.__ResolveObject(pos_or_hvo)
 
@@ -757,8 +739,7 @@ class POSOperations(BaseOperations):
         See Also:
             Delete
         """
-        if not pos_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(pos_or_hvo, "pos_or_hvo")
 
         pos = self.__ResolveObject(pos_or_hvo)
 
@@ -824,11 +805,9 @@ class POSOperations(BaseOperations):
         See Also:
             Create, Delete, GetSubcategories
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Get source POS and parent
         source = self.__ResolveObject(item_or_hvo)

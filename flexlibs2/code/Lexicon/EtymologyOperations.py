@@ -566,7 +566,7 @@ class EtymologyOperations(BaseOperations):
         wsHandle = self.__WSHandleAnalysis(ws)
 
         source = ITsString(etymology.Source.get_String(wsHandle)).Text
-        return source or ""
+        return self._NormalizeMultiString(source)
 
     def SetSource(self, etymology_or_hvo, text, ws=None):
         """
@@ -655,7 +655,7 @@ class EtymologyOperations(BaseOperations):
         wsHandle = self.__WSHandleAnalysis(ws)
 
         form = ITsString(etymology.Form.get_String(wsHandle)).Text
-        return form or ""
+        return self._NormalizeMultiString(form)
 
     def SetForm(self, etymology_or_hvo, text, ws=None):
         """
@@ -740,7 +740,7 @@ class EtymologyOperations(BaseOperations):
         wsHandle = self.__WSHandleAnalysis(ws)
 
         gloss = ITsString(etymology.Gloss.get_String(wsHandle)).Text
-        return gloss or ""
+        return self._NormalizeMultiString(gloss)
 
     def SetGloss(self, etymology_or_hvo, text, ws=None):
         """
@@ -823,7 +823,7 @@ class EtymologyOperations(BaseOperations):
         wsHandle = self.__WSHandleAnalysis(ws)
 
         comment = ITsString(etymology.Comment.get_String(wsHandle)).Text
-        return comment or ""
+        return self._NormalizeMultiString(comment)
 
     def SetComment(self, etymology_or_hvo, text, ws=None):
         """
@@ -918,14 +918,14 @@ class EtymologyOperations(BaseOperations):
             if bib:
                 # If it's an ITsString, extract text
                 if hasattr(bib, 'Text'):
-                    return bib.Text or ""
+                    return self._NormalizeMultiString(bib.Text)
                 # If it's already a string
                 elif isinstance(bib, str):
                     return bib
                 # Try to cast to ITsString
                 else:
                     try:
-                        return ITsString(bib).Text or ""
+                        return self._NormalizeMultiString(ITsString(bib).Text)
                     except Exception:
                         return str(bib) if bib else ""
 
