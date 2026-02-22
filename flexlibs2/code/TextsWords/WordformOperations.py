@@ -62,6 +62,10 @@ class WordformOperations(BaseOperations):
         >>> wf = project.Wordforms.Create("running")
         >>> # Set spelling status
         >>> project.Wordforms.SetSpellingStatus(wf, SpellingStatusStates.CORRECT)
+
+    Known Limitations:
+        - Deep copy of wordform analyses (deep=True in Duplicate) is not yet
+          implemented. See Duplicate() method for details and workaround.
     """
 
     def __init__(self, project):
@@ -740,8 +744,48 @@ class WordformOperations(BaseOperations):
             - Analyses duplicated only if deep=True
             - Occurrences are NOT copied (they reference specific text segments)
 
+        Known Limitations (Analysis Deep Copy):
+            When deep=True is specified, analysis copying is NOT YET IMPLEMENTED.
+            A warning is logged instead, and only the wordform shell is duplicated.
+
+            What's Skipped:
+                - IWfiAnalysis objects associated with the wordform
+                - WfiMorphBundle nested structures (morpheme sequences with features)
+                - WfiGloss nested objects (gloss entries for each morpheme)
+                - All analysis-level metadata (e.g., human-approved status, analysis notes)
+
+            Why Not Implemented:
+                - Complex nested structure: Analyses contain multiple levels of
+                  referenced objects (IWfiAnalysis -> WfiMorphBundle -> WfiGloss)
+                - Validation requirements: Copy must preserve all constraints and
+                  relationships between morpheme bundles, glosses, and underlying entries
+                - Reference integrity: Analyses reference lexical entries and grammatical
+                  objects that may not exist in all contexts
+                - Testing complexity: Requires comprehensive test coverage for all
+                  nested object scenarios
+
+            Impact:
+                - Duplicated wordforms will NOT have associated analyses
+                - Wordform form and spelling status are copied successfully
+                - User must manually re-analyze wordforms in FLEx after duplication
+                - Useful for creating variant wordforms with empty analysis slates
+
+            Workaround:
+                1. Duplicate with deep=False (default) to copy wordform properties
+                2. Let FLEx parser auto-generate analyses for duplicated wordform
+                3. OR manually re-analyze in FLEx interface
+                4. OR use copy/paste functionality in FLEx GUI for full deep copy
+
+            Future Implementation:
+                Implementation is planned when resources become available.
+                Would require:
+                - IWfiAnalysisFactory to create analysis objects
+                - Recursive morpheme bundle and gloss copying logic
+                - Comprehensive validation and error handling
+                - Performance optimization for wordforms with many analyses
+
         See Also:
-            Create, Delete, GetGuid
+            Create, Delete, GetAnalyses
         """
         if not self.project.writeEnabled:
             raise FP_ReadOnlyError()
@@ -773,9 +817,13 @@ class WordformOperations(BaseOperations):
 
         # Deep copy: duplicate analyses
         if deep and hasattr(source, 'AnalysesOC') and source.AnalysesOC.Count > 0:
-            # Note: Analysis duplication is complex and may require additional imports
-            # For now, we skip analysis duplication
-            # Full implementation would require IWfiAnalysisFactory and morpheme bundle copying
+            # FIXME: Implement analysis deep copy (estimated effort: 3-5 hours)
+            #   - Requires IWfiAnalysisFactory instantiation
+            #   - Must recursively copy WfiMorphBundle structures
+            #   - Must recursively copy WfiGloss nested objects
+            #   - Needs comprehensive validation of morpheme/gloss references
+            #   - Should handle edge cases: empty analyses, orphaned references, etc.
+            #   - See Known Limitations section in docstring for full context
             logger.warning("Deep copy of wordform analyses not yet implemented")
 
         # Note: Occurrences (OccurrencesRS) are NOT copied as they reference
