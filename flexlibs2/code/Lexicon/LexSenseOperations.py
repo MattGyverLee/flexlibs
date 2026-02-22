@@ -187,16 +187,12 @@ class LexSenseOperations(BaseOperations):
         See Also:
             Delete, SetGloss, SetDefinition, CreateSubsense
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
-        if gloss is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
+        self._ValidateParam(gloss, "gloss")
 
-        if not gloss or not gloss.strip():
-            raise FP_ParameterError("Gloss cannot be empty")
+        self._ValidateStringNotEmpty(gloss, "gloss")
 
         entry = self.__GetEntryObject(entry_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -245,11 +241,9 @@ class LexSenseOperations(BaseOperations):
         See Also:
             Create, GetAll
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
 
@@ -309,11 +303,9 @@ class LexSenseOperations(BaseOperations):
         See Also:
             Create, Delete, GetGuid
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Get source sense and parent
         source = self.__GetSenseObject(item_or_hvo)
@@ -657,13 +649,10 @@ class LexSenseOperations(BaseOperations):
         See Also:
             GetAll, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
-        if sense_list is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
+        self._ValidateParam(sense_list, "sense_list")
 
         if not sense_list:
             raise FP_ParameterError("Sense list cannot be empty")
@@ -721,8 +710,7 @@ class LexSenseOperations(BaseOperations):
         See Also:
             SetGloss, GetDefinition
         """
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -765,13 +753,10 @@ class LexSenseOperations(BaseOperations):
         See Also:
             GetGloss, SetDefinition
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
+        self._ValidateParam(text, "text")
 
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -809,8 +794,7 @@ class LexSenseOperations(BaseOperations):
         See Also:
             SetDefinition, GetGloss
         """
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -850,13 +834,10 @@ class LexSenseOperations(BaseOperations):
         See Also:
             GetDefinition, SetGloss
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
+        self._ValidateParam(text, "text")
 
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -896,8 +877,7 @@ class LexSenseOperations(BaseOperations):
         See Also:
             GetDefinition, GetGloss
         """
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -942,8 +922,7 @@ class LexSenseOperations(BaseOperations):
         See Also:
             SetPartOfSpeech, GetGrammaticalInfo
         """
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
 
@@ -987,13 +966,10 @@ class LexSenseOperations(BaseOperations):
         See Also:
             GetPartOfSpeech, SetGrammaticalInfo
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
-        if pos is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
+        self._ValidateParam(pos, "pos")
 
         sense = self.__GetSenseObject(sense_or_hvo)
 
@@ -1054,8 +1030,7 @@ class LexSenseOperations(BaseOperations):
         See Also:
             SetGrammaticalInfo, GetPartOfSpeech
         """
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
         return sense.MorphoSyntaxAnalysisRA
@@ -1089,11 +1064,9 @@ class LexSenseOperations(BaseOperations):
         See Also:
             GetGrammaticalInfo, SetPartOfSpeech
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
         sense.MorphoSyntaxAnalysisRA = msa
@@ -1132,8 +1105,7 @@ class LexSenseOperations(BaseOperations):
         See Also:
             AddSemanticDomain, RemoveSemanticDomain
         """
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
         return list(sense.SemanticDomainsRC)
@@ -1169,13 +1141,10 @@ class LexSenseOperations(BaseOperations):
         See Also:
             GetSemanticDomains, RemoveSemanticDomain
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
-        if not domain_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
+        self._ValidateParam(domain_or_hvo, "domain_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
         domain = self.__GetSemanticDomainObject(domain_or_hvo)
@@ -1211,13 +1180,10 @@ class LexSenseOperations(BaseOperations):
         See Also:
             GetSemanticDomains, AddSemanticDomain
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
-        if not domain_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
+        self._ValidateParam(domain_or_hvo, "domain_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
         domain = self.__GetSemanticDomainObject(domain_or_hvo)
@@ -1260,8 +1226,7 @@ class LexSenseOperations(BaseOperations):
         See Also:
             GetExampleCount, AddExample
         """
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
         return list(sense.ExamplesOS)
@@ -1294,8 +1259,7 @@ class LexSenseOperations(BaseOperations):
         See Also:
             GetExamples, AddExample
         """
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
         return sense.ExamplesOS.Count
@@ -1334,16 +1298,12 @@ class LexSenseOperations(BaseOperations):
         See Also:
             GetExamples, GetExampleCount
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
+        self._ValidateParam(text, "text")
 
-        if not text or not text.strip():
-            raise FP_ParameterError("Example text cannot be empty")
+        self._ValidateStringNotEmpty(text, "text")
 
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleVernacular(wsHandle)
@@ -1397,8 +1357,7 @@ class LexSenseOperations(BaseOperations):
         See Also:
             CreateSubsense, GetParentSense
         """
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
         return list(sense.SensesOS)
@@ -1436,16 +1395,12 @@ class LexSenseOperations(BaseOperations):
         See Also:
             GetSubsenses, GetParentSense
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not parent_sense_or_hvo:
-            raise FP_NullParameterError()
-        if gloss is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(parent_sense_or_hvo, "parent_sense_or_hvo")
+        self._ValidateParam(gloss, "gloss")
 
-        if not gloss or not gloss.strip():
-            raise FP_ParameterError("Gloss cannot be empty")
+        self._ValidateStringNotEmpty(gloss, "gloss")
 
         parent_sense = self.__GetSenseObject(parent_sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -1496,8 +1451,7 @@ class LexSenseOperations(BaseOperations):
         See Also:
             GetSubsenses, CreateSubsense, GetOwningEntry
         """
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
         owner = sense.Owner
@@ -1542,8 +1496,7 @@ class LexSenseOperations(BaseOperations):
         See Also:
             SetStatus
         """
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
         return sense.StatusRA
@@ -1579,11 +1532,9 @@ class LexSenseOperations(BaseOperations):
         See Also:
             GetStatus
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
         sense.StatusRA = status
@@ -1620,8 +1571,7 @@ class LexSenseOperations(BaseOperations):
         See Also:
             SetSenseType
         """
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
         return sense.SenseTypeRA
@@ -1657,11 +1607,9 @@ class LexSenseOperations(BaseOperations):
         See Also:
             GetSenseType
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
         sense.SenseTypeRA = sense_type
@@ -1703,8 +1651,7 @@ class LexSenseOperations(BaseOperations):
         See Also:
             GetReversalCount
         """
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
 
@@ -1753,8 +1700,7 @@ class LexSenseOperations(BaseOperations):
         See Also:
             GetReversalEntries
         """
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
         return len(list(sense.ReferringReversalIndexEntries))
@@ -1792,8 +1738,7 @@ class LexSenseOperations(BaseOperations):
         See Also:
             GetPictureCount
         """
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
         return list(sense.PicturesOS)
@@ -1826,8 +1771,7 @@ class LexSenseOperations(BaseOperations):
         See Also:
             GetPictures
         """
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
         return sense.PicturesOS.Count
@@ -1885,13 +1829,10 @@ class LexSenseOperations(BaseOperations):
         See Also:
             RemovePicture, GetPictures, SetCaption, RenamePicture, MovePicture
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
-        if not image_path:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
+        self._ValidateParam(image_path, "image_path")
 
         sense = self.__GetSenseObject(sense_or_hvo)
 
@@ -1963,13 +1904,10 @@ class LexSenseOperations(BaseOperations):
         See Also:
             AddPicture, GetPictures, MovePicture
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
-        if not picture:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
+        self._ValidateParam(picture, "picture")
 
         sense = self.__GetSenseObject(sense_or_hvo)
 
@@ -2054,15 +1992,11 @@ class LexSenseOperations(BaseOperations):
         See Also:
             AddPicture, RemovePicture, GetPictures
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not picture:
-            raise FP_NullParameterError()
-        if not from_sense_or_hvo:
-            raise FP_NullParameterError()
-        if not to_sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(picture, "picture")
+        self._ValidateParam(from_sense_or_hvo, "from_sense_or_hvo")
+        self._ValidateParam(to_sense_or_hvo, "to_sense_or_hvo")
 
         from_sense = self.__GetSenseObject(from_sense_or_hvo)
         to_sense = self.__GetSenseObject(to_sense_or_hvo)
@@ -2124,13 +2058,10 @@ class LexSenseOperations(BaseOperations):
         See Also:
             GetCaption, AddPicture
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not picture:
-            raise FP_NullParameterError()
-        if caption is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(picture, "picture")
+        self._ValidateParam(caption, "caption")
 
         wsHandle = self.__WSHandleVernacular(wsHandle)
         mkstr = TsStringUtils.MakeString(caption, wsHandle)
@@ -2174,8 +2105,7 @@ class LexSenseOperations(BaseOperations):
         See Also:
             SetCaption, AddPicture, GetPictures
         """
-        if not picture:
-            raise FP_NullParameterError()
+        self._ValidateParam(picture, "picture")
 
         wsHandle = self.__WSHandleVernacular(wsHandle)
         caption = ITsString(picture.Caption.get_String(wsHandle)).Text
@@ -2226,13 +2156,10 @@ class LexSenseOperations(BaseOperations):
         See Also:
             AddPicture, GetPictures, MediaOperations.RenameMediaFile
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not picture:
-            raise FP_NullParameterError()
-        if not new_filename:
-            raise FP_NullParameterError()
+        self._ValidateParam(picture, "picture")
+        self._ValidateParam(new_filename, "new_filename")
 
         # Verify picture has an associated file
         if not hasattr(picture, 'PictureFileRA') or not picture.PictureFileRA:
@@ -2308,8 +2235,7 @@ class LexSenseOperations(BaseOperations):
         See Also:
             GetOwningEntry
         """
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
         return sense.Guid
@@ -2344,8 +2270,7 @@ class LexSenseOperations(BaseOperations):
         See Also:
             GetParentSense, GetAll
         """
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
 
@@ -2397,8 +2322,7 @@ class LexSenseOperations(BaseOperations):
         See Also:
             Reorder, GetSubsenses
         """
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
 
@@ -2437,8 +2361,7 @@ class LexSenseOperations(BaseOperations):
         See Also:
             GetGloss, GetOwningEntry
         """
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
 
@@ -2451,16 +2374,14 @@ class LexSenseOperations(BaseOperations):
 
     def GetBibliography(self, sense_or_hvo, wsHandle=None):
         """Get the bibliography of a sense."""
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
         return ITsString(sense.Bibliography.get_String(wsHandle)).Text or ""
 
     def SetBibliography(self, sense_or_hvo, text, wsHandle=None):
         """Set the bibliography of a sense."""
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
         if not sense_or_hvo or text is None:
             raise FP_NullParameterError()
         sense = self.__GetSenseObject(sense_or_hvo)
@@ -2470,16 +2391,14 @@ class LexSenseOperations(BaseOperations):
 
     def GetGeneralNote(self, sense_or_hvo, wsHandle=None):
         """Get the general note of a sense."""
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
         return ITsString(sense.GeneralNote.get_String(wsHandle)).Text or ""
 
     def SetGeneralNote(self, sense_or_hvo, text, wsHandle=None):
         """Set the general note of a sense."""
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
         if not sense_or_hvo or text is None:
             raise FP_NullParameterError()
         sense = self.__GetSenseObject(sense_or_hvo)
@@ -2489,16 +2408,14 @@ class LexSenseOperations(BaseOperations):
 
     def GetDiscourseNote(self, sense_or_hvo, wsHandle=None):
         """Get the discourse note of a sense."""
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
         return ITsString(sense.DiscourseNote.get_String(wsHandle)).Text or ""
 
     def SetDiscourseNote(self, sense_or_hvo, text, wsHandle=None):
         """Set the discourse note of a sense."""
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
         if not sense_or_hvo or text is None:
             raise FP_NullParameterError()
         sense = self.__GetSenseObject(sense_or_hvo)
@@ -2508,16 +2425,14 @@ class LexSenseOperations(BaseOperations):
 
     def GetEncyclopedicInfo(self, sense_or_hvo, wsHandle=None):
         """Get the encyclopedic info of a sense."""
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
         return ITsString(sense.EncyclopedicInfo.get_String(wsHandle)).Text or ""
 
     def SetEncyclopedicInfo(self, sense_or_hvo, text, wsHandle=None):
         """Set the encyclopedic info of a sense."""
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
         if not sense_or_hvo or text is None:
             raise FP_NullParameterError()
         sense = self.__GetSenseObject(sense_or_hvo)
@@ -2527,16 +2442,14 @@ class LexSenseOperations(BaseOperations):
 
     def GetGrammarNote(self, sense_or_hvo, wsHandle=None):
         """Get the grammar note of a sense."""
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
         return ITsString(sense.GrammarNote.get_String(wsHandle)).Text or ""
 
     def SetGrammarNote(self, sense_or_hvo, text, wsHandle=None):
         """Set the grammar note of a sense."""
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
         if not sense_or_hvo or text is None:
             raise FP_NullParameterError()
         sense = self.__GetSenseObject(sense_or_hvo)
@@ -2546,16 +2459,14 @@ class LexSenseOperations(BaseOperations):
 
     def GetPhonologyNote(self, sense_or_hvo, wsHandle=None):
         """Get the phonology note of a sense."""
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
         return ITsString(sense.PhonologyNote.get_String(wsHandle)).Text or ""
 
     def SetPhonologyNote(self, sense_or_hvo, text, wsHandle=None):
         """Set the phonology note of a sense."""
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
         if not sense_or_hvo or text is None:
             raise FP_NullParameterError()
         sense = self.__GetSenseObject(sense_or_hvo)
@@ -2565,16 +2476,14 @@ class LexSenseOperations(BaseOperations):
 
     def GetSemanticsNote(self, sense_or_hvo, wsHandle=None):
         """Get the semantics note of a sense."""
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
         return ITsString(sense.SemanticsNote.get_String(wsHandle)).Text or ""
 
     def SetSemanticsNote(self, sense_or_hvo, text, wsHandle=None):
         """Set the semantics note of a sense."""
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
         if not sense_or_hvo or text is None:
             raise FP_NullParameterError()
         sense = self.__GetSenseObject(sense_or_hvo)
@@ -2584,16 +2493,14 @@ class LexSenseOperations(BaseOperations):
 
     def GetSocioLinguisticsNote(self, sense_or_hvo, wsHandle=None):
         """Get the socio-linguistics note of a sense."""
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
         return ITsString(sense.SocioLinguisticsNote.get_String(wsHandle)).Text or ""
 
     def SetSocioLinguisticsNote(self, sense_or_hvo, text, wsHandle=None):
         """Set the socio-linguistics note of a sense."""
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
         if not sense_or_hvo or text is None:
             raise FP_NullParameterError()
         sense = self.__GetSenseObject(sense_or_hvo)
@@ -2603,16 +2510,14 @@ class LexSenseOperations(BaseOperations):
 
     def GetAnthroNote(self, sense_or_hvo, wsHandle=None):
         """Get the anthropology note of a sense."""
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
         return ITsString(sense.AnthroNote.get_String(wsHandle)).Text or ""
 
     def SetAnthroNote(self, sense_or_hvo, text, wsHandle=None):
         """Set the anthropology note of a sense."""
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
         if not sense_or_hvo or text is None:
             raise FP_NullParameterError()
         sense = self.__GetSenseObject(sense_or_hvo)
@@ -2622,16 +2527,14 @@ class LexSenseOperations(BaseOperations):
 
     def GetRestrictions(self, sense_or_hvo, wsHandle=None):
         """Get the restrictions of a sense."""
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
         return ITsString(sense.Restrictions.get_String(wsHandle)).Text or ""
 
     def SetRestrictions(self, sense_or_hvo, text, wsHandle=None):
         """Set the restrictions of a sense."""
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
         if not sense_or_hvo or text is None:
             raise FP_NullParameterError()
         sense = self.__GetSenseObject(sense_or_hvo)
@@ -2641,15 +2544,13 @@ class LexSenseOperations(BaseOperations):
 
     def GetSource(self, sense_or_hvo):
         """Get the source of a sense."""
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
         return sense.Source or ""
 
     def SetSource(self, sense_or_hvo, text):
         """Set the source of a sense."""
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
         if not sense_or_hvo or text is None:
             raise FP_NullParameterError()
         sense = self.__GetSenseObject(sense_or_hvo)
@@ -2657,15 +2558,13 @@ class LexSenseOperations(BaseOperations):
 
     def GetScientificName(self, sense_or_hvo):
         """Get the scientific name of a sense."""
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
         return sense.ScientificName or ""
 
     def SetScientificName(self, sense_or_hvo, text):
         """Set the scientific name of a sense."""
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
         if not sense_or_hvo or text is None:
             raise FP_NullParameterError()
         sense = self.__GetSenseObject(sense_or_hvo)
@@ -2673,15 +2572,13 @@ class LexSenseOperations(BaseOperations):
 
     def GetImportResidue(self, sense_or_hvo):
         """Get the import residue of a sense."""
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
         return sense.ImportResidue or ""
 
     def SetImportResidue(self, sense_or_hvo, text):
         """Set the import residue of a sense."""
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
         if not sense_or_hvo or text is None:
             raise FP_NullParameterError()
         sense = self.__GetSenseObject(sense_or_hvo)
@@ -2721,8 +2618,7 @@ class LexSenseOperations(BaseOperations):
 
     def GetUsageTypes(self, sense_or_hvo):
         """Get the usage types of a sense."""
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
         result = []
         for item in sense.UsageTypesRC:
@@ -2732,8 +2628,7 @@ class LexSenseOperations(BaseOperations):
 
     def AddUsageType(self, sense_or_hvo, usage_type):
         """Add a usage type to a sense. Accepts string name or object."""
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
         if not sense_or_hvo or not usage_type:
             raise FP_NullParameterError()
         sense = self.__GetSenseObject(sense_or_hvo)
@@ -2753,8 +2648,7 @@ class LexSenseOperations(BaseOperations):
 
     def RemoveUsageType(self, sense_or_hvo, usage_type):
         """Remove a usage type from a sense."""
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
         if not sense_or_hvo or not usage_type:
             raise FP_NullParameterError()
         sense = self.__GetSenseObject(sense_or_hvo)
@@ -2763,8 +2657,7 @@ class LexSenseOperations(BaseOperations):
 
     def GetDomainTypes(self, sense_or_hvo):
         """Get the domain types of a sense."""
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
         result = []
         for item in sense.DomainTypesRC:
@@ -2774,8 +2667,7 @@ class LexSenseOperations(BaseOperations):
 
     def AddDomainType(self, sense_or_hvo, domain_type):
         """Add a domain type to a sense. Accepts string name or object."""
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
         if not sense_or_hvo or not domain_type:
             raise FP_NullParameterError()
         sense = self.__GetSenseObject(sense_or_hvo)
@@ -2792,8 +2684,7 @@ class LexSenseOperations(BaseOperations):
 
     def RemoveDomainType(self, sense_or_hvo, domain_type):
         """Remove a domain type from a sense."""
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
         if not sense_or_hvo or not domain_type:
             raise FP_NullParameterError()
         sense = self.__GetSenseObject(sense_or_hvo)
@@ -2802,8 +2693,7 @@ class LexSenseOperations(BaseOperations):
 
     def GetAnthroCodes(self, sense_or_hvo):
         """Get the anthropology codes of a sense."""
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
         result = []
         for item in sense.AnthroCodesRC:
@@ -2813,8 +2703,7 @@ class LexSenseOperations(BaseOperations):
 
     def AddAnthroCode(self, sense_or_hvo, anthro_code):
         """Add an anthropology code to a sense. Accepts string name or object."""
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
         if not sense_or_hvo or not anthro_code:
             raise FP_NullParameterError()
         sense = self.__GetSenseObject(sense_or_hvo)
@@ -2831,8 +2720,7 @@ class LexSenseOperations(BaseOperations):
 
     def RemoveAnthroCode(self, sense_or_hvo, anthro_code):
         """Remove an anthropology code from a sense."""
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
         if not sense_or_hvo or not anthro_code:
             raise FP_NullParameterError()
         sense = self.__GetSenseObject(sense_or_hvo)
@@ -2872,8 +2760,7 @@ class LexSenseOperations(BaseOperations):
         See Also:
             GetComplexFormsNotSubentries, GetAllSenses
         """
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
 
@@ -2914,8 +2801,7 @@ class LexSenseOperations(BaseOperations):
         See Also:
             GetVisibleComplexFormBackRefs
         """
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
 
@@ -2972,8 +2858,7 @@ class LexSenseOperations(BaseOperations):
         See Also:
             GetVisibleComplexFormBackRefs
         """
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
 
@@ -3018,8 +2903,7 @@ class LexSenseOperations(BaseOperations):
         See Also:
             GetSubsenses, CreateSubsense
         """
-        if not sense_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
 
