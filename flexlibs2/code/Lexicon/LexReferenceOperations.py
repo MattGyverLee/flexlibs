@@ -213,16 +213,12 @@ class LexReferenceOperations(BaseOperations):
         See Also:
             DeleteType, FindType, GetAllTypes, SetTypeName
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if name is None:
-            raise FP_NullParameterError()
-        if mapping_type is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
+        self._ValidateParam(mapping_type, "mapping_type")
 
-        if not name or not name.strip():
-            raise FP_ParameterError("Relation type name cannot be empty")
+        self._ValidateStringNotEmpty(name, "name")
 
         # Validate mapping type
         mapping_type_upper = mapping_type.upper()
@@ -308,11 +304,9 @@ class LexReferenceOperations(BaseOperations):
         See Also:
             CreateType, FindType
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not ref_type_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(ref_type_or_hvo, "ref_type_or_hvo")
 
         ref_type = self.__ResolveRefType(ref_type_or_hvo)
 
@@ -358,8 +352,7 @@ class LexReferenceOperations(BaseOperations):
         See Also:
             GetAllTypes, CreateType, GetTypeName
         """
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             return None
@@ -404,8 +397,7 @@ class LexReferenceOperations(BaseOperations):
         See Also:
             SetTypeName, GetTypeReverseName
         """
-        if not ref_type_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(ref_type_or_hvo, "ref_type_or_hvo")
 
         ref_type = self.__ResolveRefType(ref_type_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -441,13 +433,10 @@ class LexReferenceOperations(BaseOperations):
         See Also:
             GetTypeName, SetTypeReverseName
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not ref_type_or_hvo:
-            raise FP_NullParameterError()
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(ref_type_or_hvo, "ref_type_or_hvo")
+        self._ValidateParam(name, "name")
 
         ref_type = self.__ResolveRefType(ref_type_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -489,8 +478,7 @@ class LexReferenceOperations(BaseOperations):
         See Also:
             SetTypeReverseName, GetTypeName, GetMappingType
         """
-        if not ref_type_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(ref_type_or_hvo, "ref_type_or_hvo")
 
         ref_type = self.__ResolveRefType(ref_type_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -529,13 +517,10 @@ class LexReferenceOperations(BaseOperations):
         See Also:
             GetTypeReverseName, SetTypeName
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not ref_type_or_hvo:
-            raise FP_NullParameterError()
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(ref_type_or_hvo, "ref_type_or_hvo")
+        self._ValidateParam(name, "name")
 
         ref_type = self.__ResolveRefType(ref_type_or_hvo)
 
@@ -588,8 +573,7 @@ class LexReferenceOperations(BaseOperations):
         See Also:
             CreateType, GetTypeName
         """
-        if not ref_type_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(ref_type_or_hvo, "ref_type_or_hvo")
 
         ref_type = self.__ResolveRefType(ref_type_or_hvo)
 
@@ -734,13 +718,10 @@ class LexReferenceOperations(BaseOperations):
         See Also:
             Delete, AddTarget, RemoveTarget, GetTargets
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if ref_type_or_name is None:
-            raise FP_NullParameterError()
-        if targets is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(ref_type_or_name, "ref_type_or_name")
+        self._ValidateParam(targets, "targets")
 
         if not targets or len(targets) < 2:
             raise FP_ParameterError(
@@ -815,11 +796,9 @@ class LexReferenceOperations(BaseOperations):
         See Also:
             Create, GetAll
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not lex_ref_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(lex_ref_or_hvo, "lex_ref_or_hvo")
 
         lex_ref = self.__ResolveLexRef(lex_ref_or_hvo)
 
@@ -866,8 +845,7 @@ class LexReferenceOperations(BaseOperations):
         See Also:
             AddTarget, RemoveTarget, Create
         """
-        if not lex_ref_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(lex_ref_or_hvo, "lex_ref_or_hvo")
 
         lex_ref = self.__ResolveLexRef(lex_ref_or_hvo)
 
@@ -915,13 +893,10 @@ class LexReferenceOperations(BaseOperations):
         See Also:
             RemoveTarget, GetTargets, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not lex_ref_or_hvo:
-            raise FP_NullParameterError()
-        if not sense_or_entry:
-            raise FP_NullParameterError()
+        self._ValidateParam(lex_ref_or_hvo, "lex_ref_or_hvo")
+        self._ValidateParam(sense_or_entry, "sense_or_entry")
 
         lex_ref = self.__ResolveLexRef(lex_ref_or_hvo)
         target = self.__ResolveSenseOrEntry(sense_or_entry)
@@ -974,13 +949,10 @@ class LexReferenceOperations(BaseOperations):
         See Also:
             AddTarget, GetTargets, Delete
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not lex_ref_or_hvo:
-            raise FP_NullParameterError()
-        if not sense_or_entry:
-            raise FP_NullParameterError()
+        self._ValidateParam(lex_ref_or_hvo, "lex_ref_or_hvo")
+        self._ValidateParam(sense_or_entry, "sense_or_entry")
 
         lex_ref = self.__ResolveLexRef(lex_ref_or_hvo)
         target = self.__ResolveSenseOrEntry(sense_or_entry)
@@ -1029,8 +1001,7 @@ class LexReferenceOperations(BaseOperations):
         See Also:
             GetTypeName, GetMappingType, Create
         """
-        if not lex_ref_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(lex_ref_or_hvo, "lex_ref_or_hvo")
 
         lex_ref = self.__ResolveLexRef(lex_ref_or_hvo)
 
@@ -1072,8 +1043,7 @@ class LexReferenceOperations(BaseOperations):
         See Also:
             GetAll, GetType, FindType
         """
-        if ref_type_or_name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(ref_type_or_name, "ref_type_or_name")
 
         # Resolve reference type
         if isinstance(ref_type_or_name, str):
@@ -1139,13 +1109,10 @@ class LexReferenceOperations(BaseOperations):
         See Also:
             GetComplexFormEntries, GetComponentEntries
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not entry:
-            raise FP_NullParameterError()
-        if not complex_entry:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry, "entry")
+        self._ValidateParam(complex_entry, "complex_entry")
 
         component = self.__ResolveEntry(entry)
         complex_form = self.__ResolveEntry(complex_entry)
@@ -1203,8 +1170,7 @@ class LexReferenceOperations(BaseOperations):
         See Also:
             GetComponentEntries, ShowComplexFormsIn
         """
-        if not entry:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry, "entry")
 
         component = self.__ResolveEntry(entry)
 
@@ -1265,8 +1231,7 @@ class LexReferenceOperations(BaseOperations):
         See Also:
             GetComplexFormEntries, ShowComplexFormsIn
         """
-        if not complex_entry:
-            raise FP_NullParameterError()
+        self._ValidateParam(complex_entry, "complex_entry")
 
         complex_form = self.__ResolveEntry(complex_entry)
 
