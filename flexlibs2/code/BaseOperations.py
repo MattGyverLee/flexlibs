@@ -1105,3 +1105,386 @@ class BaseOperations:
             "Items not in same sequence or sequence not found. "
             "Both items must be in the same owning sequence (OS)."
         )
+
+    # ========== VALIDATION METHODS ==========
+
+    def _EnsureWriteEnabled(self) -> None:
+        """
+        Verify that the project is open in write mode.
+
+        This method checks that the FLExProject is properly opened with write
+        capabilities. All modification operations should call this method before
+        making any changes.
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            FP_ReadOnlyError: If project is not writable (opened read-only or closed).
+
+        Example:
+            >>> def CreateNewSense(self, entry):
+            ...     self._EnsureWriteEnabled()  # Check before modification
+            ...     sense = entry.SensesOS.Create()
+            ...     return sense
+
+        Notes:
+            - Should be called at the start of any modification method
+            - Provides early failure with clear error message
+            - Prevents partial modifications on closed/read-only projects
+            - Lightweight check (just calls project.CanModify())
+
+        Implementation Notes:
+            - Checks project.CanModify() property
+            - Raises FP_ReadOnlyError with descriptive message
+            - No side effects
+        """
+        if not self.project.CanModify():
+            raise Exception(
+                "Project is read-only or not open. "
+                "Cannot perform modifications. "
+                "Open the project with writeEnabled=True."
+            )
+
+    def _ValidateParam(self, param: any, param_name: str = "parameter") -> None:
+        """
+        Validate that a parameter is not None.
+
+        This method performs a null check on a required parameter. Use this for
+        any parameter that must be provided and non-None.
+
+        Args:
+            param: The parameter value to validate (any type).
+            param_name: Optional. Descriptive name for error messages.
+                       Default: "parameter".
+
+        Returns:
+            None
+
+        Raises:
+            Exception: If param is None.
+
+        Example:
+            >>> def SetGloss(self, sense, gloss):
+            ...     self._ValidateParam(sense, "sense")
+            ...     self._ValidateParam(gloss, "gloss")
+            ...     sense.Gloss.BestAnalysisAlternative.Text = gloss
+
+            >>> def MoveItem(self, parent, item):
+            ...     self._ValidateParam(parent, "parent")
+            ...     self._ValidateParam(item, "item")
+            ...     # Perform move operation
+
+        Notes:
+            - Lightweight null check
+            - Works with any type (objects, primitives, etc.)
+            - Provides helpful error message with parameter name
+            - Use _ValidateInstanceOf for type checking
+            - Use _ValidateParamNotEmpty for string empty checks
+
+        Implementation Notes:
+            - Simple if param is None check
+            - No side effects
+            - Exception message includes parameter name
+        """
+        if param is None:
+            raise Exception(f"{param_name} cannot be None")
+
+    def _ValidateParamNotEmpty(
+        self, param: any, param_name: str = "parameter"
+    ) -> None:
+        """
+        Validate that a parameter is not None and not empty.
+
+        This method performs both a null check and an emptiness check. Use this
+        for parameters like lists, strings, or collections that must have content.
+
+        Args:
+            param: The parameter to validate (list, string, dict, or object
+                   with __len__ method).
+            param_name: Optional. Descriptive name for error messages.
+                       Default: "parameter".
+
+        Returns:
+            None
+
+        Raises:
+            Exception: If param is None.
+            Exception: If param is empty (len() == 0).
+
+        Example:
+            >>> def CreateEntries(self, entry_list):
+            ...     self._ValidateParamNotEmpty(entry_list, "entry_list")
+            ...     for entry in entry_list:
+            ...         # Process each entry
+
+            >>> def SortItems(self, items):
+            ...     self._ValidateParamNotEmpty(items, "items")
+            ...     return self.Sort(parent, key_func=lambda i: str(i))
+
+            >>> def SetGloss(self, gloss):
+            ...     self._ValidateParamNotEmpty(gloss, "gloss text")
+            ...     sense.Gloss.BestAnalysisAlternative.Text = gloss
+
+        Notes:
+            - Checks for both None and empty conditions
+            - Works with any object supporting len()
+            - Provides helpful error messages
+            - Use _ValidateParam for None-only checks
+            - Use _ValidateStringNotEmpty for string-specific validation
+
+        Implementation Notes:
+            - First checks if param is None
+            - Then checks if len(param) == 0
+            - No side effects
+        """
+        if param is None:
+            raise Exception(f"{param_name} cannot be None")
+        if len(param) == 0:
+            raise Exception(f"{param_name} cannot be empty")
+
+    def _ValidateInstanceOf(
+        self, obj: any, expected_type: type, param_name: str = "object"
+    ) -> None:
+        """
+        Validate that an object is an instance of expected type.
+
+        This method performs strict type checking. Use this to ensure parameters
+        are the correct type before attempting operations that depend on specific
+        properties or methods.
+
+        Args:
+            obj: The object to validate.
+            expected_type: The expected type or tuple of types.
+                          Examples: str, int, ILexEntry, (str, int)
+            param_name: Optional. Descriptive name for error messages.
+                       Default: "object".
+
+        Returns:
+            None
+
+        Raises:
+            TypeError: If obj is not instance of expected_type.
+
+        Example:
+            >>> def UpdateSense(self, sense):
+            ...     self._ValidateInstanceOf(sense, ILexSense, "sense")
+            ...     sense.Gloss.BestAnalysisAlternative.Text = "new gloss"
+
+            >>> def ProcessEntries(self, entries):
+            ...     self._ValidateInstanceOf(entries, list, "entries")
+            ...     for entry in entries:
+            ...         self._ValidateInstanceOf(entry, ILexEntry, "entry")
+
+            >>> def FindSenseByGloss(self, entry, gloss):
+            ...     self._ValidateInstanceOf(entry, ILexEntry, "entry")
+            ...     self._ValidateInstanceOf(gloss, (str, type(None)), "gloss")
+
+        Notes:
+            - Performs isinstance() check
+            - Supports single type or tuple of types
+            - Helpful error message with actual and expected types
+            - Use _ValidateParam for None checks
+            - Use _ValidateStringNotEmpty for string-specific validation
+
+        Implementation Notes:
+            - Uses isinstance() internally
+            - Raises TypeError (not generic Exception)
+            - Gets type names for helpful error messages
+            - No side effects
+        """
+        if not isinstance(obj, expected_type):
+            if isinstance(expected_type, tuple):
+                type_names = " or ".join(t.__name__ for t in expected_type)
+            else:
+                type_names = expected_type.__name__
+            raise TypeError(
+                f"{param_name} must be {type_names}, "
+                f"got {type(obj).__name__}"
+            )
+
+    def _ValidateStringNotEmpty(self, text: str, param_name: str = "text") -> None:
+        """
+        Validate that a string is not None and not empty.
+
+        This method performs validation specific to string parameters. Use this
+        for text fields that require non-empty content.
+
+        Args:
+            text: The string to validate.
+            param_name: Optional. Descriptive name for error messages.
+                       Default: "text".
+
+        Returns:
+            None
+
+        Raises:
+            TypeError: If text is not a string.
+            Exception: If text is None.
+            Exception: If text is empty string or contains only whitespace.
+
+        Example:
+            >>> def SetGloss(self, sense, gloss_text):
+            ...     self._ValidateStringNotEmpty(gloss_text, "gloss")
+            ...     sense.Gloss.BestAnalysisAlternative.Text = gloss_text
+
+            >>> def UpdateDefinition(self, sense, definition):
+            ...     self._ValidateStringNotEmpty(definition, "definition")
+            ...     sense.Definition.BestAnalysisAlternative.Text = definition
+
+            >>> def CreateNote(self, note_text):
+            ...     self._ValidateStringNotEmpty(note_text, "note")
+            ...     # Create note with validated text
+
+        Notes:
+            - Checks for None, empty string, and whitespace-only
+            - Validates type is string
+            - Useful for text fields that must have content
+            - Use _ValidateParam for general None checks
+            - Use _ValidateParamNotEmpty for collections
+
+        Implementation Notes:
+            - First validates type is string
+            - Then checks if None
+            - Then checks if stripped length is 0
+            - No side effects
+        """
+        if not isinstance(text, str):
+            raise TypeError(
+                f"{param_name} must be a string, got {type(text).__name__}"
+            )
+        if text is None:
+            raise Exception(f"{param_name} cannot be None")
+        if len(text.strip()) == 0:
+            raise Exception(
+                f"{param_name} cannot be empty or contain only whitespace"
+            )
+
+    def _ValidateIndexBounds(
+        self, index: int, max_count: int, param_name: str = "index"
+    ) -> None:
+        """
+        Validate that an index is within bounds [0, max_count-1].
+
+        This method performs bounds checking for array/collection indices.
+        Use this to ensure index parameters are valid before accessing sequences.
+
+        Args:
+            index: The index to validate (must be int).
+            max_count: The maximum count (length) of the collection.
+                      Must be positive int.
+            param_name: Optional. Descriptive name for error messages.
+                       Default: "index".
+
+        Returns:
+            None
+
+        Raises:
+            TypeError: If index is not an integer.
+            ValueError: If index is negative.
+            IndexError: If index >= max_count.
+
+        Example:
+            >>> def GetSenseAt(self, entry, index):
+            ...     self._ValidateIndexBounds(index, entry.SensesOS.Count, "sense_index")
+            ...     return entry.SensesOS[index]
+
+            >>> def MoveToIndex(self, parent, item, index):
+            ...     self._ValidateIndexBounds(index, len(self._GetSequence(parent)), "target_index")
+            ...     # Perform move operation
+
+            >>> def InsertAtPosition(self, collection, index, item):
+            ...     self._ValidateIndexBounds(index, len(collection) + 1, "insertion_index")
+            ...     collection.Insert(index, item)
+
+        Notes:
+            - Validates both lower bound (>= 0) and upper bound (< max_count)
+            - Requires integer index
+            - max_count must be positive
+            - Provides helpful error with valid range
+            - Use for array/sequence/collection access
+            - Use _ValidateParam for other integer validation
+
+        Implementation Notes:
+            - Checks isinstance(index, int)
+            - Checks index >= 0
+            - Checks index < max_count
+            - Raises appropriate exception types
+            - No side effects
+        """
+        if not isinstance(index, int):
+            raise TypeError(
+                f"{param_name} must be an integer, got {type(index).__name__}"
+            )
+        if index < 0:
+            raise ValueError(
+                f"{param_name} cannot be negative, got {index}"
+            )
+        if index >= max_count:
+            raise IndexError(
+                f"{param_name} out of bounds: {index} >= {max_count} "
+                f"(valid range: 0-{max_count - 1})"
+            )
+
+    def _ValidateOwner(
+        self, obj: any, expected_owner: any, param_name: str = "object"
+    ) -> None:
+        """
+        Validate that an object has expected owner.
+
+        This method performs owner validation. Use this to ensure an object
+        belongs to the correct parent before performing ownership-dependent
+        operations.
+
+        Args:
+            obj: The object to validate (must have Owner property).
+            expected_owner: The expected owner object.
+            param_name: Optional. Descriptive name for error messages.
+                       Default: "object".
+
+        Returns:
+            None
+
+        Raises:
+            AttributeError: If obj doesn't have Owner property.
+            ValueError: If obj.Owner does not match expected_owner.
+
+        Example:
+            >>> def AddExampleToSense(self, sense, example):
+            ...     self._ValidateOwner(example, sense, "example")
+            ...     # Example must belong to this sense
+
+            >>> def MoveToParent(self, item, new_parent):
+            ...     if hasattr(item, 'Owner'):
+            ...         old_owner = item.Owner
+            ...         self._ValidateOwner(item, old_owner, "item")
+
+            >>> def VerifySenseInEntry(self, sense, entry):
+            ...     self._ValidateOwner(sense, entry, "sense")
+            ...     # Now we know sense.Owner == entry
+
+        Notes:
+            - Checks that object has Owner property
+            - Validates Owner matches expected_owner
+            - Works with any object with Owner property
+            - Provides helpful error message
+            - Useful for ensuring object hierarchy correctness
+
+        Implementation Notes:
+            - Checks if obj has Owner attribute
+            - Compares obj.Owner with expected_owner
+            - Uses equality check (==), not identity (is)
+            - No side effects
+        """
+        if not hasattr(obj, "Owner"):
+            raise AttributeError(
+                f"{param_name} does not have Owner property"
+            )
+        if obj.Owner != expected_owner:
+            raise ValueError(
+                f"{param_name} owner does not match expected owner. "
+                f"Object owner: {obj.Owner}, Expected: {expected_owner}"
+            )
