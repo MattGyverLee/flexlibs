@@ -183,14 +183,11 @@ class LexEntryOperations(BaseOperations):
         See Also:
             Delete, Exists, Find, AddSense, SetLexemeForm
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if lexeme_form is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(lexeme_form, "lexeme_form")
 
-        if not lexeme_form or not lexeme_form.strip():
-            raise FP_ParameterError("Lexeme form cannot be empty")
+        self._ValidateStringNotEmpty(lexeme_form, "lexeme_form")
 
         wsHandle = self.__WSHandle(wsHandle)
 
@@ -278,11 +275,9 @@ class LexEntryOperations(BaseOperations):
         See Also:
             Create, Exists
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         # Resolve to entry object
         entry = self.__ResolveObject(entry_or_hvo)
@@ -360,11 +355,9 @@ class LexEntryOperations(BaseOperations):
         See Also:
             Create, Delete, project.Senses.Duplicate, project.Allomorphs.Duplicate
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Resolve to entry object
         source_entry = self.__ResolveObject(item_or_hvo)
@@ -632,8 +625,7 @@ class LexEntryOperations(BaseOperations):
         See Also:
             Find, Create
         """
-        if lexeme_form is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(lexeme_form, "lexeme_form")
 
         if not lexeme_form or not lexeme_form.strip():
             return False
@@ -675,8 +667,7 @@ class LexEntryOperations(BaseOperations):
         See Also:
             Exists, GetAll, GetLexemeForm
         """
-        if lexeme_form is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(lexeme_form, "lexeme_form")
 
         if not lexeme_form or not lexeme_form.strip():
             return None
@@ -730,8 +721,7 @@ class LexEntryOperations(BaseOperations):
         See Also:
             GetLexemeForm, GetHomographNumber, SetHeadword
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
 
@@ -807,8 +797,7 @@ class LexEntryOperations(BaseOperations):
         See Also:
             SetLexemeForm, GetCitationForm, GetHeadword
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -852,16 +841,12 @@ class LexEntryOperations(BaseOperations):
         See Also:
             GetLexemeForm, SetCitationForm, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
+        self._ValidateParam(text, "text")
 
-        if not text or not text.strip():
-            raise FP_ParameterError("Lexeme form cannot be empty")
+        self._ValidateStringNotEmpty(text, "text")
 
         entry = self.__ResolveObject(entry_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -909,8 +894,7 @@ class LexEntryOperations(BaseOperations):
         See Also:
             SetCitationForm, GetLexemeForm
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -950,13 +934,10 @@ class LexEntryOperations(BaseOperations):
         See Also:
             GetCitationForm, SetLexemeForm
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
+        self._ValidateParam(text, "text")
 
         entry = self.__ResolveObject(entry_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -998,8 +979,7 @@ class LexEntryOperations(BaseOperations):
         See Also:
             GetCitationForm, GetLexemeForm, GetHeadword
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
         ws_handle = self.project.project.DefaultVernWs
@@ -1049,8 +1029,7 @@ class LexEntryOperations(BaseOperations):
         See Also:
             GetHeadword, GetLongName
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
 
@@ -1086,8 +1065,7 @@ class LexEntryOperations(BaseOperations):
         See Also:
             GetShortName, GetHeadword
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -1132,8 +1110,7 @@ class LexEntryOperations(BaseOperations):
         See Also:
             GetGuid
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
 
@@ -1178,8 +1155,7 @@ class LexEntryOperations(BaseOperations):
         See Also:
             SetHomographNumber, GetHeadword
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
 
@@ -1221,13 +1197,10 @@ class LexEntryOperations(BaseOperations):
         See Also:
             GetHomographNumber, GetHeadword
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
-        if number is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
+        self._ValidateParam(number, "number")
 
         if number < 0:
             raise FP_ParameterError("Homograph number cannot be negative")
@@ -1270,8 +1243,7 @@ class LexEntryOperations(BaseOperations):
         See Also:
             GetDateModified
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
 
@@ -1311,8 +1283,7 @@ class LexEntryOperations(BaseOperations):
         See Also:
             GetDateCreated
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
 
@@ -1358,8 +1329,7 @@ class LexEntryOperations(BaseOperations):
         See Also:
             SetMorphType, Create
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
 
@@ -1405,13 +1375,10 @@ class LexEntryOperations(BaseOperations):
         See Also:
             GetMorphType, Create, GetAvailableMorphTypes, ValidateMorphType
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
-        if morph_type_or_name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
+        self._ValidateParam(morph_type_or_name, "morph_type_or_name")
 
         entry = self.__ResolveObject(entry_or_hvo)
 
@@ -1564,8 +1531,7 @@ class LexEntryOperations(BaseOperations):
         See Also:
             GetSenseCount, AddSense
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
 
@@ -1602,8 +1568,7 @@ class LexEntryOperations(BaseOperations):
         See Also:
             GetSenses, AddSense
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
 
@@ -1646,16 +1611,12 @@ class LexEntryOperations(BaseOperations):
         See Also:
             GetSenses, GetSenseCount
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
-        if gloss is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
+        self._ValidateParam(gloss, "gloss")
 
-        if not gloss or not gloss.strip():
-            raise FP_ParameterError("Gloss cannot be empty")
+        self._ValidateStringNotEmpty(gloss, "gloss")
 
         entry = self.__ResolveObject(entry_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -1713,8 +1674,7 @@ class LexEntryOperations(BaseOperations):
         See Also:
             FLExProject.Object, FLExProject.BuildGotoURL
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
 
@@ -1751,8 +1711,7 @@ class LexEntryOperations(BaseOperations):
         See Also:
             SetImportResidue
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
 
@@ -1787,13 +1746,10 @@ class LexEntryOperations(BaseOperations):
         See Also:
             GetImportResidue
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
-        if residue is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
+        self._ValidateParam(residue, "residue")
 
         entry = self.__ResolveObject(entry_or_hvo)
 
@@ -1818,8 +1774,7 @@ class LexEntryOperations(BaseOperations):
             >>> print(bib)
             Smith 2015: 42-43
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -1835,12 +1790,9 @@ class LexEntryOperations(BaseOperations):
             text (str): The bibliography text
             wsHandle: Optional writing system handle. Defaults to analysis WS.
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
+        self._ValidateParam(text, "text")
 
         entry = self.__ResolveObject(entry_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -1859,8 +1811,7 @@ class LexEntryOperations(BaseOperations):
         Returns:
             str: The comment text
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -1876,12 +1827,9 @@ class LexEntryOperations(BaseOperations):
             text (str): The comment text
             wsHandle: Optional writing system handle. Defaults to analysis WS.
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
+        self._ValidateParam(text, "text")
 
         entry = self.__ResolveObject(entry_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -1900,8 +1848,7 @@ class LexEntryOperations(BaseOperations):
         Returns:
             str: The literal meaning text
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -1917,12 +1864,9 @@ class LexEntryOperations(BaseOperations):
             text (str): The literal meaning text
             wsHandle: Optional writing system handle. Defaults to analysis WS.
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
+        self._ValidateParam(text, "text")
 
         entry = self.__ResolveObject(entry_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -1941,8 +1885,7 @@ class LexEntryOperations(BaseOperations):
         Returns:
             str: The restrictions text
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -1958,12 +1901,9 @@ class LexEntryOperations(BaseOperations):
             text (str): The restrictions text
             wsHandle: Optional writing system handle. Defaults to analysis WS.
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
+        self._ValidateParam(text, "text")
 
         entry = self.__ResolveObject(entry_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -1982,8 +1922,7 @@ class LexEntryOperations(BaseOperations):
         Returns:
             str: The summary definition text
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -1999,12 +1938,9 @@ class LexEntryOperations(BaseOperations):
             text (str): The summary definition text
             wsHandle: Optional writing system handle. Defaults to analysis WS.
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
+        self._ValidateParam(text, "text")
 
         entry = self.__ResolveObject(entry_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -2024,8 +1960,7 @@ class LexEntryOperations(BaseOperations):
         Returns:
             bool: True if excluded from parsing, False otherwise
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
         return entry.DoNotUseForParsing
@@ -2038,12 +1973,9 @@ class LexEntryOperations(BaseOperations):
             entry_or_hvo: Either an ILexEntry object or its HVO
             value (bool): True to exclude from parsing, False to include
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
-        if value is None:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
+        self._ValidateParam(value, "value")
 
         entry = self.__ResolveObject(entry_or_hvo)
         entry.DoNotUseForParsing = bool(value)
@@ -2058,8 +1990,7 @@ class LexEntryOperations(BaseOperations):
         Returns:
             bool: True if excluded as headword, False otherwise
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
         return entry.ExcludeAsHeadword
@@ -2072,12 +2003,9 @@ class LexEntryOperations(BaseOperations):
             entry_or_hvo: Either an ILexEntry object or its HVO
             value (bool): True to exclude as headword, False to include
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
-        if value is None:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
+        self._ValidateParam(value, "value")
 
         entry = self.__ResolveObject(entry_or_hvo)
         entry.ExcludeAsHeadword = bool(value)
@@ -2100,8 +2028,7 @@ class LexEntryOperations(BaseOperations):
             >>> print(pubs)
             ['Main Dictionary', 'Student Edition']
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
 
@@ -2119,12 +2046,9 @@ class LexEntryOperations(BaseOperations):
             entry_or_hvo: Either an ILexEntry object or its HVO
             publication: Publication name (str) or ICmPossibility object
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
-        if not publication:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
+        self._ValidateParam(publication, "publication")
 
         entry = self.__ResolveObject(entry_or_hvo)
 
@@ -2146,12 +2070,9 @@ class LexEntryOperations(BaseOperations):
             entry_or_hvo: Either an ILexEntry object or its HVO
             publication: Publication name (str) or ICmPossibility object
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
-        if not publication:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
+        self._ValidateParam(publication, "publication")
 
         entry = self.__ResolveObject(entry_or_hvo)
 
@@ -2175,8 +2096,7 @@ class LexEntryOperations(BaseOperations):
         Returns:
             list: List of publication names
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
 
@@ -2194,12 +2114,9 @@ class LexEntryOperations(BaseOperations):
             entry_or_hvo: Either an ILexEntry object or its HVO
             publication: Publication name (str) or ICmPossibility object
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
-        if not publication:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
+        self._ValidateParam(publication, "publication")
 
         entry = self.__ResolveObject(entry_or_hvo)
 
@@ -2221,12 +2138,9 @@ class LexEntryOperations(BaseOperations):
             entry_or_hvo: Either an ILexEntry object or its HVO
             publication: Publication name (str) or ICmPossibility object
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
-        if not publication:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
+        self._ValidateParam(publication, "publication")
 
         entry = self.__ResolveObject(entry_or_hvo)
 
@@ -2309,8 +2223,7 @@ class LexEntryOperations(BaseOperations):
         See Also:
             GetComplexFormsNotSubentries, GetAllSenses
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
 
@@ -2352,8 +2265,7 @@ class LexEntryOperations(BaseOperations):
         See Also:
             GetVisibleComplexFormBackRefs
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
 
@@ -2406,8 +2318,7 @@ class LexEntryOperations(BaseOperations):
         See Also:
             GetVisibleComplexFormBackRefs
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
 
@@ -2452,8 +2363,7 @@ class LexEntryOperations(BaseOperations):
         See Also:
             GetSenseCount, GetSenses
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
 
@@ -2528,12 +2438,9 @@ class LexEntryOperations(BaseOperations):
         See Also:
             RemoveComplexFormComponent, GetVisibleComplexFormBackRefs
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-        if not complex_entry_or_hvo:
-            raise FP_NullParameterError()
-        if not component_or_hvo:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(complex_entry_or_hvo, "complex_entry_or_hvo")
+        self._ValidateParam(component_or_hvo, "component_or_hvo")
 
         complex_entry = self.__ResolveObject(complex_entry_or_hvo)
         component = self.__ResolveObject(component_or_hvo)
@@ -2594,12 +2501,9 @@ class LexEntryOperations(BaseOperations):
         See Also:
             AddComplexFormComponent
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-        if not complex_entry_or_hvo:
-            raise FP_NullParameterError()
-        if not component_or_hvo:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(complex_entry_or_hvo, "complex_entry_or_hvo")
+        self._ValidateParam(component_or_hvo, "component_or_hvo")
 
         complex_entry = self.__ResolveObject(complex_entry_or_hvo)
         component = self.__ResolveObject(component_or_hvo)
@@ -2646,8 +2550,7 @@ class LexEntryOperations(BaseOperations):
         See Also:
             AddComplexFormComponent, GetVisibleComplexFormBackRefs
         """
-        if not complex_entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(complex_entry_or_hvo, "complex_entry_or_hvo")
 
         complex_entry = self.__ResolveObject(complex_entry_or_hvo)
 
