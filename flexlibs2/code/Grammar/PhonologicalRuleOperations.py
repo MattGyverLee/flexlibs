@@ -28,8 +28,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -158,11 +156,9 @@ class PhonologicalRuleOperations(BaseOperations):
         See Also:
             Delete, SetDescription, AddInputSegment, AddOutputSegment
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -217,11 +213,9 @@ class PhonologicalRuleOperations(BaseOperations):
         See Also:
             Create, GetAll
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not rule_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(rule_or_hvo, "rule_or_hvo")
 
         # Resolve to rule object
         rule = self.__ResolveObject(rule_or_hvo)
@@ -255,8 +249,7 @@ class PhonologicalRuleOperations(BaseOperations):
         See Also:
             Find, GetAll, Create
         """
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         return self.Find(name) is not None
 
@@ -291,8 +284,7 @@ class PhonologicalRuleOperations(BaseOperations):
         See Also:
             Exists, GetAll, GetName
         """
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         name_lower = name.lower()
         for rule in self.GetAll():
@@ -327,8 +319,7 @@ class PhonologicalRuleOperations(BaseOperations):
         See Also:
             SetName, GetDescription
         """
-        if not rule_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(rule_or_hvo, "rule_or_hvo")
 
         rule = self.__ResolveObject(rule_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -358,13 +349,10 @@ class PhonologicalRuleOperations(BaseOperations):
         See Also:
             GetName, SetDescription
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not rule_or_hvo:
-            raise FP_NullParameterError()
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(rule_or_hvo, "rule_or_hvo")
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -399,8 +387,7 @@ class PhonologicalRuleOperations(BaseOperations):
         See Also:
             SetDescription, GetName
         """
-        if not rule_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(rule_or_hvo, "rule_or_hvo")
 
         rule = self.__ResolveObject(rule_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -430,13 +417,10 @@ class PhonologicalRuleOperations(BaseOperations):
         See Also:
             GetDescription, SetName
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not rule_or_hvo:
-            raise FP_NullParameterError()
-        if description is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(rule_or_hvo, "rule_or_hvo")
+        self._ValidateParam(description, "description")
 
         rule = self.__ResolveObject(rule_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -472,8 +456,7 @@ class PhonologicalRuleOperations(BaseOperations):
         See Also:
             SetStratum
         """
-        if not rule_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(rule_or_hvo, "rule_or_hvo")
 
         rule = self.__ResolveObject(rule_or_hvo)
 
@@ -506,11 +489,9 @@ class PhonologicalRuleOperations(BaseOperations):
         See Also:
             GetStratum
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not rule_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(rule_or_hvo, "rule_or_hvo")
 
         rule = self.__ResolveObject(rule_or_hvo)
 
@@ -546,8 +527,7 @@ class PhonologicalRuleOperations(BaseOperations):
         See Also:
             SetDirection
         """
-        if not rule_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(rule_or_hvo, "rule_or_hvo")
 
         rule = self.__ResolveObject(rule_or_hvo)
 
@@ -578,11 +558,9 @@ class PhonologicalRuleOperations(BaseOperations):
         See Also:
             GetDirection
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not rule_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(rule_or_hvo, "rule_or_hvo")
 
         if direction not in [0, 1, 2]:
             raise FP_ParameterError("Direction must be 0 (L-R), 1 (R-L), or 2 (simultaneous)")
@@ -619,13 +597,10 @@ class PhonologicalRuleOperations(BaseOperations):
         See Also:
             AddOutputSegment, GetInputSegments
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not rule_or_hvo:
-            raise FP_NullParameterError()
-        if not phoneme_or_class:
-            raise FP_NullParameterError()
+        self._ValidateParam(rule_or_hvo, "rule_or_hvo")
+        self._ValidateParam(phoneme_or_class, "phoneme_or_class")
 
         rule = self.__ResolveObject(rule_or_hvo)
 
@@ -675,13 +650,10 @@ class PhonologicalRuleOperations(BaseOperations):
         See Also:
             AddInputSegment, GetOutputSegments
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not rule_or_hvo:
-            raise FP_NullParameterError()
-        if not phoneme_or_class:
-            raise FP_NullParameterError()
+        self._ValidateParam(rule_or_hvo, "rule_or_hvo")
+        self._ValidateParam(phoneme_or_class, "phoneme_or_class")
 
         rule = self.__ResolveObject(rule_or_hvo)
 
@@ -731,11 +703,9 @@ class PhonologicalRuleOperations(BaseOperations):
         See Also:
             SetRightContext, GetLeftContext
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not rule_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(rule_or_hvo, "rule_or_hvo")
 
         rule = self.__ResolveObject(rule_or_hvo)
 
@@ -785,11 +755,9 @@ class PhonologicalRuleOperations(BaseOperations):
         See Also:
             SetLeftContext, GetRightContext
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not rule_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(rule_or_hvo, "rule_or_hvo")
 
         rule = self.__ResolveObject(rule_or_hvo)
 
@@ -855,11 +823,9 @@ class PhonologicalRuleOperations(BaseOperations):
         See Also:
             Create, Delete, SetDirection
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Get source rule
         source = self.__ResolveObject(item_or_hvo)

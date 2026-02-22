@@ -24,8 +24,6 @@ from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
 
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
@@ -173,8 +171,7 @@ class WfiGlossOperations(BaseOperations):
         self._EnsureWriteEnabled()
 
         self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
-        if form is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(form, "form")
 
         if not form or not form.strip():
             raise FP_ParameterError("Gloss form cannot be empty")
@@ -445,8 +442,7 @@ class WfiGlossOperations(BaseOperations):
         self._EnsureWriteEnabled()
 
         self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
-        if gloss_list is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(gloss_list, "gloss_list")
 
         if not gloss_list:
             raise FP_ParameterError("Gloss list cannot be empty")
@@ -564,8 +560,7 @@ class WfiGlossOperations(BaseOperations):
         self._EnsureWriteEnabled()
 
         self._ValidateParam(gloss_or_hvo, "gloss_or_hvo")
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(text, "text")
 
         # Resolve to gloss object
         if isinstance(gloss_or_hvo, int):
@@ -760,8 +755,7 @@ class WfiGlossOperations(BaseOperations):
             Exists, GetAll, Create
         """
         self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
-        if form is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(form, "form")
 
         if not form or not form.strip():
             return None
@@ -819,8 +813,7 @@ class WfiGlossOperations(BaseOperations):
             Find, Create
         """
         self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
-        if form is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(form, "form")
 
         if not form or not form.strip():
             return False

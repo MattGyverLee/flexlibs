@@ -26,8 +26,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
@@ -452,8 +450,7 @@ class WfiMorphBundleOperations(BaseOperations):
 
         self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
-        if bundle_list is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(bundle_list, "bundle_list")
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
@@ -556,8 +553,7 @@ class WfiMorphBundleOperations(BaseOperations):
 
         self._ValidateParam(bundle_or_hvo, "bundle_or_hvo")
 
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(text, "text")
 
         bundle = self.__GetBundleObject(bundle_or_hvo)
         wsHandle = self.__WSHandleVern(wsHandle)
@@ -648,8 +644,7 @@ class WfiMorphBundleOperations(BaseOperations):
 
         self._ValidateParam(bundle_or_hvo, "bundle_or_hvo")
 
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(text, "text")
 
         bundle = self.__GetBundleObject(bundle_or_hvo)
         wsHandle = self.__WSHandleAnal(wsHandle)

@@ -28,8 +28,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -181,8 +179,7 @@ class VariantOperations(BaseOperations):
         See Also:
             GetAllTypes, GetTypeName
         """
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             return None
@@ -230,8 +227,7 @@ class VariantOperations(BaseOperations):
         See Also:
             GetTypeDescription, FindType
         """
-        if not variant_type:
-            raise FP_NullParameterError()
+        self._ValidateParam(variant_type, "variant_type")
 
         wsHandle = self.__WSHandleAnalysis(wsHandle)
 
@@ -268,8 +264,7 @@ class VariantOperations(BaseOperations):
         See Also:
             GetTypeName, FindType
         """
-        if not variant_type:
-            raise FP_NullParameterError()
+        self._ValidateParam(variant_type, "variant_type")
 
         wsHandle = self.__WSHandleAnalysis(wsHandle)
 
@@ -384,15 +379,10 @@ class VariantOperations(BaseOperations):
         See Also:
             Delete, GetType, SetType, AddComponentLexeme
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
-        if variant_form is None:
-            raise FP_NullParameterError()
-        if variant_type is None:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
+        self._ValidateParam(variant_form, "variant_form")
+        self._ValidateParam(variant_type, "variant_type")
 
         if not variant_form or not variant_form.strip():
             raise FP_ParameterError("Variant form cannot be empty")
@@ -460,11 +450,8 @@ class VariantOperations(BaseOperations):
         See Also:
             Create, GetAll
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not variant_or_hvo:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(variant_or_hvo, "variant_or_hvo")
 
         variant = self.__GetVariantObject(variant_or_hvo)
 
@@ -518,11 +505,8 @@ class VariantOperations(BaseOperations):
         See Also:
             Create, Delete, GetType
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Get source variant and parent
         source = self.__GetVariantObject(item_or_hvo)
@@ -667,8 +651,7 @@ class VariantOperations(BaseOperations):
         See Also:
             SetForm, GetOwningEntry
         """
-        if not variant_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(variant_or_hvo, "variant_or_hvo")
 
         variant = self.__GetVariantObject(variant_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -715,13 +698,9 @@ class VariantOperations(BaseOperations):
         See Also:
             GetForm, GetOwningEntry
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not variant_or_hvo:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(variant_or_hvo, "variant_or_hvo")
+        self._ValidateParam(text, "text")
 
         if not text or not text.strip():
             raise FP_ParameterError("Variant form cannot be empty")
@@ -769,8 +748,7 @@ class VariantOperations(BaseOperations):
         See Also:
             SetType, GetTypeName, GetAllTypes
         """
-        if not variant_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(variant_or_hvo, "variant_or_hvo")
 
         variant = self.__GetVariantObject(variant_or_hvo)
 
@@ -812,13 +790,9 @@ class VariantOperations(BaseOperations):
         See Also:
             GetType, FindType, GetAllTypes
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not variant_or_hvo:
-            raise FP_NullParameterError()
-        if variant_type is None:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(variant_or_hvo, "variant_or_hvo")
+        self._ValidateParam(variant_type, "variant_type")
 
         variant = self.__GetVariantObject(variant_or_hvo)
 
@@ -873,8 +847,7 @@ class VariantOperations(BaseOperations):
         See Also:
             AddComponentLexeme, RemoveComponentLexeme, Create
         """
-        if not variant_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(variant_or_hvo, "variant_or_hvo")
 
         variant = self.__GetVariantObject(variant_or_hvo)
 
@@ -926,13 +899,9 @@ class VariantOperations(BaseOperations):
         See Also:
             GetComponentLexemes, RemoveComponentLexeme, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not variant_or_hvo:
-            raise FP_NullParameterError()
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(variant_or_hvo, "variant_or_hvo")
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         variant = self.__GetVariantObject(variant_or_hvo)
         entry = self.__GetEntryObject(entry_or_hvo)
@@ -974,13 +943,9 @@ class VariantOperations(BaseOperations):
         See Also:
             GetComponentLexemes, AddComponentLexeme
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not variant_or_hvo:
-            raise FP_NullParameterError()
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(variant_or_hvo, "variant_or_hvo")
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         variant = self.__GetVariantObject(variant_or_hvo)
         entry = self.__GetEntryObject(entry_or_hvo)
@@ -1026,8 +991,7 @@ class VariantOperations(BaseOperations):
         See Also:
             GetAll, GetComponentLexemes
         """
-        if not variant_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(variant_or_hvo, "variant_or_hvo")
 
         variant = self.__GetVariantObject(variant_or_hvo)
 
@@ -1065,8 +1029,7 @@ class VariantOperations(BaseOperations):
         See Also:
             GetAll, Create
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__GetEntryObject(entry_or_hvo)
 

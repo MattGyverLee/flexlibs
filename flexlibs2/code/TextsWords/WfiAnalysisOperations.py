@@ -32,8 +32,6 @@ from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
 
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
@@ -497,8 +495,7 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             GetAll, Create
         """
-        if not wordform_or_hvo or not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(not, "not")
 
         wordform = self.__GetWordformObject(wordform_or_hvo)
         analysis = self.__GetAnalysisObject(analysis_or_hvo)

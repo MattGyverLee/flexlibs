@@ -21,8 +21,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -160,8 +158,7 @@ class GramCatOperations(BaseOperations):
         """
         self._EnsureWriteEnabled()
 
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -292,8 +289,7 @@ class GramCatOperations(BaseOperations):
         self._EnsureWriteEnabled()
 
         self._ValidateParam(cat_or_hvo, "cat_or_hvo")
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")

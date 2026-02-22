@@ -26,8 +26,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -111,11 +109,9 @@ class ConstChartRowOperations(BaseOperations):
         See Also:
             Delete, Find, GetAll, SetLabel, SetNotes
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not chart_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(chart_or_hvo, "chart_or_hvo")
 
         chart = self.__ResolveChart(chart_or_hvo)
         wsHandle = self.__WSHandleAnalysis()
@@ -171,11 +167,9 @@ class ConstChartRowOperations(BaseOperations):
         See Also:
             Create, Find
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not row_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(row_or_hvo, "row_or_hvo")
 
         # Resolve to row object
         row = self.__ResolveObject(row_or_hvo)
@@ -212,8 +206,7 @@ class ConstChartRowOperations(BaseOperations):
         See Also:
             GetAll, Create
         """
-        if not chart_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(chart_or_hvo, "chart_or_hvo")
 
         chart = self.__ResolveChart(chart_or_hvo)
 
@@ -254,8 +247,7 @@ class ConstChartRowOperations(BaseOperations):
         See Also:
             Find, Create
         """
-        if not chart_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(chart_or_hvo, "chart_or_hvo")
 
         chart = self.__ResolveChart(chart_or_hvo)
 
@@ -290,8 +282,7 @@ class ConstChartRowOperations(BaseOperations):
         See Also:
             SetLabel, GetNotes
         """
-        if not row_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(row_or_hvo, "row_or_hvo")
 
         row = self.__ResolveObject(row_or_hvo)
         wsHandle = self.__WSHandle(ws)
@@ -325,13 +316,10 @@ class ConstChartRowOperations(BaseOperations):
         See Also:
             GetLabel, SetNotes
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not row_or_hvo:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(row_or_hvo, "row_or_hvo")
+        self._ValidateParam(text, "text")
 
         row = self.__ResolveObject(row_or_hvo)
         wsHandle = self.__WSHandle(ws)
@@ -367,8 +355,7 @@ class ConstChartRowOperations(BaseOperations):
         See Also:
             SetNotes, GetLabel
         """
-        if not row_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(row_or_hvo, "row_or_hvo")
 
         row = self.__ResolveObject(row_or_hvo)
         wsHandle = self.__WSHandle(ws)
@@ -401,13 +388,10 @@ class ConstChartRowOperations(BaseOperations):
         See Also:
             GetNotes, SetLabel
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not row_or_hvo:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(row_or_hvo, "row_or_hvo")
+        self._ValidateParam(text, "text")
 
         row = self.__ResolveObject(row_or_hvo)
         wsHandle = self.__WSHandle(ws)
@@ -444,8 +428,7 @@ class ConstChartRowOperations(BaseOperations):
         See Also:
             ConstChartWordGroupOperations, Create
         """
-        if not row_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(row_or_hvo, "row_or_hvo")
 
         row = self.__ResolveObject(row_or_hvo)
 
@@ -487,13 +470,10 @@ class ConstChartRowOperations(BaseOperations):
         See Also:
             MoveUp, MoveDown, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not row_or_hvo:
-            raise FP_NullParameterError()
-        if not chart_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(row_or_hvo, "row_or_hvo")
+        self._ValidateParam(chart_or_hvo, "chart_or_hvo")
 
         row = self.__ResolveObject(row_or_hvo)
         target_chart = self.__ResolveChart(chart_or_hvo)

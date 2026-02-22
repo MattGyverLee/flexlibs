@@ -27,8 +27,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -114,8 +112,7 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             Create, Find, Delete
         """
-        if not wordform_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(wordform_or_hvo, "wordform_or_hvo")
 
         wordform = self.__GetWordformObject(wordform_or_hvo)
 
@@ -157,11 +154,9 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             Delete, Approve, SetCategory
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not wordform_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(wordform_or_hvo, "wordform_or_hvo")
 
         wordform = self.__GetWordformObject(wordform_or_hvo)
 
@@ -208,11 +203,9 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             Create, IsHumanApproved
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         analysis = self.__ResolveObject(analysis_or_hvo)
 
@@ -248,8 +241,7 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             GetAll, Create
         """
-        if not wordform_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(wordform_or_hvo, "wordform_or_hvo")
 
         wordform = self.__GetWordformObject(wordform_or_hvo)
 
@@ -289,8 +281,7 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             SetCategory
         """
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         analysis = self.__ResolveObject(analysis_or_hvo)
 
@@ -325,11 +316,9 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             GetCategory, project.GetPartOfSpeech
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         analysis = self.__ResolveObject(analysis_or_hvo)
 
@@ -372,8 +361,7 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             Approve, project.Wordforms.SetApprovedAnalysis
         """
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         analysis = self.__ResolveObject(analysis_or_hvo)
 
@@ -417,11 +405,9 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             IsHumanApproved, project.Wordforms.SetApprovedAnalysis
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         analysis = self.__ResolveObject(analysis_or_hvo)
 
@@ -469,8 +455,7 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             project.WfiMorphBundles.Create, project.WfiMorphBundles.GetAll
         """
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         analysis = self.__ResolveObject(analysis_or_hvo)
 
@@ -508,8 +493,7 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             project.WfiGlosses.Create, project.WfiGlosses.GetAll
         """
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         analysis = self.__ResolveObject(analysis_or_hvo)
 

@@ -26,8 +26,6 @@ from System import DateTime
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
@@ -114,8 +112,7 @@ class NoteOperations(BaseOperations):
         See Also:
             Create, Delete, GetReplies
         """
-        if not owner_object:
-            raise FP_NullParameterError()
+        self._ValidateParam(owner_object, "owner_object")
 
         # Get the annotation repository
         anno_repos = self.project.project.ServiceLocator.GetService(
@@ -171,13 +168,10 @@ class NoteOperations(BaseOperations):
         See Also:
             Delete, SetContent, SetNoteType, AddReply
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not owner_object:
-            raise FP_NullParameterError()
-        if content is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(owner_object, "owner_object")
+        self._ValidateParam(content, "content")
 
         if not content or not content.strip():
             raise FP_ParameterError("Note content cannot be empty")
@@ -237,11 +231,9 @@ class NoteOperations(BaseOperations):
         See Also:
             Create, GetReplies
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not note:
-            raise FP_NullParameterError()
+        self._ValidateParam(note, "note")
 
         # Remove from owner's collection
         owner = note.Owner
@@ -297,11 +289,9 @@ class NoteOperations(BaseOperations):
         See Also:
             Create, Delete, GetGuid, GetReplies
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Get source note and parent
         source = item_or_hvo if not isinstance(item_or_hvo, int) else self.project.Object(item_or_hvo)
@@ -392,8 +382,7 @@ class NoteOperations(BaseOperations):
             >>> print(props)
             {'Comment': 'Check this', 'Source': 'John', 'AnnotationType': '...'}
         """
-        if not item:
-            raise FP_NullParameterError()
+        self._ValidateParam(item, "item")
 
         note = item
         wsHandle = self.__WSHandle(None)
@@ -498,13 +487,10 @@ class NoteOperations(BaseOperations):
         See Also:
             GetAll, GetDateCreated
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not owner_object:
-            raise FP_NullParameterError()
-        if note_list is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(owner_object, "owner_object")
+        self._ValidateParam(note_list, "note_list")
 
         if not hasattr(owner_object, 'AnnotationsOC'):
             raise FP_ParameterError(
@@ -560,8 +546,7 @@ class NoteOperations(BaseOperations):
         See Also:
             SetContent, Create
         """
-        if not note:
-            raise FP_NullParameterError()
+        self._ValidateParam(note, "note")
 
         wsHandle = self.__WSHandle(wsHandle)
 
@@ -599,13 +584,10 @@ class NoteOperations(BaseOperations):
         See Also:
             GetContent, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not note:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(note, "note")
+        self._ValidateParam(text, "text")
 
         wsHandle = self.__WSHandle(wsHandle)
 
@@ -651,8 +633,7 @@ class NoteOperations(BaseOperations):
         See Also:
             SetNoteType
         """
-        if not note:
-            raise FP_NullParameterError()
+        self._ValidateParam(note, "note")
 
         if hasattr(note, 'AnnotationTypeRA'):
             return note.AnnotationTypeRA
@@ -690,11 +671,9 @@ class NoteOperations(BaseOperations):
         See Also:
             GetNoteType
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not note:
-            raise FP_NullParameterError()
+        self._ValidateParam(note, "note")
 
         if not hasattr(note, 'AnnotationTypeRA'):
             raise FP_ParameterError("Note does not support type assignment")
@@ -746,8 +725,7 @@ class NoteOperations(BaseOperations):
         See Also:
             GetDateModified, Create
         """
-        if not note:
-            raise FP_NullParameterError()
+        self._ValidateParam(note, "note")
 
         if hasattr(note, 'DateCreated'):
             return note.DateCreated
@@ -791,8 +769,7 @@ class NoteOperations(BaseOperations):
         See Also:
             GetDateCreated, SetContent
         """
-        if not note:
-            raise FP_NullParameterError()
+        self._ValidateParam(note, "note")
 
         if hasattr(note, 'DateModified'):
             return note.DateModified
@@ -832,8 +809,7 @@ class NoteOperations(BaseOperations):
         See Also:
             SetAuthor
         """
-        if not note:
-            raise FP_NullParameterError()
+        self._ValidateParam(note, "note")
 
         if hasattr(note, 'Source'):
             ws = self.project.project.DefaultAnalWs
@@ -868,13 +844,10 @@ class NoteOperations(BaseOperations):
         See Also:
             GetAuthor
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not note:
-            raise FP_NullParameterError()
-        if author_name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(note, "note")
+        self._ValidateParam(author_name, "author_name")
 
         if hasattr(note, 'Source'):
             ws = self.project.project.DefaultAnalWs
@@ -919,8 +892,7 @@ class NoteOperations(BaseOperations):
         See Also:
             AddReply, Create
         """
-        if not note:
-            raise FP_NullParameterError()
+        self._ValidateParam(note, "note")
 
         if hasattr(note, 'RepliesOS'):
             for reply in note.RepliesOS:
@@ -965,13 +937,10 @@ class NoteOperations(BaseOperations):
         See Also:
             GetReplies, Create, SetAuthor
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not parent_note:
-            raise FP_NullParameterError()
-        if content is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(parent_note, "parent_note")
+        self._ValidateParam(content, "content")
 
         if not content or not content.strip():
             raise FP_ParameterError("Reply content cannot be empty")
@@ -1033,8 +1002,7 @@ class NoteOperations(BaseOperations):
         See Also:
             Create, GetAll
         """
-        if not note:
-            raise FP_NullParameterError()
+        self._ValidateParam(note, "note")
 
         if hasattr(note, 'Owner'):
             return note.Owner
@@ -1074,8 +1042,7 @@ class NoteOperations(BaseOperations):
         See Also:
             GetOwner, Create
         """
-        if not note:
-            raise FP_NullParameterError()
+        self._ValidateParam(note, "note")
 
         return note.Guid
 

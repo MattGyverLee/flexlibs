@@ -33,8 +33,6 @@ import System
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
@@ -153,8 +151,7 @@ class DataNotebookOperations(BaseOperations):
         Raises:
             FP_NullParameterError: If record_or_hvo is None.
         """
-        if not record_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(record_or_hvo, "record_or_hvo")
 
         try:
             hvo = record_or_hvo.Hvo
@@ -280,11 +277,9 @@ class DataNotebookOperations(BaseOperations):
         See Also:
             CreateSubRecord, SetTitle, SetContent, SetRecordType
         """
-        if not self.project.project.CanEdit:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if title is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(title, "title")
 
         if not title.strip():
             raise FP_ParameterError("Title cannot be empty")
@@ -360,8 +355,7 @@ class DataNotebookOperations(BaseOperations):
         See Also:
             Create, GetSubRecords
         """
-        if not self.project.project.CanEdit:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
         record = self.__GetRecordObject(record_or_hvo)
 
@@ -419,8 +413,7 @@ class DataNotebookOperations(BaseOperations):
         See Also:
             Find, Create
         """
-        if title is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(title, "title")
 
         return self.Find(title, wsHandle) is not None
 
@@ -472,8 +465,7 @@ class DataNotebookOperations(BaseOperations):
         See Also:
             Exists, FindByDate, FindByResearcher, FindByType
         """
-        if title is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(title, "title")
 
         wsHandle = self.__WSHandle(wsHandle)
 
@@ -563,11 +555,9 @@ class DataNotebookOperations(BaseOperations):
         See Also:
             GetTitle, SetContent
         """
-        if not self.project.project.CanEdit:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if title is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(title, "title")
 
         if not title.strip():
             raise FP_ParameterError("Title cannot be empty")
@@ -673,11 +663,9 @@ class DataNotebookOperations(BaseOperations):
         See Also:
             GetContent, SetTitle
         """
-        if not self.project.project.CanEdit:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if content is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(content, "content")
 
         record = self.__GetRecordObject(record_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -777,11 +765,9 @@ class DataNotebookOperations(BaseOperations):
         See Also:
             GetRecordType, GetAllRecordTypes, FindRecordTypeByName
         """
-        if not self.project.project.CanEdit:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if record_type is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(record_type, "record_type")
 
         record = self.__GetRecordObject(record_or_hvo)
 
@@ -869,8 +855,7 @@ class DataNotebookOperations(BaseOperations):
         See Also:
             GetAllRecordTypes, SetRecordType
         """
-        if type_name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(type_name, "type_name")
 
         wsHandle = self.__WSHandle(wsHandle)
 
@@ -1042,11 +1027,9 @@ class DataNotebookOperations(BaseOperations):
         See Also:
             GetDateOfEvent, GetDateCreated
         """
-        if not self.project.project.CanEdit:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if date is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(date, "date")
 
         record = self.__GetRecordObject(record_or_hvo)
 
@@ -1175,11 +1158,9 @@ class DataNotebookOperations(BaseOperations):
         See Also:
             Create, GetSubRecords, GetParentRecord
         """
-        if not self.project.project.CanEdit:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if title is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(title, "title")
 
         if not title.strip():
             raise FP_ParameterError("Title cannot be empty")
@@ -1353,11 +1334,9 @@ class DataNotebookOperations(BaseOperations):
         See Also:
             GetResearchers, RemoveResearcher, AddParticipant
         """
-        if not self.project.project.CanEdit:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if person is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(person, "person")
 
         record = self.__GetRecordObject(record_or_hvo)
 
@@ -1399,11 +1378,9 @@ class DataNotebookOperations(BaseOperations):
         See Also:
             AddResearcher, GetResearchers
         """
-        if not self.project.project.CanEdit:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if person is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(person, "person")
 
         record = self.__GetRecordObject(record_or_hvo)
 
@@ -1501,11 +1478,9 @@ class DataNotebookOperations(BaseOperations):
         See Also:
             GetParticipants, RemoveParticipant, AddResearcher
         """
-        if not self.project.project.CanEdit:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if person is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(person, "person")
 
         record = self.__GetRecordObject(record_or_hvo)
 
@@ -1547,11 +1522,9 @@ class DataNotebookOperations(BaseOperations):
         See Also:
             AddParticipant, GetParticipants
         """
-        if not self.project.project.CanEdit:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if person is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(person, "person")
 
         record = self.__GetRecordObject(record_or_hvo)
 
@@ -1656,11 +1629,9 @@ class DataNotebookOperations(BaseOperations):
         See Also:
             GetLocations, RemoveLocation, AddResearcher
         """
-        if not self.project.project.CanEdit:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if location is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(location, "location")
 
         record = self.__GetRecordObject(record_or_hvo)
 
@@ -1702,11 +1673,9 @@ class DataNotebookOperations(BaseOperations):
         See Also:
             AddLocation, GetLocations
         """
-        if not self.project.project.CanEdit:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if location is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(location, "location")
 
         record = self.__GetRecordObject(record_or_hvo)
 
@@ -1811,11 +1780,9 @@ class DataNotebookOperations(BaseOperations):
         See Also:
             GetSources, RemoveSource, AddResearcher
         """
-        if not self.project.project.CanEdit:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if source is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(source, "source")
 
         record = self.__GetRecordObject(record_or_hvo)
 
@@ -1857,11 +1824,9 @@ class DataNotebookOperations(BaseOperations):
         See Also:
             AddSource, GetSources
         """
-        if not self.project.project.CanEdit:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if source is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(source, "source")
 
         record = self.__GetRecordObject(record_or_hvo)
 
@@ -1959,11 +1924,9 @@ class DataNotebookOperations(BaseOperations):
         See Also:
             UnlinkFromText, GetTexts
         """
-        if not self.project.project.CanEdit:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(text, "text")
 
         record = self.__GetRecordObject(record_or_hvo)
 
@@ -2006,11 +1969,9 @@ class DataNotebookOperations(BaseOperations):
         See Also:
             LinkToText, GetTexts
         """
-        if not self.project.project.CanEdit:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(text, "text")
 
         record = self.__GetRecordObject(record_or_hvo)
 
@@ -2110,11 +2071,9 @@ class DataNotebookOperations(BaseOperations):
         See Also:
             RemoveMediaFile, GetMediaFiles
         """
-        if not self.project.project.CanEdit:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if media_file is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(media_file, "media_file")
 
         record = self.__GetRecordObject(record_or_hvo)
 
@@ -2157,11 +2116,9 @@ class DataNotebookOperations(BaseOperations):
         See Also:
             AddMediaFile, GetMediaFiles
         """
-        if not self.project.project.CanEdit:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if media_file is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(media_file, "media_file")
 
         record = self.__GetRecordObject(record_or_hvo)
 
@@ -2261,11 +2218,9 @@ class DataNotebookOperations(BaseOperations):
         See Also:
             GetStatus, GetAllStatuses
         """
-        if not self.project.project.CanEdit:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if status is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(status, "status")
 
         record = self.__GetRecordObject(record_or_hvo)
 
@@ -2352,8 +2307,7 @@ class DataNotebookOperations(BaseOperations):
         See Also:
             GetAllStatuses, SetStatus
         """
-        if status_name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(status_name, "status_name")
 
         wsHandle = self.__WSHandle(wsHandle)
 
@@ -2459,8 +2413,7 @@ class DataNotebookOperations(BaseOperations):
         See Also:
             FindByDate, FindByType, GetResearchers
         """
-        if person is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(person, "person")
 
         # If string provided, find the person
         if isinstance(person, str):
@@ -2513,8 +2466,7 @@ class DataNotebookOperations(BaseOperations):
         See Also:
             FindByDate, FindByResearcher, GetRecordType
         """
-        if record_type is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(record_type, "record_type")
 
         # If string provided, find the type
         if isinstance(record_type, str):
@@ -2575,11 +2527,9 @@ class DataNotebookOperations(BaseOperations):
         See Also:
             Create, Delete, GetGuid, GetSubRecords
         """
-        if not self.project.project.CanEdit:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not record_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(record_or_hvo, "record_or_hvo")
 
         # Get source record
         source = self.__GetRecordObject(record_or_hvo)
@@ -2663,8 +2613,7 @@ class DataNotebookOperations(BaseOperations):
 
     def GetSyncableProperties(self, item):
         """Get syncable properties for cross-project synchronization."""
-        if not item:
-            raise FP_NullParameterError()
+        self._ValidateParam(item, "item")
 
         record = self.__ResolveObject(item)
         wsHandle = self.project.project.DefaultAnalWs
@@ -2830,11 +2779,9 @@ class DataNotebookOperations(BaseOperations):
         See Also:
             GetConfidence
         """
-        if not self.project.project.CanEdit:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if confidence is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(confidence, "confidence")
 
         record = self.__GetRecordObject(record_or_hvo)
 

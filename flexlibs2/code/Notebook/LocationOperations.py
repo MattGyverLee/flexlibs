@@ -28,8 +28,6 @@ from System import DateTime
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
@@ -184,11 +182,9 @@ class LocationOperations(BaseOperations):
         See Also:
             Delete, CreateSublocation, SetName, SetCoordinates
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -259,11 +255,9 @@ class LocationOperations(BaseOperations):
         See Also:
             Create, GetSublocations
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if location_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(location_or_hvo, "location_or_hvo")
 
         location = self.__ResolveObject(location_or_hvo)
 
@@ -321,8 +315,7 @@ class LocationOperations(BaseOperations):
         See Also:
             Exists, GetAll, GetName
         """
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             return None
@@ -407,8 +400,7 @@ class LocationOperations(BaseOperations):
         See Also:
             SetName, GetAlias
         """
-        if location_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(location_or_hvo, "location_or_hvo")
 
         location = self.__ResolveObject(location_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -449,13 +441,10 @@ class LocationOperations(BaseOperations):
         See Also:
             GetName, SetAlias
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if location_or_hvo is None:
-            raise FP_NullParameterError()
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(location_or_hvo, "location_or_hvo")
+        self._ValidateParam(name, "name")
 
         location = self.__ResolveObject(location_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -503,8 +492,7 @@ class LocationOperations(BaseOperations):
         See Also:
             SetAlias, GetName
         """
-        if location_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(location_or_hvo, "location_or_hvo")
 
         location = self.__ResolveObject(location_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -544,13 +532,10 @@ class LocationOperations(BaseOperations):
         See Also:
             GetAlias, SetName
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if location_or_hvo is None:
-            raise FP_NullParameterError()
-        if alias is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(location_or_hvo, "location_or_hvo")
+        self._ValidateParam(alias, "alias")
 
         location = self.__ResolveObject(location_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -602,8 +587,7 @@ class LocationOperations(BaseOperations):
         See Also:
             SetCoordinates, GetElevation, FindByCoordinates
         """
-        if location_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(location_or_hvo, "location_or_hvo")
 
         location = self.__ResolveObject(location_or_hvo)
 
@@ -658,15 +642,11 @@ class LocationOperations(BaseOperations):
         See Also:
             GetCoordinates, SetElevation, FindByCoordinates
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if location_or_hvo is None:
-            raise FP_NullParameterError()
-        if latitude is None:
-            raise FP_NullParameterError()
-        if longitude is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(location_or_hvo, "location_or_hvo")
+        self._ValidateParam(latitude, "latitude")
+        self._ValidateParam(longitude, "longitude")
 
         # Validate coordinate ranges
         try:
@@ -737,8 +717,7 @@ class LocationOperations(BaseOperations):
         See Also:
             SetElevation, GetCoordinates
         """
-        if location_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(location_or_hvo, "location_or_hvo")
 
         location = self.__ResolveObject(location_or_hvo)
 
@@ -789,13 +768,10 @@ class LocationOperations(BaseOperations):
         See Also:
             GetElevation, SetCoordinates
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if location_or_hvo is None:
-            raise FP_NullParameterError()
-        if elevation is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(location_or_hvo, "location_or_hvo")
+        self._ValidateParam(elevation, "elevation")
 
         # Validate elevation
         try:
@@ -853,8 +829,7 @@ class LocationOperations(BaseOperations):
         See Also:
             SetDescription, GetName
         """
-        if location_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(location_or_hvo, "location_or_hvo")
 
         location = self.__ResolveObject(location_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -899,13 +874,10 @@ class LocationOperations(BaseOperations):
         See Also:
             GetDescription, SetName
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if location_or_hvo is None:
-            raise FP_NullParameterError()
-        if description is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(location_or_hvo, "location_or_hvo")
+        self._ValidateParam(description, "description")
 
         location = self.__ResolveObject(location_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -957,8 +929,7 @@ class LocationOperations(BaseOperations):
         See Also:
             SetRegion, GetSublocations, CreateSublocation
         """
-        if location_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(location_or_hvo, "location_or_hvo")
 
         location = self.__ResolveObject(location_or_hvo)
         owner = location.Owner
@@ -1008,11 +979,9 @@ class LocationOperations(BaseOperations):
         See Also:
             GetRegion, CreateSublocation
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if location_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(location_or_hvo, "location_or_hvo")
 
         location = self.__ResolveObject(location_or_hvo)
 
@@ -1098,8 +1067,7 @@ class LocationOperations(BaseOperations):
         See Also:
             GetRegion, CreateSublocation, SetRegion
         """
-        if location_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(location_or_hvo, "location_or_hvo")
 
         location = self.__ResolveObject(location_or_hvo)
 
@@ -1149,13 +1117,10 @@ class LocationOperations(BaseOperations):
         See Also:
             Create, SetRegion, GetSublocations
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if parent_location_or_hvo is None:
-            raise FP_NullParameterError()
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(parent_location_or_hvo, "parent_location_or_hvo")
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -1230,11 +1195,9 @@ class LocationOperations(BaseOperations):
         See Also:
             Create, Delete, GetGuid, GetSublocations
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if location_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(location_or_hvo, "location_or_hvo")
 
         # Get source location
         source = self.__ResolveObject(location_or_hvo)
@@ -1342,8 +1305,7 @@ class LocationOperations(BaseOperations):
         Returns:
             dict: Dictionary of syncable properties
         """
-        if not item:
-            raise FP_NullParameterError()
+        self._ValidateParam(item, "item")
 
         location = self.__ResolveObject(item)
         wsHandle = self.project.project.DefaultAnalWs
@@ -1433,8 +1395,7 @@ class LocationOperations(BaseOperations):
         See Also:
             FLExProject.Object
         """
-        if location_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(location_or_hvo, "location_or_hvo")
 
         location = self.__ResolveObject(location_or_hvo)
         return location.Guid
@@ -1474,8 +1435,7 @@ class LocationOperations(BaseOperations):
         See Also:
             GetDateModified, Create
         """
-        if location_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(location_or_hvo, "location_or_hvo")
 
         location = self.__ResolveObject(location_or_hvo)
 
@@ -1522,8 +1482,7 @@ class LocationOperations(BaseOperations):
         See Also:
             GetDateCreated, SetName, SetCoordinates
         """
-        if location_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(location_or_hvo, "location_or_hvo")
 
         location = self.__ResolveObject(location_or_hvo)
 
@@ -1576,10 +1535,8 @@ class LocationOperations(BaseOperations):
         See Also:
             GetCoordinates, GetNearby
         """
-        if latitude is None:
-            raise FP_NullParameterError()
-        if longitude is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(latitude, "latitude")
+        self._ValidateParam(longitude, "longitude")
 
         # Validate inputs
         try:
@@ -1653,8 +1610,7 @@ class LocationOperations(BaseOperations):
         See Also:
             FindByCoordinates, GetCoordinates
         """
-        if location_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(location_or_hvo, "location_or_hvo")
 
         location = self.__ResolveObject(location_or_hvo)
 

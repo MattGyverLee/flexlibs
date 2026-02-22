@@ -26,8 +26,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -118,8 +116,7 @@ class ReversalIndexEntryOperations(BaseOperations):
         See Also:
             Create, GetSubentries, FindByHvo
         """
-        if not index_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(index_or_hvo, "index_or_hvo")
 
         index = self.__GetIndexObject(index_or_hvo)
 
@@ -164,13 +161,10 @@ class ReversalIndexEntryOperations(BaseOperations):
         See Also:
             Delete, Find, AddSense
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if index_or_hvo is None:
-            raise FP_NullParameterError()
-        if form is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(index_or_hvo, "index_or_hvo")
+        self._ValidateParam(form, "form")
 
         if not form or not form.strip():
             raise FP_ParameterError("Reversal entry form cannot be empty")
@@ -228,11 +222,9 @@ class ReversalIndexEntryOperations(BaseOperations):
         See Also:
             Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
 
@@ -271,10 +263,8 @@ class ReversalIndexEntryOperations(BaseOperations):
         See Also:
             FindByHvo, Create, GetAll
         """
-        if index_or_hvo is None:
-            raise FP_NullParameterError()
-        if form is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(index_or_hvo, "index_or_hvo")
+        self._ValidateParam(form, "form")
 
         if not form or not form.strip():
             return None
@@ -321,8 +311,7 @@ class ReversalIndexEntryOperations(BaseOperations):
         See Also:
             Find, GetAll
         """
-        if hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(hvo, "hvo")
 
         try:
             obj = self.project.Object(hvo)
@@ -358,8 +347,7 @@ class ReversalIndexEntryOperations(BaseOperations):
         See Also:
             SetForm, Find
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
 
@@ -393,13 +381,10 @@ class ReversalIndexEntryOperations(BaseOperations):
         See Also:
             GetForm
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
+        self._ValidateParam(text, "text")
 
         if not text or not text.strip():
             raise FP_ParameterError("Reversal entry form cannot be empty")
@@ -446,8 +431,7 @@ class ReversalIndexEntryOperations(BaseOperations):
         See Also:
             AddSense, RemoveSense
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
 
@@ -479,13 +463,10 @@ class ReversalIndexEntryOperations(BaseOperations):
         See Also:
             RemoveSense, GetSenses
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
-        if sense is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
+        self._ValidateParam(sense, "sense")
 
         entry = self.__ResolveObject(entry_or_hvo)
 
@@ -518,13 +499,10 @@ class ReversalIndexEntryOperations(BaseOperations):
         See Also:
             AddSense, GetSenses
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
-        if sense is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
+        self._ValidateParam(sense, "sense")
 
         entry = self.__ResolveObject(entry_or_hvo)
 
@@ -565,8 +543,7 @@ class ReversalIndexEntryOperations(BaseOperations):
         See Also:
             Create, GetAll
         """
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__ResolveObject(entry_or_hvo)
 

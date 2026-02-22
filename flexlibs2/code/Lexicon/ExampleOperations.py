@@ -30,8 +30,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -1310,8 +1308,7 @@ class ExampleOperations(BaseOperations):
             ...     project.Examples.SetLiteralTranslation(examples[0], "word-for-word translation")
         """
         self._EnsureWriteEnabled()
-        if not example_or_hvo or text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(not, "not")
 
         example = self.__GetExampleObject(example_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -1360,8 +1357,7 @@ class ExampleOperations(BaseOperations):
             FP_ParameterError: If publication name not found
         """
         self._EnsureWriteEnabled()
-        if not example_or_hvo or not publication:
-            raise FP_NullParameterError()
+        self._ValidateParam(not, "not")
 
         example = self.__GetExampleObject(example_or_hvo)
 
@@ -1389,8 +1385,7 @@ class ExampleOperations(BaseOperations):
             FP_ParameterError: If publication name not found
         """
         self._EnsureWriteEnabled()
-        if not example_or_hvo or not publication:
-            raise FP_NullParameterError()
+        self._ValidateParam(not, "not")
 
         example = self.__GetExampleObject(example_or_hvo)
 

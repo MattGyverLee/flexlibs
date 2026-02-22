@@ -41,8 +41,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -2624,11 +2622,9 @@ class LexEntryOperations(BaseOperations):
         See Also:
             LexSense.MergeObject - For merging senses
         """
-        if not self.project.write_enabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not survivor_or_hvo or not victim_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(not, "not")
 
         survivor = self.__ResolveObject(survivor_or_hvo)
         victim = self.__ResolveObject(victim_or_hvo)

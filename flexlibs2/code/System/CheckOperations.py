@@ -33,8 +33,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
@@ -185,15 +183,12 @@ class CheckOperations(BaseOperations):
         See Also:
             DeleteCheckType, GetAllCheckTypes, EnableCheck
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         name = name.strip() if isinstance(name, str) else ""
-        if not name:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         # Check if check type with this name already exists
         if self.FindCheckType(name):
@@ -262,8 +257,7 @@ class CheckOperations(BaseOperations):
         See Also:
             CreateCheckType, GetAllCheckTypes
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
         check_obj = self.__GetCheckObject(check_or_hvo)
 
@@ -328,12 +322,10 @@ class CheckOperations(BaseOperations):
         See Also:
             GetAllCheckTypes, CreateCheckType, GetName
         """
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         name = name.strip() if isinstance(name, str) else ""
-        if not name:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         name_lower = name.lower()
         wsHandle = self.project.project.DefaultAnalWs
@@ -417,15 +409,12 @@ class CheckOperations(BaseOperations):
         See Also:
             GetName, SetDescription
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         name = name.strip() if isinstance(name, str) else ""
-        if not name:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         check_obj = self.__GetCheckObject(check_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -496,11 +485,9 @@ class CheckOperations(BaseOperations):
         See Also:
             GetDescription, SetName
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if description is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(description, "description")
 
         check_obj = self.__GetCheckObject(check_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -856,8 +843,7 @@ class CheckOperations(BaseOperations):
         See Also:
             DisableCheck, IsEnabled, GetEnabledChecks
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
         check_obj = self.__GetCheckObject(check_or_hvo)
         guid = check_obj.Guid
@@ -891,8 +877,7 @@ class CheckOperations(BaseOperations):
         See Also:
             EnableCheck, IsEnabled, GetEnabledChecks
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
         check_obj = self.__GetCheckObject(check_or_hvo)
         guid = check_obj.Guid
@@ -1042,8 +1027,7 @@ class CheckOperations(BaseOperations):
         See Also:
             FindItemsWithIssues, RunCheck, GetCheckResults
         """
-        if obj is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(obj, "obj")
 
         check_obj = self.__GetCheckObject(check_or_hvo)
         guid = check_obj.Guid
@@ -1125,8 +1109,7 @@ class CheckOperations(BaseOperations):
             FP_NullParameterError: If check_or_hvo is None.
             FP_ParameterError: If the object doesn't exist or isn't a valid check.
         """
-        if not check_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(check_or_hvo, "check_or_hvo")
 
         try:
             # If it's an integer, get the object
@@ -1368,8 +1351,7 @@ class CheckOperations(BaseOperations):
         See Also:
             CreateCheckType, DeleteCheckType, GetGuid
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
         check_obj = self.__GetCheckObject(item_or_hvo)
         parent = check_obj.Owner

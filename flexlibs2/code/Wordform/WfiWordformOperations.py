@@ -26,8 +26,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -146,11 +144,9 @@ class WfiWordformOperations(BaseOperations):
         See Also:
             FindOrCreate, Find, Delete
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if form is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(form, "form")
 
         if not form or not form.strip():
             raise FP_ParameterError("Wordform cannot be empty")
@@ -198,11 +194,9 @@ class WfiWordformOperations(BaseOperations):
         See Also:
             Create, FindOrCreate
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not wordform_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(wordform_or_hvo, "wordform_or_hvo")
 
         wordform = self.__ResolveObject(wordform_or_hvo)
 
@@ -243,8 +237,7 @@ class WfiWordformOperations(BaseOperations):
         See Also:
             FindOrCreate, Exists, GetAll
         """
-        if form is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(form, "form")
 
         if not form or not form.strip():
             return None
@@ -299,8 +292,7 @@ class WfiWordformOperations(BaseOperations):
         See Also:
             Find, Create, Exists
         """
-        if form is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(form, "form")
 
         if not form or not form.strip():
             raise FP_ParameterError("Wordform cannot be empty")
@@ -340,8 +332,7 @@ class WfiWordformOperations(BaseOperations):
         See Also:
             Find, GetAll
         """
-        if hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(hvo, "hvo")
 
         try:
             obj = self.project.Object(hvo)
@@ -377,8 +368,7 @@ class WfiWordformOperations(BaseOperations):
         See Also:
             Find, FindOrCreate
         """
-        if not wordform_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(wordform_or_hvo, "wordform_or_hvo")
 
         wordform = self.__ResolveObject(wordform_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -421,8 +411,7 @@ class WfiWordformOperations(BaseOperations):
         See Also:
             GetApprovedAnalysis, SetApprovedAnalysis
         """
-        if not wordform_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(wordform_or_hvo, "wordform_or_hvo")
 
         wordform = self.__ResolveObject(wordform_or_hvo)
 
@@ -463,8 +452,7 @@ class WfiWordformOperations(BaseOperations):
         See Also:
             SetApprovedAnalysis, GetAnalyses
         """
-        if not wordform_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(wordform_or_hvo, "wordform_or_hvo")
 
         wordform = self.__ResolveObject(wordform_or_hvo)
 
@@ -508,11 +496,9 @@ class WfiWordformOperations(BaseOperations):
         See Also:
             GetApprovedAnalysis, GetAnalyses
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not wordform_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(wordform_or_hvo, "wordform_or_hvo")
 
         wordform = self.__ResolveObject(wordform_or_hvo)
 
@@ -555,8 +541,7 @@ class WfiWordformOperations(BaseOperations):
         See Also:
             GetForm, GetAnalyses
         """
-        if not wordform_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(wordform_or_hvo, "wordform_or_hvo")
 
         wordform = self.__ResolveObject(wordform_or_hvo)
 

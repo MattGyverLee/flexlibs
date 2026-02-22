@@ -25,8 +25,6 @@ from SIL.LCModel import (
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -116,15 +114,11 @@ class ConstChartWordGroupOperations(BaseOperations):
         See Also:
             Delete, Find, GetBeginSegment, GetEndSegment
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not row_or_hvo:
-            raise FP_NullParameterError()
-        if not begin_segment:
-            raise FP_NullParameterError("begin_segment cannot be None")
-        if not end_segment:
-            raise FP_NullParameterError("end_segment cannot be None")
+        self._ValidateParam(row_or_hvo, "row_or_hvo")
+        self._ValidateParam(begin_segment, "begin_segment")
+        self._ValidateParam(end_segment, "end_segment")
 
         row = self.__ResolveRow(row_or_hvo)
 
@@ -175,11 +169,9 @@ class ConstChartWordGroupOperations(BaseOperations):
         See Also:
             Create, Find
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not group_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(group_or_hvo, "group_or_hvo")
 
         # Resolve to word group object
         group = self.__ResolveObject(group_or_hvo)
@@ -216,8 +208,7 @@ class ConstChartWordGroupOperations(BaseOperations):
         See Also:
             GetAll, Create
         """
-        if not row_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(row_or_hvo, "row_or_hvo")
 
         row = self.__ResolveRow(row_or_hvo)
 
@@ -253,8 +244,7 @@ class ConstChartWordGroupOperations(BaseOperations):
         See Also:
             Find, Create
         """
-        if not row_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(row_or_hvo, "row_or_hvo")
 
         row = self.__ResolveRow(row_or_hvo)
 
@@ -289,8 +279,7 @@ class ConstChartWordGroupOperations(BaseOperations):
         See Also:
             SetBeginSegment, GetEndSegment
         """
-        if not group_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(group_or_hvo, "group_or_hvo")
 
         group = self.__ResolveObject(group_or_hvo)
 
@@ -322,11 +311,9 @@ class ConstChartWordGroupOperations(BaseOperations):
         See Also:
             GetBeginSegment, SetEndSegment
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not group_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(group_or_hvo, "group_or_hvo")
 
         if segment is not None and not isinstance(segment, ISegment):
             raise FP_ParameterError("segment must be an ISegment object or None")
@@ -362,8 +349,7 @@ class ConstChartWordGroupOperations(BaseOperations):
         See Also:
             SetEndSegment, GetBeginSegment
         """
-        if not group_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(group_or_hvo, "group_or_hvo")
 
         group = self.__ResolveObject(group_or_hvo)
 
@@ -395,11 +381,9 @@ class ConstChartWordGroupOperations(BaseOperations):
         See Also:
             GetEndSegment, SetBeginSegment
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not group_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(group_or_hvo, "group_or_hvo")
 
         if segment is not None and not isinstance(segment, ISegment):
             raise FP_ParameterError("segment must be an ISegment object or None")
@@ -436,8 +420,7 @@ class ConstChartWordGroupOperations(BaseOperations):
         See Also:
             SetColumn
         """
-        if not group_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(group_or_hvo, "group_or_hvo")
 
         group = self.__ResolveObject(group_or_hvo)
 
@@ -470,11 +453,9 @@ class ConstChartWordGroupOperations(BaseOperations):
         See Also:
             GetColumn
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not group_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(group_or_hvo, "group_or_hvo")
 
         group = self.__ResolveObject(group_or_hvo)
 

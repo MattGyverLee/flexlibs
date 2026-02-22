@@ -30,8 +30,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
@@ -167,11 +165,9 @@ class MediaOperations(BaseOperations):
         See Also:
             Delete, CopyToProject, SetInternalPath
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if file_path is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(file_path, "file_path")
 
         if not file_path or not file_path.strip():
             raise FP_ParameterError("File path cannot be empty")
@@ -228,11 +224,9 @@ class MediaOperations(BaseOperations):
         See Also:
             Create, Exists
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if media_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(media_or_hvo, "media_or_hvo")
 
         # Resolve to media object
         if isinstance(media_or_hvo, int):
@@ -305,11 +299,9 @@ class MediaOperations(BaseOperations):
         See Also:
             Create, Delete, CopyToProject
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if item_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Resolve to media object
         if isinstance(item_or_hvo, int):
@@ -491,8 +483,7 @@ class MediaOperations(BaseOperations):
         See Also:
             Exists, GetAll, GetInternalPath
         """
-        if filename is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(filename, "filename")
 
         if not filename or not filename.strip():
             return None
@@ -571,8 +562,7 @@ class MediaOperations(BaseOperations):
         See Also:
             SetInternalPath, GetExternalPath
         """
-        if media_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(media_or_hvo, "media_or_hvo")
 
         # Resolve to media object
         if isinstance(media_or_hvo, int):
@@ -622,8 +612,7 @@ class MediaOperations(BaseOperations):
         See Also:
             GetInternalPath, IsValid
         """
-        if media_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(media_or_hvo, "media_or_hvo")
 
         # Resolve to media object
         if isinstance(media_or_hvo, int):
@@ -678,13 +667,10 @@ class MediaOperations(BaseOperations):
         See Also:
             GetInternalPath, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if media_or_hvo is None:
-            raise FP_NullParameterError()
-        if path is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(media_or_hvo, "media_or_hvo")
+        self._ValidateParam(path, "path")
 
         if not path or not path.strip():
             raise FP_ParameterError("Path cannot be empty")
@@ -760,15 +746,12 @@ class MediaOperations(BaseOperations):
             SetInternalPath, CopyToProject, GetExternalPath, GetInternalPath
         """
         # Check write permissions
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
         # Validate parameters
-        if media_or_hvo is None:
-            raise FP_NullParameterError("media_or_hvo cannot be None")
+        self._ValidateParam(media_or_hvo, "media_or_hvo")
 
-        if new_filename is None:
-            raise FP_NullParameterError("new_filename cannot be None")
+        self._ValidateParam(new_filename, "new_filename")
 
         if not new_filename or not new_filename.strip():
             raise FP_ParameterError("New filename cannot be empty")
@@ -882,8 +865,7 @@ class MediaOperations(BaseOperations):
         See Also:
             SetLabel
         """
-        if media_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(media_or_hvo, "media_or_hvo")
 
         # Resolve to media object
         if isinstance(media_or_hvo, int):
@@ -933,13 +915,10 @@ class MediaOperations(BaseOperations):
         See Also:
             GetLabel
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if media_or_hvo is None:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(media_or_hvo, "media_or_hvo")
+        self._ValidateParam(text, "text")
 
         # Resolve to media object
         if isinstance(media_or_hvo, int):
@@ -998,8 +977,7 @@ class MediaOperations(BaseOperations):
         See Also:
             IsAudio, IsVideo, IsImage
         """
-        if media_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(media_or_hvo, "media_or_hvo")
 
         # Resolve to media object
         if isinstance(media_or_hvo, int):
@@ -1172,8 +1150,7 @@ class MediaOperations(BaseOperations):
         See Also:
             GetOwnerCount
         """
-        if media_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(media_or_hvo, "media_or_hvo")
 
         # Resolve to media object
         if isinstance(media_or_hvo, int):
@@ -1274,11 +1251,9 @@ class MediaOperations(BaseOperations):
         See Also:
             Create, SetInternalPath
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if external_path is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(external_path, "external_path")
 
         if not external_path or not external_path.strip():
             raise FP_ParameterError("External path cannot be empty")
@@ -1360,8 +1335,7 @@ class MediaOperations(BaseOperations):
         See Also:
             GetExternalPath, GetInternalPath
         """
-        if media_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(media_or_hvo, "media_or_hvo")
 
         try:
             external_path = self.GetExternalPath(media_or_hvo)
@@ -1413,8 +1387,7 @@ class MediaOperations(BaseOperations):
         See Also:
             FLExProject.Object
         """
-        if media_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(media_or_hvo, "media_or_hvo")
 
         # Resolve to media object
         if isinstance(media_or_hvo, int):
@@ -1459,8 +1432,7 @@ class MediaOperations(BaseOperations):
         See Also:
             GetGuid, FLExProject.Object
         """
-        if media is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(media, "media")
 
         return media.Hvo
 
@@ -1501,8 +1473,7 @@ class MediaOperations(BaseOperations):
         See Also:
             IsValid, GetExternalPath
         """
-        if media_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(media_or_hvo, "media_or_hvo")
 
         try:
             external_path = self.GetExternalPath(media_or_hvo)

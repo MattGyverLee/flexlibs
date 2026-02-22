@@ -41,8 +41,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -147,8 +145,7 @@ class CustomFieldOperations(BaseOperations):
         See Also:
             FindField, CreateField, GetFieldName
         """
-        if owner_class is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(owner_class, "owner_class")
 
         if not owner_class or not owner_class.strip():
             raise FP_ParameterError("Owner class cannot be empty")
@@ -236,11 +233,9 @@ class CustomFieldOperations(BaseOperations):
         See Also:
             DeleteField, GetAllFields, FindField
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if owner_class is None or name is None or field_type is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(owner_class, "owner_class")
 
         if not owner_class.strip() or not name.strip() or not field_type.strip():
             raise FP_ParameterError("Parameters cannot be empty")
@@ -309,11 +304,9 @@ class CustomFieldOperations(BaseOperations):
         See Also:
             CreateField, GetAllFields
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if field_id is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(field_id, "field_id")
 
         # Verify it's a custom field
         if not self.project.project.GetIsCustomField(field_id):
@@ -362,8 +355,7 @@ class CustomFieldOperations(BaseOperations):
         See Also:
             GetAllFields, GetFieldName
         """
-        if owner_class is None or name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(owner_class, "owner_class")
 
         if not owner_class.strip() or not name.strip():
             return None
@@ -410,8 +402,7 @@ class CustomFieldOperations(BaseOperations):
         See Also:
             IsMultiString, IsListType, GetFieldName
         """
-        if field_id is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(field_id, "field_id")
 
         mdc = IFwMetaDataCacheManaged(self.project.project.MetaDataCacheAccessor)
 
@@ -449,8 +440,7 @@ class CustomFieldOperations(BaseOperations):
         See Also:
             SetFieldName, FindField, GetAllFields
         """
-        if field_id is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(field_id, "field_id")
 
         mdc = IFwMetaDataCacheManaged(self.project.project.MetaDataCacheAccessor)
 
@@ -493,11 +483,9 @@ class CustomFieldOperations(BaseOperations):
         See Also:
             GetFieldName, FindField
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if field_id is None or name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(field_id, "field_id")
 
         if not name.strip():
             raise FP_ParameterError("Field name cannot be empty")
@@ -569,8 +557,7 @@ class CustomFieldOperations(BaseOperations):
         See Also:
             SetValue, ClearValue, GetListValues
         """
-        if obj is None or field_name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(obj, "obj")
 
         # Resolve object and get class name
         hvo = self._GetHvo(obj)
@@ -634,11 +621,9 @@ class CustomFieldOperations(BaseOperations):
         See Also:
             GetValue, ClearValue, AddListValue, SetListFieldSingle
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if obj is None or field_name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(obj, "obj")
 
         # Resolve object and get class name
         hvo = self._GetHvo(obj)
@@ -657,8 +642,7 @@ class CustomFieldOperations(BaseOperations):
 
         if field_type == CellarPropertyType.Integer:
             # Integer field
-            if value is None:
-                raise FP_NullParameterError("Value parameter cannot be None")
+            self._ValidateParam(value, "value")
             if not isinstance(value, int):
                 raise FP_ParameterError("Value must be an integer")
             self.project.LexiconSetFieldInteger(obj, field_id, value)
@@ -711,11 +695,9 @@ class CustomFieldOperations(BaseOperations):
         See Also:
             SetValue, GetValue
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if obj is None or field_name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(obj, "obj")
 
         # Resolve object and get class name
         hvo = self._GetHvo(obj)
@@ -782,8 +764,7 @@ class CustomFieldOperations(BaseOperations):
         See Also:
             AddListValue, RemoveListValue, GetValue
         """
-        if obj is None or field_name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(obj, "obj")
 
         # Resolve object and get class name
         hvo = self._GetHvo(obj)
@@ -844,11 +825,9 @@ class CustomFieldOperations(BaseOperations):
         See Also:
             RemoveListValue, GetListValues, SetListFieldMultiple
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if obj is None or field_name is None or value is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(obj, "obj")
 
         # Resolve object and get class name
         hvo = self._GetHvo(obj)
@@ -909,11 +888,9 @@ class CustomFieldOperations(BaseOperations):
         See Also:
             AddListValue, GetListValues, ClearValue
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if obj is None or field_name is None or value is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(obj, "obj")
 
         # Resolve object and get class name
         hvo = self._GetHvo(obj)
@@ -981,8 +958,7 @@ class CustomFieldOperations(BaseOperations):
         See Also:
             GetAllFields, FindField
         """
-        if field_id is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(field_id, "field_id")
 
         mdc = IFwMetaDataCacheManaged(self.project.project.MetaDataCacheAccessor)
 
@@ -1028,8 +1004,7 @@ class CustomFieldOperations(BaseOperations):
         See Also:
             IsListType, GetFieldType
         """
-        if field_id is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(field_id, "field_id")
 
         field_type = self.GetFieldType(field_id)
         return field_type in FLExLCM.CellarMultiStringTypes
@@ -1080,8 +1055,7 @@ class CustomFieldOperations(BaseOperations):
         See Also:
             IsMultiString, GetFieldType, GetListValues, AddListValue
         """
-        if field_id is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(field_id, "field_id")
 
         field_type = self.GetFieldType(field_id)
         return field_type in (CellarPropertyType.ReferenceAtom,
@@ -1131,8 +1105,7 @@ class CustomFieldOperations(BaseOperations):
         See Also:
             IsMultiString, IsListType, GetFieldType
         """
-        if field_id is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(field_id, "field_id")
 
         field_type = self.GetFieldType(field_id)
         return field_type in FLExLCM.CellarAllStringTypes
@@ -1208,11 +1181,9 @@ class CustomFieldOperations(BaseOperations):
         See Also:
             SetListFieldMultiple, AddListValue, GetValue
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if obj is None or field_name is None or value is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(obj, "obj")
 
         # Resolve object and get class name
         hvo = self._GetHvo(obj)
@@ -1274,11 +1245,9 @@ class CustomFieldOperations(BaseOperations):
         See Also:
             SetListFieldSingle, AddListValue, RemoveListValue, GetListValues
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if obj is None or field_name is None or values is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(obj, "obj")
 
         # Resolve object and get class name
         hvo = self._GetHvo(obj)

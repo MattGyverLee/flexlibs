@@ -34,8 +34,6 @@ from System import Guid, DateTime
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
@@ -124,8 +122,7 @@ class AnthropologyOperations(BaseOperations):
         Raises:
             FP_NullParameterError: If item_or_hvo is None.
         """
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         try:
             hvo = item_or_hvo.Hvo
@@ -265,15 +262,12 @@ class AnthropologyOperations(BaseOperations):
         See Also:
             CreateSubitem, Delete, Exists, Find
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         name = name.strip()
-        if not name:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         # Check if item already exists
         if self.Exists(name):
@@ -367,15 +361,12 @@ class AnthropologyOperations(BaseOperations):
         See Also:
             Create, GetSubitems, GetParent, Delete
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         name = name.strip()
-        if not name:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         parent = self.__GetItemObject(parent_item)
 
@@ -437,8 +428,7 @@ class AnthropologyOperations(BaseOperations):
         See Also:
             Create, CreateSubitem, Exists
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
         item = self.__GetItemObject(item_or_hvo)
 
@@ -493,12 +483,10 @@ class AnthropologyOperations(BaseOperations):
         See Also:
             Find, FindByCode, Create
         """
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         name = name.strip()
-        if not name:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         return self.Find(name) is not None
 
@@ -542,8 +530,7 @@ class AnthropologyOperations(BaseOperations):
         See Also:
             FindByCode, Exists, GetAll
         """
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             return None
@@ -610,8 +597,7 @@ class AnthropologyOperations(BaseOperations):
         See Also:
             Find, GetAnthroCode, SetAnthroCode
         """
-        if anthro_code is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(anthro_code, "anthro_code")
 
         if not anthro_code or not anthro_code.strip():
             return None
@@ -661,8 +647,7 @@ class AnthropologyOperations(BaseOperations):
         See Also:
             Find, FindByCode, GetCategory, SetCategory
         """
-        if not category:
-            raise FP_NullParameterError()
+        self._ValidateParam(category, "category")
 
         results = []
 
@@ -751,11 +736,9 @@ class AnthropologyOperations(BaseOperations):
         See Also:
             GetName, SetAbbreviation, SetDescription
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         item = self.__GetItemObject(item_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -841,11 +824,9 @@ class AnthropologyOperations(BaseOperations):
         See Also:
             GetAbbreviation, SetName, SetAnthroCode
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if abbreviation is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(abbreviation, "abbreviation")
 
         item = self.__GetItemObject(item_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -936,11 +917,9 @@ class AnthropologyOperations(BaseOperations):
         See Also:
             GetDescription, SetName, SetAnthroCode
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if description is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(description, "description")
 
         item = self.__GetItemObject(item_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -1031,11 +1010,9 @@ class AnthropologyOperations(BaseOperations):
         See Also:
             GetAnthroCode, FindByCode, SetName
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if anthro_code is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(anthro_code, "anthro_code")
 
         item = self.__GetItemObject(item_or_hvo)
 
@@ -1112,8 +1089,7 @@ class AnthropologyOperations(BaseOperations):
         See Also:
             GetCategory, FindByCategory
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
         item = self.__GetItemObject(item_or_hvo)
 
@@ -1332,11 +1308,9 @@ class AnthropologyOperations(BaseOperations):
         See Also:
             RemoveText, GetTexts, GetItemsForText
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not text:
-            raise FP_NullParameterError()
+        self._ValidateParam(text, "text")
 
         item = self.__GetItemObject(item_or_hvo)
 
@@ -1390,11 +1364,9 @@ class AnthropologyOperations(BaseOperations):
         See Also:
             AddText, GetTexts, GetItemsForText
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not text:
-            raise FP_NullParameterError()
+        self._ValidateParam(text, "text")
 
         item = self.__GetItemObject(item_or_hvo)
 
@@ -1497,8 +1469,7 @@ class AnthropologyOperations(BaseOperations):
         See Also:
             GetTexts, AddText, RemoveText
         """
-        if not text:
-            raise FP_NullParameterError()
+        self._ValidateParam(text, "text")
 
         try:
             text_obj = IText(text)
@@ -1595,11 +1566,9 @@ class AnthropologyOperations(BaseOperations):
         See Also:
             RemoveResearcher, GetResearchers
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not person:
-            raise FP_NullParameterError()
+        self._ValidateParam(person, "person")
 
         item = self.__GetItemObject(item_or_hvo)
 
@@ -1653,11 +1622,9 @@ class AnthropologyOperations(BaseOperations):
         See Also:
             AddResearcher, GetResearchers
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not person:
-            raise FP_NullParameterError()
+        self._ValidateParam(person, "person")
 
         item = self.__GetItemObject(item_or_hvo)
 
@@ -1717,11 +1684,9 @@ class AnthropologyOperations(BaseOperations):
         See Also:
             Create, Delete, GetGuid, GetSubitems
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Get source item and parent
         source = self.__GetItemObject(item_or_hvo)
@@ -1798,8 +1763,7 @@ class AnthropologyOperations(BaseOperations):
 
     def GetSyncableProperties(self, item):
         """Get syncable properties for cross-project synchronization."""
-        if not item:
-            raise FP_NullParameterError()
+        self._ValidateParam(item, "item")
 
         anthro_item = self.__ResolveObject(item)
         wsHandle = self.project.project.DefaultAnalWs

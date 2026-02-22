@@ -30,8 +30,6 @@ from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
 
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
@@ -151,8 +149,7 @@ class WordformOperations(BaseOperations):
         """
         self._EnsureWriteEnabled()
 
-        if not form or not form.strip():
-            raise FP_NullParameterError()
+        self._ValidateParam(not, "not")
 
         wsHandle = self.__WSHandle(wsHandle)
 
@@ -347,8 +344,7 @@ class WordformOperations(BaseOperations):
         """
         self._EnsureWriteEnabled()
 
-        if not form or not form.strip():
-            raise FP_NullParameterError()
+        self._ValidateParam(not, "not")
 
         # Resolve to wordform object
         if isinstance(wordform_or_hvo, int):

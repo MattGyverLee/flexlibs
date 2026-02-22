@@ -29,8 +29,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -158,11 +156,9 @@ class InflectionFeatureOperations(BaseOperations):
         See Also:
             InflectionClassDelete, InflectionClassGetAll, InflectionClassSetName
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -220,11 +216,9 @@ class InflectionFeatureOperations(BaseOperations):
         See Also:
             InflectionClassCreate, InflectionClassGetAll
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not ic_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(ic_or_hvo, "ic_or_hvo")
 
         # Resolve to inflection class object
         ic = self.__ResolveInflectionClass(ic_or_hvo)
@@ -259,8 +253,7 @@ class InflectionFeatureOperations(BaseOperations):
         See Also:
             InflectionClassSetName, InflectionClassGetAll
         """
-        if not ic_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(ic_or_hvo, "ic_or_hvo")
 
         ic = self.__ResolveInflectionClass(ic_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -292,13 +285,10 @@ class InflectionFeatureOperations(BaseOperations):
         See Also:
             InflectionClassGetName, InflectionClassCreate
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not ic_or_hvo:
-            raise FP_NullParameterError()
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(ic_or_hvo, "ic_or_hvo")
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -373,8 +363,7 @@ class InflectionFeatureOperations(BaseOperations):
         See Also:
             FeatureStructureDelete, FeatureGetAll
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
         # Create the new feature structure using the factory
         factory = self.project.project.ServiceLocator.GetService(IFsFeatStrucFactory)
@@ -406,11 +395,9 @@ class InflectionFeatureOperations(BaseOperations):
         See Also:
             FeatureStructureCreate, FeatureStructureGetAll
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not fs_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(fs_or_hvo, "fs_or_hvo")
 
         # Resolve to feature structure object
         fs = self.__ResolveFeatureStructure(fs_or_hvo)
@@ -487,13 +474,10 @@ class InflectionFeatureOperations(BaseOperations):
         See Also:
             FeatureDelete, FeatureGetAll, FeatureGetValues
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if name is None:
-            raise FP_NullParameterError()
-        if type is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
+        self._ValidateParam(type, "type")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -553,11 +537,9 @@ class InflectionFeatureOperations(BaseOperations):
         See Also:
             FeatureCreate, FeatureGetAll
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not feature_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(feature_or_hvo, "feature_or_hvo")
 
         # Resolve to feature object
         feature = self.__ResolveFeature(feature_or_hvo)
@@ -598,8 +580,7 @@ class InflectionFeatureOperations(BaseOperations):
         See Also:
             FeatureCreate, FeatureGetAll
         """
-        if not feature_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(feature_or_hvo, "feature_or_hvo")
 
         feature = self.__ResolveFeature(feature_or_hvo)
 
@@ -650,8 +631,7 @@ class InflectionFeatureOperations(BaseOperations):
         See Also:
             GetFeatureConstraints, FeatureGetAll, FeatureCreate
         """
-        if not feature_system_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(feature_system_or_hvo, "feature_system_or_hvo")
 
         # Resolve to feature system object
         if isinstance(feature_system_or_hvo, int):
@@ -699,8 +679,7 @@ class InflectionFeatureOperations(BaseOperations):
         See Also:
             GetFeatures, FeatureGetAll
         """
-        if not feature_system_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(feature_system_or_hvo, "feature_system_or_hvo")
 
         # Resolve to feature system object
         if isinstance(feature_system_or_hvo, int):
@@ -767,8 +746,7 @@ class InflectionFeatureOperations(BaseOperations):
         # Get the feature system
         if feature_system_or_hvo is None:
             feature_system = self.project.lp.MsFeatureSystemOA
-            if not feature_system:
-                raise FP_NullParameterError("No default feature system exists")
+            self._ValidateParam(feature_system, "feature_system")
         else:
             feature_system = self.__ResolveFeatureSystem(feature_system_or_hvo)
 

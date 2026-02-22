@@ -19,8 +19,6 @@ from SIL.WritingSystems import WritingSystemDefinition  # Fixed: was IWritingSys
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
     FP_WritingSystemError,
 )
@@ -222,13 +220,10 @@ class WritingSystemOperations(BaseOperations):
         See Also:
             Delete, Exists, GetAll
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if language_tag is None:
-            raise FP_NullParameterError()
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(language_tag, "language_tag")
+        self._ValidateParam(name, "name")
 
         if not language_tag or not language_tag.strip():
             raise FP_ParameterError("Language tag cannot be empty")
@@ -301,11 +296,9 @@ class WritingSystemOperations(BaseOperations):
         See Also:
             Create, Exists
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if ws_handle_or_tag is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(ws_handle_or_tag, "ws_handle_or_tag")
 
         # Get the writing system object
         if isinstance(ws_handle_or_tag, str):
@@ -413,11 +406,9 @@ class WritingSystemOperations(BaseOperations):
         See Also:
             GetFontName, SetFontSize
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if font_name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(font_name, "font_name")
 
         ws_obj = self._ResolveWS(ws)
         if not ws_obj:
@@ -494,11 +485,9 @@ class WritingSystemOperations(BaseOperations):
         See Also:
             GetFontSize, SetFontName
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if size is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(size, "size")
 
         if size <= 0:
             raise FP_ParameterError("Font size must be positive")
@@ -585,11 +574,9 @@ class WritingSystemOperations(BaseOperations):
         See Also:
             GetRightToLeft
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if is_rtl is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(is_rtl, "is_rtl")
 
         ws_obj = self._ResolveWS(ws)
         if not ws_obj:
@@ -632,8 +619,7 @@ class WritingSystemOperations(BaseOperations):
         See Also:
             GetDefaultVernacular, SetDefaultAnalysis
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
         ws_obj = self._ResolveWS(ws)
         if not ws_obj:
@@ -678,8 +664,7 @@ class WritingSystemOperations(BaseOperations):
         See Also:
             GetDefaultAnalysis, SetDefaultVernacular
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
         ws_obj = self._ResolveWS(ws)
         if not ws_obj:
@@ -806,8 +791,7 @@ class WritingSystemOperations(BaseOperations):
         See Also:
             GetDisplayName, Exists
         """
-        if ws is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(ws, "ws")
 
         return ws.Id
 
@@ -841,8 +825,7 @@ class WritingSystemOperations(BaseOperations):
         See Also:
             GetAll, Create, Delete
         """
-        if language_tag is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(language_tag, "language_tag")
 
         return self._GetWSByTag(language_tag) is not None
 
@@ -888,8 +871,7 @@ class WritingSystemOperations(BaseOperations):
         See Also:
             GetAll, GetAnalysis, GetVernacular
         """
-        if string_obj is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(string_obj, "string_obj")
 
         # Import types locally to avoid circular imports
         from SIL.LCModel.Core.KernelInterfaces import IMultiUnicode, IMultiString
@@ -979,8 +961,7 @@ class WritingSystemOperations(BaseOperations):
         Returns:
             IWritingSystemDefinition or None: Writing system object or None
         """
-        if ws is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(ws, "ws")
 
         if isinstance(ws, str):
             return self._GetWSByTag(ws)

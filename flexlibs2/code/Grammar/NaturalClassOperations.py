@@ -26,8 +26,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -194,11 +192,9 @@ class NaturalClassOperations(BaseOperations):
         See Also:
             Delete, AddPhoneme, SetName, SetAbbreviation
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -253,11 +249,9 @@ class NaturalClassOperations(BaseOperations):
         See Also:
             Create, GetAll
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not nc_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(nc_or_hvo, "nc_or_hvo")
 
         # Resolve to natural class object
         nc = self.__GetNaturalClassObject(nc_or_hvo)
@@ -310,11 +304,9 @@ class NaturalClassOperations(BaseOperations):
         See Also:
             Create, Delete, GetGuid, AddPhoneme
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Get source natural class
         source = self.__GetNaturalClassObject(item_or_hvo)
@@ -374,8 +366,7 @@ class NaturalClassOperations(BaseOperations):
         See Also:
             SetName, GetAbbreviation
         """
-        if not nc_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(nc_or_hvo, "nc_or_hvo")
 
         nc = self.__GetNaturalClassObject(nc_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -409,13 +400,10 @@ class NaturalClassOperations(BaseOperations):
         See Also:
             GetName, SetAbbreviation
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not nc_or_hvo:
-            raise FP_NullParameterError()
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(nc_or_hvo, "nc_or_hvo")
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -466,8 +454,7 @@ class NaturalClassOperations(BaseOperations):
         See Also:
             GetName, SetAbbreviation
         """
-        if not nc_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(nc_or_hvo, "nc_or_hvo")
 
         nc = self.__GetNaturalClassObject(nc_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -519,8 +506,7 @@ class NaturalClassOperations(BaseOperations):
         See Also:
             AddPhoneme, RemovePhoneme
         """
-        if not nc_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(nc_or_hvo, "nc_or_hvo")
 
         nc = self.__GetNaturalClassObject(nc_or_hvo)
 
@@ -571,13 +557,10 @@ class NaturalClassOperations(BaseOperations):
         See Also:
             RemovePhoneme, GetPhonemes, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not nc_or_hvo:
-            raise FP_NullParameterError()
-        if not phoneme_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(nc_or_hvo, "nc_or_hvo")
+        self._ValidateParam(phoneme_or_hvo, "phoneme_or_hvo")
 
         nc = self.__GetNaturalClassObject(nc_or_hvo)
         phoneme = self.__GetPhonemeObject(phoneme_or_hvo)
@@ -629,13 +612,10 @@ class NaturalClassOperations(BaseOperations):
         See Also:
             AddPhoneme, GetPhonemes
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not nc_or_hvo:
-            raise FP_NullParameterError()
-        if not phoneme_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(nc_or_hvo, "nc_or_hvo")
+        self._ValidateParam(phoneme_or_hvo, "phoneme_or_hvo")
 
         nc = self.__GetNaturalClassObject(nc_or_hvo)
         phoneme = self.__GetPhonemeObject(phoneme_or_hvo)

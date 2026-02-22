@@ -24,8 +24,6 @@ from SIL.WritingSystems import WritingSystemDefinition  # Fixed: was IWritingSys
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
     FP_WritingSystemError,
 )
@@ -150,11 +148,9 @@ class ProjectSettingsOperations(BaseOperations):
         See Also:
             GetProjectName, SetDescription
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Project name cannot be empty")
@@ -239,11 +235,9 @@ class ProjectSettingsOperations(BaseOperations):
         See Also:
             GetDescription, SetProjectName
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if description is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(description, "description")
 
         ws_handle = self._ResolveWSHandle(ws_handle_or_tag)
 
@@ -348,11 +342,9 @@ class ProjectSettingsOperations(BaseOperations):
         See Also:
             SetDefaultAnalysis, GetVernacularWSs
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if ws_handle_or_tag is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(ws_handle_or_tag, "ws_handle_or_tag")
 
         # Resolve to WS object
         ws = self._ResolveWS(ws_handle_or_tag)
@@ -400,11 +392,9 @@ class ProjectSettingsOperations(BaseOperations):
         See Also:
             SetDefaultVernacular, GetAnalysisWSs
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if ws_handle_or_tag is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(ws_handle_or_tag, "ws_handle_or_tag")
 
         # Resolve to WS object
         ws = self._ResolveWS(ws_handle_or_tag)
@@ -477,11 +467,9 @@ class ProjectSettingsOperations(BaseOperations):
         See Also:
             GetInterfaceLanguage
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if ws_handle_or_tag is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(ws_handle_or_tag, "ws_handle_or_tag")
 
         # Resolve to WS object
         ws = self._ResolveWS(ws_handle_or_tag)
@@ -526,8 +514,7 @@ class ProjectSettingsOperations(BaseOperations):
         See Also:
             SetDefaultFont, GetDefaultFontSize
         """
-        if ws_handle_or_tag is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(ws_handle_or_tag, "ws_handle_or_tag")
 
         ws = self._ResolveWS(ws_handle_or_tag)
         if not ws:
@@ -572,11 +559,9 @@ class ProjectSettingsOperations(BaseOperations):
         See Also:
             GetDefaultFont, SetDefaultFontSize
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if ws_handle_or_tag is None or font_name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(ws_handle_or_tag, "ws_handle_or_tag")
 
         ws = self._ResolveWS(ws_handle_or_tag)
         if not ws:
@@ -614,8 +599,7 @@ class ProjectSettingsOperations(BaseOperations):
         See Also:
             SetDefaultFontSize, GetDefaultFont
         """
-        if ws_handle_or_tag is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(ws_handle_or_tag, "ws_handle_or_tag")
 
         ws = self._ResolveWS(ws_handle_or_tag)
         if not ws:
@@ -659,11 +643,9 @@ class ProjectSettingsOperations(BaseOperations):
         See Also:
             GetDefaultFontSize, SetDefaultFont
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if ws_handle_or_tag is None or size is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(ws_handle_or_tag, "ws_handle_or_tag")
 
         if size <= 0:
             raise FP_ParameterError("Font size must be positive")
@@ -732,11 +714,9 @@ class ProjectSettingsOperations(BaseOperations):
         See Also:
             GetLinkedFilesRootDir, SetExtLinkRootDir
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if path is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(path, "path")
 
         self.project.lp.LinkedFilesRootDir = path
 
@@ -794,11 +774,9 @@ class ProjectSettingsOperations(BaseOperations):
         See Also:
             GetExtLinkRootDir, SetLinkedFilesRootDir
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if path is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(path, "path")
 
         self.project.lp.ExtLinkRootDir = path
 
@@ -955,8 +933,7 @@ class ProjectSettingsOperations(BaseOperations):
         Returns:
             IWritingSystemDefinition or None: Writing system object or None
         """
-        if ws_handle_or_tag is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(ws_handle_or_tag, "ws_handle_or_tag")
 
         if isinstance(ws_handle_or_tag, str):
             return self._GetWSByTag(ws_handle_or_tag)

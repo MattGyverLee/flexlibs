@@ -25,8 +25,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -143,11 +141,9 @@ class ScrDraftOperations(BaseOperations):
         See Also:
             Delete, Find, GetDescription
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if description is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(description, "description")
 
         if not description or not description.strip():
             raise FP_ParameterError("Description cannot be empty")
@@ -207,11 +203,9 @@ class ScrDraftOperations(BaseOperations):
         See Also:
             Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not draft_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(draft_or_hvo, "draft_or_hvo")
 
         # Resolve to draft object
         draft = self.__ResolveObject(draft_or_hvo)
@@ -251,8 +245,7 @@ class ScrDraftOperations(BaseOperations):
         See Also:
             GetAll, GetDescription
         """
-        if description is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(description, "description")
 
         if not description or not description.strip():
             return None
@@ -300,8 +293,7 @@ class ScrDraftOperations(BaseOperations):
         See Also:
             SetDescription, Create
         """
-        if not draft_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(draft_or_hvo, "draft_or_hvo")
 
         draft = self.__ResolveObject(draft_or_hvo)
         wsHandle = self.project.project.DefaultAnalWs
@@ -335,13 +327,10 @@ class ScrDraftOperations(BaseOperations):
         See Also:
             GetDescription, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not draft_or_hvo:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(draft_or_hvo, "draft_or_hvo")
+        self._ValidateParam(text, "text")
 
         draft = self.__ResolveObject(draft_or_hvo)
         wsHandle = self.project.project.DefaultAnalWs
@@ -377,8 +366,7 @@ class ScrDraftOperations(BaseOperations):
         See Also:
             GetDescription
         """
-        if not draft_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(draft_or_hvo, "draft_or_hvo")
 
         draft = self.__ResolveObject(draft_or_hvo)
         return list(draft.BooksOS)

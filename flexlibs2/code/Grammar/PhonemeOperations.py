@@ -28,8 +28,6 @@ from SIL.LCModel.DomainServices import CopyObject
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -154,11 +152,9 @@ class PhonemeOperations(BaseOperations):
         See Also:
             Delete, Exists, Find
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if representation is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(representation, "representation")
 
         if not representation or not representation.strip():
             raise FP_ParameterError("Representation cannot be empty")
@@ -223,11 +219,9 @@ class PhonemeOperations(BaseOperations):
         See Also:
             Create, Exists, Find
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not phoneme_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(phoneme_or_hvo, "phoneme_or_hvo")
 
         # Resolve to phoneme object
         phoneme = self.__GetPhonemeObject(phoneme_or_hvo)
@@ -282,11 +276,9 @@ class PhonemeOperations(BaseOperations):
         See Also:
             Create, Delete, GetGuid, GetCodes
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Get source phoneme
         source = self.__GetPhonemeObject(item_or_hvo)
@@ -364,8 +356,7 @@ class PhonemeOperations(BaseOperations):
         See Also:
             Find, Create
         """
-        if representation is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(representation, "representation")
 
         return self.Find(representation, wsHandle) is not None
 
@@ -399,8 +390,7 @@ class PhonemeOperations(BaseOperations):
         See Also:
             Exists, GetRepresentation
         """
-        if representation is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(representation, "representation")
 
         wsHandle = self.__WSHandle(wsHandle)
 
@@ -444,8 +434,7 @@ class PhonemeOperations(BaseOperations):
         See Also:
             SetRepresentation, GetDescription
         """
-        if not phoneme_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(phoneme_or_hvo, "phoneme_or_hvo")
 
         phoneme = self.__GetPhonemeObject(phoneme_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -480,13 +469,10 @@ class PhonemeOperations(BaseOperations):
         See Also:
             GetRepresentation, SetDescription
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not phoneme_or_hvo:
-            raise FP_NullParameterError()
-        if representation is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(phoneme_or_hvo, "phoneme_or_hvo")
+        self._ValidateParam(representation, "representation")
 
         if not representation or not representation.strip():
             raise FP_ParameterError("Representation cannot be empty")
@@ -535,8 +521,7 @@ class PhonemeOperations(BaseOperations):
         See Also:
             SetDescription, GetRepresentation
         """
-        if not phoneme_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(phoneme_or_hvo, "phoneme_or_hvo")
 
         phoneme = self.__GetPhonemeObject(phoneme_or_hvo)
 
@@ -584,13 +569,10 @@ class PhonemeOperations(BaseOperations):
         See Also:
             GetDescription, SetRepresentation
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not phoneme_or_hvo:
-            raise FP_NullParameterError()
-        if description is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(phoneme_or_hvo, "phoneme_or_hvo")
+        self._ValidateParam(description, "description")
 
         phoneme = self.__GetPhonemeObject(phoneme_or_hvo)
 
@@ -635,8 +617,7 @@ class PhonemeOperations(BaseOperations):
         See Also:
             GetRepresentation, GetDescription
         """
-        if not phoneme_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(phoneme_or_hvo, "phoneme_or_hvo")
 
         phoneme = self.__GetPhonemeObject(phoneme_or_hvo)
         return phoneme.FeaturesOA if phoneme.FeaturesOA else None
@@ -684,8 +665,7 @@ class PhonemeOperations(BaseOperations):
         See Also:
             AddCode, RemoveCode
         """
-        if not phoneme_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(phoneme_or_hvo, "phoneme_or_hvo")
 
         phoneme = self.__GetPhonemeObject(phoneme_or_hvo)
         return list(phoneme.CodesOS)
@@ -735,13 +715,10 @@ class PhonemeOperations(BaseOperations):
         See Also:
             GetCodes, RemoveCode
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not phoneme_or_hvo:
-            raise FP_NullParameterError()
-        if representation is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(phoneme_or_hvo, "phoneme_or_hvo")
+        self._ValidateParam(representation, "representation")
 
         if not representation or not representation.strip():
             raise FP_ParameterError("Representation cannot be empty")
@@ -802,13 +779,10 @@ class PhonemeOperations(BaseOperations):
         See Also:
             GetCodes, AddCode
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not phoneme_or_hvo:
-            raise FP_NullParameterError()
-        if not code_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(phoneme_or_hvo, "phoneme_or_hvo")
+        self._ValidateParam(code_or_hvo, "code_or_hvo")
 
         phoneme = self.__GetPhonemeObject(phoneme_or_hvo)
         code = self.__GetCodeObject(code_or_hvo)
@@ -858,8 +832,7 @@ class PhonemeOperations(BaseOperations):
         See Also:
             GetRepresentation
         """
-        if not phoneme_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(phoneme_or_hvo, "phoneme_or_hvo")
 
         phoneme = self.__GetPhonemeObject(phoneme_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -908,8 +881,7 @@ class PhonemeOperations(BaseOperations):
         See Also:
             IsConsonant, GetFeatures
         """
-        if not phoneme_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(phoneme_or_hvo, "phoneme_or_hvo")
 
         phoneme = self.__GetPhonemeObject(phoneme_or_hvo)
 
@@ -978,8 +950,7 @@ class PhonemeOperations(BaseOperations):
         See Also:
             IsVowel, GetFeatures
         """
-        if not phoneme_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(phoneme_or_hvo, "phoneme_or_hvo")
 
         phoneme = self.__GetPhonemeObject(phoneme_or_hvo)
 

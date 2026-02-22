@@ -23,8 +23,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
@@ -177,11 +175,9 @@ class ConfidenceOperations(BaseOperations):
         See Also:
             Delete, SetName, SetDescription, Find
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -250,11 +246,9 @@ class ConfidenceOperations(BaseOperations):
         See Also:
             Create, GetAnalysesWithConfidence, GetGlossesWithConfidence
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if level_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(level_or_hvo, "level_or_hvo")
 
         level = self.__ResolveObject(level_or_hvo)
 
@@ -305,11 +299,9 @@ class ConfidenceOperations(BaseOperations):
         See Also:
             Create, Delete, GetGuid
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if item_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Get source confidence level
         source = self.__ResolveObject(item_or_hvo)
@@ -358,8 +350,7 @@ class ConfidenceOperations(BaseOperations):
             >>> print(props)
             {'Name': 'High Confidence', 'Description': 'Verified analysis'}
         """
-        if not item:
-            raise FP_NullParameterError()
+        self._ValidateParam(item, "item")
 
         level = self.__ResolveObject(item)
         wsHandle = self.project.project.DefaultAnalWs
@@ -461,8 +452,7 @@ class ConfidenceOperations(BaseOperations):
         See Also:
             Exists, GetAll, GetName
         """
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             return None
@@ -508,8 +498,7 @@ class ConfidenceOperations(BaseOperations):
         See Also:
             Find, Create
         """
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         return self.Find(name) is not None
 
@@ -554,8 +543,7 @@ class ConfidenceOperations(BaseOperations):
         See Also:
             SetName, GetDescription, Find
         """
-        if level_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(level_or_hvo, "level_or_hvo")
 
         level = self.__ResolveObject(level_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -600,13 +588,10 @@ class ConfidenceOperations(BaseOperations):
         See Also:
             GetName, SetDescription
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if level_or_hvo is None:
-            raise FP_NullParameterError()
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(level_or_hvo, "level_or_hvo")
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -655,8 +640,7 @@ class ConfidenceOperations(BaseOperations):
         See Also:
             SetDescription, GetName
         """
-        if level_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(level_or_hvo, "level_or_hvo")
 
         level = self.__ResolveObject(level_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -702,13 +686,10 @@ class ConfidenceOperations(BaseOperations):
         See Also:
             GetDescription, SetName
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if level_or_hvo is None:
-            raise FP_NullParameterError()
-        if description is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(level_or_hvo, "level_or_hvo")
+        self._ValidateParam(description, "description")
 
         level = self.__ResolveObject(level_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -761,8 +742,7 @@ class ConfidenceOperations(BaseOperations):
         See Also:
             GetGlossesWithConfidence, Delete
         """
-        if level_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(level_or_hvo, "level_or_hvo")
 
         level = self.__ResolveObject(level_or_hvo)
         level_hvo = level.Hvo
@@ -825,8 +805,7 @@ class ConfidenceOperations(BaseOperations):
         See Also:
             GetAnalysesWithConfidence, Delete
         """
-        if level_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(level_or_hvo, "level_or_hvo")
 
         level = self.__ResolveObject(level_or_hvo)
         level_hvo = level.Hvo
@@ -931,8 +910,7 @@ class ConfidenceOperations(BaseOperations):
         See Also:
             FLExProject.Object
         """
-        if level_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(level_or_hvo, "level_or_hvo")
 
         level = self.__ResolveObject(level_or_hvo)
         return level.Guid

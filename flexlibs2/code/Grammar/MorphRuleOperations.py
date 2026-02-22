@@ -42,8 +42,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -293,8 +291,7 @@ class MorphRuleOperations(BaseOperations):
         """
         self._EnsureWriteEnabled()
 
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -356,8 +353,7 @@ class MorphRuleOperations(BaseOperations):
         self._EnsureWriteEnabled()
 
         self._ValidateParam(pos_or_hvo, "pos_or_hvo")
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -482,8 +478,7 @@ class MorphRuleOperations(BaseOperations):
         self._EnsureWriteEnabled()
 
         self._ValidateParam(rule_or_hvo, "rule_or_hvo")
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -545,8 +540,7 @@ class MorphRuleOperations(BaseOperations):
         self._EnsureWriteEnabled()
 
         self._ValidateParam(rule_or_hvo, "rule_or_hvo")
-        if description is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(description, "description")
 
         rule = self.__ResolveObject(rule_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -684,8 +678,7 @@ class MorphRuleOperations(BaseOperations):
         self._EnsureWriteEnabled()
 
         self._ValidateParam(rule_or_hvo, "rule_or_hvo")
-        if disabled is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(disabled, "disabled")
 
         rule = self.__ResolveObject(rule_or_hvo)
 

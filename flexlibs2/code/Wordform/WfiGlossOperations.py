@@ -25,8 +25,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -110,8 +108,7 @@ class WfiGlossOperations(BaseOperations):
         See Also:
             Create, Find, Delete
         """
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
@@ -153,13 +150,10 @@ class WfiGlossOperations(BaseOperations):
         See Also:
             Delete, Approve, SetForm
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if analysis_or_hvo is None:
-            raise FP_NullParameterError()
-        if gloss_text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
+        self._ValidateParam(gloss_text, "gloss_text")
 
         if not gloss_text or not gloss_text.strip():
             raise FP_ParameterError("Gloss text cannot be empty")
@@ -211,11 +205,9 @@ class WfiGlossOperations(BaseOperations):
         See Also:
             Create, IsHumanApproved
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not gloss_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(gloss_or_hvo, "gloss_or_hvo")
 
         gloss = self.__ResolveObject(gloss_or_hvo)
 
@@ -251,8 +243,7 @@ class WfiGlossOperations(BaseOperations):
         See Also:
             GetAll, Create
         """
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
@@ -289,8 +280,7 @@ class WfiGlossOperations(BaseOperations):
         See Also:
             SetForm, Create
         """
-        if not gloss_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(gloss_or_hvo, "gloss_or_hvo")
 
         gloss = self.__ResolveObject(gloss_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -321,13 +311,10 @@ class WfiGlossOperations(BaseOperations):
         See Also:
             GetForm
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not gloss_or_hvo:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(gloss_or_hvo, "gloss_or_hvo")
+        self._ValidateParam(text, "text")
 
         if not text or not text.strip():
             raise FP_ParameterError("Gloss text cannot be empty")
@@ -371,8 +358,7 @@ class WfiGlossOperations(BaseOperations):
         See Also:
             Approve
         """
-        if not gloss_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(gloss_or_hvo, "gloss_or_hvo")
 
         gloss = self.__ResolveObject(gloss_or_hvo)
 
@@ -417,11 +403,9 @@ class WfiGlossOperations(BaseOperations):
         See Also:
             IsHumanApproved, project.WfiAnalyses.Approve
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not gloss_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(gloss_or_hvo, "gloss_or_hvo")
 
         gloss = self.__ResolveObject(gloss_or_hvo)
 

@@ -24,8 +24,6 @@ from SIL.LCModel import (
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -108,11 +106,9 @@ class ScrAnnotationsOperations(BaseOperations):
         See Also:
             Delete, GetForBook
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not book_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(book_or_hvo, "book_or_hvo")
 
         # Resolve to book object
         book = self.__ResolveBook(book_or_hvo)
@@ -160,11 +156,9 @@ class ScrAnnotationsOperations(BaseOperations):
         See Also:
             Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not annotations_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(annotations_or_hvo, "annotations_or_hvo")
 
         # Resolve to annotations object
         annotations = self.__ResolveObject(annotations_or_hvo)
@@ -200,8 +194,7 @@ class ScrAnnotationsOperations(BaseOperations):
         See Also:
             Create, GetNotes
         """
-        if not book_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(book_or_hvo, "book_or_hvo")
 
         # Resolve to book object
         book = self.__ResolveBook(book_or_hvo)
@@ -243,8 +236,7 @@ class ScrAnnotationsOperations(BaseOperations):
         See Also:
             GetForBook, ScrNoteOperations
         """
-        if not annotations_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(annotations_or_hvo, "annotations_or_hvo")
 
         annotations = self.__ResolveObject(annotations_or_hvo)
         return list(annotations.NotesOS)

@@ -27,8 +27,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -109,13 +107,10 @@ class ConstChartTagOperations(BaseOperations):
         See Also:
             Delete, Find, GetName
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not chart_or_hvo:
-            raise FP_NullParameterError()
-        if tag_name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(chart_or_hvo, "chart_or_hvo")
+        self._ValidateParam(tag_name, "tag_name")
 
         if not tag_name or not tag_name.strip():
             raise FP_ParameterError("Tag name cannot be empty")
@@ -170,11 +165,9 @@ class ConstChartTagOperations(BaseOperations):
         See Also:
             Create, Find
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not tag_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(tag_or_hvo, "tag_or_hvo")
 
         # Resolve to tag object
         tag = self.__ResolveObject(tag_or_hvo)
@@ -212,10 +205,8 @@ class ConstChartTagOperations(BaseOperations):
         See Also:
             GetAll, Create
         """
-        if not chart_or_hvo:
-            raise FP_NullParameterError()
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(chart_or_hvo, "chart_or_hvo")
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             return None
@@ -260,8 +251,7 @@ class ConstChartTagOperations(BaseOperations):
         See Also:
             Find, Create
         """
-        if not chart_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(chart_or_hvo, "chart_or_hvo")
 
         chart = self.__ResolveChart(chart_or_hvo)
 
@@ -298,8 +288,7 @@ class ConstChartTagOperations(BaseOperations):
         See Also:
             SetName, GetDescription
         """
-        if not tag_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(tag_or_hvo, "tag_or_hvo")
 
         tag = self.__ResolveObject(tag_or_hvo)
         wsHandle = self.__WSHandleAnalysis()
@@ -332,13 +321,10 @@ class ConstChartTagOperations(BaseOperations):
         See Also:
             GetName, SetDescription
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not tag_or_hvo:
-            raise FP_NullParameterError()
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(tag_or_hvo, "tag_or_hvo")
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Tag name cannot be empty")
@@ -377,8 +363,7 @@ class ConstChartTagOperations(BaseOperations):
         See Also:
             SetDescription, GetName
         """
-        if not tag_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(tag_or_hvo, "tag_or_hvo")
 
         tag = self.__ResolveObject(tag_or_hvo)
         wsHandle = self.__WSHandle(ws)
@@ -411,13 +396,10 @@ class ConstChartTagOperations(BaseOperations):
         See Also:
             GetDescription, SetName
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not tag_or_hvo:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(tag_or_hvo, "tag_or_hvo")
+        self._ValidateParam(text, "text")
 
         tag = self.__ResolveObject(tag_or_hvo)
         wsHandle = self.__WSHandle(ws)

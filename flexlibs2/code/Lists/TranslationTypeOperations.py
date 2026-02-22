@@ -24,8 +24,6 @@ import System
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
@@ -166,11 +164,9 @@ class TranslationTypeOperations(BaseOperations):
         See Also:
             Delete, Exists, Find
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -246,11 +242,9 @@ class TranslationTypeOperations(BaseOperations):
         See Also:
             Create, Exists, GetTextsWithType
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not type_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(type_or_hvo, "type_or_hvo")
 
         # Resolve to translation type object
         trans_type = self.__ResolveObject(type_or_hvo)
@@ -321,11 +315,9 @@ class TranslationTypeOperations(BaseOperations):
         See Also:
             Create, Delete, GetGuid, SetAnalysisWS
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Get source translation type
         source = self.__ResolveObject(item_or_hvo)
@@ -378,8 +370,7 @@ class TranslationTypeOperations(BaseOperations):
             >>> print(props)
             {'Name': 'Free Translation', 'Abbreviation': 'ft'}
         """
-        if not item:
-            raise FP_NullParameterError()
+        self._ValidateParam(item, "item")
 
         trans_type = self.__ResolveObject(item)
         wsHandle = self.project.project.DefaultAnalWs
@@ -475,8 +466,7 @@ class TranslationTypeOperations(BaseOperations):
         See Also:
             Exists, GetName, GetFreeTranslationType
         """
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         name_lower = name.lower()
         wsHandle = self.project.project.DefaultAnalWs
@@ -522,8 +512,7 @@ class TranslationTypeOperations(BaseOperations):
         See Also:
             Find, Create
         """
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         return self.Find(name) is not None
 
@@ -556,8 +545,7 @@ class TranslationTypeOperations(BaseOperations):
         See Also:
             SetName, GetAbbreviation
         """
-        if not type_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(type_or_hvo, "type_or_hvo")
 
         trans_type = self.__ResolveObject(type_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -593,13 +581,10 @@ class TranslationTypeOperations(BaseOperations):
         See Also:
             GetName, SetAbbreviation
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not type_or_hvo:
-            raise FP_NullParameterError()
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(type_or_hvo, "type_or_hvo")
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -638,8 +623,7 @@ class TranslationTypeOperations(BaseOperations):
         See Also:
             SetAbbreviation, GetName
         """
-        if not type_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(type_or_hvo, "type_or_hvo")
 
         trans_type = self.__ResolveObject(type_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -674,13 +658,10 @@ class TranslationTypeOperations(BaseOperations):
         See Also:
             GetAbbreviation, SetName
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not type_or_hvo:
-            raise FP_NullParameterError()
-        if abbreviation is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(type_or_hvo, "type_or_hvo")
+        self._ValidateParam(abbreviation, "abbreviation")
 
         if not abbreviation or not abbreviation.strip():
             raise FP_ParameterError("Abbreviation cannot be empty")
@@ -727,8 +708,7 @@ class TranslationTypeOperations(BaseOperations):
         See Also:
             SetAnalysisWS, GetName
         """
-        if not type_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(type_or_hvo, "type_or_hvo")
 
         trans_type = self.__ResolveObject(type_or_hvo)
 
@@ -779,13 +759,10 @@ class TranslationTypeOperations(BaseOperations):
         See Also:
             GetAnalysisWS, GetName, SetName
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not type_or_hvo:
-            raise FP_NullParameterError()
-        if wsHandle is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(type_or_hvo, "type_or_hvo")
+        self._ValidateParam(wsHandle, "wsHandle")
 
         trans_type = self.__ResolveObject(type_or_hvo)
 
@@ -836,8 +813,7 @@ class TranslationTypeOperations(BaseOperations):
         See Also:
             GetSegmentsWithType, Delete
         """
-        if not type_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(type_or_hvo, "type_or_hvo")
 
         trans_type = self.__ResolveObject(type_or_hvo)
         type_guid = trans_type.Guid
@@ -890,8 +866,7 @@ class TranslationTypeOperations(BaseOperations):
         See Also:
             GetTextsWithType, Delete
         """
-        if not type_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(type_or_hvo, "type_or_hvo")
 
         trans_type = self.__ResolveObject(type_or_hvo)
         type_guid = trans_type.Guid
@@ -1051,8 +1026,7 @@ class TranslationTypeOperations(BaseOperations):
         See Also:
             GetAnalysisWS, SetAnalysisWS
         """
-        if wsHandle is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(wsHandle, "wsHandle")
 
         for trans_type in self.GetAll():
             # Check if this type has content in the specified WS
@@ -1096,8 +1070,7 @@ class TranslationTypeOperations(BaseOperations):
         See Also:
             GetFreeTranslationType, Delete
         """
-        if not type_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(type_or_hvo, "type_or_hvo")
 
         trans_type = self.__ResolveObject(type_or_hvo)
         guid = trans_type.Guid
@@ -1146,11 +1119,9 @@ class TranslationTypeOperations(BaseOperations):
         See Also:
             IsDefault, GetFreeTranslationType
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not type_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(type_or_hvo, "type_or_hvo")
 
         # This functionality is not directly supported in FLEx
         # as there's no single "default" translation type
@@ -1194,8 +1165,7 @@ class TranslationTypeOperations(BaseOperations):
         See Also:
             IsDefault, GetFreeTranslationType
         """
-        if not type_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(type_or_hvo, "type_or_hvo")
 
         trans_type = self.__ResolveObject(type_or_hvo)
         return trans_type.Guid

@@ -27,8 +27,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -124,8 +122,7 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             Create, Find, Delete
         """
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
@@ -171,13 +168,10 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             Delete, SetSense, SetForm
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if analysis_or_hvo is None:
-            raise FP_NullParameterError()
-        if form is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
+        self._ValidateParam(form, "form")
 
         if not form or not form.strip():
             raise FP_ParameterError("Morpheme bundle form cannot be empty")
@@ -234,11 +228,9 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not bundle_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(bundle_or_hvo, "bundle_or_hvo")
 
         bundle = self.__ResolveObject(bundle_or_hvo)
 
@@ -276,8 +268,7 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             GetAll, Create
         """
-        if not analysis_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
@@ -311,8 +302,7 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             SetForm, Create
         """
-        if not bundle_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(bundle_or_hvo, "bundle_or_hvo")
 
         bundle = self.__ResolveObject(bundle_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -343,13 +333,10 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             GetForm
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not bundle_or_hvo:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(bundle_or_hvo, "bundle_or_hvo")
+        self._ValidateParam(text, "text")
 
         if not text or not text.strip():
             raise FP_ParameterError("Morpheme bundle form cannot be empty")
@@ -394,8 +381,7 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             SetSense, project.Senses operations
         """
-        if not bundle_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(bundle_or_hvo, "bundle_or_hvo")
 
         bundle = self.__ResolveObject(bundle_or_hvo)
 
@@ -435,11 +421,9 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             GetSense, project.LexEntry.Find
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not bundle_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(bundle_or_hvo, "bundle_or_hvo")
 
         bundle = self.__ResolveObject(bundle_or_hvo)
 
@@ -478,8 +462,7 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             SetMorphemeType
         """
-        if not bundle_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(bundle_or_hvo, "bundle_or_hvo")
 
         bundle = self.__ResolveObject(bundle_or_hvo)
 
@@ -515,13 +498,10 @@ class WfiMorphBundleOperations(BaseOperations):
         See Also:
             GetMorphemeType, project.LexEntry.GetAvailableMorphTypes
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not bundle_or_hvo:
-            raise FP_NullParameterError()
-        if type_or_name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(bundle_or_hvo, "bundle_or_hvo")
+        self._ValidateParam(type_or_name, "type_or_name")
 
         bundle = self.__ResolveObject(bundle_or_hvo)
 

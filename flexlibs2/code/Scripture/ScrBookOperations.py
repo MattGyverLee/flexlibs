@@ -27,8 +27,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -152,11 +150,9 @@ class ScrBookOperations(BaseOperations):
         See Also:
             Delete, Find, GetCanonicalNum
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if canonical_num is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(canonical_num, "canonical_num")
 
         if not isinstance(canonical_num, int) or canonical_num < 1 or canonical_num > 66:
             raise FP_ParameterError(
@@ -218,11 +214,9 @@ class ScrBookOperations(BaseOperations):
         See Also:
             Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not book_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(book_or_hvo, "book_or_hvo")
 
         # Resolve to book object
         book = self.__ResolveObject(book_or_hvo)
@@ -261,8 +255,7 @@ class ScrBookOperations(BaseOperations):
         See Also:
             FindByName, GetAll, GetCanonicalNum
         """
-        if canonical_num is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(canonical_num, "canonical_num")
 
         scripture = self.__GetScripture()
         if not scripture:
@@ -307,8 +300,7 @@ class ScrBookOperations(BaseOperations):
         See Also:
             Find, GetTitle
         """
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             return None
@@ -360,8 +352,7 @@ class ScrBookOperations(BaseOperations):
         See Also:
             Create, Find
         """
-        if not book_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(book_or_hvo, "book_or_hvo")
 
         book = self.__ResolveObject(book_or_hvo)
         return book.CanonicalNum
@@ -397,8 +388,7 @@ class ScrBookOperations(BaseOperations):
         See Also:
             SetTitle, FindByName
         """
-        if not book_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(book_or_hvo, "book_or_hvo")
 
         book = self.__ResolveObject(book_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -434,13 +424,10 @@ class ScrBookOperations(BaseOperations):
         See Also:
             GetTitle, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not book_or_hvo:
-            raise FP_NullParameterError()
-        if title is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(book_or_hvo, "book_or_hvo")
+        self._ValidateParam(title, "title")
 
         book = self.__ResolveObject(book_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -478,8 +465,7 @@ class ScrBookOperations(BaseOperations):
         See Also:
             ScrSectionOperations.GetAll
         """
-        if not book_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(book_or_hvo, "book_or_hvo")
 
         book = self.__ResolveObject(book_or_hvo)
         return list(book.SectionsOS)

@@ -25,8 +25,6 @@ import System
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
@@ -213,11 +211,9 @@ class PossibilityListOperations(BaseOperations):
         See Also:
             DeleteList, GetAllLists, FindList
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -269,11 +265,9 @@ class PossibilityListOperations(BaseOperations):
         See Also:
             CreateList, GetAllLists
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not list_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(list_or_hvo, "list_or_hvo")
 
         poss_list = self.__ResolveList(list_or_hvo)
 
@@ -318,8 +312,7 @@ class PossibilityListOperations(BaseOperations):
         See Also:
             GetAllLists, GetListName
         """
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             return None
@@ -362,8 +355,7 @@ class PossibilityListOperations(BaseOperations):
         See Also:
             SetListName, FindList
         """
-        if not list_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(list_or_hvo, "list_or_hvo")
 
         poss_list = self.__ResolveList(list_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -397,13 +389,10 @@ class PossibilityListOperations(BaseOperations):
         See Also:
             GetListName, CreateList
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not list_or_hvo:
-            raise FP_NullParameterError()
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(list_or_hvo, "list_or_hvo")
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -458,8 +447,7 @@ class PossibilityListOperations(BaseOperations):
         See Also:
             GetSubitems, CreateItem, FindItem
         """
-        if not list_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(list_or_hvo, "list_or_hvo")
 
         poss_list = self.__ResolveList(list_or_hvo)
 
@@ -515,13 +503,10 @@ class PossibilityListOperations(BaseOperations):
         See Also:
             DeleteItem, GetItems, FindItem, GetSubitems
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not list_or_hvo:
-            raise FP_NullParameterError()
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(list_or_hvo, "list_or_hvo")
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -587,11 +572,9 @@ class PossibilityListOperations(BaseOperations):
         See Also:
             CreateItem, GetItems, FindItem
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         item = self.__ResolveItem(item_or_hvo)
 
@@ -654,11 +637,9 @@ class PossibilityListOperations(BaseOperations):
         See Also:
             CreateItem, DeleteItem, GetGuid, GetSubitems
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Get source item
         source = self.__ResolveItem(item_or_hvo)
@@ -734,8 +715,7 @@ class PossibilityListOperations(BaseOperations):
             >>> print(props)
             {'Name': 'Narrative', 'Abbreviation': 'Narr', 'Description': '...'}
         """
-        if not item:
-            raise FP_NullParameterError()
+        self._ValidateParam(item, "item")
 
         poss_item = self.__ResolveItem(item)
         wsHandle = self.project.project.DefaultAnalWs
@@ -858,10 +838,8 @@ class PossibilityListOperations(BaseOperations):
         See Also:
             GetItems, CreateItem, GetItemName
         """
-        if not list_or_hvo:
-            raise FP_NullParameterError()
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(list_or_hvo, "list_or_hvo")
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             return None
@@ -908,8 +886,7 @@ class PossibilityListOperations(BaseOperations):
         See Also:
             SetItemName, GetItemAbbreviation, FindItem
         """
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         item = self.__ResolveItem(item_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -940,13 +917,10 @@ class PossibilityListOperations(BaseOperations):
         See Also:
             GetItemName, SetItemAbbreviation
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not item_or_hvo:
-            raise FP_NullParameterError()
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -981,8 +955,7 @@ class PossibilityListOperations(BaseOperations):
         See Also:
             SetItemAbbreviation, GetItemName
         """
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         item = self.__ResolveItem(item_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -1016,13 +989,10 @@ class PossibilityListOperations(BaseOperations):
         See Also:
             GetItemAbbreviation, SetItemName
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not item_or_hvo:
-            raise FP_NullParameterError()
-        if abbr is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
+        self._ValidateParam(abbr, "abbr")
 
         item = self.__ResolveItem(item_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -1054,8 +1024,7 @@ class PossibilityListOperations(BaseOperations):
         See Also:
             SetItemDescription, GetItemName
         """
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         item = self.__ResolveItem(item_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -1086,13 +1055,10 @@ class PossibilityListOperations(BaseOperations):
         See Also:
             GetItemDescription, SetItemName
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not item_or_hvo:
-            raise FP_NullParameterError()
-        if description is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
+        self._ValidateParam(description, "description")
 
         item = self.__ResolveItem(item_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -1136,8 +1102,7 @@ class PossibilityListOperations(BaseOperations):
         See Also:
             GetParentItem, GetItems, CreateItem
         """
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         item = self.__ResolveItem(item_or_hvo)
 
@@ -1181,8 +1146,7 @@ class PossibilityListOperations(BaseOperations):
         See Also:
             GetSubitems, GetDepth, MoveItem
         """
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         item = self.__ResolveItem(item_or_hvo)
         owner = item.Owner
@@ -1233,11 +1197,9 @@ class PossibilityListOperations(BaseOperations):
         See Also:
             GetParentItem, GetSubitems, CreateItem
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         item = self.__ResolveItem(item_or_hvo)
         item_list = self.__GetListOwner(item)
@@ -1310,8 +1272,7 @@ class PossibilityListOperations(BaseOperations):
         See Also:
             GetParentItem, GetSubitems
         """
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         item = self.__ResolveItem(item_or_hvo)
 
@@ -1357,8 +1318,7 @@ class PossibilityListOperations(BaseOperations):
         See Also:
             GetItemGuid, FindList
         """
-        if not list_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(list_or_hvo, "list_or_hvo")
 
         poss_list = self.__ResolveList(list_or_hvo)
         return poss_list.Guid
@@ -1398,8 +1358,7 @@ class PossibilityListOperations(BaseOperations):
         See Also:
             GetListGuid, FindItem
         """
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         item = self.__ResolveItem(item_or_hvo)
         return item.Guid
@@ -1433,8 +1392,7 @@ class PossibilityListOperations(BaseOperations):
         See Also:
             GetItemGuid, GetListGuid
         """
-        if not item:
-            raise FP_NullParameterError()
+        self._ValidateParam(item, "item")
 
         return item.Hvo
 
@@ -1466,8 +1424,7 @@ class PossibilityListOperations(BaseOperations):
         See Also:
             GetListGuid, GetItemHvo
         """
-        if not poss_list:
-            raise FP_NullParameterError()
+        self._ValidateParam(poss_list, "poss_list")
 
         return poss_list.Hvo
 

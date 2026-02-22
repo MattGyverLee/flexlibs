@@ -26,8 +26,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -120,13 +118,10 @@ class ScrTxtParaOperations(BaseOperations):
         See Also:
             Delete, Find, GetText, SetText
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not section_or_hvo:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(section_or_hvo, "section_or_hvo")
+        self._ValidateParam(text, "text")
 
         # Resolve to section object
         section = self.__ResolveSection(section_or_hvo)
@@ -186,11 +181,9 @@ class ScrTxtParaOperations(BaseOperations):
         See Also:
             Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not para_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(para_or_hvo, "para_or_hvo")
 
         # Resolve to paragraph object
         para = self.__ResolveObject(para_or_hvo)
@@ -231,10 +224,8 @@ class ScrTxtParaOperations(BaseOperations):
         See Also:
             GetAll, Create
         """
-        if section_or_hvo is None:
-            raise FP_NullParameterError()
-        if index is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(section_or_hvo, "section_or_hvo")
+        self._ValidateParam(index, "index")
 
         # Resolve to section object
         section = self.__ResolveSection(section_or_hvo)
@@ -276,8 +267,7 @@ class ScrTxtParaOperations(BaseOperations):
         See Also:
             Find, Create
         """
-        if not section_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(section_or_hvo, "section_or_hvo")
 
         # Resolve to section object
         section = self.__ResolveSection(section_or_hvo)
@@ -320,8 +310,7 @@ class ScrTxtParaOperations(BaseOperations):
         See Also:
             SetText, Create
         """
-        if not para_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(para_or_hvo, "para_or_hvo")
 
         para = self.__ResolveObject(para_or_hvo)
         # Note: Contents is ITsString, not IMultiUnicode
@@ -362,13 +351,10 @@ class ScrTxtParaOperations(BaseOperations):
         See Also:
             GetText, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not para_or_hvo:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(para_or_hvo, "para_or_hvo")
+        self._ValidateParam(text, "text")
 
         para = self.__ResolveObject(para_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -403,8 +389,7 @@ class ScrTxtParaOperations(BaseOperations):
         See Also:
             SetStyleName, Create
         """
-        if not para_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(para_or_hvo, "para_or_hvo")
 
         para = self.__ResolveObject(para_or_hvo)
 
@@ -443,13 +428,10 @@ class ScrTxtParaOperations(BaseOperations):
         See Also:
             GetStyleName, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not para_or_hvo:
-            raise FP_NullParameterError()
-        if style_name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(para_or_hvo, "para_or_hvo")
+        self._ValidateParam(style_name, "style_name")
 
         para = self.__ResolveObject(para_or_hvo)
 

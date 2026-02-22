@@ -24,8 +24,6 @@ from SIL.LCModel import (
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -113,11 +111,9 @@ class ConstChartMovedTextOperations(BaseOperations):
         See Also:
             Delete, Find, IsPreposed, SetPreposed
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not word_group_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(word_group_or_hvo, "word_group_or_hvo")
 
         word_group = self.__ResolveWordGroup(word_group_or_hvo)
 
@@ -159,11 +155,9 @@ class ConstChartMovedTextOperations(BaseOperations):
         See Also:
             Create, Find
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not marker_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(marker_or_hvo, "marker_or_hvo")
 
         # Resolve to marker object
         marker = self.__ResolveObject(marker_or_hvo)
@@ -199,8 +193,7 @@ class ConstChartMovedTextOperations(BaseOperations):
         See Also:
             Create, GetAll
         """
-        if not word_group_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(word_group_or_hvo, "word_group_or_hvo")
 
         word_group = self.__ResolveWordGroup(word_group_or_hvo)
 
@@ -234,8 +227,7 @@ class ConstChartMovedTextOperations(BaseOperations):
         See Also:
             Find, Create
         """
-        if not chart_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(chart_or_hvo, "chart_or_hvo")
 
         chart = self.__ResolveChart(chart_or_hvo)
 
@@ -281,8 +273,7 @@ class ConstChartMovedTextOperations(BaseOperations):
         See Also:
             SetPreposed, Create
         """
-        if not marker_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(marker_or_hvo, "marker_or_hvo")
 
         marker = self.__ResolveObject(marker_or_hvo)
 
@@ -314,13 +305,10 @@ class ConstChartMovedTextOperations(BaseOperations):
         See Also:
             IsPreposed, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not marker_or_hvo:
-            raise FP_NullParameterError()
-        if value is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(marker_or_hvo, "marker_or_hvo")
+        self._ValidateParam(value, "value")
 
         marker = self.__ResolveObject(marker_or_hvo)
 
@@ -354,8 +342,7 @@ class ConstChartMovedTextOperations(BaseOperations):
         See Also:
             Create, Find
         """
-        if not marker_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(marker_or_hvo, "marker_or_hvo")
 
         marker = self.__ResolveObject(marker_or_hvo)
 

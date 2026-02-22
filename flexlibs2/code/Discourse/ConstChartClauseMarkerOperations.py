@@ -24,8 +24,6 @@ from SIL.LCModel import (
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -106,13 +104,10 @@ class ConstChartClauseMarkerOperations(BaseOperations):
         See Also:
             Delete, Find, GetWordGroup, AddDependentClause
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not row_or_hvo:
-            raise FP_NullParameterError()
-        if not word_group:
-            raise FP_NullParameterError("word_group cannot be None")
+        self._ValidateParam(row_or_hvo, "row_or_hvo")
+        self._ValidateParam(word_group, "word_group")
 
         row = self.__ResolveRow(row_or_hvo)
 
@@ -166,11 +161,9 @@ class ConstChartClauseMarkerOperations(BaseOperations):
         See Also:
             Create, Find
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not marker_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(marker_or_hvo, "marker_or_hvo")
 
         # Resolve to marker object
         marker = self.__ResolveObject(marker_or_hvo)
@@ -207,8 +200,7 @@ class ConstChartClauseMarkerOperations(BaseOperations):
         See Also:
             GetAll, Create
         """
-        if not row_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(row_or_hvo, "row_or_hvo")
 
         row = self.__ResolveRow(row_or_hvo)
 
@@ -247,8 +239,7 @@ class ConstChartClauseMarkerOperations(BaseOperations):
         See Also:
             Find, Create
         """
-        if not row_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(row_or_hvo, "row_or_hvo")
 
         row = self.__ResolveRow(row_or_hvo)
 
@@ -286,8 +277,7 @@ class ConstChartClauseMarkerOperations(BaseOperations):
         See Also:
             Create, GetDependentClauses
         """
-        if not marker_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(marker_or_hvo, "marker_or_hvo")
 
         marker = self.__ResolveObject(marker_or_hvo)
 
@@ -322,8 +312,7 @@ class ConstChartClauseMarkerOperations(BaseOperations):
         See Also:
             AddDependentClause, GetWordGroup
         """
-        if not marker_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(marker_or_hvo, "marker_or_hvo")
 
         marker = self.__ResolveObject(marker_or_hvo)
 
@@ -368,13 +357,10 @@ class ConstChartClauseMarkerOperations(BaseOperations):
         See Also:
             GetDependentClauses, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not marker_or_hvo:
-            raise FP_NullParameterError()
-        if not clause_marker:
-            raise FP_NullParameterError("clause_marker cannot be None")
+        self._ValidateParam(marker_or_hvo, "marker_or_hvo")
+        self._ValidateParam(clause_marker, "clause_marker")
 
         if not isinstance(clause_marker, IConstChartClauseMarker):
             raise FP_ParameterError(

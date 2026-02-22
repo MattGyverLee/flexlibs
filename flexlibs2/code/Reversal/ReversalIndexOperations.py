@@ -26,8 +26,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -142,13 +140,10 @@ class ReversalIndexOperations(BaseOperations):
         See Also:
             Delete, Find, FindByWritingSystem, GetName
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if name is None:
-            raise FP_NullParameterError()
-        if writing_system is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
+        self._ValidateParam(writing_system, "writing_system")
 
         if not name or not name.strip():
             raise FP_ParameterError("Reversal index name cannot be empty")
@@ -207,11 +202,9 @@ class ReversalIndexOperations(BaseOperations):
         See Also:
             Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not index_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(index_or_hvo, "index_or_hvo")
 
         index = self.__ResolveObject(index_or_hvo)
 
@@ -246,8 +239,7 @@ class ReversalIndexOperations(BaseOperations):
         See Also:
             FindByWritingSystem, GetAll, GetName
         """
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             return None
@@ -294,8 +286,7 @@ class ReversalIndexOperations(BaseOperations):
         See Also:
             Find, GetWritingSystem, Create
         """
-        if ws is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(ws, "ws")
 
         # Convert to string if handle provided
         ws_str = str(ws)
@@ -332,8 +323,7 @@ class ReversalIndexOperations(BaseOperations):
         See Also:
             SetName, Find
         """
-        if not index_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(index_or_hvo, "index_or_hvo")
 
         index = self.__ResolveObject(index_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -364,13 +354,10 @@ class ReversalIndexOperations(BaseOperations):
         See Also:
             GetName
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not index_or_hvo:
-            raise FP_NullParameterError()
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(index_or_hvo, "index_or_hvo")
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Reversal index name cannot be empty")
@@ -403,8 +390,7 @@ class ReversalIndexOperations(BaseOperations):
         See Also:
             FindByWritingSystem
         """
-        if not index_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(index_or_hvo, "index_or_hvo")
 
         index = self.__ResolveObject(index_or_hvo)
 
@@ -441,8 +427,7 @@ class ReversalIndexOperations(BaseOperations):
         See Also:
             project.ReversalEntries.GetAll, project.ReversalEntries.Create
         """
-        if not index_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(index_or_hvo, "index_or_hvo")
 
         index = self.__ResolveObject(index_or_hvo)
 
@@ -479,10 +464,8 @@ class ReversalIndexOperations(BaseOperations):
         See Also:
             GetEntries
         """
-        if not index_or_hvo:
-            raise FP_NullParameterError()
-        if path is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(index_or_hvo, "index_or_hvo")
+        self._ValidateParam(path, "path")
 
         # Placeholder for future implementation
         raise FP_ParameterError(

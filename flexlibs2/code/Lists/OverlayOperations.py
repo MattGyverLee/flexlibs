@@ -26,8 +26,6 @@ from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
 
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
@@ -126,8 +124,7 @@ class OverlayOperations(BaseOperations):
             FP_NullParameterError: If chart_or_hvo is None.
             FP_ParameterError: If the object doesn't exist or isn't a valid chart.
         """
-        if not chart_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(chart_or_hvo, "chart_or_hvo")
 
         if isinstance(chart_or_hvo, int):
             try:
@@ -150,8 +147,7 @@ class OverlayOperations(BaseOperations):
             FP_NullParameterError: If overlay_or_hvo is None.
             FP_ParameterError: If the object doesn't exist or isn't a valid overlay.
         """
-        if not overlay_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(overlay_or_hvo, "overlay_or_hvo")
 
         if isinstance(overlay_or_hvo, int):
             try:
@@ -271,11 +267,9 @@ class OverlayOperations(BaseOperations):
         See Also:
             Delete, GetAll, SetName, SetVisible
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not name:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         name = name.strip()
         if not name:
@@ -345,8 +339,7 @@ class OverlayOperations(BaseOperations):
         See Also:
             Create, GetAll
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
         overlay_obj = self.__GetOverlayObject(overlay_or_hvo)
 
@@ -403,11 +396,9 @@ class OverlayOperations(BaseOperations):
         See Also:
             Create, Delete, GetGuid
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Get source overlay and owner
         source = self.__GetOverlayObject(item_or_hvo)
@@ -499,8 +490,7 @@ class OverlayOperations(BaseOperations):
             >>> print(props)
             {'Name': 'Participants', 'Description': '...', 'Hidden': False, 'SortSpec': 0}
         """
-        if not item:
-            raise FP_NullParameterError()
+        self._ValidateParam(item, "item")
 
         overlay = self.__GetOverlayObject(item)
         wsHandle = self.__WSHandle(None)
@@ -614,8 +604,7 @@ class OverlayOperations(BaseOperations):
         See Also:
             GetAll, FindByChart, GetName
         """
-        if not name:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         wsHandle = self.__WSHandle(None)
 
@@ -699,11 +688,9 @@ class OverlayOperations(BaseOperations):
         See Also:
             GetName, SetDescription
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not name:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         name = name.strip()
         if not name:
@@ -794,11 +781,9 @@ class OverlayOperations(BaseOperations):
         See Also:
             GetDescription, SetName
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if description is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(description, "description")
 
         overlay_obj = self.__GetOverlayObject(overlay_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -900,11 +885,9 @@ class OverlayOperations(BaseOperations):
         See Also:
             IsVisible, GetVisibleOverlays
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if visible is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(visible, "visible")
 
         overlay_obj = self.__GetOverlayObject(overlay_or_hvo)
 
@@ -1009,11 +992,9 @@ class OverlayOperations(BaseOperations):
         See Also:
             GetDisplayOrder, GetAll
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if order is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(order, "order")
 
         if order < 0:
             raise FP_ParameterError("Display order must be non-negative")
@@ -1127,11 +1108,9 @@ class OverlayOperations(BaseOperations):
         See Also:
             RemoveElement, GetElements
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not element:
-            raise FP_NullParameterError()
+        self._ValidateParam(element, "element")
 
         overlay_obj = self.__GetOverlayObject(overlay_or_hvo)
 
@@ -1188,11 +1167,9 @@ class OverlayOperations(BaseOperations):
         See Also:
             AddElement, GetElements
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not element:
-            raise FP_NullParameterError()
+        self._ValidateParam(element, "element")
 
         overlay_obj = self.__GetOverlayObject(overlay_or_hvo)
 

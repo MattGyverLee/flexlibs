@@ -28,8 +28,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -147,11 +145,9 @@ class ConstChartOperations(BaseOperations):
         See Also:
             Delete, Find, GetName, SetTemplate
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Chart name cannot be empty")
@@ -210,11 +206,9 @@ class ConstChartOperations(BaseOperations):
         See Also:
             Create, Find
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not chart_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(chart_or_hvo, "chart_or_hvo")
 
         # Resolve to chart object
         chart = self.__ResolveObject(chart_or_hvo)
@@ -251,8 +245,7 @@ class ConstChartOperations(BaseOperations):
         See Also:
             FindByHvo, GetAll, GetName
         """
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             return None
@@ -293,8 +286,7 @@ class ConstChartOperations(BaseOperations):
         See Also:
             Find, GetAll
         """
-        if hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(hvo, "hvo")
 
         try:
             obj = self.project.Object(hvo)
@@ -333,8 +325,7 @@ class ConstChartOperations(BaseOperations):
         See Also:
             SetName, Find
         """
-        if not chart_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(chart_or_hvo, "chart_or_hvo")
 
         chart = self.__ResolveObject(chart_or_hvo)
         wsHandle = self.__WSHandleAnalysis()
@@ -367,13 +358,10 @@ class ConstChartOperations(BaseOperations):
         See Also:
             GetName, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not chart_or_hvo:
-            raise FP_NullParameterError()
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(chart_or_hvo, "chart_or_hvo")
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Chart name cannot be empty")
@@ -411,8 +399,7 @@ class ConstChartOperations(BaseOperations):
         See Also:
             SetTemplate, Create
         """
-        if not chart_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(chart_or_hvo, "chart_or_hvo")
 
         chart = self.__ResolveObject(chart_or_hvo)
 
@@ -446,11 +433,9 @@ class ConstChartOperations(BaseOperations):
         See Also:
             GetTemplate, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not chart_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(chart_or_hvo, "chart_or_hvo")
 
         chart = self.__ResolveObject(chart_or_hvo)
 
@@ -485,8 +470,7 @@ class ConstChartOperations(BaseOperations):
         See Also:
             ConstChartRowOperations, Create
         """
-        if not chart_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(chart_or_hvo, "chart_or_hvo")
 
         chart = self.__ResolveObject(chart_or_hvo)
 

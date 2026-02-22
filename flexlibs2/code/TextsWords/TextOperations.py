@@ -29,8 +29,6 @@ from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
 
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
@@ -544,15 +542,12 @@ class TextOperations(BaseOperations):
         See Also:
             GetName, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not name:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         name = name.strip()
-        if not name:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         text_obj = self.__GetTextObject(text_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -632,8 +627,7 @@ class TextOperations(BaseOperations):
         See Also:
             GetGenre, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
         text_obj = self.__GetTextObject(text_or_hvo)
 
@@ -823,15 +817,12 @@ class TextOperations(BaseOperations):
         See Also:
             GetMediaFiles, project.Media.CopyToProject
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not filepath:
-            raise FP_NullParameterError()
+        self._ValidateParam(filepath, "filepath")
 
         filepath = filepath.strip()
-        if not filepath:
-            raise FP_NullParameterError()
+        self._ValidateParam(filepath, "filepath")
 
         text_obj = self.__GetTextObject(text_or_hvo)
 
@@ -978,11 +969,9 @@ class TextOperations(BaseOperations):
         See Also:
             GetIsTranslated
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if text_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(text_or_hvo, "text_or_hvo")
 
         if not isinstance(value, bool):
             raise FP_ParameterError("value must be a boolean (True or False)")

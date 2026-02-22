@@ -26,8 +26,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
@@ -154,11 +152,9 @@ class PersonOperations(BaseOperations):
         See Also:
             Delete, Exists, Find, SetName
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -213,11 +209,9 @@ class PersonOperations(BaseOperations):
         See Also:
             Create, Exists
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not person_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(person_or_hvo, "person_or_hvo")
 
         # Resolve to person object
         person = self.__ResolveObject(person_or_hvo)
@@ -256,8 +250,7 @@ class PersonOperations(BaseOperations):
         See Also:
             Find, Create
         """
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             return False
@@ -299,8 +292,7 @@ class PersonOperations(BaseOperations):
         See Also:
             Exists, GetAll, GetName
         """
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             return None
@@ -348,8 +340,7 @@ class PersonOperations(BaseOperations):
         See Also:
             SetName, Create
         """
-        if not person_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(person_or_hvo, "person_or_hvo")
 
         person = self.__ResolveObject(person_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -389,13 +380,10 @@ class PersonOperations(BaseOperations):
         See Also:
             GetName, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not person_or_hvo:
-            raise FP_NullParameterError()
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(person_or_hvo, "person_or_hvo")
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -436,8 +424,7 @@ class PersonOperations(BaseOperations):
         See Also:
             SetGender
         """
-        if not person_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(person_or_hvo, "person_or_hvo")
 
         person = self.__ResolveObject(person_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -473,13 +460,10 @@ class PersonOperations(BaseOperations):
         See Also:
             GetGender
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not person_or_hvo:
-            raise FP_NullParameterError()
-        if gender is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(person_or_hvo, "person_or_hvo")
+        self._ValidateParam(gender, "gender")
 
         person = self.__ResolveObject(person_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -516,8 +500,7 @@ class PersonOperations(BaseOperations):
         See Also:
             SetDateOfBirth
         """
-        if not person_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(person_or_hvo, "person_or_hvo")
 
         person = self.__ResolveObject(person_or_hvo)
 
@@ -554,13 +537,10 @@ class PersonOperations(BaseOperations):
         See Also:
             GetDateOfBirth
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not person_or_hvo:
-            raise FP_NullParameterError()
-        if date_str is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(person_or_hvo, "person_or_hvo")
+        self._ValidateParam(date_str, "date_str")
 
         person = self.__ResolveObject(person_or_hvo)
 
@@ -597,8 +577,7 @@ class PersonOperations(BaseOperations):
         See Also:
             SetEmail, GetPhone
         """
-        if not person_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(person_or_hvo, "person_or_hvo")
 
         person = self.__ResolveObject(person_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -638,13 +617,10 @@ class PersonOperations(BaseOperations):
         See Also:
             GetEmail, SetPhone
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not person_or_hvo:
-            raise FP_NullParameterError()
-        if email is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(person_or_hvo, "person_or_hvo")
+        self._ValidateParam(email, "email")
 
         person = self.__ResolveObject(person_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -680,8 +656,7 @@ class PersonOperations(BaseOperations):
         See Also:
             SetPhone, GetEmail
         """
-        if not person_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(person_or_hvo, "person_or_hvo")
 
         person = self.__ResolveObject(person_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -721,13 +696,10 @@ class PersonOperations(BaseOperations):
         See Also:
             GetPhone, SetEmail
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not person_or_hvo:
-            raise FP_NullParameterError()
-        if phone is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(person_or_hvo, "person_or_hvo")
+        self._ValidateParam(phone, "phone")
 
         person = self.__ResolveObject(person_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -763,8 +735,7 @@ class PersonOperations(BaseOperations):
         See Also:
             SetAddress, GetResidences
         """
-        if not person_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(person_or_hvo, "person_or_hvo")
 
         person = self.__ResolveObject(person_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -802,13 +773,10 @@ class PersonOperations(BaseOperations):
         See Also:
             GetAddress, AddResidence
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not person_or_hvo:
-            raise FP_NullParameterError()
-        if address is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(person_or_hvo, "person_or_hvo")
+        self._ValidateParam(address, "address")
 
         person = self.__ResolveObject(person_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -846,8 +814,7 @@ class PersonOperations(BaseOperations):
         See Also:
             SetEducation, GetPositions
         """
-        if not person_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(person_or_hvo, "person_or_hvo")
 
         person = self.__ResolveObject(person_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -885,13 +852,10 @@ class PersonOperations(BaseOperations):
         See Also:
             GetEducation, AddPosition
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not person_or_hvo:
-            raise FP_NullParameterError()
-        if education is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(person_or_hvo, "person_or_hvo")
+        self._ValidateParam(education, "education")
 
         person = self.__ResolveObject(person_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -930,8 +894,7 @@ class PersonOperations(BaseOperations):
         See Also:
             AddPosition
         """
-        if not person_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(person_or_hvo, "person_or_hvo")
 
         person = self.__ResolveObject(person_or_hvo)
 
@@ -966,13 +929,10 @@ class PersonOperations(BaseOperations):
         See Also:
             GetPositions
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not person_or_hvo:
-            raise FP_NullParameterError()
-        if position is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(person_or_hvo, "person_or_hvo")
+        self._ValidateParam(position, "position")
 
         person = self.__ResolveObject(person_or_hvo)
 
@@ -1026,11 +986,9 @@ class PersonOperations(BaseOperations):
         See Also:
             Create, Delete, GetGuid
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not person_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(person_or_hvo, "person_or_hvo")
 
         # Get source person
         source = self.__ResolveObject(person_or_hvo)
@@ -1096,8 +1054,7 @@ class PersonOperations(BaseOperations):
             >>> print(props)
             {'Name': 'John Smith', 'Gender': 'Male', 'Email': 'john@...', ...}
         """
-        if not item:
-            raise FP_NullParameterError()
+        self._ValidateParam(item, "item")
 
         person = self.__ResolveObject(item)
         wsHandle = self.project.project.DefaultAnalWs
@@ -1220,8 +1177,7 @@ class PersonOperations(BaseOperations):
         See Also:
             FLExProject.Object, FLExProject.BuildGotoURL
         """
-        if not person_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(person_or_hvo, "person_or_hvo")
 
         person = self.__ResolveObject(person_or_hvo)
 
@@ -1255,8 +1211,7 @@ class PersonOperations(BaseOperations):
         See Also:
             GetDateModified
         """
-        if not person_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(person_or_hvo, "person_or_hvo")
 
         person = self.__ResolveObject(person_or_hvo)
 
@@ -1290,8 +1245,7 @@ class PersonOperations(BaseOperations):
         See Also:
             GetDateCreated
         """
-        if not person_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(person_or_hvo, "person_or_hvo")
 
         person = self.__ResolveObject(person_or_hvo)
 
@@ -1329,8 +1283,7 @@ class PersonOperations(BaseOperations):
         See Also:
             AddResidence
         """
-        if not person_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(person_or_hvo, "person_or_hvo")
 
         person = self.__ResolveObject(person_or_hvo)
 
@@ -1363,13 +1316,10 @@ class PersonOperations(BaseOperations):
         See Also:
             GetResidences
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not person_or_hvo:
-            raise FP_NullParameterError()
-        if location is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(person_or_hvo, "person_or_hvo")
+        self._ValidateParam(location, "location")
 
         person = self.__ResolveObject(person_or_hvo)
 
@@ -1410,8 +1360,7 @@ class PersonOperations(BaseOperations):
         See Also:
             AddLanguage
         """
-        if not person_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(person_or_hvo, "person_or_hvo")
 
         person = self.__ResolveObject(person_or_hvo)
 
@@ -1446,13 +1395,10 @@ class PersonOperations(BaseOperations):
         See Also:
             GetLanguages
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not person_or_hvo:
-            raise FP_NullParameterError()
-        if language is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(person_or_hvo, "person_or_hvo")
+        self._ValidateParam(language, "language")
 
         person = self.__ResolveObject(person_or_hvo)
 
@@ -1492,8 +1438,7 @@ class PersonOperations(BaseOperations):
         See Also:
             AddNote, SetEducation
         """
-        if not person_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(person_or_hvo, "person_or_hvo")
 
         person = self.__ResolveObject(person_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -1531,13 +1476,10 @@ class PersonOperations(BaseOperations):
         See Also:
             GetNotes
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not person_or_hvo:
-            raise FP_NullParameterError()
-        if note is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(person_or_hvo, "person_or_hvo")
+        self._ValidateParam(note, "note")
 
         if not note or not note.strip():
             return  # Ignore empty notes

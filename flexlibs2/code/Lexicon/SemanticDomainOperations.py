@@ -25,8 +25,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -143,7 +141,7 @@ class SemanticDomainOperations(BaseOperations):
             ICmSemanticDomain or None: The domain object if found, None otherwise.
 
         Raises:
-            FP_NullParameterError: If number is None.
+            Exception: If number is None.
 
         Example:
             >>> # Find a specific domain
@@ -168,8 +166,7 @@ class SemanticDomainOperations(BaseOperations):
         See Also:
             FindByName, Exists, GetNumber
         """
-        if number is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(number, "number")
 
         if not number or not number.strip():
             return None
@@ -196,7 +193,7 @@ class SemanticDomainOperations(BaseOperations):
             ICmSemanticDomain or None: The domain object if found, None otherwise.
 
         Raises:
-            FP_NullParameterError: If name is None.
+            Exception: If name is None.
 
         Example:
             >>> # Find by English name
@@ -221,8 +218,7 @@ class SemanticDomainOperations(BaseOperations):
         See Also:
             Find, Exists, GetName
         """
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             return None
@@ -249,7 +245,7 @@ class SemanticDomainOperations(BaseOperations):
             bool: True if domain exists, False otherwise.
 
         Raises:
-            FP_NullParameterError: If number is None.
+            Exception: If number is None.
 
         Example:
             >>> if project.SemanticDomains.Exists("7.2.1"):
@@ -268,8 +264,7 @@ class SemanticDomainOperations(BaseOperations):
         See Also:
             Find, FindByName
         """
-        if number is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(number, "number")
 
         return self.Find(number) is not None
 
@@ -287,7 +282,7 @@ class SemanticDomainOperations(BaseOperations):
             str: The domain name, or empty string if not set.
 
         Raises:
-            FP_NullParameterError: If domain_or_hvo is None.
+            Exception: If domain_or_hvo is None.
 
         Example:
             >>> domain = project.SemanticDomains.Find("7.2.1")
@@ -309,8 +304,7 @@ class SemanticDomainOperations(BaseOperations):
         See Also:
             SetName, GetDescription, GetAbbreviation
         """
-        if not domain_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(domain_or_hvo, "domain_or_hvo")
 
         domain = self.__ResolveObject(domain_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -345,13 +339,9 @@ class SemanticDomainOperations(BaseOperations):
         See Also:
             GetName, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not domain_or_hvo:
-            raise FP_NullParameterError()
-        if name is None:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(domain_or_hvo, "domain_or_hvo")
+        self._ValidateParam(name, "name")
 
         domain = self.__ResolveObject(domain_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -388,8 +378,7 @@ class SemanticDomainOperations(BaseOperations):
         See Also:
             SetDescription, GetName, GetQuestions
         """
-        if not domain_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(domain_or_hvo, "domain_or_hvo")
 
         domain = self.__ResolveObject(domain_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -419,13 +408,9 @@ class SemanticDomainOperations(BaseOperations):
         See Also:
             GetDescription, SetName
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not domain_or_hvo:
-            raise FP_NullParameterError()
-        if description is None:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(domain_or_hvo, "domain_or_hvo")
+        self._ValidateParam(description, "description")
 
         domain = self.__ResolveObject(domain_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -463,8 +448,7 @@ class SemanticDomainOperations(BaseOperations):
         See Also:
             GetNumber, GetName
         """
-        if not domain_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(domain_or_hvo, "domain_or_hvo")
 
         domain = self.__ResolveObject(domain_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -506,8 +490,7 @@ class SemanticDomainOperations(BaseOperations):
         See Also:
             GetAbbreviation, Find, GetDepth
         """
-        if not domain_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(domain_or_hvo, "domain_or_hvo")
 
         domain = self.__ResolveObject(domain_or_hvo)
         wsHandle = self.project.project.DefaultAnalWs
@@ -549,8 +532,7 @@ class SemanticDomainOperations(BaseOperations):
         See Also:
             GetDescription, GetName
         """
-        if not domain_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(domain_or_hvo, "domain_or_hvo")
 
         domain = self.__ResolveObject(domain_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -595,8 +577,7 @@ class SemanticDomainOperations(BaseOperations):
         See Also:
             GetNumber, GetDescription
         """
-        if not domain_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(domain_or_hvo, "domain_or_hvo")
 
         domain = self.__ResolveObject(domain_or_hvo)
         wsHandle = self.project.project.DefaultAnalWs
@@ -642,8 +623,7 @@ class SemanticDomainOperations(BaseOperations):
         See Also:
             GetParent, GetAll, GetDepth
         """
-        if not domain_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(domain_or_hvo, "domain_or_hvo")
 
         domain = self.__ResolveObject(domain_or_hvo)
 
@@ -687,8 +667,7 @@ class SemanticDomainOperations(BaseOperations):
         See Also:
             GetSubdomains, GetDepth, GetNumber
         """
-        if not domain_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(domain_or_hvo, "domain_or_hvo")
 
         domain = self.__ResolveObject(domain_or_hvo)
         owner = domain.Owner
@@ -735,8 +714,7 @@ class SemanticDomainOperations(BaseOperations):
         See Also:
             GetParent, GetNumber, GetSubdomains
         """
-        if not domain_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(domain_or_hvo, "domain_or_hvo")
 
         domain = self.__ResolveObject(domain_or_hvo)
 
@@ -790,8 +768,7 @@ class SemanticDomainOperations(BaseOperations):
         See Also:
             GetSenseCount, GetSubdomains
         """
-        if not domain_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(domain_or_hvo, "domain_or_hvo")
 
         domain = self.__ResolveObject(domain_or_hvo)
         domain_hvo = domain.Hvo
@@ -843,8 +820,7 @@ class SemanticDomainOperations(BaseOperations):
         See Also:
             GetSensesInDomain
         """
-        if not domain_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(domain_or_hvo, "domain_or_hvo")
 
         domain = self.__ResolveObject(domain_or_hvo)
 
@@ -907,13 +883,9 @@ class SemanticDomainOperations(BaseOperations):
         See Also:
             Delete, SetName, SetDescription, GetSubdomains
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if name is None:
-            raise FP_NullParameterError()
-        if number is None:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(name, "name")
+        self._ValidateParam(number, "number")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -983,11 +955,8 @@ class SemanticDomainOperations(BaseOperations):
         See Also:
             Create, GetSensesInDomain
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not domain_or_hvo:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(domain_or_hvo, "domain_or_hvo")
 
         domain = self.__ResolveObject(domain_or_hvo)
 
@@ -1050,11 +1019,8 @@ class SemanticDomainOperations(BaseOperations):
         See Also:
             Create, Delete, GetNumber
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Get source domain and parent
         source = self.__ResolveObject(item_or_hvo)

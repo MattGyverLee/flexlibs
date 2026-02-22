@@ -23,8 +23,6 @@ from System import DateTime
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
@@ -186,11 +184,9 @@ class PublicationOperations(BaseOperations):
         See Also:
             Delete, Find, Exists, SetIsDefault
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -261,11 +257,9 @@ class PublicationOperations(BaseOperations):
         See Also:
             Create, GetIsDefault, SetIsDefault
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if publication_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(publication_or_hvo, "publication_or_hvo")
 
         publication = self.__ResolveObject(publication_or_hvo)
 
@@ -338,11 +332,9 @@ class PublicationOperations(BaseOperations):
         See Also:
             Create, Delete, GetGuid, GetDivisions
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if item_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Get source publication
         source = self.__ResolveObject(item_or_hvo)
@@ -437,8 +429,7 @@ class PublicationOperations(BaseOperations):
             >>> print(props)
             {'Name': 'Dictionary', 'Description': '...', 'Abbreviation': 'Dict'}
         """
-        if not item:
-            raise FP_NullParameterError()
+        self._ValidateParam(item, "item")
 
         pub = self.__ResolveObject(item)
         wsHandle = self.project.project.DefaultAnalWs
@@ -540,8 +531,7 @@ class PublicationOperations(BaseOperations):
         See Also:
             Exists, GetAll, GetName
         """
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             return None
@@ -623,8 +613,7 @@ class PublicationOperations(BaseOperations):
         See Also:
             SetName, GetDescription
         """
-        if publication_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(publication_or_hvo, "publication_or_hvo")
 
         publication = self.__ResolveObject(publication_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -665,13 +654,10 @@ class PublicationOperations(BaseOperations):
         See Also:
             GetName, SetDescription
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if publication_or_hvo is None:
-            raise FP_NullParameterError()
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(publication_or_hvo, "publication_or_hvo")
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -715,8 +701,7 @@ class PublicationOperations(BaseOperations):
         See Also:
             SetDescription, GetName
         """
-        if publication_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(publication_or_hvo, "publication_or_hvo")
 
         publication = self.__ResolveObject(publication_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -759,13 +744,10 @@ class PublicationOperations(BaseOperations):
         See Also:
             GetDescription, SetName
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if publication_or_hvo is None:
-            raise FP_NullParameterError()
-        if description is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(publication_or_hvo, "publication_or_hvo")
+        self._ValidateParam(description, "description")
 
         publication = self.__ResolveObject(publication_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -808,8 +790,7 @@ class PublicationOperations(BaseOperations):
         See Also:
             SetPageLayout, GetPageWidth, GetPageHeight
         """
-        if publication_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(publication_or_hvo, "publication_or_hvo")
 
         publication = self.__ResolveObject(publication_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -851,13 +832,10 @@ class PublicationOperations(BaseOperations):
         See Also:
             GetPageLayout, SetPageWidth, SetPageHeight
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if publication_or_hvo is None:
-            raise FP_NullParameterError()
-        if layout is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(publication_or_hvo, "publication_or_hvo")
+        self._ValidateParam(layout, "layout")
 
         publication = self.__ResolveObject(publication_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -908,8 +886,7 @@ class PublicationOperations(BaseOperations):
         See Also:
             SetIsDefault, Find
         """
-        if publication_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(publication_or_hvo, "publication_or_hvo")
 
         publication = self.__ResolveObject(publication_or_hvo)
 
@@ -952,13 +929,10 @@ class PublicationOperations(BaseOperations):
         See Also:
             GetIsDefault, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if publication_or_hvo is None:
-            raise FP_NullParameterError()
-        if is_default is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(publication_or_hvo, "publication_or_hvo")
+        self._ValidateParam(is_default, "is_default")
 
         publication = self.__ResolveObject(publication_or_hvo)
 
@@ -1018,8 +992,7 @@ class PublicationOperations(BaseOperations):
         See Also:
             SetPageHeight, GetPageWidth
         """
-        if publication_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(publication_or_hvo, "publication_or_hvo")
 
         publication = self.__ResolveObject(publication_or_hvo)
 
@@ -1062,13 +1035,10 @@ class PublicationOperations(BaseOperations):
         See Also:
             GetPageHeight, SetPageWidth
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if publication_or_hvo is None:
-            raise FP_NullParameterError()
-        if height is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(publication_or_hvo, "publication_or_hvo")
+        self._ValidateParam(height, "height")
 
         try:
             h = float(height)
@@ -1123,8 +1093,7 @@ class PublicationOperations(BaseOperations):
         See Also:
             SetPageWidth, GetPageHeight
         """
-        if publication_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(publication_or_hvo, "publication_or_hvo")
 
         publication = self.__ResolveObject(publication_or_hvo)
 
@@ -1167,13 +1136,10 @@ class PublicationOperations(BaseOperations):
         See Also:
             GetPageWidth, SetPageHeight
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if publication_or_hvo is None:
-            raise FP_NullParameterError()
-        if width is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(publication_or_hvo, "publication_or_hvo")
+        self._ValidateParam(width, "width")
 
         try:
             w = float(width)
@@ -1226,8 +1192,7 @@ class PublicationOperations(BaseOperations):
         See Also:
             AddDivision, GetSubPublications
         """
-        if publication_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(publication_or_hvo, "publication_or_hvo")
 
         publication = self.__ResolveObject(publication_or_hvo)
 
@@ -1274,13 +1239,10 @@ class PublicationOperations(BaseOperations):
         See Also:
             GetDivisions, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if publication_or_hvo is None:
-            raise FP_NullParameterError()
-        if division_name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(publication_or_hvo, "publication_or_hvo")
+        self._ValidateParam(division_name, "division_name")
 
         if not division_name or not division_name.strip():
             raise FP_ParameterError("Division name cannot be empty")
@@ -1337,8 +1299,7 @@ class PublicationOperations(BaseOperations):
         See Also:
             GetPageLayout, GetDescription
         """
-        if publication_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(publication_or_hvo, "publication_or_hvo")
 
         publication = self.__ResolveObject(publication_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -1391,8 +1352,7 @@ class PublicationOperations(BaseOperations):
         See Also:
             GetPageWidth, GetPageHeight, GetPageLayout
         """
-        if publication_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(publication_or_hvo, "publication_or_hvo")
 
         publication = self.__ResolveObject(publication_or_hvo)
 
@@ -1432,8 +1392,7 @@ class PublicationOperations(BaseOperations):
         See Also:
             GetParent, GetDivisions
         """
-        if publication_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(publication_or_hvo, "publication_or_hvo")
 
         publication = self.__ResolveObject(publication_or_hvo)
 
@@ -1470,8 +1429,7 @@ class PublicationOperations(BaseOperations):
         See Also:
             GetSubPublications
         """
-        if publication_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(publication_or_hvo, "publication_or_hvo")
 
         publication = self.__ResolveObject(publication_or_hvo)
         owner = publication.Owner
@@ -1518,8 +1476,7 @@ class PublicationOperations(BaseOperations):
         See Also:
             FLExProject.Object
         """
-        if publication_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(publication_or_hvo, "publication_or_hvo")
 
         publication = self.__ResolveObject(publication_or_hvo)
         return publication.Guid
@@ -1558,8 +1515,7 @@ class PublicationOperations(BaseOperations):
         See Also:
             GetDateModified, Create
         """
-        if publication_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(publication_or_hvo, "publication_or_hvo")
 
         publication = self.__ResolveObject(publication_or_hvo)
 
@@ -1605,8 +1561,7 @@ class PublicationOperations(BaseOperations):
         See Also:
             GetDateCreated, SetName, SetDescription
         """
-        if publication_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(publication_or_hvo, "publication_or_hvo")
 
         publication = self.__ResolveObject(publication_or_hvo)
 

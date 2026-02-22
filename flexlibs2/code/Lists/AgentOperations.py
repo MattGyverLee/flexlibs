@@ -29,8 +29,6 @@ import System
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
@@ -163,11 +161,9 @@ class AgentOperations(BaseOperations):
         See Also:
             CreateHumanAgent, CreateParserAgent, Delete, SetName
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -229,11 +225,9 @@ class AgentOperations(BaseOperations):
         See Also:
             Create, CreateParserAgent, SetHuman, GetHuman
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if person is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(person, "person")
 
         # Create the agent
         agent = self.Create(name, wsHandle)
@@ -289,8 +283,7 @@ class AgentOperations(BaseOperations):
         See Also:
             Create, CreateHumanAgent, SetVersion, GetVersion
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
         # Create the agent
         agent = self.Create(name, wsHandle)
@@ -339,11 +332,9 @@ class AgentOperations(BaseOperations):
         See Also:
             Create, Exists
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not agent_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(agent_or_hvo, "agent_or_hvo")
 
         # Resolve to agent object
         agent = self.__ResolveObject(agent_or_hvo)
@@ -393,11 +384,9 @@ class AgentOperations(BaseOperations):
         See Also:
             Create, Delete, GetGuid
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Get source agent
         source = self.__ResolveObject(item_or_hvo)
@@ -445,8 +434,7 @@ class AgentOperations(BaseOperations):
             >>> print(props)
             {'Name': 'MyParser', 'Version': '1.0.0', 'Human': None}
         """
-        if not item:
-            raise FP_NullParameterError()
+        self._ValidateParam(item, "item")
 
         agent = self.__ResolveObject(item)
         wsHandle = self.project.project.DefaultAnalWs
@@ -543,8 +531,7 @@ class AgentOperations(BaseOperations):
         See Also:
             Find, Create
         """
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             return False
@@ -586,8 +573,7 @@ class AgentOperations(BaseOperations):
         See Also:
             Exists, GetAll, FindByType
         """
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             return None
@@ -635,8 +621,7 @@ class AgentOperations(BaseOperations):
         See Also:
             SetName, Create
         """
-        if not agent_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(agent_or_hvo, "agent_or_hvo")
 
         agent = self.__ResolveObject(agent_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -676,13 +661,10 @@ class AgentOperations(BaseOperations):
         See Also:
             GetName, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not agent_or_hvo:
-            raise FP_NullParameterError()
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(agent_or_hvo, "agent_or_hvo")
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -727,8 +709,7 @@ class AgentOperations(BaseOperations):
         See Also:
             SetVersion, CreateParserAgent
         """
-        if not agent_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(agent_or_hvo, "agent_or_hvo")
 
         agent = self.__ResolveObject(agent_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -770,13 +751,10 @@ class AgentOperations(BaseOperations):
         See Also:
             GetVersion, CreateParserAgent
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not agent_or_hvo:
-            raise FP_NullParameterError()
-        if version is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(agent_or_hvo, "agent_or_hvo")
+        self._ValidateParam(version, "version")
 
         agent = self.__ResolveObject(agent_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -820,8 +798,7 @@ class AgentOperations(BaseOperations):
         See Also:
             IsParser, GetHuman, SetHuman, CreateHumanAgent
         """
-        if not agent_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(agent_or_hvo, "agent_or_hvo")
 
         agent = self.__ResolveObject(agent_or_hvo)
 
@@ -860,8 +837,7 @@ class AgentOperations(BaseOperations):
         See Also:
             IsHuman, CreateParserAgent, GetVersion
         """
-        if not agent_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(agent_or_hvo, "agent_or_hvo")
 
         agent = self.__ResolveObject(agent_or_hvo)
 
@@ -905,8 +881,7 @@ class AgentOperations(BaseOperations):
         See Also:
             SetHuman, IsHuman, CreateHumanAgent
         """
-        if not agent_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(agent_or_hvo, "agent_or_hvo")
 
         agent = self.__ResolveObject(agent_or_hvo)
 
@@ -943,11 +918,9 @@ class AgentOperations(BaseOperations):
         See Also:
             GetHuman, CreateHumanAgent, IsHuman
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not agent_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(agent_or_hvo, "agent_or_hvo")
 
         agent = self.__ResolveObject(agent_or_hvo)
 
@@ -995,8 +968,7 @@ class AgentOperations(BaseOperations):
         See Also:
             GetEvaluationCount
         """
-        if not agent_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(agent_or_hvo, "agent_or_hvo")
 
         agent = self.__ResolveObject(agent_or_hvo)
 
@@ -1049,8 +1021,7 @@ class AgentOperations(BaseOperations):
         See Also:
             GetEvaluations
         """
-        if not agent_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(agent_or_hvo, "agent_or_hvo")
 
         return len(self.GetEvaluations(agent_or_hvo))
 
@@ -1199,8 +1170,7 @@ class AgentOperations(BaseOperations):
         See Also:
             FLExProject.Object, FLExProject.BuildGotoURL
         """
-        if not agent_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(agent_or_hvo, "agent_or_hvo")
 
         agent = self.__ResolveObject(agent_or_hvo)
 
@@ -1239,8 +1209,7 @@ class AgentOperations(BaseOperations):
         See Also:
             GetDateModified
         """
-        if not agent_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(agent_or_hvo, "agent_or_hvo")
 
         agent = self.__ResolveObject(agent_or_hvo)
 
@@ -1282,8 +1251,7 @@ class AgentOperations(BaseOperations):
         See Also:
             GetDateCreated
         """
-        if not agent_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(agent_or_hvo, "agent_or_hvo")
 
         agent = self.__ResolveObject(agent_or_hvo)
 

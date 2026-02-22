@@ -28,8 +28,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -117,11 +115,9 @@ class ScrSectionOperations(BaseOperations):
         See Also:
             Delete, Find, GetHeading, SetHeading
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not book_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(book_or_hvo, "book_or_hvo")
 
         # Resolve to book object
         book = self.__ResolveBook(book_or_hvo)
@@ -166,11 +162,9 @@ class ScrSectionOperations(BaseOperations):
         See Also:
             Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not section_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(section_or_hvo, "section_or_hvo")
 
         # Resolve to section object
         section = self.__ResolveObject(section_or_hvo)
@@ -211,10 +205,8 @@ class ScrSectionOperations(BaseOperations):
         See Also:
             GetAll, Create
         """
-        if book_or_hvo is None:
-            raise FP_NullParameterError()
-        if index is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(book_or_hvo, "book_or_hvo")
+        self._ValidateParam(index, "index")
 
         # Resolve to book object
         book = self.__ResolveBook(book_or_hvo)
@@ -256,8 +248,7 @@ class ScrSectionOperations(BaseOperations):
         See Also:
             Find, Create
         """
-        if not book_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(book_or_hvo, "book_or_hvo")
 
         # Resolve to book object
         book = self.__ResolveBook(book_or_hvo)
@@ -297,8 +288,7 @@ class ScrSectionOperations(BaseOperations):
         See Also:
             SetHeading, Create
         """
-        if not section_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(section_or_hvo, "section_or_hvo")
 
         section = self.__ResolveObject(section_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -344,13 +334,10 @@ class ScrSectionOperations(BaseOperations):
         See Also:
             GetHeading, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not section_or_hvo:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(section_or_hvo, "section_or_hvo")
+        self._ValidateParam(text, "text")
 
         section = self.__ResolveObject(section_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -400,8 +387,7 @@ class ScrSectionOperations(BaseOperations):
         See Also:
             ScrTxtParaOperations.GetAll
         """
-        if not section_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(section_or_hvo, "section_or_hvo")
 
         section = self.__ResolveObject(section_or_hvo)
 
@@ -441,15 +427,11 @@ class ScrSectionOperations(BaseOperations):
         See Also:
             Create, Delete
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not section_or_hvo:
-            raise FP_NullParameterError()
-        if not target_book_or_hvo:
-            raise FP_NullParameterError()
-        if index is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(section_or_hvo, "section_or_hvo")
+        self._ValidateParam(target_book_or_hvo, "target_book_or_hvo")
+        self._ValidateParam(index, "index")
 
         section = self.__ResolveObject(section_or_hvo)
         target_book = self.__ResolveBook(target_book_or_hvo)

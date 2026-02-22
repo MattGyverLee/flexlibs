@@ -38,8 +38,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -210,11 +208,9 @@ class FilterOperations:
         See Also:
             Delete, Find, GetCriteria, SetCriteria
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if name is None or filter_type is None or criteria is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Filter name cannot be empty")
@@ -283,11 +279,9 @@ class FilterOperations:
         See Also:
             Create, Find
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if filter_obj is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(filter_obj, "filter_obj")
 
         filter_guid = filter_obj.get('guid')
         if not filter_guid:
@@ -338,8 +332,7 @@ class FilterOperations:
         See Also:
             Exists, GetAll, Create
         """
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             return None
@@ -380,8 +373,7 @@ class FilterOperations:
         See Also:
             Find, Create
         """
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             return False
@@ -419,8 +411,7 @@ class FilterOperations:
         See Also:
             SetName, Find
         """
-        if filter_obj is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(filter_obj, "filter_obj")
 
         if not isinstance(filter_obj, dict) or 'name' not in filter_obj:
             raise FP_ParameterError("Invalid filter object")
@@ -455,11 +446,9 @@ class FilterOperations:
         See Also:
             GetName, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if filter_obj is None or name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(filter_obj, "filter_obj")
 
         if not name or not name.strip():
             raise FP_ParameterError("Filter name cannot be empty")
@@ -514,8 +503,7 @@ class FilterOperations:
         See Also:
             SetCriteria, GetFilterType
         """
-        if filter_obj is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(filter_obj, "filter_obj")
 
         if not isinstance(filter_obj, dict) or 'criteria' not in filter_obj:
             raise FP_ParameterError("Invalid filter object")
@@ -557,11 +545,9 @@ class FilterOperations:
         See Also:
             GetCriteria, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if filter_obj is None or criteria is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(filter_obj, "filter_obj")
 
         if not isinstance(filter_obj, dict) or 'guid' not in filter_obj:
             raise FP_ParameterError("Invalid filter object")
@@ -610,8 +596,7 @@ class FilterOperations:
         See Also:
             Create, GetFiltersByType, ApplyFilter
         """
-        if filter_obj is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(filter_obj, "filter_obj")
 
         if not isinstance(filter_obj, dict) or 'filter_type' not in filter_obj:
             raise FP_ParameterError("Invalid filter object")
@@ -647,8 +632,7 @@ class FilterOperations:
         See Also:
             Find, Create
         """
-        if filter_obj is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(filter_obj, "filter_obj")
 
         if not isinstance(filter_obj, dict) or 'guid' not in filter_obj:
             raise FP_ParameterError("Invalid filter object")
@@ -701,8 +685,7 @@ class FilterOperations:
         See Also:
             GetMatchCount, GetCriteria, GetFilterType
         """
-        if filter_obj is None or object_collection is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(filter_obj, "filter_obj")
 
         if not isinstance(filter_obj, dict):
             raise FP_ParameterError("Invalid filter object")
@@ -756,8 +739,7 @@ class FilterOperations:
         See Also:
             ApplyFilter, GetCriteria
         """
-        if filter_obj is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(filter_obj, "filter_obj")
 
         if not isinstance(filter_obj, dict):
             raise FP_ParameterError("Invalid filter object")
@@ -804,8 +786,7 @@ class FilterOperations:
         See Also:
             ImportFilter, GetCriteria
         """
-        if filter_obj is None or file_path is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(filter_obj, "filter_obj")
 
         if not isinstance(filter_obj, dict):
             raise FP_ParameterError("Invalid filter object")
@@ -854,11 +835,9 @@ class FilterOperations:
         See Also:
             ExportFilter, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if file_path is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(file_path, "file_path")
 
         if not os.path.exists(file_path):
             raise FP_ParameterError(f"Filter file not found: {file_path}")
@@ -938,8 +917,7 @@ class FilterOperations:
         See Also:
             GetAll, GetFilterType, FilterTypes
         """
-        if filter_type is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(filter_type, "filter_type")
 
         for filter_obj in self.GetAll():
             if filter_obj['filter_type'] == filter_type:
@@ -973,8 +951,7 @@ class FilterOperations:
         See Also:
             GetDateModified, Create
         """
-        if filter_obj is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(filter_obj, "filter_obj")
 
         if not isinstance(filter_obj, dict) or 'date_created' not in filter_obj:
             raise FP_ParameterError("Invalid filter object")
@@ -1009,8 +986,7 @@ class FilterOperations:
         See Also:
             GetDateCreated, SetName, SetCriteria
         """
-        if filter_obj is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(filter_obj, "filter_obj")
 
         if not isinstance(filter_obj, dict) or 'date_modified' not in filter_obj:
             raise FP_ParameterError("Invalid filter object")
@@ -1265,11 +1241,9 @@ class FilterOperations:
         See Also:
             Create, Delete, GetGuid
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if item_or_hvo is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         if not isinstance(item_or_hvo, dict):
             raise FP_ParameterError("Filter object must be a dictionary")

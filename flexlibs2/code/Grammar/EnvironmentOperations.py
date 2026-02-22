@@ -21,8 +21,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -145,11 +143,9 @@ class EnvironmentOperations(BaseOperations):
         See Also:
             Delete, GetName, SetStringRepresentation
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -204,11 +200,8 @@ class EnvironmentOperations(BaseOperations):
         See Also:
             Create, GetAll
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not env_or_hvo:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(env_or_hvo, "env_or_hvo")
 
         # Resolve to environment object
         env = self.__ResolveObject(env_or_hvo)
@@ -247,8 +240,7 @@ class EnvironmentOperations(BaseOperations):
         See Also:
             SetName, GetStringRepresentation
         """
-        if not env_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(env_or_hvo, "env_or_hvo")
 
         env = self.__ResolveObject(env_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -285,13 +277,9 @@ class EnvironmentOperations(BaseOperations):
         See Also:
             GetName, SetStringRepresentation
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not env_or_hvo:
-            raise FP_NullParameterError()
-        if name is None:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(env_or_hvo, "env_or_hvo")
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -355,8 +343,7 @@ class EnvironmentOperations(BaseOperations):
         See Also:
             SetStringRepresentation, GetName
         """
-        if not env_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(env_or_hvo, "env_or_hvo")
 
         env = self.__ResolveObject(env_or_hvo)
         # Note: StringRepresentation is ITsString, not IMultiUnicode
@@ -413,13 +400,9 @@ class EnvironmentOperations(BaseOperations):
         See Also:
             GetStringRepresentation, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if not env_or_hvo:
-            raise FP_NullParameterError()
-        if notation is None:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(env_or_hvo, "env_or_hvo")
+        self._ValidateParam(notation, "notation")
 
         env = self.__ResolveObject(env_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -473,8 +456,7 @@ class EnvironmentOperations(BaseOperations):
         See Also:
             GetRightContextPattern, GetStringRepresentation, GetName
         """
-        if not env_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(env_or_hvo, "env_or_hvo")
 
         env = self.__ResolveObject(env_or_hvo)
 
@@ -529,8 +511,7 @@ class EnvironmentOperations(BaseOperations):
         See Also:
             GetLeftContextPattern, GetStringRepresentation, GetName
         """
-        if not env_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(env_or_hvo, "env_or_hvo")
 
         env = self.__ResolveObject(env_or_hvo)
 
@@ -581,11 +562,9 @@ class EnvironmentOperations(BaseOperations):
         See Also:
             Create, Delete
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Get source environment
         source = self.__ResolveObject(item_or_hvo)

@@ -27,8 +27,6 @@ from SIL.LCModel.Core.Text import TsStringUtils
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 
@@ -134,15 +132,11 @@ class ScrNoteOperations(BaseOperations):
         See Also:
             Delete, Find, GetText, SetText
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not book_or_hvo:
-            raise FP_NullParameterError()
-        if not paragraph_or_hvo:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(book_or_hvo, "book_or_hvo")
+        self._ValidateParam(paragraph_or_hvo, "paragraph_or_hvo")
+        self._ValidateParam(text, "text")
 
         # Resolve to book and paragraph objects
         book = self.__ResolveBook(book_or_hvo)
@@ -227,11 +221,9 @@ class ScrNoteOperations(BaseOperations):
         See Also:
             Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not note_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(note_or_hvo, "note_or_hvo")
 
         # Resolve to note object
         note = self.__ResolveObject(note_or_hvo)
@@ -272,10 +264,8 @@ class ScrNoteOperations(BaseOperations):
         See Also:
             GetAll, Create
         """
-        if book_or_hvo is None:
-            raise FP_NullParameterError()
-        if index is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(book_or_hvo, "book_or_hvo")
+        self._ValidateParam(index, "index")
 
         # Resolve to book object
         book = self.__ResolveBook(book_or_hvo)
@@ -322,8 +312,7 @@ class ScrNoteOperations(BaseOperations):
         See Also:
             Find, Create
         """
-        if not book_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(book_or_hvo, "book_or_hvo")
 
         # Resolve to book object
         book = self.__ResolveBook(book_or_hvo)
@@ -368,8 +357,7 @@ class ScrNoteOperations(BaseOperations):
         See Also:
             SetText, Create
         """
-        if not note_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(note_or_hvo, "note_or_hvo")
 
         note = self.__ResolveObject(note_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -421,13 +409,10 @@ class ScrNoteOperations(BaseOperations):
         See Also:
             GetText, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not note_or_hvo:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(note_or_hvo, "note_or_hvo")
+        self._ValidateParam(text, "text")
 
         note = self.__ResolveObject(note_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -477,8 +462,7 @@ class ScrNoteOperations(BaseOperations):
         See Also:
             Create
         """
-        if not note_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(note_or_hvo, "note_or_hvo")
 
         note = self.__ResolveObject(note_or_hvo)
 
@@ -513,11 +497,9 @@ class ScrNoteOperations(BaseOperations):
         See Also:
             IsResolved, Unresolve
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not note_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(note_or_hvo, "note_or_hvo")
 
         note = self.__ResolveObject(note_or_hvo)
 
@@ -555,8 +537,7 @@ class ScrNoteOperations(BaseOperations):
         See Also:
             Resolve
         """
-        if not note_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(note_or_hvo, "note_or_hvo")
 
         note = self.__ResolveObject(note_or_hvo)
 

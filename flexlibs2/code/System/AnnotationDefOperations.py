@@ -24,8 +24,6 @@ from System import Guid, DateTime
 
 # Import flexlibs exceptions
 from ..FLExProject import (
-    FP_ReadOnlyError,
-    FP_NullParameterError,
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations
@@ -184,13 +182,10 @@ class AnnotationDefOperations(BaseOperations):
         See Also:
             Delete, Find, SetUserCanCreate, SetHelpString
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if name is None:
-            raise FP_NullParameterError()
-        if annotation_type is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
+        self._ValidateParam(annotation_type, "annotation_type")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -266,11 +261,9 @@ class AnnotationDefOperations(BaseOperations):
         See Also:
             Create, Find, GetAll
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not anno_def:
-            raise FP_NullParameterError()
+        self._ValidateParam(anno_def, "anno_def")
 
         # Remove from parent's collection
         owner = anno_def.Owner
@@ -327,8 +320,7 @@ class AnnotationDefOperations(BaseOperations):
         See Also:
             Exists, GetAll, FindByType
         """
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             return None
@@ -374,8 +366,7 @@ class AnnotationDefOperations(BaseOperations):
         See Also:
             Find, GetAll
         """
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(name, "name")
 
         return self.Find(name, wsHandle) is not None
 
@@ -406,8 +397,7 @@ class AnnotationDefOperations(BaseOperations):
         See Also:
             SetName, Find
         """
-        if not anno_def:
-            raise FP_NullParameterError()
+        self._ValidateParam(anno_def, "anno_def")
 
         wsHandle = self.__WSHandle(wsHandle)
         name = ITsString(anno_def.Name.get_String(wsHandle)).Text
@@ -442,13 +432,10 @@ class AnnotationDefOperations(BaseOperations):
         See Also:
             GetName, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not anno_def:
-            raise FP_NullParameterError()
-        if name is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(anno_def, "anno_def")
+        self._ValidateParam(name, "name")
 
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
@@ -486,8 +473,7 @@ class AnnotationDefOperations(BaseOperations):
         See Also:
             SetHelpString, GetName
         """
-        if not anno_def:
-            raise FP_NullParameterError()
+        self._ValidateParam(anno_def, "anno_def")
 
         wsHandle = self.__WSHandle(wsHandle)
 
@@ -530,13 +516,10 @@ class AnnotationDefOperations(BaseOperations):
         See Also:
             GetHelpString, SetName
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not anno_def:
-            raise FP_NullParameterError()
-        if help_string is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(anno_def, "anno_def")
+        self._ValidateParam(help_string, "help_string")
 
         wsHandle = self.__WSHandle(wsHandle)
 
@@ -580,8 +563,7 @@ class AnnotationDefOperations(BaseOperations):
         See Also:
             FindByType, Create
         """
-        if not anno_def:
-            raise FP_NullParameterError()
+        self._ValidateParam(anno_def, "anno_def")
 
         if hasattr(anno_def, 'AnnotationType'):
             return anno_def.AnnotationType
@@ -614,8 +596,7 @@ class AnnotationDefOperations(BaseOperations):
         See Also:
             GetAnnotationType, Create
         """
-        if not anno_def:
-            raise FP_NullParameterError()
+        self._ValidateParam(anno_def, "anno_def")
 
         if hasattr(anno_def, 'InstanceOf'):
             return anno_def.InstanceOf
@@ -658,8 +639,7 @@ class AnnotationDefOperations(BaseOperations):
         See Also:
             SetUserCanCreate, GetUserCreatableTypes
         """
-        if not anno_def:
-            raise FP_NullParameterError()
+        self._ValidateParam(anno_def, "anno_def")
 
         if hasattr(anno_def, 'UserCanCreate'):
             return bool(anno_def.UserCanCreate)
@@ -699,13 +679,10 @@ class AnnotationDefOperations(BaseOperations):
         See Also:
             GetUserCanCreate, GetUserCreatableTypes
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not anno_def:
-            raise FP_NullParameterError()
-        if can_create is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(anno_def, "anno_def")
+        self._ValidateParam(can_create, "can_create")
 
         if hasattr(anno_def, 'UserCanCreate'):
             anno_def.UserCanCreate = bool(can_create)
@@ -741,8 +718,7 @@ class AnnotationDefOperations(BaseOperations):
         See Also:
             SetMultiple, GetUserCanCreate
         """
-        if not anno_def:
-            raise FP_NullParameterError()
+        self._ValidateParam(anno_def, "anno_def")
 
         if hasattr(anno_def, 'AllowsMultiple'):
             return bool(anno_def.AllowsMultiple)
@@ -780,13 +756,10 @@ class AnnotationDefOperations(BaseOperations):
         See Also:
             GetMultiple, SetUserCanCreate
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not anno_def:
-            raise FP_NullParameterError()
-        if allow_multiple is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(anno_def, "anno_def")
+        self._ValidateParam(allow_multiple, "allow_multiple")
 
         if hasattr(anno_def, 'AllowsMultiple'):
             anno_def.AllowsMultiple = bool(allow_multiple)
@@ -822,8 +795,7 @@ class AnnotationDefOperations(BaseOperations):
         See Also:
             SetPrompt, GetHelpString
         """
-        if not anno_def:
-            raise FP_NullParameterError()
+        self._ValidateParam(anno_def, "anno_def")
 
         wsHandle = self.__WSHandle(wsHandle)
 
@@ -864,13 +836,10 @@ class AnnotationDefOperations(BaseOperations):
         See Also:
             GetPrompt, SetHelpString
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not anno_def:
-            raise FP_NullParameterError()
-        if prompt_text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(anno_def, "anno_def")
+        self._ValidateParam(prompt_text, "prompt_text")
 
         wsHandle = self.__WSHandle(wsHandle)
 
@@ -907,8 +876,7 @@ class AnnotationDefOperations(BaseOperations):
         See Also:
             GetUserCanCreate, GetMultiple
         """
-        if not anno_def:
-            raise FP_NullParameterError()
+        self._ValidateParam(anno_def, "anno_def")
 
         if hasattr(anno_def, 'CopyCutPasteAllowed'):
             return bool(anno_def.CopyCutPasteAllowed)
@@ -954,8 +922,7 @@ class AnnotationDefOperations(BaseOperations):
         See Also:
             GetAnnotationType, GetUserCreatableTypes
         """
-        if annotation_type is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(annotation_type, "annotation_type")
 
         type_value = int(annotation_type)
 
@@ -1028,8 +995,7 @@ class AnnotationDefOperations(BaseOperations):
         See Also:
             Create, Find
         """
-        if not anno_def:
-            raise FP_NullParameterError()
+        self._ValidateParam(anno_def, "anno_def")
 
         return anno_def.Guid
 
@@ -1063,8 +1029,7 @@ class AnnotationDefOperations(BaseOperations):
         See Also:
             Create, GetGuid
         """
-        if not anno_def:
-            raise FP_NullParameterError()
+        self._ValidateParam(anno_def, "anno_def")
 
         if hasattr(anno_def, 'DateCreated'):
             return anno_def.DateCreated
@@ -1103,11 +1068,9 @@ class AnnotationDefOperations(BaseOperations):
         See Also:
             Create, Delete, GetGuid
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Get source object
         source = ICmAnnotationDefn(item_or_hvo) if not isinstance(item_or_hvo, int) else ICmAnnotationDefn(self.project.Object(item_or_hvo))
@@ -1188,8 +1151,7 @@ class AnnotationDefOperations(BaseOperations):
 
     def GetSyncableProperties(self, item):
         """Get syncable properties for cross-project synchronization."""
-        if not item:
-            raise FP_NullParameterError()
+        self._ValidateParam(item, "item")
 
         anno_def = item if not isinstance(item, int) else self.project.Object(item)
         wsHandle = self.__WSHandle(None)
