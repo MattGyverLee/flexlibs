@@ -3129,34 +3129,13 @@ class LexSenseOperations(BaseOperations):
 
         return duplicates
 
-    def MergeObject(self, survivor_or_hvo, victim_or_hvo, fLoseNoStringData=True):
+    def MergeObject(self, survivor_or_hvo, victim_or_hvo, fLoseNoStringData=True, auto_deduplicate=True):
         """
         Merge one sense into another (IRREVERSIBLE operation).
 
-        This method merges all data from the victim sense into the survivor sense,
-        then deletes the victim. This handles:
-        - MultiString merging (Definition, Gloss, etc.)
-        - Collection merging (examples, subsenses, etc.)
-        - Back-reference updating
-        - Special semicolon separator for Definition and Gloss
-        - Auto-deduplication of duplicate senses in victim's parent entry
-        - Auto-deduplication of duplicate examples in merged sense
-
-        Auto-Deduplication:
-            If the victim sense's parent entry contains other duplicate senses (senses
-            with identical gloss and definition), they are automatically merged into the
-            survivor sense before the main merge. This prevents duplicate "simple" senses
-            from accumulating during operations.
-
-            Additionally, after merging, any duplicate examples within the merged sense
-            are automatically removed. Examples with identical text and reference are
-            considered duplicates.
-
-            Duplicates are detected using signatures based on:
-            - Gloss values (per writing system)
-            - Definition values (per writing system)
-            - Semantic domain references
-            - (Examples) Example text and reference text
+        This method delegates to the underlying LibLCM C# implementation, which handles
+        all the complex merge logic with proper MultiString handling. Optionally, it can
+        then deduplicate examples that result from the merge.
 
         Args:
             survivor_or_hvo: Sense that will receive merged data (HVO or ILexSense)
@@ -3164,6 +3143,8 @@ class LexSenseOperations(BaseOperations):
             fLoseNoStringData (bool): If True, concatenate strings (preserve both values);
                                       If False, overwrite strings (victim overwrites survivor)
                                       Default: True (data preservation)
+            auto_deduplicate (bool): If True, automatically deduplicate examples after merge.
+                                    Default: True
 
         Raises:
             FP_ReadOnlyError: If project not write-enabled
@@ -3172,27 +3153,27 @@ class LexSenseOperations(BaseOperations):
 
         Example::
 
-            >>> # Merge duplicate sense into main sense
+            >>> # Merge duplicate sense into main sense with auto-deduplication
             >>> keep = project.Senses.Find(...)
             >>> remove = project.Senses.Find(...)
             >>> project.Senses.MergeObject(keep, remove, fLoseNoStringData=True)
-            >>> # 'remove' is now deleted, data merged into 'keep'
-            >>> # Any other duplicates in the entry are also merged
+            >>> # 'remove' is deleted, data merged into 'keep'
+            >>> # Any duplicate examples are also auto-removed
 
             >>> # Result with fLoseNoStringData=True:
-            >>> # Definition: "defn 1; defn 2" (SEMICOLON separator!)
-            >>> # Gloss: "gloss 1; gloss 2" (SEMICOLON separator!)
+            >>> # Definition: "defn 1; defn 2" (LibLCM uses SEMICOLON separator)
+            >>> # Gloss: "gloss 1; gloss 2" (LibLCM uses SEMICOLON separator)
 
         Notes:
             - This operation is IRREVERSIBLE (victim is deleted)
-            - Definition and Gloss use SEMICOLON separator, not space!
+            - Delegates to LibLCM's battle-tested ILexSense.MergeObject()
+            - Definition and Gloss merging follows LibLCM's SEMICOLON separator convention
             - Back-references are automatically updated
-            - Duplicate senses in victim's entry are auto-merged
+            - Optionally deduplicates duplicate examples
             - Based on FLEx LexSense.MergeObject
 
         See Also:
             LexEntry.MergeObject - For merging entries
-            GetAllSenses - For getting all senses before merge
         """
         if not self.project.write_enabled:
             raise FP_ReadOnlyError()
@@ -3211,60 +3192,16 @@ class LexSenseOperations(BaseOperations):
         if survivor.Hvo == victim.Hvo:
             raise FP_ParameterError("Cannot merge sense into itself")
 
-        # Step 1: Auto-deduplicate other senses in victim's entry
-        # If victim is part of an entry, find and merge any duplicate senses first
-        if victim.OwningList is not None:
-            entry = victim.Owner
-            if entry and hasattr(entry, 'SensesOS'):
-                duplicates = self.__FindDuplicateSensesInEntry(entry)
-                if duplicates:
-                    for master, dupes in duplicates:
-                        for dupe in dupes:
-                            # Skip if this dupe is the victim (it will be merged separately)
-                            if dupe.Hvo != victim.Hvo:
-                                logger.info(
-                                    f"Auto-merging duplicate sense (HVO: {dupe.Hvo}) "
-                                    f"into master (HVO: {master.Hvo})"
-                                )
-                                try:
-                                    self.MergeObject(master, dupe, fLoseNoStringData)
-                                except FP_ParameterError as e:
-                                    # Log but continue if a sense was already deleted
-                                    logger.debug(f"Could not auto-merge duplicate sense: {e}")
+        # Delegate to LibLCM's battle-tested merge implementation
+        logger.info(f"Merging sense (HVO: {victim.Hvo}) into survivor (HVO: {survivor.Hvo})")
+        survivor.MergeObject(victim, fLoseNoStringData)
 
-        # Step 2: Merge Definition with semicolon separator
-        if fLoseNoStringData:
-            self.__MergeMultiStringProperty(
-                survivor.Definition,
-                victim.Definition,
-                concatenate=True,
-                separator="; "  # SEMICOLON! (FLEx pattern)
-            )
+        # Optional deduplication layer (NEW value added by FlexLibs2)
+        if auto_deduplicate:
+            logger.debug(f"Running auto-deduplication on merged sense (HVO: {survivor.Hvo})")
+            self.__DeduplicateExamplesInSense(survivor)
 
-        # Merge Gloss with semicolon separator
-        if fLoseNoStringData:
-            self.__MergeMultiStringProperty(
-                survivor.Gloss,
-                victim.Gloss,
-                concatenate=True,
-                separator="; "  # SEMICOLON! (FLEx pattern)
-            )
-
-        # Merge all other properties
-        self.__MergeAllSenseProperties(survivor, victim, fLoseNoStringData)
-
-        # Step 3: Auto-deduplicate examples in merged sense
-        # After merging examples from victim to survivor, check for duplicates
-        self.__DeduplicateExamplesInSense(survivor)
-
-        # Replace all incoming references to victim with survivor
-        # TODO: Implement __ReplaceIncomingReferences for senses
-
-        # Delete victim
-        logger.info(f"Deleting merged sense (HVO: {victim.Hvo})")
-        victim.OwningList.Remove(victim)
-
-    # --- Private Helper Methods for MergeObject ---
+    # --- Private Helper Methods for Deduplication ---
 
     def __GetExampleSignature(self, example):
         """
@@ -3382,164 +3319,6 @@ class LexSenseOperations(BaseOperations):
         except Exception as e:
             logger.warning(f"Error during example deduplication: {e}")
 
-    def __MergeMultiStringProperty(self, dest_multi, src_multi, concatenate, separator=" "):
-        """
-        Merge MultiString property across all writing systems.
-
-        This is a core helper for MergeObject that handles per-writing-system
-        string merging, similar to FLEx's MultiAccessorBase.MergeAlternatives.
-
-        Args:
-            dest_multi: Destination MultiString or MultiUnicode object
-            src_multi: Source MultiString or MultiUnicode object
-            concatenate (bool): If True, append when both have values; if False, overwrite
-            separator (str): String to use between values (default: space)
-
-        Algorithm:
-            For each registered writing system:
-                dest_text = dest_multi.get_String(ws)
-                src_text = src_multi.get_String(ws)
-
-                if dest is empty and src has value:
-                    dest_multi.set_String(ws, src_text)
-                elif concatenate and both have different values:
-                    combined = dest_text + separator + src_text
-                    dest_multi.set_String(ws, combined)
-                # else: keep dest unchanged
-
-        Note:
-            Iterates ALL writing systems registered in project, not just those
-            with values in either MultiString.
-        """
-        from SIL.LCModel.Core.KernelInterfaces import ITsString
-        from SIL.LCModel.Core.Text import TsStringUtils
-
-        # Get all writing systems
-        ws_manager = self.project.project.WritingSystemManager
-        all_ws = list(ws_manager.AllWritingSystems)
-
-        for ws in all_ws:
-            ws_handle = ws.Handle
-
-            # Get text for this writing system
-            dest_text = ITsString(dest_multi.get_String(ws_handle)).Text if dest_multi else ""
-            src_text = ITsString(src_multi.get_String(ws_handle)).Text if src_multi else ""
-
-            # Apply merge logic
-            if not dest_text and src_text:
-                # Dest empty, src has value -> copy src
-                dest_multi.set_String(ws_handle, TsStringUtils.MakeString(src_text, ws_handle))
-
-            elif concatenate and dest_text and src_text and dest_text != src_text:
-                # Both have different values -> concatenate
-                combined = dest_text + separator + src_text
-                dest_multi.set_String(ws_handle, TsStringUtils.MakeString(combined, ws_handle))
-
-            # else: keep dest unchanged (dest has value or src empty)
-
-    def __MergeAllSenseProperties(self, survivor, victim, fLoseNoStringData):
-        """
-        Merge all properties from victim to survivor (except Definition/Gloss).
-
-        Iterates all non-virtual fields and applies type-specific merge logic
-        based on FLEx's CmObject.MergeObject algorithm.
-
-        Args:
-            survivor: Destination sense (ILexSense)
-            victim: Source sense (ILexSense)
-            fLoseNoStringData (bool): If True, concatenate strings; if False, overwrite
-
-        Notes:
-            Definition and Gloss are handled separately with semicolon separator,
-            so they are skipped here.
-        """
-        # Get metadata cache
-        mdc = self.project.project.ServiceLocator.GetInstance(
-            self.project.project.ServiceLocator.MetaDataCache.GetType()
-        )
-
-        # Get all field IDs for this class
-        class_id = survivor.ClassID
-        all_flids = mdc.GetFields(class_id, True, 0)  # includeSuperclasses=True, fieldType=all
-
-        # Get flids for Definition and Gloss to skip them
-        definition_name = "Definition"
-        gloss_name = "Gloss"
-
-        for flid in all_flids:
-            # Skip system fields (flid < 1000)
-            if flid < 1000:
-                continue
-
-            # Skip virtual fields
-            if mdc.get_IsVirtual(flid):
-                continue
-
-            # Skip Definition and Gloss (already handled with semicolon separator)
-            field_name = mdc.GetFieldName(flid)
-            if field_name in (definition_name, gloss_name):
-                continue
-
-            # Get field type
-            field_type = mdc.GetFieldType(flid)
-
-            # Apply type-specific merge
-            self.__MergeSensePropertyByType(survivor, victim, flid, field_type, fLoseNoStringData)
-
-    def __MergeSensePropertyByType(self, survivor, victim, flid, field_type, concatenate):
-        """
-        Merge single property based on its type.
-
-        Type mapping (from CmObject.cs):
-            1: Boolean - If dest=false and src=true, set true
-            2: Integer - If dest=0 and src>0, use src
-            13: String - Copy or concatenate
-            14: MultiString - Per-WS merge
-            23: OwningAtomic - Recursive merge if same type
-            24: ReferenceAtomic - Same as OwningAtomic
-            25-28: Collections/Sequences - Append all items
-
-        Args:
-            survivor: Destination sense
-            victim: Source sense
-            flid: Field ID (property identifier)
-            field_type: CellarPropertyType enum value
-            concatenate (bool): If True, concatenate strings; if False, overwrite
-        """
-        from SIL.LCModel.Core.KernelInterfaces import ITsString
-        from SIL.LCModel.Core.Text import TsStringUtils
-
-        # Property type constants (from SIL.LCModel.Core.KernelInterfaces)
-        # CellarPropertyType enum values
-        kBoolean = 1
-        kInteger = 2
-        kString = 13
-        kMultiString = 14
-        kMultiUnicode = 16
-        kOwningAtomic = 23
-        kReferenceAtomic = 24
-        kOwningCollection = 25
-        kReferenceCollection = 26
-        kOwningSequence = 27
-        kReferenceSequence = 28
-
-        # Handle the most common types:
-        if field_type == kMultiString or field_type == kMultiUnicode:
-            # Get MultiString properties
-            dest_prop = survivor.Cache.DomainDataByFlid.get_MultiStringProp(survivor.Hvo, flid)
-            src_prop = victim.Cache.DomainDataByFlid.get_MultiStringProp(victim.Hvo, flid)
-            if dest_prop and src_prop:
-                self.__MergeMultiStringProperty(dest_prop, src_prop, concatenate)
-
-        elif field_type in (kOwningSequence, kReferenceSequence, kOwningCollection, kReferenceCollection):
-            # Get collection/sequence properties
-            dest_seq = survivor.Cache.DomainDataByFlid.get_VecProp(survivor.Hvo, flid)
-            src_seq = victim.Cache.DomainDataByFlid.get_VecProp(victim.Hvo, flid)
-            if dest_seq and src_seq:
-                # Append all items from src to dest (avoid duplicates)
-                for hvo in src_seq:
-                    if hvo not in dest_seq:
-                        dest_seq.Add(hvo)
 
     # --- Private Helper Methods ---
 

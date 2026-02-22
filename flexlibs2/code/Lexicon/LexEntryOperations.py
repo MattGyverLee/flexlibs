@@ -2660,38 +2660,13 @@ class LexEntryOperations(BaseOperations):
 
     # --- Pattern 7: MergeObject (Entry/Sense merging) ---
 
-    def MergeObject(self, survivor_or_hvo, victim_or_hvo, fLoseNoStringData=True):
+    def MergeObject(self, survivor_or_hvo, victim_or_hvo, fLoseNoStringData=True, auto_deduplicate=True):
         """
         Merge one entry into another (IRREVERSIBLE operation).
 
-        This method merges all data from the victim entry into the survivor entry,
-        then deletes the victim. This is a complex operation that handles:
-        - Lexeme form differences (creates alternates if needed)
-        - Homograph renumbering
-        - Circular reference prevention
-        - Component replacement in complex forms
-        - Back-reference updating
-        - Data preservation based on fLoseNoStringData flag
-        - Auto-deduplication of duplicate senses
-        - Auto-deduplication of duplicate pronunciations
-        - Auto-deduplication of duplicate allomorphs
-
-        Auto-Deduplication:
-            After merging data from victim to survivor, multiple types of duplicates
-            are automatically detected and removed:
-
-            **Senses**: Senses with identical gloss and definition are merged together.
-
-            **Pronunciations**: Pronunciations with identical form (per writing system)
-            are deduplicated - first occurrence is kept, duplicates removed.
-
-            **Allomorphs**: Allomorphs with identical form and morph type are
-            deduplicated - first occurrence is kept, duplicates removed.
-
-            Duplicates are detected using signatures based on:
-            - (Senses) Gloss values, Definition values, Semantic domains
-            - (Pronunciations) Form per writing system
-            - (Allomorphs) Form per writing system + morph type GUID
+        This method delegates to the underlying LibLCM C# implementation, which handles
+        all the complex merge logic. Optionally, it can then deduplicate senses,
+        pronunciations, and allomorphs that result from the merge.
 
         Args:
             survivor_or_hvo: Entry that will receive merged data (HVO or ILexEntry)
@@ -2699,6 +2674,8 @@ class LexEntryOperations(BaseOperations):
             fLoseNoStringData (bool): If True, concatenate strings (preserve both values);
                                       If False, overwrite strings (victim overwrites survivor)
                                       Default: True (data preservation)
+            auto_deduplicate (bool): If True, automatically deduplicate senses, pronunciations,
+                                    and allomorphs after merge. Default: True
 
         Raises:
             FP_ReadOnlyError: If project not write-enabled
@@ -2707,47 +2684,26 @@ class LexEntryOperations(BaseOperations):
 
         Example::
 
-            >>> # Merge duplicate entry into main entry
+            >>> # Merge duplicate entry into main entry with auto-deduplication
             >>> main = project.LexEntry.Find("run")
-            >>> duplicate = project.LexEntry.Find("run")  # Duplicate with same form
+            >>> duplicate = project.LexEntry.Find("run")
             >>> project.LexEntry.MergeObject(main, duplicate)
-            >>> # 'duplicate' is now deleted, all data merged into 'main'
+            >>> # 'duplicate' is deleted, all data merged into 'main'
             >>> # Any duplicate senses are also auto-merged
 
-            >>> # Merge with different lexeme forms (creates alternate)
+            >>> # Merge with deduplication disabled
             >>> entry1 = project.LexEntry.Find("color")
             >>> entry2 = project.LexEntry.Find("colour")
-            >>> project.LexEntry.MergeObject(entry1, entry2)
-            >>> # 'colour' becomes alternate form of 'color'
+            >>> project.LexEntry.MergeObject(entry1, entry2, auto_deduplicate=False)
 
         Notes:
             - This operation is IRREVERSIBLE (victim is deleted)
-            - Homograph numbers are automatically renumbered
-            - Back-references are automatically updated
-            - Circular references are prevented
-            - Alternate forms created if lexeme forms differ
-            - Duplicate senses are automatically merged
+            - Delegates all merge logic to LibLCM's battle-tested ILexEntry.MergeObject()
+            - Optionally adds deduplication layer for senses, pronunciations, allomorphs
             - Based on FLEx LexEntry.MergeObject (OverridesLing_Lex.cs:3432-3548)
-
-        Implementation follows FLEx merge algorithm:
-            1. Validate entries are same class
-            2. Handle lexeme form differences (create alternates if needed)
-            3. Merge lexeme form objects (if same type)
-            4. Remove circular references
-            5. Fix LexEntryRef components
-            6. Call base merge for all properties
-            7. Auto-deduplicate duplicate senses
-            8. Auto-deduplicate duplicate pronunciations
-            9. Auto-deduplicate duplicate allomorphs
-            10. Merge equivalent alternate forms
-            11. Merge equivalent MSAs
-            12. Update homograph numbers
-            13. Update incoming references
-            14. Delete victim entry
 
         See Also:
             LexSense.MergeObject - For merging senses
-            GetAllSenses - For getting all senses before merge
         """
         if not self.project.write_enabled:
             raise FP_ReadOnlyError()
@@ -2766,322 +2722,18 @@ class LexEntryOperations(BaseOperations):
         if survivor.Hvo == victim.Hvo:
             raise FP_ParameterError("Cannot merge entry into itself")
 
-        # Step 1: Handle lexeme form differences
-        # If different forms, victim's form becomes alternate of survivor
-        survivor_form = None
-        victim_form = None
+        # Delegate to LibLCM's battle-tested merge implementation
+        logger.info(f"Merging entry (HVO: {victim.Hvo}) into survivor (HVO: {survivor.Hvo})")
+        survivor.MergeObject(victim, fLoseNoStringData)
 
-        if survivor.LexemeFormOA:
-            survivor_form = best_vernacular_text(survivor.LexemeFormOA.Form)
+        # Optional deduplication layer (NEW value added by FlexLibs2)
+        if auto_deduplicate:
+            logger.debug(f"Running auto-deduplication on merged entry (HVO: {survivor.Hvo})")
+            self.__DeduplicateSensesInEntry(survivor)
+            self.__DeduplicatePronunciationsInEntry(survivor)
+            self.__DeduplicateAllomorphsInEntry(survivor)
 
-        if victim.LexemeFormOA:
-            victim_form = best_vernacular_text(victim.LexemeFormOA.Form)
-
-        # Create alternate form if forms differ
-        if victim_form and survivor_form != victim_form:
-            logger.info(f"Creating alternate form '{victim_form}' for '{survivor_form}'")
-            # Victim's lexeme form will be moved to alternates during property merge
-
-        # Step 2: Merge lexeme form objects if same type
-        if (survivor.LexemeFormOA and victim.LexemeFormOA and
-            survivor.LexemeFormOA.ClassName == victim.LexemeFormOA.ClassName):
-            self.__MergeMultiStringProperty(
-                survivor.LexemeFormOA.Form,
-                victim.LexemeFormOA.Form,
-                fLoseNoStringData
-            )
-
-        # Step 3: Remove circular references
-        self.__RemoveCircularReferences(survivor, victim)
-
-        # Step 4: Fix LexEntryRef components (replace victim with survivor)
-        self.__FixComponentReferences(survivor, victim)
-
-        # Step 5: Merge all properties
-        self.__MergeAllProperties(survivor, victim, fLoseNoStringData)
-
-        # Step 5b: Auto-deduplicate senses in merged entry
-        # After merging senses from victim to survivor, check for duplicates
-        self.__DeduplicateSensesInEntry(survivor)
-
-        # Step 5c: Auto-deduplicate pronunciations in merged entry
-        self.__DeduplicatePronunciationsInEntry(survivor)
-
-        # Step 5d: Auto-deduplicate allomorphs in merged entry
-        self.__DeduplicateAllomorphsInEntry(survivor)
-
-        # Step 6: Merge equivalent alternate forms
-        # TODO: Implementation of alternate form merging
-
-        # Step 7: Merge equivalent MSAs
-        # TODO: Implementation of MSA merging
-
-        # Step 8: Update homograph numbers
-        # Get all entries with same form
-        if survivor.LexemeFormOA:
-            form_key = best_vernacular_text(survivor.LexemeFormOA.Form)
-
-            # Get all entries with the same lexeme form
-            matching_entries = []
-            for entry in self.GetAll():
-                if entry.LexemeFormOA:
-                    entry_form = best_vernacular_text(entry.LexemeFormOA.Form)
-                    if entry_form == form_key:
-                        matching_entries.append(entry)
-
-            # Sort by HVO for stability (ensures consistent ordering)
-            matching_entries.sort(key=lambda e: e.Hvo)
-
-            # Renumber sequentially: 0 if single entry, 1,2,3... if multiple
-            for idx, entry in enumerate(matching_entries):
-                if len(matching_entries) > 1:
-                    entry.HomographNumber = idx + 1  # 1-based numbering for homographs
-                else:
-                    entry.HomographNumber = 0  # No homograph number for single entry
-
-            logger.debug(f"Renumbered {len(matching_entries)} entries with form '{form_key}'")
-
-        # Step 9: Replace all incoming references to victim with survivor
-        self.__ReplaceIncomingReferences(survivor, victim)
-
-        # Step 10: Delete victim
-        logger.info(f"Deleting merged entry (HVO: {victim.Hvo})")
-        victim.OwningList.Remove(victim)
-
-    # --- Private Helper Methods for MergeObject ---
-
-    def __MergeMultiStringProperty(self, dest_multi, src_multi, concatenate, separator=" "):
-        """
-        Merge MultiString property across all writing systems.
-
-        This is a core helper for MergeObject that handles per-writing-system
-        string merging, similar to FLEx's MultiAccessorBase.MergeAlternatives.
-
-        Args:
-            dest_multi: Destination MultiString or MultiUnicode object
-            src_multi: Source MultiString or MultiUnicode object
-            concatenate (bool): If True, append when both have values; if False, overwrite
-            separator (str): String to use between values (default: space)
-
-        Algorithm:
-            For each registered writing system:
-                dest_text = dest_multi.get_String(ws)
-                src_text = src_multi.get_String(ws)
-
-                if dest is empty and src has value:
-                    dest_multi.set_String(ws, src_text)
-                elif concatenate and both have different values:
-                    combined = dest_text + separator + src_text
-                    dest_multi.set_String(ws, combined)
-                # else: keep dest unchanged
-
-        Note:
-            Iterates ALL writing systems registered in project, not just those
-            with values in either MultiString.
-        """
-        # Get all writing systems
-        ws_manager = self.project.project.WritingSystemManager
-        all_ws = list(ws_manager.AllWritingSystems)
-
-        for ws in all_ws:
-            ws_handle = ws.Handle
-
-            # Get text for this writing system
-            dest_text = ITsString(dest_multi.get_String(ws_handle)).Text if dest_multi else ""
-            src_text = ITsString(src_multi.get_String(ws_handle)).Text if src_multi else ""
-
-            # Apply merge logic
-            if not dest_text and src_text:
-                # Dest empty, src has value -> copy src
-                dest_multi.set_String(ws_handle, TsStringUtils.MakeString(src_text, ws_handle))
-
-            elif concatenate and dest_text and src_text and dest_text != src_text:
-                # Both have different values -> concatenate
-                combined = dest_text + separator + src_text
-                dest_multi.set_String(ws_handle, TsStringUtils.MakeString(combined, ws_handle))
-
-            # else: keep dest unchanged (dest has value or src empty)
-
-    def __MergeAllProperties(self, survivor, victim, fLoseNoStringData):
-        """
-        Merge all properties from victim to survivor.
-
-        Iterates all non-virtual fields and applies type-specific merge logic
-        based on FLEx's CmObject.MergeObject algorithm.
-
-        Args:
-            survivor: Destination object (ILexEntry or ILexSense)
-            victim: Source object (same type as survivor)
-            fLoseNoStringData (bool): If True, concatenate strings; if False, overwrite
-        """
-        # Get metadata cache
-        mdc = self.project.project.ServiceLocator.GetInstance(
-            self.project.project.ServiceLocator.MetaDataCache.GetType()
-        )
-
-        # Get all field IDs for this class
-        class_id = survivor.ClassID
-        all_flids = mdc.GetFields(class_id, True, 0)  # includeSuperclasses=True, fieldType=all
-
-        for flid in all_flids:
-            # Skip system fields (flid < 1000)
-            if flid < 1000:
-                continue
-
-            # Skip virtual fields
-            if mdc.get_IsVirtual(flid):
-                continue
-
-            # Get field type
-            field_type = mdc.GetFieldType(flid)
-
-            # Apply type-specific merge
-            self.__MergePropertyByType(survivor, victim, flid, field_type, fLoseNoStringData)
-
-    def __MergePropertyByType(self, survivor, victim, flid, field_type, concatenate):
-        """
-        Merge single property based on its type.
-
-        Type mapping (from CmObject.cs):
-            1: Boolean - If dest=false and src=true, set true
-            2: Integer - If dest=0 and src>0, use src
-            13: String - Copy or concatenate
-            14: MultiString - Per-WS merge
-            23: OwningAtomic - Recursive merge if same type
-            24: ReferenceAtomic - Same as OwningAtomic
-            25-28: Collections/Sequences - Append all items
-
-        Args:
-            survivor: Destination object
-            victim: Source object
-            flid: Field ID (property identifier)
-            field_type: CellarPropertyType enum value
-            concatenate (bool): If True, concatenate strings; if False, overwrite
-        """
-        # Import property type constants (from SIL.LCModel.Core.KernelInterfaces)
-        # CellarPropertyType enum values
-        kBoolean = 1
-        kInteger = 2
-        kString = 13
-        kMultiString = 14
-        kMultiUnicode = 16
-        kOwningAtomic = 23
-        kReferenceAtomic = 24
-        kOwningCollection = 25
-        kReferenceCollection = 26
-        kOwningSequence = 27
-        kReferenceSequence = 28
-
-        # Get property values using LCM GetProperty methods
-        # TODO: Implement property value extraction based on type
-        # This requires reflection-based access to LCM properties
-
-        # For now, we'll handle the most common types:
-        if field_type == kMultiString or field_type == kMultiUnicode:
-            # Get MultiString properties
-            dest_prop = survivor.Cache.DomainDataByFlid.get_MultiStringProp(survivor.Hvo, flid)
-            src_prop = victim.Cache.DomainDataByFlid.get_MultiStringProp(victim.Hvo, flid)
-            if dest_prop and src_prop:
-                self.__MergeMultiStringProperty(dest_prop, src_prop, concatenate)
-
-        elif field_type in (kOwningSequence, kReferenceSequence):
-            # Get sequence properties
-            dest_seq = survivor.Cache.DomainDataByFlid.get_VecProp(survivor.Hvo, flid)
-            src_seq = victim.Cache.DomainDataByFlid.get_VecProp(victim.Hvo, flid)
-            if dest_seq and src_seq:
-                # Append all items from src to dest
-                for hvo in src_seq:
-                    if hvo not in dest_seq:
-                        dest_seq.Add(hvo)
-
-    def __RemoveCircularReferences(self, survivor, victim):
-        """
-        Remove any references that would create cycles.
-
-        Checks:
-            - Senses referencing parent entry
-            - Complex forms referencing themselves
-            - Variant forms creating cycles
-
-        Based on: OverridesLing_Lex.cs line 3467
-
-        Args:
-            survivor: Destination entry
-            victim: Source entry being merged
-        """
-        # Check senses in victim - remove any that reference survivor
-        for sense in victim.SensesOS:
-            # TODO: Check sense back-references and remove circular ones
-            pass
-
-        # Check entry refs - remove any that would create cycles
-        for entry_ref in victim.EntryRefsOS:
-            # TODO: Check ComponentLexemesRS for survivor
-            pass
-
-    def __FixComponentReferences(self, survivor, victim):
-        """
-        Replace victim with survivor in all LexEntryRef components.
-
-        This implements the fix for FWR-3535 where replacing in ComponentLexemes
-        can have side-effects on PrimaryLexemes.
-
-        Based on: OverridesLing_Lex.cs line 3484 (ReplaceComponent)
-
-        Args:
-            survivor: Entry that will replace victim in all references
-            victim: Entry being replaced
-        """
-        # Find all LexEntryRef objects that reference victim
-        # This requires iterating all entries and checking their EntryRefsOS
-        for entry in self.GetAll():
-            for entry_ref in entry.EntryRefsOS:
-                # Check ComponentLexemesRS
-                to_replace = []
-                for i, comp in enumerate(entry_ref.ComponentLexemesRS):
-                    if comp.Hvo == victim.Hvo:
-                        to_replace.append(i)
-
-                # Replace in ComponentLexemesRS
-                for idx in reversed(to_replace):
-                    entry_ref.ComponentLexemesRS.RemoveAt(idx)
-                    entry_ref.ComponentLexemesRS.Insert(idx, survivor)
-
-                # Also check and fix PrimaryLexemesRS and ShowComplexFormsInRS
-                to_replace = []
-                for i, comp in enumerate(entry_ref.PrimaryLexemesRS):
-                    if comp.Hvo == victim.Hvo:
-                        to_replace.append(i)
-
-                for idx in reversed(to_replace):
-                    entry_ref.PrimaryLexemesRS.RemoveAt(idx)
-                    entry_ref.PrimaryLexemesRS.Insert(idx, survivor)
-
-                to_replace = []
-                for i, comp in enumerate(entry_ref.ShowComplexFormsInRS):
-                    if comp.Hvo == victim.Hvo:
-                        to_replace.append(i)
-
-                for idx in reversed(to_replace):
-                    entry_ref.ShowComplexFormsInRS.RemoveAt(idx)
-                    entry_ref.ShowComplexFormsInRS.Insert(idx, survivor)
-
-    def __ReplaceIncomingReferences(self, survivor, victim):
-        """
-        Replace all incoming references to victim with survivor.
-
-        This handles back-references from other objects (senses, entries, etc.)
-        that point to the victim entry.
-
-        Based on: CmObject.cs ReplaceIncomingReferences
-
-        Args:
-            survivor: Entry that will receive all references
-            victim: Entry whose references will be transferred
-        """
-        # TODO: Implementation requires access to incoming references cache
-        # This is complex and requires LCM's internal reference tracking
-        pass
+    # --- Private Helper Methods for Deduplication ---
 
     def __DeduplicateSensesInEntry(self, entry):
         """
