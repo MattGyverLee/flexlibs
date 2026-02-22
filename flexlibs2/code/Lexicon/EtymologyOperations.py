@@ -199,11 +199,9 @@ class EtymologyOperations(BaseOperations):
         See Also:
             Delete, SetSource, SetForm, SetGloss
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
 
         entry = self.__GetEntryObject(entry_or_hvo)
         wsHandle = self.__WSHandleAnalysis(ws)
@@ -262,11 +260,9 @@ class EtymologyOperations(BaseOperations):
         See Also:
             Create, GetAll
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not etymology_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(etymology_or_hvo, "etymology_or_hvo")
 
         etymology = self.__GetEtymologyObject(etymology_or_hvo)
 
@@ -320,11 +316,9 @@ class EtymologyOperations(BaseOperations):
         See Also:
             Create, Delete, GetGuid
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Get source etymology and parent
         source = self.__GetEtymologyObject(item_or_hvo)
@@ -502,13 +496,10 @@ class EtymologyOperations(BaseOperations):
         See Also:
             GetAll, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
-        if etymology_list is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
+        self._ValidateParam(etymology_list, "etymology_list")
 
         entry = self.__GetEntryObject(entry_or_hvo)
 
@@ -569,8 +560,7 @@ class EtymologyOperations(BaseOperations):
         See Also:
             SetSource, GetForm, GetGloss
         """
-        if not etymology_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(etymology_or_hvo, "etymology_or_hvo")
 
         etymology = self.__GetEtymologyObject(etymology_or_hvo)
         wsHandle = self.__WSHandleAnalysis(ws)
@@ -613,13 +603,10 @@ class EtymologyOperations(BaseOperations):
         See Also:
             GetSource, SetForm, SetGloss
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not etymology_or_hvo:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(etymology_or_hvo, "etymology_or_hvo")
+        self._ValidateParam(text, "text")
 
         etymology = self.__GetEtymologyObject(etymology_or_hvo)
         wsHandle = self.__WSHandleAnalysis(ws)
@@ -662,8 +649,7 @@ class EtymologyOperations(BaseOperations):
         See Also:
             SetForm, GetSource, GetGloss
         """
-        if not etymology_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(etymology_or_hvo, "etymology_or_hvo")
 
         etymology = self.__GetEtymologyObject(etymology_or_hvo)
         wsHandle = self.__WSHandleAnalysis(ws)
@@ -704,13 +690,10 @@ class EtymologyOperations(BaseOperations):
         See Also:
             GetForm, SetSource, SetGloss
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not etymology_or_hvo:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(etymology_or_hvo, "etymology_or_hvo")
+        self._ValidateParam(text, "text")
 
         etymology = self.__GetEtymologyObject(etymology_or_hvo)
         wsHandle = self.__WSHandleAnalysis(ws)
@@ -751,8 +734,7 @@ class EtymologyOperations(BaseOperations):
         See Also:
             SetGloss, GetForm, GetSource
         """
-        if not etymology_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(etymology_or_hvo, "etymology_or_hvo")
 
         etymology = self.__GetEtymologyObject(etymology_or_hvo)
         wsHandle = self.__WSHandleAnalysis(ws)
@@ -790,13 +772,10 @@ class EtymologyOperations(BaseOperations):
         See Also:
             GetGloss, SetForm, SetSource
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not etymology_or_hvo:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(etymology_or_hvo, "etymology_or_hvo")
+        self._ValidateParam(text, "text")
 
         etymology = self.__GetEtymologyObject(etymology_or_hvo)
         wsHandle = self.__WSHandleAnalysis(ws)
@@ -838,8 +817,7 @@ class EtymologyOperations(BaseOperations):
         See Also:
             SetComment, GetBibliography
         """
-        if not etymology_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(etymology_or_hvo, "etymology_or_hvo")
 
         etymology = self.__GetEtymologyObject(etymology_or_hvo)
         wsHandle = self.__WSHandleAnalysis(ws)
@@ -886,13 +864,10 @@ class EtymologyOperations(BaseOperations):
         See Also:
             GetComment, SetBibliography
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not etymology_or_hvo:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(etymology_or_hvo, "etymology_or_hvo")
+        self._ValidateParam(text, "text")
 
         etymology = self.__GetEtymologyObject(etymology_or_hvo)
         wsHandle = self.__WSHandleAnalysis(ws)
@@ -932,8 +907,7 @@ class EtymologyOperations(BaseOperations):
         See Also:
             SetBibliography, GetComment
         """
-        if not etymology_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(etymology_or_hvo, "etymology_or_hvo")
 
         etymology = self.__GetEtymologyObject(etymology_or_hvo)
 
@@ -993,13 +967,10 @@ class EtymologyOperations(BaseOperations):
         See Also:
             GetBibliography, SetComment
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not etymology_or_hvo:
-            raise FP_NullParameterError()
-        if bibliography_text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(etymology_or_hvo, "etymology_or_hvo")
+        self._ValidateParam(bibliography_text, "bibliography_text")
 
         etymology = self.__GetEtymologyObject(etymology_or_hvo)
         wsHandle = self.project.project.DefaultAnalWs
@@ -1049,8 +1020,7 @@ class EtymologyOperations(BaseOperations):
         See Also:
             GetAll, Create
         """
-        if not etymology_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(etymology_or_hvo, "etymology_or_hvo")
 
         etymology = self.__GetEtymologyObject(etymology_or_hvo)
         return ILexEntry(etymology.Owner)
@@ -1087,8 +1057,7 @@ class EtymologyOperations(BaseOperations):
         See Also:
             GetOwningEntry, GetAll
         """
-        if not etymology_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(etymology_or_hvo, "etymology_or_hvo")
 
         etymology = self.__GetEtymologyObject(etymology_or_hvo)
         return etymology.Guid
@@ -1113,8 +1082,7 @@ class EtymologyOperations(BaseOperations):
             ...     if lang:
             ...         print(lang.Name.BestAnalysisAlternative.Text)
         """
-        if not etymology_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(etymology_or_hvo, "etymology_or_hvo")
 
         etymology = self.__GetEtymologyObject(etymology_or_hvo)
         return etymology.LanguageRA
@@ -1140,10 +1108,8 @@ class EtymologyOperations(BaseOperations):
             ...     # project.Etymology.SetLanguage(etymologies[0], language_obj)
             ...     pass
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
-        if not etymology_or_hvo:
-            raise FP_NullParameterError()
+        self._EnsureWriteEnabled()
+        self._ValidateParam(etymology_or_hvo, "etymology_or_hvo")
 
         etymology = self.__GetEtymologyObject(etymology_or_hvo)
         etymology.LanguageRA = language
