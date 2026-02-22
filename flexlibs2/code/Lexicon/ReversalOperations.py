@@ -150,8 +150,7 @@ class ReversalOperations(BaseOperations):
         See Also:
             GetAllIndexes, FindIndex
         """
-        if ws is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(ws, "ws")
 
         ws_normalized = self.__NormalizeLangTag(ws)
 
@@ -223,8 +222,7 @@ class ReversalOperations(BaseOperations):
         See Also:
             Create, Find, GetForm
         """
-        if not reversal_index:
-            raise FP_NullParameterError()
+        self._ValidateParam(reversal_index, "reversal_index")
 
         return list(reversal_index.EntriesOC)
 
@@ -267,16 +265,12 @@ class ReversalOperations(BaseOperations):
         See Also:
             Delete, Exists, Find, AddSense
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not reversal_index:
-            raise FP_NullParameterError()
-        if form is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(reversal_index, "reversal_index")
+        self._ValidateParam(form, "form")
 
-        if not form or not form.strip():
-            raise FP_ParameterError("Reversal form cannot be empty")
+        self._ValidateStringNotEmpty(form, "form")
 
         # Use reversal index's writing system if not specified
         if ws is None:
@@ -331,11 +325,9 @@ class ReversalOperations(BaseOperations):
         See Also:
             Create, RemoveSense
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not reversal_entry:
-            raise FP_NullParameterError()
+        self._ValidateParam(reversal_entry, "reversal_entry")
 
         # Get the reversal index
         reversal_index = reversal_entry.ReversalIndex
@@ -378,10 +370,8 @@ class ReversalOperations(BaseOperations):
         See Also:
             Exists, GetAll, Create
         """
-        if not reversal_index:
-            raise FP_NullParameterError()
-        if form is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(reversal_index, "reversal_index")
+        self._ValidateParam(form, "form")
 
         if not form or not form.strip():
             return None
@@ -432,10 +422,8 @@ class ReversalOperations(BaseOperations):
         See Also:
             Find, Create
         """
-        if not reversal_index:
-            raise FP_NullParameterError()
-        if form is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(reversal_index, "reversal_index")
+        self._ValidateParam(form, "form")
 
         if not form or not form.strip():
             return False
@@ -480,8 +468,7 @@ class ReversalOperations(BaseOperations):
         See Also:
             SetForm, Find
         """
-        if not reversal_entry:
-            raise FP_NullParameterError()
+        self._ValidateParam(reversal_entry, "reversal_entry")
 
         # Use reversal index's writing system if not specified
         if ws is None:
@@ -529,16 +516,12 @@ class ReversalOperations(BaseOperations):
         See Also:
             GetForm, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not reversal_entry:
-            raise FP_NullParameterError()
-        if text is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(reversal_entry, "reversal_entry")
+        self._ValidateParam(text, "text")
 
-        if not text or not text.strip():
-            raise FP_ParameterError("Reversal form cannot be empty")
+        self._ValidateStringNotEmpty(text, "text")
 
         # Use reversal index's writing system if not specified
         if ws is None:
@@ -593,8 +576,7 @@ class ReversalOperations(BaseOperations):
         See Also:
             AddSense, RemoveSense, GetSenseCount
         """
-        if not reversal_entry:
-            raise FP_NullParameterError()
+        self._ValidateParam(reversal_entry, "reversal_entry")
 
         return list(reversal_entry.SensesRS)
 
@@ -636,13 +618,10 @@ class ReversalOperations(BaseOperations):
         See Also:
             RemoveSense, GetSenses, GetSenseCount
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not reversal_entry:
-            raise FP_NullParameterError()
-        if not sense:
-            raise FP_NullParameterError()
+        self._ValidateParam(reversal_entry, "reversal_entry")
+        self._ValidateParam(sense, "sense")
 
         # Add sense to reversal entry's sense collection
         reversal_entry.SensesRS.Add(sense)
@@ -681,13 +660,10 @@ class ReversalOperations(BaseOperations):
         See Also:
             AddSense, GetSenses, GetSenseCount
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not reversal_entry:
-            raise FP_NullParameterError()
-        if not sense:
-            raise FP_NullParameterError()
+        self._ValidateParam(reversal_entry, "reversal_entry")
+        self._ValidateParam(sense, "sense")
 
         # Remove sense from reversal entry's sense collection
         reversal_entry.SensesRS.Remove(sense)
@@ -725,8 +701,7 @@ class ReversalOperations(BaseOperations):
         See Also:
             GetSenses, AddSense, RemoveSense
         """
-        if not reversal_entry:
-            raise FP_NullParameterError()
+        self._ValidateParam(reversal_entry, "reversal_entry")
 
         return reversal_entry.SensesRS.Count
 
@@ -769,8 +744,7 @@ class ReversalOperations(BaseOperations):
         See Also:
             CreateSubentry, GetParentEntry
         """
-        if not reversal_entry:
-            raise FP_NullParameterError()
+        self._ValidateParam(reversal_entry, "reversal_entry")
 
         return list(reversal_entry.SubentriesOS)
 
@@ -817,16 +791,12 @@ class ReversalOperations(BaseOperations):
         See Also:
             GetSubentries, GetParentEntry, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not parent_entry:
-            raise FP_NullParameterError()
-        if form is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(parent_entry, "parent_entry")
+        self._ValidateParam(form, "form")
 
-        if not form or not form.strip():
-            raise FP_ParameterError("Reversal form cannot be empty")
+        self._ValidateStringNotEmpty(form, "form")
 
         # Use parent's reversal index writing system if not specified
         if ws is None:
@@ -889,8 +859,7 @@ class ReversalOperations(BaseOperations):
         See Also:
             GetSubentries, CreateSubentry
         """
-        if not reversal_entry:
-            raise FP_NullParameterError()
+        self._ValidateParam(reversal_entry, "reversal_entry")
 
         # Check if this entry has an owner
         owner = reversal_entry.Owner
@@ -938,8 +907,7 @@ class ReversalOperations(BaseOperations):
         See Also:
             GetSenses, GetForm
         """
-        if not reversal_entry:
-            raise FP_NullParameterError()
+        self._ValidateParam(reversal_entry, "reversal_entry")
 
         return list(reversal_entry.PartsOfSpeechRC)
 
@@ -989,11 +957,9 @@ class ReversalOperations(BaseOperations):
         See Also:
             Create, Delete, CreateSubentry
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Get source entry
         if isinstance(item_or_hvo, int):
