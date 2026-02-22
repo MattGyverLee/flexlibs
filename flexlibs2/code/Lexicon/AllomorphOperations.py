@@ -198,16 +198,12 @@ class AllomorphOperations(BaseOperations):
         See Also:
             Delete, GetAll, SetForm
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not entry_or_hvo:
-            raise FP_NullParameterError()
-        if form is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(entry_or_hvo, "entry_or_hvo")
+        self._ValidateParam(form, "form")
 
-        if not form or not form.strip():
-            raise FP_ParameterError("Form cannot be empty")
+        self._ValidateStringNotEmpty(form, "form")
 
         entry = self.__GetEntryObject(entry_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -277,11 +273,9 @@ class AllomorphOperations(BaseOperations):
         See Also:
             Create, GetAll
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not allomorph_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(allomorph_or_hvo, "allomorph_or_hvo")
 
         allomorph = self.__GetAllomorphObject(allomorph_or_hvo)
 
@@ -346,11 +340,9 @@ class AllomorphOperations(BaseOperations):
         See Also:
             Create, Delete, GetGuid
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not item_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Get source allomorph and parent
         source = self.__GetAllomorphObject(item_or_hvo)
@@ -543,8 +535,7 @@ class AllomorphOperations(BaseOperations):
         See Also:
             SetForm, GetAll
         """
-        if not allomorph_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(allomorph_or_hvo, "allomorph_or_hvo")
 
         allomorph = self.__GetAllomorphObject(allomorph_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -587,16 +578,12 @@ class AllomorphOperations(BaseOperations):
         See Also:
             GetForm, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not allomorph_or_hvo:
-            raise FP_NullParameterError()
-        if form is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(allomorph_or_hvo, "allomorph_or_hvo")
+        self._ValidateParam(form, "form")
 
-        if not form or not form.strip():
-            raise FP_ParameterError("Form cannot be empty")
+        self._ValidateStringNotEmpty(form, "form")
 
         allomorph = self.__GetAllomorphObject(allomorph_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
@@ -658,13 +645,10 @@ class AllomorphOperations(BaseOperations):
         See Also:
             GetFormAudio, SetForm, project.SetAudioPath, project.IsAudioWritingSystem
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not allomorph_or_hvo:
-            raise FP_NullParameterError()
-        if file_path is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(allomorph_or_hvo, "allomorph_or_hvo")
+        self._ValidateParam(file_path, "file_path")
 
         allomorph = self.__GetAllomorphObject(allomorph_or_hvo)
 
@@ -769,8 +753,7 @@ class AllomorphOperations(BaseOperations):
         See Also:
             SetFormAudio, GetForm, project.GetAudioPath, project.IsAudioWritingSystem
         """
-        if not allomorph_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(allomorph_or_hvo, "allomorph_or_hvo")
 
         allomorph = self.__GetAllomorphObject(allomorph_or_hvo)
 
@@ -826,8 +809,7 @@ class AllomorphOperations(BaseOperations):
         See Also:
             SetMorphType, Create
         """
-        if not allomorph_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(allomorph_or_hvo, "allomorph_or_hvo")
 
         allomorph = self.__GetAllomorphObject(allomorph_or_hvo)
         return allomorph.MorphTypeRA
@@ -863,13 +845,10 @@ class AllomorphOperations(BaseOperations):
         See Also:
             GetMorphType, Create
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not allomorph_or_hvo:
-            raise FP_NullParameterError()
-        if morphType is None:
-            raise FP_NullParameterError()
+        self._ValidateParam(allomorph_or_hvo, "allomorph_or_hvo")
+        self._ValidateParam(morphType, "morphType")
 
         allomorph = self.__GetAllomorphObject(allomorph_or_hvo)
         allomorph.MorphTypeRA = morphType
@@ -908,8 +887,7 @@ class AllomorphOperations(BaseOperations):
         See Also:
             AddPhoneEnv, RemovePhoneEnv
         """
-        if not allomorph_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(allomorph_or_hvo, "allomorph_or_hvo")
 
         allomorph = self.__GetAllomorphObject(allomorph_or_hvo)
         return list(allomorph.PhoneEnvRC)
@@ -949,13 +927,10 @@ class AllomorphOperations(BaseOperations):
         See Also:
             GetPhoneEnv, RemovePhoneEnv
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not allomorph_or_hvo:
-            raise FP_NullParameterError()
-        if not env_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(allomorph_or_hvo, "allomorph_or_hvo")
+        self._ValidateParam(env_or_hvo, "env_or_hvo")
 
         allomorph = self.__GetAllomorphObject(allomorph_or_hvo)
         env = self.__GetEnvironmentObject(env_or_hvo)
@@ -992,13 +967,10 @@ class AllomorphOperations(BaseOperations):
         See Also:
             GetPhoneEnv, AddPhoneEnv
         """
-        if not self.project.writeEnabled:
-            raise FP_ReadOnlyError()
+        self._EnsureWriteEnabled()
 
-        if not allomorph_or_hvo:
-            raise FP_NullParameterError()
-        if not env_or_hvo:
-            raise FP_NullParameterError()
+        self._ValidateParam(allomorph_or_hvo, "allomorph_or_hvo")
+        self._ValidateParam(env_or_hvo, "env_or_hvo")
 
         allomorph = self.__GetAllomorphObject(allomorph_or_hvo)
         env = self.__GetEnvironmentObject(env_or_hvo)
