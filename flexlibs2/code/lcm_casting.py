@@ -111,10 +111,22 @@ def _ensure_interfaces():
     )
 
     # Phonological rule interfaces - try to import, but don't fail if unavailable
+    # These are the three main phonological rule types:
+    # - PhRegularRule: Standard phonological rules (most common)
+    # - PhMetathesisRule: Metathesis rules (swapping segments)
+    # - PhReduplicationRule: Reduplication rules
     try:
-        from SIL.LCModel import IPhRegularRule, IPhSimpleContextSeg, IPhSimpleContextNC, IPhSegRuleRHS
+        from SIL.LCModel import (
+            IPhRegularRule,
+            IPhMetathesisRule,
+            IPhReduplicationRule,
+            IPhSimpleContextSeg,
+            IPhSimpleContextNC,
+            IPhSegRuleRHS,
+        )
     except ImportError:
-        IPhRegularRule = IPhSimpleContextSeg = IPhSimpleContextNC = IPhSegRuleRHS = None
+        IPhRegularRule = IPhMetathesisRule = IPhReduplicationRule = None
+        IPhSimpleContextSeg = IPhSimpleContextNC = IPhSegRuleRHS = None
 
     _interface_cache = {
         # MSA types - used for grammatical category assignment
@@ -130,8 +142,15 @@ def _ensure_interfaces():
     }
 
     # Add phonological rule types if imports succeeded
+    # The 3 main rule types in FLEx phonology:
     if IPhRegularRule is not None:
         _interface_cache['PhRegularRule'] = IPhRegularRule
+    if IPhMetathesisRule is not None:
+        _interface_cache['PhMetathesisRule'] = IPhMetathesisRule
+    if IPhReduplicationRule is not None:
+        _interface_cache['PhReduplicationRule'] = IPhReduplicationRule
+
+    # Context and RHS types used within rules:
     if IPhSimpleContextSeg is not None:
         _interface_cache['PhSimpleContextSeg'] = IPhSimpleContextSeg
     if IPhSimpleContextNC is not None:
@@ -409,13 +428,19 @@ def _get_factory_for_class(class_name, project):
     try:
         from SIL.LCModel import (
             IPhRegularRuleFactory,
+            IPhMetathesisRuleFactory,
+            IPhReduplicationRuleFactory,
             IPhSegRuleRHSFactory,
             IPhSimpleContextSegFactory,
             IPhSimpleContextNCFactory,
         )
 
         factory_map = {
+            # The 3 main phonological rule types
             'PhRegularRule': IPhRegularRuleFactory,
+            'PhMetathesisRule': IPhMetathesisRuleFactory,
+            'PhReduplicationRule': IPhReduplicationRuleFactory,
+            # Context and RHS types
             'PhSegRuleRHS': IPhSegRuleRHSFactory,
             'PhSimpleContextSeg': IPhSimpleContextSegFactory,
             'PhSimpleContextNC': IPhSimpleContextNCFactory,
@@ -428,6 +453,54 @@ def _get_factory_for_class(class_name, project):
         pass
 
     return None
+
+
+def cast_phonological_rule(rule_obj):
+    """
+    Cast a phonological rule to its concrete interface type.
+
+    Phonological rules come back from GetAll() typed as IPhSegmentRule (base interface).
+    This function casts to the concrete interface based on ClassName:
+    - PhRegularRule -> IPhRegularRule
+    - PhMetathesisRule -> IPhMetathesisRule
+    - PhReduplicationRule -> IPhReduplicationRule
+
+    Args:
+        rule_obj: A phonological rule object (typed as IPhSegmentRule or similar).
+
+    Returns:
+        The rule cast to its concrete interface, or the original object if not recognized.
+
+    Example::
+
+        from flexlibs2.code.lcm_casting import cast_phonological_rule
+
+        # Get rules and cast them
+        for rule in phonRuleOps.GetAll():
+            concrete_rule = cast_phonological_rule(rule)
+
+            # Now can access type-specific properties
+            if concrete_rule.ClassName == 'PhRegularRule':
+                rhs_count = concrete_rule.RightHandSidesOS.Count
+    """
+    _ensure_interfaces()
+
+    if not hasattr(rule_obj, 'ClassName'):
+        return rule_obj
+
+    class_name = rule_obj.ClassName
+
+    # Look up the interface for this rule type
+    interface_type = _interface_cache.get(class_name)
+    if interface_type is None:
+        # Not a recognized rule type, return original
+        return rule_obj
+
+    try:
+        return interface_type(rule_obj)
+    except Exception:
+        # If casting fails, return original
+        return rule_obj
 
 
 def get_from_pos_from_msa(msa):
