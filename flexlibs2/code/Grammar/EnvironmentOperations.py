@@ -15,7 +15,7 @@
 from ..BaseOperations import BaseOperations
 
 # Import FLEx LCM types
-from SIL.LCModel import IPhEnvironmentFactory, IPhEnvironment
+from SIL.LCModel import IPhEnvironmentFactory, IPhEnvironment, ICmObjectRepository
 from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
 
@@ -521,7 +521,7 @@ class EnvironmentOperations(BaseOperations):
 
         return None
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
         """
         Duplicate a phonological environment, creating a new copy with a new GUID.
 
@@ -529,8 +529,8 @@ class EnvironmentOperations(BaseOperations):
             item_or_hvo: The IPhEnvironment object or HVO to duplicate.
             insert_after (bool): If True (default), insert after the source environment.
                                 If False, insert at end of environments list.
-            deep (bool): If True, deep copy owned context objects (LeftContextOA, RightContextOA).
-                        If False (default), contexts are not copied.
+            deep (bool): If True (default), deep copy owned context objects (LeftContextOA, RightContextOA).
+                        If False, contexts are not copied.
 
         Returns:
             IPhEnvironment: The newly created duplicate environment with a new GUID.
@@ -543,14 +543,14 @@ class EnvironmentOperations(BaseOperations):
             >>> envOps = EnvironmentOperations(project)
             >>> word_initial = envOps.Create("Word Initial")
             >>> envOps.SetStringRepresentation(word_initial, "#_")
-            >>> # Shallow copy (no context objects)
+            >>> # Deep copy (default - includes owned context objects)
             >>> copy = envOps.Duplicate(word_initial)
             >>> print(envOps.GetName(copy))
             Word Initial
 
-            >>> # Deep copy (includes owned context objects)
+            >>> # Shallow copy (no context objects)
             >>> between_vowels = envOps.Create("Between Vowels")
-            >>> copy = envOps.Duplicate(between_vowels, deep=True)
+            >>> copy = envOps.Duplicate(between_vowels, deep=False)
 
         Notes:
             - Factory.Create() automatically generates a new GUID
@@ -584,7 +584,13 @@ class EnvironmentOperations(BaseOperations):
         # Copy simple MultiString properties (AFTER adding to parent)
         duplicate.Name.CopyAlternatives(source.Name)
         duplicate.Description.CopyAlternatives(source.Description)
-        duplicate.StringRepresentation.CopyAlternatives(source.StringRepresentation)
+
+        # Copy StringRepresentation (ITsString, not MultiString)
+        if source.StringRepresentation:
+            notation = source.StringRepresentation.Text
+            wsHandle = self.__WSHandle(None)
+            mkstr = TsStringUtils.MakeString(notation, wsHandle)
+            duplicate.StringRepresentation = mkstr
 
         # Deep copy: owned context objects
         if deep:
@@ -610,17 +616,23 @@ class EnvironmentOperations(BaseOperations):
 
         Notes:
             - Context objects are complex and may have owned objects
-            - This method uses CopyObject pattern for deep cloning
+            - This method uses SetCloneProperties pattern for deep cloning
         """
-        # Use LCM's CopyObject for deep cloning of complex structures
-        # This handles all owned objects and nested structures
-        cache = self.project.project.ServiceLocator.GetInstance("ICmObjectRepository")
-        if hasattr(cache, 'CopyObject'):
-            return cache.CopyObject(source_context)
+        # Deep copy using SetCloneProperties (FieldWorks pattern)
+        try:
+            # Create new object of the same type
+            new_obj = self.project.project.ServiceLocator.ObjectRepository.NewObject(
+                source_context.ClassID)
 
-        # Fallback: if CopyObject not available, return None
-        # The environment will still be duplicated, just without contexts
-        return None
+            # Copy all properties using SetCloneProperties if available
+            if hasattr(source_context, 'SetCloneProperties'):
+                source_context.SetCloneProperties(new_obj)
+                return new_obj
+            else:
+                return None
+        except Exception:
+            # If cloning fails, return None
+            return None
 
     # --- Private Helper Methods ---
 

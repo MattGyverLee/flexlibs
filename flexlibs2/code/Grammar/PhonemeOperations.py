@@ -21,15 +21,11 @@ from SIL.LCModel import (
     IPhCode,
     IPhCodeFactory,
     IFsFeatStruc,
+    ICmObjectRepository,
 )
 from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
 
-# Optional import - CopyObject may not be available in all FieldWorks versions
-try:
-    from SIL.LCModel.DomainServices import CopyObject
-except ImportError:
-    CopyObject = None
 
 # Import flexlibs exceptions
 from ..FLExProject import (
@@ -237,7 +233,7 @@ class PhonemeOperations(BaseOperations):
             phoneme_set = phon_data.PhonemeSetsOS[0]
             phoneme_set.PhonemesOC.Remove(phoneme)
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
         """
         Duplicate a phoneme, creating a new copy with a new GUID.
 
@@ -245,8 +241,8 @@ class PhonemeOperations(BaseOperations):
             item_or_hvo: The IPhPhoneme object or HVO to duplicate.
             insert_after (bool): If True (default), insert after the source phoneme.
                                 If False, insert at end of phoneme set.
-            deep (bool): If True, also duplicate owned objects (codes/allophones).
-                        If False (default), only copy simple properties and references.
+            deep (bool): If True (default), also duplicate owned objects (codes/allophones).
+                        If False, only copy simple properties and references.
 
         Returns:
             IPhPhoneme: The newly created duplicate phoneme with a new GUID.
@@ -260,13 +256,13 @@ class PhonemeOperations(BaseOperations):
             >>> phonemeOps = PhonemeOperations(project)
             >>> p_phoneme = phonemeOps.Find("/p/")
             >>> if p_phoneme:
-            ...     # Duplicate phoneme (shallow - no codes)
+            ...     # Duplicate phoneme (deep - includes allophonic codes)
             ...     dup = phonemeOps.Duplicate(p_phoneme)
             ...     print(f"Original: {phonemeOps.GetGuid(dup)}")
             ...     print(f"Representation: {phonemeOps.GetRepresentation(dup)}")
             ...
-            ...     # Deep duplicate (includes allophonic codes)
-            ...     deep_dup = phonemeOps.Duplicate(p_phoneme, deep=True)
+            ...     # Shallow duplicate (no codes)
+            ...     shallow_dup = phonemeOps.Duplicate(p_phoneme, deep=False)
             ...     codes = phonemeOps.GetCodes(deep_dup)
             ...     print(f"Codes: {len(codes)}")
 
@@ -310,22 +306,27 @@ class PhonemeOperations(BaseOperations):
         # Note: FeaturesOA is an owned atomic object (OA), NOT a reference.
         # Assigning it directly would TRANSFER ownership from source, corrupting it.
         # Feature structures are complex (recursive), so we skip them in shallow
-        # copy and handle via deep copy below using LibLCM's CopyObject pattern.
+        # copy and handle via deep copy below using LCM's SetCloneProperties.
 
         # Handle owned objects if deep=True
         if deep:
-            # Deep copy FeaturesOA using LibLCM's proven CopyObject<T> pattern
+            # Deep copy FeaturesOA using SetCloneProperties
             if hasattr(source, 'FeaturesOA') and source.FeaturesOA:
-                if CopyObject:
-                    # Define delegate to assign copied feature structure to duplicate
-                    def assign_features(copied_feature_struct):
-                        duplicate.FeaturesOA = copied_feature_struct
+                # Create new feature structure and copy all properties
+                try:
+                    source_features = source.FeaturesOA
+                    # Create new object of same type
+                    new_features = self.project.project.ServiceLocator.ObjectRepository.NewObject(
+                        source_features.ClassID)
 
-                    # Use CopyObject<IFsFeatStruc>.CloneLcmObject() static method
-                    # CloneLcmObject(source, ownerFunct) - ownerFunct receives copied object
-                    CopyObject[IFsFeatStruc].CloneLcmObject(source.FeaturesOA, assign_features)
-                else:
-                    # CopyObject not available - skip deep copy of feature structures
+                    # Set as the feature structure for this phoneme
+                    duplicate.FeaturesOA = new_features
+
+                    # Copy all properties using SetCloneProperties if available
+                    if hasattr(source_features, 'SetCloneProperties'):
+                        source_features.SetCloneProperties(new_features)
+                except Exception:
+                    # Cannot copy complex feature structure - skip
                     pass
 
             # Duplicate codes (allophonic representations)

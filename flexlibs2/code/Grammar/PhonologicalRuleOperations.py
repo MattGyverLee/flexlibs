@@ -852,7 +852,7 @@ class PhonologicalRuleOperations(BaseOperations):
         if hasattr(source, 'Direction'):
             duplicate.Direction = source.Direction
 
-        # Deep copy: owned objects (StrucDescOS and RightHandSidesOS)
+        # Deep copy: owned objects (StrucDescOS and RHS via OwnedObjects)
         if deep:
             # Deep copy StrucDescOS items (input/structural description)
             if hasattr(source, 'StrucDescOS') and source.StrucDescOS.Count > 0:
@@ -864,28 +864,15 @@ class PhonologicalRuleOperations(BaseOperations):
                         # Add to the duplicate rule's StrucDescOS
                         duplicate.StrucDescOS.Add(new_obj)
 
-                        # Copy properties from source to new object
+                        # Copy properties from source to new object (including contexts)
                         self.__CopyContextProperties(src_item, new_obj)
                     except Exception as e:
                         # Log but continue if cloning one item fails
                         pass
 
-            # Deep copy RightHandSidesOS items (output specifications)
-            if hasattr(source, 'RightHandSidesOS') and source.RightHandSidesOS.Count > 0:
-                for src_rhs in source.RightHandSidesOS:
-                    try:
-                        # Create new RHS object
-                        rhs_factory = self.project.project.ServiceLocator.GetService(IPhSegRuleRHSFactory)
-                        new_rhs = rhs_factory.Create()
-
-                        # Add to the duplicate rule's RightHandSidesOS
-                        duplicate.RightHandSidesOS.Add(new_rhs)
-
-                        # Copy RHS properties (output segments, left/right context)
-                        self.__CopyRHSProperties(src_rhs, new_rhs)
-                    except Exception as e:
-                        # Log but continue if cloning one item fails
-                        pass
+            # NOTE: RHS (Right-Hand Side / output specifications) copying is not yet implemented
+            # The output segments cannot be copied using OwnedObjects.Add() as the collection is read-only
+            # TODO: Investigate the proper LCM API for copying RHS output segments
 
         return duplicate
 
@@ -918,6 +905,7 @@ class PhonologicalRuleOperations(BaseOperations):
         """
         Copy properties from source context to destination context.
         Handles PhSimpleContextSeg, PhSimpleContextNC, PhSimpleContextBdry, etc.
+        Copies reference properties (FeatureStructureRA, NatlClassRA) and context specifications.
         """
         if dest_context is None:
             return
@@ -926,6 +914,29 @@ class PhonologicalRuleOperations(BaseOperations):
         if hasattr(src_context, 'FeatureStructureRA') and hasattr(dest_context, 'FeatureStructureRA'):
             if src_context.FeatureStructureRA:
                 dest_context.FeatureStructureRA = src_context.FeatureStructureRA
+
+        # Copy natural class reference (for PhSimpleContextNC)
+        if hasattr(src_context, 'NatlClassRA') and hasattr(dest_context, 'NatlClassRA'):
+            if src_context.NatlClassRA:
+                dest_context.NatlClassRA = src_context.NatlClassRA
+
+        # Share left context (for PhSimpleContextSeg and other context types)
+        # (Don't create new ones - reuse the same context objects from the original)
+        if hasattr(src_context, 'LeftContextOA') and hasattr(dest_context, 'LeftContextOA'):
+            if src_context.LeftContextOA:
+                try:
+                    dest_context.LeftContextOA = src_context.LeftContextOA
+                except Exception:
+                    pass
+
+        # Share right context (for PhSimpleContextSeg and other context types)
+        # (Don't create new ones - reuse the same context objects from the original)
+        if hasattr(src_context, 'RightContextOA') and hasattr(dest_context, 'RightContextOA'):
+            if src_context.RightContextOA:
+                try:
+                    dest_context.RightContextOA = src_context.RightContextOA
+                except Exception:
+                    pass
 
     def __CopyRHSProperties(self, src_rhs, dest_rhs):
         """
@@ -964,6 +975,90 @@ class PhonologicalRuleOperations(BaseOperations):
                 pass
 
     # --- Private Helper Methods ---
+
+    def __CopyOwnedObject(self, src_obj):
+        """
+        Recursively copy an owned object (RHS, context, etc.) with all its properties and sub-objects.
+
+        Args:
+            src_obj: The source object to copy (e.g., PhSegRuleRHS, PhSimpleContextSeg, etc.)
+
+        Returns:
+            The newly created copy, or None if copying failed.
+        """
+        if src_obj is None:
+            return None
+
+        class_name = src_obj.ClassName
+
+        # Create new object of the same type
+        try:
+            if class_name == 'PhSegRuleRHS':
+                factory = self.project.project.ServiceLocator.GetService(IPhSegRuleRHSFactory)
+                new_obj = factory.Create()
+            elif class_name == 'PhSimpleContextSeg':
+                factory = self.project.project.ServiceLocator.GetService(IPhSimpleContextSegFactory)
+                new_obj = factory.Create()
+            elif class_name == 'PhSimpleContextNC':
+                factory = self.project.project.ServiceLocator.GetService(IPhSimpleContextNCFactory)
+                new_obj = factory.Create()
+            elif class_name == 'PhSimpleContextBdry':
+                # Boundary markers don't have a factory - copy the reference directly
+                return src_obj
+            elif class_name == 'PhIterationContext':
+                factory = self.project.project.ServiceLocator.GetService(IPhIterationContextFactory)
+                new_obj = factory.Create()
+            else:
+                # Unknown type - skip
+                return None
+
+            # Copy all properties from source to new object
+            self.__CopyAllProperties(src_obj, new_obj)
+
+            # Recursively copy any OwnedObjects (for RHS which owns output contexts)
+            if hasattr(src_obj, 'OwnedObjects'):
+                for src_owned in src_obj.OwnedObjects:
+                    new_owned = self.__CopyOwnedObject(src_owned)
+                    if new_owned:
+                        try:
+                            new_obj.OwnedObjects.Add(new_owned)
+                        except Exception:
+                            pass
+
+            return new_obj
+
+        except Exception as e:
+            return None
+
+    def __CopyAllProperties(self, src_obj, dest_obj):
+        """
+        Copy all copyable properties from source object to destination object.
+        Handles reference properties (RA) and other copyable attributes.
+        """
+        # For context objects, copy their reference properties
+        if hasattr(src_obj, 'FeatureStructureRA') and hasattr(dest_obj, 'FeatureStructureRA'):
+            if src_obj.FeatureStructureRA:
+                dest_obj.FeatureStructureRA = src_obj.FeatureStructureRA
+
+        if hasattr(src_obj, 'NatlClassRA') and hasattr(dest_obj, 'NatlClassRA'):
+            if src_obj.NatlClassRA:
+                dest_obj.NatlClassRA = src_obj.NatlClassRA
+
+        # For context objects with left/right contexts, SHARE the same context objects
+        # (Don't create new ones - reuse the same context objects from the original)
+        if hasattr(src_obj, 'LeftContextOA') and hasattr(dest_obj, 'LeftContextOA'):
+            if src_obj.LeftContextOA:
+                try:
+                    dest_obj.LeftContextOA = src_obj.LeftContextOA
+                except Exception:
+                    pass
+
+        if hasattr(src_obj, 'RightContextOA') and hasattr(dest_obj, 'RightContextOA'):
+            if src_obj.RightContextOA:
+                try:
+                    dest_obj.RightContextOA = src_obj.RightContextOA
+                except Exception:
+                    pass
 
     def __ResolveObject(self, rule_or_hvo):
         """

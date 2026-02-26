@@ -1135,14 +1135,14 @@ class BaseOperations:
             - Should be called at the start of any modification method
             - Provides early failure with clear error message
             - Prevents partial modifications on closed/read-only projects
-            - Lightweight check (just calls project.CanModify())
+            - Lightweight check (just checks project.writeEnabled property)
 
         Implementation Notes:
-            - Checks project.CanModify() property
+            - Checks project.writeEnabled property
             - Raises FP_ReadOnlyError with descriptive message
             - No side effects
         """
-        if not self.project.CanModify():
+        if not self.project.writeEnabled:
             raise Exception(
                 "Project is read-only or not open. "
                 "Cannot perform modifications. "

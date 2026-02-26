@@ -14,7 +14,16 @@
       "Bash(python3:*)",
       "Bash(/d/Github/flexlibs2/tests/TEST_SUMMARY.md:*)",
       "Bash(__NEW_LINE_e4c34fa10700405a__ sleep 45)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "mcp__flextools-mcp__search_by_capability",
+      "mcp__flextools-mcp__get_object_api",
+      "mcp__flextools-mcp__run_operation",
+      "mcp__flextools-mcp__start",
+      "mcp__flextools-mcp__run_module",
+      "mcp__flextools-mcp__find_examples",
+      "mcp__flextools-mcp__list_categories",
+      "mcp__flextools-mcp__list_entities_in_category",
+      "mcp__flextools-mcp__resolve_property"
     ],
     "deny": [],
     "ask": []
