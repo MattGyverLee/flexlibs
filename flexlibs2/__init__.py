@@ -2,10 +2,10 @@
 # Name:         flexlibs2
 # Purpose:      This package provides a Python interface to FLEx project data
 #               via the Fieldworks Language and Culture Model (LCM).
-#               FlexLibs 2.0 - Extended API coverage (~90% of LCM)
+#               FlexLibs 2.1 - Parameter validation fixes and stability improvements
 #----------------------------------------------------------------------------
 
-version = "2.0.0"
+version = "2.1.0"
 
 # Define exported classes, etc. at the top level of the package
 

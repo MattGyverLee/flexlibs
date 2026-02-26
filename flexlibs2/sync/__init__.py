@@ -41,7 +41,7 @@ from .dependency_graph import (
 from .dependency_resolver import DependencyResolver, DependencyConfig
 from .hierarchical_importer import HierarchicalImporter
 
-__version__ = "1.3.0"  # Phase 3 - Dependency Management
+__version__ = "2.1.0"  # Aligned with flexlibs2 v2.1
 
 __all__ = [
     # Core engine
