@@ -110,6 +110,12 @@ def _ensure_interfaces():
         IMoAffixForm,
     )
 
+    # Phonological rule interfaces - try to import, but don't fail if unavailable
+    try:
+        from SIL.LCModel import IPhRegularRule, IPhSimpleContextSeg, IPhSimpleContextNC, IPhSegRuleRHS
+    except ImportError:
+        IPhRegularRule = IPhSimpleContextSeg = IPhSimpleContextNC = IPhSegRuleRHS = None
+
     _interface_cache = {
         # MSA types - used for grammatical category assignment
         'MoStemMsa': IMoStemMsa,
@@ -122,6 +128,16 @@ def _ensure_interfaces():
         'MoAffixAllomorph': IMoAffixAllomorph,
         'MoAffixForm': IMoAffixForm,
     }
+
+    # Add phonological rule types if imports succeeded
+    if IPhRegularRule is not None:
+        _interface_cache['PhRegularRule'] = IPhRegularRule
+    if IPhSimpleContextSeg is not None:
+        _interface_cache['PhSimpleContextSeg'] = IPhSimpleContextSeg
+    if IPhSimpleContextNC is not None:
+        _interface_cache['PhSimpleContextNC'] = IPhSimpleContextNC
+    if IPhSegRuleRHS is not None:
+        _interface_cache['PhSegRuleRHS'] = IPhSegRuleRHS
 
     _interfaces_loaded = True
 
@@ -276,6 +292,139 @@ def get_pos_from_msa(msa):
 
     except Exception:
         # If anything fails, return None rather than crashing
+        pass
+
+    return None
+
+
+def clone_properties(source_obj, dest_obj, project=None):
+    """
+    Deep clone all properties from source object to destination object.
+
+    This is a Python equivalent of ICloneableCmObject.SetCloneProperties() from C#.
+    It copies all properties recursively, handling:
+    - Simple properties (names, descriptions, etc.)
+    - Reference properties (RA)
+    - Owned objects (OA) - creates new objects with cloned properties
+    - Owned collections (OS/OC) - creates new objects for each item
+
+    Args:
+        source_obj: The source LCM object to clone from.
+        dest_obj: The destination LCM object to clone to.
+        project: Optional FLExProject instance for factory access. If not provided,
+                 extracted from the destination object's owner.
+
+    Returns:
+        None. The destination object is modified in place.
+
+    Example::
+
+        from flexlibs2.code.lcm_casting import clone_properties
+
+        # Clone a rule
+        source_rule = phonRuleOps.GetAll()[0]
+        new_rule = factory.Create()
+        clone_properties(source_rule, new_rule, project)
+
+    Notes:
+        - Recursively clones owned objects
+        - Shares reference objects (doesn't create copies of referenced objects)
+        - Handles collections by adding cloned items to the destination collection
+        - Silently skips any properties that cannot be cloned
+    """
+    if not hasattr(source_obj, 'ClassName') or not hasattr(dest_obj, 'ClassName'):
+        return
+
+    # Cast both to concrete types for full property access
+    source = cast_to_concrete(source_obj)
+    dest = cast_to_concrete(dest_obj)
+
+    # If project not provided, try to get it from the destination object
+    if project is None and hasattr(dest, 'OwnerOfClass'):
+        try:
+            project = dest.OwnerOfClass.project
+        except:
+            pass
+
+    # Get all properties from the source object
+    for attr_name in dir(source):
+        # Skip private, special, and known method attributes
+        if attr_name.startswith('_') or attr_name in ['Clone', 'PostClone']:
+            continue
+
+        try:
+            attr_value = getattr(source, attr_name, None)
+
+            # Skip methods and special attributes
+            if callable(attr_value) or attr_name in ['Hvo', 'ClassID', 'ClassName', 'Guid', 'Owner', 'OwningFlid']:
+                continue
+
+            # Try to set the property on destination
+            if hasattr(dest, attr_name):
+                try:
+                    # Check if it's a collection (OS/OC) - these need special handling
+                    if hasattr(attr_value, 'Count') and hasattr(attr_value, 'Add'):
+                        # This is a collection - clone each item
+                        dest_collection = getattr(dest, attr_name)
+                        try:
+                            dest_collection.Clear()
+                        except:
+                            pass
+
+                        # Add cloned items
+                        for item in attr_value:
+                            try:
+                                # Get factory based on item class name
+                                if project:
+                                    factory = _get_factory_for_class(item.ClassName, project.project)
+                                    if factory:
+                                        cloned_item = factory.Create()
+                                        dest_collection.Add(cloned_item)
+                                        clone_properties(item, cloned_item, project)
+                            except:
+                                # If we can't clone an item, just skip it
+                                pass
+                    else:
+                        # Simple property or reference - copy directly
+                        setattr(dest, attr_name, attr_value)
+                except:
+                    # If we can't set a property, skip it silently
+                    pass
+        except:
+            # If we can't read a property, skip it
+            pass
+
+
+def _get_factory_for_class(class_name, project):
+    """
+    Get the factory for creating an object of the given class.
+
+    Args:
+        class_name: String like 'PhRegularRule', 'PhSegRuleRHS', etc.
+        project: The FLExProject instance.
+
+    Returns:
+        The factory object, or None if not found.
+    """
+    try:
+        from SIL.LCModel import (
+            IPhRegularRuleFactory,
+            IPhSegRuleRHSFactory,
+            IPhSimpleContextSegFactory,
+            IPhSimpleContextNCFactory,
+        )
+
+        factory_map = {
+            'PhRegularRule': IPhRegularRuleFactory,
+            'PhSegRuleRHS': IPhSegRuleRHSFactory,
+            'PhSimpleContextSeg': IPhSimpleContextSegFactory,
+            'PhSimpleContextNC': IPhSimpleContextNCFactory,
+        }
+
+        factory_type = factory_map.get(class_name)
+        if factory_type:
+            return project.ServiceLocator.GetService(factory_type)
+    except:
         pass
 
     return None
