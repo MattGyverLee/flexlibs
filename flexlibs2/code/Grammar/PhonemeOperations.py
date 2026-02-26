@@ -24,7 +24,12 @@ from SIL.LCModel import (
 )
 from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
-from SIL.LCModel.DomainServices import CopyObject
+
+# Optional import - CopyObject may not be available in all FieldWorks versions
+try:
+    from SIL.LCModel.DomainServices import CopyObject
+except ImportError:
+    CopyObject = None
 
 # Import flexlibs exceptions
 from ..FLExProject import (
@@ -311,13 +316,17 @@ class PhonemeOperations(BaseOperations):
         if deep:
             # Deep copy FeaturesOA using LibLCM's proven CopyObject<T> pattern
             if hasattr(source, 'FeaturesOA') and source.FeaturesOA:
-                # Define delegate to assign copied feature structure to duplicate
-                def assign_features(copied_feature_struct):
-                    duplicate.FeaturesOA = copied_feature_struct
+                if CopyObject:
+                    # Define delegate to assign copied feature structure to duplicate
+                    def assign_features(copied_feature_struct):
+                        duplicate.FeaturesOA = copied_feature_struct
 
-                # Use CopyObject<IFsFeatStruc>.CloneLcmObject() static method
-                # CloneLcmObject(source, ownerFunct) - ownerFunct receives copied object
-                CopyObject[IFsFeatStruc].CloneLcmObject(source.FeaturesOA, assign_features)
+                    # Use CopyObject<IFsFeatStruc>.CloneLcmObject() static method
+                    # CloneLcmObject(source, ownerFunct) - ownerFunct receives copied object
+                    CopyObject[IFsFeatStruc].CloneLcmObject(source.FeaturesOA, assign_features)
+                else:
+                    # CopyObject not available - skip deep copy of feature structures
+                    pass
 
             # Duplicate codes (allophonic representations)
             for code in source.CodesOS:

@@ -149,7 +149,7 @@ class WordformOperations(BaseOperations):
         """
         self._EnsureWriteEnabled()
 
-        self._ValidateParam(not, "not")
+        self._ValidateParam(form, "form")
 
         wsHandle = self.__WSHandle(wsHandle)
 
@@ -344,7 +344,8 @@ class WordformOperations(BaseOperations):
         """
         self._EnsureWriteEnabled()
 
-        self._ValidateParam(not, "not")
+        self._ValidateParam(wordform_or_hvo, "wordform_or_hvo")
+        self._ValidateParam(form, "form")
 
         # Resolve to wordform object
         if isinstance(wordform_or_hvo, int):

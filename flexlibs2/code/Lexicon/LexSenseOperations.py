@@ -2380,7 +2380,8 @@ class LexSenseOperations(BaseOperations):
     def SetBibliography(self, sense_or_hvo, text, wsHandle=None):
         """Set the bibliography of a sense."""
         self._EnsureWriteEnabled()
-        self._ValidateParam(not, "not")
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
+        self._ValidateParam(text, "text")
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
         mkstr = TsStringUtils.MakeString(text, wsHandle)
@@ -2396,7 +2397,8 @@ class LexSenseOperations(BaseOperations):
     def SetGeneralNote(self, sense_or_hvo, text, wsHandle=None):
         """Set the general note of a sense."""
         self._EnsureWriteEnabled()
-        self._ValidateParam(not, "not")
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
+        self._ValidateParam(text, "text")
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
         mkstr = TsStringUtils.MakeString(text, wsHandle)
@@ -2412,7 +2414,8 @@ class LexSenseOperations(BaseOperations):
     def SetDiscourseNote(self, sense_or_hvo, text, wsHandle=None):
         """Set the discourse note of a sense."""
         self._EnsureWriteEnabled()
-        self._ValidateParam(not, "not")
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
+        self._ValidateParam(text, "text")
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
         mkstr = TsStringUtils.MakeString(text, wsHandle)
@@ -2428,7 +2431,8 @@ class LexSenseOperations(BaseOperations):
     def SetEncyclopedicInfo(self, sense_or_hvo, text, wsHandle=None):
         """Set the encyclopedic info of a sense."""
         self._EnsureWriteEnabled()
-        self._ValidateParam(not, "not")
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
+        self._ValidateParam(text, "text")
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
         mkstr = TsStringUtils.MakeString(text, wsHandle)
@@ -2444,7 +2448,8 @@ class LexSenseOperations(BaseOperations):
     def SetGrammarNote(self, sense_or_hvo, text, wsHandle=None):
         """Set the grammar note of a sense."""
         self._EnsureWriteEnabled()
-        self._ValidateParam(not, "not")
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
+        self._ValidateParam(text, "text")
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
         mkstr = TsStringUtils.MakeString(text, wsHandle)
@@ -2460,7 +2465,8 @@ class LexSenseOperations(BaseOperations):
     def SetPhonologyNote(self, sense_or_hvo, text, wsHandle=None):
         """Set the phonology note of a sense."""
         self._EnsureWriteEnabled()
-        self._ValidateParam(not, "not")
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
+        self._ValidateParam(text, "text")
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
         mkstr = TsStringUtils.MakeString(text, wsHandle)
@@ -2476,7 +2482,8 @@ class LexSenseOperations(BaseOperations):
     def SetSemanticsNote(self, sense_or_hvo, text, wsHandle=None):
         """Set the semantics note of a sense."""
         self._EnsureWriteEnabled()
-        self._ValidateParam(not, "not")
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
+        self._ValidateParam(text, "text")
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
         mkstr = TsStringUtils.MakeString(text, wsHandle)
@@ -2492,7 +2499,8 @@ class LexSenseOperations(BaseOperations):
     def SetSocioLinguisticsNote(self, sense_or_hvo, text, wsHandle=None):
         """Set the socio-linguistics note of a sense."""
         self._EnsureWriteEnabled()
-        self._ValidateParam(not, "not")
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
+        self._ValidateParam(text, "text")
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
         mkstr = TsStringUtils.MakeString(text, wsHandle)
@@ -2508,7 +2516,8 @@ class LexSenseOperations(BaseOperations):
     def SetAnthroNote(self, sense_or_hvo, text, wsHandle=None):
         """Set the anthropology note of a sense."""
         self._EnsureWriteEnabled()
-        self._ValidateParam(not, "not")
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
+        self._ValidateParam(text, "text")
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
         mkstr = TsStringUtils.MakeString(text, wsHandle)
@@ -2524,7 +2533,8 @@ class LexSenseOperations(BaseOperations):
     def SetRestrictions(self, sense_or_hvo, text, wsHandle=None):
         """Set the restrictions of a sense."""
         self._EnsureWriteEnabled()
-        self._ValidateParam(not, "not")
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
+        self._ValidateParam(text, "text")
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
         mkstr = TsStringUtils.MakeString(text, wsHandle)
@@ -2539,7 +2549,8 @@ class LexSenseOperations(BaseOperations):
     def SetSource(self, sense_or_hvo, text):
         """Set the source of a sense."""
         self._EnsureWriteEnabled()
-        self._ValidateParam(not, "not")
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
+        self._ValidateParam(text, "text")
         sense = self.__GetSenseObject(sense_or_hvo)
         sense.Source = text
 
@@ -2552,7 +2563,8 @@ class LexSenseOperations(BaseOperations):
     def SetScientificName(self, sense_or_hvo, text):
         """Set the scientific name of a sense."""
         self._EnsureWriteEnabled()
-        self._ValidateParam(not, "not")
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
+        self._ValidateParam(text, "text")
         sense = self.__GetSenseObject(sense_or_hvo)
         sense.ScientificName = text
 
@@ -2565,7 +2577,8 @@ class LexSenseOperations(BaseOperations):
     def SetImportResidue(self, sense_or_hvo, text):
         """Set the import residue of a sense."""
         self._EnsureWriteEnabled()
-        self._ValidateParam(not, "not")
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
+        self._ValidateParam(text, "text")
         sense = self.__GetSenseObject(sense_or_hvo)
         sense.ImportResidue = text
 
@@ -2614,7 +2627,8 @@ class LexSenseOperations(BaseOperations):
     def AddUsageType(self, sense_or_hvo, usage_type):
         """Add a usage type to a sense. Accepts string name or object."""
         self._EnsureWriteEnabled()
-        self._ValidateParam(not, "not")
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
+        self._ValidateParam(usage_type, "usage_type")
         sense = self.__GetSenseObject(sense_or_hvo)
 
         # If string, look it up
@@ -2633,7 +2647,8 @@ class LexSenseOperations(BaseOperations):
     def RemoveUsageType(self, sense_or_hvo, usage_type):
         """Remove a usage type from a sense."""
         self._EnsureWriteEnabled()
-        self._ValidateParam(not, "not")
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
+        self._ValidateParam(usage_type, "usage_type")
         sense = self.__GetSenseObject(sense_or_hvo)
         if usage_type in sense.UsageTypesRC:
             sense.UsageTypesRC.Remove(usage_type)
@@ -2651,7 +2666,8 @@ class LexSenseOperations(BaseOperations):
     def AddDomainType(self, sense_or_hvo, domain_type):
         """Add a domain type to a sense. Accepts string name or object."""
         self._EnsureWriteEnabled()
-        self._ValidateParam(not, "not")
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
+        self._ValidateParam(domain_type, "domain_type")
         sense = self.__GetSenseObject(sense_or_hvo)
 
         # If string, look it up
@@ -2667,7 +2683,8 @@ class LexSenseOperations(BaseOperations):
     def RemoveDomainType(self, sense_or_hvo, domain_type):
         """Remove a domain type from a sense."""
         self._EnsureWriteEnabled()
-        self._ValidateParam(not, "not")
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
+        self._ValidateParam(domain_type, "domain_type")
         sense = self.__GetSenseObject(sense_or_hvo)
         if domain_type in sense.DomainTypesRC:
             sense.DomainTypesRC.Remove(domain_type)
@@ -2685,7 +2702,8 @@ class LexSenseOperations(BaseOperations):
     def AddAnthroCode(self, sense_or_hvo, anthro_code):
         """Add an anthropology code to a sense. Accepts string name or object."""
         self._EnsureWriteEnabled()
-        self._ValidateParam(not, "not")
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
+        self._ValidateParam(anthro_code, "anthro_code")
         sense = self.__GetSenseObject(sense_or_hvo)
 
         # If string, look it up
@@ -2701,7 +2719,8 @@ class LexSenseOperations(BaseOperations):
     def RemoveAnthroCode(self, sense_or_hvo, anthro_code):
         """Remove an anthropology code from a sense."""
         self._EnsureWriteEnabled()
-        self._ValidateParam(not, "not")
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
+        self._ValidateParam(anthro_code, "anthro_code")
         sense = self.__GetSenseObject(sense_or_hvo)
         if anthro_code in sense.AnthroCodesRC:
             sense.AnthroCodesRC.Remove(anthro_code)
@@ -3041,7 +3060,8 @@ class LexSenseOperations(BaseOperations):
         """
         self._EnsureWriteEnabled()
 
-        self._ValidateParam(not, "not")
+        self._ValidateParam(survivor_or_hvo, "survivor_or_hvo")
+        self._ValidateParam(victim_or_hvo, "victim_or_hvo")
 
         survivor = self.__GetSenseObject(survivor_or_hvo)
         victim = self.__GetSenseObject(victim_or_hvo)

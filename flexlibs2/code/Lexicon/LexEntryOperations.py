@@ -2624,7 +2624,8 @@ class LexEntryOperations(BaseOperations):
         """
         self._EnsureWriteEnabled()
 
-        self._ValidateParam(not, "not")
+        self._ValidateParam(survivor_or_hvo, "survivor_or_hvo")
+        self._ValidateParam(victim_or_hvo, "victim_or_hvo")
 
         survivor = self.__ResolveObject(survivor_or_hvo)
         victim = self.__ResolveObject(victim_or_hvo)

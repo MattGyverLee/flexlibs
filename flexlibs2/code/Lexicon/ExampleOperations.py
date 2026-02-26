@@ -1308,7 +1308,8 @@ class ExampleOperations(BaseOperations):
             ...     project.Examples.SetLiteralTranslation(examples[0], "word-for-word translation")
         """
         self._EnsureWriteEnabled()
-        self._ValidateParam(not, "not")
+        self._ValidateParam(example_or_hvo, "example_or_hvo")
+        self._ValidateParam(text, "text")
 
         example = self.__GetExampleObject(example_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -1357,7 +1358,8 @@ class ExampleOperations(BaseOperations):
             FP_ParameterError: If publication name not found
         """
         self._EnsureWriteEnabled()
-        self._ValidateParam(not, "not")
+        self._ValidateParam(example_or_hvo, "example_or_hvo")
+        self._ValidateParam(publication, "publication")
 
         example = self.__GetExampleObject(example_or_hvo)
 
@@ -1385,7 +1387,8 @@ class ExampleOperations(BaseOperations):
             FP_ParameterError: If publication name not found
         """
         self._EnsureWriteEnabled()
-        self._ValidateParam(not, "not")
+        self._ValidateParam(example_or_hvo, "example_or_hvo")
+        self._ValidateParam(publication, "publication")
 
         example = self.__GetExampleObject(example_or_hvo)
 

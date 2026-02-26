@@ -495,7 +495,8 @@ class WfiAnalysisOperations(BaseOperations):
         See Also:
             GetAll, Create
         """
-        self._ValidateParam(not, "not")
+        self._ValidateParam(wordform_or_hvo, "wordform_or_hvo")
+        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
         wordform = self.__GetWordformObject(wordform_or_hvo)
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
