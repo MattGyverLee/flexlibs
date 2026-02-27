@@ -594,45 +594,35 @@ class EnvironmentOperations(BaseOperations):
 
         # Deep copy: owned context objects
         if deep:
+            from ..lcm_casting import clone_properties
+
             # Copy LeftContextOA if exists
             if hasattr(source, 'LeftContextOA') and source.LeftContextOA:
-                duplicate.LeftContextOA = self.__CopyContextObject(source.LeftContextOA)
+                try:
+                    # Create new context object of the same type
+                    src_context = source.LeftContextOA
+                    new_context = self.project.project.ServiceLocator.ObjectRepository.NewObject(
+                        src_context.ClassID)
+                    # Deep clone all properties
+                    clone_properties(src_context, new_context, self.project)
+                    duplicate.LeftContextOA = new_context
+                except Exception:
+                    pass
 
             # Copy RightContextOA if exists
             if hasattr(source, 'RightContextOA') and source.RightContextOA:
-                duplicate.RightContextOA = self.__CopyContextObject(source.RightContextOA)
+                try:
+                    # Create new context object of the same type
+                    src_context = source.RightContextOA
+                    new_context = self.project.project.ServiceLocator.ObjectRepository.NewObject(
+                        src_context.ClassID)
+                    # Deep clone all properties
+                    clone_properties(src_context, new_context, self.project)
+                    duplicate.RightContextOA = new_context
+                except Exception:
+                    pass
 
         return duplicate
-
-    def __CopyContextObject(self, source_context):
-        """
-        Helper method to deep copy a phonological context object.
-
-        Args:
-            source_context: The source context object to copy.
-
-        Returns:
-            The duplicated context object.
-
-        Notes:
-            - Context objects are complex and may have owned objects
-            - This method uses SetCloneProperties pattern for deep cloning
-        """
-        # Deep copy using SetCloneProperties (FieldWorks pattern)
-        try:
-            # Create new object of the same type
-            new_obj = self.project.project.ServiceLocator.ObjectRepository.NewObject(
-                source_context.ClassID)
-
-            # Copy all properties using SetCloneProperties if available
-            if hasattr(source_context, 'SetCloneProperties'):
-                source_context.SetCloneProperties(new_obj)
-                return new_obj
-            else:
-                return None
-        except Exception:
-            # If cloning fails, return None
-            return None
 
     # --- Private Helper Methods ---
 

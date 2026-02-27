@@ -310,7 +310,9 @@ class PhonemeOperations(BaseOperations):
 
         # Handle owned objects if deep=True
         if deep:
-            # Deep copy FeaturesOA using SetCloneProperties
+            from ..lcm_casting import clone_properties
+
+            # Deep copy FeaturesOA (feature structure)
             if hasattr(source, 'FeaturesOA') and source.FeaturesOA:
                 # Create new feature structure and copy all properties
                 try:
@@ -322,20 +324,24 @@ class PhonemeOperations(BaseOperations):
                     # Set as the feature structure for this phoneme
                     duplicate.FeaturesOA = new_features
 
-                    # Copy all properties using SetCloneProperties if available
-                    if hasattr(source_features, 'SetCloneProperties'):
-                        source_features.SetCloneProperties(new_features)
+                    # Deep clone all properties using clone_properties
+                    clone_properties(source_features, new_features, self.project)
                 except Exception:
                     # Cannot copy complex feature structure - skip
                     pass
 
             # Duplicate codes (allophonic representations)
-            for code in source.CodesOS:
-                code_factory = self.project.project.ServiceLocator.GetService(IPhCodeFactory)
-                new_code = code_factory.Create()
-                duplicate.CodesOS.Add(new_code)
-                # Copy code properties
-                new_code.Representation.CopyAlternatives(code.Representation)
+            if hasattr(source, 'CodesOS') and source.CodesOS.Count > 0:
+                for code in source.CodesOS:
+                    try:
+                        code_factory = self.project.project.ServiceLocator.GetService(IPhCodeFactory)
+                        new_code = code_factory.Create()
+                        duplicate.CodesOS.Add(new_code)
+                        # Deep clone code properties using clone_properties
+                        clone_properties(code, new_code, self.project)
+                    except Exception:
+                        # Skip any code that fails to copy
+                        pass
 
         return duplicate
 
