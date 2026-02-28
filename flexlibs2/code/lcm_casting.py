@@ -503,6 +503,66 @@ def cast_phonological_rule(rule_obj):
         return rule_obj
 
 
+def validate_merge_compatibility(survivor_obj, victim_obj):
+    """
+    Validate that two objects can be safely merged.
+
+    Checks that both objects are of the same class and, for objects with multiple
+    concrete implementations, that they have the same concrete type. This prevents
+    merging incompatible types (e.g., PhRegularRule into PhMetathesisRule).
+
+    Args:
+        survivor_obj: The object that will receive merged data.
+        victim_obj: The object that will be deleted/merged into survivor.
+
+    Returns:
+        tuple: (is_compatible, error_message)
+            - (True, "") if merge is safe
+            - (False, error_message) if merge should be blocked
+
+    Example::
+
+        from flexlibs2.code.lcm_casting import validate_merge_compatibility
+
+        # Validate before merging
+        is_ok, msg = validate_merge_compatibility(entry1, entry2)
+        if not is_ok:
+            raise FP_ParameterError(msg)
+
+        # Works for all object types
+        is_ok, msg = validate_merge_compatibility(rule1, rule2)
+        is_ok, msg = validate_merge_compatibility(sense1, sense2)
+
+    Notes:
+        - Both objects must have a ClassName attribute
+        - For types with multiple concrete implementations (like phonological rules),
+          both must have the same ClassName (e.g., both PhRegularRule)
+        - For other types, same ClassName is sufficient
+        - Prevents data corruption from merging incompatible object types
+    """
+    # Check that both objects exist and have ClassName
+    if not hasattr(survivor_obj, 'ClassName'):
+        return False, "Survivor object has no ClassName attribute"
+
+    if not hasattr(victim_obj, 'ClassName'):
+        return False, "Victim object has no ClassName attribute"
+
+    survivor_class = survivor_obj.ClassName
+    victim_class = victim_obj.ClassName
+
+    # Classes must match exactly
+    if survivor_class != victim_class:
+        return False, (
+            f"Cannot merge different classes: {victim_class} into {survivor_class}. "
+            f"Objects must be of the same type."
+        )
+
+    # For types with multiple concrete implementations, additional checks
+    # could be added here. Currently, ClassName uniquely identifies the concrete type.
+
+    return True, ""
+
+
 def get_from_pos_from_msa(msa):
     """
     Get the source Part of Speech from a derivational MSA.

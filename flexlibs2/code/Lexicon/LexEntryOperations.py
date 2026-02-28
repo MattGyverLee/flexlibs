@@ -2630,9 +2630,11 @@ class LexEntryOperations(BaseOperations):
         survivor = self.__ResolveObject(survivor_or_hvo)
         victim = self.__ResolveObject(victim_or_hvo)
 
-        # Validate same class
-        if survivor.ClassName != victim.ClassName:
-            raise FP_ParameterError(f"Cannot merge different classes: {survivor.ClassName} vs {victim.ClassName}")
+        # Validate merge compatibility (same class, same concrete type if applicable)
+        from ..lcm_casting import validate_merge_compatibility
+        is_compatible, error_msg = validate_merge_compatibility(survivor, victim)
+        if not is_compatible:
+            raise FP_ParameterError(error_msg)
 
         # Don't merge an entry into itself
         if survivor.Hvo == victim.Hvo:

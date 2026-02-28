@@ -899,6 +899,12 @@ class SegmentOperations(BaseOperations):
         segment1 = self.__GetSegmentObject(segment1_or_hvo)
         segment2 = self.__GetSegmentObject(segment2_or_hvo)
 
+        # Validate merge compatibility (same class, same concrete type)
+        from ..lcm_casting import validate_merge_compatibility
+        is_compatible, error_msg = validate_merge_compatibility(segment1, segment2)
+        if not is_compatible:
+            raise FP_ParameterError(error_msg)
+
         # Check they have the same owner
         if segment1.Owner != segment2.Owner:
             raise FP_ParameterError("Segments must be in the same paragraph")
