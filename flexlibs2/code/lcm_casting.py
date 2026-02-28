@@ -59,6 +59,9 @@ Usage::
 Supported Types:
     - MSA types: MoStemMsa, MoDerivAffMsa, MoInflAffMsa, MoUnclassifiedAffixMsa
     - Allomorph types: MoStemAllomorph, MoAffixAllomorph
+    - Phonological rule types: PhRegularRule, PhMetathesisRule, PhReduplicationRule
+    - Compound rule types: MoEndoCompound, MoExoCompound
+    - Morphosyntactic prohibition types: MoAdhocProhibGr, MoAdhocProhibMorph, MoAdhocProhibAllomorph
 
 Note:
     The interface cache is lazy-loaded on first use to avoid import issues
@@ -71,7 +74,7 @@ _interface_cache = {}
 _interfaces_loaded = False
 
 
-def _ensure_interfaces():
+def _ensure_interfaces() -> None:
     """
     Load and cache LCM interface types from SIL.LCModel.
 
@@ -128,6 +131,41 @@ def _ensure_interfaces():
         IPhRegularRule = IPhMetathesisRule = IPhReduplicationRule = None
         IPhSimpleContextSeg = IPhSimpleContextNC = IPhSegRuleRHS = None
 
+    # Compound rule interfaces - try to import, but don't fail if unavailable
+    # These are the two main compound rule types:
+    # - MoEndoCompound: Head is internal to the compound
+    # - MoExoCompound: Head is external to the compound
+    try:
+        from SIL.LCModel import (
+            IMoEndoCompound,
+            IMoExoCompound,
+        )
+    except ImportError:
+        IMoEndoCompound = IMoExoCompound = None
+
+    # Morphosyntactic prohibition interfaces - try to import, but don't fail if unavailable
+    # These are the three main ad hoc prohibition types:
+    # - MoAdhocProhibGr: Grammatical feature prohibitions
+    # - MoAdhocProhibMorph: Morpheme co-occurrence prohibitions
+    # - MoAdhocProhibAllomorph: Allomorph co-occurrence prohibitions
+    try:
+        from SIL.LCModel import (
+            IMoAdhocProhibGr,
+            IMoAdhocProhibMorph,
+            IMoAdhocProhibAllomorph,
+        )
+    except ImportError:
+        IMoAdhocProhibGr = IMoAdhocProhibMorph = IMoAdhocProhibAllomorph = None
+
+    # Affix template interface - try to import, but don't fail if unavailable
+    # - MoInflAffixTemplate: Inflectional affix template patterns
+    try:
+        from SIL.LCModel import (
+            IMoInflAffixTemplate,
+        )
+    except ImportError:
+        IMoInflAffixTemplate = None
+
     _interface_cache = {
         # MSA types - used for grammatical category assignment
         'MoStemMsa': IMoStemMsa,
@@ -157,6 +195,26 @@ def _ensure_interfaces():
         _interface_cache['PhSimpleContextNC'] = IPhSimpleContextNC
     if IPhSegRuleRHS is not None:
         _interface_cache['PhSegRuleRHS'] = IPhSegRuleRHS
+
+    # Add compound rule types if imports succeeded
+    # The 2 main compound rule types in FLEx morphology:
+    if IMoEndoCompound is not None:
+        _interface_cache['MoEndoCompound'] = IMoEndoCompound
+    if IMoExoCompound is not None:
+        _interface_cache['MoExoCompound'] = IMoExoCompound
+
+    # Add morphosyntactic prohibition types if imports succeeded
+    # The 3 main ad hoc prohibition types in FLEx morphology:
+    if IMoAdhocProhibGr is not None:
+        _interface_cache['MoAdhocProhibGr'] = IMoAdhocProhibGr
+    if IMoAdhocProhibMorph is not None:
+        _interface_cache['MoAdhocProhibMorph'] = IMoAdhocProhibMorph
+    if IMoAdhocProhibAllomorph is not None:
+        _interface_cache['MoAdhocProhibAllomorph'] = IMoAdhocProhibAllomorph
+
+    # Add affix template type if import succeeded
+    if IMoInflAffixTemplate is not None:
+        _interface_cache['MoInflAffixTemplate'] = IMoInflAffixTemplate
 
     _interfaces_loaded = True
 
@@ -362,7 +420,7 @@ def clone_properties(source_obj, dest_obj, project=None):
     if project is None and hasattr(dest, 'OwnerOfClass'):
         try:
             project = dest.OwnerOfClass.project
-        except:
+        except Exception:
             pass
 
     # Get all properties from the source object
@@ -414,7 +472,7 @@ def clone_properties(source_obj, dest_obj, project=None):
             pass
 
 
-def _get_factory_for_class(class_name, project):
+def _get_factory_for_class(class_name: str, project: object) -> 'Optional[object]':
     """
     Get the factory for creating an object of the given class.
 

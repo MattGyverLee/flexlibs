@@ -116,7 +116,7 @@ class PhonologicalRule(LCMObjectWrapper):
     # ========== Common Properties (work across all rule types) ==========
 
     @property
-    def name(self):
+    def name(self) -> str:
         """
         Get the rule's name.
 
@@ -140,7 +140,7 @@ class PhonologicalRule(LCMObjectWrapper):
             return ""
 
     @property
-    def direction(self):
+    def direction(self) -> int:
         """
         Get the direction of rule application.
 
@@ -161,7 +161,7 @@ class PhonologicalRule(LCMObjectWrapper):
             return 0
 
     @property
-    def stratum(self):
+    def stratum(self) -> 'Optional[object]':
         """
         Get the stratum this rule applies in.
 
@@ -181,7 +181,7 @@ class PhonologicalRule(LCMObjectWrapper):
             return None
 
     @property
-    def input_contexts(self):
+    def input_contexts(self) -> 'ContextCollection':
         """
         Get the input contexts (structural description) for this rule.
 

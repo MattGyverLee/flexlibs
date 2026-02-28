@@ -112,7 +112,7 @@ class PhonologicalContext(LCMObjectWrapper):
     # ========== Common Properties (work across all context types) ==========
 
     @property
-    def context_name(self):
+    def context_name(self) -> str:
         """
         Get the context's name or identifier.
 
@@ -136,7 +136,7 @@ class PhonologicalContext(LCMObjectWrapper):
             return ""
 
     @property
-    def description(self):
+    def description(self) -> str:
         """
         Get the context's description if available.
 
@@ -305,7 +305,7 @@ class PhonologicalContext(LCMObjectWrapper):
     # ========== Type-Specific Property Access (via capability checks) ==========
 
     @property
-    def segment(self):
+    def segment(self) -> 'Optional[object]':
         """
         Get the segment from a simple segment context.
 
@@ -334,7 +334,7 @@ class PhonologicalContext(LCMObjectWrapper):
             return None
 
     @property
-    def natural_class(self):
+    def natural_class(self) -> 'Optional[object]':
         """
         Get the natural class from a simple natural class context.
 
