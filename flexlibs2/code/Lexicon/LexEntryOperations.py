@@ -283,7 +283,7 @@ class LexEntryOperations(BaseOperations):
         # Delete the entry (LCM handles removal from repository)
         entry.Delete()
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
+    def Duplicate(self, item_or_hvo, deep=True):
         """
         Duplicate a lexical entry, creating a new entry with the same properties.
 
@@ -296,9 +296,6 @@ class LexEntryOperations(BaseOperations):
 
         Args:
             item_or_hvo: Either an ILexEntry object or its HVO (database ID)
-            insert_after (bool): If True, insert the new entry after the original
-                in the lexicon. If False, append to the end. Note: FLEx lexicon
-                is typically sorted alphabetically, so this may have limited effect.
             deep (bool): If True (default), recursively duplicate all owned objects
                 (senses, allomorphs, pronunciations, etymologies). If False, only
                 duplicate the entry shell (lexeme form, citation form, morph type).
@@ -348,7 +345,7 @@ class LexEntryOperations(BaseOperations):
               or complex form of the same components
             - Import residue is copied
             - Date created/modified are set to current time for duplicate
-            - insert_after parameter has limited effect since lexicon is sorted
+            - Lexicon entries are automatically sorted alphabetically by FLEx
 
         See Also:
             Create, Delete, project.Senses.Duplicate, project.Allomorphs.Duplicate

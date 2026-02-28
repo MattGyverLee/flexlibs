@@ -201,7 +201,7 @@ class TextOperations(BaseOperations):
         # Remove from collection
         self.project.lp.TextsOC.Remove(text_obj)
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
+    def Duplicate(self, item_or_hvo, deep=True):
         """
         Duplicate a text, creating a new text with the same properties.
 
@@ -211,9 +211,6 @@ class TextOperations(BaseOperations):
 
         Args:
             item_or_hvo: Either an IText object or its HVO (integer identifier)
-            insert_after (bool): Not applicable for texts (they are added to
-                project-level collection, not a sequence). Parameter kept for
-                consistency with other Duplicate() methods.
             deep (bool): If True (default), recursively duplicate all paragraphs
                 and segments. If False, only duplicate the text shell (name, genre).
 
@@ -254,7 +251,6 @@ class TextOperations(BaseOperations):
             - Genre is copied (if set)
             - Abbreviation is copied (if set)
             - With deep=True, all paragraphs are recursively duplicated
-            - insert_after parameter is ignored (texts are not in a sequence)
 
         See Also:
             Create, Delete, project.Paragraphs.Duplicate

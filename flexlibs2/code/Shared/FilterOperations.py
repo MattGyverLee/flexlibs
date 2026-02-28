@@ -1215,8 +1215,6 @@ class FilterOperations:
 
         Args:
             item_or_hvo: The filter dict object to duplicate (not HVO-based).
-            insert_after (bool): Not applicable for filters (ignored).
-            deep (bool): Not applicable for filters (ignored).
 
         Returns:
             dict: The newly created duplicate filter with a new GUID.

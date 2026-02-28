@@ -357,9 +357,10 @@ class AllomorphOperations(BaseOperations):
             from SIL.LCModel import IMoAffixAllomorphFactory
             factory = self.project.project.ServiceLocator.GetService(IMoAffixAllomorphFactory)
         else:
-            # Default to stem allomorph factory
-            from SIL.LCModel import IMoStemAllomorphFactory
-            factory = self.project.project.ServiceLocator.GetService(IMoStemAllomorphFactory)
+            # Unrecognized allomorph type - raise error instead of defaulting
+            raise FP_ParameterError(
+                f"Unrecognized allomorph type: {class_name}. "
+                f"Expected 'MoStemAllomorph' or 'MoAffixAllomorph'.")
 
         # Create new allomorph using factory (auto-generates new GUID)
         duplicate = factory.Create()

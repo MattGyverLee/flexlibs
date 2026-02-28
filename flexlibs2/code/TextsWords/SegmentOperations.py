@@ -546,8 +546,6 @@ class SegmentOperations(BaseOperations):
             item_or_hvo: Either an ISegment object or its HVO (integer identifier)
             insert_after (bool): If True, insert the duplicate after the original
                 segment in the paragraph. If False, append to the end of the paragraph.
-            deep (bool): Currently not used for segments (analyses are never copied).
-                Parameter kept for consistency with other Duplicate() methods.
 
         Returns:
             ISegment: The newly created duplicate segment
@@ -581,7 +579,7 @@ class SegmentOperations(BaseOperations):
             - Free translation and literal translation are copied
             - Analyses are NOT copied (complex and context-dependent)
             - Segment is inserted after original if insert_after=True
-            - deep parameter is ignored (analyses never copied)
+            - If insert_after=True and positioning fails, segment is appended to end
 
         See Also:
             Create, Delete, GetAll, SetBaselineText
@@ -625,8 +623,11 @@ class SegmentOperations(BaseOperations):
                 # Insert at correct position (after original)
                 owner.SegmentsOS.Insert(current_index + 1, new_segment)
             except ValueError:
-                # Segment not found in list, leave at end
-                pass
+                # Segment not found in list - log warning and leave at end
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Could not find original segment in paragraph SegmentsOS. "
+                             f"Duplicate will be appended to end instead of inserted after original.")
 
         return new_segment
 

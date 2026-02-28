@@ -707,13 +707,12 @@ class WordformOperations(BaseOperations):
 
         wordform.SpellingStatus = SpellingStatusStates.CORRECT
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, deep=False):
         """
         Duplicate a wordform, creating a new copy with a new GUID.
 
         Args:
             item_or_hvo: The IWfiWordform object or HVO to duplicate.
-            insert_after (bool): Not applicable for wordforms (ignored).
             deep (bool): If True, also duplicate analyses.
                         If False (default), only copy wordform properties.
 

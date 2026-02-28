@@ -240,7 +240,7 @@ class MediaOperations(BaseOperations):
         # Note: LCModel handles cascading deletion of references
         self.project.cache.DomainDataByFlid.DeleteObj(media.Hvo)
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, deep=False):
         """
         Duplicate a media file reference, creating a new reference to the same file.
 
@@ -251,9 +251,6 @@ class MediaOperations(BaseOperations):
 
         Args:
             item_or_hvo: Either an ICmFile object or its HVO (database ID)
-            insert_after (bool): Not applicable for media files (they are not in
-                a sequence). Parameter kept for consistency with other Duplicate()
-                methods.
             deep (bool): If True, the physical file is also copied with a new name.
                 If False, only the database reference is duplicated (both references
                 point to the same file).
@@ -285,7 +282,6 @@ class MediaOperations(BaseOperations):
             - Deleting the file affects both references
             - With deep=True, the file is physically copied (doubles disk space)
             - The duplicate will have a " (copy)" suffix in the label
-            - insert_after parameter is ignored (media not in a sequence)
 
         Notes:
             - Duplicated reference is added to the project database
@@ -294,7 +290,6 @@ class MediaOperations(BaseOperations):
             - Label is copied with " (copy)" suffix
             - With deep=False, both references share the same physical file
             - With deep=True, a new file is created with "_copy" suffix
-            - insert_after parameter is ignored (media files not in sequence)
 
         See Also:
             Create, Delete, CopyToProject

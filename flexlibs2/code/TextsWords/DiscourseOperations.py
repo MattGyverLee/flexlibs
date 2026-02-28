@@ -1010,8 +1010,9 @@ class DiscourseOperations(BaseOperations):
             item_or_hvo: The chart object or HVO to duplicate.
             insert_after (bool): If True (default), insert after the source chart.
                                 If False, insert at end of text's chart collection.
-            deep (bool): If True (default), also duplicate rows and cells.
-                        If False, only copy chart properties.
+            deep (bool): If True (default), also duplicate rows (structure only, empty).
+                        If False, only copy chart properties. Note: Row contents and
+                        cells are not duplicated (requires complex cell mapping logic).
 
         Returns:
             Chart object: The newly created duplicate with a new GUID.
@@ -1025,17 +1026,21 @@ class DiscourseOperations(BaseOperations):
             >>> text = list(project.Texts.GetAll())[0]
             >>> charts = list(discourse_ops.GetAllCharts(text))
             >>> if charts:
-            ...     # Deep duplicate (default: with rows and cells)
+            ...     # Deep duplicate (creates empty row structure)
             ...     dup = discourse_ops.Duplicate(charts[0])  # deep=True by default
             ...     print(f"Duplicate: {discourse_ops.GetChartName(dup)}")
-            ...     # Shallow duplicate (properties only)
+            ...     row_count = len(list(discourse_ops.GetChartRows(dup)))
+            ...     # Shallow duplicate (properties/metadata only, no rows)
             ...     dup_shallow = discourse_ops.Duplicate(charts[0], deep=False)
+            ...     print(f"Shallow rows: {len(list(discourse_ops.GetChartRows(dup_shallow)))}")  # 0
 
         Notes:
             - Factory.Create() automatically generates a new GUID
             - MultiString property: Name
-            - Chart rows duplicated only if deep=True
-            - Chart structure can be complex, deep duplication may be slow
+            - Chart rows duplicated only if deep=True (creates empty row structure)
+            - Chart cells, word groups, and markers are NOT copied
+            - Use deep=False if you only need the chart metadata
+            - Full row/cell duplication requires complex cell content mapping logic
 
         See Also:
             CreateChart, DeleteChart, GetGuid
