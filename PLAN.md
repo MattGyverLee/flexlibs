@@ -126,6 +126,11 @@
   - `output_specs` property - get RHS if exists
   - `has_metathesis_parts` property - check for metathesis
   - `has_redup_parts` property - check for reduplication
+  - Direct C# class access (for users who know what they want):
+    - `as_regular_rule()` method - returns IPhRegularRule if this is one
+    - `as_metathesis_rule()` method - returns IPhMetathesisRule if this is one
+    - `as_reduplication_rule()` method - returns IPhReduplicationRule if this is one
+    - (Returns None if wrong type)
 
 **Task 2.1.2: Create rule_collection.py**
 - File: `flexlibs2/code/Grammar/rule_collection.py`
@@ -186,6 +191,11 @@
 - How to access properties
 - How to filter across types
 - How to check capabilities
+- **Optional: Direct C# class targeting**
+  - For users who know they want PhRegularRule specifically
+  - Show `as_regular_rule()`, `as_metathesis_rule()`, `as_reduplication_rule()`
+  - "If you know what you're looking for, you can access it directly"
+  - Clear that this is optional/advanced
 
 **Task 2.3.2: Update README.rst**
 - Add section on phonological rules
@@ -577,4 +587,101 @@ Low risk - changes are additive and can be removed cleanly.
 ✅ Provide better error messages
 ✅ Add convenient shortcut methods
 ✅ Enable more Pythonic usage patterns
+✅ **Optional:** Allow direct C# class targeting for users who know what they want
+
+---
+
+## Optional: Direct C# Class Targeting
+
+### For Users Who Know Exactly What They're Looking For
+
+Users who know they need "only PhRegularRule objects" or want "PhMetathesisRule specifically" can access them directly:
+
+```python
+# The easy way - no knowledge of C# types required
+rules = phonRuleOps.GetAll()
+for rule in rules:
+    if rule.has_output_specs:
+        process(rule)
+
+# The direct way - if you know you want PhRegularRule specifically
+rule = phonRuleOps.GetAll().regular_rules()[0]
+# This is actually a PhonologicalRule, but calling:
+regular = rule.as_regular_rule()
+# Returns the actual IPhRegularRule for advanced operations
+# Returns None if this rule isn't actually a PhRegularRule
+
+# Or for users who know C# class names:
+for rule in phonRuleOps.GetAll():
+    if rule.class_type == 'PhRegularRule':
+        concrete = rule.as_regular_rule()
+        # Now you have the actual IPhRegularRule
+        for rhs in concrete.RightHandSidesOS:
+            process(rhs)
+```
+
+### Design Principle
+
+**Don't require it, but don't hide it.**
+
+- ✅ Beginning users never need to know about C# classes
+- ✅ Intermediate users can use convenience filters (`.regular_rules()`)
+- ✅ Advanced users can access concrete types directly if needed
+- ✅ Power users can drop down to raw LCM objects via `._obj` or `._concrete`
+
+### Implementation in Wrapper
+
+```python
+class PhonologicalRule(LCMObjectWrapper):
+    # Properties for users who don't know the types
+    @property
+    def has_output_specs(self):
+        return hasattr(self._concrete, 'RightHandSidesOS')
+
+    # Methods for users who DO know the types
+    def as_regular_rule(self):
+        """Get as IPhRegularRule if applicable, None otherwise."""
+        if self.class_type == 'PhRegularRule':
+            return self._concrete
+        return None
+
+    def as_metathesis_rule(self):
+        """Get as IPhMetathesisRule if applicable, None otherwise."""
+        if self.class_type == 'PhMetathesisRule':
+            return self._concrete
+        return None
+
+    def as_reduplication_rule(self):
+        """Get as IPhReduplicationRule if applicable, None otherwise."""
+        if self.class_type == 'PhReduplicationRule':
+            return self._concrete
+        return None
+
+    # For advanced users who want raw access
+    @property
+    def concrete(self):
+        """Get the concrete LCM interface directly (advanced use only)."""
+        return self._concrete
+```
+
+### Documentation in User Guide
+
+```markdown
+## For Users Who Know Their C# Classes
+
+FlexLibs2 doesn't require you to know about C# classes. But if you do
+know what you're looking for, you can access it directly:
+
+### If you know you want PhRegularRule:
+- Option 1: `rules.regular_rules()` - Convenient filter
+- Option 2: `rule.as_regular_rule()` - Direct access if you have a rule object
+- Option 3: Access raw object via `rule.concrete` - Full power
+
+### The philosophy:
+- **Beginners:** Use simple properties and filters
+- **Intermediate:** Use type-specific collection filters
+- **Advanced:** Use `as_*_rule()` methods or drop to raw LCM objects
+
+You never HAVE to know C# classes, but you CAN if you want to.
+```
 
