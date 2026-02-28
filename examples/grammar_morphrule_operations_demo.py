@@ -111,10 +111,10 @@ def demo_morphrule_crud():
         # Create affix template on first POS (if available)
         print(f"\nCreating affix template: '{test_template_name}'")
         try:
-            pos_list = project.lp.PartsOfSpeechOA
-            if pos_list and pos_list.PossibilitiesOS.Count > 0:
-                first_pos = pos_list.PossibilitiesOS[0]
-                pos_name = first_pos.Name.BestAnalysisAlternative.Text
+            pos_list = project.lp.PartsOfSpeechOA  # type: ignore[attr-defined]
+            if pos_list and pos_list.PossibilitiesOS.Count > 0:  # type: ignore[attr-defined]
+                first_pos = pos_list.PossibilitiesOS[0]  # type: ignore[attr-defined]
+                pos_name = first_pos.Name.BestAnalysisAlternative.Text  # type: ignore[attr-defined]
                 print(f"  Using POS: {pos_name}")
 
                 test_template = project.MorphRules.CreateAffixTemplate(

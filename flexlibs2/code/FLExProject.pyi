@@ -73,6 +73,11 @@ class FLExProject:
     ProjectName: str
     ProjectPath: str
 
+    # Low-level LCM API properties (for advanced use)
+    project: Any  # Direct access to FdoCache
+    lp: Any  # Direct access to LangProject (LcmCache.LanguageProject)
+    lexDB: Any  # Direct access to LexDb (LangProject.LexDbOA)
+
     # Grammar operations
     @property
     def POS(self) -> POSOperations: ...
