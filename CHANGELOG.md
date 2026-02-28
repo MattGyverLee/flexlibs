@@ -7,6 +7,74 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.3.0] - 2026-02-28
+
+### Added
+
+#### Extended Wrapper Classes
+- **Allomorph**: Wrapper for allomorph variants and forms
+  - Form and gloss access with normalization
+  - Environment context tracking
+  - Variant relationship management
+
+- **CompoundRule**: Wrapper for compound rule definitions
+  - Rule component access
+  - Directional compound rules
+  - Integration with morpheme inventories
+
+- **AdhocProhibition**: Wrapper for morphosyntactic prohibitions
+  - Prohibited morpheme combinations
+  - Context-aware blocking rules
+  - Exception handling
+
+- **Annotation**: Wrapper for project annotations and notes
+  - Annotation type identification
+  - Content and metadata access
+  - Author and timestamp tracking
+
+- **AffixTemplate**: Wrapper for morpheme slot templates
+  - Slot configuration and ordering
+  - Prefix and suffix slot management
+  - Obligatory/optional slot constraints
+
+#### Smart Collections (Extended)
+- **AllomorphCollection**: Type-aware collection for allomorphs
+- **CompoundRuleCollection**: Unified collection for compound rules
+- **ProhibitionCollection**: Collection for morphosyntactic prohibitions
+- **AnnotationCollection**: Collection for project annotations
+- **AffixTemplateCollection**: Collection for affix templates
+
+#### Type Hints and IDE Support
+- Python type hints on all wrapper class properties (18+ properties)
+- Improved IDE autocomplete and type checking
+- Better static analysis support
+
+#### Documentation
+- **USAGE_ALLOMORPHS.md**: Allomorph operations guide
+- **USAGE_COMPOUND_RULES.md**: Compound rule operations guide
+- **USAGE_PROHIBITIONS.md**: Morphosyntactic prohibition guide
+- **USAGE_ANNOTATIONS.md**: Annotation operations guide
+- **USAGE_AFFIX_TEMPLATES.md**: Affix template operations guide
+
+### Improved
+
+- **Code Quality**: Type hints across all wrapper classes
+- **Documentation**: Usage guides for all new domains
+- **Test Coverage**: Extended test suite for new wrappers
+- **API Consistency**: All collections follow unified interface
+
+### Backward Compatibility
+
+- **100% Maintained**: All v2.0 and v2.1 APIs unchanged
+- **Additive Only**: New wrappers don't modify existing functionality
+- **Mixed Usage**: Old and new approaches coexist seamlessly
+
+### Deprecation Notices
+
+None. All previous APIs remain fully functional.
+
+---
+
 ## [2.2.0] - 2025-02-28
 
 ### Added
@@ -169,55 +237,42 @@ See git history for previous changelog entries.
 
 ## How to Upgrade
 
-### From v2.1.x to v2.2.0
+### From Earlier Versions to v2.3.0
 
 No action required. Simply upgrade the package:
 
 ```bash
-pip install flexlibs2==2.2.0
+pip install flexlibs2==2.3.0
 ```
 
-Existing code will continue to work unchanged.
+Existing code will continue to work unchanged. All v2.0, v2.1, and v2.2 APIs remain fully functional.
 
-### Optional: Use New Features
+### Using Wrapper Classes
 
-To start using wrappers and smart collections:
+To use the latest wrappers for additional domains:
 
-1. Import wrapper classes:
-   ```python
-   from flexlibs2.wrappers import PhonologicalRule, RuleCollection
-   ```
+```python
+from flexlibs2.wrappers import Allomorph, CompoundRule, AffixTemplate
+from flexlibs2.collections import AllomorphCollection, CompoundRuleCollection
 
-2. Replace manual type checking with capability methods:
-   ```python
-   # Old: if rule.ClassName == 'PhRegularRule'
-   # New: if rule.has_output_specs
-   ```
+# Work with allomorphs transparently
+allomorphs = project.Allomorph.GetAll()
+for allomorph in allomorphs:
+    print(f"{allomorph.form}: {allomorph.gloss}")
+```
 
-3. Use convenience filters on collections:
-   ```python
-   regular_rules = rules.regular_rules
-   metathesis_rules = rules.metathesis_rules
-   ```
-
-See MIGRATION.md for detailed guidance.
+Existing code continues to work without modification.
 
 ---
 
 ## Future Roadmap
-
-### v2.3.0 (Planned)
-
-- Extended wrapper support for additional domains
-- Wrapper classes for Lexicon entry types
-- Wrapper classes for Text/Wordform operations
-- Enhanced filtering capabilities
 
 ### v2.4.0 (Planned)
 
 - Performance optimizations for large collections
 - Advanced query builder pattern
 - Integration with FLEx import/export
+- Extended wrapper support for remaining domains
 
 ### v3.0.0 (Future)
 
@@ -235,8 +290,9 @@ See CONTRIBUTING.md for guidelines on contributing to FlexLibs2.
 
 ## Version Support
 
-- **v2.2.x**: Current stable release, actively maintained
-- **v2.1.x**: Previous stable, maintenance only
-- **v2.0.x**: Legacy, no new fixes
+- **v2.3.x**: Current stable release, actively maintained
+- **v2.2.x**: Previous stable, maintenance only
+- **v2.1.x**: Legacy, security fixes only
+- **v2.0.x**: End of life
 - **v1.x**: End of life
 
