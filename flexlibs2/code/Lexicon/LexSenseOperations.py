@@ -256,7 +256,7 @@ class LexSenseOperations(BaseOperations):
             # Subsense owned by another sense
             owner.SensesOS.Remove(sense)
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
         """
         Duplicate a sense, creating a new copy with a new GUID.
 
@@ -264,8 +264,8 @@ class LexSenseOperations(BaseOperations):
             item_or_hvo: The ILexSense object or HVO to duplicate.
             insert_after (bool): If True (default), insert after the source sense.
                                 If False, insert at end of parent's sense list.
-            deep (bool): If True, also duplicate owned objects (subsenses, examples, pictures).
-                        If False (default), only copy simple properties and references.
+            deep (bool): If True (default), also duplicate owned objects (subsenses, examples, pictures).
+                        If False, only copy simple properties and references.
 
         Returns:
             ILexSense: The newly created duplicate sense with a new GUID.
@@ -278,16 +278,16 @@ class LexSenseOperations(BaseOperations):
             >>> entry = list(project.LexiconAllEntries())[0]
             >>> senses = list(project.Senses.GetAll(entry))
             >>> if senses:
-            ...     # Shallow duplicate (no examples/subsenses)
-            ...     dup = project.Senses.Duplicate(senses[0])
+            ...     # Deep duplicate (default: includes all owned objects)
+            ...     dup = project.Senses.Duplicate(senses[0])  # deep=True by default
             ...     print(f"Original: {project.Senses.GetGuid(senses[0])}")
             ...     print(f"Duplicate: {project.Senses.GetGuid(dup)}")
+            ...     print(f"Examples: {project.Senses.GetExampleCount(dup)}")
             Original: 12345678-1234-1234-1234-123456789abc
             Duplicate: 87654321-4321-4321-4321-cba987654321
             ...
-            ...     # Deep duplicate (includes all owned objects)
-            ...     deep_dup = project.Senses.Duplicate(senses[0], deep=True)
-            ...     print(f"Examples: {project.Senses.GetExampleCount(deep_dup)}")
+            ...     # Shallow duplicate (no examples/subsenses)
+            ...     shallow_dup = project.Senses.Duplicate(senses[0], deep=False)
 
         Notes:
             - Factory.Create() automatically generates a new GUID

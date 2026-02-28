@@ -909,7 +909,7 @@ class ReversalOperations(BaseOperations):
 
         return list(reversal_entry.PartsOfSpeechRC)
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
         """
         Duplicate a reversal entry, creating a new copy with a new GUID.
 
@@ -917,8 +917,8 @@ class ReversalOperations(BaseOperations):
             item_or_hvo: The IReversalIndexEntry object or HVO to duplicate.
             insert_after (bool): If True (default), insert after the source entry.
                                 If False, insert at end of parent's entry list.
-            deep (bool): If True, also duplicate owned objects (subentries).
-                        If False (default), only copy simple properties and references.
+            deep (bool): If True (default), also duplicate owned objects (subentries).
+                        If False, only copy simple properties and references.
 
         Returns:
             IReversalIndexEntry: The newly created duplicate entry with a new GUID.

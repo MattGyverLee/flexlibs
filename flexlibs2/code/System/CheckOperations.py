@@ -1318,7 +1318,7 @@ class CheckOperations(BaseOperations):
             return f"Issue with '{normalize_text(obj.HeadWord.Text)}'"
         return "Issue found"
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
         """
         Duplicate a check type, creating a new copy with a new GUID.
 
@@ -1326,8 +1326,8 @@ class CheckOperations(BaseOperations):
             item_or_hvo: The ICmPossibility check object or HVO to duplicate.
             insert_after (bool): If True (default), insert after the source check.
                                 If False, insert at end of parent's list.
-            deep (bool): If True, also duplicate sub-checks.
-                        If False (default), only copy simple properties.
+            deep (bool): If True (default), also duplicate sub-checks.
+                        If False, only copy simple properties.
 
         Returns:
             ICmPossibility: The newly created duplicate with a new GUID.

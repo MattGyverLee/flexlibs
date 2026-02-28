@@ -1641,7 +1641,7 @@ class AnthropologyOperations(BaseOperations):
         if hasattr(item, 'ResearchersRC'):
             item.ResearchersRC.Remove(person_obj)
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
         """
         Duplicate an anthropology item, creating a new copy with a new GUID.
 
@@ -1649,8 +1649,8 @@ class AnthropologyOperations(BaseOperations):
             item_or_hvo: The ICmAnthroItem object or HVO to duplicate.
             insert_after (bool): If True (default), insert after the source item.
                                 If False, insert at end of parent's subitems list.
-            deep (bool): If True, also duplicate owned objects (subitems).
-                        If False (default), only copy simple properties and references.
+            deep (bool): If True (default), also duplicate owned objects (subitems).
+                        If False, only copy simple properties and references.
 
         Returns:
             ICmAnthroItem: The newly created duplicate item with a new GUID.

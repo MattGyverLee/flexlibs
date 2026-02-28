@@ -1035,7 +1035,7 @@ class AnnotationDefOperations(BaseOperations):
             return anno_def.DateCreated
         return None
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
         """
         Duplicate an annotation definition, creating a new copy with a new GUID.
 
@@ -1043,8 +1043,8 @@ class AnnotationDefOperations(BaseOperations):
             item_or_hvo: The ICmAnnotationDefn object or HVO to duplicate.
             insert_after (bool): If True (default), insert after the source definition.
                                 If False, insert at end of parent's list.
-            deep (bool): If True, also duplicate sub-possibilities.
-                        If False (default), only copy simple properties.
+            deep (bool): If True (default), also duplicate sub-possibilities.
+                        If False, only copy simple properties.
 
         Returns:
             ICmAnnotationDefn: The newly created duplicate with a new GUID.

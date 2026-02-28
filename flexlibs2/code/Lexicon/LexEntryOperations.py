@@ -283,14 +283,14 @@ class LexEntryOperations(BaseOperations):
         # Delete the entry (LCM handles removal from repository)
         entry.Delete()
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
         """
         Duplicate a lexical entry, creating a new entry with the same properties.
 
-        This method creates a copy of an existing entry. With deep=False, only
-        the entry shell (lexeme form, citation form, morph type) is duplicated.
-        With deep=True, all owned objects (senses, allomorphs, pronunciations,
-        etymologies) are recursively duplicated. Entry references (variants,
+        This method creates a copy of an existing entry. With deep=True (default),
+        all owned objects (senses, allomorphs, pronunciations, etymologies) are
+        recursively duplicated. With deep=False, only the entry shell (lexeme form,
+        citation form, morph type) is duplicated. Entry references (variants,
         complex forms) are NOT copied since they describe inter-entry
         relationships that don't apply to a duplicate.
 
@@ -299,9 +299,9 @@ class LexEntryOperations(BaseOperations):
             insert_after (bool): If True, insert the new entry after the original
                 in the lexicon. If False, append to the end. Note: FLEx lexicon
                 is typically sorted alphabetically, so this may have limited effect.
-            deep (bool): If False, only duplicate the entry shell (lexeme form,
-                citation form, morph type). If True, recursively duplicate all
-                owned objects (senses, allomorphs, pronunciations, etymologies).
+            deep (bool): If True (default), recursively duplicate all owned objects
+                (senses, allomorphs, pronunciations, etymologies). If False, only
+                duplicate the entry shell (lexeme form, citation form, morph type).
 
         Returns:
             ILexEntry: The newly created duplicate entry
@@ -312,6 +312,12 @@ class LexEntryOperations(BaseOperations):
             FP_ParameterError: If entry doesn't exist
 
         Example:
+            >>> # Deep duplicate (default: with all content)
+            >>> entry = project.LexEntry.Find("walk")
+            >>> duplicate = project.LexEntry.Duplicate(entry)  # deep=True by default
+            >>> print(project.LexEntry.GetSenseCount(duplicate))
+            3
+
             >>> # Shallow duplicate (entry shell only)
             >>> entry = project.LexEntry.Find("run")
             >>> duplicate = project.LexEntry.Duplicate(entry, deep=False)
@@ -319,12 +325,6 @@ class LexEntryOperations(BaseOperations):
             run
             >>> print(project.LexEntry.GetSenseCount(duplicate))
             0
-
-            >>> # Deep duplicate (with all content)
-            >>> entry = project.LexEntry.Find("walk")
-            >>> duplicate = project.LexEntry.Duplicate(entry, deep=True)
-            >>> print(project.LexEntry.GetSenseCount(duplicate))
-            3
 
         Warning:
             - deep=True for LexEntry can be slow for complex entries with many

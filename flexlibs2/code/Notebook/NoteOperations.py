@@ -245,7 +245,7 @@ class NoteOperations(BaseOperations):
         if hasattr(note, 'Delete'):
             note.Delete()
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
         """
         Duplicate a note, creating a new copy with a new GUID.
 
@@ -253,8 +253,8 @@ class NoteOperations(BaseOperations):
             item_or_hvo: The ICmBaseAnnotation (note) object or HVO to duplicate.
             insert_after (bool): If True (default), insert after the source note.
                                 If False, insert at end of owner's annotation list.
-            deep (bool): If True, also duplicate owned objects (replies).
-                        If False (default), only copy simple properties and references.
+            deep (bool): If True (default), also duplicate owned objects (replies).
+                        If False, only copy simple properties and references.
 
         Returns:
             ICmBaseAnnotation: The newly created duplicate note with a new GUID.

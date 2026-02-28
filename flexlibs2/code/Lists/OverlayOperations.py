@@ -352,7 +352,7 @@ class OverlayOperations(BaseOperations):
         else:
             raise FP_ParameterError("Overlay has no valid owner or cannot be removed")
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
         """
         Duplicate an overlay, creating a new copy with a new GUID.
 
@@ -360,8 +360,8 @@ class OverlayOperations(BaseOperations):
             item_or_hvo: Either an overlay object or its HVO to duplicate.
             insert_after (bool): If True (default), insert after the source overlay.
                                 If False, insert at end of owner's collection.
-            deep (bool): If True, also duplicate owned sub-possibilities.
-                        If False (default), only copy simple properties.
+            deep (bool): If True (default), also duplicate owned sub-possibilities.
+                        If False, only copy simple properties.
 
         Returns:
             Overlay object: The newly created duplicate overlay with a new GUID.

@@ -1002,7 +1002,7 @@ class DiscourseOperations(BaseOperations):
         else:
             raise FP_ParameterError("Chart object does not have a GUID")
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
         """
         Duplicate a chart, creating a new copy with a new GUID.
 
@@ -1010,8 +1010,8 @@ class DiscourseOperations(BaseOperations):
             item_or_hvo: The chart object or HVO to duplicate.
             insert_after (bool): If True (default), insert after the source chart.
                                 If False, insert at end of text's chart collection.
-            deep (bool): If True, also duplicate rows and cells.
-                        If False (default), only copy chart properties.
+            deep (bool): If True (default), also duplicate rows and cells.
+                        If False, only copy chart properties.
 
         Returns:
             Chart object: The newly created duplicate with a new GUID.
@@ -1025,8 +1025,11 @@ class DiscourseOperations(BaseOperations):
             >>> text = list(project.Texts.GetAll())[0]
             >>> charts = list(discourse_ops.GetAllCharts(text))
             >>> if charts:
-            ...     dup = discourse_ops.Duplicate(charts[0])
+            ...     # Deep duplicate (default: with rows and cells)
+            ...     dup = discourse_ops.Duplicate(charts[0])  # deep=True by default
             ...     print(f"Duplicate: {discourse_ops.GetChartName(dup)}")
+            ...     # Shallow duplicate (properties only)
+            ...     dup_shallow = discourse_ops.Duplicate(charts[0], deep=False)
 
         Notes:
             - Factory.Create() automatically generates a new GUID

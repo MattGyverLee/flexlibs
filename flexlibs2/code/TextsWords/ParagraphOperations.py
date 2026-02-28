@@ -229,20 +229,20 @@ class ParagraphOperations(BaseOperations):
         else:
             raise FP_ParameterError("Paragraph has no valid owner or cannot be removed")
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
         """
         Duplicate a paragraph, creating a new paragraph with the same content.
 
-        This method creates a copy of an existing paragraph. With deep=False, only
-        the paragraph text is duplicated. With deep=True, all segments are also
-        duplicated (though segments typically need re-parsing).
+        This method creates a copy of an existing paragraph. With deep=True (default),
+        all segments are also duplicated (though segments typically need re-parsing).
+        With deep=False, only the paragraph text is duplicated.
 
         Args:
             item_or_hvo: Either an IStTxtPara object or its HVO (integer identifier)
             insert_after (bool): If True, insert the duplicate after the original
                 paragraph in the text. If False, append to the end of the text.
-            deep (bool): If False, only duplicate the paragraph text. If True,
-                also duplicate all segments (though they may need re-parsing).
+            deep (bool): If True (default), also duplicate all segments (though they
+                may need re-parsing). If False, only duplicate the paragraph text.
 
         Returns:
             IStTxtPara: The newly created duplicate paragraph
@@ -254,14 +254,14 @@ class ParagraphOperations(BaseOperations):
                 if the paragraph has no valid owner text.
 
         Example:
-            >>> # Shallow duplicate (paragraph text only)
+            >>> # Deep duplicate (default: with segments, though they need re-parsing)
             >>> para = list(project.Paragraphs.GetAll(text))[0]
-            >>> duplicate = project.Paragraphs.Duplicate(para, insert_after=True)
+            >>> duplicate = project.Paragraphs.Duplicate(para, insert_after=True)  # deep=True by default
             >>> print(project.Paragraphs.GetText(duplicate))
             In the beginning...
 
-            >>> # Deep duplicate (with segments, though they need re-parsing)
-            >>> duplicate = project.Paragraphs.Duplicate(para, deep=True)
+            >>> # Shallow duplicate (paragraph text only)
+            >>> duplicate = project.Paragraphs.Duplicate(para, deep=False)
 
         Warning:
             - The duplicate will have identical content but a new GUID

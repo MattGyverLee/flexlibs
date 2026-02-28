@@ -1151,7 +1151,7 @@ class LocationOperations(BaseOperations):
 
         return new_location
 
-    def Duplicate(self, location_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, location_or_hvo, insert_after=True, deep=True):
         """
         Duplicate a location, creating a new copy with a new GUID.
 
@@ -1159,8 +1159,8 @@ class LocationOperations(BaseOperations):
             location_or_hvo: The ICmLocation object or HVO to duplicate.
             insert_after (bool): If True (default), insert after the source location.
                                 If False, insert at end of parent's sublocations list.
-            deep (bool): If True, also duplicate owned objects (sublocations).
-                        If False (default), only copy simple properties and references.
+            deep (bool): If True (default), also duplicate owned objects (sublocations).
+                        If False, only copy simple properties and references.
 
         Returns:
             ICmLocation: The newly created duplicate location with a new GUID.

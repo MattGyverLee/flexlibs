@@ -589,7 +589,7 @@ class PossibilityListOperations(BaseOperations):
             owner = self.__GetListOwner(item)
             owner.PossibilitiesOS.Remove(item)
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
         """
         Duplicate a possibility item, creating a new copy with a new GUID.
 
@@ -597,8 +597,8 @@ class PossibilityListOperations(BaseOperations):
             item_or_hvo: Either an ICmPossibility object or its HVO to duplicate.
             insert_after (bool): If True (default), insert after the source item.
                                 If False, insert at end of parent's collection.
-            deep (bool): If True, also duplicate owned subitems recursively.
-                        If False (default), only copy simple properties.
+            deep (bool): If True (default), also duplicate owned subitems recursively.
+                        If False, only copy simple properties.
 
         Returns:
             ICmPossibility: The newly created duplicate item with a new GUID.

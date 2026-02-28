@@ -201,21 +201,21 @@ class TextOperations(BaseOperations):
         # Remove from collection
         self.project.lp.TextsOC.Remove(text_obj)
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
         """
         Duplicate a text, creating a new text with the same properties.
 
-        This method creates a copy of an existing text. With deep=False, only
-        the text shell (name, genre, abbreviation) is duplicated. With deep=True,
-        all paragraphs and their segments are recursively duplicated.
+        This method creates a copy of an existing text. With deep=True (default),
+        all paragraphs and their segments are recursively duplicated. With deep=False,
+        only the text shell (name, genre, abbreviation) is duplicated.
 
         Args:
             item_or_hvo: Either an IText object or its HVO (integer identifier)
             insert_after (bool): Not applicable for texts (they are added to
                 project-level collection, not a sequence). Parameter kept for
                 consistency with other Duplicate() methods.
-            deep (bool): If False, only duplicate the text shell (name, genre).
-                If True, recursively duplicate all paragraphs and segments.
+            deep (bool): If True (default), recursively duplicate all paragraphs
+                and segments. If False, only duplicate the text shell (name, genre).
 
         Returns:
             IText: The newly created duplicate text
@@ -226,6 +226,12 @@ class TextOperations(BaseOperations):
             FP_ParameterError: If the text does not exist or is invalid.
 
         Example:
+            >>> # Deep duplicate (default: with all paragraphs)
+            >>> text = list(project.Texts.GetAll())[0]
+            >>> duplicate = project.Texts.Duplicate(text)  # deep=True by default
+            >>> print(project.Texts.GetParagraphCount(duplicate))
+            10
+
             >>> # Shallow duplicate (text shell only, no paragraphs)
             >>> text = list(project.Texts.GetAll())[0]
             >>> duplicate = project.Texts.Duplicate(text, deep=False)
@@ -233,12 +239,6 @@ class TextOperations(BaseOperations):
             Genesis (copy)
             >>> print(project.Texts.GetParagraphCount(duplicate))
             0
-
-            >>> # Deep duplicate (with all paragraphs)
-            >>> text = list(project.Texts.GetAll())[0]
-            >>> duplicate = project.Texts.Duplicate(text, deep=True)
-            >>> print(project.Texts.GetParagraphCount(duplicate))
-            10
 
         Warning:
             - deep=True for Text can be slow for long texts with many paragraphs

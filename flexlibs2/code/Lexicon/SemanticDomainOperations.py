@@ -971,7 +971,7 @@ class SemanticDomainOperations(BaseOperations):
             domain_list = self.project.lp.SemanticDomainListOA
             domain_list.PossibilitiesOS.Remove(domain)
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
         """
         Duplicate a semantic domain, creating a new copy with a new GUID.
 
@@ -979,8 +979,8 @@ class SemanticDomainOperations(BaseOperations):
             item_or_hvo: The ICmSemanticDomain object or HVO to duplicate.
             insert_after (bool): If True (default), insert after the source domain.
                                 If False, insert at end of parent's subdomain list.
-            deep (bool): If True, also duplicate owned objects (subdomains, examples).
-                        If False (default), only copy simple properties.
+            deep (bool): If True (default), also duplicate owned objects (subdomains, examples).
+                        If False, only copy simple properties.
 
         Returns:
             ICmSemanticDomain: The newly created duplicate domain with a new GUID.
@@ -990,18 +990,18 @@ class SemanticDomainOperations(BaseOperations):
             FP_NullParameterError: If item_or_hvo is None.
 
         Example:
-            >>> # Shallow duplicate (no subdomains)
+            >>> # Deep duplicate (default: includes all subdomains)
             >>> domain = project.SemanticDomains.Find("900.1")
             >>> if domain:
-            ...     dup = project.SemanticDomains.Duplicate(domain)
+            ...     dup = project.SemanticDomains.Duplicate(domain)  # deep=True by default
             ...     print(f"Original: {project.SemanticDomains.GetNumber(domain)}")
             ...     print(f"Duplicate: {project.SemanticDomains.GetNumber(dup)}")
-            ...     # Note: Duplicate will have empty number - must be set manually
-            ...
-            ...     # Deep duplicate (includes all subdomains)
-            ...     deep_dup = project.SemanticDomains.Duplicate(domain, deep=True)
-            ...     subdomains = project.SemanticDomains.GetSubdomains(deep_dup)
+            ...     subdomains = project.SemanticDomains.GetSubdomains(dup)
             ...     print(f"Subdomains: {len(subdomains)}")
+            ...     # Note: Duplicate number - must be set manually
+            ...
+            ...     # Shallow duplicate (no subdomains)
+            ...     shallow_dup = project.SemanticDomains.Duplicate(domain, deep=False)
 
         Notes:
             - Factory.Create() automatically generates a new GUID

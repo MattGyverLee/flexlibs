@@ -2483,7 +2483,7 @@ class DataNotebookOperations(BaseOperations):
 
         return results
 
-    def Duplicate(self, record_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, record_or_hvo, insert_after=True, deep=True):
         """
         Duplicate a notebook record, creating a new copy with a new GUID.
 
@@ -2491,8 +2491,8 @@ class DataNotebookOperations(BaseOperations):
             record_or_hvo: The IRnGenericRec object or HVO to duplicate.
             insert_after (bool): If True (default), insert after the source record.
                                 If False, insert at end of parent's records list.
-            deep (bool): If True, also duplicate owned objects (sub-records).
-                        If False (default), only copy simple properties and references.
+            deep (bool): If True (default), also duplicate owned objects (sub-records).
+                        If False, only copy simple properties and references.
 
         Returns:
             IRnGenericRec: The newly created duplicate record with a new GUID.
