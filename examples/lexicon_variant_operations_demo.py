@@ -96,8 +96,8 @@ def demo_variant_crud():
         variant_type = None
         try:
             # Get first available variant type
-            from SIL.LCModel import ILexEntryType
-            variant_types = project.project.LexDb.VariantEntryTypesOA.PossibilitiesOS
+            from SIL.LCModel import ILexEntryType  # type: ignore[import]
+            variant_types = project.project.LexDb.VariantEntryTypesOA.PossibilitiesOS  # type: ignore[attr-defined]
             if variant_types.Count > 0:
                 variant_type = variant_types[0]
         except:

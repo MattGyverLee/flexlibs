@@ -256,7 +256,7 @@ def demo_etymology_crud():
             pass
 
         print("\nClosing project...")
-                project.CloseProject()
+        project.CloseProject()
         FLExCleanup()
 
     print("\n" + "="*70)

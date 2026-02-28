@@ -96,8 +96,8 @@ def demo_allomorph_crud():
         morph_type = None
         try:
             # Get the first available morph type (usually "stem")
-            from SIL.LCModel import ILcmOwningSequence, IMoMorphType
-            morph_types = project.project.LexDb.MorphTypesOA.PossibilitiesOS
+            from SIL.LCModel import ILcmOwningSequence, IMoMorphType  # type: ignore[import]
+            morph_types = project.project.LexDb.MorphTypesOA.PossibilitiesOS  # type: ignore[attr-defined]
             for mt in morph_types:
                 if "stem" in str(mt.Name.BestAnalysisAlternative.Text).lower():
                     morph_type = mt
