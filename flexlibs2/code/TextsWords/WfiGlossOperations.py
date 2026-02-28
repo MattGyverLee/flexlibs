@@ -327,7 +327,7 @@ class WfiGlossOperations(BaseOperations):
         if hasattr(analysis, 'MeaningsOC'):
             analysis.MeaningsOC.Remove(gloss)
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=True):
         """
         Duplicate a wordform gloss, creating a new copy with a new GUID.
 

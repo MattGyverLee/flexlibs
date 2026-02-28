@@ -985,7 +985,7 @@ class ProjectSettingsOperations(BaseOperations):
         """
         return language_tag.replace("_", "-").lower()
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=True):
         """
         Duplicate operation is not applicable for project settings.
 

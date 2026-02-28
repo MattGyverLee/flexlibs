@@ -1342,7 +1342,7 @@ class CustomFieldOperations(BaseOperations):
             return handle
         return ws
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=True):
         """
         Duplicate operation is not applicable for custom fields.
 

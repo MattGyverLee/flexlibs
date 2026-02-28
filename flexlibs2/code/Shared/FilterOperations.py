@@ -1209,7 +1209,7 @@ class FilterOperations:
 
         return True
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=True):
         """
         Duplicate a filter, creating a new copy with a new GUID.
 

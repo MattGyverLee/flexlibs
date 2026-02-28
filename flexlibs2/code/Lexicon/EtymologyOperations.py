@@ -269,7 +269,7 @@ class EtymologyOperations(BaseOperations):
         if hasattr(owner, 'EtymologyOS'):
             owner.EtymologyOS.Remove(etymology)
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=True):
         """
         Duplicate an etymology, creating a new copy with a new GUID.
 

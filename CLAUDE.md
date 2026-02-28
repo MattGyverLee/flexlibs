@@ -331,16 +331,51 @@ Before implementing changes that affect:
 - FLExProject core functionality (central interface)
 - Module structure or organization
 - API surface changes
-- **Wrapper classes or collection patterns** (new design decisions)
+- **Wrapper classes or collection patterns** - See `docs/ARCHITECTURE_WRAPPERS.md` and `docs/ARCHITECTURE_COLLECTIONS.md` for patterns first
 - **Type-safe merge/clone operations** (casting architecture)
+
+### Creating New Wrapper Classes
+
+When implementing a wrapper for a new domain:
+
+1. **Review** `docs/ARCHITECTURE_WRAPPERS.md` - "Creating Domain-Specific Wrappers" section
+2. **Identify** the base interface and concrete types
+3. **Follow** the pattern from `flexlibs2/code/Shared/wrapper_base.py`
+4. **Add** type capability checks and convenience properties
+5. **Consult** if wrapper needs special handling beyond standard pattern
+
+**Reference:** `docs/ARCHITECTURE_WRAPPERS.md`
+
+### Creating New Collection Subclasses
+
+When implementing a collection for filtering and display:
+
+1. **Review** `docs/ARCHITECTURE_COLLECTIONS.md` - "Creating Domain-Specific Collections" section
+2. **Inherit** from `SmartCollection` (base class)
+3. **Implement** the `filter()` method with domain-specific criteria
+4. **Add** convenience methods for common patterns (e.g., `by_type()` variants)
+5. **Consult** if collection needs complex filtering or analysis
+
+**Reference:** `docs/ARCHITECTURE_COLLECTIONS.md`
 
 ## Key Files to Know
 
+### Architecture & Design
+- `docs/ARCHITECTURE.md` - High-level overview of wrapper + collection pattern
+- `docs/ARCHITECTURE_WRAPPERS.md` - Comprehensive wrapper classes guide
+- `docs/ARCHITECTURE_COLLECTIONS.md` - Comprehensive smart collections guide
+- `CLAUDE.md` (this file) - Design philosophy and conventions
+
+### Core Infrastructure
 - `flexlibs2/code/BaseOperations.py` - Parent class with shared validation
 - `flexlibs2/code/FLExProject.py` - Main project interface
-- `flexlibs2/code/Shared/string_utils.py` - Text normalization utilities
+- `flexlibs2/code/Shared/wrapper_base.py` - LCMObjectWrapper base class
+- `flexlibs2/code/Shared/smart_collection.py` - SmartCollection base class
 - `flexlibs2/code/lcm_casting.py` - Casting utilities (internal use only)
+
+### Utilities & Documentation
+- `flexlibs2/code/Shared/string_utils.py` - Text normalization utilities
+- `flexlibs2/code/PythonicWrapper.py` - Suffix-free property access wrapper
 - `docs/API_ISSUES_CATEGORIZED.md` - Known API issues and workarounds
+- `docs/EXCEPTION_HANDLING.md` - Error handling patterns
 - `README.rst` - User-facing documentation
-- `API_DESIGN_USER_CENTRIC.md` - User-centric design philosophy
-- `API_PHILOSOPHY_SHIFT.md` - Philosophy shift documentation

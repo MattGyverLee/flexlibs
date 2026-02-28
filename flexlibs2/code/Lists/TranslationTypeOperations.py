@@ -267,7 +267,7 @@ class TranslationTypeOperations(BaseOperations):
         if trans_list:
             trans_list.PossibilitiesOS.Remove(trans_type)
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=True):
         """
         Duplicate a translation type, creating a new copy with a new GUID.
 

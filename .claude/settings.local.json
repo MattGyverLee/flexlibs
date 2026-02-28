@@ -23,7 +23,8 @@
       "mcp__flextools-mcp__find_examples",
       "mcp__flextools-mcp__list_categories",
       "mcp__flextools-mcp__list_entities_in_category",
-      "mcp__flextools-mcp__resolve_property"
+      "mcp__flextools-mcp__resolve_property",
+      "mcp__context7__query-docs"
     ],
     "deny": [],
     "ask": []

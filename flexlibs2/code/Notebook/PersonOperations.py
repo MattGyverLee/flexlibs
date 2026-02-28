@@ -942,7 +942,7 @@ class PersonOperations(BaseOperations):
         except (AttributeError, System.InvalidCastException) as e:
             raise FP_ParameterError("position must be a valid ICmPossibility object")
 
-    def Duplicate(self, person_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, person_or_hvo, insert_after=True):
         """
         Duplicate a person, creating a new copy with a new GUID.
 

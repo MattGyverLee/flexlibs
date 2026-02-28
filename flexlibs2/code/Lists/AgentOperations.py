@@ -342,7 +342,7 @@ class AgentOperations(BaseOperations):
         # Remove from agents collection
         self.project.lp.AnalyzingAgentsOC.Remove(agent)
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=True):
         """
         Duplicate an agent, creating a new copy with a new GUID.
 

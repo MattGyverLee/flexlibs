@@ -969,7 +969,7 @@ class WritingSystemOperations(BaseOperations):
             # Already a writing system object
             return ws
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=True):
         """
         Duplicate operation is not applicable for writing systems.
 

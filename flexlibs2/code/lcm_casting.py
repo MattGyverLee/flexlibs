@@ -611,3 +611,153 @@ def get_from_pos_from_msa(msa):
         pass
 
     return None
+
+
+def get_common_properties(objects):
+    """
+    Find properties that are available on ALL objects in a list.
+
+    When working with collections of objects that may have different concrete
+    types (e.g., mixed phonological rules), this function identifies which
+    properties are safely accessible on all objects without type checking.
+
+    This is useful for implementing filtering or display logic that works
+    uniformly across all types.
+
+    Args:
+        objects: Iterable of LCM objects (all should have ClassName attribute).
+
+    Returns:
+        set: Property names that exist on ALL objects. Empty set if no common
+        properties or if input is empty.
+
+    Example::
+
+        from flexlibs2.code.lcm_casting import get_common_properties
+
+        # Find properties available on all rule types
+        rules = phonRuleOps.GetAll()
+        common = get_common_properties(rules)
+        print(common)  # {'Name', 'Direction', 'StrucDescOS', ...}
+
+        # These properties can be accessed safely on any rule
+        for rule in rules:
+            name = rule.Name
+            direction = rule.Direction
+
+    Notes:
+        - Properties starting with '_' are excluded
+        - Callable attributes (methods) are excluded
+        - Returns intersection of properties across all objects
+        - Empty list returns empty set (no intersection with all)
+        - Useful before implementing collection-wide filters
+    """
+    if not objects:
+        return set()
+
+    # Convert to list to allow multiple iterations
+    obj_list = list(objects)
+    if not obj_list:
+        return set()
+
+    # Get cast versions of all objects for comprehensive property access
+    cast_objects = [cast_to_concrete(obj) for obj in obj_list]
+
+    # Start with all properties from first object
+    first_obj = cast_objects[0]
+    common = set()
+
+    for attr_name in dir(first_obj):
+        # Skip private attributes and methods
+        if attr_name.startswith('_'):
+            continue
+
+        # Check if this attribute exists on all other objects
+        try:
+            first_attr = getattr(first_obj, attr_name)
+            # Skip callable attributes (methods)
+            if callable(first_attr):
+                continue
+
+            # Check if all other objects have this property
+            if all(hasattr(obj, attr_name) for obj in cast_objects[1:]):
+                common.add(attr_name)
+        except Exception:
+            # Skip properties that fail to access
+            pass
+
+    return common
+
+
+def get_concrete_type_properties(lcm_obj):
+    """
+    Get properties that are unique to an object's concrete type.
+
+    When you have an LCM object typed as a base interface (e.g., IPhSegmentRule),
+    this function identifies which properties are specific to its concrete type
+    (e.g., RightHandSidesOS for PhRegularRule).
+
+    This is useful for introspection and for determining what type-specific
+    capabilities an object has.
+
+    Args:
+        lcm_obj: An LCM object with a ClassName attribute.
+
+    Returns:
+        dict: Mapping of property names to their values, containing only
+        properties on the concrete type that don't exist on a simple
+        interface comparison. Empty dict if no unique properties.
+
+    Example::
+
+        from flexlibs2.code.lcm_casting import get_concrete_type_properties
+
+        # Get type-specific properties for a rule
+        rule = phonRuleOps.GetAll()[0]
+        unique_props = get_concrete_type_properties(rule)
+
+        if rule.ClassName == 'PhRegularRule':
+            print('RightHandSidesOS' in unique_props)  # True
+            print(unique_props['RightHandSidesOS'])  # The actual RHS collection
+
+        if rule.ClassName == 'PhMetathesisRule':
+            print('LeftPartOfMetathesisOS' in unique_props)  # True
+
+    Notes:
+        - Returns empty dict if object has no ClassName attribute
+        - Properties are returned as property_name -> value mappings
+        - Private attributes (starting with _) are excluded
+        - Callable attributes (methods) are excluded
+        - Use with get_common_properties() to understand type diversity
+    """
+    if not hasattr(lcm_obj, 'ClassName'):
+        return {}
+
+    # Get the concrete type
+    concrete = cast_to_concrete(lcm_obj)
+    concrete_props = {}
+
+    # Get all public, non-callable attributes from concrete type
+    for attr_name in dir(concrete):
+        # Skip private attributes
+        if attr_name.startswith('_'):
+            continue
+
+        # Skip known system attributes
+        if attr_name in ['ClassName', 'Guid', 'Hvo', 'ClassID', 'Owner', 'OwningFlid']:
+            continue
+
+        try:
+            attr_value = getattr(concrete, attr_name)
+
+            # Skip callable attributes (methods)
+            if callable(attr_value):
+                continue
+
+            # Add this property
+            concrete_props[attr_name] = attr_value
+        except Exception:
+            # Skip properties that fail to access
+            pass
+
+    return concrete_props

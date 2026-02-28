@@ -260,7 +260,7 @@ class NaturalClassOperations(BaseOperations):
         phon_data = self.project.lp.PhonologicalDataOA
         phon_data.NaturalClassesOS.Remove(nc)
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=True):
         """
         Duplicate a natural class, creating a new copy with a new GUID.
 

@@ -295,7 +295,7 @@ class AllomorphOperations(BaseOperations):
             # Deleting an alternate form
             owner.AlternateFormsOS.Remove(allomorph)
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=True):
         """
         Duplicate an allomorph, creating a new copy with a new GUID.
 

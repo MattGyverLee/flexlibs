@@ -462,7 +462,7 @@ class VariantOperations(BaseOperations):
         if hasattr(owner, 'EntryRefsOS'):
             owner.EntryRefsOS.Remove(variant)
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=True):
         """
         Duplicate a variant reference, creating a new copy with a new GUID.
 

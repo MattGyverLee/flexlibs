@@ -226,7 +226,7 @@ class WfiMorphBundleOperations(BaseOperations):
         if hasattr(owner, 'MorphBundlesOS'):
             owner.MorphBundlesOS.Remove(bundle)
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=True):
         """
         Duplicate a morph bundle, creating a new copy with a new GUID.
 

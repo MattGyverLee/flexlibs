@@ -90,34 +90,53 @@ class PhonologicalRuleOperations(BaseOperations):
         """
         Get all phonological rules in the project.
 
-        Yields:
-            IPhPhonRule: Each phonological rule object in the project.
+        Returns:
+            RuleCollection: Smart collection of PhonologicalRule wrapped objects.
 
         Example:
             >>> phonRuleOps = PhonologicalRuleOperations(project)
-            >>> for rule in phonRuleOps.GetAll():
-            ...     name = phonRuleOps.GetName(rule)
-            ...     print(f"Rule: {name}")
-            Rule: Voicing Assimilation
-            Rule: Nasal Place Assimilation
-            Rule: Final Devoicing
+            >>> rules = phonRuleOps.GetAll()
+            >>> print(rules)  # Shows type breakdown
+            RuleCollection (12 total)
+              PhRegularRule: 7 (58%)
+              PhMetathesisRule: 3 (25%)
+              PhReduplicationRule: 2 (17%)
+
+            >>> # Access individual rules
+            >>> for rule in rules:
+            ...     print(rule.name)
+
+            >>> # Filter to specific type
+            >>> regular_only = rules.regular_rules()
+
+            >>> # Filter by name
+            >>> voicing_rules = rules.filter(name_contains='voicing')
 
         Notes:
-            - Returns rules from the phonological data's PhonRulesOS collection
-            - Includes both active and inactive rules
-            - Returns empty if no phonological data defined
-            - Order depends on rule ordering in the project
+            - Returns RuleCollection (smart collection) instead of generator
+            - Wrapped rules hide ClassName/casting complexity
+            - Use rule.name instead of GetName(rule)
+            - Use rule.input_contexts instead of accessing StrucDescOS
+            - Returns empty collection if no phonological data defined
+            - Type breakdown is visible when printed
 
         See Also:
-            Create, GetName, IsActive
+            Create, Find, RuleCollection, PhonologicalRule
         """
+        from .phonological_rule import PhonologicalRule
+        from .rule_collection import RuleCollection
+
         phon_data = self.project.lp.PhonologicalDataOA
         if not phon_data:
-            return
+            return RuleCollection()
 
+        rules = []
         if hasattr(phon_data, 'PhonRulesOS'):
             for rule in phon_data.PhonRulesOS:
-                yield rule
+                wrapped = PhonologicalRule(rule)
+                rules.append(wrapped)
+
+        return RuleCollection(rules)
 
     def Create(self, name, description=None):
         """
@@ -262,7 +281,7 @@ class PhonologicalRuleOperations(BaseOperations):
             name (str): The name to search for (case-insensitive).
 
         Returns:
-            IPhPhonRule or None: The rule object if found, None otherwise.
+            PhonologicalRule or None: The wrapped rule object if found, None otherwise.
 
         Raises:
             FP_NullParameterError: If name is None.
@@ -271,8 +290,8 @@ class PhonologicalRuleOperations(BaseOperations):
             >>> phonRuleOps = PhonologicalRuleOperations(project)
             >>> rule = phonRuleOps.Find("Voicing Assimilation")
             >>> if rule:
-            ...     desc = phonRuleOps.GetDescription(rule)
-            ...     print(f"Found: {desc}")
+            ...     print(f"Found: {rule.name}")
+            ...     print(f"Direction: {rule.direction}")
 
             >>> # Case-insensitive search
             >>> rule = phonRuleOps.Find("voicing assimilation")
@@ -281,17 +300,17 @@ class PhonologicalRuleOperations(BaseOperations):
             - Search is case-insensitive
             - Returns first matching rule if multiple exist
             - Searches in default analysis writing system
+            - Returns wrapped PhonologicalRule, not raw LCM object
 
         See Also:
-            Exists, GetAll, GetName
+            Exists, GetAll, PhonologicalRule
         """
         self._ValidateParam(name, "name")
 
         name_lower = name.lower()
-        for rule in self.GetAll():
-            rule_name = self.GetName(rule)
-            if rule_name.lower() == name_lower:
-                return rule
+        for wrapped_rule in self.GetAll():
+            if wrapped_rule.name.lower() == name_lower:
+                return wrapped_rule
 
         return None
 

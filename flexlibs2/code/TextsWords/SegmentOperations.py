@@ -534,7 +534,7 @@ class SegmentOperations(BaseOperations):
         if owner and hasattr(owner, 'SegmentsOS'):
             owner.SegmentsOS.Remove(segment_obj)
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=True):
         """
         Duplicate a segment, creating a new segment with the same content.
 

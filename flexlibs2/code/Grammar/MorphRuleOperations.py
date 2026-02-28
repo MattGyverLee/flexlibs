@@ -687,7 +687,7 @@ class MorphRuleOperations(BaseOperations):
 
     # ========== DUPLICATION ==========
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=True):
         """
         Duplicate a morphological rule or template, creating a copy with a new GUID.
 

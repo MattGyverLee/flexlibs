@@ -257,7 +257,7 @@ class ConfidenceOperations(BaseOperations):
         if confidence_list and level in confidence_list.PossibilitiesOS:
             confidence_list.PossibilitiesOS.Remove(level)
 
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=True):
         """
         Duplicate a confidence level, creating a new copy with a new GUID.
 
