@@ -2,10 +2,10 @@
 # Name:         flexlibs2
 # Purpose:      This package provides a Python interface to FLEx project data
 #               via the Fieldworks Language and Culture Model (LCM).
-#               FlexLibs 2.2 - Wrapper classes and smart collections for polymorphic types
+#               FlexLibs 2.3 - Extended wrappers, smart collections, and complete IDE support
 #----------------------------------------------------------------------------
 
-version = "2.2.0"
+version = "2.3.0"
 
 # Define exported classes, etc. at the top level of the package
 

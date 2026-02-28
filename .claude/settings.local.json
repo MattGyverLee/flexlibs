@@ -26,7 +26,8 @@
       "mcp__flextools-mcp__resolve_property",
       "mcp__context7__query-docs",
       "Bash(pytest:*)",
-      "Bash(git fetch:*)"
+      "Bash(git fetch:*)",
+      "Bash(git tag:*)"
     ],
     "deny": [],
     "ask": []
