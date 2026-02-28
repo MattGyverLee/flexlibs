@@ -33,7 +33,7 @@ def demo_etymology_crud():
     # Open project with write enabled
     project = FLExProject()
     try:
-        project.EtymologyProject("Sena 3", writeEnabled=True)
+        project.OpenProject("Sena 3", writeEnabled=True)
     except Exception as e:
         print(f"Cannot run demo - FLEx project not available: {e}")
         FLExCleanup()
@@ -256,7 +256,7 @@ def demo_etymology_crud():
             pass
 
         print("\nClosing project...")
-        project.EtymologyProject()
+                project.CloseProject()
         FLExCleanup()
 
     print("\n" + "="*70)

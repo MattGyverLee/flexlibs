@@ -33,7 +33,7 @@ def demo_discourse_crud():
     # Open project with write enabled
     project = FLExProject()
     try:
-        project.DiscourseProject("Sena 3", writeEnabled=True)
+        project.OpenProject("Sena 3", writeEnabled=True)
     except Exception as e:
         print(f"Cannot run demo - FLEx project not available: {e}")
         FLExCleanup()
@@ -257,7 +257,7 @@ def demo_discourse_crud():
             pass
 
         print("\nClosing project...")
-        project.DiscourseProject()
+                project.CloseProject()
         FLExCleanup()
 
     print("\n" + "="*70)
