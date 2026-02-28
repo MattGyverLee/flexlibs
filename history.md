@@ -6,6 +6,72 @@ None
 
 ## History
 
+### 2.3.0 - 28 Feb 2026
+
+**Extended Domain Coverage Release**
+
+This release extends wrapper classes and smart collections to additional FLEx domains, completing the unified object-oriented API.
+
+**New Features:**
+
++ **5 New Wrapper Classes** with type-safe operations:
+    + Allomorph (allomorph forms and variants)
+    + CompoundRule (compound rule definitions)
+    + AdhocProhibition (morphosyntactic prohibitions)
+    + Annotation (project annotations and notes)
+    + AffixTemplate (morpheme slot templates)
+
++ **Type-Safe Collections** for unified filtering:
+    + AllomorphCollection, CompoundRuleCollection, ProhibitionCollection, AnnotationCollection, AffixTemplateCollection
+    + All collections support smart type breakdown on display
+
++ **Python Type Hints** across all wrapper properties for IDE support and code clarity
+
++ **Documentation**: Usage guides for each new domain in `/docs/USAGE_*.md`
+
+**Backward Compatibility:**
+
+100% maintained. All v2.0 and v2.1 APIs unchanged.
+
+### 2.2.0 - Feb 2026
+
+**Wrapper Classes and Smart Collections Release**
+
+This release introduces a unified object-oriented API that hides the complexity of the two-layer LCM type system (base interfaces + concrete types).
+
+**New Features:**
+
++ **Wrapper Classes** that transparently handle type casting:
+    + PhonologicalRule (PhRegularRule, PhMetathesisRule, PhReduplicationRule)
+    + MorphosyntacticAnalysis (MoStemMsa, MoInflAffMsa, etc.)
+    + PhonologicalContext (PhIterContextual, PhSimpleContext, etc.)
+
++ **Smart Collections** with type-aware display and filtering:
+    + RuleCollection, MSACollection, ContextCollection
+    + Display shows type breakdown: "12 rules (PhRegularRule: 7, PhMetathesisRule: 3, PhReduplicationRule: 2)"
+    + Unified filtering across all concrete types
+
++ **Type Safety**: Internal casting architecture validates merge operations and deep clones
+
++ **Backward Compatibility**: 100% maintained with v2.0
+
+### 2.1.0 - Nov 2025
+
+**Stability and Testing Release**
+
+This release focused on comprehensive testing, bug fixes, and operational improvements.
+
+**Improvements:**
+
++ Comprehensive test suite covering all 44 Operations classes
++ Bug fixes for ITsString handling in multilingual fields
++ Improved error messages for common user mistakes
++ Extended documentation with usage examples
+
+**Backward Compatibility:**
+
+100% maintained with v2.0.
+
 ### 2.0.0 - 24 Nov 2025
 
 **Major Release: Comprehensive CRUD Operations**
