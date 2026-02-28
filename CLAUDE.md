@@ -149,6 +149,181 @@ flexlibs2/
 - Use `[WARN]` instead of ⚠️
 - Use asterisks or dashes for bullet points, not Unicode bullets
 
+## API Design Philosophy
+
+### Core Principle: User-Centric Not Technology-Centric
+
+The FlexLibs2 API should match how users naturally think about objects, hiding LCM/pythonnet complexity while maximizing functionality.
+
+**Users think in two ways simultaneously:**
+- **Abstractly:** "phonological rules", "merge entries", "filter by name"
+- **Concretely:** "these rules have different properties", "some types don't have outputs"
+
+The API must support both levels without forcing users to consciously manage the complexity.
+
+### Key Design Rules
+
+#### 1. Hide Interface/ClassName/Casting Complexity
+- Users should NEVER see `IPhSegmentRule`, `ClassName`, or casting logic
+- `cast_to_concrete()` and `validate_merge_compatibility()` are for internal use only
+- Objects returned from operations should work transparently across concrete types
+
+#### 2. Maximize Functionality in Simple Queries
+```python
+# Good: GetAll() returns everything with type diversity visible
+rules = phonRuleOps.GetAll()
+print(rules)  # Shows: PhRegularRule (7), PhMetathesisRule (3), etc.
+
+# Avoid: Forcing users to query per type
+regular = phonRuleOps.GetAll(class_type='PhRegularRule')
+metathesis = phonRuleOps.GetAll(class_type='PhMetathesisRule')
+```
+
+#### 3. Unify Operations Across Types
+```python
+# Good: Filter works across all phonological rule types
+voicing_rules = phonRuleOps.GetAll().filter(name_contains='voicing')
+
+# Avoid: Separate filters per type
+regular_voicing = [r for r in regular_rules if 'voicing' in r.name]
+metathesis_voicing = [r for r in metathesis_rules if 'voicing' in r.name]
+```
+
+#### 4. Provide Smart Properties and Capability Checks
+```python
+# Good: Works for any rule type
+for rule in all_rules:
+    if rule.has_output_specs:
+        print(rule.output_segments)
+    if rule.has_metathesis_parts:
+        print("This is a metathesis rule")
+
+# Avoid: Checking ClassName or manual casting
+if rule.ClassName == 'PhRegularRule':
+    concrete = IPhRegularRule(rule)
+    print(concrete.RightHandSidesOS)
+```
+
+#### 5. Warn on Type Mismatch, Don't Block
+```python
+# Good: Warn user, show consequences, let them decide
+result = phonRuleOps.MergeObject(rule1, rule2)
+# ⚠️  WARNING: Merging different rule types
+# Shows what will merge, what will be lost
+# Continue? (y/n):
+
+# Avoid: Hard error that crashes
+# FP_ParameterError: Cannot merge different classes
+```
+
+### Wrapper Classes Pattern
+
+For types with multiple concrete implementations (phonological rules, MSAs, contexts), implement wrapper classes:
+
+```python
+class PhonologicalRule:
+    """
+    Wrapper around IPhSegmentRule that provides unified interface.
+
+    Handles casting transparently so users don't see interface complexity.
+    """
+    def __init__(self, lcm_obj):
+        self._obj = lcm_obj
+        self._concrete = cast_to_concrete(lcm_obj)
+
+    def __getattr__(self, name):
+        # Try concrete type first (more specific)
+        try:
+            return getattr(self._concrete, name)
+        except AttributeError:
+            # Fall back to base interface
+            return getattr(self._obj, name)
+
+    # Convenience properties that work across all types
+    @property
+    def input_contexts(self):
+        return list(self._concrete.StrucDescOS)
+
+    # Smart properties that return what exists
+    @property
+    def output_segments(self):
+        if hasattr(self._concrete, 'RightHandSidesOS'):
+            return list(self._concrete.RightHandSidesOS)
+        return []
+
+    # Capability checks instead of type checking
+    @property
+    def has_output_specs(self):
+        return hasattr(self._concrete, 'RightHandSidesOS')
+```
+
+### Smart Collections Pattern
+
+Collections returned from GetAll() should show type diversity and support unified filtering:
+
+```python
+class RuleCollection:
+    """
+    Smart collection that manages type diversity transparently.
+    """
+    def __str__(self):
+        # Show type summary on display
+        return "Phonological Rules Summary (12 rules)\n" + \
+               "  PhRegularRule: 7 (58%)\n" + \
+               "  PhMetathesisRule: 3 (25%)\n" + \
+               "  PhReduplicationRule: 2 (17%)"
+
+    def filter(self, **criteria):
+        # Filter works across all types
+        return RuleCollection(
+            [r for r in self.rules if self._matches(r, criteria)]
+        )
+
+    def by_type(self, class_type):
+        # Optional type filtering if user wants it
+        return RuleCollection([r for r in self.rules if r.ClassName == class_type])
+```
+
+## Casting Architecture Standards
+
+### Casting is Implementation Detail
+
+Users never see casting. Internal architecture uses:
+
+- `cast_to_concrete()` - Convert base interface to concrete type (internal only)
+- `validate_merge_compatibility()` - Check if objects can merge safely
+- `clone_properties()` - Deep clone with automatic casting
+
+### Cloning Always Uses clone_properties()
+
+```python
+# Standard pattern for all deep cloning operations
+from ..lcm_casting import clone_properties
+
+def Duplicate(self, item_or_hvo, deep=True):
+    source = self.__ResolveObject(item_or_hvo)
+    destination = factory.Create()
+
+    if deep:
+        # clone_properties handles casting internally
+        clone_properties(source, destination, self.project)
+
+    return destination
+```
+
+### Merging Always Validates Type Safety
+
+```python
+# Standard pattern for all merge operations
+from ..lcm_casting import validate_merge_compatibility
+
+def MergeObject(self, survivor, victim):
+    is_compatible, error_msg = validate_merge_compatibility(survivor, victim)
+    if not is_compatible:
+        # Warn but allow user to proceed if they choose
+        print(f"WARNING: {error_msg}")
+```
+
 ## When to Consult Claude
 
 Before implementing changes that affect:
@@ -156,11 +331,16 @@ Before implementing changes that affect:
 - FLExProject core functionality (central interface)
 - Module structure or organization
 - API surface changes
+- **Wrapper classes or collection patterns** (new design decisions)
+- **Type-safe merge/clone operations** (casting architecture)
 
 ## Key Files to Know
 
 - `flexlibs2/code/BaseOperations.py` - Parent class with shared validation
 - `flexlibs2/code/FLExProject.py` - Main project interface
 - `flexlibs2/code/Shared/string_utils.py` - Text normalization utilities
+- `flexlibs2/code/lcm_casting.py` - Casting utilities (internal use only)
 - `docs/API_ISSUES_CATEGORIZED.md` - Known API issues and workarounds
 - `README.rst` - User-facing documentation
+- `API_DESIGN_USER_CENTRIC.md` - User-centric design philosophy
+- `API_PHILOSOPHY_SHIFT.md` - Philosophy shift documentation
