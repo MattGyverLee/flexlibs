@@ -31,6 +31,12 @@
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations
 
+# Import wrapper classes
+from .affix_template import AffixTemplate
+from .affix_template_collection import AffixTemplateCollection
+from .compound_rule import CompoundRule
+from .compound_rule_collection import CompoundRuleCollection
+
 # Import FLEx LCM types
 from SIL.LCModel import (
     IMoEndoCompoundFactory,
@@ -151,54 +157,67 @@ class MorphRuleOperations(BaseOperations):
         """
         Get all compound rules from MoMorphData.CompoundRulesOS.
 
-        Yields:
-            IMoCompoundRule: Each compound rule (MoEndoCompound or MoExoCompound).
+        Returns:
+            CompoundRuleCollection: Collection of CompoundRule wrapper objects
+                (MoEndoCompound or MoExoCompound).
 
         Example:
-            >>> for rule in ruleOps.GetAllCompoundRules():
-            ...     print(ruleOps.GetName(rule), rule.ClassName)
-            Noun-Noun MoEndoCompound
+            >>> rules = ruleOps.GetAllCompoundRules()
+            >>> for rule in rules:
+            ...     print(rule.name, rule.is_endo_compound)
+            Noun-Noun True
 
         Notes:
             - Compound rules define patterns for compound word formation
             - MoEndoCompound: head is inside the compound
             - MoExoCompound: head is outside (e.g., exocentric compounds)
-            - Returns empty if no morphological data defined
+            - Returns empty collection if no morphological data defined
+            - Returns CompoundRuleCollection (supports filtering and chaining)
 
         See Also:
-            CreateCompoundRule, GetAll
+            CreateCompoundRule, GetAll, CompoundRuleCollection
         """
         morph_data = self.project.lp.MorphologicalDataOA
         if morph_data:
-            for rule in morph_data.CompoundRulesOS:
-                yield rule
+            wrapped = [CompoundRule(rule) for rule in morph_data.CompoundRulesOS]
+            return CompoundRuleCollection(wrapped)
+        return CompoundRuleCollection()
 
     def GetAllAffixTemplates(self):
         """
         Get all inflectional affix templates from all parts of speech.
 
-        Walks the entire POS hierarchy and yields templates from each POS.
+        Walks the entire POS hierarchy and returns templates from each POS
+        as a smart collection with filtering capabilities.
 
-        Yields:
-            IMoInflAffixTemplate: Each affix template in the project.
+        Returns:
+            AffixTemplateCollection: Collection of AffixTemplate wrapper objects
+                from all parts of speech.
 
         Example:
-            >>> for template in ruleOps.GetAllAffixTemplates():
-            ...     pos_name = template.Owner.Name.BestAnalysisAlternative.Text
-            ...     print(f"{ruleOps.GetName(template)} (on {pos_name})")
+            >>> templates = ruleOps.GetAllAffixTemplates()
+            >>> verb_templates = templates.filter(name_contains='Verb')
+            >>> prefix_templates = templates.with_prefix_slots()
+            >>> for template in prefix_templates:
+            ...     print(template.name, template.prefix_slot_count)
 
         Notes:
             - Affix templates are owned by PartOfSpeech, not MoMorphData
             - Each POS can have its own set of templates
             - Subcategories are included (full hierarchy walk)
+            - Returns AffixTemplateCollection (supports filtering and chaining)
+            - Use with_prefix_slots(), with_suffix_slots(), etc. for filtering
 
         See Also:
-            GetAllAffixTemplatesForPOS, CreateAffixTemplate, GetAll
+            GetAllAffixTemplatesForPOS, CreateAffixTemplate, GetAll, AffixTemplateCollection
         """
+        templates = []
         pos_list = self.project.lp.PartsOfSpeechOA
         if pos_list:
             for pos in pos_list.PossibilitiesOS:
-                yield from self.__WalkPOSForTemplates(pos)
+                templates.extend(self.__WalkPOSForTemplates(pos))
+        wrapped = [AffixTemplate(t) for t in templates]
+        return AffixTemplateCollection(wrapped)
 
     def GetAllAffixTemplatesForPOS(self, pos_or_hvo):
         """
@@ -207,26 +226,36 @@ class MorphRuleOperations(BaseOperations):
         Args:
             pos_or_hvo: The IPartOfSpeech object or HVO.
 
-        Yields:
-            IMoInflAffixTemplate: Each affix template on the given POS.
+        Returns:
+            AffixTemplateCollection: Collection of AffixTemplate wrapper objects
+                on the given POS.
 
         Raises:
             FP_NullParameterError: If pos_or_hvo is None.
 
         Example:
             >>> verb = posOps.Find("Verb")
-            >>> for template in ruleOps.GetAllAffixTemplatesForPOS(verb):
-            ...     print(ruleOps.GetName(template))
+            >>> templates = ruleOps.GetAllAffixTemplatesForPOS(verb)
+            >>> prefix = templates.with_prefix_slots()
+            >>> for template in prefix:
+            ...     print(template.name)
+
+        Notes:
+            - Only returns templates directly owned by this POS
+            - Does not include templates from sub-categories
+            - Use GetAllAffixTemplates() to get templates from all POS
+            - Returns AffixTemplateCollection (supports filtering and chaining)
 
         See Also:
-            GetAllAffixTemplates, CreateAffixTemplate
+            GetAllAffixTemplates, CreateAffixTemplate, AffixTemplateCollection
         """
         self._ValidateParam(pos_or_hvo, "pos_or_hvo")
 
         pos = self.__ResolveObject(pos_or_hvo)
         if hasattr(pos, 'AffixTemplatesOS'):
-            for template in pos.AffixTemplatesOS:
-                yield template
+            wrapped = [AffixTemplate(t) for t in pos.AffixTemplatesOS]
+            return AffixTemplateCollection(wrapped)
+        return AffixTemplateCollection()
 
     def GetAllAdhocCoProhibitions(self):
         """

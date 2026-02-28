@@ -34,6 +34,10 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+# Import wrapper classes
+from .allomorph import Allomorph
+from .allomorph_collection import AllomorphCollection
+
 class AllomorphOperations(BaseOperations):
     """
     This class provides operations for managing allomorphs in a FieldWorks project.
@@ -90,64 +94,101 @@ class AllomorphOperations(BaseOperations):
         """
         Get all allomorphs for a lexical entry, or all allomorphs in the entire project.
 
+        Returns a smart collection of wrapped allomorph objects that transparently
+        handle the two concrete types (MoStemAllomorph and MoAffixAllomorph).
+
         Args:
             entry_or_hvo: The ILexEntry object or HVO. If None, iterates all allomorphs
                          in the entire project.
 
-        Yields:
-            IMoForm: Each allomorph of the entry (or project).
+        Returns:
+            AllomorphCollection: Smart collection of Allomorph wrapper objects
+                showing type breakdown and supporting filtered queries.
 
         Example:
             >>> allomorphOps = AllomorphOperations(project)
-            >>> # Get allomorphs for specific entry
             >>> entry = project.LexiconAllEntries()[0]
-            >>> for allomorph in allomorphOps.GetAll(entry):
-            ...     form = allomorphOps.GetForm(allomorph)
-            ...     print(f"Allomorph: {form}")
-            Allomorph: run
-            Allomorph: ran
-            Allomorph: runn-
-
+            >>>
+            >>> # Get all allomorphs for specific entry
+            >>> allomorphs = allomorphOps.GetAll(entry)
+            >>> print(allomorphs)  # Shows type breakdown
+            # AllomorphCollection (8 total)
+            #   MoStemAllomorph: 5 (62%)
+            #   MoAffixAllomorph: 3 (38%)
+            >>>
+            >>> # Iterate through wrapped objects
+            >>> for allomorph in allomorphs:
+            ...     print(f"Form: {allomorph.form}, Type: {allomorph.class_type}")
+            Form: run, Type: MoStemAllomorph
+            Form: ran, Type: MoStemAllomorph
+            Form: running, Type: MoStemAllomorph
+            >>>
+            >>> # Filter by type
+            >>> stems = allomorphs.stem_allomorphs()
+            >>> print(f"Found {len(stems)} stem allomorphs")
+            Found 5 stem allomorphs
+            >>>
+            >>> # Filter by form
+            >>> ing_forms = allomorphs.filter(form_contains='ing')
+            >>> for allomorph in ing_forms:
+            ...     print(allomorph.form)
+            running
+            >>>
+            >>> # Chain filters
+            >>> ing_stems = allomorphs.stem_allomorphs().filter(form_contains='ing')
+            >>>
             >>> # Get ALL allomorphs in entire project
-            >>> for allomorph in allomorphOps.GetAll():
-            ...     form = allomorphOps.GetForm(allomorph)
-            ...     print(f"Allomorph: {form}")
+            >>> all_project_allomorphs = allomorphOps.GetAll()
+            >>> print(f"Project has {len(all_project_allomorphs)} allomorphs")
 
         Notes:
+            - Returns AllomorphCollection (smart collection) not raw generator
             - When entry_or_hvo is provided:
               - Returns the lexeme form first (if it exists)
               - Then returns all alternate forms
               - Order follows FLEx database order
-              - Returns empty generator if entry has no allomorphs
+              - Returns empty collection if entry has no allomorphs
             - When entry_or_hvo is None:
               - Iterates ALL entries in the project
               - For each entry, yields lexeme form then alternate forms
               - Useful for project-wide allomorph operations
+            - AllomorphCollection shows type breakdown and supports filtering
+            - Use convenience methods like stem_allomorphs() and affix_allomorphs()
+            - Use filter() for form-based filtering
+            - Use where() for complex custom filtering
+            - Individual items are Allomorph wrapper objects with properties like
+              form, environment, is_stem_allomorph, is_affix_allomorph
 
         See Also:
-            Create, GetForm
+            Create, GetForm, AllomorphCollection, Allomorph
         """
+        # Collect all allomorphs
+        allomorphs = []
+
         if entry_or_hvo is None:
             # Iterate ALL allomorphs in entire project
             for entry in self.project.lexDB.Entries:
-                # First yield the lexeme form if it exists
+                # First add the lexeme form if it exists
                 if entry.LexemeFormOA:
-                    yield entry.LexemeFormOA
+                    allomorphs.append(Allomorph(entry.LexemeFormOA))
 
-                # Then yield all alternate forms
+                # Then add all alternate forms
                 for allomorph in entry.AlternateFormsOS:
-                    yield allomorph
+                    allomorphs.append(Allomorph(allomorph))
         else:
             # Iterate allomorphs for specific entry
             entry = self.__GetEntryObject(entry_or_hvo)
 
-            # First yield the lexeme form if it exists
+            # First add the lexeme form if it exists
             if entry.LexemeFormOA:
-                yield entry.LexemeFormOA
+                allomorphs.append(Allomorph(entry.LexemeFormOA))
 
-            # Then yield all alternate forms
+            # Then add all alternate forms
             for allomorph in entry.AlternateFormsOS:
-                yield allomorph
+                allomorphs.append(Allomorph(allomorph))
+
+        # Return smart collection
+        return AllomorphCollection(allomorphs)
 
     def Create(self, entry_or_hvo, form, morphType=None, wsHandle=None):
         """
