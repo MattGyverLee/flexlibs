@@ -257,7 +257,7 @@ def demo_person_crud():
             pass
 
         print("\nClosing project...")
-                project.CloseProject()
+        project.CloseProject()
         FLExCleanup()
 
     print("\n" + "="*70)

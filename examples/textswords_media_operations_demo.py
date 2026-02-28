@@ -257,7 +257,7 @@ def demo_media_crud():
             pass
 
         print("\nClosing project...")
-                project.CloseProject()
+        project.CloseProject()
         FLExCleanup()
 
     print("\n" + "="*70)
