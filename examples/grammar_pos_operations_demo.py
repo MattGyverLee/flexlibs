@@ -6,7 +6,8 @@ This script demonstrates complete CRUD operations for pos.
 Performs actual create, read, update, and delete operations on test data.
 
 Author: FlexTools Development Team
-Date: 2025-11-27
+Date: 2026-02-28
+Version: 2.3.0
 """
 
 from flexlibs2 import FLExProject, FLExInitialize, FLExCleanup
@@ -32,7 +33,7 @@ def demo_pos_crud():
     # Open project with write enabled
     project = FLExProject()
     try:
-        project.POSProject("Sena 3", writeEnabled=True)
+        project.OpenProject("Sena 3", writeEnabled=True)
     except Exception as e:
         print(f"Cannot run demo - FLEx project not available: {e}")
         FLExCleanup()

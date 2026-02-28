@@ -11,7 +11,8 @@ Morphological rules in the LCM data model are distributed across:
 - Ad hoc co-prohibitions (MoMorphData.AdhocCoProhibitionsOC)
 
 Author: FlexTools Development Team
-Date: 2025-11-27
+Date: 2026-02-28
+Version: 2.3.0
 """
 
 from flexlibs2 import FLExProject, FLExInitialize, FLExCleanup
