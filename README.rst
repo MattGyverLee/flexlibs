@@ -99,6 +99,58 @@ Example usage:
 
 All v1.x API methods remain available for backward compatibility.
 
+What's New in v2.2
+^^^^^^^^^^^^^^^^^^
+
+Version 2.2 introduces **Wrapper Classes** and **Smart Collections** that
+simplify working with polymorphic types in FieldWorks. These eliminate
+the need for manual type checking and casting.
+
+**Key Features:**
+
+- **Automatic Type Casting**: No more checking ``ClassName`` or casting to concrete types
+- **Smart Collections**: Type-aware display showing diversity of data
+- **Convenience Filters**: Easy filtering without manual type checks
+- **Capability-Based API**: Check what's available instead of checking type
+- **Zero Breaking Changes**: All existing code continues to work
+
+**Example - Phonological Rules (v2.2):**
+
+.. code-block:: python
+
+  from flexlibs2 import FLExProject
+  from flexlibs2.wrappers import PhonologicalRule
+
+  project = FLExProject()
+  project.OpenProject('MyProject')
+
+  # Get all rules - returns smart collection with wrapped objects
+  rules = project.PhonologicalRuleOperations().GetAll()
+
+  # Type-aware display
+  print(rules)  # Shows: PhRegularRule: 7, PhMetathesisRule: 3, etc.
+
+  # Convenience filters
+  regular_rules = rules.regular_rules
+  metathesis_rules = rules.metathesis_rules
+
+  # Transparent property access across types
+  for rule in rules:
+      if rule.has_output_specs:
+          print(f"Outputs: {rule.output_segments}")
+      if rule.has_metathesis_parts:
+          print(f"Metathesis: {rule.left_part}, {rule.right_part}")
+
+**Currently Supported Domains:**
+
+- **Grammar**: Phonological Rules, Phonological Contexts
+- **Lexicon**: Morphosyntactic Analyses (MSAs)
+
+More domains coming in v2.3+
+
+**Migration Guide**: See `MIGRATION.md <MIGRATION.md>`_ for detailed
+examples comparing old and new API.
+
 --------------
 
 .. [1] https://software.sil.org/fieldworks/

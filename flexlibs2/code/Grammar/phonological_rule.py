@@ -71,6 +71,8 @@ Example::
 
 from ..Shared.wrapper_base import LCMObjectWrapper
 from ..lcm_casting import cast_to_concrete
+from ..System.phonological_context import PhonologicalContext
+from ..System.context_collection import ContextCollection
 
 
 class PhonologicalRule(LCMObjectWrapper):
@@ -184,23 +186,37 @@ class PhonologicalRule(LCMObjectWrapper):
         Get the input contexts (structural description) for this rule.
 
         Returns:
-            list: List of IPhContext objects, or empty list if none.
+            ContextCollection: Smart collection of PhonologicalContext wrapper objects
+                representing the structural description (input) of this rule.
+                Returns empty collection if none.
 
         Example::
 
             for context in wrapped.input_contexts:
-                print(f"Input context: {context}")
+                print(f"Input context: {context.context_name}")
+                if context.is_simple_context_seg:
+                    segment = context.segment
+                    print(f"Segment: {segment}")
+
+            # Filter contexts
+            simple_contexts = wrapped.input_contexts.simple_contexts()
+            boundaries = wrapped.input_contexts.boundary_contexts()
 
         Notes:
             - StrucDescOS contains the input specifications
             - Works on all rule types (regular, metathesis, reduplication)
+            - Returns ContextCollection for convenient filtering and type checking
+            - Contexts are wrapped in PhonologicalContext for unified interface
         """
         try:
             if hasattr(self._concrete, 'StrucDescOS'):
-                return list(self._concrete.StrucDescOS)
-            return []
+                contexts = list(self._concrete.StrucDescOS)
+                # Wrap each context in PhonologicalContext
+                wrapped_contexts = [PhonologicalContext(ctx) for ctx in contexts]
+                return ContextCollection(wrapped_contexts)
+            return ContextCollection()
         except Exception:
-            return []
+            return ContextCollection()
 
     # ========== Capability Checks (for type-specific properties) ==========
 

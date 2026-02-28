@@ -178,6 +178,22 @@ ALL_OPERATIONS = (
     SHARED_OPERATIONS
 )
 
+# Operations classes that should have Create
+CREATE_OPERATIONS = [
+    'LexEntryOperations', 'LexSenseOperations', 'AllomorphOperations',
+    'ExampleOperations', 'POSOperations', 'TextOperations', 'ParagraphOperations',
+    'NoteOperations', 'PersonOperations', 'LocationOperations',
+    'WfiWordformOperations', 'ReversalIndexEntryOperations',
+    'ScrBookOperations', 'ScrSectionOperations',
+]
+
+# Operations classes that should have Delete
+DELETE_OPERATIONS = [
+    'LexEntryOperations', 'LexSenseOperations', 'AllomorphOperations',
+    'ExampleOperations', 'TextOperations', 'NoteOperations',
+    'WfiWordformOperations', 'ReversalIndexEntryOperations',
+]
+
 
 # =============================================================================
 # BASELINE TESTS - IMPORT AND INSTANTIATION
@@ -283,22 +299,6 @@ class TestCommonCRUDMethods:
         'GetAll': 'Retrieve all items',
         'Find': 'Find specific item',
     }
-
-    # Operations classes that should have Create
-    CREATE_OPERATIONS = [
-        'LexEntryOperations', 'LexSenseOperations', 'AllomorphOperations',
-        'ExampleOperations', 'POSOperations', 'TextOperations', 'ParagraphOperations',
-        'NoteOperations', 'PersonOperations', 'LocationOperations',
-        'WfiWordformOperations', 'ReversalIndexEntryOperations',
-        'ScrBookOperations', 'ScrSectionOperations',
-    ]
-
-    # Operations classes that should have Delete
-    DELETE_OPERATIONS = [
-        'LexEntryOperations', 'LexSenseOperations', 'AllomorphOperations',
-        'ExampleOperations', 'TextOperations', 'NoteOperations',
-        'WfiWordformOperations', 'ReversalIndexEntryOperations',
-    ]
 
     @pytest.mark.parametrize("class_name,module_path", ALL_OPERATIONS)
     def test_has_getall_method(self, class_name, module_path, mock_flex_project):
