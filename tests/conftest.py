@@ -20,132 +20,163 @@ import pytest
 from unittest.mock import Mock, MagicMock, patch
 import sys
 import os
+import importlib
 
-# ========== INITIALIZE FIELDWORKS BEFORE ANYTHING ELSE ==========
-# This MUST happen BEFORE importing any flexlibs2 modules
-# flexlibs2/__init__.py imports all Operations classes which depend on SIL.LCModel
-# We must set up the FieldWorks path FIRST
 
-print("[INFO] Initializing FieldWorks for tests...")
-try:
-    # Step 1: Set up Windows registry access and FW paths DIRECTLY
-    # (without importing any flexlibs modules)
-    import clr
-    import sys
-    import os
-    from System import Environment
-    from Microsoft.Win32 import Registry
+# ========== SESSION-SCOPED FIXTURE FOR FIELDWORKS INITIALIZATION ==========
+# Using autouse=True ensures this runs before any tests, regardless of scope
 
-    # Get FieldWorks installation path from registry (manually, without importing FLExGlobals)
-    RegKey = r"SOFTWARE\SIL\FieldWorks\9"
+@pytest.fixture(scope="session", autouse=True)
+def initialize_flex_for_tests():
+    """
+    Initialize FieldWorks and flexlibs2 before running any tests.
+
+    This fixture runs once per test session and ensures:
+    1. FieldWorks DLLs are in sys.path
+    2. FLEx services are initialized
+    3. flexlibs2 package is fully imported with all operations
+    4. Operations classes are available for tests
+
+    Using autouse=True ensures this runs even if no test explicitly uses it.
+    Using scope="session" ensures it runs only once for the entire test session.
+    """
+    print("[INFO] [SESSION FIXTURE] Initializing FieldWorks for tests...")
     try:
-        rKey = Registry.LocalMachine.OpenSubKey(RegKey)
-        if rKey is None:
-            rKey = Registry.CurrentUser.OpenSubKey(RegKey)
+        # Step 1: Set up Windows registry access and FW paths
+        import clr
+        from System import Environment
+        from Microsoft.Win32 import Registry
 
-        if rKey:
-            fw_code_dir = rKey.GetValue("RootCodeDir")
-            if fw_code_dir and os.path.exists(os.path.join(fw_code_dir, "FieldWorks.exe")):
-                sys.path.append(fw_code_dir)
-                print(f"[INFO] Added to path: {fw_code_dir}")
-    except Exception as e:
-        print(f"[WARN] Could not read registry: {e}")
-
-    # Step 2: Now load SIL assemblies
-    print("[INFO] Loading SIL assemblies...")
-    clr.AddReference("FwUtils")
-    clr.AddReference("SIL.WritingSystems")
-    clr.AddReference("SIL.LCModel")
-    print("[OK] SIL assemblies loaded")
-
-    # Step 3: Initialize FLEx services
-    print("[INFO] Initializing FLEx services...")
-    from SIL.FieldWorks.Common.FwUtils import FwRegistryHelper, FwUtils
-    from SIL.WritingSystems import Sldr
-
-    FwRegistryHelper.Initialize()
-    FwUtils.InitializeIcu()
-    Sldr.Initialize(True)
-    print("[OK] FieldWorks fully initialized")
-
-    # Step 4: Initialize FLEx using the proper initialization function
-    # FLExInitialize() does more complete setup than just InitialiseFWGlobals()
-    print("[INFO] Running FLExInitialize()...")
-    from flexlibs2.code.FLExInit import FLExInitialize
-    FLExInitialize()
-    print("[OK] FLEx fully initialized")
-
-    # Step 5: Now that FLEx is fully initialized, import and reload flexlibs2
-    # We may have a partially initialized module in sys.modules, so reload it
-    print("[INFO] Importing flexlibs2 package...")
-    import sys
-    import importlib
-    if 'flexlibs2' in sys.modules:
-        print("[DEBUG] flexlibs2 already in sys.modules, reloading...")
-        flexlibs2 = importlib.reload(sys.modules['flexlibs2'])
-    else:
-        import flexlibs2
-        flexlibs2 = sys.modules.get('flexlibs2')
-    print("[OK] flexlibs2 imported successfully")
-
-    # DEBUG: Check what's actually in flexlibs2 namespace
-    if flexlibs2:
-        attrs_before = set(dir(flexlibs2))
-        ops_found = sorted([x for x in attrs_before if 'Operations' in x])
-        print(f"[DEBUG] Found {len(ops_found)} operations in flexlibs2")
-        if ops_found:
-            print(f"[DEBUG] Sample operations: {ops_found[:3]}")
-
-    # Step 6: Pre-cache all operations modules in sys.modules
-    # This prevents dynamic imports during tests from re-triggering circular imports
-    print("[INFO] Pre-caching operations modules...")
-
-    # First get list of all operations classes that should be available
-    # These are defined in __init__.py but may not be in namespace yet
-    operations_to_load = [
-        # Grammar
-        'POSOperations', 'PhonemeOperations', 'NaturalClassOperations',
-        'EnvironmentOperations', 'PhonologicalRuleOperations', 'MorphRuleOperations',
-        'GramCatOperations', 'InflectionFeatureOperations',
-        # Lexicon
-        'LexEntryOperations', 'LexSenseOperations', 'ExampleOperations',
-        'LexReferenceOperations', 'VariantOperations', 'PronunciationOperations',
-        'SemanticDomainOperations', 'ReversalOperations', 'EtymologyOperations',
-        'AllomorphOperations',
-        # TextsWords
-        'TextOperations', 'WordformOperations', 'WfiAnalysisOperations',
-        'ParagraphOperations', 'SegmentOperations', 'WfiGlossOperations',
-        'WfiMorphBundleOperations', 'DiscourseOperations',
-        # Notebook
-        'NoteOperations', 'PersonOperations', 'LocationOperations',
-        'AnthropologyOperations', 'DataNotebookOperations',
-        # Lists
-        'PublicationOperations', 'AgentOperations', 'ConfidenceOperations',
-        'OverlayOperations', 'TranslationTypeOperations', 'PossibilityListOperations',
-        # System
-        'WritingSystemOperations', 'ProjectSettingsOperations', 'AnnotationDefOperations',
-        'CheckOperations', 'CustomFieldOperations',
-        # Shared
-        'MediaOperations', 'FilterOperations',
-    ]
-
-    cached_count = 0
-    for ops_name in operations_to_load:
+        # Get FieldWorks installation path from registry
+        RegKey = r"SOFTWARE\SIL\FieldWorks\9"
         try:
-            ops_class = getattr(flexlibs2, ops_name, None)
-            if ops_class is not None:
-                cached_count += 1
-            else:
-                print(f"[WARN] {ops_name} not found in flexlibs2 namespace")
+            rKey = Registry.LocalMachine.OpenSubKey(RegKey)
+            if rKey is None:
+                rKey = Registry.CurrentUser.OpenSubKey(RegKey)
+
+            if rKey:
+                fw_code_dir = rKey.GetValue("RootCodeDir")
+                if fw_code_dir and os.path.exists(os.path.join(fw_code_dir, "FieldWorks.exe")):
+                    sys.path.append(fw_code_dir)
+                    print(f"[OK] FieldWorks path added: {fw_code_dir}")
         except Exception as e:
-            print(f"[WARN] Could not access {ops_name}: {e}")
+            print(f"[WARN] Could not read registry: {e}")
 
-    print(f"[OK] Pre-cached {cached_count}/{len(operations_to_load)} operations modules")
+        # Step 2: Load SIL assemblies
+        print("[INFO] Loading SIL assemblies...")
+        clr.AddReference("FwUtils")
+        clr.AddReference("SIL.WritingSystems")
+        clr.AddReference("SIL.LCModel")
+        print("[OK] SIL assemblies loaded")
 
-except Exception as e:
-    print(f"[WARN] Could not initialize FieldWorks: {e}")
-    import traceback
-    traceback.print_exc()
+        # Step 3: Initialize FLEx services
+        print("[INFO] Initializing FLEx services...")
+        from SIL.FieldWorks.Common.FwUtils import FwRegistryHelper, FwUtils
+        from SIL.WritingSystems import Sldr
+
+        FwRegistryHelper.Initialize()
+        FwUtils.InitializeIcu()
+        Sldr.Initialize(True)
+        print("[OK] FLEx services initialized")
+
+        # Step 4: Initialize FLEx using FLExInitialize()
+        print("[INFO] Running FLExInitialize()...")
+        from flexlibs2.code.FLExInit import FLExInitialize
+        FLExInitialize()
+        print("[OK] FLExInitialize() complete")
+
+        # Step 5: Import flexlibs2 package
+        print("[INFO] Importing flexlibs2 package...")
+        import flexlibs2
+        print("[OK] flexlibs2 imported successfully")
+
+        # Step 6: Manually import and add operations to flexlibs2 namespace
+        # The __init__.py imports may not execute fully, so do it explicitly here
+        print("[INFO] Loading operations modules...")
+        operations_modules = [
+            # Grammar
+            ('flexlibs2.code.Grammar.POSOperations', 'POSOperations'),
+            ('flexlibs2.code.Grammar.PhonemeOperations', 'PhonemeOperations'),
+            ('flexlibs2.code.Grammar.NaturalClassOperations', 'NaturalClassOperations'),
+            ('flexlibs2.code.Grammar.EnvironmentOperations', 'EnvironmentOperations'),
+            ('flexlibs2.code.Grammar.PhonologicalRuleOperations', 'PhonologicalRuleOperations'),
+            ('flexlibs2.code.Grammar.MorphRuleOperations', 'MorphRuleOperations'),
+            ('flexlibs2.code.Grammar.GramCatOperations', 'GramCatOperations'),
+            ('flexlibs2.code.Grammar.InflectionFeatureOperations', 'InflectionFeatureOperations'),
+            # Lexicon
+            ('flexlibs2.code.Lexicon.LexEntryOperations', 'LexEntryOperations'),
+            ('flexlibs2.code.Lexicon.LexSenseOperations', 'LexSenseOperations'),
+            ('flexlibs2.code.Lexicon.ExampleOperations', 'ExampleOperations'),
+            ('flexlibs2.code.Lexicon.LexReferenceOperations', 'LexReferenceOperations'),
+            ('flexlibs2.code.Lexicon.VariantOperations', 'VariantOperations'),
+            ('flexlibs2.code.Lexicon.PronunciationOperations', 'PronunciationOperations'),
+            ('flexlibs2.code.Lexicon.SemanticDomainOperations', 'SemanticDomainOperations'),
+            ('flexlibs2.code.Lexicon.ReversalOperations', 'ReversalOperations'),
+            ('flexlibs2.code.Lexicon.EtymologyOperations', 'EtymologyOperations'),
+            ('flexlibs2.code.Lexicon.AllomorphOperations', 'AllomorphOperations'),
+            # TextsWords
+            ('flexlibs2.code.TextsWords.TextOperations', 'TextOperations'),
+            ('flexlibs2.code.TextsWords.WordformOperations', 'WordformOperations'),
+            ('flexlibs2.code.TextsWords.WfiAnalysisOperations', 'WfiAnalysisOperations'),
+            ('flexlibs2.code.TextsWords.ParagraphOperations', 'ParagraphOperations'),
+            ('flexlibs2.code.TextsWords.SegmentOperations', 'SegmentOperations'),
+            ('flexlibs2.code.TextsWords.WfiGlossOperations', 'WfiGlossOperations'),
+            ('flexlibs2.code.TextsWords.WfiMorphBundleOperations', 'WfiMorphBundleOperations'),
+            ('flexlibs2.code.TextsWords.DiscourseOperations', 'DiscourseOperations'),
+            # Notebook
+            ('flexlibs2.code.Notebook.NoteOperations', 'NoteOperations'),
+            ('flexlibs2.code.Notebook.PersonOperations', 'PersonOperations'),
+            ('flexlibs2.code.Notebook.LocationOperations', 'LocationOperations'),
+            ('flexlibs2.code.Notebook.AnthropologyOperations', 'AnthropologyOperations'),
+            ('flexlibs2.code.Notebook.DataNotebookOperations', 'DataNotebookOperations'),
+            # Lists
+            ('flexlibs2.code.Lists.PublicationOperations', 'PublicationOperations'),
+            ('flexlibs2.code.Lists.AgentOperations', 'AgentOperations'),
+            ('flexlibs2.code.Lists.ConfidenceOperations', 'ConfidenceOperations'),
+            ('flexlibs2.code.Lists.OverlayOperations', 'OverlayOperations'),
+            ('flexlibs2.code.Lists.TranslationTypeOperations', 'TranslationTypeOperations'),
+            ('flexlibs2.code.Lists.PossibilityListOperations', 'PossibilityListOperations'),
+            # System
+            ('flexlibs2.code.System.WritingSystemOperations', 'WritingSystemOperations'),
+            ('flexlibs2.code.System.ProjectSettingsOperations', 'ProjectSettingsOperations'),
+            ('flexlibs2.code.System.AnnotationDefOperations', 'AnnotationDefOperations'),
+            ('flexlibs2.code.System.CheckOperations', 'CheckOperations'),
+            ('flexlibs2.code.System.CustomFieldOperations', 'CustomFieldOperations'),
+            # Shared
+            ('flexlibs2.code.Shared.MediaOperations', 'MediaOperations'),
+            ('flexlibs2.code.Shared.FilterOperations', 'FilterOperations'),
+        ]
+
+        loaded_count = 0
+        for module_path, class_name in operations_modules:
+            try:
+                module = importlib.import_module(module_path)
+                ops_class = getattr(module, class_name)
+                setattr(flexlibs2, class_name, ops_class)
+                loaded_count += 1
+            except ImportError as e:
+                print(f"[WARN] Could not import {class_name}: {e}")
+            except AttributeError as e:
+                print(f"[WARN] {class_name} not found in {module_path}: {e}")
+            except Exception as e:
+                print(f"[WARN] Error loading {class_name}: {e}")
+
+        print(f"[OK] Loaded {loaded_count}/{len(operations_modules)} operations classes")
+
+        # Verify
+        ops_found = [x for x in dir(flexlibs2) if 'Operations' in x]
+        print(f"[INFO] flexlibs2 now has {len(ops_found)} operations available")
+
+    except Exception as e:
+        print(f"[ERROR] FLEx initialization failed: {e}")
+        import traceback
+        traceback.print_exc()
+        raise  # Re-raise so pytest knows initialization failed
+
+    yield  # Let tests run
+
+    # Cleanup after all tests (if needed)
+    print("[INFO] Test session complete")
 
 
 # ========== PYTEST CONFIGURATION ==========
