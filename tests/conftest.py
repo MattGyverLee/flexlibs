@@ -19,6 +19,71 @@
 import pytest
 from unittest.mock import Mock, MagicMock, patch
 import sys
+import os
+
+# ========== INITIALIZE FIELDWORKS BEFORE ANYTHING ELSE ==========
+# This MUST happen BEFORE importing any flexlibs2 modules
+# flexlibs2/__init__.py imports all Operations classes which depend on SIL.LCModel
+# We must set up the FieldWorks path FIRST
+
+print("[INFO] Initializing FieldWorks for tests...")
+try:
+    # Step 1: Set up Windows registry access and FW paths DIRECTLY
+    # (without importing any flexlibs modules)
+    import clr
+    import sys
+    import os
+    from System import Environment
+    from Microsoft.Win32 import Registry
+
+    # Get FieldWorks installation path from registry (manually, without importing FLExGlobals)
+    RegKey = r"SOFTWARE\SIL\FieldWorks\9"
+    try:
+        rKey = Registry.LocalMachine.OpenSubKey(RegKey)
+        if rKey is None:
+            rKey = Registry.CurrentUser.OpenSubKey(RegKey)
+
+        if rKey:
+            fw_code_dir = rKey.GetValue("RootCodeDir")
+            if fw_code_dir and os.path.exists(os.path.join(fw_code_dir, "FieldWorks.exe")):
+                sys.path.append(fw_code_dir)
+                print(f"[INFO] Added to path: {fw_code_dir}")
+    except Exception as e:
+        print(f"[WARN] Could not read registry: {e}")
+
+    # Step 2: Now load SIL assemblies
+    print("[INFO] Loading SIL assemblies...")
+    clr.AddReference("FwUtils")
+    clr.AddReference("SIL.WritingSystems")
+    clr.AddReference("SIL.LCModel")
+    print("[OK] SIL assemblies loaded")
+
+    # Step 3: Initialize FLEx services
+    print("[INFO] Initializing FLEx services...")
+    from SIL.FieldWorks.Common.FwUtils import FwRegistryHelper, FwUtils
+    from SIL.WritingSystems import Sldr
+
+    FwRegistryHelper.Initialize()
+    FwUtils.InitializeIcu()
+    Sldr.Initialize(True)
+    print("[OK] FieldWorks fully initialized")
+
+    # Step 4: Initialize FLEx globals by directly calling the FLExGlobals code
+    # This avoids circular imports during flexlibs2.__init__.py loading
+    print("[INFO] Initializing FLEx globals (FWCodeDir, FWExecutable, etc.)...")
+    from flexlibs2.code.FLExGlobals import InitialiseFWGlobals
+    InitialiseFWGlobals()
+    print("[OK] FLEx globals initialized")
+
+    # Step 5: Now that FLEx is fully initialized, import flexlibs2
+    print("[INFO] Importing flexlibs2 package...")
+    import flexlibs2
+    print("[OK] flexlibs2 imported successfully")
+
+except Exception as e:
+    print(f"[WARN] Could not initialize FieldWorks: {e}")
+    import traceback
+    traceback.print_exc()
 
 
 # ========== PYTEST CONFIGURATION ==========
