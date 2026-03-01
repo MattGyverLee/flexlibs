@@ -24,8 +24,13 @@ import shutil
 import logging
 logger = logging.getLogger(__name__)
 
-from .. import version
-logger.info("flexlibs version: %s" % version)
+# Defer version import to avoid circular dependency during initialization
+try:
+    from .. import version
+    logger.info("flexlibs version: %s" % version)
+except ImportError:
+    # Version module not yet available during initialization
+    version = None
 
 logger.info("Python version: %s" % sys.version)
 
@@ -54,8 +59,12 @@ def FLExInitialize ():
     FwUtils.InitializeIcu()
     # No need to access the online SLDR: Offline mode = True
     logger.debug("Calling Sldr.Initialize()")
-    Sldr.Initialize(True)
-    # Sldr.Initialize() can fail silently. If it doesn't return, 
+    try:
+        Sldr.Initialize(True)
+    except Exception as e:
+        # SLDR may already be initialized in some test/startup scenarios
+        logger.warning(f"Sldr.Initialize failed (already initialized?): {e}")
+    # Sldr.Initialize() can fail silently. If it doesn't return,
     # then it is likely a dll issue.
     logger.debug("FLExInit.Initialize complete")
 

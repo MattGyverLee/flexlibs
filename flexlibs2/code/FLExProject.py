@@ -18,7 +18,7 @@ from . import FLExInit
 from . import FLExLCM
 
 from subprocess import Popen, DETACHED_PROCESS
-from .. import FWExecutable
+from .FLExGlobals import FWExecutable
 
 import clr
 clr.AddReference("System")

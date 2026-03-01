@@ -68,17 +68,79 @@ try:
     Sldr.Initialize(True)
     print("[OK] FieldWorks fully initialized")
 
-    # Step 4: Initialize FLEx globals by directly calling the FLExGlobals code
-    # This avoids circular imports during flexlibs2.__init__.py loading
-    print("[INFO] Initializing FLEx globals (FWCodeDir, FWExecutable, etc.)...")
-    from flexlibs2.code.FLExGlobals import InitialiseFWGlobals
-    InitialiseFWGlobals()
-    print("[OK] FLEx globals initialized")
+    # Step 4: Initialize FLEx using the proper initialization function
+    # FLExInitialize() does more complete setup than just InitialiseFWGlobals()
+    print("[INFO] Running FLExInitialize()...")
+    from flexlibs2.code.FLExInit import FLExInitialize
+    FLExInitialize()
+    print("[OK] FLEx fully initialized")
 
-    # Step 5: Now that FLEx is fully initialized, import flexlibs2
+    # Step 5: Now that FLEx is fully initialized, import and reload flexlibs2
+    # We may have a partially initialized module in sys.modules, so reload it
     print("[INFO] Importing flexlibs2 package...")
-    import flexlibs2
+    import sys
+    import importlib
+    if 'flexlibs2' in sys.modules:
+        print("[DEBUG] flexlibs2 already in sys.modules, reloading...")
+        flexlibs2 = importlib.reload(sys.modules['flexlibs2'])
+    else:
+        import flexlibs2
+        flexlibs2 = sys.modules.get('flexlibs2')
     print("[OK] flexlibs2 imported successfully")
+
+    # DEBUG: Check what's actually in flexlibs2 namespace
+    if flexlibs2:
+        attrs_before = set(dir(flexlibs2))
+        ops_found = sorted([x for x in attrs_before if 'Operations' in x])
+        print(f"[DEBUG] Found {len(ops_found)} operations in flexlibs2")
+        if ops_found:
+            print(f"[DEBUG] Sample operations: {ops_found[:3]}")
+
+    # Step 6: Pre-cache all operations modules in sys.modules
+    # This prevents dynamic imports during tests from re-triggering circular imports
+    print("[INFO] Pre-caching operations modules...")
+
+    # First get list of all operations classes that should be available
+    # These are defined in __init__.py but may not be in namespace yet
+    operations_to_load = [
+        # Grammar
+        'POSOperations', 'PhonemeOperations', 'NaturalClassOperations',
+        'EnvironmentOperations', 'PhonologicalRuleOperations', 'MorphRuleOperations',
+        'GramCatOperations', 'InflectionFeatureOperations',
+        # Lexicon
+        'LexEntryOperations', 'LexSenseOperations', 'ExampleOperations',
+        'LexReferenceOperations', 'VariantOperations', 'PronunciationOperations',
+        'SemanticDomainOperations', 'ReversalOperations', 'EtymologyOperations',
+        'AllomorphOperations',
+        # TextsWords
+        'TextOperations', 'WordformOperations', 'WfiAnalysisOperations',
+        'ParagraphOperations', 'SegmentOperations', 'WfiGlossOperations',
+        'WfiMorphBundleOperations', 'DiscourseOperations',
+        # Notebook
+        'NoteOperations', 'PersonOperations', 'LocationOperations',
+        'AnthropologyOperations', 'DataNotebookOperations',
+        # Lists
+        'PublicationOperations', 'AgentOperations', 'ConfidenceOperations',
+        'OverlayOperations', 'TranslationTypeOperations', 'PossibilityListOperations',
+        # System
+        'WritingSystemOperations', 'ProjectSettingsOperations', 'AnnotationDefOperations',
+        'CheckOperations', 'CustomFieldOperations',
+        # Shared
+        'MediaOperations', 'FilterOperations',
+    ]
+
+    cached_count = 0
+    for ops_name in operations_to_load:
+        try:
+            ops_class = getattr(flexlibs2, ops_name, None)
+            if ops_class is not None:
+                cached_count += 1
+            else:
+                print(f"[WARN] {ops_name} not found in flexlibs2 namespace")
+        except Exception as e:
+            print(f"[WARN] Could not access {ops_name}: {e}")
+
+    print(f"[OK] Pre-cached {cached_count}/{len(operations_to_load)} operations modules")
 
 except Exception as e:
     print(f"[WARN] Could not initialize FieldWorks: {e}")

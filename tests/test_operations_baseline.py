@@ -196,6 +196,44 @@ DELETE_OPERATIONS = [
 
 
 # =============================================================================
+# HELPER FUNCTION FOR SMART IMPORTS
+# =============================================================================
+
+def get_operations_class(class_name, module_path):
+    """
+    Get an operations class, preferring cached imports over fresh imports.
+
+    This function first tries to get the class from the flexlibs2 namespace
+    (which will be pre-cached by conftest), then falls back to direct import.
+    This prevents dynamic imports from re-triggering circular import issues.
+
+    Args:
+        class_name: Name of the class (e.g., 'POSOperations')
+        module_path: Full module path (e.g., 'flexlibs2.code.Grammar.POSOperations')
+
+    Returns:
+        The class object
+
+    Raises:
+        ImportError if the class cannot be imported
+    """
+    # Get from flexlibs2 namespace (pre-cached by conftest during FLEx initialization)
+    # Do NOT attempt fresh imports - they cause circular import issues
+    try:
+        import flexlibs2
+        ops_class = getattr(flexlibs2, class_name, None)
+        if ops_class is not None:
+            return ops_class
+        else:
+            raise ImportError(f"{class_name} not in pre-cached flexlibs2 namespace. "
+                             f"FLEx may not be initialized.")
+    except ImportError:
+        raise
+    except Exception as e:
+        raise ImportError(f"Could not get {class_name} from flexlibs2: {e}")
+
+
+# =============================================================================
 # BASELINE TESTS - IMPORT AND INSTANTIATION
 # =============================================================================
 
@@ -206,8 +244,7 @@ class TestOperationsImport:
     def test_operations_class_import(self, class_name, module_path):
         """Test that each operations class can be imported."""
         try:
-            module = __import__(module_path, fromlist=[class_name])
-            ops_class = getattr(module, class_name)
+            ops_class = get_operations_class(class_name, module_path)
             assert ops_class is not None
             assert hasattr(ops_class, '__name__')
             assert ops_class.__name__ == class_name
@@ -222,8 +259,7 @@ class TestOperationsInstantiation:
     def test_operations_class_instantiation(self, class_name, module_path, mock_flex_project):
         """Test that each operations class can be instantiated."""
         try:
-            module = __import__(module_path, fromlist=[class_name])
-            ops_class = getattr(module, class_name)
+            ops_class = get_operations_class(class_name, module_path)
 
             # Try to instantiate with mock project
             instance = ops_class(mock_flex_project)
@@ -246,8 +282,7 @@ class TestOperationsInheritance:
             from flexlibs2.code.BaseOperations import BaseOperations
 
             # Import operations class
-            module = __import__(module_path, fromlist=[class_name])
-            ops_class = getattr(module, class_name)
+            ops_class = get_operations_class(class_name, module_path)
 
             # Check inheritance
             assert issubclass(ops_class, BaseOperations), \
@@ -274,8 +309,7 @@ class TestReorderingMethods:
     def test_has_all_reordering_methods(self, class_name, module_path, mock_flex_project):
         """Test that each operations class has all 7 reordering methods."""
         try:
-            module = __import__(module_path, fromlist=[class_name])
-            ops_class = getattr(module, class_name)
+            ops_class = get_operations_class(class_name, module_path)
             instance = ops_class(mock_flex_project)
 
             for method_name in self.REORDERING_METHODS:
@@ -304,8 +338,7 @@ class TestCommonCRUDMethods:
     def test_has_getall_method(self, class_name, module_path, mock_flex_project):
         """Test that operations classes have GetAll method."""
         try:
-            module = __import__(module_path, fromlist=[class_name])
-            ops_class = getattr(module, class_name)
+            ops_class = get_operations_class(class_name, module_path)
             instance = ops_class(mock_flex_project)
 
             # Most operations should have GetAll
@@ -321,8 +354,7 @@ class TestCommonCRUDMethods:
     def test_has_create_method(self, class_name, module_path, mock_flex_project):
         """Test that operations classes expected to have Create do have it."""
         try:
-            module = __import__(module_path, fromlist=[class_name])
-            ops_class = getattr(module, class_name)
+            ops_class = get_operations_class(class_name, module_path)
             instance = ops_class(mock_flex_project)
 
             assert hasattr(instance, 'Create'), \
@@ -343,8 +375,7 @@ class TestGrammarOperations:
     @pytest.mark.parametrize("class_name,module_path", GRAMMAR_OPERATIONS)
     def test_grammar_operations_domain(self, class_name, module_path, mock_flex_project):
         """Test Grammar operations classes are properly configured."""
-        module = __import__(module_path, fromlist=[class_name])
-        ops_class = getattr(module, class_name)
+        ops_class = get_operations_class(class_name, module_path)
         instance = ops_class(mock_flex_project)
 
         # Grammar operations should have GetAll
@@ -357,8 +388,7 @@ class TestLexiconOperations:
     @pytest.mark.parametrize("class_name,module_path", LEXICON_OPERATIONS)
     def test_lexicon_operations_domain(self, class_name, module_path, mock_flex_project):
         """Test Lexicon operations classes are properly configured."""
-        module = __import__(module_path, fromlist=[class_name])
-        ops_class = getattr(module, class_name)
+        ops_class = get_operations_class(class_name, module_path)
         instance = ops_class(mock_flex_project)
 
         # Lexicon operations should have GetAll or Find
@@ -371,8 +401,7 @@ class TestTextsWordsOperations:
     @pytest.mark.parametrize("class_name,module_path", TEXTSWORDS_OPERATIONS)
     def test_textswords_operations_domain(self, class_name, module_path, mock_flex_project):
         """Test TextsWords operations classes are properly configured."""
-        module = __import__(module_path, fromlist=[class_name])
-        ops_class = getattr(module, class_name)
+        ops_class = get_operations_class(class_name, module_path)
         instance = ops_class(mock_flex_project)
 
         # TextsWords operations should have GetAll
@@ -385,8 +414,7 @@ class TestScriptureOperations:
     @pytest.mark.parametrize("class_name,module_path", SCRIPTURE_OPERATIONS)
     def test_scripture_operations_domain(self, class_name, module_path, mock_flex_project):
         """Test Scripture operations classes are properly configured."""
-        module = __import__(module_path, fromlist=[class_name])
-        ops_class = getattr(module, class_name)
+        ops_class = get_operations_class(class_name, module_path)
         instance = ops_class(mock_flex_project)
 
         # Scripture operations should exist and be callable
