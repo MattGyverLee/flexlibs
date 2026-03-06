@@ -47,6 +47,9 @@ from ..lcm_casting import get_pos_from_msa
 # Import string utilities
 from .string_utils import normalize_text
 
+# Import BaseOperations decorators
+from ..BaseOperations import OperationsMethod, wrap_enumerable
+
 # --- Filter Type Constants ---
 
 class FilterTypes:
@@ -124,6 +127,7 @@ class FilterOperations:
 
     # --- Core Filter Management ---
 
+    @wrap_enumerable
     @OperationsMethod
     def GetAll(self):
         """

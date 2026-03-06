@@ -11,8 +11,8 @@
 #   Copyright 2025
 #
 
-# Import BaseOperations parent class and OperationsMethod descriptor
-from ..BaseOperations import BaseOperations, OperationsMethod
+# Import BaseOperations parent class and decorators
+from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
 # Import FLEx LCM types
 from SIL.LCModel import IPartOfSpeechFactory, IPartOfSpeech, ILexEntryRepository
@@ -80,6 +80,7 @@ class POSOperations(BaseOperations):
 
     @OperationsMethod
     @OperationsMethod
+    @wrap_enumerable
     @OperationsMethod
     def GetAll(self):
         """
@@ -472,6 +473,7 @@ class POSOperations(BaseOperations):
         pos.Abbreviation.set_String(wsHandle, mkstr)
 
     @OperationsMethod
+    @wrap_enumerable
     @OperationsMethod
     def GetSubcategories(self, pos_or_hvo):
         """
@@ -656,6 +658,7 @@ class POSOperations(BaseOperations):
         return pos.CatalogSourceId or ""
 
     @OperationsMethod
+    @wrap_enumerable
     @OperationsMethod
     def GetInflectionClasses(self, pos_or_hvo):
         """
@@ -697,6 +700,7 @@ class POSOperations(BaseOperations):
         return list(pos.InflectionClassesOC)
 
     @OperationsMethod
+    @wrap_enumerable
     @OperationsMethod
     def GetAffixSlots(self, pos_or_hvo):
         """
