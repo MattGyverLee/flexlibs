@@ -11,6 +11,60 @@
 #   Copyright 2025
 #
 
+
+class OperationsMethod:
+    """
+    Descriptor enabling methods to work as both class and instance methods.
+
+    Allows calling operation methods in two ways:
+      - Class level (no instantiation): POSOperations.GetAll(project)
+      - Instance level (traditional): POSOperations(project).GetAll()
+
+    Both patterns work identically and are equally valid. The descriptor
+    automatically handles instantiation when called at class level.
+
+    Usage::
+
+        class POSOperations(BaseOperations):
+            @OperationsMethod
+            def GetAll(self):
+                # Implementation
+                return self.project.GetAllPOS()
+
+        # Both work:
+        pos_list = POSOperations.GetAll(project)  # Class-level
+        pos_list = POSOperations(project).GetAll()  # Instance-level
+    """
+
+    def __init__(self, func):
+        """Store the method being decorated."""
+        self.func = func
+        self.__doc__ = func.__doc__
+        self.__name__ = func.__name__
+
+    def __get__(self, obj, objtype=None):
+        """
+        Descriptor protocol: handle both class and instance access.
+
+        When called on the class (POSOperations.GetAll(project)):
+            - Returns a function that takes project as first argument
+            - Automatically instantiates the class and calls the method
+
+        When called on an instance (POSOperations(project).GetAll()):
+            - Returns a bound method as normal
+        """
+        if obj is None:
+            # Called on class: POSOperations.GetAll(project)
+            def class_method(project, *args, **kwargs):
+                """Automatically instantiate and call the method."""
+                instance = objtype(project)
+                return self.func(instance, *args, **kwargs)
+            return class_method
+        else:
+            # Called on instance: POSOperations(project).GetAll()
+            return self.func.__get__(obj, objtype)
+
+
 class BaseOperations:
     """
     Base class for all FLEx operation classes.

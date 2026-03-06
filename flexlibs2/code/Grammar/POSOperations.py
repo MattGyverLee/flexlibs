@@ -11,8 +11,8 @@
 #   Copyright 2025
 #
 
-# Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+# Import BaseOperations parent class and OperationsMethod descriptor
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import IPartOfSpeechFactory, IPartOfSpeech, ILexEntryRepository
@@ -78,22 +78,30 @@ class POSOperations(BaseOperations):
         """
         return parent.SubPossibilitiesOS
 
+    @OperationsMethod
+    @OperationsMethod
     def GetAll(self):
         """
         Get all parts of speech in the project.
+
+        Can be called two ways:
+            POSOperations.GetAll(project)         # Class-level, no instantiation
+            POSOperations(project).GetAll()       # Instance-level, traditional
 
         Yields:
             IPartOfSpeech: Each part of speech object in the project's POS list.
 
         Example:
+            >>> # Class-level usage (no instantiation needed)
+            >>> for pos in POSOperations.GetAll(project):
+            ...     name = POSOperations.GetName(project, pos)
+            ...     print(name)
+
+            >>> # Instance-level usage (traditional)
             >>> posOps = POSOperations(project)
             >>> for pos in posOps.GetAll():
             ...     name = posOps.GetName(pos)
-            ...     abbr = posOps.GetAbbreviation(pos)
-            ...     print(f"{name} ({abbr})")
-            Noun (N)
-            Verb (V)
-            Adjective (Adj)
+            ...     print(name)
 
         Notes:
             - Returns only top-level parts of speech
@@ -108,6 +116,7 @@ class POSOperations(BaseOperations):
             for pos in pos_list.PossibilitiesOS:
                 yield pos
 
+    @OperationsMethod
     def Create(self, name, abbreviation, catalogSourceId=None):
         """
         Create a new part of speech.
@@ -184,6 +193,7 @@ class POSOperations(BaseOperations):
 
         return new_pos
 
+    @OperationsMethod
     def Delete(self, pos_or_hvo):
         """
         Delete a part of speech.
@@ -222,6 +232,7 @@ class POSOperations(BaseOperations):
         pos_list = self.project.lp.PartsOfSpeechOA
         pos_list.PossibilitiesOS.Remove(pos)
 
+    @OperationsMethod
     def Exists(self, name):
         """
         Check if a part of speech with the given name exists.
@@ -252,6 +263,7 @@ class POSOperations(BaseOperations):
 
         return self.Find(name) is not None
 
+    @OperationsMethod
     def Find(self, name):
         """
         Find a part of speech by name.
@@ -306,6 +318,7 @@ class POSOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def GetName(self, pos_or_hvo, wsHandle=None):
         """
         Get the name of a part of speech.
@@ -341,6 +354,7 @@ class POSOperations(BaseOperations):
         name = ITsString(pos.Name.get_String(wsHandle)).Text
         return name or ""
 
+    @OperationsMethod
     def SetName(self, pos_or_hvo, name, wsHandle=None):
         """
         Set the name of a part of speech.
@@ -378,6 +392,7 @@ class POSOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         pos.Name.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetAbbreviation(self, pos_or_hvo, wsHandle=None):
         """
         Get the abbreviation of a part of speech.
@@ -410,6 +425,7 @@ class POSOperations(BaseOperations):
         abbr = ITsString(pos.Abbreviation.get_String(wsHandle)).Text
         return abbr or ""
 
+    @OperationsMethod
     def SetAbbreviation(self, pos_or_hvo, abbr, wsHandle=None):
         """
         Set the abbreviation of a part of speech.
@@ -446,6 +462,7 @@ class POSOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(abbr, wsHandle)
         pos.Abbreviation.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetSubcategories(self, pos_or_hvo):
         """
         Get all subcategories of a part of speech.
@@ -484,6 +501,7 @@ class POSOperations(BaseOperations):
 
         return list(pos.SubPossibilitiesOS)
 
+    @OperationsMethod
     def AddSubcategory(self, pos_or_hvo, name, abbreviation):
         """
         Add a subcategory to a part of speech.
@@ -547,6 +565,7 @@ class POSOperations(BaseOperations):
 
         return subcat
 
+    @OperationsMethod
     def RemoveSubcategory(self, pos_or_hvo, subcat_or_hvo):
         """
         Remove a subcategory from a part of speech.
@@ -588,6 +607,7 @@ class POSOperations(BaseOperations):
         # Remove from parent's SubPossibilitiesOS
         pos.SubPossibilitiesOS.Remove(subcat)
 
+    @OperationsMethod
     def GetCatalogSourceId(self, pos_or_hvo):
         """
         Get the catalog source ID of a part of speech.
@@ -622,6 +642,7 @@ class POSOperations(BaseOperations):
 
         return pos.CatalogSourceId or ""
 
+    @OperationsMethod
     def GetInflectionClasses(self, pos_or_hvo):
         """
         Get all inflection classes associated with a part of speech.
@@ -661,6 +682,7 @@ class POSOperations(BaseOperations):
         # IPartOfSpeech has InflectionClassesOC
         return list(pos.InflectionClassesOC)
 
+    @OperationsMethod
     def GetAffixSlots(self, pos_or_hvo):
         """
         Get all affix slots associated with a part of speech.
@@ -700,6 +722,7 @@ class POSOperations(BaseOperations):
         # IPartOfSpeech has AffixSlotsOC
         return list(pos.AffixSlotsOC)
 
+    @OperationsMethod
     def GetEntryCount(self, pos_or_hvo):
         """
         Count the number of lexical entries using this part of speech.
@@ -749,6 +772,7 @@ class POSOperations(BaseOperations):
 
         return count
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
         Duplicate a part of speech, creating a new copy with a new GUID.
@@ -900,6 +924,7 @@ class POSOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get dictionary of syncable properties for cross-project synchronization.
@@ -951,6 +976,7 @@ class POSOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two parts of speech and return detailed differences.

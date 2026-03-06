@@ -15,7 +15,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -93,6 +93,7 @@ class LexEntryOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def GetAll(self):
         """
         Get all lexical entries in the project.
@@ -123,6 +124,7 @@ class LexEntryOperations(BaseOperations):
         """
         return self.project.ObjectsIn(ILexEntryRepository)
 
+    @OperationsMethod
     def Create(self, lexeme_form, morph_type_name=None, wsHandle=None, create_blank_sense=True):
         """
         Create a new lexical entry in the FLEx project.
@@ -238,6 +240,7 @@ class LexEntryOperations(BaseOperations):
 
         return new_entry
 
+    @OperationsMethod
     def Delete(self, entry_or_hvo):
         """
         Delete a lexical entry from the FLEx project.
@@ -283,6 +286,7 @@ class LexEntryOperations(BaseOperations):
         # Delete the entry (LCM handles removal from repository)
         entry.Delete()
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, deep=True):
         """
         Duplicate a lexical entry, creating a new entry with the same properties.
@@ -470,6 +474,7 @@ class LexEntryOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get all syncable properties of a lexical entry for comparison.
@@ -558,6 +563,7 @@ class LexEntryOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two lexical entries and return their differences.
@@ -588,6 +594,7 @@ class LexEntryOperations(BaseOperations):
         is_different = len(differences) > 0
         return is_different, differences
 
+    @OperationsMethod
     def Exists(self, lexeme_form, wsHandle=None):
         """
         Check if a lexical entry with the given lexeme form exists.
@@ -627,6 +634,7 @@ class LexEntryOperations(BaseOperations):
 
         return self.Find(lexeme_form, wsHandle) is not None
 
+    @OperationsMethod
     def Find(self, lexeme_form, wsHandle=None):
         """
         Find a lexical entry by its lexeme form.
@@ -680,6 +688,7 @@ class LexEntryOperations(BaseOperations):
 
     # --- Headword & Form Management ---
 
+    @OperationsMethod
     def GetHeadword(self, entry_or_hvo):
         """
         Get the headword (display form) of a lexical entry.
@@ -724,6 +733,7 @@ class LexEntryOperations(BaseOperations):
             return self._NormalizeMultiString(normalize_text(entry.HeadWord.Text))
         return ""
 
+    @OperationsMethod
     def SetHeadword(self, entry_or_hvo, text, wsHandle=None):
         """
         Set the headword by setting the lexeme form.
@@ -757,6 +767,7 @@ class LexEntryOperations(BaseOperations):
         """
         self.SetLexemeForm(entry_or_hvo, text, wsHandle)
 
+    @OperationsMethod
     def GetLexemeForm(self, entry_or_hvo, wsHandle=None):
         """
         Get the lexeme form of a lexical entry.
@@ -803,6 +814,7 @@ class LexEntryOperations(BaseOperations):
         form = ITsString(entry.LexemeFormOA.Form.get_String(wsHandle)).Text
         return self._NormalizeMultiString(form)
 
+    @OperationsMethod
     def SetLexemeForm(self, entry_or_hvo, text, wsHandle=None):
         """
         Set the lexeme form of a lexical entry.
@@ -852,6 +864,7 @@ class LexEntryOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         entry.LexemeFormOA.Form.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetCitationForm(self, entry_or_hvo, wsHandle=None):
         """
         Get the citation form of a lexical entry.
@@ -897,6 +910,7 @@ class LexEntryOperations(BaseOperations):
         form = ITsString(entry.CitationForm.get_String(wsHandle)).Text
         return self._NormalizeMultiString(form)
 
+    @OperationsMethod
     def SetCitationForm(self, entry_or_hvo, text, wsHandle=None):
         """
         Set the citation form of a lexical entry.
@@ -940,6 +954,7 @@ class LexEntryOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         entry.CitationForm.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetBestVernacularAlternative(self, entry_or_hvo):
         """
         Get best available vernacular form (Pattern 5 - fallback logic).
@@ -995,6 +1010,7 @@ class LexEntryOperations(BaseOperations):
 
     # --- Computed Properties (Pattern 2) ---
 
+    @OperationsMethod
     def GetShortName(self, entry_or_hvo, wsHandle=None):
         """
         Get short display name for entry (Pattern 2 - computed property).
@@ -1031,6 +1047,7 @@ class LexEntryOperations(BaseOperations):
         # Short name is typically the headword
         return self.GetHeadword(entry)
 
+    @OperationsMethod
     def GetLongName(self, entry_or_hvo, wsHandle=None):
         """
         Get long display name for entry (Pattern 2 - computed property).
@@ -1077,6 +1094,7 @@ class LexEntryOperations(BaseOperations):
 
         return long_name
 
+    @OperationsMethod
     def GetLIFTid(self, entry_or_hvo):
         """
         Get LIFT XML identifier for entry (Pattern 2 - computed property).
@@ -1114,6 +1132,7 @@ class LexEntryOperations(BaseOperations):
 
     # --- Entry Properties ---
 
+    @OperationsMethod
     def GetHomographNumber(self, entry_or_hvo):
         """
         Get the homograph number of a lexical entry.
@@ -1156,6 +1175,7 @@ class LexEntryOperations(BaseOperations):
 
         return entry.HomographNumber
 
+    @OperationsMethod
     def SetHomographNumber(self, entry_or_hvo, number):
         """
         Set the homograph number of a lexical entry.
@@ -1204,6 +1224,7 @@ class LexEntryOperations(BaseOperations):
 
         entry.HomographNumber = number
 
+    @OperationsMethod
     def GetDateCreated(self, entry_or_hvo):
         """
         Get the creation date of a lexical entry.
@@ -1244,6 +1265,7 @@ class LexEntryOperations(BaseOperations):
 
         return entry.DateCreated
 
+    @OperationsMethod
     def GetDateModified(self, entry_or_hvo):
         """
         Get the last modification date of a lexical entry.
@@ -1284,6 +1306,7 @@ class LexEntryOperations(BaseOperations):
 
         return entry.DateModified
 
+    @OperationsMethod
     def GetMorphType(self, entry_or_hvo):
         """
         Get the morph type of a lexical entry's lexeme form.
@@ -1333,6 +1356,7 @@ class LexEntryOperations(BaseOperations):
 
         return entry.LexemeFormOA.MorphTypeRA
 
+    @OperationsMethod
     def SetMorphType(self, entry_or_hvo, morph_type_or_name):
         """
         Set the morph type of a lexical entry's lexeme form.
@@ -1392,6 +1416,7 @@ class LexEntryOperations(BaseOperations):
 
         entry.LexemeFormOA.MorphTypeRA = morph_type
 
+    @OperationsMethod
     def GetAvailableMorphTypes(self, include_subcategories=True):
         """
         Get a list of all available morph types in the project.
@@ -1449,6 +1474,7 @@ class LexEntryOperations(BaseOperations):
         collect_types(morph_types.PossibilitiesOS)
         return result
 
+    @OperationsMethod
     def ValidateMorphType(self, morph_type_name):
         """
         Check if a morph type name exists in the project.
@@ -1494,6 +1520,7 @@ class LexEntryOperations(BaseOperations):
 
     # --- Sense Management ---
 
+    @OperationsMethod
     def GetSenses(self, entry_or_hvo):
         """
         Get all senses of a lexical entry.
@@ -1532,6 +1559,7 @@ class LexEntryOperations(BaseOperations):
 
         return list(entry.SensesOS)
 
+    @OperationsMethod
     def GetSenseCount(self, entry_or_hvo):
         """
         Get the count of senses for a lexical entry.
@@ -1569,6 +1597,7 @@ class LexEntryOperations(BaseOperations):
 
         return entry.SensesOS.Count
 
+    @OperationsMethod
     def AddSense(self, entry_or_hvo, gloss, wsHandle=None):
         """
         Add a new sense to a lexical entry.
@@ -1631,6 +1660,7 @@ class LexEntryOperations(BaseOperations):
 
     # --- Additional Properties ---
 
+    @OperationsMethod
     def GetGuid(self, entry_or_hvo):
         """
         Get the GUID (Globally Unique Identifier) of a lexical entry.
@@ -1675,6 +1705,7 @@ class LexEntryOperations(BaseOperations):
 
         return entry.Guid
 
+    @OperationsMethod
     def GetImportResidue(self, entry_or_hvo):
         """
         Get the import residue of a lexical entry.
@@ -1712,6 +1743,7 @@ class LexEntryOperations(BaseOperations):
 
         return self._NormalizeMultiString(entry.ImportResidue)
 
+    @OperationsMethod
     def SetImportResidue(self, entry_or_hvo, residue):
         """
         Set the import residue of a lexical entry.
@@ -1752,6 +1784,7 @@ class LexEntryOperations(BaseOperations):
 
     # --- MultiString/MultiUnicode Properties ---
 
+    @OperationsMethod
     def GetBibliography(self, entry_or_hvo, wsHandle=None):
         """
         Get the bibliography of a lexical entry.
@@ -1776,6 +1809,7 @@ class LexEntryOperations(BaseOperations):
 
         return self._NormalizeMultiString(ITsString(entry.Bibliography.get_String(wsHandle)).Text)
 
+    @OperationsMethod
     def SetBibliography(self, entry_or_hvo, text, wsHandle=None):
         """
         Set the bibliography of a lexical entry.
@@ -1795,6 +1829,7 @@ class LexEntryOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         entry.Bibliography.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetComment(self, entry_or_hvo, wsHandle=None):
         """
         Get the comment of a lexical entry.
@@ -1813,6 +1848,7 @@ class LexEntryOperations(BaseOperations):
 
         return self._NormalizeMultiString(ITsString(entry.Comment.get_String(wsHandle)).Text)
 
+    @OperationsMethod
     def SetComment(self, entry_or_hvo, text, wsHandle=None):
         """
         Set the comment of a lexical entry.
@@ -1832,6 +1868,7 @@ class LexEntryOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         entry.Comment.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetLiteralMeaning(self, entry_or_hvo, wsHandle=None):
         """
         Get the literal meaning of a lexical entry.
@@ -1850,6 +1887,7 @@ class LexEntryOperations(BaseOperations):
 
         return self._NormalizeMultiString(ITsString(entry.LiteralMeaning.get_String(wsHandle)).Text)
 
+    @OperationsMethod
     def SetLiteralMeaning(self, entry_or_hvo, text, wsHandle=None):
         """
         Set the literal meaning of a lexical entry.
@@ -1869,6 +1907,7 @@ class LexEntryOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         entry.LiteralMeaning.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetRestrictions(self, entry_or_hvo, wsHandle=None):
         """
         Get the restrictions of a lexical entry.
@@ -1887,6 +1926,7 @@ class LexEntryOperations(BaseOperations):
 
         return self._NormalizeMultiString(ITsString(entry.Restrictions.get_String(wsHandle)).Text)
 
+    @OperationsMethod
     def SetRestrictions(self, entry_or_hvo, text, wsHandle=None):
         """
         Set the restrictions of a lexical entry.
@@ -1906,6 +1946,7 @@ class LexEntryOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         entry.Restrictions.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetSummaryDefinition(self, entry_or_hvo, wsHandle=None):
         """
         Get the summary definition of a lexical entry.
@@ -1924,6 +1965,7 @@ class LexEntryOperations(BaseOperations):
 
         return self._NormalizeMultiString(ITsString(entry.SummaryDefinition.get_String(wsHandle)).Text)
 
+    @OperationsMethod
     def SetSummaryDefinition(self, entry_or_hvo, text, wsHandle=None):
         """
         Set the summary definition of a lexical entry.
@@ -1945,6 +1987,7 @@ class LexEntryOperations(BaseOperations):
 
     # --- Boolean Properties ---
 
+    @OperationsMethod
     def GetDoNotUseForParsing(self, entry_or_hvo):
         """
         Check if an entry is excluded from parsing.
@@ -1960,6 +2003,7 @@ class LexEntryOperations(BaseOperations):
         entry = self.__ResolveObject(entry_or_hvo)
         return entry.DoNotUseForParsing
 
+    @OperationsMethod
     def SetDoNotUseForParsing(self, entry_or_hvo, value):
         """
         Set whether an entry is excluded from parsing.
@@ -1975,6 +2019,7 @@ class LexEntryOperations(BaseOperations):
         entry = self.__ResolveObject(entry_or_hvo)
         entry.DoNotUseForParsing = bool(value)
 
+    @OperationsMethod
     def GetExcludeAsHeadword(self, entry_or_hvo):
         """
         Check if an entry is excluded as a headword.
@@ -1990,6 +2035,7 @@ class LexEntryOperations(BaseOperations):
         entry = self.__ResolveObject(entry_or_hvo)
         return entry.ExcludeAsHeadword
 
+    @OperationsMethod
     def SetExcludeAsHeadword(self, entry_or_hvo, value):
         """
         Set whether an entry is excluded as a headword.
@@ -2007,6 +2053,7 @@ class LexEntryOperations(BaseOperations):
 
     # --- Collection Properties ---
 
+    @OperationsMethod
     def GetDoNotPublishIn(self, entry_or_hvo):
         """
         Get the publications this entry should not be published in.
@@ -2033,6 +2080,7 @@ class LexEntryOperations(BaseOperations):
             result.append(name)
         return result
 
+    @OperationsMethod
     def AddDoNotPublishIn(self, entry_or_hvo, publication):
         """
         Add a publication to exclude this entry from.
@@ -2057,6 +2105,7 @@ class LexEntryOperations(BaseOperations):
         if publication not in entry.DoNotPublishInRC:
             entry.DoNotPublishInRC.Add(publication)
 
+    @OperationsMethod
     def RemoveDoNotPublishIn(self, entry_or_hvo, publication):
         """
         Remove a publication from the exclude list.
@@ -2081,6 +2130,7 @@ class LexEntryOperations(BaseOperations):
         if publication in entry.DoNotPublishInRC:
             entry.DoNotPublishInRC.Remove(publication)
 
+    @OperationsMethod
     def GetDoNotShowMainEntryIn(self, entry_or_hvo):
         """
         Get the publications where this entry should not be shown as main entry.
@@ -2101,6 +2151,7 @@ class LexEntryOperations(BaseOperations):
             result.append(name)
         return result
 
+    @OperationsMethod
     def AddDoNotShowMainEntryIn(self, entry_or_hvo, publication):
         """
         Add a publication to not show this entry as main entry.
@@ -2125,6 +2176,7 @@ class LexEntryOperations(BaseOperations):
         if publication not in entry.DoNotShowMainEntryInRC:
             entry.DoNotShowMainEntryInRC.Add(publication)
 
+    @OperationsMethod
     def RemoveDoNotShowMainEntryIn(self, entry_or_hvo, publication):
         """
         Remove a publication from the no-main-entry list.
@@ -2190,6 +2242,7 @@ class LexEntryOperations(BaseOperations):
 
     # --- Back-Reference Methods (Pattern 3) ---
 
+    @OperationsMethod
     def GetVisibleComplexFormBackRefs(self, entry_or_hvo):
         """
         Get all complex forms that reference this entry.
@@ -2232,6 +2285,7 @@ class LexEntryOperations(BaseOperations):
             logger.warning("VisibleComplexFormBackRefs not available, returning empty list")
             return []
 
+    @OperationsMethod
     def GetComplexFormsNotSubentries(self, entry_or_hvo):
         """
         Get complex forms that reference this entry, excluding subentries.
@@ -2281,6 +2335,7 @@ class LexEntryOperations(BaseOperations):
 
         return result
 
+    @OperationsMethod
     def GetMinimalLexReferences(self, entry_or_hvo):
         """
         Get essential lexical references for this entry.
@@ -2326,6 +2381,7 @@ class LexEntryOperations(BaseOperations):
             logger.warning("MinimalLexReferences not available, returning empty list")
             return []
 
+    @OperationsMethod
     def GetAllSenses(self, entry_or_hvo):
         """
         Get all senses owned by this entry, including subsenses recursively.
@@ -2399,6 +2455,7 @@ class LexEntryOperations(BaseOperations):
 
     # --- Complex Form Helper Methods (Pattern 4) ---
 
+    @OperationsMethod
     def AddComplexFormComponent(self, complex_entry_or_hvo, component_or_hvo):
         """
         Add a component to a complex form (compound, idiom, phrasal verb).
@@ -2471,6 +2528,7 @@ class LexEntryOperations(BaseOperations):
         if not any(item.Hvo == component.Hvo for item in entry_ref.ShowComplexFormsInRS):
             entry_ref.ShowComplexFormsInRS.Add(component)
 
+    @OperationsMethod
     def RemoveComplexFormComponent(self, complex_entry_or_hvo, component_or_hvo):
         """
         Remove a component from a complex form.
@@ -2520,6 +2578,7 @@ class LexEntryOperations(BaseOperations):
                     entry_ref.ShowComplexFormsInRS.Remove(item)
                 break
 
+    @OperationsMethod
     def GetComplexFormComponents(self, complex_entry_or_hvo):
         """
         Get all components of a complex form.
@@ -2558,6 +2617,7 @@ class LexEntryOperations(BaseOperations):
 
     # --- Pattern 7: MergeObject (Entry/Sense merging) ---
 
+    @OperationsMethod
     def MergeObject(self, survivor_or_hvo, victim_or_hvo, fLoseNoStringData=True, auto_deduplicate=True):
         """
         Merge one entry into another (IRREVERSIBLE operation).
