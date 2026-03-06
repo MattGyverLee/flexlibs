@@ -35,7 +35,7 @@ import System
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations, OperationsMethod
+from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
 # Import string utilities
 from ..Shared.string_utils import normalize_text
@@ -184,6 +184,7 @@ class DataNotebookOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @wrap_enumerable
     @OperationsMethod
     def GetAll(self):
         """

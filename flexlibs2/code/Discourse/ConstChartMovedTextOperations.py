@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations, OperationsMethod
+from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -202,6 +202,7 @@ class ConstChartMovedTextOperations(BaseOperations):
 
         return word_group.MovedTextMarkerOA if hasattr(word_group, 'MovedTextMarkerOA') else None
 
+    @wrap_enumerable
     @OperationsMethod
     def GetAll(self, chart_or_hvo):
         """

@@ -24,7 +24,7 @@ from SIL.LCModel.Core.Text import TsStringUtils
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations, OperationsMethod
+from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
 class ParagraphOperations(BaseOperations):
     """
@@ -421,6 +421,7 @@ class ParagraphOperations(BaseOperations):
         is_different = len(differences) > 0
         return (is_different, differences)
 
+    @wrap_enumerable
     @OperationsMethod
     def GetAll(self, text_or_hvo):
         """

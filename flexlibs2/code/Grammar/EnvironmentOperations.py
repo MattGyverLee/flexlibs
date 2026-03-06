@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations, OperationsMethod
+from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
 # Import FLEx LCM types
 from SIL.LCModel import IPhEnvironmentFactory, IPhEnvironment, ICmObjectRepository
@@ -75,6 +75,7 @@ class EnvironmentOperations(BaseOperations):
         """
         return parent.EnvironmentsOA.PossibilitiesOS
 
+    @wrap_enumerable
     @OperationsMethod
     def GetAll(self):
         """

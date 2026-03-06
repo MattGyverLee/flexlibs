@@ -31,7 +31,7 @@ from SIL.LCModel.Core.Text import TsStringUtils
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations, OperationsMethod
+from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
 class TextOperations(BaseOperations):
     """
@@ -447,6 +447,7 @@ class TextOperations(BaseOperations):
 
         return False
 
+    @wrap_enumerable
     @OperationsMethod
     def GetAll(self):
         """

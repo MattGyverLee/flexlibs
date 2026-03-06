@@ -36,7 +36,7 @@ from System import Guid, DateTime
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations, OperationsMethod
+from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
 class AnthropologyOperations(BaseOperations):
     """
@@ -155,6 +155,7 @@ class AnthropologyOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @wrap_enumerable
     @OperationsMethod
     def GetAll(self, flat=True):
         """

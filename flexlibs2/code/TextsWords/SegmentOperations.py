@@ -26,7 +26,7 @@ from SIL.LCModel.Core.Text import TsStringUtils
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations, OperationsMethod
+from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
 class SegmentOperations(BaseOperations):
     """
@@ -125,6 +125,7 @@ class SegmentOperations(BaseOperations):
             return self.project.Object(segment_or_hvo)
         return segment_or_hvo
 
+    @wrap_enumerable
     @OperationsMethod
     def GetAll(self, paragraph_or_hvo):
         """

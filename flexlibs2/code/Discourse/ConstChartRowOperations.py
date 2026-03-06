@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations, OperationsMethod
+from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -218,6 +218,7 @@ class ConstChartRowOperations(BaseOperations):
 
         return chart.RowsOS[index]
 
+    @wrap_enumerable
     @OperationsMethod
     def GetAll(self, chart_or_hvo):
         """

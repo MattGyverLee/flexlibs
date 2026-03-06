@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations, OperationsMethod
+from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -80,6 +80,7 @@ class WfiAnalysisOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @wrap_enumerable
     @OperationsMethod
     def GetAll(self, wordform_or_hvo):
         """
@@ -430,6 +431,7 @@ class WfiAnalysisOperations(BaseOperations):
 
     # --- Morph Bundles ---
 
+    @wrap_enumerable
     @OperationsMethod
     def GetMorphBundles(self, analysis_or_hvo):
         """
@@ -472,6 +474,7 @@ class WfiAnalysisOperations(BaseOperations):
 
     # --- Glosses ---
 
+    @wrap_enumerable
     @OperationsMethod
     def GetGlosses(self, analysis_or_hvo):
         """

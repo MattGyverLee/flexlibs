@@ -28,7 +28,7 @@ from SIL.LCModel.Core.Text import TsStringUtils
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations, OperationsMethod
+from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
 class WfiMorphBundleOperations(BaseOperations):
     """
@@ -89,6 +89,7 @@ class WfiMorphBundleOperations(BaseOperations):
 
     # ==================== CORE CRUD OPERATIONS ====================
 
+    @wrap_enumerable
     @OperationsMethod
     def GetAll(self, analysis_or_hvo):
         """

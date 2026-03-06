@@ -36,7 +36,7 @@ from SIL.LCModel.Core.Text import TsStringUtils
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations, OperationsMethod
+from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
 class DiscourseOperations(BaseOperations):
     """
@@ -525,6 +525,7 @@ class DiscourseOperations(BaseOperations):
 
     # --- Chart Row/Structure Operations ---
 
+    @wrap_enumerable
     @OperationsMethod
     def GetRows(self, chart_or_hvo):
         """

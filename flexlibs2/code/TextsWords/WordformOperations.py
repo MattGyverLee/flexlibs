@@ -32,7 +32,7 @@ from SIL.LCModel.Core.Text import TsStringUtils
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations, OperationsMethod
+from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
 # --- Spelling Status Enum ---
 
@@ -92,6 +92,7 @@ class WordformOperations(BaseOperations):
             return self.project.project.DefaultVernWs
         return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultVernWs)
 
+    @wrap_enumerable
     @OperationsMethod
     def GetAll(self):
         """

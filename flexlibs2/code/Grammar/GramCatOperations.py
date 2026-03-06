@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations, OperationsMethod
+from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
 # Import FLEx LCM types
 from SIL.LCModel import ICmPossibility, ICmPossibilityFactory
@@ -77,6 +77,7 @@ class GramCatOperations(BaseOperations):
         """
         return parent.SubPossibilitiesOS
 
+    @wrap_enumerable
     @OperationsMethod
     def GetAll(self):
         """
@@ -305,6 +306,7 @@ class GramCatOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         cat.Name.set_String(wsHandle, mkstr)
 
+    @wrap_enumerable
     @OperationsMethod
     def GetSubcategories(self, cat_or_hvo):
         """

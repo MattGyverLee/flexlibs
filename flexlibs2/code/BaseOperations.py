@@ -12,6 +12,129 @@
 #
 
 
+class EnumerableWrapper:
+    """
+    Wraps C# IEnumerable to provide Pythonic interface.
+
+    C# IEnumerable collections don't support indexing or .Count in Python.
+    This wrapper makes them behave like Python sequences while maintaining
+    lazy evaluation when possible.
+
+    Provides:
+      - .Count property (returns count of items)
+      - Indexing support ([0], [1:3], etc.)
+      - Iteration support (for item in collection)
+      - Contains support (x in collection)
+
+    Usage::
+
+        items = GetWordforms()  # Returns IEnumerable
+        count = items.Count      # ✅ Works (Pythonic!)
+        first = items[0]         # ✅ Works (indexing)
+        if "word" in items:      # ✅ Works (contains)
+            ...
+    """
+
+    def __init__(self, enumerable):
+        """Wrap an IEnumerable collection.
+
+        Args:
+            enumerable: A C# IEnumerable object from LibLCM
+        """
+        self._enumerable = enumerable
+        self._cached_list = None
+
+    def _ensure_list(self):
+        """Convert to list on first access (lazy evaluation)."""
+        if self._cached_list is None:
+            self._cached_list = list(self._enumerable)
+        return self._cached_list
+
+    @property
+    def Count(self):
+        """Get count of items in the collection (Pythonic for C# .Count).
+
+        Returns:
+            int: Number of items in the enumerable.
+
+        Example::
+
+            items = project.GetWordforms()
+            count = items.Count  # Returns number of wordforms
+        """
+        return len(self._ensure_list())
+
+    def __len__(self):
+        """Support len() function."""
+        return self.Count
+
+    def __getitem__(self, index):
+        """Support indexing and slicing.
+
+        Args:
+            index: Integer index or slice object
+
+        Returns:
+            Item at index or slice of items
+
+        Example::
+
+            items = project.GetWordforms()
+            first = items[0]      # First item
+            last = items[-1]      # Last item
+            some = items[1:5]     # Slice
+        """
+        return self._ensure_list()[index]
+
+    def __iter__(self):
+        """Support iteration (for item in collection)."""
+        return iter(self._ensure_list())
+
+    def __contains__(self, item):
+        """Support 'in' operator.
+
+        Example::
+
+            items = project.GetWordforms()
+            if my_word in items:
+                ...
+        """
+        return item in self._ensure_list()
+
+    def __repr__(self):
+        """String representation."""
+        return f"EnumerableWrapper({self._enumerable})"
+
+
+def wrap_enumerable(func):
+    """
+    Decorator to automatically wrap IEnumerable return values.
+
+    Wraps methods that return C# IEnumerable collections to make them
+    Pythonic with .Count property and indexing support.
+
+    Usage::
+
+        class MyOperations(BaseOperations):
+            @OperationsMethod
+            @wrap_enumerable
+            def GetAll(self):
+                return self.project.GetAllItems()
+
+            # Now users can do:
+            items = GetAll(project)
+            count = items.Count      # Works!
+            first = items[0]         # Works!
+    """
+    def wrapper(*args, **kwargs):
+        result = func(*args, **kwargs)
+        # Only wrap if it looks like an IEnumerable (has GetEnumerator)
+        if result is not None and hasattr(result, 'GetEnumerator'):
+            return EnumerableWrapper(result)
+        return result
+    return wrapper
+
+
 class OperationsMethod:
     """
     Descriptor enabling methods to work as both class and instance methods.
@@ -26,8 +149,9 @@ class OperationsMethod:
     Usage::
 
         class POSOperations(BaseOperations):
-            @OperationsMethod
-            def GetAll(self):
+            @wrap_enumerable
+    @OperationsMethod
+    def GetAll(self):
                 # Implementation
                 return self.project.GetAllPOS()
 

@@ -28,7 +28,7 @@ from SIL.LCModel.Core.Text import TsStringUtils
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations, OperationsMethod
+from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
 class OverlayOperations(BaseOperations):
     """
@@ -166,6 +166,7 @@ class OverlayOperations(BaseOperations):
 
     # --- Core Operations ---
 
+    @wrap_enumerable
     @OperationsMethod
     def GetAll(self, chart_or_hvo):
         """

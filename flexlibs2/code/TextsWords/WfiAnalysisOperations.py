@@ -34,7 +34,7 @@ from SIL.LCModel.Core.Text import TsStringUtils
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations, OperationsMethod
+from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
 # --- Approval Status Enum ---
 
@@ -143,6 +143,7 @@ class WfiAnalysisOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @wrap_enumerable
     @OperationsMethod
     def GetAll(self, wordform_or_hvo):
         """
@@ -867,6 +868,7 @@ class WfiAnalysisOperations(BaseOperations):
 
     # --- Gloss Operations ---
 
+    @wrap_enumerable
     @OperationsMethod
     def GetGlosses(self, analysis_or_hvo):
         """
@@ -1007,6 +1009,7 @@ class WfiAnalysisOperations(BaseOperations):
 
     # --- Morph Bundle Operations ---
 
+    @wrap_enumerable
     @OperationsMethod
     def GetMorphBundles(self, analysis_or_hvo):
         """

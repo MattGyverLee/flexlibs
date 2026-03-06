@@ -22,7 +22,7 @@ from ..FLExProject import (
     FP_ParameterError,
     FP_WritingSystemError,
 )
-from ..BaseOperations import BaseOperations, OperationsMethod
+from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
 class WritingSystemOperations(BaseOperations):
     """
@@ -75,6 +75,7 @@ class WritingSystemOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @wrap_enumerable
     @OperationsMethod
     def GetAll(self):
         """

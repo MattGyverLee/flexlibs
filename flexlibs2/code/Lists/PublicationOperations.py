@@ -25,7 +25,7 @@ from System import DateTime
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations, OperationsMethod
+from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
 class PublicationOperations(BaseOperations):
     """
@@ -89,6 +89,7 @@ class PublicationOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @wrap_enumerable
     @OperationsMethod
     def GetAll(self, flat=True):
         """

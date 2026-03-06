@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations, OperationsMethod
+from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -214,6 +214,7 @@ class ConstChartClauseMarkerOperations(BaseOperations):
 
         return None
 
+    @wrap_enumerable
     @OperationsMethod
     def GetAll(self, row_or_hvo):
         """
@@ -288,6 +289,7 @@ class ConstChartClauseMarkerOperations(BaseOperations):
 
         return marker.WordGroupRA if hasattr(marker, 'WordGroupRA') else None
 
+    @wrap_enumerable
     @OperationsMethod
     def GetDependentClauses(self, marker_or_hvo):
         """

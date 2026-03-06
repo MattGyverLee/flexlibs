@@ -29,7 +29,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations, OperationsMethod
+from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
 # Import wrapper classes
 from .affix_template import AffixTemplate
@@ -126,6 +126,7 @@ class MorphRuleOperations(BaseOperations):
 
     # ========== ENUMERATION ==========
 
+    @wrap_enumerable
     @OperationsMethod
     def GetAll(self):
         """

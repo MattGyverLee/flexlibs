@@ -15,7 +15,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations, OperationsMethod
+from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -94,6 +94,7 @@ class LexEntryOperations(BaseOperations):
     # --- Core CRUD Operations ---
 
     @OperationsMethod
+    @wrap_enumerable
     @OperationsMethod
     def GetAll(self):
         """
@@ -2437,6 +2438,7 @@ class LexEntryOperations(BaseOperations):
             return []
 
     @OperationsMethod
+    @wrap_enumerable
     @OperationsMethod
     def GetAllSenses(self, entry_or_hvo):
         """
