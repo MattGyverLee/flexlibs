@@ -36,7 +36,7 @@ from System import Guid, DateTime
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 class AnthropologyOperations(BaseOperations):
     """
@@ -155,6 +155,7 @@ class AnthropologyOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def GetAll(self, flat=True):
         """
         Get all anthropology items in the project.
@@ -211,6 +212,7 @@ class AnthropologyOperations(BaseOperations):
             flat
         ))
 
+    @OperationsMethod
     def Create(self, name, abbreviation=None, anthro_code=None):
         """
         Create a new anthropology item.
@@ -307,6 +309,7 @@ class AnthropologyOperations(BaseOperations):
 
         return new_item
 
+    @OperationsMethod
     def CreateSubitem(self, parent_item, name, abbreviation=None, anthro_code=None):
         """
         Create a new anthropology item as a child of an existing item.
@@ -395,6 +398,7 @@ class AnthropologyOperations(BaseOperations):
 
         return new_item
 
+    @OperationsMethod
     def Delete(self, item_or_hvo):
         """
         Delete an anthropology item.
@@ -448,6 +452,7 @@ class AnthropologyOperations(BaseOperations):
                     except Exception:
                         pass
 
+    @OperationsMethod
     def Exists(self, name):
         """
         Check if an anthropology item with the given name exists.
@@ -490,6 +495,7 @@ class AnthropologyOperations(BaseOperations):
 
         return self.Find(name) is not None
 
+    @OperationsMethod
     def Find(self, name):
         """
         Find an anthropology item by its name.
@@ -546,6 +552,7 @@ class AnthropologyOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def FindByCode(self, anthro_code):
         """
         Find an anthropology item by its OCM code.
@@ -612,6 +619,7 @@ class AnthropologyOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def FindByCategory(self, category):
         """
         Find all anthropology items in a specific category.
@@ -662,6 +670,7 @@ class AnthropologyOperations(BaseOperations):
 
     # --- Property Access Methods ---
 
+    @OperationsMethod
     def GetName(self, item_or_hvo, wsHandle=None):
         """
         Get the name of an anthropology item.
@@ -703,6 +712,7 @@ class AnthropologyOperations(BaseOperations):
         name = ITsString(item.Name.get_String(wsHandle)).Text
         return name or ""
 
+    @OperationsMethod
     def SetName(self, item_or_hvo, name, wsHandle=None):
         """
         Set the name of an anthropology item.
@@ -746,6 +756,7 @@ class AnthropologyOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         item.Name.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetAbbreviation(self, item_or_hvo, wsHandle=None):
         """
         Get the abbreviation of an anthropology item.
@@ -793,6 +804,7 @@ class AnthropologyOperations(BaseOperations):
         abbr = ITsString(item.Abbreviation.get_String(wsHandle)).Text
         return abbr or ""
 
+    @OperationsMethod
     def SetAbbreviation(self, item_or_hvo, abbreviation, wsHandle=None):
         """
         Set the abbreviation of an anthropology item.
@@ -834,6 +846,7 @@ class AnthropologyOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(abbreviation, wsHandle)
         item.Abbreviation.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetDescription(self, item_or_hvo, wsHandle=None):
         """
         Get the description of an anthropology item.
@@ -877,6 +890,7 @@ class AnthropologyOperations(BaseOperations):
         desc = ITsString(item.Description.get_String(wsHandle)).Text
         return desc or ""
 
+    @OperationsMethod
     def SetDescription(self, item_or_hvo, description, wsHandle=None):
         """
         Set the description of an anthropology item.
@@ -927,6 +941,7 @@ class AnthropologyOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(description, wsHandle)
         item.Description.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetAnthroCode(self, item_or_hvo):
         """
         Get the OCM (Outline of Cultural Materials) code of an item.
@@ -975,6 +990,7 @@ class AnthropologyOperations(BaseOperations):
             return item.AnthroCode
         return ""
 
+    @OperationsMethod
     def SetAnthroCode(self, item_or_hvo, anthro_code):
         """
         Set the OCM (Outline of Cultural Materials) code of an item.
@@ -1020,6 +1036,7 @@ class AnthropologyOperations(BaseOperations):
         if hasattr(item, 'AnthroCode'):
             item.AnthroCode = anthro_code
 
+    @OperationsMethod
     def GetCategory(self, item_or_hvo):
         """
         Get the category of an anthropology item.
@@ -1057,6 +1074,7 @@ class AnthropologyOperations(BaseOperations):
             return item.CategoryRA
         return None
 
+    @OperationsMethod
     def SetCategory(self, item_or_hvo, category):
         """
         Set the category of an anthropology item.
@@ -1104,6 +1122,7 @@ class AnthropologyOperations(BaseOperations):
 
     # --- Hierarchy Operations ---
 
+    @OperationsMethod
     def GetSubitems(self, item_or_hvo):
         """
         Get all direct subitems of an anthropology item.
@@ -1163,6 +1182,7 @@ class AnthropologyOperations(BaseOperations):
             return list(item.SubPossibilitiesOS)
         return []
 
+    @OperationsMethod
     def GetParent(self, item_or_hvo):
         """
         Get the parent item of an anthropology item.
@@ -1223,6 +1243,7 @@ class AnthropologyOperations(BaseOperations):
 
     # --- Text Linking Operations ---
 
+    @OperationsMethod
     def GetTexts(self, item_or_hvo):
         """
         Get all texts linked to an anthropology item.
@@ -1265,6 +1286,7 @@ class AnthropologyOperations(BaseOperations):
             return list(item.TextsRC)
         return []
 
+    @OperationsMethod
     def AddText(self, item_or_hvo, text):
         """
         Link a text to an anthropology item.
@@ -1327,6 +1349,7 @@ class AnthropologyOperations(BaseOperations):
         if hasattr(item, 'TextsRC'):
             item.TextsRC.Add(text_obj)
 
+    @OperationsMethod
     def RemoveText(self, item_or_hvo, text):
         """
         Remove a text link from an anthropology item.
@@ -1383,6 +1406,7 @@ class AnthropologyOperations(BaseOperations):
         if hasattr(item, 'TextsRC'):
             item.TextsRC.Remove(text_obj)
 
+    @OperationsMethod
     def GetTextCount(self, item_or_hvo):
         """
         Get the count of texts linked to an anthropology item.
@@ -1425,6 +1449,7 @@ class AnthropologyOperations(BaseOperations):
             return item.TextsRC.Count
         return 0
 
+    @OperationsMethod
     def GetItemsForText(self, text):
         """
         Get all anthropology items linked to a specific text.
@@ -1487,6 +1512,7 @@ class AnthropologyOperations(BaseOperations):
 
     # --- Researcher/People Linking Operations ---
 
+    @OperationsMethod
     def GetResearchers(self, item_or_hvo):
         """
         Get all researchers (people) linked to an anthropology item.
@@ -1524,6 +1550,7 @@ class AnthropologyOperations(BaseOperations):
             return list(item.ResearchersRC)
         return []
 
+    @OperationsMethod
     def AddResearcher(self, item_or_hvo, person):
         """
         Link a researcher (person) to an anthropology item.
@@ -1585,6 +1612,7 @@ class AnthropologyOperations(BaseOperations):
         if hasattr(item, 'ResearchersRC'):
             item.ResearchersRC.Add(person_obj)
 
+    @OperationsMethod
     def RemoveResearcher(self, item_or_hvo, person):
         """
         Remove a researcher link from an anthropology item.
@@ -1641,6 +1669,7 @@ class AnthropologyOperations(BaseOperations):
         if hasattr(item, 'ResearchersRC'):
             item.ResearchersRC.Remove(person_obj)
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
         """
         Duplicate an anthropology item, creating a new copy with a new GUID.
@@ -1761,6 +1790,7 @@ class AnthropologyOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """Get syncable properties for cross-project synchronization."""
         self._ValidateParam(item, "item")
@@ -1785,6 +1815,7 @@ class AnthropologyOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """Compare two anthropology items and return detailed differences."""
         if ops1 is None:
@@ -1813,6 +1844,7 @@ class AnthropologyOperations(BaseOperations):
 
     # --- Metadata Operations ---
 
+    @OperationsMethod
     def GetGuid(self, item_or_hvo):
         """
         Get the GUID (Globally Unique Identifier) of an anthropology item.
@@ -1849,6 +1881,7 @@ class AnthropologyOperations(BaseOperations):
         item = self.__GetItemObject(item_or_hvo)
         return item.Guid
 
+    @OperationsMethod
     def GetDateCreated(self, item_or_hvo):
         """
         Get the creation date of an anthropology item.
@@ -1896,6 +1929,7 @@ class AnthropologyOperations(BaseOperations):
             return item.DateCreated
         return None
 
+    @OperationsMethod
     def GetDateModified(self, item_or_hvo):
         """
         Get the last modification date of an anthropology item.

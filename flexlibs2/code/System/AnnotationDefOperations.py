@@ -26,7 +26,7 @@ from System import Guid, DateTime
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 class AnnotationDefOperations(BaseOperations):
     """
@@ -92,6 +92,7 @@ class AnnotationDefOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def GetAll(self):
         """
         Get all annotation definitions in the project.
@@ -126,6 +127,7 @@ class AnnotationDefOperations(BaseOperations):
         for anno_def in repo.AllInstances():
             yield anno_def
 
+    @OperationsMethod
     def Create(self, name, annotation_type, wsHandle=None, parent=None):
         """
         Create a new annotation definition.
@@ -227,6 +229,7 @@ class AnnotationDefOperations(BaseOperations):
 
         return anno_def
 
+    @OperationsMethod
     def Delete(self, anno_def):
         """
         Delete an annotation definition.
@@ -278,6 +281,7 @@ class AnnotationDefOperations(BaseOperations):
         if hasattr(anno_def, 'Delete'):
             anno_def.Delete()
 
+    @OperationsMethod
     def Find(self, name, wsHandle=None):
         """
         Find an annotation definition by name.
@@ -335,6 +339,7 @@ class AnnotationDefOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def Exists(self, name, wsHandle=None):
         """
         Check if an annotation definition with the given name exists.
@@ -372,6 +377,7 @@ class AnnotationDefOperations(BaseOperations):
 
     # --- Property Getters and Setters ---
 
+    @OperationsMethod
     def GetName(self, anno_def, wsHandle=None):
         """
         Get the name of an annotation definition.
@@ -403,6 +409,7 @@ class AnnotationDefOperations(BaseOperations):
         name = ITsString(anno_def.Name.get_String(wsHandle)).Text
         return name or ""
 
+    @OperationsMethod
     def SetName(self, anno_def, name, wsHandle=None):
         """
         Set the name of an annotation definition.
@@ -444,6 +451,7 @@ class AnnotationDefOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         anno_def.Name.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetHelpString(self, anno_def, wsHandle=None):
         """
         Get the help string (description) of an annotation definition.
@@ -482,6 +490,7 @@ class AnnotationDefOperations(BaseOperations):
             return help_str or ""
         return ""
 
+    @OperationsMethod
     def SetHelpString(self, anno_def, help_string, wsHandle=None):
         """
         Set the help string (description) of an annotation definition.
@@ -529,6 +538,7 @@ class AnnotationDefOperations(BaseOperations):
 
     # --- Type and Instance Information ---
 
+    @OperationsMethod
     def GetAnnotationType(self, anno_def):
         """
         Get the annotation type of an annotation definition.
@@ -569,6 +579,7 @@ class AnnotationDefOperations(BaseOperations):
             return anno_def.AnnotationType
         return 0
 
+    @OperationsMethod
     def GetInstanceOf(self, anno_def):
         """
         Get the class that this annotation definition is an instance of.
@@ -604,6 +615,7 @@ class AnnotationDefOperations(BaseOperations):
 
     # --- User Control Fields ---
 
+    @OperationsMethod
     def GetUserCanCreate(self, anno_def):
         """
         Check if users can create annotations of this type.
@@ -645,6 +657,7 @@ class AnnotationDefOperations(BaseOperations):
             return bool(anno_def.UserCanCreate)
         return False
 
+    @OperationsMethod
     def SetUserCanCreate(self, anno_def, can_create):
         """
         Set whether users can create annotations of this type.
@@ -687,6 +700,7 @@ class AnnotationDefOperations(BaseOperations):
         if hasattr(anno_def, 'UserCanCreate'):
             anno_def.UserCanCreate = bool(can_create)
 
+    @OperationsMethod
     def GetMultiple(self, anno_def):
         """
         Check if multiple annotations of this type are allowed.
@@ -724,6 +738,7 @@ class AnnotationDefOperations(BaseOperations):
             return bool(anno_def.AllowsMultiple)
         return True  # Default to allowing multiple
 
+    @OperationsMethod
     def SetMultiple(self, anno_def, allow_multiple):
         """
         Set whether multiple annotations of this type are allowed.
@@ -766,6 +781,7 @@ class AnnotationDefOperations(BaseOperations):
 
     # --- Prompt and Copy/Paste Settings ---
 
+    @OperationsMethod
     def GetPrompt(self, anno_def, wsHandle=None):
         """
         Get the prompt text for an annotation definition.
@@ -804,6 +820,7 @@ class AnnotationDefOperations(BaseOperations):
             return prompt or ""
         return ""
 
+    @OperationsMethod
     def SetPrompt(self, anno_def, prompt_text, wsHandle=None):
         """
         Set the prompt text for an annotation definition.
@@ -847,6 +864,7 @@ class AnnotationDefOperations(BaseOperations):
             mkstr = TsStringUtils.MakeString(prompt_text, wsHandle)
             anno_def.Prompt.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetCopyCutPasteAllowed(self, anno_def):
         """
         Check if copy/cut/paste operations are allowed for this type.
@@ -884,6 +902,7 @@ class AnnotationDefOperations(BaseOperations):
 
     # --- Query Methods ---
 
+    @OperationsMethod
     def FindByType(self, annotation_type):
         """
         Find all annotation definitions of a specific type.
@@ -930,6 +949,7 @@ class AnnotationDefOperations(BaseOperations):
             if self.GetAnnotationType(anno_def) == type_value:
                 yield anno_def
 
+    @OperationsMethod
     def GetUserCreatableTypes(self):
         """
         Get all annotation definitions that users can create.
@@ -966,6 +986,7 @@ class AnnotationDefOperations(BaseOperations):
 
     # --- Metadata Methods ---
 
+    @OperationsMethod
     def GetGuid(self, anno_def):
         """
         Get the GUID of an annotation definition.
@@ -999,6 +1020,7 @@ class AnnotationDefOperations(BaseOperations):
 
         return anno_def.Guid
 
+    @OperationsMethod
     def GetDateCreated(self, anno_def):
         """
         Get the creation date of an annotation definition.
@@ -1035,6 +1057,7 @@ class AnnotationDefOperations(BaseOperations):
             return anno_def.DateCreated
         return None
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
         """
         Duplicate an annotation definition, creating a new copy with a new GUID.
@@ -1149,6 +1172,7 @@ class AnnotationDefOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """Get syncable properties for cross-project synchronization."""
         self._ValidateParam(item, "item")
@@ -1175,6 +1199,7 @@ class AnnotationDefOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """Compare two annotation definitions and return detailed differences."""
         if ops1 is None:

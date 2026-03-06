@@ -15,7 +15,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -90,6 +90,7 @@ class AllomorphOperations(BaseOperations):
         """
         return parent.AlternateFormsOS
 
+    @OperationsMethod
     def GetAll(self, entry_or_hvo=None):
         """
         Get all allomorphs for a lexical entry, or all allomorphs in the entire project.
@@ -190,6 +191,7 @@ class AllomorphOperations(BaseOperations):
         # Return smart collection
         return AllomorphCollection(allomorphs)
 
+    @OperationsMethod
     def Create(self, entry_or_hvo, form, morphType=None, wsHandle=None):
         """
         Create a new allomorph for a lexical entry.
@@ -279,6 +281,7 @@ class AllomorphOperations(BaseOperations):
 
         return allomorph
 
+    @OperationsMethod
     def Delete(self, allomorph_or_hvo):
         """
         Delete an allomorph.
@@ -336,6 +339,7 @@ class AllomorphOperations(BaseOperations):
             # Deleting an alternate form
             owner.AlternateFormsOS.Remove(allomorph)
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True):
         """
         Duplicate an allomorph, creating a new copy with a new GUID.
@@ -436,6 +440,7 @@ class AllomorphOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get all syncable properties of an allomorph for comparison.
@@ -485,6 +490,7 @@ class AllomorphOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two allomorphs and return their differences.
@@ -539,6 +545,7 @@ class AllomorphOperations(BaseOperations):
         is_different = len(differences) > 0
         return is_different, differences
 
+    @OperationsMethod
     def GetForm(self, allomorph_or_hvo, wsHandle=None):
         """
         Get the form (text) of an allomorph.
@@ -583,6 +590,7 @@ class AllomorphOperations(BaseOperations):
         form = ITsString(allomorph.Form.get_String(wsHandle)).Text
         return self._NormalizeMultiString(form)
 
+    @OperationsMethod
     def SetForm(self, allomorph_or_hvo, form, wsHandle=None):
         """
         Set the form (text) of an allomorph.
@@ -631,6 +639,7 @@ class AllomorphOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(form, wsHandle)
         allomorph.Form.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def SetFormAudio(self, allomorph_or_hvo, file_path, wsHandle=None):
         """
         Set an audio recording for an allomorph's Form field.
@@ -740,6 +749,7 @@ class AllomorphOperations(BaseOperations):
 
         return internal_path
 
+    @OperationsMethod
     def GetFormAudio(self, allomorph_or_hvo, wsHandle=None):
         """
         Get the audio file path from an allomorph's Form field.
@@ -815,6 +825,7 @@ class AllomorphOperations(BaseOperations):
             # Not an audio writing system
             return None
 
+    @OperationsMethod
     def GetMorphType(self, allomorph_or_hvo):
         """
         Get the morpheme type of an allomorph.
@@ -854,6 +865,7 @@ class AllomorphOperations(BaseOperations):
         allomorph = self.__GetAllomorphObject(allomorph_or_hvo)
         return allomorph.MorphTypeRA
 
+    @OperationsMethod
     def SetMorphType(self, allomorph_or_hvo, morphType):
         """
         Set the morpheme type of an allomorph.
@@ -893,6 +905,7 @@ class AllomorphOperations(BaseOperations):
         allomorph = self.__GetAllomorphObject(allomorph_or_hvo)
         allomorph.MorphTypeRA = morphType
 
+    @OperationsMethod
     def GetPhoneEnv(self, allomorph_or_hvo):
         """
         Get the phonological environments for an allomorph.
@@ -932,6 +945,7 @@ class AllomorphOperations(BaseOperations):
         allomorph = self.__GetAllomorphObject(allomorph_or_hvo)
         return list(allomorph.PhoneEnvRC)
 
+    @OperationsMethod
     def AddPhoneEnv(self, allomorph_or_hvo, env_or_hvo):
         """
         Add a phonological environment to an allomorph.
@@ -977,6 +991,7 @@ class AllomorphOperations(BaseOperations):
 
         allomorph.PhoneEnvRC.Add(env)
 
+    @OperationsMethod
     def RemovePhoneEnv(self, allomorph_or_hvo, env_or_hvo):
         """
         Remove a phonological environment from an allomorph.

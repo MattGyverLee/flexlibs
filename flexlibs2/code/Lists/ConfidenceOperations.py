@@ -25,7 +25,7 @@ from SIL.LCModel.Core.Text import TsStringUtils
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 class ConfidenceOperations(BaseOperations):
     """
@@ -93,6 +93,7 @@ class ConfidenceOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def GetAll(self):
         """
         Get all confidence levels in the project.
@@ -132,6 +133,7 @@ class ConfidenceOperations(BaseOperations):
 
         return list(confidence_list.PossibilitiesOS)
 
+    @OperationsMethod
     def Create(self, name, wsHandle=None):
         """
         Create a new confidence level.
@@ -204,6 +206,7 @@ class ConfidenceOperations(BaseOperations):
 
         return new_level
 
+    @OperationsMethod
     def Delete(self, level_or_hvo):
         """
         Delete a confidence level from the project.
@@ -257,6 +260,7 @@ class ConfidenceOperations(BaseOperations):
         if confidence_list and level in confidence_list.PossibilitiesOS:
             confidence_list.PossibilitiesOS.Remove(level)
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True):
         """
         Duplicate a confidence level, creating a new copy with a new GUID.
@@ -332,6 +336,7 @@ class ConfidenceOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get syncable properties for cross-project synchronization.
@@ -363,6 +368,7 @@ class ConfidenceOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two confidence levels and return detailed differences.
@@ -410,6 +416,7 @@ class ConfidenceOperations(BaseOperations):
 
         return is_different, differences
 
+    @OperationsMethod
     def Find(self, name):
         """
         Find a confidence level by its name.
@@ -468,6 +475,7 @@ class ConfidenceOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def Exists(self, name):
         """
         Check if a confidence level with the given name exists.
@@ -504,6 +512,7 @@ class ConfidenceOperations(BaseOperations):
 
     # --- Name and Description Operations ---
 
+    @OperationsMethod
     def GetName(self, level_or_hvo, wsHandle=None):
         """
         Get the name of a confidence level.
@@ -551,6 +560,7 @@ class ConfidenceOperations(BaseOperations):
         name = ITsString(level.Name.get_String(wsHandle)).Text
         return name or ""
 
+    @OperationsMethod
     def SetName(self, level_or_hvo, name, wsHandle=None):
         """
         Set the name of a confidence level.
@@ -602,6 +612,7 @@ class ConfidenceOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         level.Name.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetDescription(self, level_or_hvo, wsHandle=None):
         """
         Get the description of a confidence level.
@@ -648,6 +659,7 @@ class ConfidenceOperations(BaseOperations):
         desc = ITsString(level.Description.get_String(wsHandle)).Text
         return desc or ""
 
+    @OperationsMethod
     def SetDescription(self, level_or_hvo, description, wsHandle=None):
         """
         Set the description of a confidence level.
@@ -699,6 +711,7 @@ class ConfidenceOperations(BaseOperations):
 
     # --- Usage Query Operations ---
 
+    @OperationsMethod
     def GetAnalysesWithConfidence(self, level_or_hvo):
         """
         Get all wordform analyses that use this confidence level.
@@ -762,6 +775,7 @@ class ConfidenceOperations(BaseOperations):
 
         return analyses
 
+    @OperationsMethod
     def GetGlossesWithConfidence(self, level_or_hvo):
         """
         Get all wordform glosses that use this confidence level.
@@ -827,6 +841,7 @@ class ConfidenceOperations(BaseOperations):
 
     # --- Special Query Operations ---
 
+    @OperationsMethod
     def GetDefault(self):
         """
         Get the default confidence level for the project.
@@ -871,6 +886,7 @@ class ConfidenceOperations(BaseOperations):
 
     # --- Metadata Operations ---
 
+    @OperationsMethod
     def GetGuid(self, level_or_hvo):
         """
         Get the GUID (Globally Unique Identifier) of a confidence level.

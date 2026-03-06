@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -127,6 +127,7 @@ class LexReferenceOperations(BaseOperations):
 
     # --- Reference Type Management ---
 
+    @OperationsMethod
     def GetAllTypes(self):
         """
         Get all lexical relation types in the project.
@@ -159,6 +160,7 @@ class LexReferenceOperations(BaseOperations):
         """
         return self.project.ObjectsIn(ILexRefTypeRepository)
 
+    @OperationsMethod
     def CreateType(self, name, mapping_type, reverse_name=None, wsHandle=None):
         """
         Create a new lexical relation type.
@@ -272,6 +274,7 @@ class LexReferenceOperations(BaseOperations):
 
         return new_ref_type
 
+    @OperationsMethod
     def DeleteType(self, ref_type_or_hvo):
         """
         Delete a lexical relation type.
@@ -313,6 +316,7 @@ class LexReferenceOperations(BaseOperations):
         if ref_types_list:
             ref_types_list.PossibilitiesOS.Remove(ref_type)
 
+    @OperationsMethod
     def FindType(self, name, wsHandle=None):
         """
         Find a lexical relation type by name.
@@ -365,6 +369,7 @@ class LexReferenceOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def GetTypeName(self, ref_type_or_hvo, wsHandle=None):
         """
         Get the name of a lexical relation type.
@@ -403,6 +408,7 @@ class LexReferenceOperations(BaseOperations):
         name = ITsString(ref_type.Name.get_String(wsHandle)).Text
         return name or ""
 
+    @OperationsMethod
     def SetTypeName(self, ref_type_or_hvo, name, wsHandle=None):
         """
         Set the name of a lexical relation type.
@@ -442,6 +448,7 @@ class LexReferenceOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         ref_type.Name.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetTypeReverseName(self, ref_type_or_hvo, wsHandle=None):
         """
         Get the reverse name for an asymmetric relation type.
@@ -488,6 +495,7 @@ class LexReferenceOperations(BaseOperations):
         else:
             return ""
 
+    @OperationsMethod
     def SetTypeReverseName(self, ref_type_or_hvo, name, wsHandle=None):
         """
         Set the reverse name for an asymmetric relation type.
@@ -533,6 +541,7 @@ class LexReferenceOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         ref_type.ReverseName.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetMappingType(self, ref_type_or_hvo):
         """
         Get the mapping type of a lexical relation type.
@@ -591,6 +600,7 @@ class LexReferenceOperations(BaseOperations):
 
     # --- Reference Management ---
 
+    @OperationsMethod
     def GetAll(self, sense_or_entry=None):
         """
         Get all lexical references for a sense or entry, or all references in the entire project.
@@ -669,6 +679,7 @@ class LexReferenceOperations(BaseOperations):
                                 seen_refs.add(ref.Hvo)
                                 yield ref
 
+    @OperationsMethod
     def Create(self, ref_type_or_name, targets):
         """
         Create a new lexical reference linking senses or entries.
@@ -762,6 +773,7 @@ class LexReferenceOperations(BaseOperations):
 
         return new_ref
 
+    @OperationsMethod
     def Delete(self, lex_ref_or_hvo):
         """
         Delete a lexical reference.
@@ -805,6 +817,7 @@ class LexReferenceOperations(BaseOperations):
         if hasattr(owner, 'MembersOC'):
             owner.MembersOC.Remove(lex_ref)
 
+    @OperationsMethod
     def GetTargets(self, lex_ref_or_hvo):
         """
         Get all target senses or entries in a lexical reference.
@@ -849,6 +862,7 @@ class LexReferenceOperations(BaseOperations):
 
         return list(lex_ref.TargetsRS)
 
+    @OperationsMethod
     def AddTarget(self, lex_ref_or_hvo, sense_or_entry):
         """
         Add a target sense or entry to an existing lexical reference.
@@ -911,6 +925,7 @@ class LexReferenceOperations(BaseOperations):
         # Add the target
         lex_ref.TargetsRS.Add(target)
 
+    @OperationsMethod
     def RemoveTarget(self, lex_ref_or_hvo, sense_or_entry):
         """
         Remove a target sense or entry from a lexical reference.
@@ -966,6 +981,7 @@ class LexReferenceOperations(BaseOperations):
         if target in lex_ref.TargetsRS:
             lex_ref.TargetsRS.Remove(target)
 
+    @OperationsMethod
     def GetType(self, lex_ref_or_hvo):
         """
         Get the reference type of a lexical reference.
@@ -1006,6 +1022,7 @@ class LexReferenceOperations(BaseOperations):
         # The owner of a LexReference is always a LexRefType
         return lex_ref.Owner
 
+    @OperationsMethod
     def GetReferencesOfType(self, ref_type_or_name):
         """
         Get all lexical references of a specific type.
@@ -1059,6 +1076,7 @@ class LexReferenceOperations(BaseOperations):
 
     # --- Show Complex Forms Operations ---
 
+    @OperationsMethod
     def ShowComplexFormsIn(self, entry, complex_entry):
         """
         Show a component entry as a subentry under a complex form entry.
@@ -1131,6 +1149,7 @@ class LexReferenceOperations(BaseOperations):
 
         return ref
 
+    @OperationsMethod
     def GetComplexFormEntries(self, entry):
         """
         Get all complex form entries that show this entry as a component.
@@ -1193,6 +1212,7 @@ class LexReferenceOperations(BaseOperations):
 
         return complex_forms
 
+    @OperationsMethod
     def GetComponentEntries(self, complex_entry):
         """
         Get all component entries that make up a complex form entry.
@@ -1256,6 +1276,7 @@ class LexReferenceOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get all syncable properties of a lexical reference for comparison.
@@ -1300,6 +1321,7 @@ class LexReferenceOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two lexical references and return their differences.

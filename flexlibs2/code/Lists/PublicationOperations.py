@@ -25,7 +25,7 @@ from System import DateTime
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 class PublicationOperations(BaseOperations):
     """
@@ -89,6 +89,7 @@ class PublicationOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def GetAll(self, flat=True):
         """
         Get all publications in the project.
@@ -140,6 +141,7 @@ class PublicationOperations(BaseOperations):
             flat
         ))
 
+    @OperationsMethod
     def Create(self, name, wsHandle=None):
         """
         Create a new publication.
@@ -220,6 +222,7 @@ class PublicationOperations(BaseOperations):
 
         return new_pub
 
+    @OperationsMethod
     def Delete(self, publication_or_hvo):
         """
         Delete a publication from the project.
@@ -282,6 +285,7 @@ class PublicationOperations(BaseOperations):
             if pub_list:
                 pub_list.PossibilitiesOS.Remove(publication)
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
         """
         Duplicate a publication, creating a new copy with a new GUID.
@@ -412,6 +416,7 @@ class PublicationOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get syncable properties for cross-project synchronization.
@@ -445,6 +450,7 @@ class PublicationOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two publications and return detailed differences.
@@ -492,6 +498,7 @@ class PublicationOperations(BaseOperations):
 
         return is_different, differences
 
+    @OperationsMethod
     def Find(self, name):
         """
         Find a publication by its name.
@@ -547,6 +554,7 @@ class PublicationOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def Exists(self, name):
         """
         Check if a publication with the given name exists.
@@ -581,6 +589,7 @@ class PublicationOperations(BaseOperations):
 
     # --- Name and Description Operations ---
 
+    @OperationsMethod
     def GetName(self, publication_or_hvo, wsHandle=None):
         """
         Get the name of a publication.
@@ -621,6 +630,7 @@ class PublicationOperations(BaseOperations):
         name = ITsString(publication.Name.get_String(wsHandle)).Text
         return name or ""
 
+    @OperationsMethod
     def SetName(self, publication_or_hvo, name, wsHandle=None):
         """
         Set the name of a publication.
@@ -671,6 +681,7 @@ class PublicationOperations(BaseOperations):
         # Update modification date
         publication.DateModified = DateTime.Now
 
+    @OperationsMethod
     def GetDescription(self, publication_or_hvo, wsHandle=None):
         """
         Get the description of a publication.
@@ -712,6 +723,7 @@ class PublicationOperations(BaseOperations):
 
         return ""
 
+    @OperationsMethod
     def SetDescription(self, publication_or_hvo, description, wsHandle=None):
         """
         Set the description of a publication.
@@ -761,6 +773,7 @@ class PublicationOperations(BaseOperations):
 
     # --- Publishing Properties ---
 
+    @OperationsMethod
     def GetPageLayout(self, publication_or_hvo, wsHandle=None):
         """
         Get the page layout description for a publication.
@@ -802,6 +815,7 @@ class PublicationOperations(BaseOperations):
 
         return ""
 
+    @OperationsMethod
     def SetPageLayout(self, publication_or_hvo, layout, wsHandle=None):
         """
         Set the page layout description for a publication.
@@ -847,6 +861,7 @@ class PublicationOperations(BaseOperations):
             # Update modification date
             publication.DateModified = DateTime.Now
 
+    @OperationsMethod
     def GetIsDefault(self, publication_or_hvo):
         """
         Check if a publication is the default publication.
@@ -900,6 +915,7 @@ class PublicationOperations(BaseOperations):
 
         return False
 
+    @OperationsMethod
     def SetIsDefault(self, publication_or_hvo, is_default):
         """
         Set whether a publication is the default publication.
@@ -957,6 +973,7 @@ class PublicationOperations(BaseOperations):
 
     # --- Formatting Properties ---
 
+    @OperationsMethod
     def GetPageHeight(self, publication_or_hvo):
         """
         Get the page height for a publication.
@@ -1002,6 +1019,7 @@ class PublicationOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def SetPageHeight(self, publication_or_hvo, height):
         """
         Set the page height for a publication.
@@ -1057,6 +1075,7 @@ class PublicationOperations(BaseOperations):
             # Update modification date
             publication.DateModified = DateTime.Now
 
+    @OperationsMethod
     def GetPageWidth(self, publication_or_hvo):
         """
         Get the page width for a publication.
@@ -1103,6 +1122,7 @@ class PublicationOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def SetPageWidth(self, publication_or_hvo, width):
         """
         Set the page width for a publication.
@@ -1160,6 +1180,7 @@ class PublicationOperations(BaseOperations):
 
     # --- Divisions and Structure ---
 
+    @OperationsMethod
     def GetDivisions(self, publication_or_hvo):
         """
         Get the publication divisions (e.g., main entries, minor entries).
@@ -1202,6 +1223,7 @@ class PublicationOperations(BaseOperations):
 
         return []
 
+    @OperationsMethod
     def AddDivision(self, publication_or_hvo, division_name, wsHandle=None):
         """
         Add a division to a publication.
@@ -1269,6 +1291,7 @@ class PublicationOperations(BaseOperations):
 
         return new_division
 
+    @OperationsMethod
     def GetHeaderFooter(self, publication_or_hvo, wsHandle=None):
         """
         Get the header/footer configuration for a publication.
@@ -1311,6 +1334,7 @@ class PublicationOperations(BaseOperations):
 
         return ""
 
+    @OperationsMethod
     def GetIsLandscape(self, publication_or_hvo):
         """
         Check if publication uses landscape orientation.
@@ -1364,6 +1388,7 @@ class PublicationOperations(BaseOperations):
 
     # --- Hierarchical Operations ---
 
+    @OperationsMethod
     def GetSubPublications(self, publication_or_hvo):
         """
         Get all sub-publications of a publication.
@@ -1401,6 +1426,7 @@ class PublicationOperations(BaseOperations):
 
         return []
 
+    @OperationsMethod
     def GetParent(self, publication_or_hvo):
         """
         Get the parent publication of a sub-publication.
@@ -1443,6 +1469,7 @@ class PublicationOperations(BaseOperations):
 
     # --- Metadata Operations ---
 
+    @OperationsMethod
     def GetGuid(self, publication_or_hvo):
         """
         Get the GUID (Globally Unique Identifier) of a publication.
@@ -1481,6 +1508,7 @@ class PublicationOperations(BaseOperations):
         publication = self.__ResolveObject(publication_or_hvo)
         return publication.Guid
 
+    @OperationsMethod
     def GetDateCreated(self, publication_or_hvo):
         """
         Get the creation date of a publication.
@@ -1524,6 +1552,7 @@ class PublicationOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def GetDateModified(self, publication_or_hvo):
         """
         Get the last modification date of a publication.

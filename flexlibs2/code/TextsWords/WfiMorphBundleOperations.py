@@ -28,7 +28,7 @@ from SIL.LCModel.Core.Text import TsStringUtils
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 class WfiMorphBundleOperations(BaseOperations):
     """
@@ -89,6 +89,7 @@ class WfiMorphBundleOperations(BaseOperations):
 
     # ==================== CORE CRUD OPERATIONS ====================
 
+    @OperationsMethod
     def GetAll(self, analysis_or_hvo):
         """
         Get all morph bundles for a wordform analysis.
@@ -129,6 +130,7 @@ class WfiMorphBundleOperations(BaseOperations):
         for bundle in analysis.MorphBundlesOS:
             yield bundle
 
+    @OperationsMethod
     def Create(self, analysis_or_hvo):
         """
         Create a new morph bundle for a wordform analysis.
@@ -180,6 +182,7 @@ class WfiMorphBundleOperations(BaseOperations):
 
         return bundle
 
+    @OperationsMethod
     def Delete(self, bundle_or_hvo):
         """
         Delete a morph bundle from its analysis.
@@ -226,6 +229,7 @@ class WfiMorphBundleOperations(BaseOperations):
         if hasattr(owner, 'MorphBundlesOS'):
             owner.MorphBundlesOS.Remove(bundle)
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True):
         """
         Duplicate a morph bundle, creating a new copy with a new GUID.
@@ -313,6 +317,7 @@ class WfiMorphBundleOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get all syncable properties of a morpheme bundle.
@@ -360,6 +365,7 @@ class WfiMorphBundleOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two morpheme bundles for differences.
@@ -411,6 +417,7 @@ class WfiMorphBundleOperations(BaseOperations):
         is_different = len(differences) > 0
         return (is_different, differences)
 
+    @OperationsMethod
     def Reorder(self, analysis_or_hvo, bundle_list):
         """
         Reorder morph bundles within an analysis.
@@ -470,6 +477,7 @@ class WfiMorphBundleOperations(BaseOperations):
 
     # ==================== FORM & GLOSS OPERATIONS ====================
 
+    @OperationsMethod
     def GetForm(self, bundle_or_hvo, wsHandle=None):
         """
         Get the morpheme form of a bundle.
@@ -515,6 +523,7 @@ class WfiMorphBundleOperations(BaseOperations):
         form = ITsString(bundle.Form.get_String(wsHandle)).Text
         return form or ""
 
+    @OperationsMethod
     def SetForm(self, bundle_or_hvo, text, wsHandle=None):
         """
         Set the morpheme form of a bundle.
@@ -561,6 +570,7 @@ class WfiMorphBundleOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         bundle.Form.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetGloss(self, bundle_or_hvo, wsHandle=None):
         """
         Get the morpheme gloss of a bundle.
@@ -606,6 +616,7 @@ class WfiMorphBundleOperations(BaseOperations):
         gloss = ITsString(bundle.Gloss.get_String(wsHandle)).Text
         return gloss or ""
 
+    @OperationsMethod
     def SetGloss(self, bundle_or_hvo, text, wsHandle=None):
         """
         Set the morpheme gloss of a bundle.
@@ -654,6 +665,7 @@ class WfiMorphBundleOperations(BaseOperations):
 
     # ==================== LEXICAL LINK OPERATIONS ====================
 
+    @OperationsMethod
     def GetSense(self, bundle_or_hvo):
         """
         Get the linked lexical sense for a morph bundle.
@@ -694,6 +706,7 @@ class WfiMorphBundleOperations(BaseOperations):
         bundle = self.__GetBundleObject(bundle_or_hvo)
         return bundle.SenseRA if bundle.SenseRA else None
 
+    @OperationsMethod
     def SetSense(self, bundle_or_hvo, sense_or_hvo):
         """
         Link a morph bundle to a lexical sense.
@@ -740,6 +753,7 @@ class WfiMorphBundleOperations(BaseOperations):
             sense = self.__GetSenseObject(sense_or_hvo)
             bundle.SenseRA = sense
 
+    @OperationsMethod
     def GetMorphType(self, bundle_or_hvo):
         """
         Get the morpheme type of a bundle.
@@ -782,6 +796,7 @@ class WfiMorphBundleOperations(BaseOperations):
         bundle = self.__GetBundleObject(bundle_or_hvo)
         return bundle.MorphRA if bundle.MorphRA else None
 
+    @OperationsMethod
     def SetMorphType(self, bundle_or_hvo, morph_type_or_hvo):
         """
         Set the morpheme type of a bundle.
@@ -831,6 +846,7 @@ class WfiMorphBundleOperations(BaseOperations):
 
     # ==================== MSA OPERATIONS ====================
 
+    @OperationsMethod
     def GetMSA(self, bundle_or_hvo):
         """
         Get the Morpho-Syntactic Analysis (MSA) of a bundle.
@@ -869,6 +885,7 @@ class WfiMorphBundleOperations(BaseOperations):
         bundle = self.__GetBundleObject(bundle_or_hvo)
         return bundle.MsaRA if bundle.MsaRA else None
 
+    @OperationsMethod
     def SetMSA(self, bundle_or_hvo, msa_or_hvo):
         """
         Set the Morpho-Syntactic Analysis (MSA) of a bundle.
@@ -920,6 +937,7 @@ class WfiMorphBundleOperations(BaseOperations):
 
     # ==================== INFLECTION OPERATIONS ====================
 
+    @OperationsMethod
     def GetInflType(self, bundle_or_hvo):
         """
         Get the inflection type of a bundle.
@@ -960,6 +978,7 @@ class WfiMorphBundleOperations(BaseOperations):
         bundle = self.__GetBundleObject(bundle_or_hvo)
         return bundle.InflTypeRA if bundle.InflTypeRA else None
 
+    @OperationsMethod
     def SetInflType(self, bundle_or_hvo, infl_type_or_hvo):
         """
         Set the inflection type of a bundle.
@@ -1012,6 +1031,7 @@ class WfiMorphBundleOperations(BaseOperations):
                 infl_type = infl_type_or_hvo
             bundle.InflTypeRA = infl_type
 
+    @OperationsMethod
     def GetInflectionClass(self, bundle_or_hvo):
         """
         Get the inflection class of a bundle.
@@ -1052,6 +1072,7 @@ class WfiMorphBundleOperations(BaseOperations):
         bundle = self.__GetBundleObject(bundle_or_hvo)
         return bundle.InflClassRA if bundle.InflClassRA else None
 
+    @OperationsMethod
     def SetInflectionClass(self, bundle_or_hvo, infl_class_or_hvo):
         """
         Set the inflection class of a bundle.
@@ -1102,6 +1123,7 @@ class WfiMorphBundleOperations(BaseOperations):
 
     # ==================== UTILITY OPERATIONS ====================
 
+    @OperationsMethod
     def GetOwningAnalysis(self, bundle_or_hvo):
         """
         Get the wordform analysis that owns a morph bundle.
@@ -1137,6 +1159,7 @@ class WfiMorphBundleOperations(BaseOperations):
         bundle = self.__GetBundleObject(bundle_or_hvo)
         return bundle.Owner
 
+    @OperationsMethod
     def GetGuid(self, bundle_or_hvo):
         """
         Get the GUID (Globally Unique Identifier) of a morph bundle.

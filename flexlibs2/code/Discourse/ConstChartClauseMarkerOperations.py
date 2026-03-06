@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -71,6 +71,7 @@ class ConstChartClauseMarkerOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def Create(self, row_or_hvo, word_group):
         """
         Create a new clause marker in a chart row.
@@ -133,6 +134,7 @@ class ConstChartClauseMarkerOperations(BaseOperations):
 
         return new_marker
 
+    @OperationsMethod
     def Delete(self, marker_or_hvo):
         """
         Delete a clause marker from its row.
@@ -171,6 +173,7 @@ class ConstChartClauseMarkerOperations(BaseOperations):
         # Delete the marker (LCM handles removal from repository)
         marker.Delete()
 
+    @OperationsMethod
     def Find(self, row_or_hvo, index):
         """
         Find a clause marker in a row by its index position.
@@ -211,6 +214,7 @@ class ConstChartClauseMarkerOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def GetAll(self, row_or_hvo):
         """
         Get all clause markers in a chart row.
@@ -250,6 +254,7 @@ class ConstChartClauseMarkerOperations(BaseOperations):
 
     # --- Marker Properties ---
 
+    @OperationsMethod
     def GetWordGroup(self, marker_or_hvo):
         """
         Get the word group associated with a clause marker.
@@ -283,6 +288,7 @@ class ConstChartClauseMarkerOperations(BaseOperations):
 
         return marker.WordGroupRA if hasattr(marker, 'WordGroupRA') else None
 
+    @OperationsMethod
     def GetDependentClauses(self, marker_or_hvo):
         """
         Get the dependent clauses associated with a clause marker.
@@ -321,6 +327,7 @@ class ConstChartClauseMarkerOperations(BaseOperations):
 
         return []
 
+    @OperationsMethod
     def AddDependentClause(self, marker_or_hvo, clause_marker):
         """
         Add a dependent clause to a clause marker.

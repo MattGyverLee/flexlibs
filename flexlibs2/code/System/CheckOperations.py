@@ -35,7 +35,7 @@ from SIL.LCModel.Core.Text import TsStringUtils
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import string utilities
 from ..Shared.string_utils import normalize_text
@@ -99,6 +99,7 @@ class CheckOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def GetAllCheckTypes(self):
         """
         Get all consistency check types in the project.
@@ -137,6 +138,7 @@ class CheckOperations(BaseOperations):
                 for subcheck in check_type.SubPossibilitiesOS:
                     yield subcheck
 
+    @OperationsMethod
     def CreateCheckType(self, name, description=None, wsHandle=None):
         """
         Create a new consistency check type.
@@ -220,6 +222,7 @@ class CheckOperations(BaseOperations):
 
         return new_check
 
+    @OperationsMethod
     def DeleteCheckType(self, check_or_hvo):
         """
         Delete a consistency check type from the project.
@@ -283,6 +286,7 @@ class CheckOperations(BaseOperations):
         if guid in self._check_enabled:
             del self._check_enabled[guid]
 
+    @OperationsMethod
     def FindCheckType(self, name):
         """
         Find a check type by its name.
@@ -340,6 +344,7 @@ class CheckOperations(BaseOperations):
 
     # --- Property Methods ---
 
+    @OperationsMethod
     def GetName(self, check_or_hvo, wsHandle=None):
         """
         Get the name of a check type.
@@ -378,6 +383,7 @@ class CheckOperations(BaseOperations):
         name = ITsString(check_obj.Name.get_String(wsHandle)).Text
         return name or ""
 
+    @OperationsMethod
     def SetName(self, check_or_hvo, name, wsHandle=None):
         """
         Set the name of a check type.
@@ -422,6 +428,7 @@ class CheckOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         check_obj.Name.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetDescription(self, check_or_hvo, wsHandle=None):
         """
         Get the description of a check type.
@@ -457,6 +464,7 @@ class CheckOperations(BaseOperations):
         desc = ITsString(check_obj.Description.get_String(wsHandle)).Text
         return desc or ""
 
+    @OperationsMethod
     def SetDescription(self, check_or_hvo, description, wsHandle=None):
         """
         Set the description of a check type.
@@ -497,6 +505,7 @@ class CheckOperations(BaseOperations):
 
     # --- Execution Methods ---
 
+    @OperationsMethod
     def RunCheck(self, check_or_hvo, target_objects=None):
         """
         Run a consistency check on project data.
@@ -577,6 +586,7 @@ class CheckOperations(BaseOperations):
 
         return results
 
+    @OperationsMethod
     def GetCheckStatus(self, check_or_hvo):
         """
         Get the current status of a check type.
@@ -626,6 +636,7 @@ class CheckOperations(BaseOperations):
         else:
             return 'Never Run'
 
+    @OperationsMethod
     def GetLastRun(self, check_or_hvo):
         """
         Get the timestamp when a check was last executed.
@@ -663,6 +674,7 @@ class CheckOperations(BaseOperations):
 
     # --- Results Methods ---
 
+    @OperationsMethod
     def GetCheckResults(self, check_or_hvo):
         """
         Get the full results from the last check execution.
@@ -706,6 +718,7 @@ class CheckOperations(BaseOperations):
 
         return self._check_results.get(guid, None)
 
+    @OperationsMethod
     def GetErrorCount(self, check_or_hvo):
         """
         Get the number of errors found by a check.
@@ -742,6 +755,7 @@ class CheckOperations(BaseOperations):
             return len(results.get('errors', []))
         return 0
 
+    @OperationsMethod
     def GetWarningCount(self, check_or_hvo):
         """
         Get the number of warnings found by a check.
@@ -780,6 +794,7 @@ class CheckOperations(BaseOperations):
 
     # --- Filter Methods ---
 
+    @OperationsMethod
     def GetEnabledChecks(self):
         """
         Get all enabled check types.
@@ -816,6 +831,7 @@ class CheckOperations(BaseOperations):
             if self.IsEnabled(check_type):
                 yield check_type
 
+    @OperationsMethod
     def EnableCheck(self, check_or_hvo):
         """
         Enable a consistency check type.
@@ -849,6 +865,7 @@ class CheckOperations(BaseOperations):
         guid = check_obj.Guid
         self._check_enabled[guid] = True
 
+    @OperationsMethod
     def DisableCheck(self, check_or_hvo):
         """
         Disable a consistency check type.
@@ -883,6 +900,7 @@ class CheckOperations(BaseOperations):
         guid = check_obj.Guid
         self._check_enabled[guid] = False
 
+    @OperationsMethod
     def IsEnabled(self, check_or_hvo):
         """
         Check if a consistency check type is enabled.
@@ -917,6 +935,7 @@ class CheckOperations(BaseOperations):
 
     # --- Query Methods ---
 
+    @OperationsMethod
     def FindItemsWithIssues(self, check_or_hvo, issue_type='all'):
         """
         Find all items that have issues according to a check.
@@ -986,6 +1005,7 @@ class CheckOperations(BaseOperations):
 
         return items
 
+    @OperationsMethod
     def GetIssuesForObject(self, check_or_hvo, obj):
         """
         Get all issues found for a specific object.
@@ -1052,6 +1072,7 @@ class CheckOperations(BaseOperations):
 
     # --- Metadata Methods ---
 
+    @OperationsMethod
     def GetGuid(self, check_or_hvo):
         """
         Get the GUID of a check type.
@@ -1318,6 +1339,7 @@ class CheckOperations(BaseOperations):
             return f"Issue with '{normalize_text(obj.HeadWord.Text)}'"
         return "Issue found"
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
         """
         Duplicate a check type, creating a new copy with a new GUID.
@@ -1409,6 +1431,7 @@ class CheckOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """Get syncable properties for cross-project synchronization."""
         check_obj = self.__GetCheckObject(item)
@@ -1421,6 +1444,7 @@ class CheckOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """Compare two checks and return detailed differences."""
         if ops1 is None:

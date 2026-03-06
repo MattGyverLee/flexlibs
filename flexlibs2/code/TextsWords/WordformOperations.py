@@ -32,7 +32,7 @@ from SIL.LCModel.Core.Text import TsStringUtils
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # --- Spelling Status Enum ---
 
@@ -92,6 +92,7 @@ class WordformOperations(BaseOperations):
             return self.project.project.DefaultVernWs
         return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultVernWs)
 
+    @OperationsMethod
     def GetAll(self):
         """
         Retrieve all wordforms in the FLEx project.
@@ -117,6 +118,7 @@ class WordformOperations(BaseOperations):
         """
         return self.project.ObjectsIn(IWfiWordformRepository)
 
+    @OperationsMethod
     def Create(self, form, wsHandle=None):
         """
         Create a new wordform in the FLEx project.
@@ -167,6 +169,7 @@ class WordformOperations(BaseOperations):
 
         return new_wf
 
+    @OperationsMethod
     def Delete(self, wordform_or_hvo):
         """
         Delete a wordform from the FLEx project.
@@ -205,6 +208,7 @@ class WordformOperations(BaseOperations):
         wordform_inventory = self.project.lp.WordformInventoryOA
         wordform_inventory.WordformsOC.Remove(wordform)
 
+    @OperationsMethod
     def Exists(self, form, wsHandle=None):
         """
         Check if a wordform exists in the FLEx project.
@@ -235,6 +239,7 @@ class WordformOperations(BaseOperations):
 
         return self.Find(form, wsHandle) is not None
 
+    @OperationsMethod
     def Find(self, form, wsHandle=None):
         """
         Find and return a wordform by its surface form.
@@ -274,6 +279,7 @@ class WordformOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def GetForm(self, wordform_or_hvo, wsHandle=None):
         """
         Get the surface text form of a wordform.
@@ -315,6 +321,7 @@ class WordformOperations(BaseOperations):
         form = ITsString(wordform.Form.get_String(wsHandle)).Text
         return form or ""
 
+    @OperationsMethod
     def SetForm(self, wordform_or_hvo, form, wsHandle=None):
         """
         Set the surface text form of a wordform.
@@ -361,6 +368,7 @@ class WordformOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(form, wsHandle)
         wordform.Form.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetSpellingStatus(self, wordform_or_hvo):
         """
         Get the spelling status of a wordform.
@@ -399,6 +407,7 @@ class WordformOperations(BaseOperations):
 
         return wordform.SpellingStatus
 
+    @OperationsMethod
     def SetSpellingStatus(self, wordform_or_hvo, status):
         """
         Set the spelling status of a wordform.
@@ -444,6 +453,7 @@ class WordformOperations(BaseOperations):
 
         wordform.SpellingStatus = status
 
+    @OperationsMethod
     def GetAnalyses(self, wordform_or_hvo):
         """
         Get all analyses associated with a wordform.
@@ -482,6 +492,7 @@ class WordformOperations(BaseOperations):
 
         return list(wordform.AnalysesOC)
 
+    @OperationsMethod
     def GetOccurrenceCount(self, wordform_or_hvo):
         """
         Get the count of occurrences of a wordform in texts.
@@ -518,6 +529,7 @@ class WordformOperations(BaseOperations):
 
         return wordform.OccurrencesInTexts.Count
 
+    @OperationsMethod
     def GetOccurrences(self, wordform_or_hvo):
         """
         Get all segment occurrences of a wordform in texts.
@@ -556,6 +568,7 @@ class WordformOperations(BaseOperations):
 
         return list(wordform.OccurrencesInTexts)
 
+    @OperationsMethod
     def GetChecksum(self, wordform_or_hvo):
         """
         Get the checksum of a wordform.
@@ -592,6 +605,7 @@ class WordformOperations(BaseOperations):
 
         return wordform.Checksum
 
+    @OperationsMethod
     def GetAllWithStatus(self, status):
         """
         Retrieve all wordforms with a specific spelling status.
@@ -635,6 +649,7 @@ class WordformOperations(BaseOperations):
             if wf.SpellingStatus == status:
                 yield wf
 
+    @OperationsMethod
     def GetAllUnapproved(self):
         """
         Retrieve all wordforms that are not approved (not CORRECT status).
@@ -666,6 +681,7 @@ class WordformOperations(BaseOperations):
             if wf.SpellingStatus != SpellingStatusStates.CORRECT:
                 yield wf
 
+    @OperationsMethod
     def ApproveSpelling(self, wordform_or_hvo):
         """
         Approve the spelling of a wordform by setting status to CORRECT.
@@ -707,6 +723,7 @@ class WordformOperations(BaseOperations):
 
         wordform.SpellingStatus = SpellingStatusStates.CORRECT
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, deep=False):
         """
         Duplicate a wordform, creating a new copy with a new GUID.
@@ -851,6 +868,7 @@ class WordformOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get all syncable properties of a wordform.
@@ -885,6 +903,7 @@ class WordformOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two wordforms for differences.

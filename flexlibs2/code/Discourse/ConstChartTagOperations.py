@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -73,6 +73,7 @@ class ConstChartTagOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def Create(self, chart_or_hvo, tag_name):
         """
         Create a new chart tag possibility.
@@ -141,6 +142,7 @@ class ConstChartTagOperations(BaseOperations):
 
         return new_tag
 
+    @OperationsMethod
     def Delete(self, tag_or_hvo):
         """
         Delete a chart tag.
@@ -175,6 +177,7 @@ class ConstChartTagOperations(BaseOperations):
         # Delete the tag (LCM handles removal from repository)
         tag.Delete()
 
+    @OperationsMethod
     def Find(self, chart_or_hvo, name):
         """
         Find a chart tag by its name.
@@ -223,6 +226,7 @@ class ConstChartTagOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def GetAll(self, chart_or_hvo):
         """
         Get all chart tags for a constituent chart.
@@ -262,6 +266,7 @@ class ConstChartTagOperations(BaseOperations):
 
     # --- Tag Properties ---
 
+    @OperationsMethod
     def GetName(self, tag_or_hvo):
         """
         Get the name of a chart tag.
@@ -295,6 +300,7 @@ class ConstChartTagOperations(BaseOperations):
 
         return ITsString(tag.Name.get_String(wsHandle)).Text or ""
 
+    @OperationsMethod
     def SetName(self, tag_or_hvo, name):
         """
         Set the name of a chart tag.
@@ -335,6 +341,7 @@ class ConstChartTagOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         tag.Name.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetDescription(self, tag_or_hvo, ws=None):
         """
         Get the description of a chart tag.
@@ -370,6 +377,7 @@ class ConstChartTagOperations(BaseOperations):
 
         return ITsString(tag.Description.get_String(wsHandle)).Text or ""
 
+    @OperationsMethod
     def SetDescription(self, tag_or_hvo, text, ws=None):
         """
         Set the description of a chart tag.

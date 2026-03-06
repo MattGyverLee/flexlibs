@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -82,6 +82,7 @@ class WfiWordformOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def GetAll(self):
         """
         Get all wordforms in the Wordform Inventory.
@@ -110,6 +111,7 @@ class WfiWordformOperations(BaseOperations):
         """
         return self.project.ObjectsIn(IWfiWordformRepository)
 
+    @OperationsMethod
     def Create(self, form, wsHandle=None):
         """
         Create a new wordform in the Wordform Inventory.
@@ -163,6 +165,7 @@ class WfiWordformOperations(BaseOperations):
 
         return new_wordform
 
+    @OperationsMethod
     def Delete(self, wordform_or_hvo):
         """
         Delete a wordform from the Wordform Inventory.
@@ -203,6 +206,7 @@ class WfiWordformOperations(BaseOperations):
         # Delete the wordform (LCM handles removal from repository)
         wordform.Delete()
 
+    @OperationsMethod
     def Find(self, form, wsHandle=None):
         """
         Find a wordform by its form text.
@@ -252,6 +256,7 @@ class WfiWordformOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def FindOrCreate(self, form, wsHandle=None):
         """
         Find an existing wordform or create a new one.
@@ -305,6 +310,7 @@ class WfiWordformOperations(BaseOperations):
         # Create new wordform if not found
         return self.Create(form, wsHandle)
 
+    @OperationsMethod
     def FindByHvo(self, hvo):
         """
         Find a wordform by its HVO (database ID).
@@ -345,6 +351,7 @@ class WfiWordformOperations(BaseOperations):
 
     # --- Property Access ---
 
+    @OperationsMethod
     def GetForm(self, wordform_or_hvo, wsHandle=None):
         """
         Get the text form of a wordform.
@@ -378,6 +385,7 @@ class WfiWordformOperations(BaseOperations):
 
     # --- Analysis Management ---
 
+    @OperationsMethod
     def GetAnalyses(self, wordform_or_hvo):
         """
         Get all analyses for a wordform.
@@ -417,6 +425,7 @@ class WfiWordformOperations(BaseOperations):
 
         return list(wordform.AnalysesOC)
 
+    @OperationsMethod
     def GetApprovedAnalysis(self, wordform_or_hvo):
         """
         Get the human-approved analysis for a wordform.
@@ -463,6 +472,7 @@ class WfiWordformOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def SetApprovedAnalysis(self, wordform_or_hvo, analysis):
         """
         Set the human-approved analysis for a wordform.
@@ -513,6 +523,7 @@ class WfiWordformOperations(BaseOperations):
 
             wordform.HumanApprovedAnalyses.Add(analysis)
 
+    @OperationsMethod
     def GetOccurrences(self, wordform_or_hvo):
         """
         Get the number of times this wordform occurs in texts.

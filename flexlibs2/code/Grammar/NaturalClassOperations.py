@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -121,6 +121,7 @@ class NaturalClassOperations(BaseOperations):
             return self.project.Object(phoneme_or_hvo)
         return phoneme_or_hvo
 
+    @OperationsMethod
     def GetAll(self):
         """
         Get all natural classes in the phonological inventory.
@@ -153,6 +154,7 @@ class NaturalClassOperations(BaseOperations):
             for nc in natural_classes:
                 yield nc
 
+    @OperationsMethod
     def Create(self, name, abbreviation=None):
         """
         Create a new natural class.
@@ -221,6 +223,7 @@ class NaturalClassOperations(BaseOperations):
 
         return nc
 
+    @OperationsMethod
     def Delete(self, nc_or_hvo):
         """
         Delete a natural class.
@@ -260,6 +263,7 @@ class NaturalClassOperations(BaseOperations):
         phon_data = self.project.lp.PhonologicalDataOA
         phon_data.NaturalClassesOS.Remove(nc)
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True):
         """
         Duplicate a natural class, creating a new copy with a new GUID.
@@ -339,6 +343,7 @@ class NaturalClassOperations(BaseOperations):
 
         return duplicate
 
+    @OperationsMethod
     def GetName(self, nc_or_hvo, wsHandle=None):
         """
         Get the name of a natural class.
@@ -374,6 +379,7 @@ class NaturalClassOperations(BaseOperations):
         name = ITsString(nc.Name.get_String(wsHandle)).Text
         return name or ""
 
+    @OperationsMethod
     def SetName(self, nc_or_hvo, name, wsHandle=None):
         """
         Set the name of a natural class.
@@ -414,6 +420,7 @@ class NaturalClassOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         nc.Name.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetAbbreviation(self, nc_or_hvo, wsHandle=None):
         """
         Get the abbreviation of a natural class.
@@ -462,6 +469,7 @@ class NaturalClassOperations(BaseOperations):
         abbr = ITsString(nc.Abbreviation.get_String(wsHandle)).Text
         return abbr or ""
 
+    @OperationsMethod
     def GetPhonemes(self, nc_or_hvo):
         """
         Get all phonemes in a natural class.
@@ -515,6 +523,7 @@ class NaturalClassOperations(BaseOperations):
             return list(nc.SegmentsRC)
         return []
 
+    @OperationsMethod
     def AddPhoneme(self, nc_or_hvo, phoneme_or_hvo):
         """
         Add a phoneme to a natural class.
@@ -575,6 +584,7 @@ class NaturalClassOperations(BaseOperations):
         if phoneme not in nc.SegmentsRC:
             nc.SegmentsRC.Add(phoneme)
 
+    @OperationsMethod
     def RemovePhoneme(self, nc_or_hvo, phoneme_or_hvo):
         """
         Remove a phoneme from a natural class.
@@ -635,6 +645,7 @@ class NaturalClassOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get dictionary of syncable properties for cross-project synchronization.
@@ -686,6 +697,7 @@ class NaturalClassOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two natural classes and return detailed differences.

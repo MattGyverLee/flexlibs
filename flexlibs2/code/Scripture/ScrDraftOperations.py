@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -73,6 +73,7 @@ class ScrDraftOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def GetAll(self):
         """
         Get all Scripture drafts in the project.
@@ -105,6 +106,7 @@ class ScrDraftOperations(BaseOperations):
 
         return iter(scripture.ArchivedDraftsOC)
 
+    @OperationsMethod
     def Create(self, description, type="saved_version"):
         """
         Create a new Scripture draft/version.
@@ -171,6 +173,7 @@ class ScrDraftOperations(BaseOperations):
 
         return new_draft
 
+    @OperationsMethod
     def Delete(self, draft_or_hvo):
         """
         Delete a Scripture draft from the FLEx project.
@@ -213,6 +216,7 @@ class ScrDraftOperations(BaseOperations):
         # Delete the draft (LCM handles removal from repository)
         draft.Delete()
 
+    @OperationsMethod
     def Find(self, description):
         """
         Find a Scripture draft by its description.
@@ -267,6 +271,7 @@ class ScrDraftOperations(BaseOperations):
 
     # --- Draft Properties ---
 
+    @OperationsMethod
     def GetDescription(self, draft_or_hvo):
         """
         Get the description of a Scripture draft.
@@ -301,6 +306,7 @@ class ScrDraftOperations(BaseOperations):
         desc = ITsString(draft.Description.get_String(wsHandle)).Text
         return desc or ""
 
+    @OperationsMethod
     def SetDescription(self, draft_or_hvo, text):
         """
         Set the description of a Scripture draft.
@@ -338,6 +344,7 @@ class ScrDraftOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         draft.Description.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetBooks(self, draft_or_hvo):
         """
         Get all books in a Scripture draft.

@@ -28,7 +28,7 @@ from SIL.LCModel.Core.Text import TsStringUtils
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 class PersonOperations(BaseOperations):
     """
@@ -82,6 +82,7 @@ class PersonOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def GetAll(self):
         """
         Get all people in the project.
@@ -112,6 +113,7 @@ class PersonOperations(BaseOperations):
         """
         return self.project.ObjectsIn(ICmPersonRepository)
 
+    @OperationsMethod
     def Create(self, name, wsHandle=None):
         """
         Create a new person in the FLEx project.
@@ -174,6 +176,7 @@ class PersonOperations(BaseOperations):
 
         return new_person
 
+    @OperationsMethod
     def Delete(self, person_or_hvo):
         """
         Delete a person from the FLEx project.
@@ -219,6 +222,7 @@ class PersonOperations(BaseOperations):
         # Remove from people collection
         self.project.lp.PeopleOC.Remove(person)
 
+    @OperationsMethod
     def Exists(self, name, wsHandle=None):
         """
         Check if a person with the given name exists.
@@ -257,6 +261,7 @@ class PersonOperations(BaseOperations):
 
         return self.Find(name, wsHandle) is not None
 
+    @OperationsMethod
     def Find(self, name, wsHandle=None):
         """
         Find a person by name.
@@ -309,6 +314,7 @@ class PersonOperations(BaseOperations):
 
     # --- Name Management ---
 
+    @OperationsMethod
     def GetName(self, person_or_hvo, wsHandle=None):
         """
         Get the name of a person.
@@ -348,6 +354,7 @@ class PersonOperations(BaseOperations):
         name = ITsString(person.Name.get_String(wsHandle)).Text
         return name or ""
 
+    @OperationsMethod
     def SetName(self, person_or_hvo, name, wsHandle=None):
         """
         Set the name of a person.
@@ -396,6 +403,7 @@ class PersonOperations(BaseOperations):
 
     # --- Gender ---
 
+    @OperationsMethod
     def GetGender(self, person_or_hvo, wsHandle=None):
         """
         Get the gender of a person.
@@ -432,6 +440,7 @@ class PersonOperations(BaseOperations):
         gender = ITsString(person.Gender.get_String(wsHandle)).Text
         return gender or ""
 
+    @OperationsMethod
     def SetGender(self, person_or_hvo, gender, wsHandle=None):
         """
         Set the gender of a person.
@@ -473,6 +482,7 @@ class PersonOperations(BaseOperations):
 
     # --- Date of Birth ---
 
+    @OperationsMethod
     def GetDateOfBirth(self, person_or_hvo):
         """
         Get the date of birth of a person.
@@ -509,6 +519,7 @@ class PersonOperations(BaseOperations):
             return str(person.DateOfBirth)
         return ""
 
+    @OperationsMethod
     def SetDateOfBirth(self, person_or_hvo, date_str):
         """
         Set the date of birth of a person.
@@ -549,6 +560,7 @@ class PersonOperations(BaseOperations):
 
     # --- Contact Information ---
 
+    @OperationsMethod
     def GetEmail(self, person_or_hvo, wsHandle=None):
         """
         Get the email address of a person.
@@ -585,6 +597,7 @@ class PersonOperations(BaseOperations):
         email = ITsString(person.Email.get_String(wsHandle)).Text
         return email or ""
 
+    @OperationsMethod
     def SetEmail(self, person_or_hvo, email, wsHandle=None):
         """
         Set the email address of a person.
@@ -628,6 +641,7 @@ class PersonOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(email, wsHandle)
         person.Email.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetPhone(self, person_or_hvo, wsHandle=None):
         """
         Get the phone number of a person.
@@ -664,6 +678,7 @@ class PersonOperations(BaseOperations):
         phone = ITsString(person.PlaceOfBirth.get_String(wsHandle)).Text
         return phone or ""
 
+    @OperationsMethod
     def SetPhone(self, person_or_hvo, phone, wsHandle=None):
         """
         Set the phone number of a person.
@@ -707,6 +722,7 @@ class PersonOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(phone, wsHandle)
         person.PlaceOfBirth.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetAddress(self, person_or_hvo, wsHandle=None):
         """
         Get the address of a person.
@@ -744,6 +760,7 @@ class PersonOperations(BaseOperations):
         address = ITsString(person.Abbreviation.get_String(wsHandle)).Text
         return address or ""
 
+    @OperationsMethod
     def SetAddress(self, person_or_hvo, address, wsHandle=None):
         """
         Set the address of a person.
@@ -786,6 +803,7 @@ class PersonOperations(BaseOperations):
 
     # --- Academic Information ---
 
+    @OperationsMethod
     def GetEducation(self, person_or_hvo, wsHandle=None):
         """
         Get the education information of a person.
@@ -822,6 +840,7 @@ class PersonOperations(BaseOperations):
         education = ITsString(person.Description.get_String(wsHandle)).Text
         return education or ""
 
+    @OperationsMethod
     def SetEducation(self, person_or_hvo, education, wsHandle=None):
         """
         Set the education information of a person.
@@ -863,6 +882,7 @@ class PersonOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(education, wsHandle)
         person.Description.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetPositions(self, person_or_hvo):
         """
         Get the positions/roles associated with a person.
@@ -900,6 +920,7 @@ class PersonOperations(BaseOperations):
 
         return list(person.PositionsRC)
 
+    @OperationsMethod
     def AddPosition(self, person_or_hvo, position):
         """
         Add a position/role to a person.
@@ -942,6 +963,7 @@ class PersonOperations(BaseOperations):
         except (AttributeError, System.InvalidCastException) as e:
             raise FP_ParameterError("position must be a valid ICmPossibility object")
 
+    @OperationsMethod
     def Duplicate(self, person_or_hvo, insert_after=True):
         """
         Duplicate a person, creating a new copy with a new GUID.
@@ -1036,6 +1058,7 @@ class PersonOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get syncable properties for cross-project synchronization.
@@ -1086,6 +1109,7 @@ class PersonOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two persons and return detailed differences.
@@ -1144,6 +1168,7 @@ class PersonOperations(BaseOperations):
 
     # --- Metadata ---
 
+    @OperationsMethod
     def GetGuid(self, person_or_hvo):
         """
         Get the GUID (Globally Unique Identifier) of a person.
@@ -1183,6 +1208,7 @@ class PersonOperations(BaseOperations):
 
         return person.Guid
 
+    @OperationsMethod
     def GetDateCreated(self, person_or_hvo):
         """
         Get the creation date of a person record.
@@ -1217,6 +1243,7 @@ class PersonOperations(BaseOperations):
 
         return person.DateCreated
 
+    @OperationsMethod
     def GetDateModified(self, person_or_hvo):
         """
         Get the last modification date of a person record.
@@ -1253,6 +1280,7 @@ class PersonOperations(BaseOperations):
 
     # --- Relationships ---
 
+    @OperationsMethod
     def GetResidences(self, person_or_hvo):
         """
         Get the places of residence for a person.
@@ -1289,6 +1317,7 @@ class PersonOperations(BaseOperations):
 
         return list(person.PlacesOfResidenceRC)
 
+    @OperationsMethod
     def AddResidence(self, person_or_hvo, location):
         """
         Add a place of residence to a person.
@@ -1329,6 +1358,7 @@ class PersonOperations(BaseOperations):
         except (AttributeError, System.InvalidCastException) as e:
             raise FP_ParameterError("location must be a valid ICmLocation object")
 
+    @OperationsMethod
     def GetLanguages(self, person_or_hvo):
         """
         Get the languages known by a person.
@@ -1366,6 +1396,7 @@ class PersonOperations(BaseOperations):
 
         return list(person.LanguagesRC)
 
+    @OperationsMethod
     def AddLanguage(self, person_or_hvo, language):
         """
         Add a language to a person's known languages.
@@ -1410,6 +1441,7 @@ class PersonOperations(BaseOperations):
 
     # --- Notes ---
 
+    @OperationsMethod
     def GetNotes(self, person_or_hvo, wsHandle=None):
         """
         Get the notes for a person.
@@ -1447,6 +1479,7 @@ class PersonOperations(BaseOperations):
         notes = ITsString(person.Comment.get_String(wsHandle)).Text
         return notes or ""
 
+    @OperationsMethod
     def AddNote(self, person_or_hvo, note, wsHandle=None):
         """
         Add a note to a person (appends to existing notes).

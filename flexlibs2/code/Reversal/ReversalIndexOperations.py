@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -76,6 +76,7 @@ class ReversalIndexOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def GetAll(self):
         """
         Get all reversal indexes in the project.
@@ -103,6 +104,7 @@ class ReversalIndexOperations(BaseOperations):
         """
         return self.project.ObjectsIn(IReversalIndexRepository)
 
+    @OperationsMethod
     def Create(self, name, writing_system):
         """
         Create a new reversal index for an analysis writing system.
@@ -172,6 +174,7 @@ class ReversalIndexOperations(BaseOperations):
 
         return new_index
 
+    @OperationsMethod
     def Delete(self, index_or_hvo):
         """
         Delete a reversal index from the project.
@@ -211,6 +214,7 @@ class ReversalIndexOperations(BaseOperations):
         # Delete the index (LCM handles removal from repository)
         index.Delete()
 
+    @OperationsMethod
     def Find(self, name):
         """
         Find a reversal index by its name.
@@ -254,6 +258,7 @@ class ReversalIndexOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def FindByWritingSystem(self, ws):
         """
         Find a reversal index by its writing system.
@@ -300,6 +305,7 @@ class ReversalIndexOperations(BaseOperations):
 
     # --- Property Access ---
 
+    @OperationsMethod
     def GetName(self, index_or_hvo, wsHandle=None):
         """
         Get the name of a reversal index.
@@ -331,6 +337,7 @@ class ReversalIndexOperations(BaseOperations):
         name = ITsString(index.Name.get_String(wsHandle)).Text
         return name or ""
 
+    @OperationsMethod
     def SetName(self, index_or_hvo, name, wsHandle=None):
         """
         Set the name of a reversal index.
@@ -368,6 +375,7 @@ class ReversalIndexOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         index.Name.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetWritingSystem(self, index_or_hvo):
         """
         Get the writing system of a reversal index.
@@ -396,6 +404,7 @@ class ReversalIndexOperations(BaseOperations):
 
         return index.WritingSystem or ""
 
+    @OperationsMethod
     def GetEntries(self, index_or_hvo):
         """
         Get all reversal entries in a reversal index.
@@ -435,6 +444,7 @@ class ReversalIndexOperations(BaseOperations):
         for entry in index.EntriesOC:
             yield entry
 
+    @OperationsMethod
     def ExportToLIFT(self, index_or_hvo, path):
         """
         Export a reversal index to LIFT format.

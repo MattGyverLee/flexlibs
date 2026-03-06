@@ -124,6 +124,7 @@ class FilterOperations:
 
     # --- Core Filter Management ---
 
+    @OperationsMethod
     def GetAll(self):
         """
         Get all saved filters in the project.
@@ -156,6 +157,7 @@ class FilterOperations:
         for filter_guid, filter_data in filters.items():
             yield filter_data
 
+    @OperationsMethod
     def Create(self, name, filter_type, criteria):
         """
         Create a new saved filter in the project.
@@ -249,6 +251,7 @@ class FilterOperations:
 
         return filter_obj
 
+    @OperationsMethod
     def Delete(self, filter_obj):
         """
         Delete a saved filter from the project.
@@ -299,6 +302,7 @@ class FilterOperations:
         if filter_guid in self._filter_cache:
             del self._filter_cache[filter_guid]
 
+    @OperationsMethod
     def Find(self, name):
         """
         Find a saved filter by name.
@@ -344,6 +348,7 @@ class FilterOperations:
 
         return None
 
+    @OperationsMethod
     def Exists(self, name):
         """
         Check if a filter with the given name exists.
@@ -382,6 +387,7 @@ class FilterOperations:
 
     # --- Filter Properties ---
 
+    @OperationsMethod
     def GetName(self, filter_obj):
         """
         Get the name of a filter.
@@ -418,6 +424,7 @@ class FilterOperations:
 
         return filter_obj['name']
 
+    @OperationsMethod
     def SetName(self, filter_obj, name):
         """
         Set the name of a filter.
@@ -466,6 +473,7 @@ class FilterOperations:
         filters[filter_guid] = filter_obj
         self._SaveFiltersToProject(filters)
 
+    @OperationsMethod
     def GetCriteria(self, filter_obj):
         """
         Get the filter criteria definition.
@@ -510,6 +518,7 @@ class FilterOperations:
 
         return filter_obj['criteria']
 
+    @OperationsMethod
     def SetCriteria(self, filter_obj, criteria):
         """
         Set the filter criteria definition.
@@ -562,6 +571,7 @@ class FilterOperations:
         filters[filter_guid] = filter_obj
         self._SaveFiltersToProject(filters)
 
+    @OperationsMethod
     def GetFilterType(self, filter_obj):
         """
         Get the filter type (entry/text/wordform/etc.).
@@ -603,6 +613,7 @@ class FilterOperations:
 
         return filter_obj['filter_type']
 
+    @OperationsMethod
     def GetGuid(self, filter_obj):
         """
         Get the GUID of a filter.
@@ -641,6 +652,7 @@ class FilterOperations:
 
     # --- Filter Application ---
 
+    @OperationsMethod
     def ApplyFilter(self, filter_obj, object_collection):
         """
         Apply a filter to a collection of objects.
@@ -701,6 +713,7 @@ class FilterOperations:
 
         return matching_objects
 
+    @OperationsMethod
     def GetMatchCount(self, filter_obj, object_collection=None):
         """
         Get the count of objects matching a filter.
@@ -754,6 +767,7 @@ class FilterOperations:
 
     # --- Filter Import/Export ---
 
+    @OperationsMethod
     def ExportFilter(self, filter_obj, file_path):
         """
         Export a filter definition to a JSON file.
@@ -797,6 +811,7 @@ class FilterOperations:
         except Exception as e:
             raise FP_ParameterError(f"Failed to export filter: {e}")
 
+    @OperationsMethod
     def ImportFilter(self, file_path, rename_if_exists=False):
         """
         Import a filter definition from a JSON file.
@@ -883,6 +898,7 @@ class FilterOperations:
 
     # --- Utility Methods ---
 
+    @OperationsMethod
     def GetFiltersByType(self, filter_type):
         """
         Get all filters of a specific type.
@@ -923,6 +939,7 @@ class FilterOperations:
             if filter_obj['filter_type'] == filter_type:
                 yield filter_obj
 
+    @OperationsMethod
     def GetDateCreated(self, filter_obj):
         """
         Get the creation date of a filter.
@@ -958,6 +975,7 @@ class FilterOperations:
 
         return filter_obj.get('date_created', '')
 
+    @OperationsMethod
     def GetDateModified(self, filter_obj):
         """
         Get the last modification date of a filter.
@@ -1209,6 +1227,7 @@ class FilterOperations:
 
         return True
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True):
         """
         Duplicate a filter, creating a new copy with a new GUID.
@@ -1275,6 +1294,7 @@ class FilterOperations:
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get all syncable properties of a filter.
@@ -1312,6 +1332,7 @@ class FilterOperations:
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two filters for differences.

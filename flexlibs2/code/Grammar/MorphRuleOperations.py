@@ -29,7 +29,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import wrapper classes
 from .affix_template import AffixTemplate
@@ -126,6 +126,7 @@ class MorphRuleOperations(BaseOperations):
 
     # ========== ENUMERATION ==========
 
+    @OperationsMethod
     def GetAll(self):
         """
         Get all compound rules and affix templates in the project.
@@ -153,6 +154,7 @@ class MorphRuleOperations(BaseOperations):
         yield from self.GetAllCompoundRules()
         yield from self.GetAllAffixTemplates()
 
+    @OperationsMethod
     def GetAllCompoundRules(self):
         """
         Get all compound rules from MoMorphData.CompoundRulesOS.
@@ -183,6 +185,7 @@ class MorphRuleOperations(BaseOperations):
             return CompoundRuleCollection(wrapped)
         return CompoundRuleCollection()
 
+    @OperationsMethod
     def GetAllAffixTemplates(self):
         """
         Get all inflectional affix templates from all parts of speech.
@@ -219,6 +222,7 @@ class MorphRuleOperations(BaseOperations):
         wrapped = [AffixTemplate(t) for t in templates]
         return AffixTemplateCollection(wrapped)
 
+    @OperationsMethod
     def GetAllAffixTemplatesForPOS(self, pos_or_hvo):
         """
         Get affix templates for a specific part of speech (non-recursive).
@@ -257,6 +261,7 @@ class MorphRuleOperations(BaseOperations):
             return AffixTemplateCollection(wrapped)
         return AffixTemplateCollection()
 
+    @OperationsMethod
     def GetAllAdhocCoProhibitions(self):
         """
         Get all ad hoc co-occurrence prohibitions from MoMorphData.
@@ -288,6 +293,7 @@ class MorphRuleOperations(BaseOperations):
 
     # ========== CREATION ==========
 
+    @OperationsMethod
     def CreateCompoundRule(self, name, endocentric=True, description=None):
         """
         Create a new compound rule in MoMorphData.CompoundRulesOS.
@@ -348,6 +354,7 @@ class MorphRuleOperations(BaseOperations):
 
         return new_rule
 
+    @OperationsMethod
     def CreateAffixTemplate(self, pos_or_hvo, name, description=None):
         """
         Create a new inflectional affix template on a part of speech.
@@ -406,6 +413,7 @@ class MorphRuleOperations(BaseOperations):
 
     # ========== DELETION ==========
 
+    @OperationsMethod
     def Delete(self, rule_or_hvo):
         """
         Delete a morphological rule.
@@ -455,6 +463,7 @@ class MorphRuleOperations(BaseOperations):
 
     # ========== PROPERTIES ==========
 
+    @OperationsMethod
     def GetName(self, rule_or_hvo, wsHandle=None):
         """
         Get the name of a morphological rule or template.
@@ -484,6 +493,7 @@ class MorphRuleOperations(BaseOperations):
         name = ITsString(rule.Name.get_String(wsHandle)).Text
         return name or ""
 
+    @OperationsMethod
     def SetName(self, rule_or_hvo, name, wsHandle=None):
         """
         Set the name of a morphological rule or template.
@@ -518,6 +528,7 @@ class MorphRuleOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         rule.Name.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetDescription(self, rule_or_hvo, wsHandle=None):
         """
         Get the description of a morphological rule or template.
@@ -547,6 +558,7 @@ class MorphRuleOperations(BaseOperations):
         desc = ITsString(rule.Description.get_String(wsHandle)).Text
         return desc or ""
 
+    @OperationsMethod
     def SetDescription(self, rule_or_hvo, description, wsHandle=None):
         """
         Set the description of a morphological rule or template.
@@ -577,6 +589,7 @@ class MorphRuleOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(description, wsHandle)
         rule.Description.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetStratum(self, rule_or_hvo):
         """
         Get the stratum of a morphological rule or template.
@@ -612,6 +625,7 @@ class MorphRuleOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def SetStratum(self, rule_or_hvo, stratum):
         """
         Set the stratum of a morphological rule or template.
@@ -649,6 +663,7 @@ class MorphRuleOperations(BaseOperations):
                     stratum = self.project.Object(stratum)
                 rule.StratumRA = stratum
 
+    @OperationsMethod
     def IsDisabled(self, rule_or_hvo):
         """
         Check if a morphological rule is disabled.
@@ -682,6 +697,7 @@ class MorphRuleOperations(BaseOperations):
 
         return False
 
+    @OperationsMethod
     def SetDisabled(self, rule_or_hvo, disabled):
         """
         Set the disabled state of a morphological rule.
@@ -716,6 +732,7 @@ class MorphRuleOperations(BaseOperations):
 
     # ========== DUPLICATION ==========
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True):
         """
         Duplicate a morphological rule or template, creating a copy with a new GUID.
@@ -838,6 +855,7 @@ class MorphRuleOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get dictionary of syncable properties for cross-project synchronization.
@@ -889,6 +907,7 @@ class MorphRuleOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two morphological rules and return detailed differences.

@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -76,6 +76,7 @@ class ScrBookOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def GetAll(self):
         """
         Get all Scripture books in the project.
@@ -110,6 +111,7 @@ class ScrBookOperations(BaseOperations):
 
         return iter(scripture.ScriptureBooksOS)
 
+    @OperationsMethod
     def Create(self, canonical_num, title=None):
         """
         Create a new Scripture book with the specified canonical number.
@@ -182,6 +184,7 @@ class ScrBookOperations(BaseOperations):
 
         return new_book
 
+    @OperationsMethod
     def Delete(self, book_or_hvo):
         """
         Delete a Scripture book from the FLEx project.
@@ -224,6 +227,7 @@ class ScrBookOperations(BaseOperations):
         # Delete the book (LCM handles removal from repository)
         book.Delete()
 
+    @OperationsMethod
     def Find(self, canonical_num):
         """
         Find a Scripture book by its canonical number.
@@ -268,6 +272,7 @@ class ScrBookOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def FindByName(self, name):
         """
         Find a Scripture book by its title/name.
@@ -322,6 +327,7 @@ class ScrBookOperations(BaseOperations):
 
     # --- Book Properties ---
 
+    @OperationsMethod
     def GetCanonicalNum(self, book_or_hvo):
         """
         Get the canonical number of a Scripture book.
@@ -357,6 +363,7 @@ class ScrBookOperations(BaseOperations):
         book = self.__ResolveObject(book_or_hvo)
         return book.CanonicalNum
 
+    @OperationsMethod
     def GetTitle(self, book_or_hvo, wsHandle=None):
         """
         Get the title of a Scripture book.
@@ -396,6 +403,7 @@ class ScrBookOperations(BaseOperations):
         title = ITsString(book.Title.get_String(wsHandle)).Text
         return title or ""
 
+    @OperationsMethod
     def SetTitle(self, book_or_hvo, title, wsHandle=None):
         """
         Set the title of a Scripture book.
@@ -437,6 +445,7 @@ class ScrBookOperations(BaseOperations):
 
     # --- Section Management ---
 
+    @OperationsMethod
     def GetSections(self, book_or_hvo):
         """
         Get all sections in a Scripture book.

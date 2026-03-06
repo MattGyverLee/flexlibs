@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -98,6 +98,7 @@ class EtymologyOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def GetAll(self, entry_or_hvo=None):
         """
         Get all etymologies for a lexical entry, or all etymologies in the entire project.
@@ -152,6 +153,7 @@ class EtymologyOperations(BaseOperations):
             for etymology in entry.EtymologyOS:
                 yield etymology
 
+    @OperationsMethod
     def Create(self, entry_or_hvo, source=None, form=None, gloss=None, ws=None):
         """
         Create a new etymology for a lexical entry.
@@ -226,6 +228,7 @@ class EtymologyOperations(BaseOperations):
 
         return new_etymology
 
+    @OperationsMethod
     def Delete(self, etymology_or_hvo):
         """
         Delete an etymology from its owning entry.
@@ -269,6 +272,7 @@ class EtymologyOperations(BaseOperations):
         if hasattr(owner, 'EtymologyOS'):
             owner.EtymologyOS.Remove(etymology)
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True):
         """
         Duplicate an etymology, creating a new copy with a new GUID.
@@ -354,6 +358,7 @@ class EtymologyOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get all syncable properties of an etymology for comparison.
@@ -431,6 +436,7 @@ class EtymologyOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two etymologies and return their differences.
@@ -461,6 +467,7 @@ class EtymologyOperations(BaseOperations):
         is_different = len(differences) > 0
         return is_different, differences
 
+    @OperationsMethod
     def Reorder(self, entry_or_hvo, etymology_list):
         """
         Reorder etymologies for a lexical entry.
@@ -523,6 +530,7 @@ class EtymologyOperations(BaseOperations):
 
     # --- Source Language Operations ---
 
+    @OperationsMethod
     def GetSource(self, etymology_or_hvo, ws=None):
         """
         Get the source language name for an etymology.
@@ -566,6 +574,7 @@ class EtymologyOperations(BaseOperations):
         source = ITsString(etymology.Source.get_String(wsHandle)).Text
         return self._NormalizeMultiString(source)
 
+    @OperationsMethod
     def SetSource(self, etymology_or_hvo, text, ws=None):
         """
         Set the source language name for an etymology.
@@ -614,6 +623,7 @@ class EtymologyOperations(BaseOperations):
 
     # --- Form & Gloss Operations ---
 
+    @OperationsMethod
     def GetForm(self, etymology_or_hvo, ws=None):
         """
         Get the etymological form (the form in the source language).
@@ -655,6 +665,7 @@ class EtymologyOperations(BaseOperations):
         form = ITsString(etymology.Form.get_String(wsHandle)).Text
         return self._NormalizeMultiString(form)
 
+    @OperationsMethod
     def SetForm(self, etymology_or_hvo, text, ws=None):
         """
         Set the etymological form (the form in the source language).
@@ -699,6 +710,7 @@ class EtymologyOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         etymology.Form.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetGloss(self, etymology_or_hvo, ws=None):
         """
         Get the gloss (meaning in the source language).
@@ -740,6 +752,7 @@ class EtymologyOperations(BaseOperations):
         gloss = ITsString(etymology.Gloss.get_String(wsHandle)).Text
         return self._NormalizeMultiString(gloss)
 
+    @OperationsMethod
     def SetGloss(self, etymology_or_hvo, text, ws=None):
         """
         Set the gloss (meaning in the source language).
@@ -783,6 +796,7 @@ class EtymologyOperations(BaseOperations):
 
     # --- Comment & Bibliography Operations ---
 
+    @OperationsMethod
     def GetComment(self, etymology_or_hvo, ws=None):
         """
         Get the linguistic comment for an etymology.
@@ -823,6 +837,7 @@ class EtymologyOperations(BaseOperations):
         comment = ITsString(etymology.Comment.get_String(wsHandle)).Text
         return self._NormalizeMultiString(comment)
 
+    @OperationsMethod
     def SetComment(self, etymology_or_hvo, text, ws=None):
         """
         Set the linguistic comment for an etymology.
@@ -873,6 +888,7 @@ class EtymologyOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         etymology.Comment.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetBibliography(self, etymology_or_hvo):
         """
         Get the bibliographic reference for an etymology.
@@ -929,6 +945,7 @@ class EtymologyOperations(BaseOperations):
 
         return ""
 
+    @OperationsMethod
     def SetBibliography(self, etymology_or_hvo, bibliography_text):
         """
         Set the bibliographic reference for an etymology.
@@ -987,6 +1004,7 @@ class EtymologyOperations(BaseOperations):
 
     # --- Utility Operations ---
 
+    @OperationsMethod
     def GetOwningEntry(self, etymology_or_hvo):
         """
         Get the lexical entry that owns this etymology.
@@ -1023,6 +1041,7 @@ class EtymologyOperations(BaseOperations):
         etymology = self.__GetEtymologyObject(etymology_or_hvo)
         return ILexEntry(etymology.Owner)
 
+    @OperationsMethod
     def GetGuid(self, etymology_or_hvo):
         """
         Get the GUID (Global Unique Identifier) of an etymology.
@@ -1062,6 +1081,7 @@ class EtymologyOperations(BaseOperations):
 
     # --- Additional Properties ---
 
+    @OperationsMethod
     def GetLanguage(self, etymology_or_hvo):
         """
         Get the source language of an etymology.
@@ -1085,6 +1105,7 @@ class EtymologyOperations(BaseOperations):
         etymology = self.__GetEtymologyObject(etymology_or_hvo)
         return etymology.LanguageRA
 
+    @OperationsMethod
     def SetLanguage(self, etymology_or_hvo, language):
         """
         Set the source language of an etymology.

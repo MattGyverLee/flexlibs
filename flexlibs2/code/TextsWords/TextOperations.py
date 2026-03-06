@@ -31,7 +31,7 @@ from SIL.LCModel.Core.Text import TsStringUtils
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 class TextOperations(BaseOperations):
     """
@@ -103,6 +103,7 @@ class TextOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def Create(self, name, genre=None):
         """
         Create a new text in the project.
@@ -168,6 +169,7 @@ class TextOperations(BaseOperations):
 
         return new_text
 
+    @OperationsMethod
     def Delete(self, text_or_hvo):
         """
         Delete a text from the project.
@@ -201,6 +203,7 @@ class TextOperations(BaseOperations):
         # Remove from collection
         self.project.lp.TextsOC.Remove(text_obj)
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, deep=True):
         """
         Duplicate a text, creating a new text with the same properties.
@@ -302,6 +305,7 @@ class TextOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get all syncable properties of a text.
@@ -353,6 +357,7 @@ class TextOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two texts for differences.
@@ -405,6 +410,7 @@ class TextOperations(BaseOperations):
         is_different = len(differences) > 0
         return (is_different, differences)
 
+    @OperationsMethod
     def Exists(self, name):
         """
         Check if a text with the given name exists in the project.
@@ -441,6 +447,7 @@ class TextOperations(BaseOperations):
 
         return False
 
+    @OperationsMethod
     def GetAll(self):
         """
         Get all texts in the project.
@@ -467,6 +474,7 @@ class TextOperations(BaseOperations):
         """
         return self.project.ObjectsIn(ITextRepository)
 
+    @OperationsMethod
     def GetName(self, text_or_hvo, wsHandle=None):
         """
         Get the name of a text.
@@ -507,6 +515,7 @@ class TextOperations(BaseOperations):
         name_str = ITsString(text_obj.Name.get_String(wsHandle)).Text
         return name_str or ""
 
+    @OperationsMethod
     def SetName(self, text_or_hvo, name, wsHandle=None):
         """
         Set the name of a text.
@@ -552,6 +561,7 @@ class TextOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         text_obj.Name.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetGenre(self, text_or_hvo):
         """
         Get the genre of a text.
@@ -590,6 +600,7 @@ class TextOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def SetGenre(self, text_or_hvo, genre):
         """
         Set the genre of a text.
@@ -641,6 +652,7 @@ class TextOperations(BaseOperations):
 
     # --- Advanced Text Content Operations ---
 
+    @OperationsMethod
     def GetContents(self, text_or_hvo):
         """
         Get the StText contents object for a text.
@@ -674,6 +686,7 @@ class TextOperations(BaseOperations):
         text_obj = self.__GetTextObject(text_or_hvo)
         return text_obj.ContentsOA if text_obj.ContentsOA else None
 
+    @OperationsMethod
     def GetParagraphs(self, text_or_hvo):
         """
         Get all paragraphs in a text.
@@ -708,6 +721,7 @@ class TextOperations(BaseOperations):
             return [IStTxtPara(para) for para in text_obj.ContentsOA.ParagraphsOS]
         return []
 
+    @OperationsMethod
     def GetParagraphCount(self, text_or_hvo):
         """
         Get the number of paragraphs in a text.
@@ -739,6 +753,7 @@ class TextOperations(BaseOperations):
             return text_obj.ContentsOA.ParagraphsOS.Count
         return 0
 
+    @OperationsMethod
     def GetMediaFiles(self, text_or_hvo):
         """
         Get media files associated with a text.
@@ -774,6 +789,7 @@ class TextOperations(BaseOperations):
             return list(text_obj.MediaFilesOA.MediaFilesOC)
         return []
 
+    @OperationsMethod
     def AddMediaFile(self, text_or_hvo, filepath, label=None):
         """
         Add a media file to a text.
@@ -848,6 +864,7 @@ class TextOperations(BaseOperations):
 
         return media
 
+    @OperationsMethod
     def GetAbbreviation(self, text_or_hvo, wsHandle=None):
         """
         Get the abbreviation for a text.
@@ -889,6 +906,7 @@ class TextOperations(BaseOperations):
         abbr_str = ITsString(text_obj.Abbreviation.get_String(wsHandle)).Text
         return abbr_str or ""
 
+    @OperationsMethod
     def GetIsTranslated(self, text_or_hvo):
         """
         Check if a text's translation is marked as complete.
@@ -926,6 +944,7 @@ class TextOperations(BaseOperations):
         text_obj = self.__GetTextObject(text_or_hvo)
         return bool(text_obj.IsTranslated)
 
+    @OperationsMethod
     def SetIsTranslated(self, text_or_hvo, value):
         """
         Mark a text as translated or untranslated.

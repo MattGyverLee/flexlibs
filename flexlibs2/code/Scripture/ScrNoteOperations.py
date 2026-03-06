@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -86,6 +86,7 @@ class ScrNoteOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def Create(self, book_or_hvo, paragraph_or_hvo, text, type="translator_note"):
         """
         Create a new Scripture note attached to a paragraph.
@@ -194,6 +195,7 @@ class ScrNoteOperations(BaseOperations):
 
         return new_note
 
+    @OperationsMethod
     def Delete(self, note_or_hvo):
         """
         Delete a Scripture note from the FLEx project.
@@ -231,6 +233,7 @@ class ScrNoteOperations(BaseOperations):
         # Delete the note (LCM handles removal from repository)
         note.Delete()
 
+    @OperationsMethod
     def Find(self, book_or_hvo, index):
         """
         Find a Scripture note by index within a book.
@@ -282,6 +285,7 @@ class ScrNoteOperations(BaseOperations):
 
         return annotations.NotesOS[index]
 
+    @OperationsMethod
     def GetAll(self, book_or_hvo):
         """
         Get all Scripture notes in a book.
@@ -326,6 +330,7 @@ class ScrNoteOperations(BaseOperations):
 
     # --- Note Properties ---
 
+    @OperationsMethod
     def GetText(self, note_or_hvo, wsHandle=None):
         """
         Get the text content of a Scripture note.
@@ -374,6 +379,7 @@ class ScrNoteOperations(BaseOperations):
         text = para.Contents.Text if para.Contents else ""
         return text or ""
 
+    @OperationsMethod
     def SetText(self, note_or_hvo, text, wsHandle=None):
         """
         Set the text content of a Scripture note.
@@ -435,6 +441,7 @@ class ScrNoteOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         para.Contents = mkstr
 
+    @OperationsMethod
     def GetType(self, note_or_hvo):
         """
         Get the type of a Scripture note.
@@ -471,6 +478,7 @@ class ScrNoteOperations(BaseOperations):
         # A full implementation would check note.AnnotationTypeRA
         return "note"
 
+    @OperationsMethod
     def Resolve(self, note_or_hvo):
         """
         Mark a Scripture note as resolved.
@@ -510,6 +518,7 @@ class ScrNoteOperations(BaseOperations):
         if hasattr(note, 'ResolutionStatus'):
             note.ResolutionStatus = 1  # Resolved
 
+    @OperationsMethod
     def IsResolved(self, note_or_hvo):
         """
         Check if a Scripture note is marked as resolved.

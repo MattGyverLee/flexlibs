@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -84,6 +84,7 @@ class PhonemeOperations(BaseOperations):
         """
         return parent.PhonemesOS
 
+    @OperationsMethod
     def GetAll(self):
         """
         Get all phonemes in the project.
@@ -117,6 +118,7 @@ class PhonemeOperations(BaseOperations):
             for phoneme in phoneme_set.PhonemesOC:
                 yield phoneme
 
+    @OperationsMethod
     def Create(self, representation, wsHandle=None):
         """
         Create a new phoneme.
@@ -190,6 +192,7 @@ class PhonemeOperations(BaseOperations):
 
         return new_phoneme
 
+    @OperationsMethod
     def Delete(self, phoneme_or_hvo):
         """
         Delete a phoneme.
@@ -233,6 +236,7 @@ class PhonemeOperations(BaseOperations):
             phoneme_set = phon_data.PhonemeSetsOS[0]
             phoneme_set.PhonemesOC.Remove(phoneme)
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
         """
         Duplicate a phoneme, creating a new copy with a new GUID.
@@ -345,6 +349,7 @@ class PhonemeOperations(BaseOperations):
 
         return duplicate
 
+    @OperationsMethod
     def Exists(self, representation, wsHandle=None):
         """
         Check if a phoneme with the given representation exists.
@@ -376,6 +381,7 @@ class PhonemeOperations(BaseOperations):
 
         return self.Find(representation, wsHandle) is not None
 
+    @OperationsMethod
     def Find(self, representation, wsHandle=None):
         """
         Find a phoneme by representation.
@@ -422,6 +428,7 @@ class PhonemeOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def GetRepresentation(self, phoneme_or_hvo, wsHandle=None):
         """
         Get the representation of a phoneme.
@@ -458,6 +465,7 @@ class PhonemeOperations(BaseOperations):
         representation = normalize_text(ITsString(phoneme.Name.get_String(wsHandle)).Text)
         return representation or ""
 
+    @OperationsMethod
     def SetRepresentation(self, phoneme_or_hvo, representation, wsHandle=None):
         """
         Set the representation of a phoneme.
@@ -499,6 +507,7 @@ class PhonemeOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(representation, wsHandle)
         phoneme.Name.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetDescription(self, phoneme_or_hvo, wsHandle=None):
         """
         Get the description of a phoneme.
@@ -550,6 +559,7 @@ class PhonemeOperations(BaseOperations):
         desc_str = ITsString(phoneme.Description.get_String(wsHandle)).Text
         return desc_str or ""
 
+    @OperationsMethod
     def SetDescription(self, phoneme_or_hvo, description, wsHandle=None):
         """
         Set the description of a phoneme.
@@ -601,6 +611,7 @@ class PhonemeOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(description, wsHandle)
         phoneme.Description.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetFeatures(self, phoneme_or_hvo):
         """
         Get the feature structure of a phoneme.
@@ -640,6 +651,7 @@ class PhonemeOperations(BaseOperations):
 
     # --- Advanced Operations ---
 
+    @OperationsMethod
     def GetCodes(self, phoneme_or_hvo):
         """
         Get all codes (allophonic representations) for a phoneme.
@@ -686,6 +698,7 @@ class PhonemeOperations(BaseOperations):
         phoneme = self.__GetPhonemeObject(phoneme_or_hvo)
         return list(phoneme.CodesOS)
 
+    @OperationsMethod
     def AddCode(self, phoneme_or_hvo, representation, wsHandle=None):
         """
         Add a code (allophonic representation) to a phoneme.
@@ -755,6 +768,7 @@ class PhonemeOperations(BaseOperations):
 
         return code
 
+    @OperationsMethod
     def RemoveCode(self, phoneme_or_hvo, code_or_hvo):
         """
         Remove a code from a phoneme.
@@ -809,6 +823,7 @@ class PhonemeOperations(BaseOperations):
 
         phoneme.CodesOS.Remove(code)
 
+    @OperationsMethod
     def GetBasicIPASymbol(self, phoneme_or_hvo, wsHandle=None):
         """
         Get the basic IPA symbol for a phoneme.
@@ -858,6 +873,7 @@ class PhonemeOperations(BaseOperations):
             return ipa_str or ""
         return ""
 
+    @OperationsMethod
     def IsVowel(self, phoneme_or_hvo):
         """
         Check if a phoneme is classified as a vowel.
@@ -926,6 +942,7 @@ class PhonemeOperations(BaseOperations):
 
         return False
 
+    @OperationsMethod
     def IsConsonant(self, phoneme_or_hvo):
         """
         Check if a phoneme is classified as a consonant.
@@ -1027,6 +1044,7 @@ class PhonemeOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get dictionary of syncable properties for cross-project synchronization.
@@ -1078,6 +1096,7 @@ class PhonemeOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two phonemes and return detailed differences.

@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -77,6 +77,7 @@ class WfiGlossOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def GetAll(self, analysis_or_hvo):
         """
         Get all glosses for a wordform analysis.
@@ -115,6 +116,7 @@ class WfiGlossOperations(BaseOperations):
         for gloss in analysis.MeaningsOC:
             yield gloss
 
+    @OperationsMethod
     def Create(self, analysis_or_hvo, gloss_text, wsHandle=None):
         """
         Create a new gloss for a wordform analysis.
@@ -174,6 +176,7 @@ class WfiGlossOperations(BaseOperations):
 
         return new_gloss
 
+    @OperationsMethod
     def Delete(self, gloss_or_hvo):
         """
         Delete a wordform gloss.
@@ -214,6 +217,7 @@ class WfiGlossOperations(BaseOperations):
         # Delete the gloss (LCM handles removal from collections)
         gloss.Delete()
 
+    @OperationsMethod
     def Find(self, analysis_or_hvo, index):
         """
         Find a gloss by its index in the analysis's glosses.
@@ -254,6 +258,7 @@ class WfiGlossOperations(BaseOperations):
 
     # --- Property Access ---
 
+    @OperationsMethod
     def GetForm(self, gloss_or_hvo, wsHandle=None):
         """
         Get the text form of a gloss.
@@ -288,6 +293,7 @@ class WfiGlossOperations(BaseOperations):
         form = ITsString(gloss.Form.get_String(wsHandle)).Text
         return form or ""
 
+    @OperationsMethod
     def SetForm(self, gloss_or_hvo, text, wsHandle=None):
         """
         Set the text form of a gloss.
@@ -327,6 +333,7 @@ class WfiGlossOperations(BaseOperations):
 
     # --- Human Approval ---
 
+    @OperationsMethod
     def IsHumanApproved(self, gloss_or_hvo):
         """
         Check if a gloss is human-approved.
@@ -373,6 +380,7 @@ class WfiGlossOperations(BaseOperations):
 
         return False
 
+    @OperationsMethod
     def Approve(self, gloss_or_hvo):
         """
         Mark a gloss as human-approved.

@@ -32,7 +32,7 @@ from SIL.LCModel.Core.Text import TsStringUtils
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # --- Media Type Enum ---
 
@@ -96,6 +96,7 @@ class MediaOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def GetAll(self):
         """
         Retrieve all media files in the FLEx project.
@@ -126,6 +127,7 @@ class MediaOperations(BaseOperations):
         """
         return self.project.ObjectsIn(ICmObjectRepository, ICmFile)
 
+    @OperationsMethod
     def Create(self, file_path, label=None, wsHandle=None):
         """
         Create a new media file reference in the FLEx project.
@@ -188,6 +190,7 @@ class MediaOperations(BaseOperations):
 
         return new_media
 
+    @OperationsMethod
     def Delete(self, media_or_hvo):
         """
         Delete a media file reference from the FLEx project.
@@ -240,6 +243,7 @@ class MediaOperations(BaseOperations):
         # Note: LCModel handles cascading deletion of references
         self.project.cache.DomainDataByFlid.DeleteObj(media.Hvo)
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, deep=False):
         """
         Duplicate a media file reference, creating a new reference to the same file.
@@ -360,6 +364,7 @@ class MediaOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get all syncable properties of a media file.
@@ -394,6 +399,7 @@ class MediaOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two media files for differences.
@@ -445,6 +451,7 @@ class MediaOperations(BaseOperations):
         is_different = len(differences) > 0
         return (is_different, differences)
 
+    @OperationsMethod
     def Find(self, filename):
         """
         Find a media file by its filename (internal path).
@@ -494,6 +501,7 @@ class MediaOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def Exists(self, filename):
         """
         Check if a media file exists in the FLEx project.
@@ -525,6 +533,7 @@ class MediaOperations(BaseOperations):
 
     # --- File Properties ---
 
+    @OperationsMethod
     def GetInternalPath(self, media_or_hvo):
         """
         Get the internal path of a media file.
@@ -569,6 +578,7 @@ class MediaOperations(BaseOperations):
 
         return media.InternalPath or ""
 
+    @OperationsMethod
     def GetExternalPath(self, media_or_hvo):
         """
         Get the external (absolute) path of a media file.
@@ -633,6 +643,7 @@ class MediaOperations(BaseOperations):
         # Fallback: return internal path if we can't resolve
         return internal_path
 
+    @OperationsMethod
     def SetInternalPath(self, media_or_hvo, path):
         """
         Set the internal path of a media file.
@@ -680,6 +691,7 @@ class MediaOperations(BaseOperations):
 
         media.InternalPath = path.strip()
 
+    @OperationsMethod
     def RenameMediaFile(self, media_or_hvo, new_filename):
         """
         Rename a media file on disk and update the database reference.
@@ -827,6 +839,7 @@ class MediaOperations(BaseOperations):
 
         return new_internal_path
 
+    @OperationsMethod
     def GetLabel(self, media_or_hvo, wsHandle=None):
         """
         Get the label/description of a media file.
@@ -878,6 +891,7 @@ class MediaOperations(BaseOperations):
             return label or ""
         return ""
 
+    @OperationsMethod
     def SetLabel(self, media_or_hvo, text, wsHandle=None):
         """
         Set the label/description of a media file.
@@ -932,6 +946,7 @@ class MediaOperations(BaseOperations):
 
     # --- Media Type Detection ---
 
+    @OperationsMethod
     def GetMediaType(self, media_or_hvo):
         """
         Get the media type (audio/video/image) based on file extension.
@@ -1003,6 +1018,7 @@ class MediaOperations(BaseOperations):
         else:
             return MediaType.UNKNOWN
 
+    @OperationsMethod
     def IsAudio(self, media_or_hvo):
         """
         Check if a media file is an audio file.
@@ -1039,6 +1055,7 @@ class MediaOperations(BaseOperations):
         """
         return self.GetMediaType(media_or_hvo) == MediaType.AUDIO
 
+    @OperationsMethod
     def IsVideo(self, media_or_hvo):
         """
         Check if a media file is a video file.
@@ -1074,6 +1091,7 @@ class MediaOperations(BaseOperations):
         """
         return self.GetMediaType(media_or_hvo) == MediaType.VIDEO
 
+    @OperationsMethod
     def IsImage(self, media_or_hvo):
         """
         Check if a media file is an image file.
@@ -1110,6 +1128,7 @@ class MediaOperations(BaseOperations):
 
     # --- Usage Tracking ---
 
+    @OperationsMethod
     def GetOwners(self, media_or_hvo):
         """
         Get all objects that reference this media file.
@@ -1163,6 +1182,7 @@ class MediaOperations(BaseOperations):
 
         return owners
 
+    @OperationsMethod
     def GetOwnerCount(self, media_or_hvo):
         """
         Get the count of objects referencing this media file.
@@ -1199,6 +1219,7 @@ class MediaOperations(BaseOperations):
 
     # --- Utility Methods ---
 
+    @OperationsMethod
     def CopyToProject(self, external_path, internal_subdir="AudioVisual",
                       label=None, wsHandle=None):
         """
@@ -1293,6 +1314,7 @@ class MediaOperations(BaseOperations):
         # Create media reference
         return self.Create(internal_path, label, wsHandle)
 
+    @OperationsMethod
     def IsValid(self, media_or_hvo):
         """
         Check if a media file's referenced file exists on disk.
@@ -1343,6 +1365,7 @@ class MediaOperations(BaseOperations):
             logger.warning(f"Unexpected error checking media file existence: {e}")
             return False
 
+    @OperationsMethod
     def GetGuid(self, media_or_hvo):
         """
         Get the GUID (Globally Unique Identifier) of a media file.
@@ -1394,6 +1417,7 @@ class MediaOperations(BaseOperations):
 
         return media.Guid
 
+    @OperationsMethod
     def GetHvo(self, media):
         """
         Get the HVO (database ID) of a media file.
@@ -1431,6 +1455,7 @@ class MediaOperations(BaseOperations):
 
         return media.Hvo
 
+    @OperationsMethod
     def GetFileSize(self, media_or_hvo):
         """
         Get the file size of a media file in bytes.
@@ -1481,6 +1506,7 @@ class MediaOperations(BaseOperations):
             logger.warning(f"Unexpected error getting media file size: {e}")
             return -1
 
+    @OperationsMethod
     def GetAllByType(self, media_type):
         """
         Get all media files of a specific type.
@@ -1526,6 +1552,7 @@ class MediaOperations(BaseOperations):
             if self.GetMediaType(media) == media_type:
                 yield media
 
+    @OperationsMethod
     def GetOrphanedMedia(self):
         """
         Get all media files that are not referenced by any object.

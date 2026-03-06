@@ -26,7 +26,7 @@ import System
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 class TranslationTypeOperations(BaseOperations):
     """
@@ -89,6 +89,7 @@ class TranslationTypeOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def GetAll(self):
         """
         Get all translation types in the project.
@@ -123,6 +124,7 @@ class TranslationTypeOperations(BaseOperations):
             for trans_type in trans_list.PossibilitiesOS:
                 yield trans_type
 
+    @OperationsMethod
     def Create(self, name, abbreviation=None, wsHandle=None):
         """
         Create a new translation type.
@@ -209,6 +211,7 @@ class TranslationTypeOperations(BaseOperations):
 
         return new_type
 
+    @OperationsMethod
     def Delete(self, type_or_hvo):
         """
         Delete a translation type.
@@ -267,6 +270,7 @@ class TranslationTypeOperations(BaseOperations):
         if trans_list:
             trans_list.PossibilitiesOS.Remove(trans_type)
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True):
         """
         Duplicate a translation type, creating a new copy with a new GUID.
@@ -353,6 +357,7 @@ class TranslationTypeOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get syncable properties for cross-project synchronization.
@@ -383,6 +388,7 @@ class TranslationTypeOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two translation types and return detailed differences.
@@ -430,6 +436,7 @@ class TranslationTypeOperations(BaseOperations):
 
         return is_different, differences
 
+    @OperationsMethod
     def Find(self, name):
         """
         Find a translation type by name.
@@ -481,6 +488,7 @@ class TranslationTypeOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def Exists(self, name):
         """
         Check if a translation type with the given name exists.
@@ -518,6 +526,7 @@ class TranslationTypeOperations(BaseOperations):
 
     # --- Property Accessors ---
 
+    @OperationsMethod
     def GetName(self, type_or_hvo, wsHandle=None):
         """
         Get the name of a translation type.
@@ -553,6 +562,7 @@ class TranslationTypeOperations(BaseOperations):
         name = ITsString(trans_type.Name.get_String(wsHandle)).Text
         return name or ""
 
+    @OperationsMethod
     def SetName(self, type_or_hvo, name, wsHandle=None):
         """
         Set the name of a translation type.
@@ -595,6 +605,7 @@ class TranslationTypeOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         trans_type.Name.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetAbbreviation(self, type_or_hvo, wsHandle=None):
         """
         Get the abbreviation of a translation type.
@@ -631,6 +642,7 @@ class TranslationTypeOperations(BaseOperations):
         abbr = ITsString(trans_type.Abbreviation.get_String(wsHandle)).Text
         return abbr or ""
 
+    @OperationsMethod
     def SetAbbreviation(self, type_or_hvo, abbreviation, wsHandle=None):
         """
         Set the abbreviation of a translation type.
@@ -674,6 +686,7 @@ class TranslationTypeOperations(BaseOperations):
 
     # --- Writing System Methods ---
 
+    @OperationsMethod
     def GetAnalysisWS(self, type_or_hvo):
         """
         Get the analysis writing systems used by a translation type.
@@ -723,6 +736,7 @@ class TranslationTypeOperations(BaseOperations):
 
         return ws_list
 
+    @OperationsMethod
     def SetAnalysisWS(self, type_or_hvo, wsHandle, name=None,
                       abbreviation=None):
         """
@@ -778,6 +792,7 @@ class TranslationTypeOperations(BaseOperations):
 
     # --- Usage Tracking ---
 
+    @OperationsMethod
     def GetTextsWithType(self, type_or_hvo):
         """
         Get all texts that use a specific translation type.
@@ -830,6 +845,7 @@ class TranslationTypeOperations(BaseOperations):
                             yield text
                             break  # Count each text only once
 
+    @OperationsMethod
     def GetSegmentsWithType(self, type_or_hvo):
         """
         Get all segments that use a specific translation type.
@@ -888,6 +904,7 @@ class TranslationTypeOperations(BaseOperations):
 
     # --- Predefined Translation Types ---
 
+    @OperationsMethod
     def GetFreeTranslationType(self):
         """
         Get the predefined "Free translation" type.
@@ -922,6 +939,7 @@ class TranslationTypeOperations(BaseOperations):
         guid = System.Guid("eb92e50f-ba96-4d1d-b632-057b5c274132")
         return self.__FindByGuid(guid)
 
+    @OperationsMethod
     def GetLiteralTranslationType(self):
         """
         Get the predefined "Literal translation" type.
@@ -956,6 +974,7 @@ class TranslationTypeOperations(BaseOperations):
         guid = System.Guid("c6e13529-97ed-4a8a-86f9-7b30b3b0b1c0")
         return self.__FindByGuid(guid)
 
+    @OperationsMethod
     def GetBackTranslationType(self):
         """
         Get the predefined "Back translation" type.
@@ -992,6 +1011,7 @@ class TranslationTypeOperations(BaseOperations):
 
     # --- Query Methods ---
 
+    @OperationsMethod
     def FindByWS(self, wsHandle):
         """
         Find all translation types that have content in a specific
@@ -1036,6 +1056,7 @@ class TranslationTypeOperations(BaseOperations):
                         yield trans_type
                         break
 
+    @OperationsMethod
     def IsDefault(self, type_or_hvo):
         """
         Check if a translation type is one of the predefined default types.
@@ -1084,6 +1105,7 @@ class TranslationTypeOperations(BaseOperations):
 
         return guid in predefined_guids
 
+    @OperationsMethod
     def SetDefault(self, type_or_hvo):
         """
         Set a translation type as the default for new translations.
@@ -1131,6 +1153,7 @@ class TranslationTypeOperations(BaseOperations):
 
     # --- Metadata ---
 
+    @OperationsMethod
     def GetGuid(self, type_or_hvo):
         """
         Get the GUID (Globally Unique Identifier) of a translation type.

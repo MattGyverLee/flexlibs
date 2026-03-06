@@ -24,7 +24,7 @@ from SIL.LCModel.Core.Text import TsStringUtils
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 class ParagraphOperations(BaseOperations):
     """
@@ -122,6 +122,7 @@ class ParagraphOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def Create(self, text_or_hvo, content, wsHandle=None):
         """
         Create a new paragraph and append it to a text.
@@ -187,6 +188,7 @@ class ParagraphOperations(BaseOperations):
 
         return para
 
+    @OperationsMethod
     def Delete(self, paragraph_or_hvo):
         """
         Delete a paragraph from its text.
@@ -229,6 +231,7 @@ class ParagraphOperations(BaseOperations):
         else:
             raise FP_ParameterError("Paragraph has no valid owner or cannot be removed")
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
         """
         Duplicate a paragraph, creating a new paragraph with the same content.
@@ -331,6 +334,7 @@ class ParagraphOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get all syncable properties of a paragraph.
@@ -366,6 +370,7 @@ class ParagraphOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two paragraphs for differences.
@@ -416,6 +421,7 @@ class ParagraphOperations(BaseOperations):
         is_different = len(differences) > 0
         return (is_different, differences)
 
+    @OperationsMethod
     def GetAll(self, text_or_hvo):
         """
         Get all paragraphs in a text.
@@ -462,6 +468,7 @@ class ParagraphOperations(BaseOperations):
         for para in text_obj.ContentsOA.ParagraphsOS:
             yield IStTxtPara(para)
 
+    @OperationsMethod
     def GetText(self, paragraph_or_hvo, wsHandle=None):
         """
         Get the text content of a paragraph.
@@ -504,6 +511,7 @@ class ParagraphOperations(BaseOperations):
         text = para_obj.Contents.Text if para_obj.Contents else ""
         return text or ""
 
+    @OperationsMethod
     def SetText(self, paragraph_or_hvo, content, wsHandle=None):
         """
         Set the text content of a paragraph.
@@ -555,6 +563,7 @@ class ParagraphOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(content_str, wsHandle)
         para_obj.Contents = mkstr
 
+    @OperationsMethod
     def GetSegments(self, paragraph_or_hvo):
         """
         Get all segments in a paragraph.
@@ -595,6 +604,7 @@ class ParagraphOperations(BaseOperations):
         # Return list of segments
         return list(para_obj.SegmentsOS)
 
+    @OperationsMethod
     def GetSegmentCount(self, paragraph_or_hvo):
         """
         Get the number of segments in a paragraph.
@@ -631,6 +641,7 @@ class ParagraphOperations(BaseOperations):
         # Return segment count
         return para_obj.SegmentsOS.Count
 
+    @OperationsMethod
     def InsertAt(self, text_or_hvo, index, content, wsHandle=None):
         """
         Insert a new paragraph at a specific position in a text.

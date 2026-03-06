@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -86,6 +86,7 @@ class PhonologicalRuleOperations(BaseOperations):
         """
         return parent.PhonRulesOS
 
+    @OperationsMethod
     def GetAll(self):
         """
         Get all phonological rules in the project.
@@ -138,6 +139,7 @@ class PhonologicalRuleOperations(BaseOperations):
 
         return RuleCollection(rules)
 
+    @OperationsMethod
     def Create(self, name, description=None):
         """
         Create a new phonological rule.
@@ -208,6 +210,7 @@ class PhonologicalRuleOperations(BaseOperations):
 
         return new_rule
 
+    @OperationsMethod
     def Delete(self, rule_or_hvo):
         """
         Delete a phonological rule.
@@ -246,6 +249,7 @@ class PhonologicalRuleOperations(BaseOperations):
             if rule in phon_data.PhonRulesOS:
                 phon_data.PhonRulesOS.Remove(rule)
 
+    @OperationsMethod
     def Exists(self, name):
         """
         Check if a phonological rule with the given name exists.
@@ -273,6 +277,7 @@ class PhonologicalRuleOperations(BaseOperations):
 
         return self.Find(name) is not None
 
+    @OperationsMethod
     def Find(self, name):
         """
         Find a phonological rule by name.
@@ -314,6 +319,7 @@ class PhonologicalRuleOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def GetName(self, rule_or_hvo, wsHandle=None):
         """
         Get the name of a phonological rule.
@@ -347,6 +353,7 @@ class PhonologicalRuleOperations(BaseOperations):
         name = ITsString(rule.Name.get_String(wsHandle)).Text
         return name or ""
 
+    @OperationsMethod
     def SetName(self, rule_or_hvo, name, wsHandle=None):
         """
         Set the name of a phonological rule.
@@ -383,6 +390,7 @@ class PhonologicalRuleOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         rule.Name.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetDescription(self, rule_or_hvo, wsHandle=None):
         """
         Get the description of a phonological rule.
@@ -415,6 +423,7 @@ class PhonologicalRuleOperations(BaseOperations):
         desc = ITsString(rule.Description.get_String(wsHandle)).Text
         return desc or ""
 
+    @OperationsMethod
     def SetDescription(self, rule_or_hvo, description, wsHandle=None):
         """
         Set the description of a phonological rule.
@@ -448,6 +457,7 @@ class PhonologicalRuleOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(description, wsHandle)
         rule.Description.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetStratum(self, rule_or_hvo):
         """
         Get the stratum of a phonological rule.
@@ -485,6 +495,7 @@ class PhonologicalRuleOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def SetStratum(self, rule_or_hvo, stratum):
         """
         Set the stratum of a phonological rule.
@@ -523,6 +534,7 @@ class PhonologicalRuleOperations(BaseOperations):
                     stratum = self.project.Object(stratum)
                 rule.StratumRA = stratum
 
+    @OperationsMethod
     def GetDirection(self, rule_or_hvo):
         """
         Get the direction of rule application.
@@ -556,6 +568,7 @@ class PhonologicalRuleOperations(BaseOperations):
 
         return 0  # Default: left-to-right
 
+    @OperationsMethod
     def SetDirection(self, rule_or_hvo, direction):
         """
         Set the direction of rule application.
@@ -590,6 +603,7 @@ class PhonologicalRuleOperations(BaseOperations):
         if hasattr(rule, 'Direction'):
             rule.Direction = direction
 
+    @OperationsMethod
     def AddInputSegment(self, rule_or_hvo, phoneme_or_class):
         """
         Add an input segment or natural class to the rule.
@@ -643,6 +657,7 @@ class PhonologicalRuleOperations(BaseOperations):
             if hasattr(input_context, 'FeatureStructureRA'):
                 input_context.FeatureStructureRA = phoneme_or_class
 
+    @OperationsMethod
     def AddOutputSegment(self, rule_or_hvo, phoneme_or_class):
         """
         Add an output segment or natural class to the rule.
@@ -697,6 +712,7 @@ class PhonologicalRuleOperations(BaseOperations):
                 output_seg.FeatureStructureRA = phoneme_or_class
                 rhs.StrucChangeOS.Add(output_seg)
 
+    @OperationsMethod
     def SetLeftContext(self, rule_or_hvo, context_item):
         """
         Set the left context (environment before the target) for the rule.
@@ -747,6 +763,7 @@ class PhonologicalRuleOperations(BaseOperations):
                     left_ctx.FeatureStructureRA = context_item
                     input_context.LeftContextOA = left_ctx
 
+    @OperationsMethod
     def SetRightContext(self, rule_or_hvo, context_item):
         """
         Set the right context (environment after the target) for the rule.
@@ -798,6 +815,7 @@ class PhonologicalRuleOperations(BaseOperations):
                     right_ctx.FeatureStructureRA = context_item
                     input_context.RightContextOA = right_ctx
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
         """
         Duplicate a phonological rule, creating a new copy with a new GUID.
@@ -904,6 +922,7 @@ class PhonologicalRuleOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get dictionary of syncable properties for cross-project synchronization.
@@ -959,6 +978,7 @@ class PhonologicalRuleOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two phonological rules and return detailed differences.

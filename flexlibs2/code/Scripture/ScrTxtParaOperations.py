@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -77,6 +77,7 @@ class ScrTxtParaOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def Create(self, section_or_hvo, text, style_name="Normal"):
         """
         Create a new Scripture paragraph in a section.
@@ -154,6 +155,7 @@ class ScrTxtParaOperations(BaseOperations):
 
         return new_para
 
+    @OperationsMethod
     def Delete(self, para_or_hvo):
         """
         Delete a Scripture paragraph from the FLEx project.
@@ -191,6 +193,7 @@ class ScrTxtParaOperations(BaseOperations):
         # Delete the paragraph (LCM handles removal from repository)
         para.Delete()
 
+    @OperationsMethod
     def Find(self, section_or_hvo, index):
         """
         Find a Scripture paragraph by index within a section.
@@ -239,6 +242,7 @@ class ScrTxtParaOperations(BaseOperations):
 
         return section.ContentOA.ParagraphsOS[index]
 
+    @OperationsMethod
     def GetAll(self, section_or_hvo):
         """
         Get all Scripture paragraphs in a section.
@@ -279,6 +283,7 @@ class ScrTxtParaOperations(BaseOperations):
 
     # --- Paragraph Properties ---
 
+    @OperationsMethod
     def GetText(self, para_or_hvo, wsHandle=None):
         """
         Get the text content of a Scripture paragraph.
@@ -317,6 +322,7 @@ class ScrTxtParaOperations(BaseOperations):
         text = para.Contents.Text if para.Contents else ""
         return text or ""
 
+    @OperationsMethod
     def SetText(self, para_or_hvo, text, wsHandle=None):
         """
         Set the text content of a Scripture paragraph.
@@ -363,6 +369,7 @@ class ScrTxtParaOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         para.Contents = mkstr
 
+    @OperationsMethod
     def GetStyleName(self, para_or_hvo):
         """
         Get the style name of a Scripture paragraph.
@@ -398,6 +405,7 @@ class ScrTxtParaOperations(BaseOperations):
 
         return para.StyleRules.Name or ""
 
+    @OperationsMethod
     def SetStyleName(self, para_or_hvo, style_name):
         """
         Set the style name of a Scripture paragraph.

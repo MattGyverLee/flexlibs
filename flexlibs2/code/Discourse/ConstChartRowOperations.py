@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -72,6 +72,7 @@ class ConstChartRowOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def Create(self, chart_or_hvo, label="", notes=""):
         """
         Create a new row in a constituent chart.
@@ -135,6 +136,7 @@ class ConstChartRowOperations(BaseOperations):
 
         return new_row
 
+    @OperationsMethod
     def Delete(self, row_or_hvo):
         """
         Delete a row from its constituent chart.
@@ -177,6 +179,7 @@ class ConstChartRowOperations(BaseOperations):
         # Delete the row (LCM handles removal from repository)
         row.Delete()
 
+    @OperationsMethod
     def Find(self, chart_or_hvo, index):
         """
         Find a row in a chart by its index position.
@@ -215,6 +218,7 @@ class ConstChartRowOperations(BaseOperations):
 
         return chart.RowsOS[index]
 
+    @OperationsMethod
     def GetAll(self, chart_or_hvo):
         """
         Get all rows in a constituent chart.
@@ -255,6 +259,7 @@ class ConstChartRowOperations(BaseOperations):
 
     # --- Row Properties ---
 
+    @OperationsMethod
     def GetLabel(self, row_or_hvo, ws=None):
         """
         Get the label of a chart row.
@@ -289,6 +294,7 @@ class ConstChartRowOperations(BaseOperations):
 
         return ITsString(row.Label.get_String(wsHandle)).Text or ""
 
+    @OperationsMethod
     def SetLabel(self, row_or_hvo, text, ws=None):
         """
         Set the label of a chart row.
@@ -327,6 +333,7 @@ class ConstChartRowOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         row.Label.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetNotes(self, row_or_hvo, ws=None):
         """
         Get the notes of a chart row.
@@ -362,6 +369,7 @@ class ConstChartRowOperations(BaseOperations):
 
         return ITsString(row.Notes.get_String(wsHandle)).Text or ""
 
+    @OperationsMethod
     def SetNotes(self, row_or_hvo, text, ws=None):
         """
         Set the notes of a chart row.
@@ -399,6 +407,7 @@ class ConstChartRowOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         row.Notes.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetWordGroups(self, row_or_hvo):
         """
         Get all word groups in a chart row.
@@ -434,6 +443,7 @@ class ConstChartRowOperations(BaseOperations):
 
         return list(row.CellsOS)
 
+    @OperationsMethod
     def MoveTo(self, row_or_hvo, chart_or_hvo, index):
         """
         Move a row to a specific position in a chart.

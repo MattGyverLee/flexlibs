@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -71,6 +71,7 @@ class ConstChartWordGroupOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def Create(self, row_or_hvo, begin_segment, end_segment):
         """
         Create a new word group in a chart row.
@@ -141,6 +142,7 @@ class ConstChartWordGroupOperations(BaseOperations):
 
         return new_word_group
 
+    @OperationsMethod
     def Delete(self, group_or_hvo):
         """
         Delete a word group from its chart row.
@@ -179,6 +181,7 @@ class ConstChartWordGroupOperations(BaseOperations):
         # Delete the word group (LCM handles removal from repository)
         group.Delete()
 
+    @OperationsMethod
     def Find(self, row_or_hvo, index):
         """
         Find a word group in a row by its index position.
@@ -217,6 +220,7 @@ class ConstChartWordGroupOperations(BaseOperations):
 
         return row.CellsOS[index]
 
+    @OperationsMethod
     def GetAll(self, row_or_hvo):
         """
         Get all word groups in a chart row.
@@ -252,6 +256,7 @@ class ConstChartWordGroupOperations(BaseOperations):
 
     # --- Word Group Properties ---
 
+    @OperationsMethod
     def GetBeginSegment(self, group_or_hvo):
         """
         Get the beginning segment of a word group.
@@ -285,6 +290,7 @@ class ConstChartWordGroupOperations(BaseOperations):
 
         return group.BeginSegmentRA if hasattr(group, 'BeginSegmentRA') else None
 
+    @OperationsMethod
     def SetBeginSegment(self, group_or_hvo, segment):
         """
         Set the beginning segment of a word group.
@@ -322,6 +328,7 @@ class ConstChartWordGroupOperations(BaseOperations):
 
         group.BeginSegmentRA = segment
 
+    @OperationsMethod
     def GetEndSegment(self, group_or_hvo):
         """
         Get the ending segment of a word group.
@@ -355,6 +362,7 @@ class ConstChartWordGroupOperations(BaseOperations):
 
         return group.EndSegmentRA if hasattr(group, 'EndSegmentRA') else None
 
+    @OperationsMethod
     def SetEndSegment(self, group_or_hvo, segment):
         """
         Set the ending segment of a word group.
@@ -392,6 +400,7 @@ class ConstChartWordGroupOperations(BaseOperations):
 
         group.EndSegmentRA = segment
 
+    @OperationsMethod
     def GetColumn(self, group_or_hvo):
         """
         Get the column position of a word group in the chart.
@@ -426,6 +435,7 @@ class ConstChartWordGroupOperations(BaseOperations):
 
         return group.ColumnRA if hasattr(group, 'ColumnRA') else None
 
+    @OperationsMethod
     def SetColumn(self, group_or_hvo, column):
         """
         Set the column position of a word group in the chart.

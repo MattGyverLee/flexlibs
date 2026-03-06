@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -77,6 +77,7 @@ class SemanticDomainOperations(BaseOperations):
 
     # --- Core Read Operations ---
 
+    @OperationsMethod
     def GetAll(self, flat=True):
         """
         Get all semantic domains in the project.
@@ -130,6 +131,7 @@ class SemanticDomainOperations(BaseOperations):
             flat
         ))
 
+    @OperationsMethod
     def Find(self, number):
         """
         Find a semantic domain by its number.
@@ -182,6 +184,7 @@ class SemanticDomainOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def FindByName(self, name):
         """
         Find a semantic domain by its name.
@@ -234,6 +237,7 @@ class SemanticDomainOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def Exists(self, number):
         """
         Check if a semantic domain with the given number exists.
@@ -270,6 +274,7 @@ class SemanticDomainOperations(BaseOperations):
 
     # --- Domain Properties ---
 
+    @OperationsMethod
     def GetName(self, domain_or_hvo, wsHandle=None):
         """
         Get the name of a semantic domain.
@@ -312,6 +317,7 @@ class SemanticDomainOperations(BaseOperations):
         name = ITsString(domain.Name.get_String(wsHandle)).Text
         return name or ""
 
+    @OperationsMethod
     def SetName(self, domain_or_hvo, name, wsHandle=None):
         """
         Set the name of a semantic domain.
@@ -349,6 +355,7 @@ class SemanticDomainOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         domain.Name.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetDescription(self, domain_or_hvo, wsHandle=None):
         """
         Get the description of a semantic domain.
@@ -387,6 +394,7 @@ class SemanticDomainOperations(BaseOperations):
         desc = ITsString(domain.Description.get_String(wsHandle)).Text
         return desc or ""
 
+    @OperationsMethod
     def SetDescription(self, domain_or_hvo, description, wsHandle=None):
         """
         Set the description of a semantic domain.
@@ -418,6 +426,7 @@ class SemanticDomainOperations(BaseOperations):
         # Description is a MultiString
         domain.Description.set_String(wsHandle, description)
 
+    @OperationsMethod
     def GetAbbreviation(self, domain_or_hvo, wsHandle=None):
         """
         Get the abbreviation of a semantic domain.
@@ -456,6 +465,7 @@ class SemanticDomainOperations(BaseOperations):
         abbr = ITsString(domain.Abbreviation.get_String(wsHandle)).Text
         return abbr or ""
 
+    @OperationsMethod
     def GetNumber(self, domain_or_hvo):
         """
         Get the domain number of a semantic domain.
@@ -499,6 +509,7 @@ class SemanticDomainOperations(BaseOperations):
         number = ITsString(domain.Abbreviation.get_String(wsHandle)).Text
         return number or ""
 
+    @OperationsMethod
     def GetQuestions(self, domain_or_hvo, wsHandle=None):
         """
         Get elicitation questions for a semantic domain.
@@ -548,6 +559,7 @@ class SemanticDomainOperations(BaseOperations):
                         questions_list.append(q_text)
         return "\n".join(questions_list)
 
+    @OperationsMethod
     def GetOcmCodes(self, domain_or_hvo):
         """
         Get OCM (Outline of Cultural Materials) codes for a semantic domain.
@@ -588,6 +600,7 @@ class SemanticDomainOperations(BaseOperations):
 
     # --- Hierarchy Operations ---
 
+    @OperationsMethod
     def GetSubdomains(self, domain_or_hvo):
         """
         Get all direct child subdomains of a semantic domain.
@@ -629,6 +642,7 @@ class SemanticDomainOperations(BaseOperations):
 
         return list(domain.SubPossibilitiesOS)
 
+    @OperationsMethod
     def GetParent(self, domain_or_hvo):
         """
         Get the parent domain of a semantic domain.
@@ -679,6 +693,7 @@ class SemanticDomainOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def GetDepth(self, domain_or_hvo):
         """
         Get the depth of a semantic domain in the hierarchy.
@@ -732,6 +747,7 @@ class SemanticDomainOperations(BaseOperations):
 
     # --- Usage Operations ---
 
+    @OperationsMethod
     def GetSensesInDomain(self, domain_or_hvo):
         """
         Get all lexical senses that belong to this semantic domain.
@@ -784,6 +800,7 @@ class SemanticDomainOperations(BaseOperations):
 
         return senses
 
+    @OperationsMethod
     def GetSenseCount(self, domain_or_hvo):
         """
         Get the count of lexical senses that belong to this semantic domain.
@@ -836,6 +853,7 @@ class SemanticDomainOperations(BaseOperations):
 
     # --- Custom Domain Management ---
 
+    @OperationsMethod
     def Create(self, name, number, parent=None, wsHandle=None):
         """
         Create a new custom semantic domain.
@@ -922,6 +940,7 @@ class SemanticDomainOperations(BaseOperations):
 
         return new_domain
 
+    @OperationsMethod
     def Delete(self, domain_or_hvo):
         """
         Delete a semantic domain.
@@ -971,6 +990,7 @@ class SemanticDomainOperations(BaseOperations):
             domain_list = self.project.lp.SemanticDomainListOA
             domain_list.PossibilitiesOS.Remove(domain)
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
         """
         Duplicate a semantic domain, creating a new copy with a new GUID.
@@ -1070,6 +1090,7 @@ class SemanticDomainOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get all syncable properties of a semantic domain for comparison.
@@ -1138,6 +1159,7 @@ class SemanticDomainOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two semantic domains and return their differences.

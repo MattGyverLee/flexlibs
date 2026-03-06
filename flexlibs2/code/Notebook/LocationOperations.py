@@ -30,7 +30,7 @@ from System import DateTime
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 class LocationOperations(BaseOperations):
     """
@@ -85,6 +85,7 @@ class LocationOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def GetAll(self, flat=True):
         """
         Get all locations in the project.
@@ -138,6 +139,7 @@ class LocationOperations(BaseOperations):
             flat
         ))
 
+    @OperationsMethod
     def Create(self, name, wsHandle=None, alias=None):
         """
         Create a new top-level location.
@@ -219,6 +221,7 @@ class LocationOperations(BaseOperations):
 
         return new_location
 
+    @OperationsMethod
     def Delete(self, location_or_hvo):
         """
         Delete a location from the project.
@@ -273,6 +276,7 @@ class LocationOperations(BaseOperations):
             if location_list:
                 location_list.PossibilitiesOS.Remove(location)
 
+    @OperationsMethod
     def Find(self, name):
         """
         Find a location by its name.
@@ -331,6 +335,7 @@ class LocationOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def Exists(self, name):
         """
         Check if a location with the given name exists.
@@ -365,6 +370,7 @@ class LocationOperations(BaseOperations):
 
     # --- Name and Alias Operations ---
 
+    @OperationsMethod
     def GetName(self, location_or_hvo, wsHandle=None):
         """
         Get the name of a location.
@@ -408,6 +414,7 @@ class LocationOperations(BaseOperations):
         name = ITsString(location.Name.get_String(wsHandle)).Text
         return name or ""
 
+    @OperationsMethod
     def SetName(self, location_or_hvo, name, wsHandle=None):
         """
         Set the name of a location.
@@ -455,6 +462,7 @@ class LocationOperations(BaseOperations):
         # Update modification date
         location.DateModified = DateTime.Now
 
+    @OperationsMethod
     def GetAlias(self, location_or_hvo, wsHandle=None):
         """
         Get the alias/abbreviation of a location.
@@ -500,6 +508,7 @@ class LocationOperations(BaseOperations):
         alias = ITsString(location.Abbreviation.get_String(wsHandle)).Text
         return alias or ""
 
+    @OperationsMethod
     def SetAlias(self, location_or_hvo, alias, wsHandle=None):
         """
         Set the alias/abbreviation of a location.
@@ -548,6 +557,7 @@ class LocationOperations(BaseOperations):
 
     # --- Geographic Properties ---
 
+    @OperationsMethod
     def GetCoordinates(self, location_or_hvo):
         """
         Get the geographic coordinates (latitude, longitude) of a location.
@@ -605,6 +615,7 @@ class LocationOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def SetCoordinates(self, location_or_hvo, latitude, longitude):
         """
         Set the geographic coordinates of a location.
@@ -682,6 +693,7 @@ class LocationOperations(BaseOperations):
         # Update modification date
         location.DateModified = DateTime.Now
 
+    @OperationsMethod
     def GetElevation(self, location_or_hvo):
         """
         Get the elevation of a location in meters above sea level.
@@ -730,6 +742,7 @@ class LocationOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def SetElevation(self, location_or_hvo, elevation):
         """
         Set the elevation of a location in meters above sea level.
@@ -798,6 +811,7 @@ class LocationOperations(BaseOperations):
 
     # --- Description ---
 
+    @OperationsMethod
     def GetDescription(self, location_or_hvo, wsHandle=None):
         """
         Get the description of a location.
@@ -840,6 +854,7 @@ class LocationOperations(BaseOperations):
 
         return ""
 
+    @OperationsMethod
     def SetDescription(self, location_or_hvo, description, wsHandle=None):
         """
         Set the description of a location.
@@ -891,6 +906,7 @@ class LocationOperations(BaseOperations):
 
     # --- Hierarchical Operations ---
 
+    @OperationsMethod
     def GetRegion(self, location_or_hvo):
         """
         Get the parent region of a location.
@@ -941,6 +957,7 @@ class LocationOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def SetRegion(self, location_or_hvo, parent_location_or_hvo):
         """
         Set the parent region of a location (move it in the hierarchy).
@@ -1027,6 +1044,7 @@ class LocationOperations(BaseOperations):
         # Update modification date
         location.DateModified = DateTime.Now
 
+    @OperationsMethod
     def GetSublocations(self, location_or_hvo):
         """
         Get all direct child sublocations of a location.
@@ -1076,6 +1094,7 @@ class LocationOperations(BaseOperations):
 
         return []
 
+    @OperationsMethod
     def CreateSublocation(self, parent_location_or_hvo, name, wsHandle=None, alias=None):
         """
         Create a new sublocation under a parent location.
@@ -1151,6 +1170,7 @@ class LocationOperations(BaseOperations):
 
         return new_location
 
+    @OperationsMethod
     def Duplicate(self, location_or_hvo, insert_after=True, deep=True):
         """
         Duplicate a location, creating a new copy with a new GUID.
@@ -1295,6 +1315,7 @@ class LocationOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get syncable properties for cross-project synchronization.
@@ -1322,6 +1343,7 @@ class LocationOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two locations and return detailed differences.
@@ -1361,6 +1383,7 @@ class LocationOperations(BaseOperations):
 
     # --- Metadata Operations ---
 
+    @OperationsMethod
     def GetGuid(self, location_or_hvo):
         """
         Get the GUID (Globally Unique Identifier) of a location.
@@ -1400,6 +1423,7 @@ class LocationOperations(BaseOperations):
         location = self.__ResolveObject(location_or_hvo)
         return location.Guid
 
+    @OperationsMethod
     def GetDateCreated(self, location_or_hvo):
         """
         Get the creation date of a location.
@@ -1444,6 +1468,7 @@ class LocationOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def GetDateModified(self, location_or_hvo):
         """
         Get the last modification date of a location.
@@ -1493,6 +1518,7 @@ class LocationOperations(BaseOperations):
 
     # --- Query Operations ---
 
+    @OperationsMethod
     def FindByCoordinates(self, latitude, longitude, radius_km=10):
         """
         Find locations near the specified coordinates.
@@ -1569,6 +1595,7 @@ class LocationOperations(BaseOperations):
 
         return results
 
+    @OperationsMethod
     def GetNearby(self, location_or_hvo, radius_km=50):
         """
         Get all locations near a given location.

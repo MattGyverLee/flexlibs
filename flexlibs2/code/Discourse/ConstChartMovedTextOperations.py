@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -71,6 +71,7 @@ class ConstChartMovedTextOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def Create(self, word_group_or_hvo, preposed=True):
         """
         Create a moved text marker for a word group.
@@ -131,6 +132,7 @@ class ConstChartMovedTextOperations(BaseOperations):
 
         return new_marker
 
+    @OperationsMethod
     def Delete(self, marker_or_hvo):
         """
         Delete a moved text marker.
@@ -165,6 +167,7 @@ class ConstChartMovedTextOperations(BaseOperations):
         # Delete the marker (LCM handles removal from repository)
         marker.Delete()
 
+    @OperationsMethod
     def Find(self, word_group_or_hvo):
         """
         Find the moved text marker for a word group.
@@ -199,6 +202,7 @@ class ConstChartMovedTextOperations(BaseOperations):
 
         return word_group.MovedTextMarkerOA if hasattr(word_group, 'MovedTextMarkerOA') else None
 
+    @OperationsMethod
     def GetAll(self, chart_or_hvo):
         """
         Get all moved text markers in a constituent chart.
@@ -244,6 +248,7 @@ class ConstChartMovedTextOperations(BaseOperations):
 
     # --- Marker Properties ---
 
+    @OperationsMethod
     def IsPreposed(self, marker_or_hvo):
         """
         Check if a moved text marker indicates preposed text.
@@ -279,6 +284,7 @@ class ConstChartMovedTextOperations(BaseOperations):
 
         return marker.Preposed
 
+    @OperationsMethod
     def SetPreposed(self, marker_or_hvo, value):
         """
         Set whether moved text is preposed or postposed.
@@ -314,6 +320,7 @@ class ConstChartMovedTextOperations(BaseOperations):
 
         marker.Preposed = bool(value)
 
+    @OperationsMethod
     def GetWordGroup(self, marker_or_hvo):
         """
         Get the word group associated with a moved text marker.

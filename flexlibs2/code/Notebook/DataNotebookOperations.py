@@ -35,7 +35,7 @@ import System
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import string utilities
 from ..Shared.string_utils import normalize_text
@@ -184,6 +184,7 @@ class DataNotebookOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def GetAll(self):
         """
         Get all research notebook records in the project.
@@ -224,6 +225,7 @@ class DataNotebookOperations(BaseOperations):
             except (AttributeError, System.NullReferenceException) as e:
                 yield record
 
+    @OperationsMethod
     def Create(self, title, content=None, wsHandle=None):
         """
         Create a new research notebook record.
@@ -311,6 +313,7 @@ class DataNotebookOperations(BaseOperations):
 
         return record
 
+    @OperationsMethod
     def Delete(self, record_or_hvo):
         """
         Delete a notebook record from the project.
@@ -378,6 +381,7 @@ class DataNotebookOperations(BaseOperations):
         else:
             repos.RecordsOC.Remove(record)
 
+    @OperationsMethod
     def Exists(self, title, wsHandle=None):
         """
         Check if a notebook record with the given title exists.
@@ -417,6 +421,7 @@ class DataNotebookOperations(BaseOperations):
 
         return self.Find(title, wsHandle) is not None
 
+    @OperationsMethod
     def Find(self, title, wsHandle=None):
         """
         Find a notebook record by its title.
@@ -478,6 +483,7 @@ class DataNotebookOperations(BaseOperations):
 
     # --- Property Operations: Title ---
 
+    @OperationsMethod
     def GetTitle(self, record_or_hvo, wsHandle=None):
         """
         Get the title of a notebook record.
@@ -523,6 +529,7 @@ class DataNotebookOperations(BaseOperations):
             logger.debug(f"Could not get record title: {e}")
             return ""
 
+    @OperationsMethod
     def SetTitle(self, record_or_hvo, title, wsHandle=None):
         """
         Set the title of a notebook record.
@@ -577,6 +584,7 @@ class DataNotebookOperations(BaseOperations):
 
     # --- Property Operations: Content ---
 
+    @OperationsMethod
     def GetContent(self, record_or_hvo, wsHandle=None):
         """
         Get the content/body text of a notebook record.
@@ -623,6 +631,7 @@ class DataNotebookOperations(BaseOperations):
             logger.debug(f"Could not get record content: {e}")
             return ""
 
+    @OperationsMethod
     def SetContent(self, record_or_hvo, content, wsHandle=None):
         """
         Set the content/body text of a notebook record.
@@ -682,6 +691,7 @@ class DataNotebookOperations(BaseOperations):
 
     # --- Record Type Operations ---
 
+    @OperationsMethod
     def GetRecordType(self, record_or_hvo):
         """
         Get the type/category of a notebook record.
@@ -728,6 +738,7 @@ class DataNotebookOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def SetRecordType(self, record_or_hvo, record_type):
         """
         Set the type/category of a notebook record.
@@ -779,6 +790,7 @@ class DataNotebookOperations(BaseOperations):
 
         record.Type = record_type
 
+    @OperationsMethod
     def GetAllRecordTypes(self):
         """
         Get all available notebook record types in the project.
@@ -824,6 +836,7 @@ class DataNotebookOperations(BaseOperations):
 
         return []
 
+    @OperationsMethod
     def FindRecordTypeByName(self, type_name, wsHandle=None):
         """
         Find a record type by its name.
@@ -868,6 +881,7 @@ class DataNotebookOperations(BaseOperations):
 
     # --- Date/Time Operations ---
 
+    @OperationsMethod
     def GetDateCreated(self, record_or_hvo):
         """
         Get the creation date of a notebook record.
@@ -907,6 +921,7 @@ class DataNotebookOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def GetDateModified(self, record_or_hvo):
         """
         Get the last modification date of a notebook record.
@@ -946,6 +961,7 @@ class DataNotebookOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def GetDateOfEvent(self, record_or_hvo):
         """
         Get the event date of a notebook record.
@@ -990,6 +1006,7 @@ class DataNotebookOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def SetDateOfEvent(self, record_or_hvo, date):
         """
         Set the event date of a notebook record.
@@ -1052,6 +1069,7 @@ class DataNotebookOperations(BaseOperations):
 
     # --- Hierarchy Operations ---
 
+    @OperationsMethod
     def GetSubRecords(self, record_or_hvo):
         """
         Get all direct sub-records of a notebook record.
@@ -1107,6 +1125,7 @@ class DataNotebookOperations(BaseOperations):
 
         return []
 
+    @OperationsMethod
     def CreateSubRecord(self, parent_record_or_hvo, title, content=None, wsHandle=None):
         """
         Create a new sub-record under a parent notebook record.
@@ -1191,6 +1210,7 @@ class DataNotebookOperations(BaseOperations):
 
         return subrecord
 
+    @OperationsMethod
     def GetParentRecord(self, record_or_hvo):
         """
         Get the parent record of a sub-record.
@@ -1249,6 +1269,7 @@ class DataNotebookOperations(BaseOperations):
 
     # --- Linking Operations: Researchers ---
 
+    @OperationsMethod
     def GetResearchers(self, record_or_hvo):
         """
         Get all researchers associated with a notebook record.
@@ -1292,6 +1313,7 @@ class DataNotebookOperations(BaseOperations):
 
         return []
 
+    @OperationsMethod
     def AddResearcher(self, record_or_hvo, person):
         """
         Add a researcher to a notebook record.
@@ -1350,6 +1372,7 @@ class DataNotebookOperations(BaseOperations):
             if person not in record.Researchers:
                 record.Researchers.Add(person)
 
+    @OperationsMethod
     def RemoveResearcher(self, record_or_hvo, person):
         """
         Remove a researcher from a notebook record.
@@ -1396,6 +1419,7 @@ class DataNotebookOperations(BaseOperations):
 
     # --- Linking Operations: Participants ---
 
+    @OperationsMethod
     def GetParticipants(self, record_or_hvo):
         """
         Get all participants associated with a notebook record.
@@ -1440,6 +1464,7 @@ class DataNotebookOperations(BaseOperations):
 
         return []
 
+    @OperationsMethod
     def AddParticipant(self, record_or_hvo, person):
         """
         Add a participant to a notebook record.
@@ -1494,6 +1519,7 @@ class DataNotebookOperations(BaseOperations):
             if person not in record.Participants:
                 record.Participants.Add(person)
 
+    @OperationsMethod
     def RemoveParticipant(self, record_or_hvo, person):
         """
         Remove a participant from a notebook record.
@@ -1540,6 +1566,7 @@ class DataNotebookOperations(BaseOperations):
 
     # --- Linking Operations: Locations ---
 
+    @OperationsMethod
     def GetLocations(self, record_or_hvo):
         """
         Get all locations associated with a notebook record.
@@ -1585,6 +1612,7 @@ class DataNotebookOperations(BaseOperations):
 
         return []
 
+    @OperationsMethod
     def AddLocation(self, record_or_hvo, location):
         """
         Add a location to a notebook record.
@@ -1645,6 +1673,7 @@ class DataNotebookOperations(BaseOperations):
             if location not in record.LocationsRC:
                 record.LocationsRC.Add(location)
 
+    @OperationsMethod
     def RemoveLocation(self, record_or_hvo, location):
         """
         Remove a location from a notebook record.
@@ -1691,6 +1720,7 @@ class DataNotebookOperations(BaseOperations):
 
     # --- Linking Operations: Sources ---
 
+    @OperationsMethod
     def GetSources(self, record_or_hvo):
         """
         Get all bibliographic sources associated with a notebook record.
@@ -1736,6 +1766,7 @@ class DataNotebookOperations(BaseOperations):
 
         return []
 
+    @OperationsMethod
     def AddSource(self, record_or_hvo, source):
         """
         Add a bibliographic source/reference to a notebook record.
@@ -1796,6 +1827,7 @@ class DataNotebookOperations(BaseOperations):
             if source not in record.SourcesRC:
                 record.SourcesRC.Add(source)
 
+    @OperationsMethod
     def RemoveSource(self, record_or_hvo, source):
         """
         Remove a bibliographic source/reference from a notebook record.
@@ -1842,6 +1874,7 @@ class DataNotebookOperations(BaseOperations):
 
     # --- Text Linking Operations ---
 
+    @OperationsMethod
     def GetTexts(self, record_or_hvo):
         """
         Get all texts linked to a notebook record.
@@ -1886,6 +1919,7 @@ class DataNotebookOperations(BaseOperations):
 
         return []
 
+    @OperationsMethod
     def LinkToText(self, record_or_hvo, text):
         """
         Link a notebook record to a text.
@@ -1940,6 +1974,7 @@ class DataNotebookOperations(BaseOperations):
             if text not in record.TextsRC:
                 record.TextsRC.Add(text)
 
+    @OperationsMethod
     def UnlinkFromText(self, record_or_hvo, text):
         """
         Unlink a notebook record from a text.
@@ -1987,6 +2022,7 @@ class DataNotebookOperations(BaseOperations):
 
     # --- Media File Operations ---
 
+    @OperationsMethod
     def GetMediaFiles(self, record_or_hvo):
         """
         Get all media files attached to a notebook record.
@@ -2030,6 +2066,7 @@ class DataNotebookOperations(BaseOperations):
 
         return []
 
+    @OperationsMethod
     def AddMediaFile(self, record_or_hvo, media_file):
         """
         Add a media file to a notebook record.
@@ -2087,6 +2124,7 @@ class DataNotebookOperations(BaseOperations):
             if media_file not in record.MediaFilesOS:
                 record.MediaFilesOS.Add(media_file)
 
+    @OperationsMethod
     def RemoveMediaFile(self, record_or_hvo, media_file):
         """
         Remove a media file from a notebook record.
@@ -2134,6 +2172,7 @@ class DataNotebookOperations(BaseOperations):
 
     # --- Status Operations ---
 
+    @OperationsMethod
     def GetStatus(self, record_or_hvo):
         """
         Get the status of a notebook record.
@@ -2178,6 +2217,7 @@ class DataNotebookOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def SetStatus(self, record_or_hvo, status):
         """
         Set the status of a notebook record.
@@ -2239,6 +2279,7 @@ class DataNotebookOperations(BaseOperations):
 
         record.Status = status
 
+    @OperationsMethod
     def GetAllStatuses(self):
         """
         Get all available status values for notebook records.
@@ -2278,6 +2319,7 @@ class DataNotebookOperations(BaseOperations):
 
         return []
 
+    @OperationsMethod
     def FindStatusByName(self, status_name, wsHandle=None):
         """
         Find a status by its name.
@@ -2320,6 +2362,7 @@ class DataNotebookOperations(BaseOperations):
 
     # --- Query Operations ---
 
+    @OperationsMethod
     def FindByDate(self, start_date=None, end_date=None):
         """
         Find notebook records by date range.
@@ -2379,6 +2422,7 @@ class DataNotebookOperations(BaseOperations):
 
         return results
 
+    @OperationsMethod
     def FindByResearcher(self, person):
         """
         Find all notebook records associated with a specific researcher.
@@ -2430,6 +2474,7 @@ class DataNotebookOperations(BaseOperations):
 
         return results
 
+    @OperationsMethod
     def FindByType(self, record_type):
         """
         Find all notebook records of a specific type.
@@ -2483,6 +2528,7 @@ class DataNotebookOperations(BaseOperations):
 
         return results
 
+    @OperationsMethod
     def Duplicate(self, record_or_hvo, insert_after=True, deep=True):
         """
         Duplicate a notebook record, creating a new copy with a new GUID.
@@ -2611,6 +2657,7 @@ class DataNotebookOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """Get syncable properties for cross-project synchronization."""
         self._ValidateParam(item, "item")
@@ -2644,6 +2691,7 @@ class DataNotebookOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """Compare two notebook records and return detailed differences."""
         if ops1 is None:
@@ -2672,6 +2720,7 @@ class DataNotebookOperations(BaseOperations):
 
     # --- Metadata Operations ---
 
+    @OperationsMethod
     def GetGuid(self, record_or_hvo):
         """
         Get the GUID (globally unique identifier) of a notebook record.
@@ -2703,6 +2752,7 @@ class DataNotebookOperations(BaseOperations):
         record = self.__GetRecordObject(record_or_hvo)
         return record.Guid
 
+    @OperationsMethod
     def GetConfidence(self, record_or_hvo):
         """
         Get the confidence level of a notebook record.
@@ -2747,6 +2797,7 @@ class DataNotebookOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def SetConfidence(self, record_or_hvo, confidence):
         """
         Set the confidence level of a notebook record.

@@ -27,7 +27,7 @@ import System
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 class PossibilityListOperations(BaseOperations):
     """
@@ -88,6 +88,7 @@ class PossibilityListOperations(BaseOperations):
 
     # --- List Management ---
 
+    @OperationsMethod
     def GetAllLists(self):
         """
         Get all possibility lists in the project.
@@ -175,6 +176,7 @@ class PossibilityListOperations(BaseOperations):
 
         return lists
 
+    @OperationsMethod
     def CreateList(self, name, wsHandle=None):
         """
         Create a new possibility list.
@@ -232,6 +234,7 @@ class PossibilityListOperations(BaseOperations):
 
         return new_list
 
+    @OperationsMethod
     def DeleteList(self, list_or_hvo):
         """
         Delete a possibility list.
@@ -278,6 +281,7 @@ class PossibilityListOperations(BaseOperations):
             "Please delete items individually or consult FLEx documentation."
         )
 
+    @OperationsMethod
     def FindList(self, name):
         """
         Find a possibility list by its name.
@@ -328,6 +332,7 @@ class PossibilityListOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def GetListName(self, list_or_hvo, wsHandle=None):
         """
         Get the name of a possibility list.
@@ -363,6 +368,7 @@ class PossibilityListOperations(BaseOperations):
         name = ITsString(poss_list.Name.get_String(wsHandle)).Text
         return name or ""
 
+    @OperationsMethod
     def SetListName(self, list_or_hvo, name, wsHandle=None):
         """
         Set the name of a possibility list.
@@ -405,6 +411,7 @@ class PossibilityListOperations(BaseOperations):
 
     # --- Item Management ---
 
+    @OperationsMethod
     def GetItems(self, list_or_hvo, flat=False):
         """
         Get items from a possibility list.
@@ -460,6 +467,7 @@ class PossibilityListOperations(BaseOperations):
                 flat
             ))
 
+    @OperationsMethod
     def CreateItem(self, list_or_hvo, name, wsHandle=None, parent=None):
         """
         Create a new item in a possibility list.
@@ -539,6 +547,7 @@ class PossibilityListOperations(BaseOperations):
 
         return new_item
 
+    @OperationsMethod
     def DeleteItem(self, item_or_hvo):
         """
         Delete an item from a possibility list.
@@ -589,6 +598,7 @@ class PossibilityListOperations(BaseOperations):
             owner = self.__GetListOwner(item)
             owner.PossibilitiesOS.Remove(item)
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
         """
         Duplicate a possibility item, creating a new copy with a new GUID.
@@ -697,6 +707,7 @@ class PossibilityListOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get syncable properties for cross-project synchronization.
@@ -731,6 +742,7 @@ class PossibilityListOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two possibility items and return detailed differences.
@@ -801,6 +813,7 @@ class PossibilityListOperations(BaseOperations):
             if sub_item.SubPossibilitiesOS.Count > 0:
                 self.__DuplicateSubitemsRecursive(sub_item, sub_dup)
 
+    @OperationsMethod
     def FindItem(self, list_or_hvo, name):
         """
         Find an item in a possibility list by name.
@@ -855,6 +868,7 @@ class PossibilityListOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def GetItemName(self, item_or_hvo, wsHandle=None):
         """
         Get the name of a possibility item.
@@ -894,6 +908,7 @@ class PossibilityListOperations(BaseOperations):
         name = ITsString(item.Name.get_String(wsHandle)).Text
         return name or ""
 
+    @OperationsMethod
     def SetItemName(self, item_or_hvo, name, wsHandle=None):
         """
         Set the name of a possibility item.
@@ -931,6 +946,7 @@ class PossibilityListOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         item.Name.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetItemAbbreviation(self, item_or_hvo, wsHandle=None):
         """
         Get the abbreviation of a possibility item.
@@ -963,6 +979,7 @@ class PossibilityListOperations(BaseOperations):
         abbr = ITsString(item.Abbreviation.get_String(wsHandle)).Text
         return abbr or ""
 
+    @OperationsMethod
     def SetItemAbbreviation(self, item_or_hvo, abbr, wsHandle=None):
         """
         Set the abbreviation of a possibility item.
@@ -1000,6 +1017,7 @@ class PossibilityListOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(abbr, wsHandle)
         item.Abbreviation.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetItemDescription(self, item_or_hvo, wsHandle=None):
         """
         Get the description of a possibility item.
@@ -1033,6 +1051,7 @@ class PossibilityListOperations(BaseOperations):
         desc = ITsString(item.Description.get_String(wsHandle)).Text
         return desc or ""
 
+    @OperationsMethod
     def SetItemDescription(self, item_or_hvo, description, wsHandle=None):
         """
         Set the description of a possibility item.
@@ -1068,6 +1087,7 @@ class PossibilityListOperations(BaseOperations):
 
     # --- Hierarchy Operations ---
 
+    @OperationsMethod
     def GetSubitems(self, item_or_hvo):
         """
         Get all direct child subitems of a possibility item.
@@ -1108,6 +1128,7 @@ class PossibilityListOperations(BaseOperations):
 
         return list(item.SubPossibilitiesOS)
 
+    @OperationsMethod
     def GetParentItem(self, item_or_hvo):
         """
         Get the parent item of a possibility item.
@@ -1158,6 +1179,7 @@ class PossibilityListOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def MoveItem(self, item_or_hvo, new_parent_or_hvo=None):
         """
         Move an item to a different parent or to top level.
@@ -1236,6 +1258,7 @@ class PossibilityListOperations(BaseOperations):
         else:
             item_list.PossibilitiesOS.Add(item)
 
+    @OperationsMethod
     def GetDepth(self, item_or_hvo):
         """
         Get the depth of an item in the hierarchy.
@@ -1290,6 +1313,7 @@ class PossibilityListOperations(BaseOperations):
 
     # --- Utilities ---
 
+    @OperationsMethod
     def GetListGuid(self, list_or_hvo):
         """
         Get the GUID of a possibility list.
@@ -1323,6 +1347,7 @@ class PossibilityListOperations(BaseOperations):
         poss_list = self.__ResolveList(list_or_hvo)
         return poss_list.Guid
 
+    @OperationsMethod
     def GetItemGuid(self, item_or_hvo):
         """
         Get the GUID of a possibility item.
@@ -1363,6 +1388,7 @@ class PossibilityListOperations(BaseOperations):
         item = self.__ResolveItem(item_or_hvo)
         return item.Guid
 
+    @OperationsMethod
     def GetItemHvo(self, item):
         """
         Get the HVO (handle value) of a possibility item.
@@ -1396,6 +1422,7 @@ class PossibilityListOperations(BaseOperations):
 
         return item.Hvo
 
+    @OperationsMethod
     def GetListHvo(self, poss_list):
         """
         Get the HVO (handle value) of a possibility list.

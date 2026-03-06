@@ -26,7 +26,7 @@ from SIL.LCModel.Core.Text import TsStringUtils
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # --- WfiGlossOperations Class ---
 
@@ -84,6 +84,7 @@ class WfiGlossOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def GetAll(self, analysis_or_hvo):
         """
         Retrieve all glosses for a wordform analysis.
@@ -132,6 +133,7 @@ class WfiGlossOperations(BaseOperations):
         for gloss in analysis.MeaningsOC:
             yield gloss
 
+    @OperationsMethod
     def Create(self, analysis_or_hvo, form, wsHandle=None):
         """
         Create a new gloss for a wordform analysis.
@@ -201,6 +203,7 @@ class WfiGlossOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get all syncable properties of a wordform gloss.
@@ -228,6 +231,7 @@ class WfiGlossOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two wordform glosses for differences.
@@ -278,6 +282,7 @@ class WfiGlossOperations(BaseOperations):
         is_different = len(differences) > 0
         return (is_different, differences)
 
+    @OperationsMethod
     def Delete(self, gloss_or_hvo):
         """
         Delete a gloss from its owning analysis.
@@ -327,6 +332,7 @@ class WfiGlossOperations(BaseOperations):
         if hasattr(analysis, 'MeaningsOC'):
             analysis.MeaningsOC.Remove(gloss)
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True):
         """
         Duplicate a wordform gloss, creating a new copy with a new GUID.
@@ -406,6 +412,7 @@ class WfiGlossOperations(BaseOperations):
 
         return duplicate
 
+    @OperationsMethod
     def Reorder(self, analysis_or_hvo, gloss_list):
         """
         Reorder glosses for a wordform analysis.
@@ -475,6 +482,7 @@ class WfiGlossOperations(BaseOperations):
 
     # --- Form Management Operations ---
 
+    @OperationsMethod
     def GetForm(self, gloss_or_hvo, wsHandle=None):
         """
         Get the gloss text form.
@@ -522,6 +530,7 @@ class WfiGlossOperations(BaseOperations):
         form = ITsString(gloss.Form.get_String(wsHandle)).Text
         return form or ""
 
+    @OperationsMethod
     def SetForm(self, gloss_or_hvo, text, wsHandle=None):
         """
         Set the gloss text form.
@@ -576,6 +585,7 @@ class WfiGlossOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         gloss.Form.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetAllForms(self, gloss_or_hvo):
         """
         Get all available forms for a gloss across all writing systems.
@@ -630,6 +640,7 @@ class WfiGlossOperations(BaseOperations):
 
     # --- Utility Operations ---
 
+    @OperationsMethod
     def GetOwningAnalysis(self, gloss_or_hvo):
         """
         Get the wordform analysis that owns this gloss.
@@ -674,6 +685,7 @@ class WfiGlossOperations(BaseOperations):
 
         return gloss.Owner
 
+    @OperationsMethod
     def GetGuid(self, gloss_or_hvo):
         """
         Get the GUID (Global Unique Identifier) for a gloss.
@@ -718,6 +730,7 @@ class WfiGlossOperations(BaseOperations):
 
         return gloss.Guid
 
+    @OperationsMethod
     def Find(self, analysis_or_hvo, form, wsHandle=None):
         """
         Find and return a gloss by its form text.
@@ -778,6 +791,7 @@ class WfiGlossOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def Exists(self, analysis_or_hvo, form, wsHandle=None):
         """
         Check if a gloss with the specified form exists for an analysis.
@@ -820,6 +834,7 @@ class WfiGlossOperations(BaseOperations):
 
         return self.Find(analysis_or_hvo, form, wsHandle) is not None
 
+    @OperationsMethod
     def GetCount(self, analysis_or_hvo):
         """
         Get the count of glosses for a wordform analysis.
@@ -861,6 +876,7 @@ class WfiGlossOperations(BaseOperations):
 
         return analysis.MeaningsOC.Count
 
+    @OperationsMethod
     def GetBestForm(self, gloss_or_hvo):
         """
         Get the best available form for a gloss.
@@ -919,6 +935,7 @@ class WfiGlossOperations(BaseOperations):
 
         return ""
 
+    @OperationsMethod
     def CopyGloss(self, gloss_or_hvo, target_analysis_or_hvo):
         """
         Copy a gloss to another analysis.
@@ -992,6 +1009,7 @@ class WfiGlossOperations(BaseOperations):
 
         return new_gloss
 
+    @OperationsMethod
     def ClearForm(self, gloss_or_hvo, wsHandle=None):
         """
         Clear the form for a gloss in a specific writing system.

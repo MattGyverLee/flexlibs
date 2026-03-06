@@ -22,7 +22,7 @@ from ..FLExProject import (
     FP_ParameterError,
     FP_WritingSystemError,
 )
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 class WritingSystemOperations(BaseOperations):
     """
@@ -75,6 +75,7 @@ class WritingSystemOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def GetAll(self):
         """
         Get all active writing systems in the project.
@@ -111,6 +112,7 @@ class WritingSystemOperations(BaseOperations):
             if ws.Id in active_tags:
                 yield ws
 
+    @OperationsMethod
     def GetVernacular(self):
         """
         Get all vernacular writing systems.
@@ -143,6 +145,7 @@ class WritingSystemOperations(BaseOperations):
             if ws.Id in vern_ws_set:
                 yield ws
 
+    @OperationsMethod
     def GetAnalysis(self):
         """
         Get all analysis writing systems.
@@ -177,6 +180,7 @@ class WritingSystemOperations(BaseOperations):
             if ws.Id in anal_ws_set:
                 yield ws
 
+    @OperationsMethod
     def Create(self, language_tag, name, is_vernacular=True):
         """
         Create a new writing system in the project.
@@ -263,6 +267,7 @@ class WritingSystemOperations(BaseOperations):
 
         return ws
 
+    @OperationsMethod
     def Delete(self, ws_handle_or_tag):
         """
         Remove a writing system from the project.
@@ -335,6 +340,7 @@ class WritingSystemOperations(BaseOperations):
 
     # --- Configuration Methods ---
 
+    @OperationsMethod
     def GetFontName(self, ws):
         """
         Get the default font name for a writing system.
@@ -375,6 +381,7 @@ class WritingSystemOperations(BaseOperations):
         else:
             return ""
 
+    @OperationsMethod
     def SetFontName(self, ws, font_name):
         """
         Set the default font name for a writing system.
@@ -420,6 +427,7 @@ class WritingSystemOperations(BaseOperations):
         elif hasattr(ws_obj, 'DefaultFont'):
             ws_obj.DefaultFont = font_name
 
+    @OperationsMethod
     def GetFontSize(self, ws):
         """
         Get the default font size for a writing system.
@@ -453,6 +461,7 @@ class WritingSystemOperations(BaseOperations):
         else:
             return 12.0  # Default size
 
+    @OperationsMethod
     def SetFontSize(self, ws, size):
         """
         Set the default font size for a writing system.
@@ -500,6 +509,7 @@ class WritingSystemOperations(BaseOperations):
         if hasattr(ws_obj, 'DefaultFontSize'):
             ws_obj.DefaultFontSize = float(size)
 
+    @OperationsMethod
     def GetRightToLeft(self, ws):
         """
         Get the right-to-left directionality setting for a writing system.
@@ -545,6 +555,7 @@ class WritingSystemOperations(BaseOperations):
         else:
             return False  # Default to LTR
 
+    @OperationsMethod
     def SetRightToLeft(self, ws, is_rtl):
         """
         Set the right-to-left directionality for a writing system.
@@ -590,6 +601,7 @@ class WritingSystemOperations(BaseOperations):
 
     # --- Default Settings ---
 
+    @OperationsMethod
     def SetDefaultVernacular(self, ws):
         """
         Set the default vernacular writing system.
@@ -635,6 +647,7 @@ class WritingSystemOperations(BaseOperations):
         # Set as default
         self.project.lp.DefaultVernacularWritingSystem = ws_obj
 
+    @OperationsMethod
     def SetDefaultAnalysis(self, ws):
         """
         Set the default analysis writing system.
@@ -680,6 +693,7 @@ class WritingSystemOperations(BaseOperations):
         # Set as default
         self.project.lp.DefaultAnalysisWritingSystem = ws_obj
 
+    @OperationsMethod
     def GetDefaultVernacular(self):
         """
         Get the default vernacular writing system.
@@ -704,6 +718,7 @@ class WritingSystemOperations(BaseOperations):
         """
         return self.project.lp.DefaultVernacularWritingSystem
 
+    @OperationsMethod
     def GetDefaultAnalysis(self):
         """
         Get the default analysis writing system.
@@ -730,6 +745,7 @@ class WritingSystemOperations(BaseOperations):
 
     # --- Utility Methods ---
 
+    @OperationsMethod
     def GetDisplayName(self, ws):
         """
         Get the display name (UI label) for a writing system.
@@ -764,6 +780,7 @@ class WritingSystemOperations(BaseOperations):
 
         return ws_obj.DisplayLabel or ws_obj.Id
 
+    @OperationsMethod
     def GetLanguageTag(self, ws):
         """
         Get the language tag (BCP 47 identifier) for a writing system.
@@ -795,6 +812,7 @@ class WritingSystemOperations(BaseOperations):
 
         return ws.Id
 
+    @OperationsMethod
     def Exists(self, language_tag):
         """
         Check if a writing system with the given language tag exists and is active.
@@ -829,6 +847,7 @@ class WritingSystemOperations(BaseOperations):
 
         return self._GetWSByTag(language_tag) is not None
 
+    @OperationsMethod
     def GetBestString(self, string_obj):
         """
         Extract the best analysis or vernacular string from a MultiString or
@@ -969,6 +988,7 @@ class WritingSystemOperations(BaseOperations):
             # Already a writing system object
             return ws
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True):
         """
         Duplicate operation is not applicable for writing systems.
@@ -994,6 +1014,7 @@ class WritingSystemOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get syncable properties - NOT IMPLEMENTED for writing systems.
@@ -1009,6 +1030,7 @@ class WritingSystemOperations(BaseOperations):
             "Writing systems are linguistic configuration unique to each project."
         )
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare writing systems - NOT IMPLEMENTED.

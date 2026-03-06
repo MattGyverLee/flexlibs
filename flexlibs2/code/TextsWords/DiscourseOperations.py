@@ -36,7 +36,7 @@ from SIL.LCModel.Core.Text import TsStringUtils
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 class DiscourseOperations(BaseOperations):
     """
@@ -193,6 +193,7 @@ class DiscourseOperations(BaseOperations):
 
     # --- Chart Management Operations ---
 
+    @OperationsMethod
     def GetAllCharts(self, text_or_hvo):
         """
         Get all charts (discourse and constituent) for a text.
@@ -243,6 +244,7 @@ class DiscourseOperations(BaseOperations):
                 for chart in text_obj.ContentsOA.ChartsOC:
                     yield chart
 
+    @OperationsMethod
     def CreateChart(self, text_or_hvo, name, chart_type="constituent"):
         """
         Create a new chart for a text.
@@ -325,6 +327,7 @@ class DiscourseOperations(BaseOperations):
 
         return chart
 
+    @OperationsMethod
     def DeleteChart(self, chart_or_hvo):
         """
         Delete a chart from its text.
@@ -372,6 +375,7 @@ class DiscourseOperations(BaseOperations):
         else:
             raise FP_ParameterError("Chart has no valid owner or cannot be removed")
 
+    @OperationsMethod
     def GetChartName(self, chart_or_hvo, wsHandle=None):
         """
         Get the name of a chart.
@@ -413,6 +417,7 @@ class DiscourseOperations(BaseOperations):
             return name_str or ""
         return ""
 
+    @OperationsMethod
     def SetChartName(self, chart_or_hvo, name, wsHandle=None):
         """
         Set the name of a chart.
@@ -457,6 +462,7 @@ class DiscourseOperations(BaseOperations):
         else:
             raise FP_ParameterError("Chart does not support name setting")
 
+    @OperationsMethod
     def GetChartType(self, chart_or_hvo):
         """
         Get the type of a chart (constituent or discourse).
@@ -519,6 +525,7 @@ class DiscourseOperations(BaseOperations):
 
     # --- Chart Row/Structure Operations ---
 
+    @OperationsMethod
     def GetRows(self, chart_or_hvo):
         """
         Get all rows in a chart.
@@ -569,6 +576,7 @@ class DiscourseOperations(BaseOperations):
             return list(chart_obj.RowsOS)
         return []
 
+    @OperationsMethod
     def GetRowCount(self, chart_or_hvo):
         """
         Get the number of rows in a chart.
@@ -611,6 +619,7 @@ class DiscourseOperations(BaseOperations):
             return chart_obj.RowsOS.Count
         return 0
 
+    @OperationsMethod
     def AddRow(self, chart_or_hvo):
         """
         Add a new row to a chart.
@@ -666,6 +675,7 @@ class DiscourseOperations(BaseOperations):
 
         return row
 
+    @OperationsMethod
     def DeleteRow(self, row_or_hvo):
         """
         Delete a row from its chart.
@@ -717,6 +727,7 @@ class DiscourseOperations(BaseOperations):
 
     # --- Chart Content Operations ---
 
+    @OperationsMethod
     def GetCells(self, row_or_hvo):
         """
         Get all cells in a chart row.
@@ -764,6 +775,7 @@ class DiscourseOperations(BaseOperations):
             return list(row_obj.CellsOS)
         return []
 
+    @OperationsMethod
     def SetCellContent(self, cell, content, wsHandle=None):
         """
         Set content for a chart cell.
@@ -829,6 +841,7 @@ class DiscourseOperations(BaseOperations):
                 "Cell does not support editable content (no Label or Comment property)"
             )
 
+    @OperationsMethod
     def GetCellContent(self, cell, wsHandle=None):
         """
         Get content from a chart cell.
@@ -912,6 +925,7 @@ class DiscourseOperations(BaseOperations):
 
     # --- Utility Operations ---
 
+    @OperationsMethod
     def GetOwningText(self, chart_or_hvo):
         """
         Get the text that owns a chart.
@@ -961,6 +975,7 @@ class DiscourseOperations(BaseOperations):
 
         raise FP_ParameterError("Chart has no valid owning text")
 
+    @OperationsMethod
     def GetGuid(self, chart_or_hvo):
         """
         Get the GUID of a chart.
@@ -1002,6 +1017,7 @@ class DiscourseOperations(BaseOperations):
         else:
             raise FP_ParameterError("Chart object does not have a GUID")
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
         """
         Duplicate a chart, creating a new copy with a new GUID.
@@ -1087,6 +1103,7 @@ class DiscourseOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get all syncable properties of a discourse chart.
@@ -1116,6 +1133,7 @@ class DiscourseOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two discourse charts for differences.

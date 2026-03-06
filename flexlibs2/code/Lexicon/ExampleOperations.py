@@ -15,7 +15,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -88,6 +88,7 @@ class ExampleOperations(BaseOperations):
         """
         return parent.ExamplesOS
 
+    @OperationsMethod
     def GetAll(self, sense_or_hvo=None):
         """
         Get example sentences for a sense or all examples in the project.
@@ -139,6 +140,7 @@ class ExampleOperations(BaseOperations):
             for example in sense.ExamplesOS:
                 yield example
 
+    @OperationsMethod
     def Create(self, sense_or_hvo, example_text, wsHandle=None):
         """
         Create a new example sentence for a lexical sense.
@@ -200,6 +202,7 @@ class ExampleOperations(BaseOperations):
 
         return example
 
+    @OperationsMethod
     def Delete(self, example_or_hvo):
         """
         Delete an example sentence.
@@ -242,6 +245,7 @@ class ExampleOperations(BaseOperations):
         if hasattr(owner, 'ExamplesOS'):
             owner.ExamplesOS.Remove(example)
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
         Duplicate an example sentence, creating a new copy with a new GUID.
@@ -334,6 +338,7 @@ class ExampleOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get all syncable properties of an example sentence for comparison.
@@ -374,6 +379,7 @@ class ExampleOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two example sentences and return their differences.
@@ -404,6 +410,7 @@ class ExampleOperations(BaseOperations):
         is_different = len(differences) > 0
         return is_different, differences
 
+    @OperationsMethod
     def Reorder(self, sense_or_hvo, example_list):
         """
         Reorder the examples for a sense.
@@ -462,6 +469,7 @@ class ExampleOperations(BaseOperations):
         for example in examples:
             sense.ExamplesOS.Add(example)
 
+    @OperationsMethod
     def GetExample(self, example_or_hvo, wsHandle=None):
         """
         Get the example text of an example sentence.
@@ -506,6 +514,7 @@ class ExampleOperations(BaseOperations):
         text = ITsString(example.Example.get_String(wsHandle)).Text
         return self._NormalizeMultiString(text)
 
+    @OperationsMethod
     def SetExample(self, example_or_hvo, text, wsHandle=None):
         """
         Set the example text of an example sentence.
@@ -548,6 +557,7 @@ class ExampleOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         example.Example.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetTranslations(self, example_or_hvo):
         """
         Get all translation objects for an example sentence.
@@ -589,6 +599,7 @@ class ExampleOperations(BaseOperations):
         example = self.__GetExampleObject(example_or_hvo)
         return list(example.TranslationsOC)
 
+    @OperationsMethod
     def GetTranslation(self, example_or_hvo, wsHandle=None):
         """
         Get the translation text for a specific writing system.
@@ -641,6 +652,7 @@ class ExampleOperations(BaseOperations):
 
         return ""
 
+    @OperationsMethod
     def SetTranslation(self, example_or_hvo, text, wsHandle=None):
         """
         Set the translation text for a specific writing system.
@@ -704,6 +716,7 @@ class ExampleOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         translation.Translation.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def AddTranslation(self, example_or_hvo, text, wsHandle=None):
         """
         Add a new translation to an example sentence.
@@ -738,6 +751,7 @@ class ExampleOperations(BaseOperations):
         """
         self.SetTranslation(example_or_hvo, text, wsHandle)
 
+    @OperationsMethod
     def RemoveTranslation(self, example_or_hvo, wsHandle=None):
         """
         Remove the translation for a specific writing system.
@@ -785,6 +799,7 @@ class ExampleOperations(BaseOperations):
                 translation.Translation.set_String(wsHandle, None)
                 break
 
+    @OperationsMethod
     def GetReference(self, example_or_hvo):
         """
         Get the reference (source citation) for an example sentence.
@@ -826,6 +841,7 @@ class ExampleOperations(BaseOperations):
             return self._NormalizeMultiString(ref)
         return ""
 
+    @OperationsMethod
     def SetReference(self, example_or_hvo, reference_text):
         """
         Set the reference (source citation) for an example sentence.
@@ -870,6 +886,7 @@ class ExampleOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(reference_text, wsHandle)
         example.Reference = mkstr
 
+    @OperationsMethod
     def GetMediaFiles(self, example_or_hvo):
         """
         Get all media files associated with an example sentence.
@@ -910,6 +927,7 @@ class ExampleOperations(BaseOperations):
             return list(example.MediaFilesOS)
         return []
 
+    @OperationsMethod
     def GetMediaCount(self, example_or_hvo):
         """
         Get the count of media files associated with an example sentence.
@@ -949,6 +967,7 @@ class ExampleOperations(BaseOperations):
             return example.MediaFilesOS.Count
         return 0
 
+    @OperationsMethod
     def AddMediaFile(self, example_or_hvo, file_path, label=None):
         """
         Add a media file (typically audio) to an example sentence.
@@ -1024,6 +1043,7 @@ class ExampleOperations(BaseOperations):
 
         return media_file
 
+    @OperationsMethod
     def RemoveMediaFile(self, example_or_hvo, media_or_hvo):
         """
         Remove a media file from an example sentence.
@@ -1080,6 +1100,7 @@ class ExampleOperations(BaseOperations):
         if hasattr(example, 'MediaFilesOS'):
             example.MediaFilesOS.Remove(media)
 
+    @OperationsMethod
     def MoveMediaFile(self, media, from_example_or_hvo, to_example_or_hvo):
         """
         Move a media file from one example sentence to another example sentence.
@@ -1187,6 +1208,7 @@ class ExampleOperations(BaseOperations):
 
         return True
 
+    @OperationsMethod
     def GetOwningSense(self, example_or_hvo):
         """
         Get the lexical sense that owns this example sentence.
@@ -1224,6 +1246,7 @@ class ExampleOperations(BaseOperations):
         example = self.__GetExampleObject(example_or_hvo)
         return ILexSense(example.Owner)
 
+    @OperationsMethod
     def GetGuid(self, example_or_hvo):
         """
         Get the GUID of an example sentence.
@@ -1263,6 +1286,7 @@ class ExampleOperations(BaseOperations):
 
     # --- Additional Properties ---
 
+    @OperationsMethod
     def GetLiteralTranslation(self, example_or_hvo, wsHandle=None):
         """
         Get the literal translation of an example sentence.
@@ -1288,6 +1312,7 @@ class ExampleOperations(BaseOperations):
 
         return self._NormalizeMultiString(ITsString(example.LiteralTranslation.get_String(wsHandle)).Text)
 
+    @OperationsMethod
     def SetLiteralTranslation(self, example_or_hvo, text, wsHandle=None):
         """
         Set the literal translation of an example sentence.
@@ -1317,6 +1342,7 @@ class ExampleOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         example.LiteralTranslation.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetDoNotPublishIn(self, example_or_hvo):
         """
         Get the publications this example should not be published in.
@@ -1344,6 +1370,7 @@ class ExampleOperations(BaseOperations):
             result.append(name)
         return result
 
+    @OperationsMethod
     def AddDoNotPublishIn(self, example_or_hvo, publication):
         """
         Add a publication to exclude this example from.
@@ -1373,6 +1400,7 @@ class ExampleOperations(BaseOperations):
         if publication not in example.DoNotPublishInRC:
             example.DoNotPublishInRC.Add(publication)
 
+    @OperationsMethod
     def RemoveDoNotPublishIn(self, example_or_hvo, publication):
         """
         Remove a publication from the exclude list for this example.

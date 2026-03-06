@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -85,6 +85,7 @@ class ReversalIndexEntryOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def GetAll(self, index_or_hvo):
         """
         Get all reversal entries in a reversal index.
@@ -123,6 +124,7 @@ class ReversalIndexEntryOperations(BaseOperations):
         for entry in index.EntriesOC:
             yield entry
 
+    @OperationsMethod
     def Create(self, index_or_hvo, form, sense=None, wsHandle=None):
         """
         Create a new reversal index entry.
@@ -193,6 +195,7 @@ class ReversalIndexEntryOperations(BaseOperations):
 
         return new_entry
 
+    @OperationsMethod
     def Delete(self, entry_or_hvo):
         """
         Delete a reversal index entry.
@@ -231,6 +234,7 @@ class ReversalIndexEntryOperations(BaseOperations):
         # Delete the entry (LCM handles removal from collections)
         entry.Delete()
 
+    @OperationsMethod
     def Find(self, index_or_hvo, form, wsHandle=None):
         """
         Find a reversal entry by its form.
@@ -284,6 +288,7 @@ class ReversalIndexEntryOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def FindByHvo(self, hvo):
         """
         Find a reversal entry by its HVO (database ID).
@@ -324,6 +329,7 @@ class ReversalIndexEntryOperations(BaseOperations):
 
     # --- Property Access ---
 
+    @OperationsMethod
     def GetForm(self, entry_or_hvo, wsHandle=None):
         """
         Get the reversal form of a reversal entry.
@@ -358,6 +364,7 @@ class ReversalIndexEntryOperations(BaseOperations):
         form = ITsString(entry.ReversalForm.get_String(wsHandle)).Text
         return form or ""
 
+    @OperationsMethod
     def SetForm(self, entry_or_hvo, text, wsHandle=None):
         """
         Set the reversal form of a reversal entry.
@@ -400,6 +407,7 @@ class ReversalIndexEntryOperations(BaseOperations):
 
     # --- Sense Linking ---
 
+    @OperationsMethod
     def GetSenses(self, entry_or_hvo):
         """
         Get all lexical senses linked to this reversal entry.
@@ -437,6 +445,7 @@ class ReversalIndexEntryOperations(BaseOperations):
 
         return list(entry.SensesRS)
 
+    @OperationsMethod
     def AddSense(self, entry_or_hvo, sense):
         """
         Link a lexical sense to this reversal entry.
@@ -474,6 +483,7 @@ class ReversalIndexEntryOperations(BaseOperations):
         if sense not in entry.SensesRS:
             entry.SensesRS.Add(sense)
 
+    @OperationsMethod
     def RemoveSense(self, entry_or_hvo, sense):
         """
         Unlink a lexical sense from this reversal entry.
@@ -512,6 +522,7 @@ class ReversalIndexEntryOperations(BaseOperations):
 
     # --- Hierarchical Structure ---
 
+    @OperationsMethod
     def GetSubentries(self, entry_or_hvo):
         """
         Get all subentries of a reversal entry.

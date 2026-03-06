@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import ICmPossibility, ICmPossibilityFactory
@@ -77,6 +77,7 @@ class GramCatOperations(BaseOperations):
         """
         return parent.SubPossibilitiesOS
 
+    @OperationsMethod
     def GetAll(self):
         """
         Get all grammatical categories in the project.
@@ -110,6 +111,7 @@ class GramCatOperations(BaseOperations):
             for cat in feature_system.TypesOC:
                 yield cat
 
+    @OperationsMethod
     def Create(self, name, parent=None):
         """
         Create a new grammatical category.
@@ -184,6 +186,7 @@ class GramCatOperations(BaseOperations):
 
         return new_cat
 
+    @OperationsMethod
     def Delete(self, cat_or_hvo):
         """
         Delete a grammatical category.
@@ -222,6 +225,7 @@ class GramCatOperations(BaseOperations):
         feature_system = self.project.lp.MsFeatureSystemOA
         feature_system.TypesOC.Remove(cat)
 
+    @OperationsMethod
     def GetName(self, cat_or_hvo, wsHandle=None):
         """
         Get the name of a grammatical category.
@@ -261,6 +265,7 @@ class GramCatOperations(BaseOperations):
         name = ITsString(cat.Name.get_String(wsHandle)).Text
         return name or ""
 
+    @OperationsMethod
     def SetName(self, cat_or_hvo, name, wsHandle=None):
         """
         Set the name of a grammatical category.
@@ -300,6 +305,7 @@ class GramCatOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         cat.Name.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetSubcategories(self, cat_or_hvo):
         """
         Get all subcategories of a grammatical category.
@@ -345,6 +351,7 @@ class GramCatOperations(BaseOperations):
 
         return list(cat.SubPossibilitiesOS)
 
+    @OperationsMethod
     def GetParent(self, cat_or_hvo):
         """
         Get the parent category of a grammatical category.
@@ -405,6 +412,7 @@ class GramCatOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
         Duplicate a grammatical category, creating a new copy with a new GUID.
@@ -549,6 +557,7 @@ class GramCatOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get dictionary of syncable properties for cross-project synchronization.
@@ -593,6 +602,7 @@ class GramCatOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two grammatical categories and return detailed differences.

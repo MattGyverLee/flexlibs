@@ -34,7 +34,7 @@ from SIL.LCModel.Core.Text import TsStringUtils
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # --- Approval Status Enum ---
 
@@ -143,6 +143,7 @@ class WfiAnalysisOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def GetAll(self, wordform_or_hvo):
         """
         Retrieve all analyses for a wordform.
@@ -183,6 +184,7 @@ class WfiAnalysisOperations(BaseOperations):
         wordform = self.__GetWordformObject(wordform_or_hvo)
         return list(wordform.AnalysesOC)
 
+    @OperationsMethod
     def Create(self, wordform_or_hvo):
         """
         Create a new analysis for a wordform.
@@ -239,6 +241,7 @@ class WfiAnalysisOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get all syncable properties of a wordform analysis.
@@ -267,6 +270,7 @@ class WfiAnalysisOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two wordform analyses for differences.
@@ -317,6 +321,7 @@ class WfiAnalysisOperations(BaseOperations):
         is_different = len(differences) > 0
         return (is_different, differences)
 
+    @OperationsMethod
     def Delete(self, analysis_or_hvo):
         """
         Delete an analysis from its owning wordform.
@@ -359,6 +364,7 @@ class WfiAnalysisOperations(BaseOperations):
         wordform = analysis.Owner
         wordform.AnalysesOC.Remove(analysis)
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
         Duplicate a wordform analysis, creating a new copy with a new GUID.
@@ -462,6 +468,7 @@ class WfiAnalysisOperations(BaseOperations):
 
         return duplicate
 
+    @OperationsMethod
     def Exists(self, wordform_or_hvo, analysis_or_hvo):
         """
         Check if a specific analysis exists for a wordform.
@@ -510,6 +517,7 @@ class WfiAnalysisOperations(BaseOperations):
 
     # --- Approval & Status Operations ---
 
+    @OperationsMethod
     def GetApprovalStatus(self, analysis_or_hvo):
         """
         Get the approval status of an analysis.
@@ -568,6 +576,7 @@ class WfiAnalysisOperations(BaseOperations):
 
         return ApprovalStatusTypes.UNAPPROVED
 
+    @OperationsMethod
     def SetApprovalStatus(self, analysis_or_hvo, status):
         """
         Set the approval status of an analysis.
@@ -667,6 +676,7 @@ class WfiAnalysisOperations(BaseOperations):
         if hasattr(evaluation, 'Accepted'):
             evaluation.Accepted = (status == ApprovalStatusTypes.APPROVED)
 
+    @OperationsMethod
     def IsHumanApproved(self, analysis_or_hvo):
         """
         Check if an analysis is human-approved.
@@ -717,6 +727,7 @@ class WfiAnalysisOperations(BaseOperations):
 
         return False
 
+    @OperationsMethod
     def IsComputerApproved(self, analysis_or_hvo):
         """
         Check if an analysis is computer/parser-approved.
@@ -767,6 +778,7 @@ class WfiAnalysisOperations(BaseOperations):
 
         return False
 
+    @OperationsMethod
     def ApproveAnalysis(self, analysis_or_hvo):
         """
         Approve an analysis (mark as human-approved).
@@ -810,6 +822,7 @@ class WfiAnalysisOperations(BaseOperations):
         # Set to approved status
         self.SetApprovalStatus(analysis, ApprovalStatusTypes.APPROVED)
 
+    @OperationsMethod
     def RejectAnalysis(self, analysis_or_hvo):
         """
         Reject an analysis (mark as disapproved).
@@ -854,6 +867,7 @@ class WfiAnalysisOperations(BaseOperations):
 
     # --- Gloss Operations ---
 
+    @OperationsMethod
     def GetGlosses(self, analysis_or_hvo):
         """
         Get all glosses for an analysis.
@@ -893,6 +907,7 @@ class WfiAnalysisOperations(BaseOperations):
 
         return list(analysis.MeaningsOC)
 
+    @OperationsMethod
     def GetGlossCount(self, analysis_or_hvo):
         """
         Get the count of glosses for an analysis.
@@ -927,6 +942,7 @@ class WfiAnalysisOperations(BaseOperations):
 
         return analysis.MeaningsOC.Count
 
+    @OperationsMethod
     def AddGloss(self, analysis_or_hvo, gloss_text, wsHandle=None):
         """
         Add a gloss to an analysis.
@@ -991,6 +1007,7 @@ class WfiAnalysisOperations(BaseOperations):
 
     # --- Morph Bundle Operations ---
 
+    @OperationsMethod
     def GetMorphBundles(self, analysis_or_hvo):
         """
         Get all morpheme bundles for an analysis.
@@ -1030,6 +1047,7 @@ class WfiAnalysisOperations(BaseOperations):
 
         return list(analysis.MorphBundlesOS)
 
+    @OperationsMethod
     def GetMorphBundleCount(self, analysis_or_hvo):
         """
         Get the count of morpheme bundles for an analysis.
@@ -1067,6 +1085,7 @@ class WfiAnalysisOperations(BaseOperations):
 
     # --- Category Operations ---
 
+    @OperationsMethod
     def GetCategory(self, analysis_or_hvo):
         """
         Get the grammatical category (part of speech) for an analysis.
@@ -1111,6 +1130,7 @@ class WfiAnalysisOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def SetCategory(self, analysis_or_hvo, category):
         """
         Set the grammatical category (part of speech) for an analysis.
@@ -1165,6 +1185,7 @@ class WfiAnalysisOperations(BaseOperations):
 
     # --- Evaluation Operations ---
 
+    @OperationsMethod
     def GetAgentEvaluation(self, analysis_or_hvo):
         """
         Get the parser/agent evaluation for an analysis.
@@ -1209,6 +1230,7 @@ class WfiAnalysisOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def GetHumanEvaluation(self, analysis_or_hvo):
         """
         Get the human evaluation for an analysis.
@@ -1256,6 +1278,7 @@ class WfiAnalysisOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def GetEvaluations(self, analysis_or_hvo):
         """
         Get all agent evaluations for an analysis.
@@ -1306,6 +1329,7 @@ class WfiAnalysisOperations(BaseOperations):
 
     # --- Utility Operations ---
 
+    @OperationsMethod
     def GetOwningWordform(self, analysis_or_hvo):
         """
         Get the wordform that owns this analysis.
@@ -1343,6 +1367,7 @@ class WfiAnalysisOperations(BaseOperations):
 
         return analysis.Owner
 
+    @OperationsMethod
     def GetGuid(self, analysis_or_hvo):
         """
         Get the GUID (globally unique identifier) of an analysis.

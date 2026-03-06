@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -70,6 +70,7 @@ class ScrAnnotationsOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def Create(self, book_or_hvo, type="note"):
         """
         Create a new Scripture book annotations container.
@@ -128,6 +129,7 @@ class ScrAnnotationsOperations(BaseOperations):
 
         return new_annotations
 
+    @OperationsMethod
     def Delete(self, annotations_or_hvo):
         """
         Delete a Scripture book annotations container from the FLEx project.
@@ -166,6 +168,7 @@ class ScrAnnotationsOperations(BaseOperations):
         # Delete the annotations (LCM handles removal from repository)
         annotations.Delete()
 
+    @OperationsMethod
     def GetForBook(self, book_or_hvo):
         """
         Get the annotations container for a Scripture book.
@@ -207,6 +210,7 @@ class ScrAnnotationsOperations(BaseOperations):
 
     # --- Annotations Properties ---
 
+    @OperationsMethod
     def GetNotes(self, annotations_or_hvo):
         """
         Get all notes in a Scripture book annotations container.

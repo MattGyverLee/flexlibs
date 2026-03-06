@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -75,6 +75,7 @@ class ScrSectionOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def Create(self, book_or_hvo, heading="", content=""):
         """
         Create a new Scripture section with heading and/or content.
@@ -134,6 +135,7 @@ class ScrSectionOperations(BaseOperations):
 
         return new_section
 
+    @OperationsMethod
     def Delete(self, section_or_hvo):
         """
         Delete a Scripture section from the FLEx project.
@@ -172,6 +174,7 @@ class ScrSectionOperations(BaseOperations):
         # Delete the section (LCM handles removal from repository)
         section.Delete()
 
+    @OperationsMethod
     def Find(self, book_or_hvo, index):
         """
         Find a Scripture section by index within a book.
@@ -217,6 +220,7 @@ class ScrSectionOperations(BaseOperations):
 
         return book.SectionsOS[index]
 
+    @OperationsMethod
     def GetAll(self, book_or_hvo):
         """
         Get all Scripture sections in a book.
@@ -257,6 +261,7 @@ class ScrSectionOperations(BaseOperations):
 
     # --- Section Properties ---
 
+    @OperationsMethod
     def GetHeading(self, section_or_hvo, wsHandle=None):
         """
         Get the heading of a Scripture section.
@@ -305,6 +310,7 @@ class ScrSectionOperations(BaseOperations):
         text = para.Contents.Text if para.Contents else ""
         return text or ""
 
+    @OperationsMethod
     def SetHeading(self, section_or_hvo, text, wsHandle=None):
         """
         Set the heading of a Scripture section.
@@ -359,6 +365,7 @@ class ScrSectionOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, wsHandle)
         para.Contents = mkstr
 
+    @OperationsMethod
     def GetContent(self, section_or_hvo):
         """
         Get all content paragraphs in a Scripture section.
@@ -396,6 +403,7 @@ class ScrSectionOperations(BaseOperations):
 
         return list(section.ContentOA.ParagraphsOS)
 
+    @OperationsMethod
     def MoveTo(self, section_or_hvo, target_book_or_hvo, index):
         """
         Move a section to a different position or book.

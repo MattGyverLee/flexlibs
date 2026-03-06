@@ -31,7 +31,7 @@ import System
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 class AgentOperations(BaseOperations):
     """
@@ -91,6 +91,7 @@ class AgentOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def GetAll(self):
         """
         Get all agents in the project.
@@ -122,6 +123,7 @@ class AgentOperations(BaseOperations):
         """
         return self.project.ObjectsIn(ICmAgentRepository)
 
+    @OperationsMethod
     def Create(self, name, wsHandle=None):
         """
         Create a new agent in the FLEx project.
@@ -183,6 +185,7 @@ class AgentOperations(BaseOperations):
 
         return new_agent
 
+    @OperationsMethod
     def CreateHumanAgent(self, name, person, wsHandle=None):
         """
         Create a new human agent linked to a person.
@@ -241,6 +244,7 @@ class AgentOperations(BaseOperations):
 
         return agent
 
+    @OperationsMethod
     def CreateParserAgent(self, name, version="", wsHandle=None):
         """
         Create a new parser agent (computer/automated analyzer).
@@ -296,6 +300,7 @@ class AgentOperations(BaseOperations):
 
         return agent
 
+    @OperationsMethod
     def Delete(self, agent_or_hvo):
         """
         Delete an agent from the FLEx project.
@@ -342,6 +347,7 @@ class AgentOperations(BaseOperations):
         # Remove from agents collection
         self.project.lp.AnalyzingAgentsOC.Remove(agent)
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True):
         """
         Duplicate an agent, creating a new copy with a new GUID.
@@ -416,6 +422,7 @@ class AgentOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get syncable properties for cross-project synchronization.
@@ -453,6 +460,7 @@ class AgentOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two agents and return detailed differences.
@@ -500,6 +508,7 @@ class AgentOperations(BaseOperations):
 
         return is_different, differences
 
+    @OperationsMethod
     def Exists(self, name, wsHandle=None):
         """
         Check if an agent with the given name exists.
@@ -538,6 +547,7 @@ class AgentOperations(BaseOperations):
 
         return self.Find(name, wsHandle) is not None
 
+    @OperationsMethod
     def Find(self, name, wsHandle=None):
         """
         Find an agent by name.
@@ -590,6 +600,7 @@ class AgentOperations(BaseOperations):
 
     # --- Name and Version Management ---
 
+    @OperationsMethod
     def GetName(self, agent_or_hvo, wsHandle=None):
         """
         Get the name of an agent.
@@ -629,6 +640,7 @@ class AgentOperations(BaseOperations):
         name = ITsString(agent.Name.get_String(wsHandle)).Text
         return name or ""
 
+    @OperationsMethod
     def SetName(self, agent_or_hvo, name, wsHandle=None):
         """
         Set the name of an agent.
@@ -675,6 +687,7 @@ class AgentOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         agent.Name.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetVersion(self, agent_or_hvo, wsHandle=None):
         """
         Get the version string of an agent.
@@ -717,6 +730,7 @@ class AgentOperations(BaseOperations):
         version = ITsString(agent.Version.get_String(wsHandle)).Text
         return version or ""
 
+    @OperationsMethod
     def SetVersion(self, agent_or_hvo, version, wsHandle=None):
         """
         Set the version string of an agent.
@@ -764,6 +778,7 @@ class AgentOperations(BaseOperations):
 
     # --- Agent Type Operations ---
 
+    @OperationsMethod
     def IsHuman(self, agent_or_hvo):
         """
         Check if an agent is a human analyst.
@@ -804,6 +819,7 @@ class AgentOperations(BaseOperations):
 
         return agent.Human is not None
 
+    @OperationsMethod
     def IsParser(self, agent_or_hvo):
         """
         Check if an agent is a parser (automated analyzer).
@@ -845,6 +861,7 @@ class AgentOperations(BaseOperations):
 
     # --- Human (Person) Link ---
 
+    @OperationsMethod
     def GetHuman(self, agent_or_hvo):
         """
         Get the linked person for a human agent.
@@ -887,6 +904,7 @@ class AgentOperations(BaseOperations):
 
         return agent.Human
 
+    @OperationsMethod
     def SetHuman(self, agent_or_hvo, person):
         """
         Set the linked person for an agent (making it a human agent).
@@ -935,6 +953,7 @@ class AgentOperations(BaseOperations):
 
     # --- Evaluations ---
 
+    @OperationsMethod
     def GetEvaluations(self, agent_or_hvo):
         """
         Get all evaluations created by an agent.
@@ -987,6 +1006,7 @@ class AgentOperations(BaseOperations):
 
         return evaluations
 
+    @OperationsMethod
     def GetEvaluationCount(self, agent_or_hvo):
         """
         Get the number of evaluations created by an agent.
@@ -1027,6 +1047,7 @@ class AgentOperations(BaseOperations):
 
     # --- Query Methods ---
 
+    @OperationsMethod
     def FindByType(self, is_human):
         """
         Find all agents of a specific type (human or parser).
@@ -1072,6 +1093,7 @@ class AgentOperations(BaseOperations):
                     agents.append(agent)
         return agents
 
+    @OperationsMethod
     def GetHumanAgents(self):
         """
         Get all human agents in the project.
@@ -1104,6 +1126,7 @@ class AgentOperations(BaseOperations):
         """
         return self.FindByType(True)
 
+    @OperationsMethod
     def GetParserAgents(self):
         """
         Get all parser agents in the project.
@@ -1137,6 +1160,7 @@ class AgentOperations(BaseOperations):
 
     # --- Metadata ---
 
+    @OperationsMethod
     def GetGuid(self, agent_or_hvo):
         """
         Get the GUID (Globally Unique Identifier) of an agent.
@@ -1176,6 +1200,7 @@ class AgentOperations(BaseOperations):
 
         return agent.Guid
 
+    @OperationsMethod
     def GetDateCreated(self, agent_or_hvo):
         """
         Get the creation date of an agent record.
@@ -1215,6 +1240,7 @@ class AgentOperations(BaseOperations):
 
         return agent.DateCreated
 
+    @OperationsMethod
     def GetDateModified(self, agent_or_hvo):
         """
         Get the last modification date of an agent record.

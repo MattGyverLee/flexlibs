@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -90,6 +90,7 @@ class WfiMorphBundleOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def GetAll(self, analysis_or_hvo):
         """
         Get all morpheme bundles in an analysis.
@@ -129,6 +130,7 @@ class WfiMorphBundleOperations(BaseOperations):
         for bundle in analysis.MorphBundlesOS:
             yield bundle
 
+    @OperationsMethod
     def Create(self, analysis_or_hvo, form, sense=None, wsHandle=None):
         """
         Create a new morpheme bundle in an analysis.
@@ -196,6 +198,7 @@ class WfiMorphBundleOperations(BaseOperations):
 
         return new_bundle
 
+    @OperationsMethod
     def Delete(self, bundle_or_hvo):
         """
         Delete a morpheme bundle from an analysis.
@@ -237,6 +240,7 @@ class WfiMorphBundleOperations(BaseOperations):
         # Delete the bundle (LCM handles removal from collections)
         bundle.Delete()
 
+    @OperationsMethod
     def Find(self, analysis_or_hvo, index):
         """
         Find a morph bundle by its index in the analysis.
@@ -279,6 +283,7 @@ class WfiMorphBundleOperations(BaseOperations):
 
     # --- Property Access ---
 
+    @OperationsMethod
     def GetForm(self, bundle_or_hvo, wsHandle=None):
         """
         Get the morpheme form of a morph bundle.
@@ -310,6 +315,7 @@ class WfiMorphBundleOperations(BaseOperations):
         form = ITsString(bundle.Form.get_String(wsHandle)).Text
         return form or ""
 
+    @OperationsMethod
     def SetForm(self, bundle_or_hvo, text, wsHandle=None):
         """
         Set the morpheme form of a morph bundle.
@@ -349,6 +355,7 @@ class WfiMorphBundleOperations(BaseOperations):
 
     # --- Lexicon Linking ---
 
+    @OperationsMethod
     def GetSense(self, bundle_or_hvo):
         """
         Get the lexical sense linked to this morph bundle.
@@ -387,6 +394,7 @@ class WfiMorphBundleOperations(BaseOperations):
 
         return bundle.SenseRA if hasattr(bundle, 'SenseRA') else None
 
+    @OperationsMethod
     def SetSense(self, bundle_or_hvo, sense):
         """
         Link a lexical sense to this morph bundle.
@@ -432,6 +440,7 @@ class WfiMorphBundleOperations(BaseOperations):
 
     # --- Morpheme Type ---
 
+    @OperationsMethod
     def GetMorphemeType(self, bundle_or_hvo):
         """
         Get the morpheme type (stem, prefix, suffix, etc.) of a morph bundle.
@@ -468,6 +477,7 @@ class WfiMorphBundleOperations(BaseOperations):
 
         return bundle.MorphRA if hasattr(bundle, 'MorphRA') else None
 
+    @OperationsMethod
     def SetMorphemeType(self, bundle_or_hvo, type_or_name):
         """
         Set the morpheme type (stem, prefix, suffix, etc.) of a morph bundle.

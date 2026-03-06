@@ -28,7 +28,7 @@ from System import DateTime
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 class NoteOperations(BaseOperations):
     """
@@ -81,6 +81,7 @@ class NoteOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def GetAll(self, owner_object):
         """
         Get all notes attached to an object.
@@ -130,6 +131,7 @@ class NoteOperations(BaseOperations):
                 if annotation.Owner == owner_object:
                     yield annotation
 
+    @OperationsMethod
     def Create(self, owner_object, content, wsHandle=None):
         """
         Create a new note attached to an object.
@@ -201,6 +203,7 @@ class NoteOperations(BaseOperations):
 
         return note
 
+    @OperationsMethod
     def Delete(self, note):
         """
         Delete a note.
@@ -245,6 +248,7 @@ class NoteOperations(BaseOperations):
         if hasattr(note, 'Delete'):
             note.Delete()
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
         """
         Duplicate a note, creating a new copy with a new GUID.
@@ -364,6 +368,7 @@ class NoteOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get syncable properties for cross-project synchronization.
@@ -408,6 +413,7 @@ class NoteOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two notes and return detailed differences.
@@ -455,6 +461,7 @@ class NoteOperations(BaseOperations):
 
         return is_different, differences
 
+    @OperationsMethod
     def Reorder(self, owner_object, note_list):
         """
         Reorder notes for an object.
@@ -512,6 +519,7 @@ class NoteOperations(BaseOperations):
 
     # --- Content Operations ---
 
+    @OperationsMethod
     def GetContent(self, note, wsHandle=None):
         """
         Get the text content of a note.
@@ -555,6 +563,7 @@ class NoteOperations(BaseOperations):
             return text or ""
         return ""
 
+    @OperationsMethod
     def SetContent(self, note, text, wsHandle=None):
         """
         Set the text content of a note.
@@ -600,6 +609,7 @@ class NoteOperations(BaseOperations):
 
     # --- Note Type Operations ---
 
+    @OperationsMethod
     def GetNoteType(self, note):
         """
         Get the note type/category.
@@ -639,6 +649,7 @@ class NoteOperations(BaseOperations):
             return note.AnnotationTypeRA
         return None
 
+    @OperationsMethod
     def SetNoteType(self, note, note_type):
         """
         Set the note type/category.
@@ -691,6 +702,7 @@ class NoteOperations(BaseOperations):
 
     # --- Metadata Operations ---
 
+    @OperationsMethod
     def GetDateCreated(self, note):
         """
         Get the creation date of a note.
@@ -731,6 +743,7 @@ class NoteOperations(BaseOperations):
             return note.DateCreated
         return None
 
+    @OperationsMethod
     def GetDateModified(self, note):
         """
         Get the last modification date of a note.
@@ -775,6 +788,7 @@ class NoteOperations(BaseOperations):
             return note.DateModified
         return None
 
+    @OperationsMethod
     def GetAuthor(self, note):
         """
         Get the author of a note.
@@ -817,6 +831,7 @@ class NoteOperations(BaseOperations):
             return text or ""
         return ""
 
+    @OperationsMethod
     def SetAuthor(self, note, author_name):
         """
         Set the author of a note.
@@ -856,6 +871,7 @@ class NoteOperations(BaseOperations):
 
     # --- Discussion/Threading Operations ---
 
+    @OperationsMethod
     def GetReplies(self, note):
         """
         Get all reply notes (threaded discussion) for a note.
@@ -898,6 +914,7 @@ class NoteOperations(BaseOperations):
             for reply in note.RepliesOS:
                 yield reply
 
+    @OperationsMethod
     def AddReply(self, parent_note, content, wsHandle=None):
         """
         Add a reply to an existing note (threaded discussion).
@@ -968,6 +985,7 @@ class NoteOperations(BaseOperations):
 
     # --- Utility Operations ---
 
+    @OperationsMethod
     def GetOwner(self, note):
         """
         Get the owner object that the note is attached to.
@@ -1013,6 +1031,7 @@ class NoteOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def GetGuid(self, note):
         """
         Get the GUID of a note.

@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import IPhEnvironmentFactory, IPhEnvironment, ICmObjectRepository
@@ -75,6 +75,7 @@ class EnvironmentOperations(BaseOperations):
         """
         return parent.EnvironmentsOA.PossibilitiesOS
 
+    @OperationsMethod
     def GetAll(self):
         """
         Get all phonological environments in the project.
@@ -106,6 +107,7 @@ class EnvironmentOperations(BaseOperations):
             for env in phon_data.EnvironmentsOS:
                 yield env
 
+    @OperationsMethod
     def Create(self, name, description=None):
         """
         Create a new phonological environment.
@@ -172,6 +174,7 @@ class EnvironmentOperations(BaseOperations):
 
         return new_env
 
+    @OperationsMethod
     def Delete(self, env_or_hvo):
         """
         Delete a phonological environment.
@@ -210,6 +213,7 @@ class EnvironmentOperations(BaseOperations):
         phon_data = self.project.lp.PhonologicalDataOA
         phon_data.EnvironmentsOS.Remove(env)
 
+    @OperationsMethod
     def GetName(self, env_or_hvo, wsHandle=None):
         """
         Get the name of a phonological environment.
@@ -248,6 +252,7 @@ class EnvironmentOperations(BaseOperations):
         name = ITsString(env.Name.get_String(wsHandle)).Text
         return name or ""
 
+    @OperationsMethod
     def SetName(self, env_or_hvo, name, wsHandle=None):
         """
         Set the name of a phonological environment.
@@ -290,6 +295,7 @@ class EnvironmentOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         env.Name.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetStringRepresentation(self, env_or_hvo, wsHandle=None):
         """
         Get the string representation (notation) of a phonological environment.
@@ -351,6 +357,7 @@ class EnvironmentOperations(BaseOperations):
         notation = env.StringRepresentation.Text if env.StringRepresentation else ""
         return notation or ""
 
+    @OperationsMethod
     def SetStringRepresentation(self, env_or_hvo, notation, wsHandle=None):
         """
         Set the string representation (notation) of a phonological environment.
@@ -411,6 +418,7 @@ class EnvironmentOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(notation, wsHandle)
         env.StringRepresentation = mkstr
 
+    @OperationsMethod
     def GetLeftContextPattern(self, env_or_hvo):
         """
         Get the left context pattern of a phonological environment (READ-ONLY).
@@ -466,6 +474,7 @@ class EnvironmentOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def GetRightContextPattern(self, env_or_hvo):
         """
         Get the right context pattern of a phonological environment (READ-ONLY).
@@ -521,6 +530,7 @@ class EnvironmentOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
         """
         Duplicate a phonological environment, creating a new copy with a new GUID.
@@ -642,6 +652,7 @@ class EnvironmentOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get dictionary of syncable properties for cross-project synchronization.
@@ -686,6 +697,7 @@ class EnvironmentOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two environments and return detailed differences.

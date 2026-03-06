@@ -46,7 +46,7 @@ from ..FLExProject import (
 
 # Import FLExLCM types
 from .. import FLExLCM  # Fixed: was "from ." (wrong path)
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 class CustomFieldOperations(BaseOperations):
     """
@@ -109,6 +109,7 @@ class CustomFieldOperations(BaseOperations):
 
     # --- Field Definition Management ---
 
+    @OperationsMethod
     def GetAllFields(self, owner_class):
         """
         Get all custom fields for a given class.
@@ -164,6 +165,7 @@ class CustomFieldOperations(BaseOperations):
 
         return custom_fields
 
+    @OperationsMethod
     def CreateField(self, owner_class, name, field_type, ws_type=None):
         """
         Create a new custom field.
@@ -271,6 +273,7 @@ class CustomFieldOperations(BaseOperations):
             "Use FindField() to access existing custom fields."
         )
 
+    @OperationsMethod
     def DeleteField(self, field_id):
         """
         Delete a custom field from the project.
@@ -319,6 +322,7 @@ class CustomFieldOperations(BaseOperations):
             "Tools > Configure > Custom Fields"
         )
 
+    @OperationsMethod
     def FindField(self, owner_class, name):
         """
         Find a custom field by owner class and name.
@@ -368,6 +372,7 @@ class CustomFieldOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def GetFieldType(self, field_id):
         """
         Get the data type of a custom field.
@@ -412,6 +417,7 @@ class CustomFieldOperations(BaseOperations):
         except (AttributeError, KeyError, ValueError, System.Exception):
             raise FP_ParameterError("Invalid field ID")
 
+    @OperationsMethod
     def GetFieldName(self, field_id):
         """
         Get the name/label of a custom field.
@@ -449,6 +455,7 @@ class CustomFieldOperations(BaseOperations):
         except (AttributeError, KeyError, ValueError, System.Exception):
             raise FP_ParameterError("Invalid field ID")
 
+    @OperationsMethod
     def SetFieldName(self, field_id, name):
         """
         Set/rename the label of a custom field.
@@ -504,6 +511,7 @@ class CustomFieldOperations(BaseOperations):
 
     # --- Field Values (Generic) ---
 
+    @OperationsMethod
     def GetValue(self, obj, field_name, ws=None):
         """
         Get the value of a custom field for an object.
@@ -578,6 +586,7 @@ class CustomFieldOperations(BaseOperations):
 
         return self.project.GetCustomFieldValue(obj, field_id, ws_handle)
 
+    @OperationsMethod
     def SetValue(self, obj, field_name, value, ws=None):
         """
         Set the value of a custom field for an object.
@@ -662,6 +671,7 @@ class CustomFieldOperations(BaseOperations):
                 "For list fields, use AddListValue or SetListFieldSingle/Multiple."
             )
 
+    @OperationsMethod
     def ClearValue(self, obj, field_name, ws=None):
         """
         Clear the value of a custom field for an object.
@@ -727,6 +737,7 @@ class CustomFieldOperations(BaseOperations):
 
     # --- List Field Operations ---
 
+    @OperationsMethod
     def GetListValues(self, obj, field_name):
         """
         Get list values from a ReferenceCollection custom field.
@@ -791,6 +802,7 @@ class CustomFieldOperations(BaseOperations):
             return result
         return []
 
+    @OperationsMethod
     def AddListValue(self, obj, field_name, value):
         """
         Add a value to a ReferenceCollection custom field.
@@ -855,6 +867,7 @@ class CustomFieldOperations(BaseOperations):
             # Set the updated list
             self.project.LexiconSetListFieldMultiple(obj, field_id, current_values)
 
+    @OperationsMethod
     def RemoveListValue(self, obj, field_name, value):
         """
         Remove a value from a ReferenceCollection custom field.
@@ -924,6 +937,7 @@ class CustomFieldOperations(BaseOperations):
 
     # --- Utility Methods ---
 
+    @OperationsMethod
     def GetOwnerClass(self, field_id):
         """
         Get the owner class name for a custom field.
@@ -968,6 +982,7 @@ class CustomFieldOperations(BaseOperations):
         except (AttributeError, KeyError, ValueError, System.Exception):
             raise FP_ParameterError("Invalid field ID")
 
+    @OperationsMethod
     def IsMultiString(self, field_id):
         """
         Check if a custom field is a multi-string type.
@@ -1009,6 +1024,7 @@ class CustomFieldOperations(BaseOperations):
         field_type = self.GetFieldType(field_id)
         return field_type in FLExLCM.CellarMultiStringTypes
 
+    @OperationsMethod
     def IsListType(self, field_id):
         """
         Check if a custom field is a list (reference) type.
@@ -1061,6 +1077,7 @@ class CustomFieldOperations(BaseOperations):
         return field_type in (CellarPropertyType.ReferenceAtom,
                              CellarPropertyType.ReferenceCollection)
 
+    @OperationsMethod
     def IsStringType(self, field_id):
         """
         Check if a custom field is a string type.
@@ -1110,6 +1127,7 @@ class CustomFieldOperations(BaseOperations):
         field_type = self.GetFieldType(field_id)
         return field_type in FLExLCM.CellarAllStringTypes
 
+    @OperationsMethod
     def ClearField(self, obj, field_name, ws=None):
         """
         Clear a custom field value for an object.
@@ -1148,6 +1166,7 @@ class CustomFieldOperations(BaseOperations):
         """
         return self.ClearValue(obj, field_name, ws)
 
+    @OperationsMethod
     def SetListFieldSingle(self, obj, field_name, value):
         """
         Set the value of a ReferenceAtom (single-select list) custom field.
@@ -1207,6 +1226,7 @@ class CustomFieldOperations(BaseOperations):
         # Set the value
         self.project.LexiconSetListFieldSingle(obj, field_id, value)
 
+    @OperationsMethod
     def SetListFieldMultiple(self, obj, field_name, values):
         """
         Set the values of a ReferenceCollection (multi-select list) custom field.
@@ -1342,6 +1362,7 @@ class CustomFieldOperations(BaseOperations):
             return handle
         return ws
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True):
         """
         Duplicate operation is not applicable for custom fields.
@@ -1366,6 +1387,7 @@ class CustomFieldOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get syncable properties - NOT IMPLEMENTED for custom fields.
@@ -1381,6 +1403,7 @@ class CustomFieldOperations(BaseOperations):
             "Custom fields are schema definitions unique to each project."
         )
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare custom fields - NOT IMPLEMENTED.

@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -80,6 +80,7 @@ class WfiAnalysisOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def GetAll(self, wordform_or_hvo):
         """
         Get all analyses for a wordform.
@@ -119,6 +120,7 @@ class WfiAnalysisOperations(BaseOperations):
         for analysis in wordform.AnalysesOC:
             yield analysis
 
+    @OperationsMethod
     def Create(self, wordform_or_hvo):
         """
         Create a new analysis for a wordform.
@@ -169,6 +171,7 @@ class WfiAnalysisOperations(BaseOperations):
 
         return new_analysis
 
+    @OperationsMethod
     def Delete(self, analysis_or_hvo):
         """
         Delete a wordform analysis.
@@ -212,6 +215,7 @@ class WfiAnalysisOperations(BaseOperations):
         # Delete the analysis (LCM handles removal from collections)
         analysis.Delete()
 
+    @OperationsMethod
     def Find(self, wordform_or_hvo, index):
         """
         Find an analysis by its index in the wordform's analyses.
@@ -252,6 +256,7 @@ class WfiAnalysisOperations(BaseOperations):
 
     # --- Category (Part of Speech) ---
 
+    @OperationsMethod
     def GetCategory(self, analysis_or_hvo):
         """
         Get the part of speech category for an analysis.
@@ -287,6 +292,7 @@ class WfiAnalysisOperations(BaseOperations):
 
         return analysis.CategoryRA if hasattr(analysis, 'CategoryRA') else None
 
+    @OperationsMethod
     def SetCategory(self, analysis_or_hvo, pos):
         """
         Set the part of speech category for an analysis.
@@ -327,6 +333,7 @@ class WfiAnalysisOperations(BaseOperations):
 
     # --- Human Approval ---
 
+    @OperationsMethod
     def IsHumanApproved(self, analysis_or_hvo):
         """
         Check if an analysis is human-approved.
@@ -372,6 +379,7 @@ class WfiAnalysisOperations(BaseOperations):
 
         return False
 
+    @OperationsMethod
     def Approve(self, analysis_or_hvo):
         """
         Mark an analysis as human-approved.
@@ -422,6 +430,7 @@ class WfiAnalysisOperations(BaseOperations):
 
     # --- Morph Bundles ---
 
+    @OperationsMethod
     def GetMorphBundles(self, analysis_or_hvo):
         """
         Get all morpheme bundles for an analysis.
@@ -463,6 +472,7 @@ class WfiAnalysisOperations(BaseOperations):
 
     # --- Glosses ---
 
+    @OperationsMethod
     def GetGlosses(self, analysis_or_hvo):
         """
         Get all word-level glosses for an analysis.

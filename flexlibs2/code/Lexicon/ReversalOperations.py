@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -85,6 +85,7 @@ class ReversalOperations(BaseOperations):
 
     # --- Reversal Index Management ---
 
+    @OperationsMethod
     def GetAllIndexes(self):
         """
         Get all reversal indexes in the project.
@@ -115,6 +116,7 @@ class ReversalOperations(BaseOperations):
         """
         return list(self.project.lexDB.ReversalIndexesOC)
 
+    @OperationsMethod
     def GetIndex(self, ws):
         """
         Get the reversal index for a specific writing system.
@@ -158,6 +160,7 @@ class ReversalOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def FindIndex(self, ws):
         """
         Find a reversal index by writing system (alias for GetIndex).
@@ -187,6 +190,7 @@ class ReversalOperations(BaseOperations):
 
     # --- Entry CRUD Operations ---
 
+    @OperationsMethod
     def GetAll(self, reversal_index):
         """
         Get all reversal entries in a reversal index.
@@ -224,6 +228,7 @@ class ReversalOperations(BaseOperations):
 
         return list(reversal_index.EntriesOC)
 
+    @OperationsMethod
     def Create(self, reversal_index, form, ws=None):
         """
         Create a new reversal entry in a reversal index.
@@ -291,6 +296,7 @@ class ReversalOperations(BaseOperations):
 
         return new_entry
 
+    @OperationsMethod
     def Delete(self, reversal_entry):
         """
         Delete a reversal entry from its reversal index.
@@ -334,6 +340,7 @@ class ReversalOperations(BaseOperations):
         if reversal_index:
             reversal_index.EntriesOC.Remove(reversal_entry)
 
+    @OperationsMethod
     def Find(self, reversal_index, form, ws=None):
         """
         Find a reversal entry by its form text.
@@ -388,6 +395,7 @@ class ReversalOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def Exists(self, reversal_index, form, ws=None):
         """
         Check if a reversal entry with the given form exists.
@@ -430,6 +438,7 @@ class ReversalOperations(BaseOperations):
 
     # --- Form Management ---
 
+    @OperationsMethod
     def GetForm(self, reversal_entry, ws=None):
         """
         Get the reversal form text of a reversal entry.
@@ -482,6 +491,7 @@ class ReversalOperations(BaseOperations):
         form = ITsString(reversal_entry.ReversalForm.get_String(wsHandle)).Text
         return form or ""
 
+    @OperationsMethod
     def SetForm(self, reversal_entry, text, ws=None):
         """
         Set the reversal form text of a reversal entry.
@@ -538,6 +548,7 @@ class ReversalOperations(BaseOperations):
 
     # --- Sense Linking ---
 
+    @OperationsMethod
     def GetSenses(self, reversal_entry):
         """
         Get all senses linked to a reversal entry.
@@ -578,6 +589,7 @@ class ReversalOperations(BaseOperations):
 
         return list(reversal_entry.SensesRS)
 
+    @OperationsMethod
     def AddSense(self, reversal_entry, sense):
         """
         Link a lexical sense to a reversal entry.
@@ -624,6 +636,7 @@ class ReversalOperations(BaseOperations):
         # Add sense to reversal entry's sense collection
         reversal_entry.SensesRS.Add(sense)
 
+    @OperationsMethod
     def RemoveSense(self, reversal_entry, sense):
         """
         Unlink a lexical sense from a reversal entry.
@@ -666,6 +679,7 @@ class ReversalOperations(BaseOperations):
         # Remove sense from reversal entry's sense collection
         reversal_entry.SensesRS.Remove(sense)
 
+    @OperationsMethod
     def GetSenseCount(self, reversal_entry):
         """
         Get the count of senses linked to a reversal entry.
@@ -705,6 +719,7 @@ class ReversalOperations(BaseOperations):
 
     # --- Subentries ---
 
+    @OperationsMethod
     def GetSubentries(self, reversal_entry):
         """
         Get all subentries of a reversal entry.
@@ -746,6 +761,7 @@ class ReversalOperations(BaseOperations):
 
         return list(reversal_entry.SubentriesOS)
 
+    @OperationsMethod
     def CreateSubentry(self, parent_entry, form, ws=None):
         """
         Create a new subentry under a parent reversal entry.
@@ -822,6 +838,7 @@ class ReversalOperations(BaseOperations):
 
         return new_subentry
 
+    @OperationsMethod
     def GetParentEntry(self, reversal_entry):
         """
         Get the parent reversal entry of a subentry.
@@ -868,6 +885,7 @@ class ReversalOperations(BaseOperations):
 
     # --- Parts of Speech ---
 
+    @OperationsMethod
     def GetPartsOfSpeech(self, reversal_entry):
         """
         Get all parts of speech associated with a reversal entry.
@@ -909,6 +927,7 @@ class ReversalOperations(BaseOperations):
 
         return list(reversal_entry.PartsOfSpeechRC)
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
         """
         Duplicate a reversal entry, creating a new copy with a new GUID.
@@ -1014,6 +1033,7 @@ class ReversalOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get all syncable properties of a reversal entry for comparison.
@@ -1043,6 +1063,7 @@ class ReversalOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two reversal entries and return their differences.

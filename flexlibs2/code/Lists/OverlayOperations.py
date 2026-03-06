@@ -28,7 +28,7 @@ from SIL.LCModel.Core.Text import TsStringUtils
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 class OverlayOperations(BaseOperations):
     """
@@ -166,6 +166,7 @@ class OverlayOperations(BaseOperations):
 
     # --- Core Operations ---
 
+    @OperationsMethod
     def GetAll(self, chart_or_hvo):
         """
         Get all overlays (layers) for a discourse chart.
@@ -223,6 +224,7 @@ class OverlayOperations(BaseOperations):
                     if clause_type:
                         yield clause_type
 
+    @OperationsMethod
     def Create(self, chart_or_hvo, name):
         """
         Create a new overlay (layer) for a discourse chart.
@@ -301,6 +303,7 @@ class OverlayOperations(BaseOperations):
 
         return overlay
 
+    @OperationsMethod
     def Delete(self, overlay_or_hvo):
         """
         Delete an overlay from its chart.
@@ -352,6 +355,7 @@ class OverlayOperations(BaseOperations):
         else:
             raise FP_ParameterError("Overlay has no valid owner or cannot be removed")
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
         """
         Duplicate an overlay, creating a new copy with a new GUID.
@@ -472,6 +476,7 @@ class OverlayOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get syncable properties for cross-project synchronization.
@@ -513,6 +518,7 @@ class OverlayOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two overlays and return detailed differences.
@@ -560,6 +566,7 @@ class OverlayOperations(BaseOperations):
 
         return is_different, differences
 
+    @OperationsMethod
     def Find(self, chart_or_hvo, name):
         """
         Find an overlay by name within a chart.
@@ -618,6 +625,7 @@ class OverlayOperations(BaseOperations):
 
     # --- Property Operations ---
 
+    @OperationsMethod
     def GetName(self, overlay_or_hvo, wsHandle=None):
         """
         Get the name of an overlay.
@@ -658,6 +666,7 @@ class OverlayOperations(BaseOperations):
             return name_str or ""
         return ""
 
+    @OperationsMethod
     def SetName(self, overlay_or_hvo, name, wsHandle=None):
         """
         Set the name of an overlay.
@@ -705,6 +714,7 @@ class OverlayOperations(BaseOperations):
         else:
             raise FP_ParameterError("Overlay does not support name setting")
 
+    @OperationsMethod
     def GetDescription(self, overlay_or_hvo, wsHandle=None):
         """
         Get the description of an overlay.
@@ -748,6 +758,7 @@ class OverlayOperations(BaseOperations):
             return desc_str or ""
         return ""
 
+    @OperationsMethod
     def SetDescription(self, overlay_or_hvo, description, wsHandle=None):
         """
         Set the description of an overlay.
@@ -796,6 +807,7 @@ class OverlayOperations(BaseOperations):
 
     # --- Visibility Operations ---
 
+    @OperationsMethod
     def IsVisible(self, overlay_or_hvo):
         """
         Check if an overlay is currently visible.
@@ -845,6 +857,7 @@ class OverlayOperations(BaseOperations):
         # Default to visible if no visibility property exists
         return True
 
+    @OperationsMethod
     def SetVisible(self, overlay_or_hvo, visible):
         """
         Set the visibility status of an overlay.
@@ -899,6 +912,7 @@ class OverlayOperations(BaseOperations):
             # This might need to be implemented through custom fields
             logger.warning("Overlay does not have a visibility property")
 
+    @OperationsMethod
     def GetDisplayOrder(self, overlay_or_hvo):
         """
         Get the display order of an overlay.
@@ -954,6 +968,7 @@ class OverlayOperations(BaseOperations):
 
         return 0
 
+    @OperationsMethod
     def SetDisplayOrder(self, overlay_or_hvo, order):
         """
         Set the display order of an overlay.
@@ -1023,6 +1038,7 @@ class OverlayOperations(BaseOperations):
 
     # --- Element Operations ---
 
+    @OperationsMethod
     def GetElements(self, overlay_or_hvo):
         """
         Get all chart elements associated with an overlay.
@@ -1072,6 +1088,7 @@ class OverlayOperations(BaseOperations):
 
         return elements
 
+    @OperationsMethod
     def AddElement(self, overlay_or_hvo, element):
         """
         Add a chart element to an overlay.
@@ -1132,6 +1149,7 @@ class OverlayOperations(BaseOperations):
 
         raise FP_ParameterError("Could not add element to overlay")
 
+    @OperationsMethod
     def RemoveElement(self, overlay_or_hvo, element):
         """
         Remove a chart element from an overlay.
@@ -1193,6 +1211,7 @@ class OverlayOperations(BaseOperations):
 
     # --- Chart Operations ---
 
+    @OperationsMethod
     def GetChart(self, overlay_or_hvo):
         """
         Get the chart that owns an overlay.
@@ -1244,6 +1263,7 @@ class OverlayOperations(BaseOperations):
 
         raise FP_ParameterError("Overlay has no valid owning chart")
 
+    @OperationsMethod
     def GetPossItems(self, overlay_or_hvo):
         """
         Get the possibility items (column/row labels) for an overlay.
@@ -1294,6 +1314,7 @@ class OverlayOperations(BaseOperations):
 
     # --- Query Operations ---
 
+    @OperationsMethod
     def FindByChart(self, chart_or_hvo, name):
         """
         Find an overlay by name within a specific chart.
@@ -1324,6 +1345,7 @@ class OverlayOperations(BaseOperations):
         """
         return self.Find(chart_or_hvo, name)
 
+    @OperationsMethod
     def GetVisibleOverlays(self, chart_or_hvo):
         """
         Get all visible overlays for a chart.
@@ -1372,6 +1394,7 @@ class OverlayOperations(BaseOperations):
 
     # --- Metadata Operations ---
 
+    @OperationsMethod
     def GetGuid(self, overlay_or_hvo):
         """
         Get the GUID of an overlay.

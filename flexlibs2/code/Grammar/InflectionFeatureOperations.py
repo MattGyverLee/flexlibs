@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -86,6 +86,7 @@ class InflectionFeatureOperations(BaseOperations):
     # INFLECTION CLASS OPERATIONS
     # ========================================================================
 
+    @OperationsMethod
     def InflectionClassGetAll(self):
         """
         Get all inflection classes in the project.
@@ -119,6 +120,7 @@ class InflectionFeatureOperations(BaseOperations):
             for ic in infl_classes.PossibilitiesOS:
                 yield ic
 
+    @OperationsMethod
     def InflectionClassCreate(self, name):
         """
         Create a new inflection class.
@@ -187,6 +189,7 @@ class InflectionFeatureOperations(BaseOperations):
 
         return new_ic
 
+    @OperationsMethod
     def InflectionClassDelete(self, ic_or_hvo):
         """
         Delete an inflection class.
@@ -228,6 +231,7 @@ class InflectionFeatureOperations(BaseOperations):
         if morph_data.ProdRestrictOA:
             morph_data.ProdRestrictOA.PossibilitiesOS.Remove(ic)
 
+    @OperationsMethod
     def InflectionClassGetName(self, ic_or_hvo, wsHandle=None):
         """
         Get the name of an inflection class.
@@ -261,6 +265,7 @@ class InflectionFeatureOperations(BaseOperations):
         name = ITsString(ic.Name.get_String(wsHandle)).Text
         return name or ""
 
+    @OperationsMethod
     def InflectionClassSetName(self, ic_or_hvo, name, wsHandle=None):
         """
         Set the name of an inflection class.
@@ -303,6 +308,7 @@ class InflectionFeatureOperations(BaseOperations):
     # FEATURE STRUCTURE OPERATIONS
     # ========================================================================
 
+    @OperationsMethod
     def FeatureStructureGetAll(self):
         """
         Get all feature structures in the project.
@@ -338,6 +344,7 @@ class InflectionFeatureOperations(BaseOperations):
                     for fs in feature.FeaturesOS:
                         yield fs
 
+    @OperationsMethod
     def FeatureStructureCreate(self):
         """
         Create a new feature structure.
@@ -371,6 +378,7 @@ class InflectionFeatureOperations(BaseOperations):
 
         return new_fs
 
+    @OperationsMethod
     def FeatureStructureDelete(self, fs_or_hvo):
         """
         Delete a feature structure.
@@ -414,6 +422,7 @@ class InflectionFeatureOperations(BaseOperations):
     # FEATURE OPERATIONS
     # ========================================================================
 
+    @OperationsMethod
     def FeatureGetAll(self):
         """
         Get all feature definitions in the project.
@@ -441,6 +450,7 @@ class InflectionFeatureOperations(BaseOperations):
             for feature in feature_system.FeaturesOS:
                 yield feature
 
+    @OperationsMethod
     def FeatureCreate(self, name, type):
         """
         Create a new feature definition.
@@ -507,6 +517,7 @@ class InflectionFeatureOperations(BaseOperations):
 
         return new_feature
 
+    @OperationsMethod
     def FeatureDelete(self, feature_or_hvo):
         """
         Delete a feature definition.
@@ -549,6 +560,7 @@ class InflectionFeatureOperations(BaseOperations):
         if feature_system:
             feature_system.FeaturesOS.Remove(feature)
 
+    @OperationsMethod
     def FeatureGetValues(self, feature_or_hvo):
         """
         Get all possible values for a feature.
@@ -592,6 +604,7 @@ class InflectionFeatureOperations(BaseOperations):
 
         return []
 
+    @OperationsMethod
     def GetFeatures(self, feature_system_or_hvo):
         """
         Get all features in the feature system (READ-ONLY).
@@ -645,6 +658,7 @@ class InflectionFeatureOperations(BaseOperations):
 
         return []
 
+    @OperationsMethod
     def GetFeatureConstraints(self, feature_system_or_hvo):
         """
         Get all feature constraints in the feature system (READ-ONLY).
@@ -693,6 +707,7 @@ class InflectionFeatureOperations(BaseOperations):
 
         return []
 
+    @OperationsMethod
     def GetTypes(self, feature_system_or_hvo):
         """
         Get the feature types collection from a feature system (READ-ONLY).
@@ -818,6 +833,7 @@ class InflectionFeatureOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get dictionary of syncable properties for cross-project synchronization.
@@ -866,6 +882,7 @@ class InflectionFeatureOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two inflection classes and return detailed differences.

@@ -12,7 +12,7 @@
 #
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -74,6 +74,7 @@ class ConstChartOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def GetAll(self):
         """
         Get all constituent charts in the project.
@@ -108,6 +109,7 @@ class ConstChartOperations(BaseOperations):
                 if isinstance(chart, IDsConstChart):
                     yield chart
 
+    @OperationsMethod
     def Create(self, name, template=None):
         """
         Create a new constituent chart for discourse analysis.
@@ -173,6 +175,7 @@ class ConstChartOperations(BaseOperations):
 
         return new_chart
 
+    @OperationsMethod
     def Delete(self, chart_or_hvo):
         """
         Delete a constituent chart from the project.
@@ -216,6 +219,7 @@ class ConstChartOperations(BaseOperations):
         # Delete the chart (LCM handles removal from repository)
         chart.Delete()
 
+    @OperationsMethod
     def Find(self, name):
         """
         Find a constituent chart by its name.
@@ -260,6 +264,7 @@ class ConstChartOperations(BaseOperations):
 
         return None
 
+    @OperationsMethod
     def FindByHvo(self, hvo):
         """
         Find a constituent chart by its HVO (database ID).
@@ -299,6 +304,7 @@ class ConstChartOperations(BaseOperations):
 
     # --- Chart Properties ---
 
+    @OperationsMethod
     def GetName(self, chart_or_hvo):
         """
         Get the name of a constituent chart.
@@ -332,6 +338,7 @@ class ConstChartOperations(BaseOperations):
 
         return ITsString(chart.Name.get_String(wsHandle)).Text or ""
 
+    @OperationsMethod
     def SetName(self, chart_or_hvo, name):
         """
         Set the name of a constituent chart.
@@ -372,6 +379,7 @@ class ConstChartOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(name, wsHandle)
         chart.Name.set_String(wsHandle, mkstr)
 
+    @OperationsMethod
     def GetTemplate(self, chart_or_hvo):
         """
         Get the template associated with a constituent chart.
@@ -405,6 +413,7 @@ class ConstChartOperations(BaseOperations):
 
         return chart.TemplateRA if hasattr(chart, 'TemplateRA') else None
 
+    @OperationsMethod
     def SetTemplate(self, chart_or_hvo, template):
         """
         Set the template for a constituent chart.
@@ -441,6 +450,7 @@ class ConstChartOperations(BaseOperations):
 
         chart.TemplateRA = template
 
+    @OperationsMethod
     def GetRows(self, chart_or_hvo):
         """
         Get all rows in a constituent chart.

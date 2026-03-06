@@ -26,7 +26,7 @@ from SIL.LCModel.Core.Text import TsStringUtils
 from ..FLExProject import (
     FP_ParameterError,
 )
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 class SegmentOperations(BaseOperations):
     """
@@ -125,6 +125,7 @@ class SegmentOperations(BaseOperations):
             return self.project.Object(segment_or_hvo)
         return segment_or_hvo
 
+    @OperationsMethod
     def GetAll(self, paragraph_or_hvo):
         """
         Get all segments in a paragraph.
@@ -157,6 +158,7 @@ class SegmentOperations(BaseOperations):
         for segment in segments:
             yield segment
 
+    @OperationsMethod
     def GetAnalyses(self, segment_or_hvo):
         """
         Get all analyses (wordforms and their linguistic analyses) for a segment.
@@ -189,6 +191,7 @@ class SegmentOperations(BaseOperations):
         analyses = list(segment_obj.AnalysesRS)
         return analyses
 
+    @OperationsMethod
     def GetBaselineText(self, segment_or_hvo, wsHandle=None):
         """
         Get the baseline text of a segment (the original text in the vernacular language).
@@ -220,6 +223,7 @@ class SegmentOperations(BaseOperations):
         text = ITsString(segment_obj.BaselineText.get_String(ws)).Text
         return text or ""
 
+    @OperationsMethod
     def SetBaselineText(self, segment_or_hvo, text, wsHandle=None):
         """
         Set the baseline text of a segment.
@@ -258,6 +262,7 @@ class SegmentOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, ws)
         segment_obj.BaselineText.set_String(ws, mkstr)
 
+    @OperationsMethod
     def GetFreeTranslation(self, segment_or_hvo, wsHandle=None):
         """
         Get the free translation for a segment.
@@ -295,6 +300,7 @@ class SegmentOperations(BaseOperations):
             return text or ""
         return ""
 
+    @OperationsMethod
     def SetFreeTranslation(self, segment_or_hvo, text, wsHandle=None):
         """
         Set the free translation for a segment.
@@ -331,6 +337,7 @@ class SegmentOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, ws)
         segment_obj.FreeTranslation.set_String(ws, mkstr)
 
+    @OperationsMethod
     def GetLiteralTranslation(self, segment_or_hvo, wsHandle=None):
         """
         Get the literal (word-for-word) translation of a segment.
@@ -368,6 +375,7 @@ class SegmentOperations(BaseOperations):
             return text or ""
         return ""
 
+    @OperationsMethod
     def SetLiteralTranslation(self, segment_or_hvo, text, wsHandle=None):
         """
         Set the literal (word-for-word) translation of a segment.
@@ -404,6 +412,7 @@ class SegmentOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(text, ws)
         segment_obj.LiteralTranslation.set_String(ws, mkstr)
 
+    @OperationsMethod
     def GetNotes(self, segment_or_hvo):
         """
         Get all notes associated with a segment.
@@ -440,6 +449,7 @@ class SegmentOperations(BaseOperations):
             return notes
         return []
 
+    @OperationsMethod
     def Create(self, paragraph_or_hvo, baseline_text, wsHandle=None):
         """
         Create a new segment and append it to a paragraph.
@@ -498,6 +508,7 @@ class SegmentOperations(BaseOperations):
 
         return segment
 
+    @OperationsMethod
     def Delete(self, segment_or_hvo):
         """
         Delete a segment from its paragraph.
@@ -534,6 +545,7 @@ class SegmentOperations(BaseOperations):
         if owner and hasattr(owner, 'SegmentsOS'):
             owner.SegmentsOS.Remove(segment_obj)
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True):
         """
         Duplicate a segment, creating a new segment with the same content.
@@ -633,6 +645,7 @@ class SegmentOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get all syncable properties of a segment.
@@ -683,6 +696,7 @@ class SegmentOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two segments for differences.
@@ -734,6 +748,7 @@ class SegmentOperations(BaseOperations):
         is_different = len(differences) > 0
         return (is_different, differences)
 
+    @OperationsMethod
     def Exists(self, paragraph_or_hvo, segment_or_hvo):
         """
         Check if a segment exists in a paragraph.
@@ -768,6 +783,7 @@ class SegmentOperations(BaseOperations):
         segments_list = list(para_obj.SegmentsOS)
         return segment_obj in segments_list
 
+    @OperationsMethod
     def SplitSegment(self, segment_or_hvo, position):
         """
         Split a segment at the specified character position.
@@ -859,6 +875,7 @@ class SegmentOperations(BaseOperations):
 
         return (first_segment, second_segment)
 
+    @OperationsMethod
     def MergeSegments(self, segment1_or_hvo, segment2_or_hvo):
         """
         Merge two adjacent segments into one.
@@ -950,6 +967,7 @@ class SegmentOperations(BaseOperations):
 
         return merged_segment
 
+    @OperationsMethod
     def GetBeginOffset(self, segment_or_hvo):
         """
         Get the beginning character offset of a segment within its paragraph.
@@ -988,6 +1006,7 @@ class SegmentOperations(BaseOperations):
             return segment_obj.BeginOffset
         return 0
 
+    @OperationsMethod
     def GetEndOffset(self, segment_or_hvo):
         """
         Get the ending character offset of a segment within its paragraph.
@@ -1026,6 +1045,7 @@ class SegmentOperations(BaseOperations):
             return segment_obj.EndOffset
         return 0
 
+    @OperationsMethod
     def SetOffsets(self, segment_or_hvo, begin_offset, end_offset):
         """
         Set the beginning and ending offsets of a segment.
@@ -1074,6 +1094,7 @@ class SegmentOperations(BaseOperations):
         if hasattr(segment_obj, 'EndOffset'):
             segment_obj.EndOffset = end_offset
 
+    @OperationsMethod
     def IsLabel(self, segment_or_hvo):
         """
         Check if a segment is marked as a label (section header).
@@ -1111,6 +1132,7 @@ class SegmentOperations(BaseOperations):
             return segment_obj.IsLabel
         return False
 
+    @OperationsMethod
     def SetIsLabel(self, segment_or_hvo, is_label):
         """
         Set whether a segment is a label (section header).
@@ -1147,6 +1169,7 @@ class SegmentOperations(BaseOperations):
         if hasattr(segment_obj, 'IsLabel'):
             segment_obj.IsLabel = bool(is_label)
 
+    @OperationsMethod
     def ValidateSegments(self, paragraph_or_hvo):
         """
         Validate the integrity of all segments in a paragraph.
@@ -1241,6 +1264,7 @@ class SegmentOperations(BaseOperations):
             'segment_count': len(segments_list)
         }
 
+    @OperationsMethod
     def RebuildSegments(self, paragraph_or_hvo):
         """
         Rebuild and regenerate all segments from paragraph baseline text.

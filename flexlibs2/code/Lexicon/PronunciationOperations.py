@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 import System
 
 # Import BaseOperations parent class
-from ..BaseOperations import BaseOperations
+from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -90,6 +90,7 @@ class PronunciationOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
+    @OperationsMethod
     def GetAll(self, entry_or_hvo=None):
         """
         Get all pronunciations for a lexical entry, or all pronunciations in the entire project.
@@ -142,6 +143,7 @@ class PronunciationOperations(BaseOperations):
                 for pronunciation in entry.PronunciationsOS:
                     yield pronunciation
 
+    @OperationsMethod
     def Create(self, entry_or_hvo, form, wsHandle=None):
         """
         Create a new pronunciation for a lexical entry.
@@ -206,6 +208,7 @@ class PronunciationOperations(BaseOperations):
 
         return pronunciation
 
+    @OperationsMethod
     def Delete(self, pronunciation_or_hvo):
         """
         Delete a pronunciation.
@@ -243,6 +246,7 @@ class PronunciationOperations(BaseOperations):
         if hasattr(entry, 'PronunciationsOS'):
             entry.PronunciationsOS.Remove(pronunciation)
 
+    @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
         Duplicate a pronunciation, creating a new copy with a new GUID.
@@ -352,6 +356,7 @@ class PronunciationOperations(BaseOperations):
 
     # ========== SYNC INTEGRATION METHODS ==========
 
+    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get all syncable properties of a pronunciation for comparison.
@@ -387,6 +392,7 @@ class PronunciationOperations(BaseOperations):
 
         return props
 
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two pronunciations and return their differences.
@@ -417,6 +423,7 @@ class PronunciationOperations(BaseOperations):
         is_different = len(differences) > 0
         return is_different, differences
 
+    @OperationsMethod
     def Reorder(self, entry_or_hvo, pronunciation_list):
         """
         Reorder pronunciations for a lexical entry.
@@ -471,6 +478,7 @@ class PronunciationOperations(BaseOperations):
 
     # --- Form Management ---
 
+    @OperationsMethod
     def GetForm(self, pronunciation_or_hvo, wsHandle=None):
         """
         Get the pronunciation form (e.g., IPA transcription).
@@ -514,6 +522,7 @@ class PronunciationOperations(BaseOperations):
         form = ITsString(pronunciation.Form.get_String(wsHandle)).Text
         return self._NormalizeMultiString(form)
 
+    @OperationsMethod
     def SetForm(self, pronunciation_or_hvo, text, wsHandle=None):
         """
         Set the pronunciation form (e.g., IPA transcription).
@@ -559,6 +568,7 @@ class PronunciationOperations(BaseOperations):
 
     # --- Media Files ---
 
+    @OperationsMethod
     def GetMediaFiles(self, pronunciation_or_hvo):
         """
         Get all media files (typically audio) associated with a pronunciation.
@@ -597,6 +607,7 @@ class PronunciationOperations(BaseOperations):
             return list(pronunciation.MediaFilesOS)
         return []
 
+    @OperationsMethod
     def GetMediaCount(self, pronunciation_or_hvo):
         """
         Get the count of media files associated with a pronunciation.
@@ -632,6 +643,7 @@ class PronunciationOperations(BaseOperations):
             return pronunciation.MediaFilesOS.Count
         return 0
 
+    @OperationsMethod
     def AddMediaFile(self, pronunciation_or_hvo, file_path, label=None):
         """
         Add a media file (typically audio) to a pronunciation.
@@ -698,6 +710,7 @@ class PronunciationOperations(BaseOperations):
 
         return media_file
 
+    @OperationsMethod
     def RemoveMediaFile(self, pronunciation_or_hvo, media_or_hvo):
         """
         Remove a media file from a pronunciation.
@@ -742,6 +755,7 @@ class PronunciationOperations(BaseOperations):
         if hasattr(pronunciation, 'MediaFilesOS'):
             pronunciation.MediaFilesOS.Remove(media)
 
+    @OperationsMethod
     def MoveMediaFile(self, media, from_pronunciation_or_hvo, to_pronunciation_or_hvo):
         """
         Move a media file from one pronunciation to another pronunciation.
@@ -820,6 +834,7 @@ class PronunciationOperations(BaseOperations):
 
     # --- CV Pattern/Location ---
 
+    @OperationsMethod
     def GetLocation(self, pronunciation_or_hvo):
         """
         Get the CV pattern location for the pronunciation.
@@ -859,6 +874,7 @@ class PronunciationOperations(BaseOperations):
             return pronunciation.LocationRA
         return None
 
+    @OperationsMethod
     def SetLocation(self, pronunciation_or_hvo, location):
         """
         Set the CV pattern location for the pronunciation.
@@ -901,6 +917,7 @@ class PronunciationOperations(BaseOperations):
 
     # --- Utilities ---
 
+    @OperationsMethod
     def GetOwningEntry(self, pronunciation_or_hvo):
         """
         Get the lexical entry that owns this pronunciation.
@@ -934,6 +951,7 @@ class PronunciationOperations(BaseOperations):
         pronunciation = self.__GetPronunciationObject(pronunciation_or_hvo)
         return pronunciation.Owner
 
+    @OperationsMethod
     def GetGuid(self, pronunciation_or_hvo):
         """
         Get the GUID of a pronunciation.
