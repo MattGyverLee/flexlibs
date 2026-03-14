@@ -1,0 +1,2739 @@
+{
+  "imports": {
+    "SIL.FieldWorks": [
+      "ProjectId"
+    ],
+    "SIL.FieldWorks.Common.Controls": [
+      "ProgressDialogWithTask"
+    ],
+    "SIL.FieldWorks.Common.FwUtils": [
+      "FwAppArgs",
+      "FwDirectoryFinder",
+      "FwRegistryHelper",
+      "FwUtils",
+      "StartupException",
+      "ThreadHelper",
+      "VersionInfoProvider"
+    ],
+    "SIL.FieldWorks.FdoUi": [
+      "FwLcmUI"
+    ],
+    "SIL.FieldWorks.FwCoreDlgs": [
+      "ChooseLangProjectDialog"
+    ],
+    "SIL.LCModel": [
+      "GenDate",
+      "IAnalysis",
+      "ICmAgent",
+      "ICmAgentEvaluation",
+      "ICmAgentEvaluationFactory",
+      "ICmAgentFactory",
+      "ICmAgentRepository",
+      "ICmAnnotationDefn",
+      "ICmAnnotationDefnFactory",
+      "ICmAnnotationDefnRepository",
+      "ICmAnthroItem",
+      "ICmAnthroItemFactory",
+      "ICmBaseAnnotation",
+      "ICmBaseAnnotationFactory",
+      "ICmFile",
+      "ICmFileFactory",
+      "ICmFilter",
+      "ICmFilterFactory",
+      "ICmFolder",
+      "ICmFolderFactory",
+      "ICmLocation",
+      "ICmLocationFactory",
+      "ICmMedia",
+      "ICmMediaFactory",
+      "ICmObjectRepository",
+      "ICmPerson",
+      "ICmPersonFactory",
+      "ICmPersonRepository",
+      "ICmPicture",
+      "ICmPictureFactory",
+      "ICmPossibility",
+      "ICmPossibilityFactory",
+      "ICmPossibilityList",
+      "ICmPossibilityListFactory",
+      "ICmPossibilityRepository",
+      "ICmSemanticDomain",
+      "ICmSemanticDomainFactory",
+      "ICmTranslation",
+      "ICmTranslationFactory",
+      "IConstChartClauseMarker",
+      "IConstChartClauseMarkerFactory",
+      "IConstChartMovedTextMarker",
+      "IConstChartMovedTextMarkerFactory",
+      "IConstChartRow",
+      "IConstChartRowFactory",
+      "IConstChartTag",
+      "IConstChartTagFactory",
+      "IConstChartWordGroup",
+      "IConstChartWordGroupFactory",
+      "IDsChart",
+      "IDsConstChart",
+      "IDsConstChartFactory",
+      "IDsConstChartRepository",
+      "IDsDiscourse",
+      "IDsDiscourseData",
+      "IDsDiscourseFactory",
+      "IFsClosedFeature",
+      "IFsComplexFeature",
+      "IFsComplexFeatureFactory",
+      "IFsFeatDefn",
+      "IFsFeatStruc",
+      "IFsFeatStrucFactory",
+      "ILangProject",
+      "ILexEntry",
+      "ILexEntryFactory",
+      "ILexEntryRef",
+      "ILexEntryRefFactory",
+      "ILexEntryRepository",
+      "ILexEntryType",
+      "ILexEntryTypeRepository",
+      "ILexEtymology",
+      "ILexEtymologyFactory",
+      "ILexExampleSentence",
+      "ILexExampleSentenceFactory",
+      "ILexPronunciation",
+      "ILexPronunciationFactory",
+      "ILexRefType",
+      "ILexRefTypeFactory",
+      "ILexRefTypeRepository",
+      "ILexReference",
+      "ILexReferenceFactory",
+      "ILexSense",
+      "ILexSenseFactory",
+      "ILexSenseRepository",
+      "IMoAdhocProhibAllomorph",
+      "IMoAdhocProhibGr",
+      "IMoAdhocProhibMorph",
+      "IMoAffixAllomorph",
+      "IMoAffixAllomorphFactory",
+      "IMoAffixForm",
+      "IMoDerivAffMsa",
+      "IMoEndoCompound",
+      "IMoEndoCompoundFactory",
+      "IMoExoCompound",
+      "IMoExoCompoundFactory",
+      "IMoForm",
+      "IMoInflAffMsa",
+      "IMoInflAffixTemplate",
+      "IMoInflAffixTemplateFactory",
+      "IMoInflClass",
+      "IMoInflClassFactory",
+      "IMoMorphSynAnalysis",
+      "IMoMorphType",
+      "IMoStemAllomorph",
+      "IMoStemAllomorphFactory",
+      "IMoStemMsa",
+      "IMoStemMsaFactory",
+      "IMoUnclassifiedAffixMsa",
+      "IPartOfSpeech",
+      "IPartOfSpeechFactory",
+      "IPhCode",
+      "IPhCodeFactory",
+      "IPhEnvironment",
+      "IPhEnvironmentFactory",
+      "IPhIterationContextFactory",
+      "IPhMetathesisRule",
+      "IPhMetathesisRuleFactory",
+      "IPhNCSegments",
+      "IPhNCSegmentsFactory",
+      "IPhNaturalClass",
+      "IPhPhoneme",
+      "IPhPhonemeFactory",
+      "IPhReduplicationRule",
+      "IPhReduplicationRuleFactory",
+      "IPhRegularRule",
+      "IPhRegularRuleFactory",
+      "IPhSegRuleRHS",
+      "IPhSegRuleRHSFactory",
+      "IPhSegmentRuleFactory",
+      "IPhSimpleContextNC",
+      "IPhSimpleContextNCFactory",
+      "IPhSimpleContextSeg",
+      "IPhSimpleContextSegFactory",
+      "IReversalIndex",
+      "IReversalIndexEntry",
+      "IReversalIndexEntryFactory",
+      "IReversalIndexFactory",
+      "IReversalIndexRepository",
+      "IRnGenericRec",
+      "IRnGenericRecFactory",
+      "IRnResearchNbkRepository",
+      "IScrBook",
+      "IScrBookAnnotations",
+      "IScrBookAnnotationsFactory",
+      "IScrBookFactory",
+      "IScrBookRepository",
+      "IScrDraft",
+      "IScrDraftFactory",
+      "IScrScriptureNote",
+      "IScrScriptureNoteFactory",
+      "IScrSection",
+      "IScrSectionFactory",
+      "IScrTxtPara",
+      "IScrTxtParaFactory",
+      "IScripture",
+      "ISegment",
+      "ISegmentFactory",
+      "ISegmentRepository",
+      "IStStyle",
+      "IStText",
+      "IStTextFactory",
+      "IStTxtPara",
+      "IStTxtParaFactory",
+      "IStTxtParaRepository",
+      "IText",
+      "ITextFactory",
+      "ITextRepository",
+      "IUndoStackManager",
+      "IVariantComponentLexeme",
+      "IWfiAnalysis",
+      "IWfiAnalysisFactory",
+      "IWfiAnalysisRepository",
+      "IWfiGloss",
+      "IWfiGlossFactory",
+      "IWfiGlossRepository",
+      "IWfiMorphBundle",
+      "IWfiMorphBundleFactory",
+      "IWfiWordform",
+      "IWfiWordformFactory",
+      "IWfiWordformRepository",
+      "LcmCache",
+      "LcmDataMigrationForbiddenException",
+      "LcmFileHelper",
+      "LcmFileLockedException",
+      "LcmInvalidClassException",
+      "LcmInvalidFieldException",
+      "LcmSettings",
+      "LexEntryRefTags",
+      "LexEntryTags",
+      "LexExampleSentenceTags",
+      "LexRefTypeTags",
+      "LexSenseTags",
+      "MoFormTags",
+      "MoMorphTypeTags",
+      "ReversalIndexEntryTags",
+      "SpecialWritingSystemCodes",
+      "TextTags",
+      "WfiAnalysisTags",
+      "WfiGlossTags",
+      "WfiMorphBundleTags",
+      "WfiWordformTags"
+    ],
+    "SIL.LCModel.Core.Cellar": [
+      "CellarPropertyType",
+      "CellarPropertyTypeFilter"
+    ],
+    "SIL.LCModel.Core.KernelInterfaces": [
+      "FwObjDataTypes",
+      "IMultiString",
+      "IMultiUnicode",
+      "ITsStrBldr",
+      "ITsString"
+    ],
+    "SIL.LCModel.Core.Text": [
+      "TsStringUtils"
+    ],
+    "SIL.LCModel.Infrastructure": [
+      "IDataReader",
+      "IFwMetaDataCacheManaged"
+    ],
+    "SIL.LCModel.Utils": [
+      "ReflectionHelper",
+      "WorkerThreadException"
+    ],
+    "SIL.WritingSystems": [
+      "Sldr",
+      "WritingSystemDefinition"
+    ]
+  },
+  "type_usage": {
+    "CellarPropertyType": {
+      "properties": [
+        "Integer",
+        "MultiString",
+        "MultiUnicode",
+        "ReferenceAtom",
+        "ReferenceCollection",
+        "String"
+      ],
+      "methods": []
+    },
+    "CellarPropertyTypeFilter": {
+      "properties": [
+        "All"
+      ],
+      "methods": []
+    },
+    "FwDirectoryFinder": {
+      "properties": [
+        "LcmDirectories",
+        "ProjectsDirectory"
+      ],
+      "methods": []
+    },
+    "FwObjDataTypes": {
+      "properties": [
+        "kodtExternalPathName"
+      ],
+      "methods": []
+    },
+    "FwRegistryHelper": {
+      "properties": [
+        "Initialize"
+      ],
+      "methods": [
+        "Initialize"
+      ]
+    },
+    "FwUtils": {
+      "properties": [
+        "InitializeIcu"
+      ],
+      "methods": [
+        "InitializeIcu"
+      ]
+    },
+    "IRnGenericRec": {
+      "properties": [
+        "IsInstance"
+      ],
+      "methods": [
+        "IsInstance"
+      ]
+    },
+    "LcmCache": {
+      "properties": [
+        "CreateCacheFromExistingData"
+      ],
+      "methods": [
+        "CreateCacheFromExistingData"
+      ]
+    },
+    "LcmFileHelper": {
+      "properties": [
+        "GetXmlDataFileName",
+        "ksFwDataXmlFileExtension"
+      ],
+      "methods": [
+        "GetXmlDataFileName"
+      ]
+    },
+    "LexEntryRefTags": {
+      "properties": [
+        "krtComplexForm"
+      ],
+      "methods": []
+    },
+    "LexEntryTags": {
+      "properties": [
+        "kClassId"
+      ],
+      "methods": []
+    },
+    "LexExampleSentenceTags": {
+      "properties": [
+        "kClassId"
+      ],
+      "methods": []
+    },
+    "LexSenseTags": {
+      "properties": [
+        "kClassId"
+      ],
+      "methods": []
+    },
+    "MoFormTags": {
+      "properties": [
+        "kClassId"
+      ],
+      "methods": []
+    },
+    "MoMorphTypeTags": {
+      "properties": [
+        "kguidMorphBoundRoot",
+        "kguidMorphBoundStem",
+        "kguidMorphClitic",
+        "kguidMorphDiscontiguousPhrase",
+        "kguidMorphEnclitic",
+        "kguidMorphParticle",
+        "kguidMorphPhrase",
+        "kguidMorphProclitic",
+        "kguidMorphRoot",
+        "kguidMorphStem"
+      ],
+      "methods": []
+    },
+    "ReflectionHelper": {
+      "properties": [
+        "GetProperty"
+      ],
+      "methods": [
+        "GetProperty"
+      ]
+    },
+    "ReversalIndexEntryTags": {
+      "properties": [
+        "kClassId"
+      ],
+      "methods": []
+    },
+    "Sldr": {
+      "properties": [
+        "Cleanup",
+        "Initialize"
+      ],
+      "methods": [
+        "Cleanup",
+        "Initialize"
+      ]
+    },
+    "TextTags": {
+      "properties": [
+        "kClassId"
+      ],
+      "methods": []
+    },
+    "TsStringUtils": {
+      "properties": [
+        "MakeString"
+      ],
+      "methods": [
+        "MakeString"
+      ]
+    },
+    "WfiAnalysisTags": {
+      "properties": [
+        "kClassId"
+      ],
+      "methods": []
+    },
+    "WfiGlossTags": {
+      "properties": [
+        "kClassId"
+      ],
+      "methods": []
+    },
+    "WfiWordformTags": {
+      "properties": [
+        "kClassId"
+      ],
+      "methods": []
+    }
+  },
+  "factories": [
+    "ICmAgentEvaluationFactory",
+    "ICmAgentFactory",
+    "ICmAnnotationDefnFactory",
+    "ICmAnthroItemFactory",
+    "ICmBaseAnnotationFactory",
+    "ICmFileFactory",
+    "ICmFilterFactory",
+    "ICmFolderFactory",
+    "ICmLocationFactory",
+    "ICmMediaFactory",
+    "ICmPersonFactory",
+    "ICmPictureFactory",
+    "ICmPossibilityFactory",
+    "ICmPossibilityListFactory",
+    "ICmSemanticDomainFactory",
+    "ICmTranslationFactory",
+    "IConstChartClauseMarkerFactory",
+    "IConstChartMovedTextMarkerFactory",
+    "IConstChartRowFactory",
+    "IConstChartTagFactory",
+    "IConstChartWordGroupFactory",
+    "IDsConstChartFactory",
+    "IDsDiscourseFactory",
+    "IFsComplexFeatureFactory",
+    "IFsFeatStrucFactory",
+    "ILexEntryFactory",
+    "ILexEntryRefFactory",
+    "ILexEtymologyFactory",
+    "ILexExampleSentenceFactory",
+    "ILexPronunciationFactory",
+    "ILexRefTypeFactory",
+    "ILexReferenceFactory",
+    "ILexSenseFactory",
+    "IMoAffixAllomorphFactory",
+    "IMoEndoCompoundFactory",
+    "IMoExoCompoundFactory",
+    "IMoInflAffixTemplateFactory",
+    "IMoInflClassFactory",
+    "IMoStemAllomorphFactory",
+    "IMoStemMsaFactory",
+    "IPartOfSpeechFactory",
+    "IPhCodeFactory",
+    "IPhEnvironmentFactory",
+    "IPhIterationContextFactory",
+    "IPhMetathesisRuleFactory",
+    "IPhNCSegmentsFactory",
+    "IPhPhonemeFactory",
+    "IPhReduplicationRuleFactory",
+    "IPhRegularRuleFactory",
+    "IPhSegRuleRHSFactory",
+    "IPhSegmentRuleFactory",
+    "IPhSimpleContextNCFactory",
+    "IPhSimpleContextSegFactory",
+    "IReversalIndexEntryFactory",
+    "IReversalIndexFactory",
+    "IRnGenericRecFactory",
+    "IScrBookAnnotationsFactory",
+    "IScrBookFactory",
+    "IScrDraftFactory",
+    "IScrScriptureNoteFactory",
+    "IScrSectionFactory",
+    "IScrTxtParaFactory",
+    "ISegmentFactory",
+    "IStTextFactory",
+    "IStTxtParaFactory",
+    "ITextFactory",
+    "IWfiAnalysisFactory",
+    "IWfiGlossFactory",
+    "IWfiMorphBundleFactory",
+    "IWfiWordformFactory"
+  ],
+  "repositories": [
+    "ICmAgentRepository",
+    "ICmAnnotationDefnRepository",
+    "ICmObjectRepository",
+    "ICmPersonRepository",
+    "ICmPossibilityRepository",
+    "IDsConstChartRepository",
+    "ILexEntryRepository",
+    "ILexEntryTypeRepository",
+    "ILexRefTypeRepository",
+    "ILexSenseRepository",
+    "IReversalIndexRepository",
+    "IRnResearchNbkRepository",
+    "IScrBookRepository",
+    "ISegmentRepository",
+    "IStTxtParaRepository",
+    "ITextRepository",
+    "IWfiAnalysisRepository",
+    "IWfiGlossRepository",
+    "IWfiWordformRepository"
+  ],
+  "interfaces": [
+    "IAnalysis",
+    "ICmAgent",
+    "ICmAgentEvaluation",
+    "ICmAnnotationDefn",
+    "ICmAnthroItem",
+    "ICmBaseAnnotation",
+    "ICmFile",
+    "ICmFilter",
+    "ICmFolder",
+    "ICmLocation",
+    "ICmMedia",
+    "ICmPerson",
+    "ICmPicture",
+    "ICmPossibility",
+    "ICmPossibilityList",
+    "ICmSemanticDomain",
+    "ICmTranslation",
+    "IConstChartClauseMarker",
+    "IConstChartMovedTextMarker",
+    "IConstChartRow",
+    "IConstChartTag",
+    "IConstChartWordGroup",
+    "IDataReader",
+    "IDsChart",
+    "IDsConstChart",
+    "IDsDiscourse",
+    "IDsDiscourseData",
+    "IFsClosedFeature",
+    "IFsComplexFeature",
+    "IFsFeatDefn",
+    "IFsFeatStruc",
+    "IFwMetaDataCacheManaged",
+    "ILangProject",
+    "ILexEntry",
+    "ILexEntryRef",
+    "ILexEntryType",
+    "ILexEtymology",
+    "ILexExampleSentence",
+    "ILexPronunciation",
+    "ILexRefType",
+    "ILexReference",
+    "ILexSense",
+    "IMoAdhocProhibAllomorph",
+    "IMoAdhocProhibGr",
+    "IMoAdhocProhibMorph",
+    "IMoAffixAllomorph",
+    "IMoAffixForm",
+    "IMoDerivAffMsa",
+    "IMoEndoCompound",
+    "IMoExoCompound",
+    "IMoForm",
+    "IMoInflAffMsa",
+    "IMoInflAffixTemplate",
+    "IMoInflClass",
+    "IMoMorphSynAnalysis",
+    "IMoMorphType",
+    "IMoStemAllomorph",
+    "IMoStemMsa",
+    "IMoUnclassifiedAffixMsa",
+    "IMultiString",
+    "IMultiUnicode",
+    "IPartOfSpeech",
+    "IPhCode",
+    "IPhEnvironment",
+    "IPhMetathesisRule",
+    "IPhNCSegments",
+    "IPhNaturalClass",
+    "IPhPhoneme",
+    "IPhReduplicationRule",
+    "IPhRegularRule",
+    "IPhSegRuleRHS",
+    "IPhSimpleContextNC",
+    "IPhSimpleContextSeg",
+    "IReversalIndex",
+    "IReversalIndexEntry",
+    "IRnGenericRec",
+    "IScrBook",
+    "IScrBookAnnotations",
+    "IScrDraft",
+    "IScrScriptureNote",
+    "IScrSection",
+    "IScrTxtPara",
+    "IScripture",
+    "ISegment",
+    "IStStyle",
+    "IStText",
+    "IStTxtPara",
+    "IText",
+    "ITsStrBldr",
+    "ITsString",
+    "IUndoStackManager",
+    "IVariantComponentLexeme",
+    "IWfiAnalysis",
+    "IWfiGloss",
+    "IWfiMorphBundle",
+    "IWfiWordform"
+  ],
+  "classes": [
+    "CellarPropertyType",
+    "CellarPropertyTypeFilter",
+    "ChooseLangProjectDialog",
+    "FwAppArgs",
+    "FwDirectoryFinder",
+    "FwLcmUI",
+    "FwObjDataTypes",
+    "FwRegistryHelper",
+    "FwUtils",
+    "GenDate",
+    "LcmCache",
+    "LcmDataMigrationForbiddenException",
+    "LcmFileHelper",
+    "LcmFileLockedException",
+    "LcmInvalidClassException",
+    "LcmInvalidFieldException",
+    "LcmSettings",
+    "LexEntryRefTags",
+    "LexEntryTags",
+    "LexExampleSentenceTags",
+    "LexRefTypeTags",
+    "LexSenseTags",
+    "MoFormTags",
+    "MoMorphTypeTags",
+    "ProgressDialogWithTask",
+    "ProjectId",
+    "ReflectionHelper",
+    "ReversalIndexEntryTags",
+    "Sldr",
+    "SpecialWritingSystemCodes",
+    "StartupException",
+    "TextTags",
+    "ThreadHelper",
+    "TsStringUtils",
+    "VersionInfoProvider",
+    "WfiAnalysisTags",
+    "WfiGlossTags",
+    "WfiMorphBundleTags",
+    "WfiWordformTags",
+    "WorkerThreadException",
+    "WritingSystemDefinition"
+  ],
+  "files": {
+    "code/Discourse/ConstChartClauseMarkerOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "IConstChartClauseMarker",
+          "IConstChartClauseMarkerFactory",
+          "IConstChartRow",
+          "IConstChartWordGroup"
+        ]
+      },
+      "type_usage": {}
+    },
+    "code/Discourse/ConstChartMovedTextOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "IConstChartMovedTextMarker",
+          "IConstChartMovedTextMarkerFactory",
+          "IConstChartWordGroup",
+          "IDsConstChart"
+        ]
+      },
+      "type_usage": {}
+    },
+    "code/Discourse/ConstChartOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmPossibility",
+          "IConstChartRow",
+          "IDsConstChart",
+          "IDsConstChartFactory",
+          "IDsConstChartRepository",
+          "IDsDiscourse",
+          "IDsDiscourseFactory"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Discourse/ConstChartRowOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "IConstChartRow",
+          "IConstChartRowFactory",
+          "IConstChartWordGroup",
+          "IDsConstChart"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Discourse/ConstChartTagOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmPossibility",
+          "ICmPossibilityFactory",
+          "IConstChartTag",
+          "IConstChartTagFactory",
+          "IDsConstChart"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Discourse/ConstChartWordGroupOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "IAnalysis",
+          "IConstChartRow",
+          "IConstChartWordGroup",
+          "IConstChartWordGroupFactory",
+          "ISegment"
+        ]
+      },
+      "type_usage": {}
+    },
+    "code/FLExGlobals.py": {
+      "imports": {
+        "SIL.FieldWorks.Common.FwUtils": [
+          "VersionInfoProvider"
+        ]
+      },
+      "type_usage": {}
+    },
+    "code/FLExInit.py": {
+      "imports": {
+        "SIL.FieldWorks.Common.FwUtils": [
+          "FwRegistryHelper",
+          "FwUtils"
+        ],
+        "SIL.WritingSystems": [
+          "Sldr"
+        ]
+      },
+      "type_usage": {
+        "FwRegistryHelper": {
+          "properties": [
+            "Initialize"
+          ],
+          "methods": [
+            "Initialize"
+          ]
+        },
+        "FwUtils": {
+          "properties": [
+            "InitializeIcu"
+          ],
+          "methods": [
+            "InitializeIcu"
+          ]
+        },
+        "Sldr": {
+          "properties": [
+            "Cleanup",
+            "Initialize"
+          ],
+          "methods": [
+            "Cleanup",
+            "Initialize"
+          ]
+        }
+      }
+    },
+    "code/FLExLCM.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "LcmCache",
+          "LcmFileHelper",
+          "LcmSettings"
+        ],
+        "SIL.LCModel.Core.Cellar": [
+          "CellarPropertyType"
+        ],
+        "SIL.FieldWorks": [
+          "ProjectId"
+        ],
+        "SIL.FieldWorks.Common.Controls": [
+          "ProgressDialogWithTask"
+        ],
+        "SIL.FieldWorks.Common.FwUtils": [
+          "FwDirectoryFinder",
+          "FwUtils",
+          "ThreadHelper"
+        ],
+        "SIL.FieldWorks.FdoUi": [
+          "FwLcmUI"
+        ],
+        "SIL.FieldWorks.FwCoreDlgs": [
+          "ChooseLangProjectDialog"
+        ]
+      },
+      "type_usage": {
+        "CellarPropertyType": {
+          "properties": [
+            "MultiString",
+            "MultiUnicode",
+            "String"
+          ],
+          "methods": []
+        },
+        "FwDirectoryFinder": {
+          "properties": [
+            "LcmDirectories",
+            "ProjectsDirectory"
+          ],
+          "methods": []
+        },
+        "LcmFileHelper": {
+          "properties": [
+            "GetXmlDataFileName",
+            "ksFwDataXmlFileExtension"
+          ],
+          "methods": [
+            "GetXmlDataFileName"
+          ]
+        },
+        "LcmCache": {
+          "properties": [
+            "CreateCacheFromExistingData"
+          ],
+          "methods": [
+            "CreateCacheFromExistingData"
+          ]
+        }
+      }
+    },
+    "code/FLExProject.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmObjectRepository",
+          "ICmPossibilityList",
+          "ICmPossibilityRepository",
+          "ICmSemanticDomain",
+          "ILexEntry",
+          "ILexEntryRefFactory",
+          "ILexEntryRepository",
+          "ILexRefTypeRepository",
+          "ILexSense",
+          "IMoMorphType",
+          "IReversalIndex",
+          "IReversalIndexEntry",
+          "ISegmentRepository",
+          "IStTxtPara",
+          "ITextRepository",
+          "IUndoStackManager",
+          "IWfiAnalysis",
+          "IWfiAnalysisRepository",
+          "IWfiWordformRepository",
+          "LcmDataMigrationForbiddenException",
+          "LcmFileLockedException",
+          "LcmInvalidClassException",
+          "LcmInvalidFieldException",
+          "LexEntryTags",
+          "LexExampleSentenceTags",
+          "LexSenseTags",
+          "MoFormTags",
+          "ReversalIndexEntryTags",
+          "SpecialWritingSystemCodes",
+          "TextTags",
+          "WfiAnalysisTags",
+          "WfiGlossTags",
+          "WfiMorphBundleTags",
+          "WfiWordformTags"
+        ],
+        "SIL.LCModel.Core.Cellar": [
+          "CellarPropertyType",
+          "CellarPropertyTypeFilter"
+        ],
+        "SIL.LCModel.Infrastructure": [
+          "IDataReader",
+          "IFwMetaDataCacheManaged"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "FwObjDataTypes",
+          "ITsStrBldr",
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ],
+        "SIL.LCModel.Utils": [
+          "ReflectionHelper",
+          "WorkerThreadException"
+        ],
+        "SIL.FieldWorks.Common.FwUtils": [
+          "FwAppArgs",
+          "StartupException"
+        ]
+      },
+      "type_usage": {
+        "FwObjDataTypes": {
+          "properties": [
+            "kodtExternalPathName"
+          ],
+          "methods": []
+        },
+        "ReversalIndexEntryTags": {
+          "properties": [
+            "kClassId"
+          ],
+          "methods": []
+        },
+        "WfiWordformTags": {
+          "properties": [
+            "kClassId"
+          ],
+          "methods": []
+        },
+        "WfiAnalysisTags": {
+          "properties": [
+            "kClassId"
+          ],
+          "methods": []
+        },
+        "WfiGlossTags": {
+          "properties": [
+            "kClassId"
+          ],
+          "methods": []
+        },
+        "TextTags": {
+          "properties": [
+            "kClassId"
+          ],
+          "methods": []
+        },
+        "ReflectionHelper": {
+          "properties": [
+            "GetProperty"
+          ],
+          "methods": [
+            "GetProperty"
+          ]
+        },
+        "CellarPropertyType": {
+          "properties": [
+            "Integer",
+            "MultiString",
+            "MultiUnicode",
+            "ReferenceAtom",
+            "ReferenceCollection",
+            "String"
+          ],
+          "methods": []
+        },
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        },
+        "CellarPropertyTypeFilter": {
+          "properties": [
+            "All"
+          ],
+          "methods": []
+        }
+      }
+    },
+    "code/Grammar/EnvironmentOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmObjectRepository",
+          "IPhEnvironment",
+          "IPhEnvironmentFactory"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Grammar/GramCatOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmPossibility",
+          "ICmPossibilityFactory"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Grammar/InflectionFeatureOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "IFsComplexFeature",
+          "IFsComplexFeatureFactory",
+          "IFsFeatDefn",
+          "IFsFeatStruc",
+          "IFsFeatStrucFactory",
+          "IMoInflClass",
+          "IMoInflClassFactory"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Grammar/MorphRuleOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "IMoEndoCompoundFactory",
+          "IMoExoCompoundFactory",
+          "IMoInflAffixTemplateFactory"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Grammar/NaturalClassOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "IPhNCSegments",
+          "IPhNCSegmentsFactory",
+          "IPhNaturalClass",
+          "IPhPhoneme"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Grammar/POSOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ILexEntryRepository",
+          "IPartOfSpeech",
+          "IPartOfSpeechFactory"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Grammar/PhonemeOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmObjectRepository",
+          "IFsFeatStruc",
+          "IPhCode",
+          "IPhCodeFactory",
+          "IPhPhoneme",
+          "IPhPhonemeFactory"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Grammar/PhonologicalRuleOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmObjectRepository",
+          "IPhIterationContextFactory",
+          "IPhRegularRuleFactory",
+          "IPhSegRuleRHSFactory",
+          "IPhSegmentRuleFactory",
+          "IPhSimpleContextNCFactory",
+          "IPhSimpleContextSegFactory"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Grammar/affix_template.py": {
+      "imports": {
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString",
+          "ITsString"
+        ]
+      },
+      "type_usage": {}
+    },
+    "code/Grammar/compound_rule.py": {
+      "imports": {
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ]
+      },
+      "type_usage": {}
+    },
+    "code/Grammar/phonological_rule.py": {
+      "imports": {
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ]
+      },
+      "type_usage": {}
+    },
+    "code/Lexicon/AllomorphOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ILexEntry",
+          "IMoAffixAllomorphFactory",
+          "IMoAffixAllomorphFactory",
+          "IMoForm",
+          "IMoStemAllomorphFactory",
+          "IMoStemAllomorphFactory",
+          "IPhEnvironment",
+          "MoMorphTypeTags"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        },
+        "MoMorphTypeTags": {
+          "properties": [
+            "kguidMorphBoundRoot",
+            "kguidMorphBoundStem",
+            "kguidMorphClitic",
+            "kguidMorphDiscontiguousPhrase",
+            "kguidMorphEnclitic",
+            "kguidMorphParticle",
+            "kguidMorphPhrase",
+            "kguidMorphProclitic",
+            "kguidMorphRoot",
+            "kguidMorphStem"
+          ],
+          "methods": []
+        }
+      }
+    },
+    "code/Lexicon/EtymologyOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ILexEntry",
+          "ILexEtymology",
+          "ILexEtymologyFactory"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString",
+          "ITsString",
+          "ITsString",
+          "ITsString",
+          "ITsString",
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Lexicon/ExampleOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmTranslation",
+          "ICmTranslationFactory",
+          "ILexExampleSentence",
+          "ILexExampleSentenceFactory",
+          "ILexSense"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString",
+          "ITsString",
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Lexicon/LexEntryOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmFileFactory",
+          "ILexEntry",
+          "ILexEntryFactory",
+          "ILexEntryRef",
+          "ILexEntryRefFactory",
+          "ILexEntryRepository",
+          "ILexEtymologyFactory",
+          "ILexPronunciationFactory",
+          "ILexSense",
+          "ILexSenseFactory",
+          "IMoAffixAllomorphFactory",
+          "IMoForm",
+          "IMoMorphType",
+          "IMoStemAllomorphFactory",
+          "LexEntryRefTags",
+          "MoMorphTypeTags"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        },
+        "LexEntryRefTags": {
+          "properties": [
+            "krtComplexForm"
+          ],
+          "methods": []
+        },
+        "MoMorphTypeTags": {
+          "properties": [
+            "kguidMorphBoundRoot",
+            "kguidMorphBoundStem",
+            "kguidMorphClitic",
+            "kguidMorphDiscontiguousPhrase",
+            "kguidMorphEnclitic",
+            "kguidMorphParticle",
+            "kguidMorphPhrase",
+            "kguidMorphProclitic",
+            "kguidMorphRoot",
+            "kguidMorphStem"
+          ],
+          "methods": []
+        }
+      }
+    },
+    "code/Lexicon/LexReferenceOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmPossibilityListFactory",
+          "ILexEntry",
+          "ILexRefType",
+          "ILexRefTypeFactory",
+          "ILexRefTypeRepository",
+          "ILexReference",
+          "ILexReferenceFactory",
+          "ILexSense",
+          "LexRefTypeTags"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString",
+          "ITsString",
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Lexicon/LexSenseOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmPicture",
+          "ICmPictureFactory",
+          "ICmSemanticDomain",
+          "ICmTranslationFactory",
+          "ILexEntry",
+          "ILexExampleSentenceFactory",
+          "ILexSense",
+          "ILexSenseFactory",
+          "IMoStemMsaFactory",
+          "IMoStemMsaFactory",
+          "IReversalIndexEntry"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString",
+          "ITsString",
+          "ITsString",
+          "ITsString",
+          "ITsString",
+          "ITsString",
+          "ITsString",
+          "ITsString",
+          "ITsString",
+          "ITsString",
+          "ITsString",
+          "ITsString",
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ],
+        "SIL.LCModel.Utils": [
+          "ReflectionHelper"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        },
+        "ReflectionHelper": {
+          "properties": [
+            "GetProperty"
+          ],
+          "methods": [
+            "GetProperty"
+          ]
+        }
+      }
+    },
+    "code/Lexicon/PronunciationOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmFile",
+          "ICmFileFactory",
+          "ILexEntry",
+          "ILexPronunciation",
+          "ILexPronunciationFactory"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString",
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Lexicon/ReversalOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ILexSense",
+          "IReversalIndex",
+          "IReversalIndexEntry",
+          "IReversalIndexEntryFactory"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Lexicon/SemanticDomainOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmSemanticDomain",
+          "ICmSemanticDomainFactory",
+          "ILexSenseRepository"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Lexicon/VariantOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ILexEntry",
+          "ILexEntryRef",
+          "ILexEntryRefFactory",
+          "ILexEntryType",
+          "ILexEntryTypeRepository",
+          "IVariantComponentLexeme"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Lexicon/allomorph.py": {
+      "imports": {
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString",
+          "ITsString",
+          "ITsString"
+        ]
+      },
+      "type_usage": {}
+    },
+    "code/Lists/AgentOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmAgent",
+          "ICmAgentEvaluation",
+          "ICmAgentFactory",
+          "ICmAgentRepository",
+          "ICmPerson",
+          "ILangProject"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Lists/ConfidenceOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmPossibility",
+          "ICmPossibilityFactory",
+          "IWfiAnalysisRepository",
+          "IWfiGlossRepository"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Lists/OverlayOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmPossibility",
+          "ICmPossibilityFactory",
+          "IDsConstChart",
+          "IDsConstChartFactory"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Lists/PossibilityListOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmPossibility",
+          "ICmPossibilityFactory",
+          "ICmPossibilityList",
+          "ICmPossibilityListFactory",
+          "ICmPossibilityRepository"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Lists/PublicationOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmPossibility",
+          "ICmPossibilityFactory",
+          "ICmPossibilityRepository"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Lists/TranslationTypeOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmPossibility",
+          "ICmPossibilityFactory",
+          "ICmPossibilityListFactory",
+          "ICmPossibilityListFactory",
+          "IStTxtParaRepository",
+          "ITextRepository"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Notebook/AnthropologyOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmAnthroItem",
+          "ICmAnthroItemFactory",
+          "ICmPerson",
+          "ICmPossibility",
+          "ICmPossibilityListFactory",
+          "IText"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Notebook/DataNotebookOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmFile",
+          "ICmFileFactory",
+          "ICmPerson",
+          "ICmPossibility",
+          "ICmPossibilityRepository",
+          "IRnGenericRec",
+          "IRnGenericRecFactory",
+          "IRnResearchNbkRepository",
+          "IText"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "IRnGenericRec": {
+          "properties": [
+            "IsInstance"
+          ],
+          "methods": [
+            "IsInstance"
+          ]
+        },
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Notebook/LocationOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "GenDate",
+          "ICmLocation",
+          "ICmLocationFactory",
+          "ICmPossibilityRepository"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Notebook/NoteOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmAnnotationDefn",
+          "ICmBaseAnnotation",
+          "ICmBaseAnnotationFactory",
+          "ICmPossibility",
+          "IScrScriptureNote",
+          "IScrScriptureNoteFactory"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Notebook/PersonOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmLocation",
+          "ICmPerson",
+          "ICmPersonFactory",
+          "ICmPersonRepository",
+          "ICmPossibility",
+          "ICmPossibilityRepository",
+          "ILangProject"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Notebook/annotation.py": {
+      "imports": {
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ]
+      },
+      "type_usage": {}
+    },
+    "code/Reversal/ReversalIndexEntryOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ILexSense",
+          "IReversalIndex",
+          "IReversalIndexEntry",
+          "IReversalIndexEntryFactory"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Reversal/ReversalIndexOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ILangProject",
+          "IReversalIndex",
+          "IReversalIndexFactory",
+          "IReversalIndexRepository"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Scripture/ScrAnnotationsOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "IScrBook",
+          "IScrBookAnnotations",
+          "IScrBookAnnotationsFactory",
+          "IScrScriptureNote"
+        ]
+      },
+      "type_usage": {}
+    },
+    "code/Scripture/ScrBookOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "IScrBook",
+          "IScrBookFactory",
+          "IScrBookRepository",
+          "IScrSection",
+          "IScripture"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Scripture/ScrDraftOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "IScrDraft",
+          "IScrDraftFactory",
+          "IScripture"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Scripture/ScrNoteOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "IScrBook",
+          "IScrBookAnnotations",
+          "IScrBookAnnotationsFactory",
+          "IScrScriptureNote",
+          "IScrScriptureNoteFactory",
+          "IScrTxtPara",
+          "IStTextFactory",
+          "IStTextFactory",
+          "IStTxtParaFactory",
+          "IStTxtParaFactory",
+          "IStTxtParaFactory"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Scripture/ScrSectionOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "IScrBook",
+          "IScrSection",
+          "IScrSectionFactory",
+          "IScrTxtPara",
+          "IStText",
+          "IStTextFactory",
+          "IStTxtParaFactory"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Scripture/ScrTxtParaOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "IScrSection",
+          "IScrTxtPara",
+          "IScrTxtParaFactory",
+          "IStStyle",
+          "IStTextFactory"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Shared/FilterOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmFilter",
+          "ICmFilterFactory",
+          "ICmObjectRepository",
+          "IFsClosedFeature",
+          "ILexEntry",
+          "IText",
+          "IWfiWordform"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {}
+    },
+    "code/Shared/MediaOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmFile",
+          "ICmFileFactory",
+          "ICmFolder",
+          "ICmFolderFactory",
+          "ICmObjectRepository"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/System/AnnotationDefOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmAnnotationDefn",
+          "ICmAnnotationDefnFactory",
+          "ICmAnnotationDefnRepository",
+          "ICmPossibility"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/System/CheckOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmPossibility",
+          "ICmPossibilityFactory",
+          "ICmPossibilityList",
+          "ICmPossibilityListFactory",
+          "ILexEntry",
+          "IText",
+          "IWfiWordform"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/System/CustomFieldOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmObjectRepository",
+          "ICmPossibilityRepository",
+          "ILexEntry",
+          "ILexExampleSentence",
+          "ILexSense",
+          "IMoForm",
+          "LexEntryTags",
+          "LexExampleSentenceTags",
+          "LexSenseTags",
+          "MoFormTags"
+        ],
+        "SIL.LCModel.Core.Cellar": [
+          "CellarPropertyType",
+          "CellarPropertyTypeFilter"
+        ],
+        "SIL.LCModel.Infrastructure": [
+          "IFwMetaDataCacheManaged"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "CellarPropertyTypeFilter": {
+          "properties": [
+            "All"
+          ],
+          "methods": []
+        },
+        "CellarPropertyType": {
+          "properties": [
+            "Integer",
+            "ReferenceAtom",
+            "ReferenceCollection"
+          ],
+          "methods": []
+        },
+        "LexEntryTags": {
+          "properties": [
+            "kClassId"
+          ],
+          "methods": []
+        },
+        "LexSenseTags": {
+          "properties": [
+            "kClassId"
+          ],
+          "methods": []
+        },
+        "LexExampleSentenceTags": {
+          "properties": [
+            "kClassId"
+          ],
+          "methods": []
+        },
+        "MoFormTags": {
+          "properties": [
+            "kClassId"
+          ],
+          "methods": []
+        }
+      }
+    },
+    "code/System/ProjectSettingsOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ILangProject"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ],
+        "SIL.WritingSystems": [
+          "WritingSystemDefinition"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/System/WritingSystemOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "SpecialWritingSystemCodes"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "IMultiString",
+          "IMultiUnicode",
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ],
+        "SIL.WritingSystems": [
+          "WritingSystemDefinition"
+        ]
+      },
+      "type_usage": {}
+    },
+    "code/TextsWords/DiscourseOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmPossibility",
+          "IConstChartClauseMarker",
+          "IConstChartClauseMarkerFactory",
+          "IConstChartMovedTextMarker",
+          "IConstChartMovedTextMarkerFactory",
+          "IConstChartRow",
+          "IConstChartRowFactory",
+          "IConstChartTag",
+          "IConstChartWordGroup",
+          "IConstChartWordGroupFactory",
+          "IDsChart",
+          "IDsConstChart",
+          "IDsConstChartFactory",
+          "IDsDiscourseData",
+          "IText"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/TextsWords/ParagraphOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "IStTxtPara",
+          "IStTxtParaFactory",
+          "IText"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/TextsWords/SegmentOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ISegment",
+          "ISegmentFactory",
+          "IStTxtPara"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/TextsWords/TextOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmFolderFactory",
+          "ICmMedia",
+          "ICmMediaFactory",
+          "ICmPossibility",
+          "IStTextFactory",
+          "IStTxtPara",
+          "IStTxtParaFactory",
+          "IText",
+          "ITextFactory",
+          "ITextRepository"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/TextsWords/WfiAnalysisOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ICmAgent",
+          "ICmAgentEvaluation",
+          "ICmAgentEvaluationFactory",
+          "IPartOfSpeech",
+          "IWfiAnalysis",
+          "IWfiAnalysisFactory",
+          "IWfiAnalysisRepository",
+          "IWfiGlossFactory",
+          "IWfiMorphBundleFactory",
+          "IWfiWordform"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/TextsWords/WfiGlossOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "IWfiAnalysis",
+          "IWfiGloss",
+          "IWfiGlossFactory"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/TextsWords/WfiMorphBundleOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ILexSense",
+          "IMoInflClass",
+          "IMoMorphSynAnalysis",
+          "IMoMorphType",
+          "IWfiAnalysis",
+          "IWfiMorphBundle",
+          "IWfiMorphBundleFactory"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/TextsWords/WordformOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "IWfiAnalysisFactory",
+          "IWfiGlossFactory",
+          "IWfiMorphBundleFactory",
+          "IWfiWordform",
+          "IWfiWordformFactory",
+          "IWfiWordformRepository"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Wordform/WfiAnalysisOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "IPartOfSpeech",
+          "IWfiAnalysis",
+          "IWfiAnalysisFactory",
+          "IWfiMorphBundle",
+          "IWfiWordform"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {}
+    },
+    "code/Wordform/WfiGlossOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "IWfiAnalysis",
+          "IWfiGloss",
+          "IWfiGlossFactory"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Wordform/WfiMorphBundleOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "ILexSense",
+          "IMoMorphType",
+          "IWfiAnalysis",
+          "IWfiMorphBundle",
+          "IWfiMorphBundleFactory"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/Wordform/WfiWordformOperations.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "IWfiAnalysis",
+          "IWfiWordform",
+          "IWfiWordformFactory",
+          "IWfiWordformRepository"
+        ],
+        "SIL.LCModel.Core.KernelInterfaces": [
+          "ITsString"
+        ],
+        "SIL.LCModel.Core.Text": [
+          "TsStringUtils"
+        ]
+      },
+      "type_usage": {
+        "TsStringUtils": {
+          "properties": [
+            "MakeString"
+          ],
+          "methods": [
+            "MakeString"
+          ]
+        }
+      }
+    },
+    "code/lcm_casting.py": {
+      "imports": {
+        "SIL.LCModel": [
+          "IMoAdhocProhibAllomorph",
+          "IMoAdhocProhibGr",
+          "IMoAdhocProhibMorph",
+          "IMoAffixAllomorph",
+          "IMoAffixForm",
+          "IMoDerivAffMsa",
+          "IMoEndoCompound",
+          "IMoExoCompound",
+          "IMoInflAffMsa",
+          "IMoInflAffixTemplate",
+          "IMoStemAllomorph",
+          "IMoStemMsa",
+          "IMoUnclassifiedAffixMsa",
+          "IPhMetathesisRule",
+          "IPhMetathesisRuleFactory",
+          "IPhReduplicationRule",
+          "IPhReduplicationRuleFactory",
+          "IPhRegularRule",
+          "IPhRegularRuleFactory",
+          "IPhSegRuleRHS",
+          "IPhSegRuleRHSFactory",
+          "IPhSimpleContextNC",
+          "IPhSimpleContextNCFactory",
+          "IPhSimpleContextSeg",
+          "IPhSimpleContextSegFactory"
+        ]
+      },
+      "type_usage": {}
+    }
+  },
+  "summary": {
+    "total_files_with_lcm_deps": 72,
+    "total_unique_imports": 226,
+    "total_modules": 12,
+    "total_factories": 70,
+    "total_repositories": 19,
+    "total_interfaces": 96,
+    "total_classes": 41,
+    "total_type_usages_tracked": 23
+  }
+}
