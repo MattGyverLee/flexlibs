@@ -5,7 +5,7 @@
 #               FlexLibs 2.3 - Extended wrappers, smart collections, and complete IDE support
 #----------------------------------------------------------------------------
 
-version = "2.3.1"
+version = "2.3.2"
 
 # Define exported classes, etc. at the top level of the package
 

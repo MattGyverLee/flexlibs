@@ -20,6 +20,7 @@ from . import FLExLCM
 from subprocess import Popen, DETACHED_PROCESS
 from .FLExGlobals import FWExecutable
 
+import logging
 import clr
 clr.AddReference("System")
 import System
@@ -1833,7 +1834,17 @@ class FLExProject (object):
         objects, returning the best analysis or vernacular string.
 
         Note: This method now delegates to WritingSystemOperations for single source of truth.
+
+        If a string is passed instead of a multistring object, it is returned as-is
+        with a warning (for backwards compatibility).
         """
+        # Handle strings gracefully - just return them with a warning
+        if isinstance(stringObj, str):
+            logger = logging.getLogger("flexlibs2")
+            logger.warning(f"BestStr() called with a string instead of IMultiUnicode/IMultiString. "
+                         f"This should be called on multistring objects only. Returning the string as-is.")
+            return stringObj
+
         return self.WritingSystems.GetBestString(stringObj)
 
     # --- LCM Utilities ---
