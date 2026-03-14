@@ -151,6 +151,18 @@ More domains coming in v2.3+
 **Migration Guide**: See `MIGRATION.md <MIGRATION.md>`_ for detailed
 examples comparing old and new API.
 
+Contract Testing
+^^^^^^^^^^^^^^^^
+
+A pre-commit hook verifies that LibLCM API dependencies stay consistent
+as you develop. On machines with FieldWorks installed, the full suite
+checks every type and member flexlibs2 depends on and detects regressions
+across LibLCM upgrades.
+
+**Setup**: ``python hooks/install.py``
+
+See `Contract Testing Guide <docs/CONTRACT_TESTING.md>`_ for details.
+
 --------------
 
 .. [1] https://software.sil.org/fieldworks/
