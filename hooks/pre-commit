@@ -1,0 +1,39 @@
+#!/bin/sh
+#
+# pre-commit hook: runs static LCM contract tests before every commit.
+# Only runs the lightweight AST-based checks (no FieldWorks needed).
+# Install with: python hooks/install.py
+#
+
+# Skip if explicitly requested
+if [ "$SKIP_CONTRACT_TESTS" = "1" ]; then
+    echo "[INFO] Skipping contract tests (SKIP_CONTRACT_TESTS=1)"
+    exit 0
+fi
+
+# Only run if contract test files exist
+if [ ! -f "tests/contract/test_lcm_contract.py" ]; then
+    exit 0
+fi
+
+echo "[INFO] Running LCM contract tests..."
+
+# Run only the static tests (no liblcm required)
+python -m pytest tests/contract/test_lcm_contract.py \
+    --override-ini="confcutdir=tests/contract" \
+    -x -q --tb=short 2>&1
+
+STATUS=$?
+
+if [ $STATUS -ne 0 ]; then
+    echo ""
+    echo "[FAIL] LCM contract tests failed."
+    echo "  If you added new SIL.LCModel imports, update the baseline:"
+    echo "    python -m tests.contract.extract_lcm_contract -o tests/contract/snapshots/expected_contract.json"
+    echo "  To skip this check once:"
+    echo "    SKIP_CONTRACT_TESTS=1 git commit ..."
+    echo ""
+    exit 1
+fi
+
+echo "[PASS] LCM contract tests passed."
