@@ -197,73 +197,91 @@ class FLExProject (object):
 
     """
         
-    def OpenProject(self, 
-                    projectName, 
-                    writeEnabled = False):
+    def OpenProject(self,
+                    projectName,
+                    writeEnabled = False,
+                    undoable = False):
         """
-        Open a project. The project must be closed with `CloseProject()` to 
+        Open a project. The project must be closed with `CloseProject()` to
         save any changes, and release the lock.
 
         projectName:
             - Either the full path including ".fwdata" suffix, or
             - The name only, to open from the default project location.
-            
-        writeEnabled: 
+
+        writeEnabled:
             Enables changes to be written to the project, which will be
-            saved on a call to `CloseProject()`. 
-            LCM will raise an exception if changes are attempted without 
+            saved on a call to `CloseProject()`.
+            LCM will raise an exception if changes are attempted without
             opening the project in this mode.
-            
-        Note: 
+
+        undoable:
+            Enable full undo stack integration with FLEx Ctrl+Z.
+            When True, operations wrapped in UndoableOperation() will appear
+            in FLEx's Undo menu. When False (default), uses rollback-only
+            transactions via Transaction().
+
+            Only valid when writeEnabled=True. Ignored if False.
+
+            Phase 2 feature: requires LCM BeginUndoTask/EndUndoTask support.
+            See docs/RESEARCH_NEEDED.md for details.
+
+        Note:
             A call to `OpenProject()` may fail with a `FP_FileLockedError`
-            exception if the project is open in Fieldworks (or another 
+            exception if the project is open in Fieldworks (or another
             application).
-            To avoid this, project sharing can be enabled within the 
+            To avoid this, project sharing can be enabled within the
             Fieldworks Project Properties dialog. In the Sharing tab,
-            turn on the option "Share project contents with programs 
+            turn on the option "Share project contents with programs
             on this computer".
 
         """
-        
+
         try:
             self.project = FLExLCM.OpenProject(projectName)
-            
+
         except System.IO.FileNotFoundException as e:
             raise FP_FileNotFoundError(projectName, e)
-            
+
         except LcmFileLockedException as e:
             raise FP_FileLockedError()
-        
-        except (LcmDataMigrationForbiddenException,           
+
+        except (LcmDataMigrationForbiddenException,
                 WorkerThreadException) as e:
             # Raised if the FW project needs to be migrated
-            # to a later version. The user needs to open the project 
+            # to a later version. The user needs to open the project
             # in FW to do the migration.
             # Jason Naylor [Dec2018] said not to do migration from an external
             # program: "We think that is something a FieldWorks user should
             # explicitly decide."
             raise FP_MigrationRequired()
-            
+
         except StartupException as e:
             # An unknown error -- pass on the full information
             raise FP_ProjectError(e.Message)
 
         self.lp    = self.project.LangProject
         self.lexDB = self.lp.LexDbOA
-        
+
         # Set up FieldWorks for making changes to the project.
         # All changes will be automatically saved when this object is
         # deleted.
 
         self.writeEnabled = writeEnabled
-        
-        if self.writeEnabled:
+        self._undoable = undoable and writeEnabled  # Only meaningful if write-enabled
+
+        if self.writeEnabled and not self._undoable:
+            # Phase 1 behavior: whole session is non-undoable (rollback transactions only)
             try:
                 # This must be called before calling any methods that change
                 # the project.
                 self.project.MainCacheAccessor.BeginNonUndoableTask()
             except System.InvalidOperationException:
                 raise FP_ProjectError("BeginNonUndoableTask() failed.")
+        elif self.writeEnabled and self._undoable:
+            # Phase 2 behavior: no envelope; each UndoableOperation wraps its own task
+            logging.getLogger(__name__).debug("OpenProject: undoable mode enabled")
+            # Nothing to do here; BeginUndoTask called per-operation by UndoableOperation
 
     def CloseProject(self):
         """
@@ -271,9 +289,13 @@ class FLExProject (object):
         """
         if hasattr(self, "project"):
             if self.writeEnabled:
-                # This must be called to mirror the call to BeginNonUndoableTask().
-                self.project.MainCacheAccessor.EndNonUndoableTask()
-                # Save all changes to disk. (EndNonUndoableTask)
+                if not self._undoable:
+                    # Phase 1: This must be called to mirror the call to BeginNonUndoableTask().
+                    self.project.MainCacheAccessor.EndNonUndoableTask()
+                # Phase 2: In undoable mode, no EndNonUndoableTask() to call
+                # (each UndoableOperation handles its own Begin/End)
+
+                # Save all changes to disk
                 usm = self.ObjectRepository(IUndoStackManager)
                 usm.Save()
             try:
@@ -416,6 +438,185 @@ class FLExProject (object):
 
         usm = self.ObjectRepository(IUndoStackManager)
         usm.Save()
+
+    def UndoableOperation(self, label):
+        """
+        Return a context manager for an undoable operation.
+
+        Changes made within the block appear as a single named operation
+        in FLEx's Ctrl+Z undo menu. The project MUST be opened with
+        undoable=True for this to work.
+
+        Args:
+            label (str): Name shown in FLEx undo menu (e.g. "Add entry 'run'")
+
+        Returns:
+            _FLExUndoableOperation: Context manager
+
+        Raises:
+            FP_ReadOnlyError: If project is not write-enabled
+            FP_TransactionError: If project was not opened with undoable=True
+
+        Example::
+
+            project = FLExProject()
+            project.OpenProject("MyProject", writeEnabled=True, undoable=True)
+
+            with project.UndoableOperation("Add entry 'run'"):
+                entry = project.LexEntry.Create("run", "stem")
+                project.Senses.Create(entry, "to move quickly", "en")
+
+            # Now "Add entry 'run'" appears in FLEx Edit > Undo
+            project.Undo()   # Ctrl+Z equivalent
+            project.Redo()   # Ctrl+Y equivalent
+
+        Note:
+            Phase 2 feature. Requires research-verified LCM APIs.
+            See docs/RESEARCH_NEEDED.md and docs/TRANSACTION_GUIDE.md.
+        """
+        from .undoable_operation import _FLExUndoableOperation
+
+        begin_fn, end_fn = self._GetUndoRedoAPI()
+        return _FLExUndoableOperation(self, label, begin_fn, end_fn)
+
+    def _GetUndoRedoAPI(self):
+        """
+        Internal: Discover the available LCM undo/redo APIs.
+
+        Returns a (begin_fn, end_fn) tuple. If the LCM APIs are not found,
+        raises FP_TransactionError.
+
+        The discovery order (preferred first):
+            1. project.BeginUndoTask + EndUndoTask
+            2. project.MainCacheAccessor.BeginUndoTask + EndUndoTask
+            3. Not found - raises error
+
+        Returns:
+            tuple: (begin_fn: callable, end_fn: callable)
+
+        Raises:
+            FP_TransactionError: If no undo/redo API found
+        """
+        # Candidate 1: project-level BeginUndoTask
+        begin_fn = getattr(self.project, 'BeginUndoTask', None)
+        end_fn = getattr(self.project, 'EndUndoTask', None)
+        if begin_fn is not None and end_fn is not None:
+            logging.getLogger(__name__).debug(
+                "Undo/Redo API: Using project.BeginUndoTask/EndUndoTask"
+            )
+            return (begin_fn, end_fn)
+
+        # Candidate 2: MainCacheAccessor
+        try:
+            mca = self.project.MainCacheAccessor
+            begin_fn = getattr(mca, 'BeginUndoTask', None)
+            end_fn = getattr(mca, 'EndUndoTask', None)
+            if begin_fn is not None and end_fn is not None:
+                logging.getLogger(__name__).debug(
+                    "Undo/Redo API: Using MainCacheAccessor.BeginUndoTask/EndUndoTask"
+                )
+                return (begin_fn, end_fn)
+        except Exception:
+            pass
+
+        # No undo/redo API found
+        raise FP_TransactionError(
+            "FLExProject: no LCM undo/redo API found. "
+            "UndoableOperation() requires BeginUndoTask/EndUndoTask methods. "
+            "Verify your FieldWorks version supports these APIs. "
+            "See docs/RESEARCH_NEEDED.md for Phase 2 research details."
+        )
+
+    def Undo(self):
+        """
+        Undo the last UndoableOperation.
+
+        Reverses the changes of the last operation added with UndoableOperation().
+        Only valid when the project was opened with undoable=True.
+
+        Returns:
+            bool: True if undo succeeded, False if nothing to undo.
+
+        Raises:
+            FP_TransactionError: If project not opened with undoable=True
+
+        Example::
+
+            with project.UndoableOperation("Add entry"):
+                project.LexEntry.Create("word", "stem")
+
+            project.Undo()  # Removes the entry
+        """
+        if not self._undoable:
+            raise FP_TransactionError(
+                "Project must be opened with undoable=True to use Undo(). "
+                f"Current project was opened with undoable=False."
+            )
+
+        try:
+            undo_stack = self.project.UndoStack
+            if undo_stack is None:
+                logging.getLogger(__name__).warning("UndoStack not available")
+                return False
+
+            # Try to call Undo if it exists
+            undo_fn = getattr(undo_stack, 'Undo', None)
+            if undo_fn is not None:
+                undo_fn()
+                logging.getLogger(__name__).debug("Undo() called successfully")
+                return True
+            else:
+                logging.getLogger(__name__).warning("UndoStack.Undo method not found")
+                return False
+        except Exception as e:
+            logging.getLogger(__name__).error(f"Undo() failed: {e}")
+            raise FP_TransactionError(f"Undo() operation failed: {e}")
+
+    def Redo(self):
+        """
+        Redo the last undone UndoableOperation.
+
+        Re-applies a change reversed by Undo().
+        Only valid when the project was opened with undoable=True.
+
+        Returns:
+            bool: True if redo succeeded, False if nothing to redo.
+
+        Raises:
+            FP_TransactionError: If project not opened with undoable=True
+
+        Example::
+
+            with project.UndoableOperation("Add entry"):
+                project.LexEntry.Create("word", "stem")
+
+            project.Undo()   # Removes the entry
+            project.Redo()   # Restores the entry
+        """
+        if not self._undoable:
+            raise FP_TransactionError(
+                "Project must be opened with undoable=True to use Redo(). "
+                f"Current project was opened with undoable=False."
+            )
+
+        try:
+            undo_stack = self.project.UndoStack
+            if undo_stack is None:
+                logging.getLogger(__name__).warning("UndoStack not available")
+                return False
+
+            # Try to call Redo if it exists
+            redo_fn = getattr(undo_stack, 'Redo', None)
+            if redo_fn is not None:
+                redo_fn()
+                logging.getLogger(__name__).debug("Redo() called successfully")
+                return True
+            else:
+                logging.getLogger(__name__).warning("UndoStack.Redo method not found")
+                return False
+        except Exception as e:
+            logging.getLogger(__name__).error(f"Redo() failed: {e}")
+            raise FP_TransactionError(f"Redo() operation failed: {e}")
 
     # --- Advanced Operations ---
 

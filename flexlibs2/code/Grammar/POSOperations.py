@@ -79,9 +79,7 @@ class POSOperations(BaseOperations):
         return parent.SubPossibilitiesOS
 
     @OperationsMethod
-    @OperationsMethod
     @wrap_enumerable
-    @OperationsMethod
     def GetAll(self):
         """
         Get all parts of speech in the project.
@@ -118,7 +116,6 @@ class POSOperations(BaseOperations):
             for pos in pos_list.PossibilitiesOS:
                 yield pos
 
-    @OperationsMethod
     @OperationsMethod
     def Create(self, name, abbreviation, catalogSourceId=None):
         """
@@ -197,7 +194,6 @@ class POSOperations(BaseOperations):
         return new_pos
 
     @OperationsMethod
-    @OperationsMethod
     def Delete(self, pos_or_hvo):
         """
         Delete a part of speech.
@@ -237,7 +233,6 @@ class POSOperations(BaseOperations):
         pos_list.PossibilitiesOS.Remove(pos)
 
     @OperationsMethod
-    @OperationsMethod
     def Exists(self, name):
         """
         Check if a part of speech with the given name exists.
@@ -268,7 +263,6 @@ class POSOperations(BaseOperations):
 
         return self.Find(name) is not None
 
-    @OperationsMethod
     @OperationsMethod
     def Find(self, name):
         """
@@ -325,7 +319,6 @@ class POSOperations(BaseOperations):
         return None
 
     @OperationsMethod
-    @OperationsMethod
     def GetName(self, pos_or_hvo, wsHandle=None):
         """
         Get the name of a part of speech.
@@ -361,7 +354,6 @@ class POSOperations(BaseOperations):
         name = ITsString(pos.Name.get_String(wsHandle)).Text
         return name or ""
 
-    @OperationsMethod
     @OperationsMethod
     def SetName(self, pos_or_hvo, name, wsHandle=None):
         """
@@ -401,7 +393,6 @@ class POSOperations(BaseOperations):
         pos.Name.set_String(wsHandle, mkstr)
 
     @OperationsMethod
-    @OperationsMethod
     def GetAbbreviation(self, pos_or_hvo, wsHandle=None):
         """
         Get the abbreviation of a part of speech.
@@ -434,7 +425,6 @@ class POSOperations(BaseOperations):
         abbr = ITsString(pos.Abbreviation.get_String(wsHandle)).Text
         return abbr or ""
 
-    @OperationsMethod
     @OperationsMethod
     def SetAbbreviation(self, pos_or_hvo, abbr, wsHandle=None):
         """
@@ -474,7 +464,6 @@ class POSOperations(BaseOperations):
 
     @OperationsMethod
     @wrap_enumerable
-    @OperationsMethod
     def GetSubcategories(self, pos_or_hvo):
         """
         Get all subcategories of a part of speech.
@@ -513,7 +502,6 @@ class POSOperations(BaseOperations):
 
         return list(pos.SubPossibilitiesOS)
 
-    @OperationsMethod
     @OperationsMethod
     def AddSubcategory(self, pos_or_hvo, name, abbreviation):
         """
@@ -579,7 +567,6 @@ class POSOperations(BaseOperations):
         return subcat
 
     @OperationsMethod
-    @OperationsMethod
     def RemoveSubcategory(self, pos_or_hvo, subcat_or_hvo):
         """
         Remove a subcategory from a part of speech.
@@ -622,7 +609,6 @@ class POSOperations(BaseOperations):
         pos.SubPossibilitiesOS.Remove(subcat)
 
     @OperationsMethod
-    @OperationsMethod
     def GetCatalogSourceId(self, pos_or_hvo):
         """
         Get the catalog source ID of a part of speech.
@@ -659,7 +645,6 @@ class POSOperations(BaseOperations):
 
     @OperationsMethod
     @wrap_enumerable
-    @OperationsMethod
     def GetInflectionClasses(self, pos_or_hvo):
         """
         Get all inflection classes associated with a part of speech.
@@ -701,7 +686,6 @@ class POSOperations(BaseOperations):
 
     @OperationsMethod
     @wrap_enumerable
-    @OperationsMethod
     def GetAffixSlots(self, pos_or_hvo):
         """
         Get all affix slots associated with a part of speech.
@@ -741,7 +725,6 @@ class POSOperations(BaseOperations):
         # IPartOfSpeech has AffixSlotsOC
         return list(pos.AffixSlotsOC)
 
-    @OperationsMethod
     @OperationsMethod
     def GetEntryCount(self, pos_or_hvo):
         """
@@ -792,7 +775,6 @@ class POSOperations(BaseOperations):
 
         return count
 
-    @OperationsMethod
     @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
         """
@@ -946,7 +928,6 @@ class POSOperations(BaseOperations):
     # ========== SYNC INTEGRATION METHODS ==========
 
     @OperationsMethod
-    @OperationsMethod
     def GetSyncableProperties(self, item):
         """
         Get dictionary of syncable properties for cross-project synchronization.
@@ -998,7 +979,6 @@ class POSOperations(BaseOperations):
 
         return props
 
-    @OperationsMethod
     @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
