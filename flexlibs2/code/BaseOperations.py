@@ -256,7 +256,6 @@ class BaseOperations:
     # ========== REORDERING METHODS ==========
 
     @OperationsMethod
-    @OperationsMethod
     def Sort(self, parent_or_hvo, key_func=None, reverse=False):
         """
         Sort items in an owning sequence using a custom key function.
@@ -354,7 +353,6 @@ class BaseOperations:
         return count
 
     @OperationsMethod
-    @OperationsMethod
     def MoveUp(self, parent_or_hvo, item, positions=1):
         """
         Move an item up (toward index 0) by specified number of positions.
@@ -448,7 +446,6 @@ class BaseOperations:
 
         return actual_moved
 
-    @OperationsMethod
     @OperationsMethod
     def MoveDown(self, parent_or_hvo, item, positions=1):
         """
@@ -545,7 +542,6 @@ class BaseOperations:
         return actual_moved
 
     @OperationsMethod
-    @OperationsMethod
     def MoveToIndex(self, parent_or_hvo, item, new_index):
         """
         Move an item to a specific index position.
@@ -631,7 +627,6 @@ class BaseOperations:
         return True
 
     @OperationsMethod
-    @OperationsMethod
     def MoveBefore(self, item_to_move, target_item):
         """
         Move an item to position immediately before another item.
@@ -704,7 +699,6 @@ class BaseOperations:
 
         return True
 
-    @OperationsMethod
     @OperationsMethod
     def MoveAfter(self, item_to_move, target_item):
         """
@@ -779,7 +773,6 @@ class BaseOperations:
 
         return True
 
-    @OperationsMethod
     @OperationsMethod
     def Swap(self, item1, item2):
         """
@@ -865,7 +858,6 @@ class BaseOperations:
 
     # ========== SYNC INTEGRATION METHODS ==========
 
-    @OperationsMethod
     @OperationsMethod
     def GetSyncableProperties(self, item):
         """
@@ -961,7 +953,6 @@ class BaseOperations:
             "for this item type. See flexlibs2.sync documentation for details."
         )
 
-    @OperationsMethod
     @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
