@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.4.1] - 2026-03-16
+
+### Fixed
+
+#### Decorator Bugs
+- **Duplicate `@OperationsMethod` decorators** - Fixed `'OperationsMethod' object is not callable'` errors
+  - BaseOperations.py: Removed duplicates from 9 reordering/sync methods
+  - POSOperations.py: Removed duplicates from 17 methods (including GetAll)
+  - LexEntryOperations.py: Removed duplicates from 5 methods
+  - All 64 operation files verified clean
+
+### Added
+
+#### Pre-commit Hooks
+- Custom decorator validator prevents duplicate decorators
+- Black code formatting enforcement
+- Flake8 linting (unused imports, complexity)
+- Detect-secrets for credential detection
+- Setup documentation in docs/PRE_COMMIT_SETUP.md
+- Decorator checking script in scripts/check_decorators.py
+
+---
+
 ## [2.3.0] - 2026-02-28
 
 ### Added
