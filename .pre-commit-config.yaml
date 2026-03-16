@@ -1,0 +1,58 @@
+# Pre-commit hooks for FlexLibs2
+#
+# Installation:
+#   pip install pre-commit
+#   pre-commit install
+#
+# Manual runs:
+#   pre-commit run --all-files                    # Check all files
+#   pre-commit run check-duplicate-decorators     # Check only decorators
+#
+# Uninstall:
+#   pre-commit uninstall
+
+repos:
+  # Custom: Check for duplicate @OperationsMethod decorators
+  - repo: local
+    hooks:
+      - id: check-duplicate-decorators
+        name: Check for duplicate decorators
+        entry: python scripts/check_decorators.py
+        language: system
+        files: Operations\.py$
+        stages: [commit]
+        pass_filenames: true
+
+  # Code formatting with Black
+  - repo: https://github.com/psf/black
+    rev: 24.1.1
+    hooks:
+      - id: black
+        language_version: python3
+        args: [--line-length=120]
+
+  # Linting with Flake8
+  - repo: https://github.com/PyCQA/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+        args: [--max-line-length=120, --extend-ignore=E203,W503]
+        additional_dependencies: [flake8-bugbear, flake8-comprehensions]
+
+  # Detect secrets and credentials
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: [--baseline, .secrets.baseline]
+
+  # Built-in pre-commit checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: mixed-line-ending
