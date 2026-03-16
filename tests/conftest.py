@@ -22,6 +22,20 @@ import sys
 import os
 import importlib
 
+# Add the package root to sys.path so flexlibs2 can be imported
+# This must be done BEFORE test collection
+_test_dir = os.path.dirname(os.path.abspath(__file__))
+_project_root = os.path.dirname(_test_dir)
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+
+
+# Pytest hook to ensure sys.path is set up early
+def pytest_configure(config):
+    """Configure pytest and set up sys.path before test collection."""
+    if _project_root not in sys.path:
+        sys.path.insert(0, _project_root)
+
 
 # ========== SESSION-SCOPED FIXTURE FOR FIELDWORKS INITIALIZATION ==========
 # Using autouse=True ensures this runs before any tests, regardless of scope

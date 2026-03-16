@@ -133,7 +133,11 @@ class FP_NullParameterError(FP_RuntimeError):
 class FP_ParameterError(FP_RuntimeError):
     def __init__(self, msg):
         FP_RuntimeError.__init__(self, msg)
-        
+
+class FP_TransactionError(FP_RuntimeError):
+    def __init__(self, message):
+        FP_RuntimeError.__init__(self, message)
+
 #-----------------------------------------------------------
 
 def AllProjectNames():
@@ -278,6 +282,140 @@ class FLExProject (object):
                 return
             except Exception:
                 raise
+
+    def Transaction(self, label="transaction"):
+        """
+        Return a context manager for a safe rollback transaction.
+
+        If an exception occurs inside the `with` block, all LCM changes made
+        within that block are rolled back to the state at the start of the block.
+        If no exception occurs, changes are committed (saved at CloseProject).
+
+        This is Phase 1 (rollback-only) behavior. Transactions do NOT appear
+        in the FLEx Ctrl+Z undo menu; they are programmatic safety nets only.
+
+        Args:
+            label (str): Human-readable description for logging. Default: "transaction"
+
+        Returns:
+            _FLExTransaction: Context manager
+
+        Raises:
+            FP_ReadOnlyError: If project is not open (raised at write time, not here)
+
+        Example::
+
+            project = FLExProject()
+            project.OpenProject("MyProject", writeEnabled=True)
+            try:
+                with project.Transaction("import batch"):
+                    for word, gloss in data:
+                        entry = project.LexEntry.Create(word, "stem")
+                        project.Senses.Create(entry, gloss, "en")
+            except Exception as e:
+                print(f"Import failed and was rolled back: {e}")
+            project.CloseProject()
+
+        Note:
+            Nesting transactions is allowed but not recommended.
+            Inner rollbacks also roll back the outer transaction state.
+
+        See Also:
+            UndoableOperation() - Phase 2 (pending research), adds to FLEx Ctrl+Z menu
+        """
+        from .transaction import _FLExTransaction
+
+        mark_fn, rollback_fn = self._GetTransactionAPI()
+        return _FLExTransaction(self, label, mark_fn, rollback_fn)
+
+    def _GetTransactionAPI(self):
+        """
+        Internal: Discover the available LCM rollback API.
+
+        Returns a (mark_fn, rollback_fn) tuple. If the LCM rollback API
+        is not found, returns (None, None) - the transaction will log
+        a warning but still executes (without rollback capability).
+
+        The discovery order (preferred first):
+            1. project.UndoStack.Mark() + RollbackToMark(mark)
+            2. project.MainCacheAccessor.Mark() + RollbackToMark(mark)
+            3. IUndoStackManager.Mark() + RollbackToMark(mark) via ObjectRepository
+            4. No API found - returns (None, None)
+
+        Returns:
+            tuple: (mark_fn: callable or None, rollback_fn: callable or None)
+        """
+        # Candidate 1: UndoStack on the project object
+        undo_stack = getattr(self.project, 'UndoStack', None)
+        if undo_stack is not None:
+            mark_fn = getattr(undo_stack, 'Mark', None)
+            rollback_fn = getattr(undo_stack, 'RollbackToMark', None)
+            if mark_fn is not None and rollback_fn is not None:
+                logging.getLogger(__name__).debug(
+                    "Transaction API: Using UndoStack.Mark/RollbackToMark"
+                )
+                return (mark_fn, rollback_fn)
+
+        # Candidate 2: MainCacheAccessor
+        try:
+            mca = self.project.MainCacheAccessor
+            mark_fn = getattr(mca, 'Mark', None)
+            rollback_fn = getattr(mca, 'RollbackToMark', None)
+            if mark_fn is not None and rollback_fn is not None:
+                logging.getLogger(__name__).debug(
+                    "Transaction API: Using MainCacheAccessor.Mark/RollbackToMark"
+                )
+                return (mark_fn, rollback_fn)
+        except Exception:
+            pass
+
+        # Candidate 3: IUndoStackManager
+        try:
+            usm = self.ObjectRepository(IUndoStackManager)
+            mark_fn = getattr(usm, 'Mark', None)
+            rollback_fn = getattr(usm, 'RollbackToMark', None)
+            if mark_fn is not None and rollback_fn is not None:
+                logging.getLogger(__name__).debug(
+                    "Transaction API: Using IUndoStackManager.Mark/RollbackToMark"
+                )
+                return (mark_fn, rollback_fn)
+        except Exception:
+            pass
+
+        # No rollback API found
+        logging.getLogger(__name__).warning(
+            "FLExProject.Transaction: no LCM rollback API found. "
+            "Transactions will execute but rollback on failure is not available. "
+            "See docs/RESEARCH_NEEDED.md for details on Phase 2 research."
+        )
+        return (None, None)
+
+    def SaveChanges(self):
+        """
+        Save all pending changes to disk without closing the project.
+
+        This is equivalent to what CloseProject() does internally before Dispose().
+        Useful after a successful Transaction block to ensure changes are persisted.
+
+        Note:
+            Only valid for write-enabled projects.
+            Does NOT call EndNonUndoableTask() - the session stays open.
+
+        Raises:
+            FP_ReadOnlyError: If project is not write-enabled.
+
+        Example::
+
+            with project.Transaction("import batch"):
+                for word in words:
+                    project.LexEntry.Create(word, "stem")
+            project.SaveChanges()  # Persist the batch before continuing
+        """
+        if not self.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        usm = self.ObjectRepository(IUndoStackManager)
+        usm.Save()
 
     # --- Advanced Operations ---
 

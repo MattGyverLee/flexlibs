@@ -35,6 +35,7 @@ from .code.FLExProject import (
     FP_ProjectError,
     FP_ReadOnlyError,
     FP_RuntimeError,
+    FP_TransactionError,
     FP_WritingSystemError,
     )
 
