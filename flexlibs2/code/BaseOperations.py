@@ -415,6 +415,8 @@ class BaseOperations:
         See Also:
             MoveDown, MoveToIndex, MoveBefore
         """
+        self._EnsureWriteEnabled()
+
         if positions <= 0:
             raise ValueError("positions must be positive integer")
 
@@ -509,6 +511,8 @@ class BaseOperations:
         See Also:
             MoveUp, MoveToIndex, MoveAfter
         """
+        self._EnsureWriteEnabled()
+
         if positions <= 0:
             raise ValueError("positions must be positive integer")
 
@@ -595,6 +599,8 @@ class BaseOperations:
         See Also:
             MoveUp, MoveDown, MoveBefore, MoveAfter
         """
+        self._EnsureWriteEnabled()
+
         parent = self._GetObject(parent_or_hvo)
         sequence = self._GetSequence(parent)
 
@@ -673,6 +679,8 @@ class BaseOperations:
         See Also:
             MoveAfter, MoveToIndex, Swap
         """
+        self._EnsureWriteEnabled()
+
         # Find which sequence contains both items
         sequence = self._FindCommonSequence(item_to_move, target_item)
 
@@ -746,6 +754,8 @@ class BaseOperations:
         See Also:
             MoveBefore, MoveToIndex, Swap
         """
+        self._EnsureWriteEnabled()
+
         # Find which sequence contains both items
         sequence = self._FindCommonSequence(item_to_move, target_item)
 

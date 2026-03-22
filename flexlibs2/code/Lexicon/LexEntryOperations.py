@@ -766,6 +766,8 @@ class LexEntryOperations(BaseOperations):
         See Also:
             GetHeadword, SetLexemeForm, SetHomographNumber
         """
+        self._EnsureWriteEnabled()
+
         self.SetLexemeForm(entry_or_hvo, text, wsHandle)
 
     @OperationsMethod

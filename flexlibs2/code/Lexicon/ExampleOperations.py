@@ -750,6 +750,8 @@ class ExampleOperations(BaseOperations):
         See Also:
             SetTranslation, GetTranslation, RemoveTranslation
         """
+        self._EnsureWriteEnabled()
+
         self.SetTranslation(example_or_hvo, text, wsHandle)
 
     @OperationsMethod
