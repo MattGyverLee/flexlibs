@@ -47,7 +47,7 @@ class TestDiffResult(unittest.TestCase):
             source_guid="abc-123",
             target_guid=None,
             object_type="Allomorph",
-            description="NEW: run-ing"
+            description="NEW: run-ing",
         )
 
         self.result.add_change(change)
@@ -65,7 +65,7 @@ class TestDiffResult(unittest.TestCase):
             target_guid="abc-123",
             object_type="Allomorph",
             description="MODIFIED: run-ing",
-            details={"Form": "runing → run-ing"}
+            details={"Form": "runing → run-ing"},
         )
 
         self.result.add_change(change)
@@ -82,7 +82,7 @@ class TestDiffResult(unittest.TestCase):
             source_guid=None,
             target_guid="abc-123",
             object_type="Allomorph",
-            description="DELETED: walk-ed"
+            description="DELETED: walk-ed",
         )
 
         self.result.add_change(change)
@@ -99,7 +99,7 @@ class TestDiffResult(unittest.TestCase):
             source_guid="abc-123",
             target_guid="abc-123",
             object_type="Allomorph",
-            description="CONFLICT: jump"
+            description="CONFLICT: jump",
         )
 
         self.result.add_change(change)
@@ -117,7 +117,7 @@ class TestDiffResult(unittest.TestCase):
             source_guid="abc-123",
             target_guid="abc-123",
             object_type="Allomorph",
-            description="UNCHANGED: test"
+            description="UNCHANGED: test",
         )
 
         self.result.add_change(change)
@@ -197,13 +197,7 @@ class TestDiffEngine(unittest.TestCase):
         self.source_ops.GetAll = Mock(return_value=[])
         self.target_ops.GetAll = Mock(return_value=[])
 
-        result = self.engine.compare(
-            self.source_ops,
-            self.target_ops,
-            None,
-            None,
-            GuidMatchStrategy()
-        )
+        result = self.engine.compare(self.source_ops, self.target_ops, None, None, GuidMatchStrategy())
 
         self.assertEqual(result.total, 0)
         self.assertFalse(result.has_changes)
@@ -218,13 +212,7 @@ class TestDiffEngine(unittest.TestCase):
         self.source_ops.GetAll = Mock(return_value=[source_obj])
         self.target_ops.GetAll = Mock(return_value=[])
 
-        result = self.engine.compare(
-            self.source_ops,
-            self.target_ops,
-            None,
-            None,
-            GuidMatchStrategy()
-        )
+        result = self.engine.compare(self.source_ops, self.target_ops, None, None, GuidMatchStrategy())
 
         self.assertEqual(result.num_new, 1)
         self.assertEqual(result.num_modified, 0)
@@ -240,13 +228,7 @@ class TestDiffEngine(unittest.TestCase):
         self.source_ops.GetAll = Mock(return_value=[])
         self.target_ops.GetAll = Mock(return_value=[target_obj])
 
-        result = self.engine.compare(
-            self.source_ops,
-            self.target_ops,
-            None,
-            None,
-            GuidMatchStrategy()
-        )
+        result = self.engine.compare(self.source_ops, self.target_ops, None, None, GuidMatchStrategy())
 
         self.assertEqual(result.num_new, 0)
         self.assertEqual(result.num_modified, 0)
@@ -266,13 +248,7 @@ class TestDiffEngine(unittest.TestCase):
         self.source_ops.GetAll = Mock(return_value=[source_obj])
         self.target_ops.GetAll = Mock(return_value=[target_obj])
 
-        result = self.engine.compare(
-            self.source_ops,
-            self.target_ops,
-            None,
-            None,
-            GuidMatchStrategy()
-        )
+        result = self.engine.compare(self.source_ops, self.target_ops, None, None, GuidMatchStrategy())
 
         self.assertEqual(result.num_new, 0)
         self.assertEqual(result.num_modified, 0)
@@ -293,13 +269,7 @@ class TestDiffEngine(unittest.TestCase):
         self.source_ops.GetAll = Mock(return_value=[source_obj])
         self.target_ops.GetAll = Mock(return_value=[target_obj])
 
-        result = self.engine.compare(
-            self.source_ops,
-            self.target_ops,
-            None,
-            None,
-            GuidMatchStrategy()
-        )
+        result = self.engine.compare(self.source_ops, self.target_ops, None, None, GuidMatchStrategy())
 
         self.assertEqual(result.num_new, 0)
         self.assertEqual(result.num_modified, 1)
@@ -326,12 +296,7 @@ class TestDiffEngine(unittest.TestCase):
         filter_fn = lambda obj: "include" in obj.form
 
         result = self.engine.compare(
-            self.source_ops,
-            self.target_ops,
-            None,
-            None,
-            GuidMatchStrategy(),
-            filter_fn=filter_fn
+            self.source_ops, self.target_ops, None, None, GuidMatchStrategy(), filter_fn=filter_fn
         )
 
         # Only obj1 should be included
@@ -353,12 +318,7 @@ class TestDiffEngine(unittest.TestCase):
             progress_messages.append(msg)
 
         result = self.engine.compare(
-            self.source_ops,
-            self.target_ops,
-            None,
-            None,
-            GuidMatchStrategy(),
-            progress_callback=progress_callback
+            self.source_ops, self.target_ops, None, None, GuidMatchStrategy(), progress_callback=progress_callback
         )
 
         # Should have called progress callback
@@ -366,5 +326,5 @@ class TestDiffEngine(unittest.TestCase):
         self.assertTrue(any("Loading source" in msg for msg in progress_messages))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

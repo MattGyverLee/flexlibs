@@ -56,11 +56,13 @@ def compare(expected_contract, liblcm_snapshot):
     missing_types = []
     for type_name, info in snapshot_types.items():
         if not info.get("found", False):
-            missing_types.append({
-                "type": type_name,
-                "error": info.get("error", "Not found"),
-                "used_in_modules": _find_modules_using(type_name, expected_imports),
-            })
+            missing_types.append(
+                {
+                    "type": type_name,
+                    "error": info.get("error", "Not found"),
+                    "used_in_modules": _find_modules_using(type_name, expected_imports),
+                }
+            )
 
     # 2. Find missing members on types that DO exist
     missing_members = []
@@ -76,19 +78,23 @@ def compare(expected_contract, liblcm_snapshot):
 
         for prop in usage.get("properties", []):
             if prop not in provided_props and prop not in provided_methods:
-                missing_members.append({
-                    "type": type_name,
-                    "member": prop,
-                    "kind": "property",
-                })
+                missing_members.append(
+                    {
+                        "type": type_name,
+                        "member": prop,
+                        "kind": "property",
+                    }
+                )
 
         for method in usage.get("methods", []):
             if method not in provided_methods and method not in provided_props:
-                missing_members.append({
-                    "type": type_name,
-                    "member": method,
-                    "kind": "method",
-                })
+                missing_members.append(
+                    {
+                        "type": type_name,
+                        "member": method,
+                        "kind": "method",
+                    }
+                )
 
     # 3. Map breakage back to source files
     affected_files = {}
@@ -104,26 +110,32 @@ def compare(expected_contract, liblcm_snapshot):
         for mod, names in fcontract.get("imports", {}).items():
             for name in names:
                 if name in broken_type_names:
-                    file_issues.append({
-                        "severity": "ERROR",
-                        "issue": f"Imports missing type: {name}",
-                    })
+                    file_issues.append(
+                        {
+                            "severity": "ERROR",
+                            "issue": f"Imports missing type: {name}",
+                        }
+                    )
 
         # Check if file uses missing members
         for type_name, usage in fcontract.get("type_usage", {}).items():
             broken = broken_members_by_type.get(type_name, [])
             for prop in usage.get("properties", []):
                 if prop in broken:
-                    file_issues.append({
-                        "severity": "ERROR",
-                        "issue": f"Uses missing {type_name}.{prop}",
-                    })
+                    file_issues.append(
+                        {
+                            "severity": "ERROR",
+                            "issue": f"Uses missing {type_name}.{prop}",
+                        }
+                    )
             for method in usage.get("methods", []):
                 if method in broken:
-                    file_issues.append({
-                        "severity": "ERROR",
-                        "issue": f"Calls missing {type_name}.{method}()",
-                    })
+                    file_issues.append(
+                        {
+                            "severity": "ERROR",
+                            "issue": f"Calls missing {type_name}.{method}()",
+                        }
+                    )
 
         if file_issues:
             affected_files[filepath] = file_issues
@@ -139,13 +151,8 @@ def compare(expected_contract, liblcm_snapshot):
         "total_types_missing": total_missing,
         "total_missing_members": len(missing_members),
         "total_affected_files": len(affected_files),
-        "compatibility_score": (
-            round(total_found / max(total_expected, 1) * 100, 1)
-        ),
-        "verdict": (
-            "PASS" if total_missing == 0 and len(missing_members) == 0
-            else "FAIL"
-        ),
+        "compatibility_score": (round(total_found / max(total_expected, 1) * 100, 1)),
+        "verdict": ("PASS" if total_missing == 0 and len(missing_members) == 0 else "FAIL"),
     }
 
     return {
@@ -185,20 +192,24 @@ def compare_snapshots(old_snapshot, new_snapshot):
 
         # Type disappeared
         if old_found and not new_found:
-            regressions.append({
-                "type": type_name,
-                "change": "type_removed",
-                "detail": f"Type {type_name} was present, now missing",
-            })
+            regressions.append(
+                {
+                    "type": type_name,
+                    "change": "type_removed",
+                    "detail": f"Type {type_name} was present, now missing",
+                }
+            )
             continue
 
         # Type appeared
         if not old_found and new_found:
-            additions.append({
-                "type": type_name,
-                "change": "type_added",
-                "detail": f"Type {type_name} is now available",
-            })
+            additions.append(
+                {
+                    "type": type_name,
+                    "change": "type_added",
+                    "detail": f"Type {type_name} is now available",
+                }
+            )
             continue
 
         if not old_found and not new_found:
@@ -211,29 +222,37 @@ def compare_snapshots(old_snapshot, new_snapshot):
         new_methods = set(new_info.get("methods", []))
 
         for prop in sorted(old_props - new_props):
-            regressions.append({
-                "type": type_name,
-                "change": "property_removed",
-                "detail": f"{type_name}.{prop} removed",
-            })
+            regressions.append(
+                {
+                    "type": type_name,
+                    "change": "property_removed",
+                    "detail": f"{type_name}.{prop} removed",
+                }
+            )
         for prop in sorted(new_props - old_props):
-            additions.append({
-                "type": type_name,
-                "change": "property_added",
-                "detail": f"{type_name}.{prop} added",
-            })
+            additions.append(
+                {
+                    "type": type_name,
+                    "change": "property_added",
+                    "detail": f"{type_name}.{prop} added",
+                }
+            )
         for method in sorted(old_methods - new_methods):
-            regressions.append({
-                "type": type_name,
-                "change": "method_removed",
-                "detail": f"{type_name}.{method}() removed",
-            })
+            regressions.append(
+                {
+                    "type": type_name,
+                    "change": "method_removed",
+                    "detail": f"{type_name}.{method}() removed",
+                }
+            )
         for method in sorted(new_methods - old_methods):
-            additions.append({
-                "type": type_name,
-                "change": "method_added",
-                "detail": f"{type_name}.{method}() added",
-            })
+            additions.append(
+                {
+                    "type": type_name,
+                    "change": "method_added",
+                    "detail": f"{type_name}.{method}() added",
+                }
+            )
 
     summary = {
         "old_version": old_snapshot.get("metadata", {}).get("liblcm_version", "unknown"),
@@ -309,9 +328,7 @@ def format_report(report, verbose=False):
         lines.append("")
         lines.append("MISSING MEMBERS:")
         for mm in missing_members:
-            lines.append(
-                f"  [ERROR] {mm['type']}.{mm['member']} ({mm['kind']})"
-            )
+            lines.append(f"  [ERROR] {mm['type']}.{mm['member']} ({mm['kind']})")
 
     # Regressions
     regressions = report.get("regressions", [])
@@ -346,23 +363,17 @@ def main():
     """CLI: compare a contract against a snapshot, or two snapshots."""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Compare LCM contract vs snapshot, or two snapshots."
-    )
+    parser = argparse.ArgumentParser(description="Compare LCM contract vs snapshot, or two snapshots.")
     subparsers = parser.add_subparsers(dest="command")
 
     # compare contract vs snapshot
-    check_parser = subparsers.add_parser(
-        "check", help="Compare expected contract against liblcm snapshot"
-    )
+    check_parser = subparsers.add_parser("check", help="Compare expected contract against liblcm snapshot")
     check_parser.add_argument("--contract", "-c", required=True)
     check_parser.add_argument("--snapshot", "-s", required=True)
     check_parser.add_argument("--verbose", "-v", action="store_true")
 
     # compare two snapshots
-    diff_parser = subparsers.add_parser(
-        "diff", help="Compare two liblcm snapshots for regressions"
-    )
+    diff_parser = subparsers.add_parser("diff", help="Compare two liblcm snapshots for regressions")
     diff_parser.add_argument("--old", required=True)
     diff_parser.add_argument("--new", required=True)
     diff_parser.add_argument("--verbose", "-v", action="store_true")
@@ -389,4 +400,5 @@ def main():
 
 if __name__ == "__main__":
     import sys
+
     main()

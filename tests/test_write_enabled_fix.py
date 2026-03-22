@@ -51,21 +51,17 @@ class TestEnsureWriteEnabledFix:
         from pathlib import Path
 
         ops_file = Path("flexlibs2/code/BaseOperations.py")
-        content = ops_file.read_text(encoding='utf-8')
+        content = ops_file.read_text(encoding="utf-8")
 
         # Verify the method checks writeEnabled and raises on False
-        assert "if not self.project.writeEnabled:" in content, \
-            "Method should check if writeEnabled is False"
+        assert "if not self.project.writeEnabled:" in content, "Method should check if writeEnabled is False"
 
-        assert "raise Exception(" in content, \
-            "Method should raise Exception when write is disabled"
+        assert "raise Exception(" in content, "Method should raise Exception when write is disabled"
 
         # Verify error message is appropriate
-        assert "read-only" in content.lower(), \
-            "Error message should mention read-only"
+        assert "read-only" in content.lower(), "Error message should mention read-only"
 
-        assert "writeEnabled=True" in content, \
-            "Error message should suggest opening with writeEnabled=True"
+        assert "writeEnabled=True" in content, "Error message should suggest opening with writeEnabled=True"
 
     def test_source_code_uses_property_not_method(self):
         """
@@ -77,15 +73,13 @@ class TestEnsureWriteEnabledFix:
         from pathlib import Path
 
         ops_file = Path("flexlibs2/code/BaseOperations.py")
-        content = ops_file.read_text(encoding='utf-8')
+        content = ops_file.read_text(encoding="utf-8")
 
         # Check that the fixed property is used
-        assert "self.project.writeEnabled" in content, \
-            "Source should check self.project.writeEnabled property"
+        assert "self.project.writeEnabled" in content, "Source should check self.project.writeEnabled property"
 
         # Check that the broken method call is removed
-        assert ".CanModify()" not in content, \
-            "Source should not call .CanModify() method"
+        assert ".CanModify()" not in content, "Source should not call .CanModify() method"
 
     def test_documentation_updated(self):
         """
@@ -96,11 +90,10 @@ class TestEnsureWriteEnabledFix:
         from pathlib import Path
 
         ops_file = Path("flexlibs2/code/BaseOperations.py")
-        content = ops_file.read_text(encoding='utf-8')
+        content = ops_file.read_text(encoding="utf-8")
 
         # Check that documentation is updated
-        assert "project.writeEnabled property" in content, \
-            "Documentation should mention writeEnabled property"
+        assert "project.writeEnabled property" in content, "Documentation should mention writeEnabled property"
 
 
 class TestFLExProjectWriteEnabled:
@@ -115,19 +108,18 @@ class TestFLExProjectWriteEnabled:
         from pathlib import Path
 
         project_file = Path("flexlibs2/code/FLExProject.py")
-        content = project_file.read_text(encoding='utf-8')
+        content = project_file.read_text(encoding="utf-8")
 
         # Check that writeEnabled is set in OpenProject
-        assert "self.writeEnabled = writeEnabled" in content, \
-            "FLExProject should set self.writeEnabled in OpenProject method"
+        assert (
+            "self.writeEnabled = writeEnabled" in content
+        ), "FLExProject should set self.writeEnabled in OpenProject method"
 
         # Check that it's used for write checks
-        assert "if self.writeEnabled:" in content, \
-            "FLExProject should check self.writeEnabled property"
+        assert "if self.writeEnabled:" in content, "FLExProject should check self.writeEnabled property"
 
         # Check that there's no CanModify method
-        assert "def CanModify(" not in content, \
-            "FLExProject should not have a CanModify() method"
+        assert "def CanModify(" not in content, "FLExProject should not have a CanModify() method"
 
 
 if __name__ == "__main__":

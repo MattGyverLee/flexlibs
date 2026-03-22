@@ -18,9 +18,10 @@ logger = logging.getLogger(__name__)
 
 class DependencyType(Enum):
     """Types of dependencies between objects."""
-    OWNERSHIP = "ownership"          # Parent owns child (must import parent first)
-    REFERENCE = "reference"          # Object references another (should exist)
-    CROSS_REFERENCE = "cross_ref"    # Bidirectional reference
+
+    OWNERSHIP = "ownership"  # Parent owns child (must import parent first)
+    REFERENCE = "reference"  # Object references another (should exist)
+    CROSS_REFERENCE = "cross_ref"  # Bidirectional reference
 
 
 @dataclass
@@ -28,11 +29,12 @@ class DependencyNode:
     """
     Node in dependency graph representing a FLEx object.
     """
+
     guid: str
     object_type: str
     obj: Any = None  # Actual FLEx object
     dependencies: Set[str] = field(default_factory=set)  # GUIDs this depends on
-    dependents: Set[str] = field(default_factory=set)    # GUIDs that depend on this
+    dependents: Set[str] = field(default_factory=set)  # GUIDs that depend on this
     dependency_types: Dict[str, DependencyType] = field(default_factory=dict)  # guid → type
     visited: bool = False  # For graph traversal
     in_progress: bool = False  # For cycle detection
@@ -61,11 +63,7 @@ class DependencyGraph:
             obj: Actual FLEx object (optional)
         """
         if guid not in self.nodes:
-            self.nodes[guid] = DependencyNode(
-                guid=guid,
-                object_type=object_type,
-                obj=obj
-            )
+            self.nodes[guid] = DependencyNode(guid=guid, object_type=object_type, obj=obj)
             self._import_order = None  # Invalidate cache
         else:
             # Update existing node
@@ -73,12 +71,7 @@ class DependencyGraph:
                 self.nodes[guid].obj = obj
             self.nodes[guid].object_type = object_type
 
-    def add_dependency(
-        self,
-        from_guid: str,
-        to_guid: str,
-        dep_type: DependencyType = DependencyType.REFERENCE
-    ):
+    def add_dependency(self, from_guid: str, to_guid: str, dep_type: DependencyType = DependencyType.REFERENCE):
         """
         Add dependency: from_guid depends on to_guid.
 
@@ -311,7 +304,7 @@ class DependencyGraph:
         visited.discard(guid)  # Remove self
         return list(visited)
 
-    def get_subgraph(self, guids: List[str]) -> 'DependencyGraph':
+    def get_subgraph(self, guids: List[str]) -> "DependencyGraph":
         """
         Extract subgraph containing only specified objects and their dependencies.
 
@@ -359,7 +352,7 @@ class DependencyGraph:
             f"Total objects: {len(self.nodes)}",
             f"Root objects: {len(self.get_roots())}",
             f"Leaf objects: {len(self.get_leaves())}",
-            ""
+            "",
         ]
 
         # Count by object type

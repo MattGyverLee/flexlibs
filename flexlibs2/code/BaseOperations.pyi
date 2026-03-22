@@ -7,7 +7,7 @@
 
 from typing import Any, Optional, Iterator, List, Union, Generic, TypeVar
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 class BaseOperations(Generic[T]):
     """Base class for all FLEx Operations"""

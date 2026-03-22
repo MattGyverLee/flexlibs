@@ -40,12 +40,14 @@ from tests.operations import (
 # UNIT TESTS - Using Mocks
 # =============================================================================
 
+
 class TestTextOperationsImport:
     """Test that TextOperations can be imported and instantiated."""
 
     def test_import_text_operations(self):
         """Test importing TextOperations class."""
         from flexlibs2.code.TextsWords.TextOperations import TextOperations
+
         assert TextOperations is not None
 
     def test_instantiate_with_mock_project(self, mock_flex_project):
@@ -83,7 +85,7 @@ class TestTextOperationsCRUDMethods:
         from flexlibs2.code.TextsWords.TextOperations import TextOperations
 
         ops = TextOperations(mock_flex_project)
-        assert hasattr(ops, 'GetAll')
+        assert hasattr(ops, "GetAll")
         assert callable(ops.GetAll)
 
     def test_has_create_method(self, mock_flex_project):
@@ -91,7 +93,7 @@ class TestTextOperationsCRUDMethods:
         from flexlibs2.code.TextsWords.TextOperations import TextOperations
 
         ops = TextOperations(mock_flex_project)
-        assert hasattr(ops, 'Create')
+        assert hasattr(ops, "Create")
         assert callable(ops.Create)
 
     def test_has_delete_method(self, mock_flex_project):
@@ -99,7 +101,7 @@ class TestTextOperationsCRUDMethods:
         from flexlibs2.code.TextsWords.TextOperations import TextOperations
 
         ops = TextOperations(mock_flex_project)
-        assert hasattr(ops, 'Delete')
+        assert hasattr(ops, "Delete")
         assert callable(ops.Delete)
 
     def test_has_find_method(self, mock_flex_project):
@@ -107,7 +109,7 @@ class TestTextOperationsCRUDMethods:
         from flexlibs2.code.TextsWords.TextOperations import TextOperations
 
         ops = TextOperations(mock_flex_project)
-        assert hasattr(ops, 'Find')
+        assert hasattr(ops, "Find")
         assert callable(ops.Find)
 
 
@@ -119,7 +121,7 @@ class TestTextOperationsPropertyGetters:
         from flexlibs2.code.TextsWords.TextOperations import TextOperations
 
         ops = TextOperations(mock_flex_project)
-        assert hasattr(ops, 'GetTitle')
+        assert hasattr(ops, "GetTitle")
         assert callable(ops.GetTitle)
 
     def test_has_getgenre_method(self, mock_flex_project):
@@ -128,7 +130,7 @@ class TestTextOperationsPropertyGetters:
 
         ops = TextOperations(mock_flex_project)
         # Genre may be accessed differently
-        assert hasattr(ops, 'GetGenre') or hasattr(ops, 'GetTitle')
+        assert hasattr(ops, "GetGenre") or hasattr(ops, "GetTitle")
 
 
 class TestTextOperationsPropertySetters:
@@ -139,7 +141,7 @@ class TestTextOperationsPropertySetters:
         from flexlibs2.code.TextsWords.TextOperations import TextOperations
 
         ops = TextOperations(mock_flex_project)
-        assert hasattr(ops, 'SetTitle')
+        assert hasattr(ops, "SetTitle")
         assert callable(ops.SetTitle)
 
 
@@ -152,7 +154,7 @@ class TestTextOperationsParagraphMethods:
 
         ops = TextOperations(mock_flex_project)
         # Check for paragraph-related methods
-        assert hasattr(ops, 'AddParagraph') or hasattr(ops, 'GetParagraphCount')
+        assert hasattr(ops, "AddParagraph") or hasattr(ops, "GetParagraphCount")
 
 
 class TestTextOperationsMockBehavior:
@@ -160,10 +162,10 @@ class TestTextOperationsMockBehavior:
 
     def test_mock_text_structure(self, mock_text):
         """Test mock text has expected structure."""
-        assert hasattr(mock_text, 'Name')
-        assert hasattr(mock_text, 'ContentsOA')
-        assert hasattr(mock_text, 'Hvo')
-        assert hasattr(mock_text, 'Guid')
+        assert hasattr(mock_text, "Name")
+        assert hasattr(mock_text, "ContentsOA")
+        assert hasattr(mock_text, "Hvo")
+        assert hasattr(mock_text, "Guid")
 
     def test_getall_with_mock_repository(self, mock_flex_project):
         """Test GetAll returns iterator from mock repository."""
@@ -172,11 +174,7 @@ class TestTextOperationsMockBehavior:
         # Setup mock to return test texts
         mock_texts = [MockLCMObject(hvo=4000 + i) for i in range(2)]
 
-        with patch.object(
-            mock_flex_project,
-            'ObjectsIn',
-            return_value=iter(mock_texts)
-        ):
+        with patch.object(mock_flex_project, "ObjectsIn", return_value=iter(mock_texts)):
             ops = TextOperations(mock_flex_project)
             result = list(ops.GetAll())
 
@@ -204,6 +202,7 @@ class TestTextOperationsValidation:
 # =============================================================================
 # INTEGRATION TESTS - Require Real FLEx Project
 # =============================================================================
+
 
 @pytest.mark.integration
 class TestTextOperationsIntegration:
@@ -264,12 +263,11 @@ class TestTextOperationsIntegration:
 # PYTEST CONFIGURATION
 # =============================================================================
 
+
 def pytest_configure(config):
     """Register custom markers."""
-    config.addinivalue_line(
-        "markers", "integration: mark test as integration test (requires real FLEx)"
-    )
+    config.addinivalue_line("markers", "integration: mark test as integration test (requires real FLEx)")
 
 
-if __name__ == '__main__':
-    pytest.main([__file__, '-v', '--tb=short', '-m', 'not integration'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v", "--tb=short", "-m", "not integration"])

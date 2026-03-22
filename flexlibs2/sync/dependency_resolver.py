@@ -104,10 +104,7 @@ class DependencyResolver:
         }
 
     def resolve_dependencies(
-        self,
-        obj: Any,
-        object_type: str,
-        config: Optional[DependencyConfig] = None
+        self, obj: Any, object_type: str, config: Optional[DependencyConfig] = None
     ) -> DependencyGraph:
         """
         Build dependency graph for object and its dependencies.
@@ -134,7 +131,7 @@ class DependencyResolver:
             config=config,
             visited=visited,
             current_owned_depth=0,
-            current_ref_depth=0
+            current_ref_depth=0,
         )
 
         return graph
@@ -147,7 +144,7 @@ class DependencyResolver:
         config: DependencyConfig,
         visited: Set[str],
         current_owned_depth: int,
-        current_ref_depth: int
+        current_ref_depth: int,
     ):
         """
         Recursively resolve dependencies.
@@ -162,7 +159,7 @@ class DependencyResolver:
             current_ref_depth: Current depth in reference chain
         """
         # Get object GUID
-        if not hasattr(obj, 'Guid'):
+        if not hasattr(obj, "Guid"):
             return
 
         guid = str(obj.Guid)
@@ -203,7 +200,7 @@ class DependencyResolver:
                     config=config,
                     visited=visited,
                     current_owned_depth=current_owned_depth + 1,
-                    current_ref_depth=current_ref_depth
+                    current_ref_depth=current_ref_depth,
                 )
 
         # Resolve referenced objects
@@ -234,7 +231,7 @@ class DependencyResolver:
                             config=config,
                             visited=visited,
                             current_owned_depth=0,  # Reset owned depth for references
-                            current_ref_depth=current_ref_depth + 1
+                            current_ref_depth=current_ref_depth + 1,
                         )
                     else:
                         # Referenced object not in source either - just add to graph

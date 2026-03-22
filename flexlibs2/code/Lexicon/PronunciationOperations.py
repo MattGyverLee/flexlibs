@@ -12,6 +12,7 @@
 #
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 import System
@@ -34,6 +35,7 @@ from SIL.LCModel.Core.Text import TsStringUtils
 from ..FLExProject import (
     FP_ParameterError,
 )
+
 
 class PronunciationOperations(BaseOperations):
     """
@@ -133,14 +135,14 @@ class PronunciationOperations(BaseOperations):
         if entry_or_hvo is None:
             # Iterate ALL pronunciations in entire project
             for entry in self.project.lexDB.Entries:
-                if hasattr(entry, 'PronunciationsOS'):
+                if hasattr(entry, "PronunciationsOS"):
                     for pronunciation in entry.PronunciationsOS:
                         yield pronunciation
         else:
             # Iterate pronunciations for specific entry
             entry = self.__GetEntryObject(entry_or_hvo)
 
-            if hasattr(entry, 'PronunciationsOS'):
+            if hasattr(entry, "PronunciationsOS"):
                 for pronunciation in entry.PronunciationsOS:
                     yield pronunciation
 
@@ -198,7 +200,7 @@ class PronunciationOperations(BaseOperations):
         pronunciation = factory.Create()
 
         # Add to entry's pronunciations collection (must be done before setting properties)
-        if hasattr(entry, 'PronunciationsOS'):
+        if hasattr(entry, "PronunciationsOS"):
             entry.PronunciationsOS.Add(pronunciation)
         else:
             raise FP_ParameterError("Entry does not support pronunciations")
@@ -244,7 +246,7 @@ class PronunciationOperations(BaseOperations):
 
         # Get owning entry and remove from collection
         entry = pronunciation.Owner
-        if hasattr(entry, 'PronunciationsOS'):
+        if hasattr(entry, "PronunciationsOS"):
             entry.PronunciationsOS.Remove(pronunciation)
 
     @OperationsMethod
@@ -310,13 +312,13 @@ class PronunciationOperations(BaseOperations):
         duplicate = factory.Create()
 
         # Determine insertion position
-        if insert_after and hasattr(parent, 'PronunciationsOS'):
+        if insert_after and hasattr(parent, "PronunciationsOS"):
             # Insert after source pronunciation
             source_index = parent.PronunciationsOS.IndexOf(source)
             parent.PronunciationsOS.Insert(source_index + 1, duplicate)
         else:
             # Insert at end
-            if hasattr(parent, 'PronunciationsOS'):
+            if hasattr(parent, "PronunciationsOS"):
                 parent.PronunciationsOS.Add(duplicate)
 
         # Copy simple MultiString properties (AFTER adding to parent)
@@ -325,7 +327,7 @@ class PronunciationOperations(BaseOperations):
             duplicate.Form.CopyAlternatives(source.Form)
         except (System.NullReferenceException, AttributeError):
             # Fallback: copy string by string if CopyAlternatives fails
-            if hasattr(source, 'Form') and source.Form:
+            if hasattr(source, "Form") and source.Form:
                 for ws_id in source.Form.AvailableWritingSystems:
                     try:
                         form_string = source.Form.get_String(ws_id)
@@ -336,11 +338,11 @@ class PronunciationOperations(BaseOperations):
                         pass
 
         # Copy Reference Atomic (RA) properties
-        if hasattr(source, 'LocationRA'):
+        if hasattr(source, "LocationRA"):
             duplicate.LocationRA = source.LocationRA
 
         # Handle owned objects if deep=True
-        if deep and hasattr(source, 'MediaFilesOS'):
+        if deep and hasattr(source, "MediaFilesOS"):
             # Duplicate media files
             for media in source.MediaFilesOS:
                 media_factory = self.project.project.ServiceLocator.GetService(ICmFileFactory)
@@ -350,7 +352,7 @@ class PronunciationOperations(BaseOperations):
                 # Copy media file properties
                 new_media.InternalPath = media.InternalPath
                 new_media.Description.CopyAlternatives(media.Description)
-                if hasattr(media, 'Copyright'):
+                if hasattr(media, "Copyright"):
                     new_media.Copyright.CopyAlternatives(media.Copyright)
 
         return duplicate
@@ -373,21 +375,22 @@ class PronunciationOperations(BaseOperations):
         # MultiString properties
         # Form - the pronunciation form (typically IPA)
         form_dict = {}
-        if hasattr(item, 'Form'):
+        if hasattr(item, "Form"):
             for ws_handle in self.project.GetAllWritingSystems():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
+
                 text = ITsString(item.Form.get_String(ws_handle)).Text
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     form_dict[ws_tag] = text
-        props['Form'] = form_dict
+        props["Form"] = form_dict
 
         # Reference Atomic (RA) properties
         # LocationRA - CV pattern location
-        if hasattr(item, 'LocationRA') and item.LocationRA:
-            props['LocationRA'] = str(item.LocationRA.Guid)
+        if hasattr(item, "LocationRA") and item.LocationRA:
+            props["LocationRA"] = str(item.LocationRA.Guid)
         else:
-            props['LocationRA'] = None
+            props["LocationRA"] = None
 
         # Note: MediaFilesOS is an Owning Sequence (OS) - not included
 
@@ -462,15 +465,13 @@ class PronunciationOperations(BaseOperations):
 
         entry = self.__GetEntryObject(entry_or_hvo)
 
-        if not hasattr(entry, 'PronunciationsOS'):
+        if not hasattr(entry, "PronunciationsOS"):
             raise FP_ParameterError("Entry does not support pronunciations")
 
         # Validate that all pronunciations belong to this entry
         current_count = entry.PronunciationsOS.Count
         if len(pronunciation_list) != current_count:
-            raise FP_ParameterError(
-                f"Pronunciation list must contain all {current_count} pronunciations"
-            )
+            raise FP_ParameterError(f"Pronunciation list must contain all {current_count} pronunciations")
 
         # Clear and re-add in new order
         entry.PronunciationsOS.Clear()
@@ -604,7 +605,7 @@ class PronunciationOperations(BaseOperations):
 
         pronunciation = self.__GetPronunciationObject(pronunciation_or_hvo)
 
-        if hasattr(pronunciation, 'MediaFilesOS'):
+        if hasattr(pronunciation, "MediaFilesOS"):
             return list(pronunciation.MediaFilesOS)
         return []
 
@@ -640,7 +641,7 @@ class PronunciationOperations(BaseOperations):
 
         pronunciation = self.__GetPronunciationObject(pronunciation_or_hvo)
 
-        if hasattr(pronunciation, 'MediaFilesOS'):
+        if hasattr(pronunciation, "MediaFilesOS"):
             return pronunciation.MediaFilesOS.Count
         return 0
 
@@ -697,14 +698,10 @@ class PronunciationOperations(BaseOperations):
 
         # Use MediaOperations to properly copy file and create ICmFile
         # Copy file to project and get ICmFile reference
-        media_file = self.project.Media.CopyToProject(
-            file_path,
-            internal_subdir="AudioVisual",
-            label=label
-        )
+        media_file = self.project.Media.CopyToProject(file_path, internal_subdir="AudioVisual", label=label)
 
         # Add to pronunciation's media collection
-        if hasattr(pronunciation, 'MediaFilesOS'):
+        if hasattr(pronunciation, "MediaFilesOS"):
             pronunciation.MediaFilesOS.Add(media_file)
         else:
             raise FP_ParameterError("Pronunciation does not support media files")
@@ -753,7 +750,7 @@ class PronunciationOperations(BaseOperations):
             media = media_or_hvo
 
         # Remove from collection
-        if hasattr(pronunciation, 'MediaFilesOS'):
+        if hasattr(pronunciation, "MediaFilesOS"):
             pronunciation.MediaFilesOS.Remove(media)
 
     @OperationsMethod
@@ -813,8 +810,16 @@ class PronunciationOperations(BaseOperations):
         """
         self._EnsureWriteEnabled()
 
-        from_pron = self.__GetPronunciationObject(from_pronunciation_or_hvo) if isinstance(from_pronunciation_or_hvo, int) else from_pronunciation_or_hvo
-        to_pron = self.__GetPronunciationObject(to_pronunciation_or_hvo) if isinstance(to_pronunciation_or_hvo, int) else to_pronunciation_or_hvo
+        from_pron = (
+            self.__GetPronunciationObject(from_pronunciation_or_hvo)
+            if isinstance(from_pronunciation_or_hvo, int)
+            else from_pronunciation_or_hvo
+        )
+        to_pron = (
+            self.__GetPronunciationObject(to_pronunciation_or_hvo)
+            if isinstance(to_pronunciation_or_hvo, int)
+            else to_pronunciation_or_hvo
+        )
 
         # Can't move to same pronunciation
         if from_pron == to_pron:
@@ -871,7 +876,7 @@ class PronunciationOperations(BaseOperations):
 
         pronunciation = self.__GetPronunciationObject(pronunciation_or_hvo)
 
-        if hasattr(pronunciation, 'LocationRA'):
+        if hasattr(pronunciation, "LocationRA"):
             return pronunciation.LocationRA
         return None
 
@@ -913,7 +918,7 @@ class PronunciationOperations(BaseOperations):
 
         pronunciation = self.__GetPronunciationObject(pronunciation_or_hvo)
 
-        if hasattr(pronunciation, 'LocationRA'):
+        if hasattr(pronunciation, "LocationRA"):
             pronunciation.LocationRA = location
 
     # --- Utilities ---

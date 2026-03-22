@@ -29,6 +29,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+
 class ConstChartRowOperations(BaseOperations):
     """
     This class provides operations for managing constituent chart rows in a
@@ -491,9 +492,7 @@ class ConstChartRowOperations(BaseOperations):
 
         # Validate index
         if index < 0 or index > target_chart.RowsOS.Count:
-            raise FP_ParameterError(
-                f"Index {index} out of range [0, {target_chart.RowsOS.Count}]"
-            )
+            raise FP_ParameterError(f"Index {index} out of range [0, {target_chart.RowsOS.Count}]")
 
         # Get source chart
         source_chart = row.Owner
@@ -509,12 +508,10 @@ class ConstChartRowOperations(BaseOperations):
             if current_index != -1 and current_index != index:
                 if current_index < index:
                     # Moving forward - use index + 1
-                    source_chart.RowsOS.MoveTo(current_index, current_index,
-                                              source_chart.RowsOS, index + 1)
+                    source_chart.RowsOS.MoveTo(current_index, current_index, source_chart.RowsOS, index + 1)
                 else:
                     # Moving backward - use index directly
-                    source_chart.RowsOS.MoveTo(current_index, current_index,
-                                              source_chart.RowsOS, index)
+                    source_chart.RowsOS.MoveTo(current_index, current_index, source_chart.RowsOS, index)
         else:
             # Moving to different chart - remove from source and add to target
             source_chart.RowsOS.Remove(row)
@@ -574,10 +571,7 @@ class ConstChartRowOperations(BaseOperations):
         """
         if ws is None:
             return self.project.project.DefaultAnalWs
-        return self.project._FLExProject__WSHandle(
-            ws,
-            self.project.project.DefaultAnalWs
-        )
+        return self.project._FLExProject__WSHandle(ws, self.project.project.DefaultAnalWs)
 
     def __WSHandleAnalysis(self):
         """

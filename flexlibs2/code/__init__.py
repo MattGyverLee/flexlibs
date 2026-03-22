@@ -4,4 +4,4 @@
 
 from .PythonicWrapper import wrap, unwrap, p, PythonicWrapper
 
-__all__ = ['wrap', 'unwrap', 'p', 'PythonicWrapper']
+__all__ = ["wrap", "unwrap", "p", "PythonicWrapper"]

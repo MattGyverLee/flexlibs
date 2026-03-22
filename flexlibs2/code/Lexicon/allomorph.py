@@ -158,7 +158,7 @@ class Allomorph(LCMObjectWrapper):
             from SIL.LCModel.Core.KernelInterfaces import ITsString
             from ..Shared.string_utils import normalize_text
 
-            if hasattr(self._concrete, 'Gloss') and self._concrete.Gloss:
+            if hasattr(self._concrete, "Gloss") and self._concrete.Gloss:
                 # Get from default analysis writing system
                 default_ws = self._obj.OwnerOfClass.project.DefaultAnalWs
                 gloss_text = ITsString(self._concrete.Gloss.get_String(default_ws)).Text
@@ -168,7 +168,7 @@ class Allomorph(LCMObjectWrapper):
             return ""
 
     @property
-    def environment(self) -> 'list[object]':
+    def environment(self) -> "list[object]":
         """
         Get the phonological environments for this allomorph.
 
@@ -190,7 +190,7 @@ class Allomorph(LCMObjectWrapper):
             - Environments guide the parser in selecting the appropriate allomorph
         """
         try:
-            if hasattr(self._concrete, 'PhoneEnvRC'):
+            if hasattr(self._concrete, "PhoneEnvRC"):
                 return list(self._concrete.PhoneEnvRC)
             return []
         except Exception:
@@ -218,7 +218,7 @@ class Allomorph(LCMObjectWrapper):
             - MoAffixAllomorph allomorphs are variants of affixes
         """
         try:
-            return self.class_type == 'MoStemAllomorph'
+            return self.class_type == "MoStemAllomorph"
         except Exception:
             return False
 
@@ -242,7 +242,7 @@ class Allomorph(LCMObjectWrapper):
             - MoStemAllomorph allomorphs are variants of stems/roots
         """
         try:
-            return self.class_type == 'MoAffixAllomorph'
+            return self.class_type == "MoAffixAllomorph"
         except Exception:
             return False
 
@@ -273,7 +273,7 @@ class Allomorph(LCMObjectWrapper):
             from SIL.LCModel.Core.KernelInterfaces import ITsString
             from ..Shared.string_utils import normalize_text
 
-            if hasattr(self._concrete, 'StemName') and self._concrete.StemName:
+            if hasattr(self._concrete, "StemName") and self._concrete.StemName:
                 # Get from default analysis writing system
                 default_ws = self._obj.OwnerOfClass.project.DefaultAnalWs
                 stem_name_text = ITsString(self._concrete.StemName.get_String(default_ws)).Text
@@ -305,7 +305,7 @@ class Allomorph(LCMObjectWrapper):
             return None
 
         try:
-            if hasattr(self._concrete, 'AffixType'):
+            if hasattr(self._concrete, "AffixType"):
                 return self._concrete.AffixType
             return None
         except Exception:
@@ -339,7 +339,7 @@ class Allomorph(LCMObjectWrapper):
             - Only useful if you need to call methods or access properties
               that aren't exposed through the wrapper
         """
-        if self.class_type == 'MoStemAllomorph':
+        if self.class_type == "MoStemAllomorph":
             return self._concrete
         return None
 
@@ -367,7 +367,7 @@ class Allomorph(LCMObjectWrapper):
             - Most users should use properties like is_affix_allomorph and
               affix_type instead
         """
-        if self.class_type == 'MoAffixAllomorph':
+        if self.class_type == "MoAffixAllomorph":
             return self._concrete
         return None
 

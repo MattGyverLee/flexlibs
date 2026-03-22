@@ -7,6 +7,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.4.0] - 2026-03-22
+
+### Added
+
+#### Transaction & Undo/Redo Framework (MAJOR)
+- **Safe Transaction Rollback** - Phase 1 implementation for safe undo/redo operations
+  - Automatic transaction state tracking
+  - Rollback recovery for failed operations
+  - Integration with FieldWorks LCM transactions
+  - Comprehensive testing guide in docs/TESTING_UNDO_REDO.md
+
+#### Security Enhancements
+- **Write-Enable Guards** - 7 untagged mutating methods now protected
+  - Prevents accidental modifications in read-only mode
+  - `_EnsureWriteEnabled()` guards on all mutation points
+  - Protects data integrity across all Operations classes
+
+#### Pre-commit Hooks & Quality Control
+- Custom decorator validator prevents duplicate decorators
+- Black code formatting enforcement
+- Flake8 linting (unused imports, complexity)
+- Detect-secrets for credential detection
+- Setup documentation in docs/PRE_COMMIT_SETUP.md
+- Decorator checking script in scripts/check_decorators.py
+
+### Fixed
+
+#### Decorator Bugs
+- **Duplicate `@OperationsMethod` decorators** - Fixed `'OperationsMethod' object is not callable'` errors
+  - BaseOperations.py: Removed duplicates from 9 reordering/sync methods
+  - POSOperations.py: Removed duplicates from 17 methods (including GetAll)
+  - LexEntryOperations.py: Removed duplicates from 5 methods
+  - All 64 operation files verified clean
+
+### Documentation
+
+#### New Guides
+- **TESTING_UNDO_REDO.md** - Comprehensive undo/redo testing strategy and examples
+- **TRANSACTION_GUIDE.md** - Transaction management and error recovery patterns
+- **CONTRACT_TESTING.md** - LibLCM contract testing for API compatibility
+
+### Tested Against
+
+- LibLCM Contract Test Suite - Validates API compatibility across versions
+- Unit tests for undo/redo implementation
+- Pre-commit hooks prevent regression
+
+### Breaking Changes
+
+None. Fully backward compatible with v2.3.x APIs.
+
+---
+
 ## [2.4.1] - 2026-03-16
 
 ### Fixed

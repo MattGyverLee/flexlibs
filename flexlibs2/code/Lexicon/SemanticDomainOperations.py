@@ -28,6 +28,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+
 class SemanticDomainOperations(BaseOperations):
     """
     This class provides operations for managing semantic domains in a
@@ -126,11 +127,7 @@ class SemanticDomainOperations(BaseOperations):
         if not domain_list:
             return []
 
-        return list(self.project.UnpackNestedPossibilityList(
-            domain_list.PossibilitiesOS,
-            ICmSemanticDomain,
-            flat
-        ))
+        return list(self.project.UnpackNestedPossibilityList(domain_list.PossibilitiesOS, ICmSemanticDomain, flat))
 
     @OperationsMethod
     def Find(self, number):
@@ -552,9 +549,9 @@ class SemanticDomainOperations(BaseOperations):
         # Questions is an owning sequence of CmDomainQ objects (QuestionsOS)
         # Each CmDomainQ has a Question property (MultiUnicode)
         questions_list = []
-        if hasattr(domain, 'QuestionsOS'):
+        if hasattr(domain, "QuestionsOS"):
             for domain_q in domain.QuestionsOS:
-                if hasattr(domain_q, 'Question'):
+                if hasattr(domain_q, "Question"):
                     q_text = ITsString(domain_q.Question.get_String(wsHandle)).Text
                     if q_text:
                         questions_list.append(q_text)
@@ -688,8 +685,8 @@ class SemanticDomainOperations(BaseOperations):
         owner = domain.Owner
 
         # Check if owner is a semantic domain (subdomain) or the list (top-level)
-        if owner and hasattr(owner, 'ClassName'):
-            if owner.ClassName == 'CmSemanticDomain':
+        if owner and hasattr(owner, "ClassName"):
+            if owner.ClassName == "CmSemanticDomain":
                 return owner
 
         return None
@@ -918,9 +915,7 @@ class SemanticDomainOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the new domain using the factory
-        factory = self.project.project.ServiceLocator.GetService(
-            ICmSemanticDomainFactory
-        )
+        factory = self.project.project.ServiceLocator.GetService(ICmSemanticDomainFactory)
         new_domain = factory.Create()
 
         # Add to parent or top-level list (must be done before setting properties)
@@ -1048,9 +1043,7 @@ class SemanticDomainOperations(BaseOperations):
         parent = self.GetParent(source)
 
         # Create new domain using factory (auto-generates new GUID)
-        factory = self.project.project.ServiceLocator.GetService(
-            ICmSemanticDomainFactory
-        )
+        factory = self.project.project.ServiceLocator.GetService(ICmSemanticDomainFactory)
         duplicate = factory.Create()
 
         # Determine insertion position - ADD TO PARENT FIRST
@@ -1107,53 +1100,53 @@ class SemanticDomainOperations(BaseOperations):
         # MultiString properties
         # Name - domain name
         name_dict = {}
-        if hasattr(item, 'Name'):
+        if hasattr(item, "Name"):
             for ws_handle in self.project.GetAllWritingSystems():
                 text = ITsString(item.Name.get_String(ws_handle)).Text
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     name_dict[ws_tag] = text
-        props['Name'] = name_dict
+        props["Name"] = name_dict
 
         # Description - domain description
         description_dict = {}
-        if hasattr(item, 'Description'):
+        if hasattr(item, "Description"):
             for ws_handle in self.project.GetAllWritingSystems():
                 text = ITsString(item.Description.get_String(ws_handle)).Text
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     description_dict[ws_tag] = text
-        props['Description'] = description_dict
+        props["Description"] = description_dict
 
         # Abbreviation - domain number
         abbreviation_dict = {}
-        if hasattr(item, 'Abbreviation'):
+        if hasattr(item, "Abbreviation"):
             for ws_handle in self.project.GetAllWritingSystems():
                 text = ITsString(item.Abbreviation.get_String(ws_handle)).Text
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     abbreviation_dict[ws_tag] = text
-        props['Abbreviation'] = abbreviation_dict
+        props["Abbreviation"] = abbreviation_dict
 
         # Questions - elicitation questions
         questions_dict = {}
-        if hasattr(item, 'Questions'):
+        if hasattr(item, "Questions"):
             for ws_handle in self.project.GetAllWritingSystems():
                 text = ITsString(item.Questions.get_String(ws_handle)).Text
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     questions_dict[ws_tag] = text
-        props['Questions'] = questions_dict
+        props["Questions"] = questions_dict
 
         # OcmCodes - OCM codes
         ocm_dict = {}
-        if hasattr(item, 'OcmCodes'):
+        if hasattr(item, "OcmCodes"):
             for ws_handle in self.project.GetAllWritingSystems():
                 text = ITsString(item.OcmCodes.get_String(ws_handle)).Text
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     ocm_dict[ws_tag] = text
-        props['OcmCodes'] = ocm_dict
+        props["OcmCodes"] = ocm_dict
 
         # Note: SubPossibilitiesOS is an Owning Sequence (OS) - not included
         # Note: OccurrencesRS is a Reference Sequence (complex) - not included
@@ -1225,7 +1218,4 @@ class SemanticDomainOperations(BaseOperations):
         """
         if wsHandle is None:
             return self.project.project.DefaultAnalWs
-        return self.project._FLExProject__WSHandle(
-            wsHandle,
-            self.project.project.DefaultAnalWs
-        )
+        return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultAnalWs)

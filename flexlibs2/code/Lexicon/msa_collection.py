@@ -168,16 +168,12 @@ class MSACollection(SmartCollection):
         if pos_main is not None:
             # Get the GUID of the target POS for comparison
             target_guid = None
-            if hasattr(pos_main, 'Guid'):
+            if hasattr(pos_main, "Guid"):
                 target_guid = str(pos_main.Guid)
             else:
                 target_guid = str(pos_main)
 
-            filtered = [
-                msa for msa in filtered
-                if msa.pos_main is not None and
-                   str(msa.pos_main.Guid) == target_guid
-            ]
+            filtered = [msa for msa in filtered if msa.pos_main is not None and str(msa.pos_main.Guid) == target_guid]
 
         return MSACollection(filtered)
 
@@ -241,7 +237,7 @@ class MSACollection(SmartCollection):
             - Stem MSAs have PartOfSpeechRA for the main POS
             - Use is_stem_msa on individual MSAs to check type
         """
-        return self.by_type('MoStemMsa')
+        return self.by_type("MoStemMsa")
 
     def deriv_aff_msas(self):
         """
@@ -265,7 +261,7 @@ class MSACollection(SmartCollection):
             - Derivational affixes have FromPartOfSpeechRA and ToPartOfSpeechRA
             - Use is_deriv_aff_msa on individual MSAs to check type
         """
-        return self.by_type('MoDerivAffMsa')
+        return self.by_type("MoDerivAffMsa")
 
     def infl_aff_msas(self):
         """
@@ -289,7 +285,7 @@ class MSACollection(SmartCollection):
             - Inflectional affixes have PartOfSpeechRA and slot references
             - Use is_infl_aff_msa on individual MSAs to check type
         """
-        return self.by_type('MoInflAffMsa')
+        return self.by_type("MoInflAffMsa")
 
     def unclassified_aff_msas(self):
         """
@@ -313,7 +309,7 @@ class MSACollection(SmartCollection):
             - Unclassified affixes have PartOfSpeechRA
             - Use is_unclassified_aff_msa on individual MSAs to check type
         """
-        return self.by_type('MoUnclassifiedAffixMsa')
+        return self.by_type("MoUnclassifiedAffixMsa")
 
     def __repr__(self):
         """Technical representation."""

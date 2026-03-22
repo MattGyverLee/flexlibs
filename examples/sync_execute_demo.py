@@ -40,10 +40,7 @@ def demo_sync_execution_dry_run():
     try:
         # Create sync engine
         print("Creating sync engine...")
-        sync = SyncEngine(
-            source_project=source,
-            target_project=target
-        )
+        sync = SyncEngine(source_project=source, target_project=target)
 
         print(f"Mode: {sync.mode.value}")
         print()
@@ -57,7 +54,7 @@ def demo_sync_execution_dry_run():
             match_strategy=GuidMatchStrategy(),
             conflict_resolver=SourceWinsResolver(),
             dry_run=True,  # SAFE - no changes
-            progress_callback=lambda msg: print(f"  {msg}")
+            progress_callback=lambda msg: print(f"  {msg}"),
         )
 
         # Display results
@@ -120,7 +117,7 @@ def demo_sync_with_comparison():
             # (In real usage, user would review the file first)
             proceed = input("Proceed with sync? [y/N]: ")
 
-            if proceed.lower() == 'y':
+            if proceed.lower() == "y":
                 # Close and reopen with write enabled
                 target.CloseProject()
                 target.OpenProject("Sena 3", writeEnabled=True)
@@ -135,7 +132,7 @@ def demo_sync_with_comparison():
                     object_type="Allomorph",
                     match_strategy=GuidMatchStrategy(),
                     conflict_resolver="source_wins",
-                    dry_run=False  # ACTUAL CHANGES
+                    dry_run=False,  # ACTUAL CHANGES
                 )
 
                 print()
@@ -180,11 +177,7 @@ def demo_sync_with_conflict_resolution():
         print("  - Overwrites target with source data")
         print()
 
-        result1 = sync.sync(
-            object_type="Allomorph",
-            conflict_resolver="source_wins",
-            dry_run=True
-        )
+        result1 = sync.sync(object_type="Allomorph", conflict_resolver="source_wins", dry_run=True)
 
         print(f"  Result: {result1.num_updated} would be updated")
         print()
@@ -197,11 +190,7 @@ def demo_sync_with_conflict_resolution():
 
         from flexlibs2.sync import TargetWinsResolver
 
-        result2 = sync.sync(
-            object_type="Allomorph",
-            conflict_resolver=TargetWinsResolver(),
-            dry_run=True
-        )
+        result2 = sync.sync(object_type="Allomorph", conflict_resolver=TargetWinsResolver(), dry_run=True)
 
         print(f"  Result: {result2.num_updated} would be updated (should be 0)")
         print()

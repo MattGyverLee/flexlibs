@@ -33,6 +33,7 @@ from ..FLExProject import (
 )
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
+
 class AgentOperations(BaseOperations):
     """
     This class provides operations for managing analysis agents in a FieldWorks
@@ -450,14 +451,14 @@ class AgentOperations(BaseOperations):
         props = {}
 
         # MultiString properties
-        props['Name'] = ITsString(agent.Name.get_String(wsHandle)).Text or ""
-        props['Version'] = ITsString(agent.Version.get_String(wsHandle)).Text or ""
+        props["Name"] = ITsString(agent.Name.get_String(wsHandle)).Text or ""
+        props["Version"] = ITsString(agent.Version.get_String(wsHandle)).Text or ""
 
         # Reference Atomic (RA) property - return GUID as string
         if agent.Human:
-            props['Human'] = str(agent.Human.Guid)
+            props["Human"] = str(agent.Human.Guid)
         else:
-            props['Human'] = None
+            props["Human"] = None
 
         return props
 
@@ -488,7 +489,7 @@ class AgentOperations(BaseOperations):
             ops2 = self
 
         is_different = False
-        differences = {'properties': {}}
+        differences = {"properties": {}}
 
         # Get syncable properties from both items
         props1 = ops1.GetSyncableProperties(item1)
@@ -501,11 +502,7 @@ class AgentOperations(BaseOperations):
 
             if val1 != val2:
                 is_different = True
-                differences['properties'][key] = {
-                    'source': val1,
-                    'target': val2,
-                    'type': 'modified'
-                }
+                differences["properties"][key] = {"source": val1, "target": val2, "type": "modified"}
 
         return is_different, differences
 
@@ -996,9 +993,7 @@ class AgentOperations(BaseOperations):
         evaluations = []
         try:
             # Access evaluations that reference this agent
-            for eval_obj in self.project.project.ServiceLocator.ObjectRepository.AllInstances(
-                ICmAgentEvaluation
-            ):
+            for eval_obj in self.project.project.ServiceLocator.ObjectRepository.AllInstances(ICmAgentEvaluation):
                 if eval_obj.Owner == agent:
                     evaluations.append(eval_obj)
         except (AttributeError, System.NullReferenceException, RuntimeError) as e:
@@ -1318,7 +1313,4 @@ class AgentOperations(BaseOperations):
         """
         if wsHandle is None:
             return self.project.project.DefaultAnalWs
-        return self.project._FLExProject__WSHandle(
-            wsHandle,
-            self.project.project.DefaultAnalWs
-        )
+        return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultAnalWs)

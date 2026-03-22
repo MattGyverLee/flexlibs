@@ -27,11 +27,7 @@ class MatchStrategy(ABC):
 
     @abstractmethod
     def match(
-        self,
-        source_obj: Any,
-        target_candidates: List[Any],
-        source_project: Any,
-        target_project: Any
+        self, source_obj: Any, target_candidates: List[Any], source_project: Any, target_project: Any
     ) -> Optional[Any]:
         """
         Find matching target object for source object.
@@ -67,11 +63,7 @@ class GuidMatchStrategy(MatchStrategy):
     """
 
     def match(
-        self,
-        source_obj: Any,
-        target_candidates: List[Any],
-        source_project: Any,
-        target_project: Any
+        self, source_obj: Any, target_candidates: List[Any], source_project: Any, target_project: Any
     ) -> Optional[Any]:
         """
         Match by GUID.
@@ -129,7 +121,7 @@ class FieldMatchStrategy(MatchStrategy):
         key_fields: List[str],
         get_field_fn: Optional[callable] = None,
         case_sensitive: bool = True,
-        writing_system: Optional[str] = None
+        writing_system: Optional[str] = None,
     ):
         """
         Initialize FieldMatchStrategy.
@@ -153,11 +145,7 @@ class FieldMatchStrategy(MatchStrategy):
         self.writing_system = writing_system
 
     def match(
-        self,
-        source_obj: Any,
-        target_candidates: List[Any],
-        source_project: Any,
-        target_project: Any
+        self, source_obj: Any, target_candidates: List[Any], source_project: Any, target_project: Any
     ) -> Optional[Any]:
         """
         Match by field values.
@@ -242,19 +230,19 @@ class FieldMatchStrategy(MatchStrategy):
 
         # Auto-detect based on field name
         if field_name == "form":
-            if hasattr(ops, 'GetForm'):
+            if hasattr(ops, "GetForm"):
                 return ops.GetForm(obj)
 
         elif field_name == "headword":
-            if hasattr(ops, 'GetHeadword'):
+            if hasattr(ops, "GetHeadword"):
                 return ops.GetHeadword(obj)
 
         elif field_name == "name":
-            if hasattr(ops, 'GetName'):
+            if hasattr(ops, "GetName"):
                 return ops.GetName(obj)
 
         elif field_name == "gloss":
-            if hasattr(ops, 'GetGloss'):
+            if hasattr(ops, "GetGloss"):
                 return ops.GetGloss(obj)
 
         # Fallback: try direct property access
@@ -309,11 +297,7 @@ class HybridMatchStrategy(MatchStrategy):
         ... )
     """
 
-    def __init__(
-        self,
-        fallback_fields: List[str],
-        case_sensitive: bool = True
-    ):
+    def __init__(self, fallback_fields: List[str], case_sensitive: bool = True):
         """
         Initialize HybridMatchStrategy.
 
@@ -322,17 +306,10 @@ class HybridMatchStrategy(MatchStrategy):
             case_sensitive: Whether field matching is case-sensitive
         """
         self.guid_strategy = GuidMatchStrategy()
-        self.field_strategy = FieldMatchStrategy(
-            key_fields=fallback_fields,
-            case_sensitive=case_sensitive
-        )
+        self.field_strategy = FieldMatchStrategy(key_fields=fallback_fields, case_sensitive=case_sensitive)
 
     def match(
-        self,
-        source_obj: Any,
-        target_candidates: List[Any],
-        source_project: Any,
-        target_project: Any
+        self, source_obj: Any, target_candidates: List[Any], source_project: Any, target_project: Any
     ) -> Optional[Any]:
         """
         Try GUID match first, then field match.
@@ -347,24 +324,14 @@ class HybridMatchStrategy(MatchStrategy):
             Matched target object, or None
         """
         # Try GUID match first
-        match = self.guid_strategy.match(
-            source_obj,
-            target_candidates,
-            source_project,
-            target_project
-        )
+        match = self.guid_strategy.match(source_obj, target_candidates, source_project, target_project)
 
         if match is not None:
             logger.debug("Matched by GUID (primary strategy)")
             return match
 
         # Fallback to field match
-        match = self.field_strategy.match(
-            source_obj,
-            target_candidates,
-            source_project,
-            target_project
-        )
+        match = self.field_strategy.match(source_obj, target_candidates, source_project, target_project)
 
         if match is not None:
             logger.debug("Matched by fields (fallback strategy)")

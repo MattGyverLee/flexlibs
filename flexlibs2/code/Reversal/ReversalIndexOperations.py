@@ -29,6 +29,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+
 class ReversalIndexOperations(BaseOperations):
     """
     This class provides operations for managing reversal indexes in a FieldWorks project.
@@ -154,9 +155,7 @@ class ReversalIndexOperations(BaseOperations):
         # Check if index already exists for this writing system
         existing = self.FindByWritingSystem(writing_system)
         if existing:
-            raise FP_ParameterError(
-                f"Reversal index already exists for writing system {writing_system}"
-            )
+            raise FP_ParameterError(f"Reversal index already exists for writing system {writing_system}")
 
         # Create the reversal index using factory
         factory = self.project.project.ServiceLocator.GetService(IReversalIndexFactory)
@@ -479,10 +478,7 @@ class ReversalIndexOperations(BaseOperations):
         self._ValidateParam(path, "path")
 
         # Placeholder for future implementation
-        raise FP_ParameterError(
-            "ExportToLIFT not yet implemented. "
-            "Use FLEx's built-in LIFT export functionality."
-        )
+        raise FP_ParameterError("ExportToLIFT not yet implemented. " "Use FLEx's built-in LIFT export functionality.")
 
     # --- Private Helper Methods ---
 
@@ -518,7 +514,4 @@ class ReversalIndexOperations(BaseOperations):
         """
         if wsHandle is None:
             return self.project.project.DefaultAnalWs
-        return self.project._FLExProject__WSHandle(
-            wsHandle,
-            self.project.project.DefaultAnalWs
-        )
+        return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultAnalWs)

@@ -58,6 +58,7 @@ from test_helpers import (
 
 # ========== LISTS - AGENTOPERATIONS ==========
 
+
 @pytest.mark.validation
 @pytest.mark.phase4
 class TestAgentOperations(
@@ -120,6 +121,7 @@ class TestAgentOperations(
 
 # ========== LISTS - CONFIDENCEOPERATIONS ==========
 
+
 @pytest.mark.validation
 @pytest.mark.phase4
 class TestConfidenceOperations(
@@ -181,6 +183,7 @@ class TestConfidenceOperations(
 
 
 # ========== LISTS - OVERLAYOPERATIONS ==========
+
 
 @pytest.mark.validation
 @pytest.mark.phase4
@@ -255,6 +258,7 @@ class TestOverlayOperations(
 
 # ========== LISTS - POSSIBILITYLISTOPERATIONS ==========
 
+
 @pytest.mark.validation
 @pytest.mark.phase4
 class TestPossibilityListOperations(
@@ -328,6 +332,7 @@ class TestPossibilityListOperations(
 
 # ========== LISTS - PUBLICATIONOPERATIONS ==========
 
+
 @pytest.mark.validation
 @pytest.mark.phase4
 class TestPublicationOperations(
@@ -390,6 +395,7 @@ class TestPublicationOperations(
 
 # ========== LISTS - TRANSLATIONTYPEOPERATIONS ==========
 
+
 @pytest.mark.validation
 @pytest.mark.phase4
 class TestTranslationTypeOperations(
@@ -426,6 +432,7 @@ class TestTranslationTypeOperations(
 
 
 # ========== NOTEBOOK - ANTHROPOLOGYOPERATIONS ==========
+
 
 @pytest.mark.validation
 @pytest.mark.phase4
@@ -511,6 +518,7 @@ class TestAnthropologyOperations(
 
 
 # ========== NOTEBOOK - DATANOTEBOOKOPERATIONS ==========
+
 
 @pytest.mark.validation
 @pytest.mark.phase4
@@ -622,6 +630,7 @@ class TestDataNotebookOperations(
 
 # ========== NOTEBOOK - LOCATIONOPERATIONS ==========
 
+
 @pytest.mark.validation
 @pytest.mark.phase4
 class TestLocationOperations(
@@ -708,6 +717,7 @@ class TestLocationOperations(
 
 # ========== NOTEBOOK - NOTEOPERATIONS ==========
 
+
 @pytest.mark.validation
 @pytest.mark.phase4
 class TestNoteOperations(
@@ -793,6 +803,7 @@ class TestNoteOperations(
 
 # ========== NOTEBOOK - PERSONOPERATIONS ==========
 
+
 @pytest.mark.validation
 @pytest.mark.phase4
 class TestPersonOperations(
@@ -859,6 +870,7 @@ class TestPersonOperations(
 
 
 # ========== REVERSAL - REVERSALINDEXOPERATIONS ==========
+
 
 @pytest.mark.validation
 @pytest.mark.phase4
@@ -934,6 +946,7 @@ class TestReversalIndexOperations(
 
 # ========== REVERSAL - REVERSALINDEXENTRYOPERATIONS ==========
 
+
 @pytest.mark.validation
 @pytest.mark.phase4
 class TestReversalIndexEntryOperations(
@@ -1006,6 +1019,7 @@ class TestReversalIndexEntryOperations(
 
 
 # ========== SCRIPTURE - SCRANOTATIONSOPERATIONS ==========
+
 
 @pytest.mark.validation
 @pytest.mark.phase4
@@ -1080,6 +1094,7 @@ class TestScrAnnotationsOperations(
 
 # ========== SCRIPTURE - SCRBOOKOPERATIONS ==========
 
+
 @pytest.mark.validation
 @pytest.mark.phase4
 class TestScrBookOperations(
@@ -1152,6 +1167,7 @@ class TestScrBookOperations(
 
 
 # ========== SCRIPTURE - SCRDRAFTOPERATIONS ==========
+
 
 @pytest.mark.validation
 @pytest.mark.phase4
@@ -1226,6 +1242,7 @@ class TestScrDraftOperations(
 
 
 # ========== SCRIPTURE - SCRNOTEOPERATIONS ==========
+
 
 @pytest.mark.validation
 @pytest.mark.phase4
@@ -1306,6 +1323,7 @@ class TestScrNoteOperations(
 
 
 # ========== SCRIPTURE - SCRSECTIONOPERATIONS ==========
+
 
 @pytest.mark.validation
 @pytest.mark.phase4
@@ -1390,6 +1408,7 @@ class TestScrSectionOperations(
 
 
 # ========== SCRIPTURE - SCRTXTPARAOPERATIONS ==========
+
 
 @pytest.mark.validation
 @pytest.mark.phase4

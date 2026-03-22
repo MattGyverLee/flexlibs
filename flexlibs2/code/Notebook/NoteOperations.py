@@ -30,6 +30,7 @@ from ..FLExProject import (
 )
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
+
 class NoteOperations(BaseOperations):
     """
     This class provides operations for managing notes and comments in a
@@ -117,18 +118,16 @@ class NoteOperations(BaseOperations):
         self._ValidateParam(owner_object, "owner_object")
 
         # Get the annotation repository
-        anno_repos = self.project.project.ServiceLocator.GetService(
-            ICmBaseAnnotation
-        ).Repository
+        anno_repos = self.project.project.ServiceLocator.GetService(ICmBaseAnnotation).Repository
 
         # Find all annotations for this object
         for annotation in anno_repos.AllInstances():
             # Check if this annotation references our owner object
-            if hasattr(annotation, 'BeginObjectRA'):
+            if hasattr(annotation, "BeginObjectRA"):
                 if annotation.BeginObjectRA == owner_object:
                     yield annotation
             # Also check for direct ownership
-            if hasattr(annotation, 'Owner'):
+            if hasattr(annotation, "Owner"):
                 if annotation.Owner == owner_object:
                     yield annotation
 
@@ -182,13 +181,11 @@ class NoteOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the annotation using the factory
-        factory = self.project.project.ServiceLocator.GetService(
-            ICmBaseAnnotationFactory
-        )
+        factory = self.project.project.ServiceLocator.GetService(ICmBaseAnnotationFactory)
         note = factory.Create()
 
         # Add to the annotations collection (must be done before setting properties)
-        if hasattr(owner_object, 'AnnotationsOC'):
+        if hasattr(owner_object, "AnnotationsOC"):
             owner_object.AnnotationsOC.Add(note)
 
         # Set the content
@@ -196,7 +193,7 @@ class NoteOperations(BaseOperations):
         note.Comment.set_String(wsHandle, mkstr)
 
         # Set the reference to the annotated object
-        if hasattr(note, 'BeginObjectRA'):
+        if hasattr(note, "BeginObjectRA"):
             note.BeginObjectRA = owner_object
 
         # Set creation date
@@ -241,12 +238,12 @@ class NoteOperations(BaseOperations):
 
         # Remove from owner's collection
         owner = note.Owner
-        if hasattr(owner, 'AnnotationsOC'):
+        if hasattr(owner, "AnnotationsOC"):
             if note in owner.AnnotationsOC:
                 owner.AnnotationsOC.Remove(note)
 
         # Delete the note object
-        if hasattr(note, 'Delete'):
+        if hasattr(note, "Delete"):
             note.Delete()
 
     @OperationsMethod
@@ -310,17 +307,17 @@ class NoteOperations(BaseOperations):
         # Notes can be in AnnotationsOC (when parent is owner object) or RepliesOS (when parent is another note)
         if insert_after:
             # Insert after source note
-            if hasattr(parent, 'RepliesOS'):
+            if hasattr(parent, "RepliesOS"):
                 source_index = parent.RepliesOS.IndexOf(source)
                 parent.RepliesOS.Insert(source_index + 1, duplicate)
-            elif hasattr(parent, 'AnnotationsOC'):
+            elif hasattr(parent, "AnnotationsOC"):
                 source_index = parent.AnnotationsOC.IndexOf(source)
                 parent.AnnotationsOC.Insert(source_index + 1, duplicate)
         else:
             # Insert at end
-            if hasattr(parent, 'RepliesOS'):
+            if hasattr(parent, "RepliesOS"):
                 parent.RepliesOS.Add(duplicate)
-            elif hasattr(parent, 'AnnotationsOC'):
+            elif hasattr(parent, "AnnotationsOC"):
                 parent.AnnotationsOC.Add(duplicate)
 
         # Copy simple MultiString properties
@@ -328,21 +325,21 @@ class NoteOperations(BaseOperations):
         duplicate.Source.CopyAlternatives(source.Source)
 
         # Copy Reference Atomic (RA) properties
-        if hasattr(source, 'AnnotationTypeRA'):
+        if hasattr(source, "AnnotationTypeRA"):
             duplicate.AnnotationTypeRA = source.AnnotationTypeRA
-        if hasattr(source, 'BeginObjectRA'):
+        if hasattr(source, "BeginObjectRA"):
             duplicate.BeginObjectRA = source.BeginObjectRA
 
         # Copy datetime properties
-        if hasattr(source, 'DateCreated'):
+        if hasattr(source, "DateCreated"):
             duplicate.DateCreated = source.DateCreated
-        if hasattr(source, 'DateModified'):
+        if hasattr(source, "DateModified"):
             duplicate.DateModified = source.DateModified
 
         # Handle owned objects if deep=True
         if deep:
             # Duplicate replies into the NEW duplicate (not the original's parent)
-            if hasattr(source, 'RepliesOS'):
+            if hasattr(source, "RepliesOS"):
                 for reply in source.RepliesOS:
                     self._DuplicateReplyInto(reply, duplicate, deep=True)
 
@@ -357,13 +354,13 @@ class NoteOperations(BaseOperations):
         # Copy properties
         dup_reply.Comment.CopyAlternatives(source_reply.Comment)
         dup_reply.Source.CopyAlternatives(source_reply.Source)
-        if hasattr(source_reply, 'AnnotationTypeRA'):
+        if hasattr(source_reply, "AnnotationTypeRA"):
             dup_reply.AnnotationTypeRA = source_reply.AnnotationTypeRA
-        if hasattr(source_reply, 'BeginObjectRA'):
+        if hasattr(source_reply, "BeginObjectRA"):
             dup_reply.BeginObjectRA = source_reply.BeginObjectRA
 
         # Recurse into nested replies
-        if deep and hasattr(source_reply, 'RepliesOS'):
+        if deep and hasattr(source_reply, "RepliesOS"):
             for nested_reply in source_reply.RepliesOS:
                 self._DuplicateReplyInto(nested_reply, dup_reply, deep=True)
 
@@ -396,21 +393,21 @@ class NoteOperations(BaseOperations):
         props = {}
 
         # MultiString properties
-        if hasattr(note, 'Comment'):
-            props['Comment'] = ITsString(note.Comment.get_String(wsHandle)).Text or ""
-        if hasattr(note, 'Source'):
-            props['Source'] = ITsString(note.Source.get_String(wsHandle)).Text or ""
+        if hasattr(note, "Comment"):
+            props["Comment"] = ITsString(note.Comment.get_String(wsHandle)).Text or ""
+        if hasattr(note, "Source"):
+            props["Source"] = ITsString(note.Source.get_String(wsHandle)).Text or ""
 
         # Reference Atomic (RA) property - return GUID as string
-        if hasattr(note, 'AnnotationTypeRA') and note.AnnotationTypeRA:
-            props['AnnotationType'] = str(note.AnnotationTypeRA.Guid)
+        if hasattr(note, "AnnotationTypeRA") and note.AnnotationTypeRA:
+            props["AnnotationType"] = str(note.AnnotationTypeRA.Guid)
         else:
-            props['AnnotationType'] = None
+            props["AnnotationType"] = None
 
-        if hasattr(note, 'BeginObjectRA') and note.BeginObjectRA:
-            props['BeginObject'] = str(note.BeginObjectRA.Guid)
+        if hasattr(note, "BeginObjectRA") and note.BeginObjectRA:
+            props["BeginObject"] = str(note.BeginObjectRA.Guid)
         else:
-            props['BeginObject'] = None
+            props["BeginObject"] = None
 
         return props
 
@@ -441,7 +438,7 @@ class NoteOperations(BaseOperations):
             ops2 = self
 
         is_different = False
-        differences = {'properties': {}}
+        differences = {"properties": {}}
 
         # Get syncable properties from both items
         props1 = ops1.GetSyncableProperties(item1)
@@ -454,11 +451,7 @@ class NoteOperations(BaseOperations):
 
             if val1 != val2:
                 is_different = True
-                differences['properties'][key] = {
-                    'source': val1,
-                    'target': val2,
-                    'type': 'modified'
-                }
+                differences["properties"][key] = {"source": val1, "target": val2, "type": "modified"}
 
         return is_different, differences
 
@@ -500,17 +493,13 @@ class NoteOperations(BaseOperations):
         self._ValidateParam(owner_object, "owner_object")
         self._ValidateParam(note_list, "note_list")
 
-        if not hasattr(owner_object, 'AnnotationsOC'):
-            raise FP_ParameterError(
-                "Owner object does not support annotations"
-            )
+        if not hasattr(owner_object, "AnnotationsOC"):
+            raise FP_ParameterError("Owner object does not support annotations")
 
         # Verify all notes belong to this owner
         for note in note_list:
             if note.Owner != owner_object:
-                raise FP_ParameterError(
-                    "Note list contains notes not owned by this object"
-                )
+                raise FP_ParameterError("Note list contains notes not owned by this object")
 
         # Clear and re-add in new order
         annotations = owner_object.AnnotationsOC
@@ -559,7 +548,7 @@ class NoteOperations(BaseOperations):
 
         wsHandle = self.__WSHandle(wsHandle)
 
-        if hasattr(note, 'Comment'):
+        if hasattr(note, "Comment"):
             text = ITsString(note.Comment.get_String(wsHandle)).Text
             return text or ""
         return ""
@@ -601,7 +590,7 @@ class NoteOperations(BaseOperations):
 
         wsHandle = self.__WSHandle(wsHandle)
 
-        if hasattr(note, 'Comment'):
+        if hasattr(note, "Comment"):
             mkstr = TsStringUtils.MakeString(text, wsHandle)
             note.Comment.set_String(wsHandle, mkstr)
 
@@ -646,7 +635,7 @@ class NoteOperations(BaseOperations):
         """
         self._ValidateParam(note, "note")
 
-        if hasattr(note, 'AnnotationTypeRA'):
+        if hasattr(note, "AnnotationTypeRA"):
             return note.AnnotationTypeRA
         return None
 
@@ -687,16 +676,14 @@ class NoteOperations(BaseOperations):
 
         self._ValidateParam(note, "note")
 
-        if not hasattr(note, 'AnnotationTypeRA'):
+        if not hasattr(note, "AnnotationTypeRA"):
             raise FP_ParameterError("Note does not support type assignment")
 
         # If string, find the annotation definition
         if isinstance(note_type, str):
             anno_defn = self.__FindAnnotationDefn(note_type)
             if not anno_defn:
-                raise FP_ParameterError(
-                    f"Note type '{note_type}' not found"
-                )
+                raise FP_ParameterError(f"Note type '{note_type}' not found")
             note_type = anno_defn
 
         note.AnnotationTypeRA = note_type
@@ -740,7 +727,7 @@ class NoteOperations(BaseOperations):
         """
         self._ValidateParam(note, "note")
 
-        if hasattr(note, 'DateCreated'):
+        if hasattr(note, "DateCreated"):
             return note.DateCreated
         return None
 
@@ -785,7 +772,7 @@ class NoteOperations(BaseOperations):
         """
         self._ValidateParam(note, "note")
 
-        if hasattr(note, 'DateModified'):
+        if hasattr(note, "DateModified"):
             return note.DateModified
         return None
 
@@ -826,7 +813,7 @@ class NoteOperations(BaseOperations):
         """
         self._ValidateParam(note, "note")
 
-        if hasattr(note, 'Source'):
+        if hasattr(note, "Source"):
             ws = self.project.project.DefaultAnalWs
             text = ITsString(note.Source.get_String(ws)).Text
             return text or ""
@@ -865,7 +852,7 @@ class NoteOperations(BaseOperations):
         self._ValidateParam(note, "note")
         self._ValidateParam(author_name, "author_name")
 
-        if hasattr(note, 'Source'):
+        if hasattr(note, "Source"):
             ws = self.project.project.DefaultAnalWs
             mkstr = TsStringUtils.MakeString(author_name, ws)
             note.Source.set_String(ws, mkstr)
@@ -911,7 +898,7 @@ class NoteOperations(BaseOperations):
         """
         self._ValidateParam(note, "note")
 
-        if hasattr(note, 'RepliesOS'):
+        if hasattr(note, "RepliesOS"):
             for reply in note.RepliesOS:
                 yield reply
 
@@ -966,13 +953,11 @@ class NoteOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the reply annotation using the factory
-        factory = self.project.project.ServiceLocator.GetService(
-            ICmBaseAnnotationFactory
-        )
+        factory = self.project.project.ServiceLocator.GetService(ICmBaseAnnotationFactory)
         reply = factory.Create()
 
         # Add as reply to parent note (must be done before setting properties)
-        if hasattr(parent_note, 'RepliesOS'):
+        if hasattr(parent_note, "RepliesOS"):
             parent_note.RepliesOS.Add(reply)
 
         # Set the content
@@ -1023,11 +1008,11 @@ class NoteOperations(BaseOperations):
         """
         self._ValidateParam(note, "note")
 
-        if hasattr(note, 'Owner'):
+        if hasattr(note, "Owner"):
             return note.Owner
 
         # Alternative: check BeginObjectRA
-        if hasattr(note, 'BeginObjectRA'):
+        if hasattr(note, "BeginObjectRA"):
             return note.BeginObjectRA
 
         return None
@@ -1080,9 +1065,7 @@ class NoteOperations(BaseOperations):
         """
         if wsHandle is None:
             return self.project.project.DefaultAnalWs
-        return self.project._FLExProject__WSHandle(
-            wsHandle, self.project.project.DefaultAnalWs
-        )
+        return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultAnalWs)
 
     def __FindAnnotationDefn(self, name):
         """

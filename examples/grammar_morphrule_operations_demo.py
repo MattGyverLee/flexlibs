@@ -17,6 +17,7 @@ Version: 2.3.0
 
 from flexlibs2 import FLExProject, FLExInitialize, FLExCleanup
 
+
 def demo_morphrule_crud():
     """
     Demonstrate full CRUD operations for morphological rules.
@@ -51,9 +52,9 @@ def demo_morphrule_crud():
 
     try:
         # ==================== READ: Initial state ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("STEP 1: READ - Get existing morphological rules")
-        print("="*70)
+        print("=" * 70)
 
         # Compound rules
         print("\nCompound rules (MoMorphData.CompoundRulesOS):")
@@ -90,17 +91,15 @@ def demo_morphrule_crud():
         print(f"  Total co-prohibitions: {prohib_count}")
 
         # ==================== CREATE ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("STEP 2: CREATE - Create test compound rule and affix template")
-        print("="*70)
+        print("=" * 70)
 
         # Create compound rule
         print(f"\nCreating compound rule: '{test_compound_name}'")
         try:
             test_compound = project.MorphRules.CreateCompoundRule(
-                test_compound_name,
-                endocentric=True,
-                description="Test endocentric compound rule"
+                test_compound_name, endocentric=True, description="Test endocentric compound rule"
             )
             print(f"  SUCCESS: Created {test_compound.ClassName}")
             print(f"  Name: {project.MorphRules.GetName(test_compound)}")
@@ -118,9 +117,7 @@ def demo_morphrule_crud():
                 print(f"  Using POS: {pos_name}")
 
                 test_template = project.MorphRules.CreateAffixTemplate(
-                    first_pos,
-                    test_template_name,
-                    description="Test inflectional affix template"
+                    first_pos, test_template_name, description="Test inflectional affix template"
                 )
                 print(f"  SUCCESS: Created {test_template.ClassName}")
                 print(f"  Name: {project.MorphRules.GetName(test_template)}")
@@ -130,9 +127,9 @@ def demo_morphrule_crud():
             print(f"  Note: CreateAffixTemplate failed: {e}")
 
         # ==================== READ: Verify creation ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("STEP 3: READ - Verify rules were created")
-        print("="*70)
+        print("=" * 70)
 
         new_compound_count = sum(1 for _ in project.MorphRules.GetAllCompoundRules())
         new_template_count = sum(1 for _ in project.MorphRules.GetAllAffixTemplates())
@@ -140,9 +137,9 @@ def demo_morphrule_crud():
         print(f"  Affix templates: {template_count} -> {new_template_count}")
 
         # ==================== UPDATE ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("STEP 4: UPDATE - Modify rule properties")
-        print("="*70)
+        print("=" * 70)
 
         if test_compound:
             new_name = "crud_test_compound_modified"
@@ -173,9 +170,9 @@ def demo_morphrule_crud():
             print("  UPDATE: SUCCESS")
 
         # ==================== DUPLICATE ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("STEP 5: DUPLICATE - Test rule duplication")
-        print("="*70)
+        print("=" * 70)
 
         duplicate = None
         if test_compound:
@@ -188,13 +185,15 @@ def demo_morphrule_crud():
                 print(f"  Note: Duplicate failed: {e}")
 
         # ==================== DELETE ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("STEP 6: DELETE - Remove test rules")
-        print("="*70)
+        print("=" * 70)
 
-        for obj, label in [(duplicate, "duplicate compound"),
-                           (test_compound, "compound rule"),
-                           (test_template, "affix template")]:
+        for obj, label in [
+            (duplicate, "duplicate compound"),
+            (test_compound, "compound rule"),
+            (test_template, "affix template"),
+        ]:
             if obj:
                 try:
                     name = project.MorphRules.GetName(obj)
@@ -211,9 +210,9 @@ def demo_morphrule_crud():
         print(f"  Back to initial: {final_compound_count == compound_count and final_template_count == template_count}")
 
         # ==================== SUMMARY ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("CRUD TEST SUMMARY")
-        print("="*70)
+        print("=" * 70)
         print("\nOperations tested:")
         print("  [CREATE] CreateCompoundRule, CreateAffixTemplate")
         print("  [READ]   GetAllCompoundRules, GetAllAffixTemplates,")
@@ -226,24 +225,26 @@ def demo_morphrule_crud():
     except Exception as e:
         print(f"\n\nERROR during CRUD test: {e}")
         import traceback
+
         traceback.print_exc()
 
     finally:
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("CLEANUP")
-        print("="*70)
+        print("=" * 70)
 
         print("\nClosing project...")
         project.CloseProject()
         FLExCleanup()
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("DEMO COMPLETE")
-    print("="*70)
+    print("=" * 70)
 
 
 if __name__ == "__main__":
-    print("""
+    print(
+        """
 MorphRule Operations - Full CRUD Demo
 =====================================================
 
@@ -268,10 +269,11 @@ Requirements:
 
 WARNING: This demo modifies the database!
          Test rules are created and deleted during the demo.
-    """)
+    """
+    )
 
     response = input("\nRun CRUD demo? (y/N): ")
-    if response.lower() == 'y':
+    if response.lower() == "y":
         demo_morphrule_crud()
     else:
         print("\nDemo skipped.")

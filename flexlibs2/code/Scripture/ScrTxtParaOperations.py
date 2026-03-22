@@ -29,6 +29,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+
 class ScrTxtParaOperations(BaseOperations):
     """
     This class provides operations for managing Scripture text paragraphs in a
@@ -130,6 +131,7 @@ class ScrTxtParaOperations(BaseOperations):
         # Ensure section has content StText
         if not section.ContentOA:
             from SIL.LCModel import IStTextFactory
+
             text_factory = self.project.project.ServiceLocator.GetService(IStTextFactory)
             section.ContentOA = text_factory.Create()
 
@@ -505,10 +507,7 @@ class ScrTxtParaOperations(BaseOperations):
         """
         if wsHandle is None:
             return self.project.project.DefaultVernWs
-        return self.project._FLExProject__WSHandle(
-            wsHandle,
-            self.project.project.DefaultVernWs
-        )
+        return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultVernWs)
 
     def __FindStyle(self, style_name):
         """

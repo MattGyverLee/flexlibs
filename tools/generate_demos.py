@@ -16,22 +16,14 @@ script_dir = Path(__file__).parent
 flexlibs_root = script_dir.parent
 sys.path.insert(0, str(flexlibs_root))
 
-from flexlibs2.code.Grammar.NaturalClassOperations import (
-    NaturalClassOperations
-)
+from flexlibs2.code.Grammar.NaturalClassOperations import NaturalClassOperations
 from flexlibs2.code.Grammar.EnvironmentOperations import EnvironmentOperations
-from flexlibs2.code.Grammar.PhonologicalRuleOperations import (
-    PhonologicalRuleOperations
-)
-from flexlibs2.code.Grammar.InflectionFeatureOperations import (
-    InflectionFeatureOperations
-)
+from flexlibs2.code.Grammar.PhonologicalRuleOperations import PhonologicalRuleOperations
+from flexlibs2.code.Grammar.InflectionFeatureOperations import InflectionFeatureOperations
 from flexlibs2.code.Grammar.GramCatOperations import GramCatOperations
 from flexlibs2.code.Lexicon.LexSenseOperations import LexSenseOperations
 from flexlibs2.code.Lexicon.ExampleOperations import ExampleOperations
-from flexlibs2.code.Lexicon.PronunciationOperations import (
-    PronunciationOperations
-)
+from flexlibs2.code.Lexicon.PronunciationOperations import PronunciationOperations
 from flexlibs2.code.Lexicon.VariantOperations import VariantOperations
 from flexlibs2.code.Lexicon.AllomorphOperations import AllomorphOperations
 from flexlibs2.code.Lexicon.EtymologyOperations import EtymologyOperations
@@ -50,7 +42,7 @@ def get_public_methods(cls):
     """
     methods = []
     for name in dir(cls):
-        if not name.startswith('_') and callable(getattr(cls, name, None)):
+        if not name.startswith("_") and callable(getattr(cls, name, None)):
             methods.append(name)
     return sorted(methods)
 
@@ -72,22 +64,10 @@ def generate_demo(ops_class, filename, property_name, display_name, domain):
     methods = get_public_methods(ops_class)
 
     # Categorize methods
-    create_methods = [
-        m for m in methods
-        if m.startswith('Create') or m.startswith('Add')
-    ]
-    read_methods = [
-        m for m in methods
-        if m.startswith('Get') or m == 'Find' or m == 'Exists'
-    ]
-    update_methods = [
-        m for m in methods
-        if m.startswith('Set') or m.startswith('Update')
-    ]
-    delete_methods = [
-        m for m in methods
-        if m.startswith('Delete') or m.startswith('Remove')
-    ]
+    create_methods = [m for m in methods if m.startswith("Create") or m.startswith("Add")]
+    read_methods = [m for m in methods if m.startswith("Get") or m == "Find" or m == "Exists"]
+    update_methods = [m for m in methods if m.startswith("Set") or m.startswith("Update")]
+    delete_methods = [m for m in methods if m.startswith("Delete") or m.startswith("Remove")]
 
     content = f'''#!/usr/bin/env python3
 """
@@ -197,11 +177,11 @@ Note: Actual execution requires a FLEx project and Python.NET runtime.
 '''
 
     # Use relative path from script location
-    examples_dir = flexlibs_root / 'examples'
+    examples_dir = flexlibs_root / "examples"
     examples_dir.mkdir(exist_ok=True)
     output_path = examples_dir / filename
 
-    with open(output_path, 'w', encoding='utf-8') as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         f.write(content)
     print(f"Created: {filename}")
 
@@ -210,30 +190,54 @@ def main():
     """Generate all demonstration files."""
     # Define demonstrations to generate
     demos = [
-        (NaturalClassOperations, 'grammar_naturalclass_operations_demo.py',
-         'NaturalClasses', 'Natural Classes', 'naturalclass'),
-        (EnvironmentOperations, 'grammar_environment_operations_demo.py',
-         'Environments', 'Environments', 'environment'),
-        (PhonologicalRuleOperations, 'grammar_phonrule_operations_demo.py',
-         'PhonRules', 'Phonological Rules', 'phonrule'),
-        (InflectionFeatureOperations, 'grammar_inflection_operations_demo.py',
-         'InflectionFeatures', 'Inflection Features', 'inflection'),
-        (GramCatOperations, 'grammar_gramcat_operations_demo.py',
-         'GramCat', 'Grammatical Categories', 'gramcat'),
-        (LexSenseOperations, 'lexicon_sense_operations_demo.py',
-         'Senses', 'Lexical Senses', 'sense'),
-        (ExampleOperations, 'lexicon_example_operations_demo.py',
-         'Examples', 'Example Sentences', 'example'),
-        (PronunciationOperations, 'lexicon_pronunciation_operations_demo.py',
-         'Pronunciations', 'Pronunciations', 'pronunciation'),
-        (VariantOperations, 'lexicon_variant_operations_demo.py',
-         'Variants', 'Variant Forms', 'variant'),
-        (AllomorphOperations, 'lexicon_allomorph_operations_demo.py',
-         'Allomorphs', 'Allomorphs', 'allomorph'),
-        (EtymologyOperations, 'lexicon_etymology_operations_demo.py',
-         'Etymology', 'Etymologies', 'etymology'),
-        (LexReferenceOperations, 'lexicon_lexreference_operations_demo.py',
-         'LexReferences', 'Lexical References', 'lexreference'),
+        (
+            NaturalClassOperations,
+            "grammar_naturalclass_operations_demo.py",
+            "NaturalClasses",
+            "Natural Classes",
+            "naturalclass",
+        ),
+        (
+            EnvironmentOperations,
+            "grammar_environment_operations_demo.py",
+            "Environments",
+            "Environments",
+            "environment",
+        ),
+        (
+            PhonologicalRuleOperations,
+            "grammar_phonrule_operations_demo.py",
+            "PhonRules",
+            "Phonological Rules",
+            "phonrule",
+        ),
+        (
+            InflectionFeatureOperations,
+            "grammar_inflection_operations_demo.py",
+            "InflectionFeatures",
+            "Inflection Features",
+            "inflection",
+        ),
+        (GramCatOperations, "grammar_gramcat_operations_demo.py", "GramCat", "Grammatical Categories", "gramcat"),
+        (LexSenseOperations, "lexicon_sense_operations_demo.py", "Senses", "Lexical Senses", "sense"),
+        (ExampleOperations, "lexicon_example_operations_demo.py", "Examples", "Example Sentences", "example"),
+        (
+            PronunciationOperations,
+            "lexicon_pronunciation_operations_demo.py",
+            "Pronunciations",
+            "Pronunciations",
+            "pronunciation",
+        ),
+        (VariantOperations, "lexicon_variant_operations_demo.py", "Variants", "Variant Forms", "variant"),
+        (AllomorphOperations, "lexicon_allomorph_operations_demo.py", "Allomorphs", "Allomorphs", "allomorph"),
+        (EtymologyOperations, "lexicon_etymology_operations_demo.py", "Etymology", "Etymologies", "etymology"),
+        (
+            LexReferenceOperations,
+            "lexicon_lexreference_operations_demo.py",
+            "LexReferences",
+            "Lexical References",
+            "lexreference",
+        ),
     ]
 
     print("Generating demonstration files...")

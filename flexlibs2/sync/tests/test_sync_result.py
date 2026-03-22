@@ -51,7 +51,7 @@ class TestSyncResultAddChange(unittest.TestCase):
     def test_add_create_change(self):
         """Test adding a create change."""
         result = SyncResult("Phoneme")
-        change = SyncChange('create', 'Phoneme', 'guid-123')
+        change = SyncChange("create", "Phoneme", "guid-123")
 
         result.add_change(change)
 
@@ -62,7 +62,7 @@ class TestSyncResultAddChange(unittest.TestCase):
     def test_add_update_change(self):
         """Test adding an update change."""
         result = SyncResult("LexSense")
-        change = SyncChange('update', 'LexSense', 'guid-456')
+        change = SyncChange("update", "LexSense", "guid-456")
 
         result.add_change(change)
 
@@ -72,7 +72,7 @@ class TestSyncResultAddChange(unittest.TestCase):
     def test_add_delete_change(self):
         """Test adding a delete change."""
         result = SyncResult("MorphType")
-        change = SyncChange('delete', 'MorphType', 'guid-789')
+        change = SyncChange("delete", "MorphType", "guid-789")
 
         result.add_change(change)
 
@@ -91,10 +91,10 @@ class TestSyncResultAddChange(unittest.TestCase):
         """Test adding multiple changes."""
         result = SyncResult("Allomorph")
 
-        result.add_change(SyncChange('create', 'Allomorph', 'guid-1'))
-        result.add_change(SyncChange('create', 'Allomorph', 'guid-2'))
-        result.add_change(SyncChange('update', 'Allomorph', 'guid-3'))
-        result.add_change(SyncChange('delete', 'Allomorph', 'guid-4'))
+        result.add_change(SyncChange("create", "Allomorph", "guid-1"))
+        result.add_change(SyncChange("create", "Allomorph", "guid-2"))
+        result.add_change(SyncChange("update", "Allomorph", "guid-3"))
+        result.add_change(SyncChange("delete", "Allomorph", "guid-4"))
 
         self.assertEqual(result.num_created, 2)
         self.assertEqual(result.num_updated, 1)
@@ -105,7 +105,7 @@ class TestSyncResultAddChange(unittest.TestCase):
     def test_add_unknown_operation_type(self):
         """Test adding change with unknown operation type."""
         result = SyncResult("LexEntry")
-        change = SyncChange('merge', 'LexEntry', 'guid-xyz')
+        change = SyncChange("merge", "LexEntry", "guid-xyz")
 
         result.add_change(change)
 
@@ -120,11 +120,7 @@ class TestSyncResultAddError(unittest.TestCase):
     def test_add_error(self):
         """Test adding an error."""
         result = SyncResult("Phoneme")
-        error = SyncError(
-            'create',
-            'guid-err',
-            'Failed to create phoneme'
-        )
+        error = SyncError("create", "guid-err", "Failed to create phoneme")
 
         result.add_error(error)
 
@@ -137,9 +133,9 @@ class TestSyncResultAddError(unittest.TestCase):
         """Test adding multiple errors."""
         result = SyncResult("LexEntry")
 
-        result.add_error(SyncError('create', 'guid-1', 'Error 1'))
-        result.add_error(SyncError('update', 'guid-2', 'Error 2'))
-        result.add_error(SyncError('delete', 'guid-3', 'Error 3'))
+        result.add_error(SyncError("create", "guid-1", "Error 1"))
+        result.add_error(SyncError("update", "guid-2", "Error 2"))
+        result.add_error(SyncError("delete", "guid-3", "Error 3"))
 
         self.assertEqual(result.num_errors, 3)
         self.assertEqual(len(result.errors), 3)
@@ -153,7 +149,7 @@ class TestSyncResultAddError(unittest.TestCase):
         self.assertTrue(result.success)
 
         # Add error
-        result.add_error(SyncError('create', 'guid-err', 'Error'))
+        result.add_error(SyncError("create", "guid-err", "Error"))
 
         # Now not success
         self.assertFalse(result.success)
@@ -176,9 +172,9 @@ class TestSyncResultSummary(unittest.TestCase):
         """Test summary with changes."""
         result = SyncResult("Allomorph")
 
-        result.add_change(SyncChange('create', 'Allomorph', 'g1'))
-        result.add_change(SyncChange('create', 'Allomorph', 'g2'))
-        result.add_change(SyncChange('update', 'Allomorph', 'g3'))
+        result.add_change(SyncChange("create", "Allomorph", "g1"))
+        result.add_change(SyncChange("create", "Allomorph", "g2"))
+        result.add_change(SyncChange("update", "Allomorph", "g3"))
 
         summary = result.summary()
 
@@ -191,8 +187,8 @@ class TestSyncResultSummary(unittest.TestCase):
         """Test summary with errors."""
         result = SyncResult("LexEntry")
 
-        result.add_change(SyncChange('create', 'LexEntry', 'g1'))
-        result.add_error(SyncError('update', 'g2', 'Failed'))
+        result.add_change(SyncChange("create", "LexEntry", "g1"))
+        result.add_error(SyncError("update", "g2", "Failed"))
 
         summary = result.summary()
 
@@ -203,14 +199,14 @@ class TestSyncResultSummary(unittest.TestCase):
     def test_summary_success_indicator(self):
         """Test summary includes success indicator."""
         result1 = SyncResult("Phoneme")
-        result1.add_change(SyncChange('create', 'Phoneme', 'g1'))
+        result1.add_change(SyncChange("create", "Phoneme", "g1"))
         summary1 = result1.summary()
 
         # Successful sync should have positive indicator
         self.assertIn("✅", summary1)
 
         result2 = SyncResult("Phoneme")
-        result2.add_error(SyncError('create', 'g1', 'Error'))
+        result2.add_error(SyncError("create", "g1", "Error"))
         summary2 = result2.summary()
 
         # Failed sync should have negative indicator
@@ -224,8 +220,8 @@ class TestSyncResultExportLog(unittest.TestCase):
         """Test exporting log to file."""
         result = SyncResult("Allomorph")
 
-        result.add_change(SyncChange('create', 'Allomorph', 'guid-1', {'form': 'test'}))
-        result.add_change(SyncChange('update', 'Allomorph', 'guid-2'))
+        result.add_change(SyncChange("create", "Allomorph", "guid-1", {"form": "test"}))
+        result.add_change(SyncChange("update", "Allomorph", "guid-2"))
 
         with tempfile.TemporaryDirectory() as tmpdir:
             log_file = os.path.join(tmpdir, "test_sync.log")
@@ -235,7 +231,7 @@ class TestSyncResultExportLog(unittest.TestCase):
             self.assertTrue(os.path.exists(log_file))
 
             # Read and verify content
-            with open(log_file, 'r', encoding='utf-8') as f:
+            with open(log_file, "r", encoding="utf-8") as f:
                 content = f.read()
 
             self.assertIn("Allomorph", content)
@@ -248,14 +244,14 @@ class TestSyncResultExportLog(unittest.TestCase):
         """Test exporting log with errors."""
         result = SyncResult("LexEntry")
 
-        result.add_change(SyncChange('create', 'LexEntry', 'guid-ok'))
-        result.add_error(SyncError('update', 'guid-err', 'Update failed'))
+        result.add_change(SyncChange("create", "LexEntry", "guid-ok"))
+        result.add_error(SyncError("update", "guid-err", "Update failed"))
 
         with tempfile.TemporaryDirectory() as tmpdir:
             log_file = os.path.join(tmpdir, "error_sync.log")
             result.export_log(log_file)
 
-            with open(log_file, 'r', encoding='utf-8') as f:
+            with open(log_file, "r", encoding="utf-8") as f:
                 content = f.read()
 
             self.assertIn("guid-ok", content)
@@ -273,7 +269,7 @@ class TestSyncResultExportLog(unittest.TestCase):
 
             self.assertTrue(os.path.exists(log_file))
 
-            with open(log_file, 'r', encoding='utf-8') as f:
+            with open(log_file, "r", encoding="utf-8") as f:
                 content = f.read()
 
             self.assertIn("Phoneme", content)
@@ -283,22 +279,17 @@ class TestSyncResultExportLog(unittest.TestCase):
         """Test exporting log with unicode content."""
         result = SyncResult("Allomorph")
 
-        result.add_change(SyncChange(
-            'create',
-            'Allomorph',
-            'guid-unicode',
-            {'form': 'café', 'gloss': '日本語'}
-        ))
+        result.add_change(SyncChange("create", "Allomorph", "guid-unicode", {"form": "café", "gloss": "日本語"}))
 
         with tempfile.TemporaryDirectory() as tmpdir:
             log_file = os.path.join(tmpdir, "unicode_sync.log")
             result.export_log(log_file)
 
-            with open(log_file, 'r', encoding='utf-8') as f:
+            with open(log_file, "r", encoding="utf-8") as f:
                 content = f.read()
 
-            self.assertIn('café', content)
-            self.assertIn('日本語', content)
+            self.assertIn("café", content)
+            self.assertIn("日本語", content)
 
 
 class TestSyncResultIntegration(unittest.TestCase):
@@ -310,16 +301,16 @@ class TestSyncResultIntegration(unittest.TestCase):
 
         # Add various changes
         for i in range(5):
-            result.add_change(SyncChange('create', 'Allomorph', f'new-{i}'))
+            result.add_change(SyncChange("create", "Allomorph", f"new-{i}"))
 
         for i in range(3):
-            result.add_change(SyncChange('update', 'Allomorph', f'mod-{i}'))
+            result.add_change(SyncChange("update", "Allomorph", f"mod-{i}"))
 
         # Skip one
         result.skip()
 
         # Add an error
-        result.add_error(SyncError('create', 'err-1', 'Failed'))
+        result.add_error(SyncError("create", "err-1", "Failed"))
 
         # Verify counts
         self.assertEqual(result.num_created, 5)
@@ -335,7 +326,7 @@ class TestSyncResultIntegration(unittest.TestCase):
             log_file = os.path.join(tmpdir, "workflow.log")
             result.export_log(log_file)
 
-            with open(log_file, 'r', encoding='utf-8') as f:
+            with open(log_file, "r", encoding="utf-8") as f:
                 content = f.read()
 
             # Should contain all types
@@ -344,5 +335,5 @@ class TestSyncResultIntegration(unittest.TestCase):
             self.assertIn("error", content.lower())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

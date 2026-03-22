@@ -12,6 +12,7 @@
 #
 
 import clr
+
 clr.AddReference("System")
 
 from SIL.LCModel import (
@@ -29,6 +30,7 @@ from ..FLExProject import (
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
 # --- WfiGlossOperations Class ---
+
 
 class WfiGlossOperations(BaseOperations):
     """
@@ -227,8 +229,8 @@ class WfiGlossOperations(BaseOperations):
         props = {}
 
         # MultiString property - Form
-        if hasattr(item, 'Form') and item.Form:
-            props['Form'] = self.project.GetMultiStringDict(item.Form)
+        if hasattr(item, "Form") and item.Form:
+            props["Form"] = self.project.GetMultiStringDict(item.Form)
 
         return props
 
@@ -330,7 +332,7 @@ class WfiGlossOperations(BaseOperations):
         analysis = gloss.Owner
 
         # Remove from analysis's Meanings collection
-        if hasattr(analysis, 'MeaningsOC'):
+        if hasattr(analysis, "MeaningsOC"):
             analysis.MeaningsOC.Remove(gloss)
 
     @OperationsMethod

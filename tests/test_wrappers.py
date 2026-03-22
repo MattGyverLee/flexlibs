@@ -43,6 +43,7 @@ from flexlibs2.code.Shared.wrapper_base import LCMObjectWrapper
 # FIXTURES FOR MOCK LCM OBJECTS
 # =============================================================================
 
+
 @pytest.fixture
 def mock_base_interface():
     """
@@ -54,12 +55,12 @@ def mock_base_interface():
     - Methods that can be called
     """
     obj = Mock()
-    obj.ClassName = 'PhRegularRule'
-    obj.Id = 'guid-rule-001'
+    obj.ClassName = "PhRegularRule"
+    obj.Id = "guid-rule-001"
     obj.Hvo = 5001
-    obj.Name = 'voicing_rule'
-    obj.Direction = 'LTR'
-    obj.SomeMethod = Mock(return_value='method_result')
+    obj.Name = "voicing_rule"
+    obj.Direction = "LTR"
+    obj.SomeMethod = Mock(return_value="method_result")
     return obj
 
 
@@ -74,15 +75,15 @@ def mock_concrete_interface():
     - Methods from derived type
     """
     obj = Mock()
-    obj.ClassName = 'PhRegularRule'
-    obj.Id = 'guid-rule-001'
+    obj.ClassName = "PhRegularRule"
+    obj.Id = "guid-rule-001"
     obj.Hvo = 5001
-    obj.Name = 'voicing_rule'
-    obj.Direction = 'LTR'
+    obj.Name = "voicing_rule"
+    obj.Direction = "LTR"
     obj.RightHandSidesOS = Mock()
     obj.RightHandSidesOS.Count = 3
-    obj.SomeMethod = Mock(return_value='method_result')
-    obj.ConcreteOnlyMethod = Mock(return_value='concrete_result')
+    obj.SomeMethod = Mock(return_value="method_result")
+    obj.ConcreteOnlyMethod = Mock(return_value="concrete_result")
     return obj
 
 
@@ -94,16 +95,14 @@ def mock_cast_to_concrete(mock_base_interface, mock_concrete_interface, monkeypa
     Returns the concrete interface when cast_to_concrete is called,
     allowing tests to isolate wrapper behavior from actual casting logic.
     """
+
     def _cast(obj):
         """Mock cast function that returns concrete when called."""
         if obj == mock_base_interface:
             return mock_concrete_interface
         return obj
 
-    monkeypatch.setattr(
-        'flexlibs2.code.Shared.wrapper_base.cast_to_concrete',
-        _cast
-    )
+    monkeypatch.setattr("flexlibs2.code.Shared.wrapper_base.cast_to_concrete", _cast)
     return _cast
 
 
@@ -122,6 +121,7 @@ def wrapped_object(mock_base_interface, mock_cast_to_concrete):
 # TESTS FOR INITIALIZATION
 # =============================================================================
 
+
 class TestLCMObjectWrapperInit:
     """Test __init__() method stores both base and concrete interfaces."""
 
@@ -137,15 +137,16 @@ class TestLCMObjectWrapperInit:
 
     def test_init_calls_cast_to_concrete(self, mock_base_interface, mock_cast_to_concrete):
         """Test that __init__() calls cast_to_concrete() on the object."""
-        mock_base_interface.ClassName = 'TestType'
+        mock_base_interface.ClassName = "TestType"
         wrapper = LCMObjectWrapper(mock_base_interface)
         # Verify cast_to_concrete was called by checking concrete was set
-        assert hasattr(wrapper, '_concrete')
+        assert hasattr(wrapper, "_concrete")
 
 
 # =============================================================================
 # TESTS FOR PROPERTY ROUTING (__getattr__)
 # =============================================================================
+
 
 class TestLCMObjectWrapperGetAttr:
     """Test __getattr__() property routing across base and concrete types."""
@@ -170,21 +171,24 @@ class TestLCMObjectWrapperGetAttr:
         result = wrapped_object.SomeMethod
         assert result == mock_base_interface.SomeMethod
 
-    def test_getattr_raises_attribute_error_when_missing(self, mock_base_interface, mock_concrete_interface, mock_cast_to_concrete):
+    def test_getattr_raises_attribute_error_when_missing(
+        self, mock_base_interface, mock_concrete_interface, mock_cast_to_concrete
+    ):
         """Test that __getattr__() raises AttributeError for missing properties."""
         # Configure mocks to raise AttributeError for unknown properties
-        mock_base_interface_limited = Mock(spec=['ClassName', 'Name'])
-        mock_base_interface_limited.ClassName = 'TestType'
-        mock_base_interface_limited.Name = 'test'
+        mock_base_interface_limited = Mock(spec=["ClassName", "Name"])
+        mock_base_interface_limited.ClassName = "TestType"
+        mock_base_interface_limited.Name = "test"
 
         # Set up cast to return concrete with limited spec
-        mock_concrete_limited = Mock(spec=['ClassName', 'Name'])
-        mock_concrete_limited.ClassName = 'TestType'
+        mock_concrete_limited = Mock(spec=["ClassName", "Name"])
+        mock_concrete_limited.ClassName = "TestType"
 
         def _cast_limited(obj):
             return mock_concrete_limited
 
         import flexlibs2.code.Shared.wrapper_base as wrapper_module
+
         original_cast = wrapper_module.cast_to_concrete
         wrapper_module.cast_to_concrete = _cast_limited
 
@@ -192,11 +196,13 @@ class TestLCMObjectWrapperGetAttr:
             wrapper = LCMObjectWrapper(mock_base_interface_limited)
             with pytest.raises(AttributeError) as exc_info:
                 _ = wrapper.NonExistentProperty
-            assert 'NonExistentProperty' in str(exc_info.value)
+            assert "NonExistentProperty" in str(exc_info.value)
         finally:
             wrapper_module.cast_to_concrete = original_cast
 
-    def test_getattr_prevents_infinite_recursion(self, mock_base_interface, mock_concrete_interface, mock_cast_to_concrete):
+    def test_getattr_prevents_infinite_recursion(
+        self, mock_base_interface, mock_concrete_interface, mock_cast_to_concrete
+    ):
         """Test that __getattr__() prevents infinite recursion for _obj and _concrete."""
         wrapper = LCMObjectWrapper(mock_base_interface)
         # These should be accessible as object attributes, not through __getattr__
@@ -213,129 +219,133 @@ class TestLCMObjectWrapperGetAttr:
         """Test that methods accessed through wrapper can be called."""
         # SomeMethod is available on both base and concrete
         result = wrapped_object.SomeMethod()
-        assert result == 'method_result'
+        assert result == "method_result"
 
-    def test_getattr_handles_attribute_on_both_types(self, mock_base_interface, mock_concrete_interface, mock_cast_to_concrete):
+    def test_getattr_handles_attribute_on_both_types(
+        self, mock_base_interface, mock_concrete_interface, mock_cast_to_concrete
+    ):
         """Test __getattr__() when attribute exists on both types."""
         # Direction exists on both - concrete should be tried first
         wrapper = LCMObjectWrapper(mock_base_interface)
         result = wrapper.Direction
-        assert result == 'LTR'
+        assert result == "LTR"
 
 
 # =============================================================================
 # TESTS FOR CLASS_TYPE PROPERTY
 # =============================================================================
 
+
 class TestLCMObjectWrapperClassType:
     """Test class_type property returns ClassName."""
 
     def test_class_type_returns_classname(self, wrapped_object):
         """Test that class_type property returns the ClassName attribute."""
-        assert wrapped_object.class_type == 'PhRegularRule'
+        assert wrapped_object.class_type == "PhRegularRule"
 
     def test_class_type_with_different_types(self, mock_cast_to_concrete):
         """Test class_type with different concrete types."""
         # Test with MetathesisRule
         obj = Mock()
-        obj.ClassName = 'PhMetathesisRule'
+        obj.ClassName = "PhMetathesisRule"
         mock_cast_to_concrete(obj)
         wrapper = LCMObjectWrapper(obj)
-        assert wrapper.class_type == 'PhMetathesisRule'
+        assert wrapper.class_type == "PhMetathesisRule"
 
         # Test with ReduplicationRule
         obj2 = Mock()
-        obj2.ClassName = 'PhReduplicationRule'
+        obj2.ClassName = "PhReduplicationRule"
         mock_cast_to_concrete(obj2)
         wrapper2 = LCMObjectWrapper(obj2)
-        assert wrapper2.class_type == 'PhReduplicationRule'
+        assert wrapper2.class_type == "PhReduplicationRule"
 
     def test_class_type_is_read_only(self, wrapped_object):
         """Test that class_type property is read-only."""
         with pytest.raises(AttributeError):
-            wrapped_object.class_type = 'SomeOtherType'
+            wrapped_object.class_type = "SomeOtherType"
 
 
 # =============================================================================
 # TESTS FOR GET_PROPERTY METHOD
 # =============================================================================
 
+
 class TestLCMObjectWrapperGetProperty:
     """Test get_property() method with valid and invalid properties."""
 
     def test_get_property_returns_existing_property(self, wrapped_object):
         """Test get_property() returns the property value when it exists."""
-        result = wrapped_object.get_property('Name')
-        assert result == 'voicing_rule'
+        result = wrapped_object.get_property("Name")
+        assert result == "voicing_rule"
 
     def test_get_property_returns_concrete_property(self, wrapped_object, mock_concrete_interface):
         """Test get_property() can access concrete-only properties."""
-        result = wrapped_object.get_property('RightHandSidesOS')
+        result = wrapped_object.get_property("RightHandSidesOS")
         assert result == mock_concrete_interface.RightHandSidesOS
 
     def test_get_property_returns_default_for_missing(self, mock_cast_to_concrete):
         """Test get_property() returns default when property doesn't exist."""
         # Use spec to prevent Mock from creating attributes automatically
-        obj = Mock(spec=['ClassName', 'Name'])
-        obj.ClassName = 'TestType'
-        obj.Name = 'test'
+        obj = Mock(spec=["ClassName", "Name"])
+        obj.ClassName = "TestType"
+        obj.Name = "test"
         mock_cast_to_concrete(obj)
         wrapper = LCMObjectWrapper(obj)
 
-        result = wrapper.get_property('NonExistent')
+        result = wrapper.get_property("NonExistent")
         assert result is None
 
     def test_get_property_returns_custom_default(self, mock_cast_to_concrete):
         """Test get_property() returns custom default value."""
-        obj = Mock(spec=['ClassName', 'Name'])
-        obj.ClassName = 'TestType'
-        obj.Name = 'test'
+        obj = Mock(spec=["ClassName", "Name"])
+        obj.ClassName = "TestType"
+        obj.Name = "test"
         mock_cast_to_concrete(obj)
         wrapper = LCMObjectWrapper(obj)
 
-        result = wrapper.get_property('NonExistent', 'custom_default')
-        assert result == 'custom_default'
+        result = wrapper.get_property("NonExistent", "custom_default")
+        assert result == "custom_default"
 
     def test_get_property_with_list_default(self, mock_cast_to_concrete):
         """Test get_property() with list as default."""
-        obj = Mock(spec=['ClassName'])
-        obj.ClassName = 'TestType'
+        obj = Mock(spec=["ClassName"])
+        obj.ClassName = "TestType"
         mock_cast_to_concrete(obj)
         wrapper = LCMObjectWrapper(obj)
 
-        result = wrapper.get_property('NonExistent', [])
+        result = wrapper.get_property("NonExistent", [])
         assert result == []
 
     def test_get_property_with_zero_default(self, mock_cast_to_concrete):
         """Test get_property() with numeric default (0)."""
-        obj = Mock(spec=['ClassName'])
-        obj.ClassName = 'TestType'
+        obj = Mock(spec=["ClassName"])
+        obj.ClassName = "TestType"
         mock_cast_to_concrete(obj)
         wrapper = LCMObjectWrapper(obj)
 
-        result = wrapper.get_property('NonExistent', 0)
+        result = wrapper.get_property("NonExistent", 0)
         assert result == 0
 
     def test_get_property_with_false_default(self, mock_cast_to_concrete):
         """Test get_property() with False as default (falsy value)."""
-        obj = Mock(spec=['ClassName'])
-        obj.ClassName = 'TestType'
+        obj = Mock(spec=["ClassName"])
+        obj.ClassName = "TestType"
         mock_cast_to_concrete(obj)
         wrapper = LCMObjectWrapper(obj)
 
-        result = wrapper.get_property('NonExistent', False)
+        result = wrapper.get_property("NonExistent", False)
         assert result is False
 
     def test_get_property_none_is_valid_value(self, mock_base_interface, mock_cast_to_concrete):
         """Test get_property() distinguishes None as actual value vs default."""
         # If a property actually has None value, should return None (not default)
         obj = Mock()
-        obj.ClassName = 'TestType'
+        obj.ClassName = "TestType"
         obj.NullProperty = None
         mock_cast_to_concrete(obj)
         wrapper = LCMObjectWrapper(obj)
         # This is tricky - we need to test that accessing None property works
-        result = wrapper.get_property('NullProperty', 'default')
+        result = wrapper.get_property("NullProperty", "default")
         # Should return None because property exists (even though value is None)
         # However, get_property catches AttributeError, so if property exists, we get it
         assert result is None
@@ -344,6 +354,7 @@ class TestLCMObjectWrapperGetProperty:
 # =============================================================================
 # TESTS FOR ACCESSING CONCRETE-SPECIFIC PROPERTIES
 # =============================================================================
+
 
 class TestLCMObjectWrapperConcreteProperties:
     """Test accessing concrete type-specific properties through wrapper."""
@@ -362,7 +373,9 @@ class TestLCMObjectWrapperConcreteProperties:
         count = rhs.Count
         assert count == 3
 
-    def test_access_multiple_concrete_properties(self, mock_base_interface, mock_concrete_interface, mock_cast_to_concrete):
+    def test_access_multiple_concrete_properties(
+        self, mock_base_interface, mock_concrete_interface, mock_cast_to_concrete
+    ):
         """Test accessing multiple concrete-specific properties."""
         # Set up concrete with multiple properties
         mock_concrete_interface.LeftContextOS = Mock(Count=2)
@@ -378,14 +391,15 @@ class TestLCMObjectWrapperConcreteProperties:
 # TESTS FOR __repr__ AND __str__
 # =============================================================================
 
+
 class TestLCMObjectWrapperStringRepresentations:
     """Test string representations of wrapper objects."""
 
     def test_repr_shows_class_type(self, wrapped_object):
         """Test __repr__() shows wrapper class and LCM class type."""
         repr_str = repr(wrapped_object)
-        assert 'LCMObjectWrapper' in repr_str
-        assert 'PhRegularRule' in repr_str
+        assert "LCMObjectWrapper" in repr_str
+        assert "PhRegularRule" in repr_str
 
     def test_repr_format(self, wrapped_object):
         """Test __repr__() format matches expected pattern."""
@@ -395,8 +409,8 @@ class TestLCMObjectWrapperStringRepresentations:
     def test_str_is_human_readable(self, wrapped_object):
         """Test __str__() returns human-readable description."""
         str_repr = str(wrapped_object)
-        assert 'Wrapped' in str_repr
-        assert 'PhRegularRule' in str_repr
+        assert "Wrapped" in str_repr
+        assert "PhRegularRule" in str_repr
 
     def test_str_format(self, wrapped_object):
         """Test __str__() format."""
@@ -406,16 +420,17 @@ class TestLCMObjectWrapperStringRepresentations:
     def test_repr_with_different_types(self, mock_cast_to_concrete):
         """Test __repr__() with different concrete types."""
         obj = Mock()
-        obj.ClassName = 'MoStemMsa'
+        obj.ClassName = "MoStemMsa"
         mock_cast_to_concrete(obj)
         wrapper = LCMObjectWrapper(obj)
 
-        assert 'MoStemMsa' in repr(wrapper)
+        assert "MoStemMsa" in repr(wrapper)
 
 
 # =============================================================================
 # TESTS FOR EDGE CASES AND ERROR CONDITIONS
 # =============================================================================
+
 
 class TestLCMObjectWrapperEdgeCases:
     """Test edge cases and error conditions."""
@@ -423,13 +438,15 @@ class TestLCMObjectWrapperEdgeCases:
     def test_wrapper_with_minimal_mock(self, mock_cast_to_concrete):
         """Test wrapper with minimal mock object (only ClassName)."""
         obj = Mock()
-        obj.ClassName = 'MinimalType'
+        obj.ClassName = "MinimalType"
         mock_cast_to_concrete(obj)
 
         wrapper = LCMObjectWrapper(obj)
-        assert wrapper.class_type == 'MinimalType'
+        assert wrapper.class_type == "MinimalType"
 
-    def test_property_with_special_characters(self, mock_base_interface, mock_concrete_interface, mock_cast_to_concrete):
+    def test_property_with_special_characters(
+        self, mock_base_interface, mock_concrete_interface, mock_cast_to_concrete
+    ):
         """Test accessing properties with special naming conventions."""
         mock_concrete_interface.PropertyWithOS = Mock()
         mock_base_interface.PropertyWithOS = None
@@ -455,7 +472,9 @@ class TestLCMObjectWrapperEdgeCases:
         result = wrapper.CallableMethod()
         assert result == 42
 
-    def test_wrapper_with_property_that_raises_exception(self, mock_base_interface, mock_concrete_interface, mock_cast_to_concrete):
+    def test_wrapper_with_property_that_raises_exception(
+        self, mock_base_interface, mock_concrete_interface, mock_cast_to_concrete
+    ):
         """Test wrapper behavior when property access raises an exception."""
         # Set concrete to raise when accessing this property
         type(mock_concrete_interface).BadProperty = PropertyMock(side_effect=RuntimeError("Property access failed"))
@@ -467,25 +486,26 @@ class TestLCMObjectWrapperEdgeCases:
     def test_get_property_handles_exceptions_gracefully(self, mock_cast_to_concrete):
         """Test that get_property() returns default if property raises exception."""
         # Create mocks with limited spec so they raise AttributeError for unknown properties
-        obj = Mock(spec=['ClassName', 'ExistingProp'])
-        obj.ClassName = 'TestType'
-        obj.ExistingProp = 'value'
+        obj = Mock(spec=["ClassName", "ExistingProp"])
+        obj.ClassName = "TestType"
+        obj.ExistingProp = "value"
 
-        concrete = Mock(spec=['ClassName', 'ExistingProp'])
-        concrete.ClassName = 'TestType'
+        concrete = Mock(spec=["ClassName", "ExistingProp"])
+        concrete.ClassName = "TestType"
 
         def _cast(o):
             return concrete
 
         import flexlibs2.code.Shared.wrapper_base as wrapper_module
+
         original_cast = wrapper_module.cast_to_concrete
         wrapper_module.cast_to_concrete = _cast
 
         try:
             wrapper = LCMObjectWrapper(obj)
             # get_property should return default when property doesn't exist
-            result = wrapper.get_property('NonExistent', 'fallback')
-            assert result == 'fallback'
+            result = wrapper.get_property("NonExistent", "fallback")
+            assert result == "fallback"
         finally:
             wrapper_module.cast_to_concrete = original_cast
 
@@ -494,35 +514,38 @@ class TestLCMObjectWrapperEdgeCases:
 # TESTS FOR INTEGRATION WITH MOCK OBJECTS
 # =============================================================================
 
+
 class TestLCMObjectWrapperWithMockTypes:
     """Test wrapper with various mock object configurations."""
 
     def test_wrapper_with_dict_like_mock(self, mock_cast_to_concrete):
         """Test wrapper with mock configured like a dictionary."""
         obj = Mock()
-        obj.ClassName = 'DictLikeMock'
-        obj.attribute = 'value'
+        obj.ClassName = "DictLikeMock"
+        obj.attribute = "value"
         mock_cast_to_concrete(obj)
 
         wrapper = LCMObjectWrapper(obj)
-        assert wrapper.attribute == 'value'
+        assert wrapper.attribute == "value"
 
     def test_wrapper_with_spec_mock(self, mock_cast_to_concrete):
         """Test wrapper with mock configured with spec."""
+
         class TestInterface:
-            ClassName = 'SpecMock'
-            Name = 'test'
+            ClassName = "SpecMock"
+            Name = "test"
+
             def method(self):
                 pass
 
         obj = Mock(spec=TestInterface)
-        obj.ClassName = 'SpecMock'
-        obj.Name = 'test'
+        obj.ClassName = "SpecMock"
+        obj.Name = "test"
         mock_cast_to_concrete(obj)
 
         wrapper = LCMObjectWrapper(obj)
-        assert wrapper.class_type == 'SpecMock'
-        assert wrapper.Name == 'test'
+        assert wrapper.class_type == "SpecMock"
+        assert wrapper.Name == "test"
 
     def test_wrapper_with_multiple_property_accesses(self, wrapped_object):
         """Test wrapper with repeated property accesses."""
@@ -531,7 +554,7 @@ class TestLCMObjectWrapperWithMockTypes:
         result2 = wrapped_object.Name
         result3 = wrapped_object.Name
 
-        assert result1 == result2 == result3 == 'voicing_rule'
+        assert result1 == result2 == result3 == "voicing_rule"
 
     def test_wrapper_with_method_chain(self, mock_base_interface, mock_concrete_interface, mock_cast_to_concrete):
         """Test wrapper supporting method chaining if methods return something."""

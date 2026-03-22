@@ -8,12 +8,7 @@ Date: 2025-11-27
 """
 
 from datetime import datetime
-from flexlibs2.sync import (
-    HierarchicalImporter,
-    DependencyConfig,
-    CircularDependencyError,
-    ValidationError
-)
+from flexlibs2.sync import HierarchicalImporter, DependencyConfig, CircularDependencyError, ValidationError
 
 
 def demo_import_entry_with_senses():
@@ -23,33 +18,27 @@ def demo_import_entry_with_senses():
     This is the most common linguistic workflow - importing complete
     entries with all their content in a single operation.
     """
-    print("="*60)
+    print("=" * 60)
     print("DEMO: Import Entry with All Senses and Examples")
-    print("="*60)
+    print("=" * 60)
 
     # Setup (in real usage, these would be actual FlexProject instances)
     from flexlibs2 import FLExProject
 
-    source = FLExProject(
-        "path/to/consultant_project.fwdata",
-        writeEnabled=False
-    )
+    source = FLExProject("path/to/consultant_project.fwdata", writeEnabled=False)
 
-    target = FLExProject(
-        "path/to/main_project.fwdata",
-        writeEnabled=True
-    )
+    target = FLExProject("path/to/main_project.fwdata", writeEnabled=True)
 
     # Initialize hierarchical importer
     importer = HierarchicalImporter(source, target)
 
     # Configure dependency resolution
     config = DependencyConfig(
-        include_owned=True,              # Import all owned objects
-        resolve_references=True,         # Import referenced POS/domains
-        max_owned_depth=10,              # Traverse full hierarchy
-        skip_existing=True,              # Skip objects already in target
-        validate_all=True                # Validate before import
+        include_owned=True,  # Import all owned objects
+        resolve_references=True,  # Import referenced POS/domains
+        max_owned_depth=10,  # Traverse full hierarchy
+        skip_existing=True,  # Skip objects already in target
+        validate_all=True,  # Validate before import
     )
 
     # Entry GUID to import
@@ -69,7 +58,7 @@ def demo_import_entry_with_senses():
             config=config,
             validate_references=True,
             progress_callback=progress,
-            dry_run=True
+            dry_run=True,
         )
 
         print(f"\n✓ Dry run complete:")
@@ -86,7 +75,7 @@ def demo_import_entry_with_senses():
                 config=config,
                 validate_references=True,
                 progress_callback=progress,
-                dry_run=False
+                dry_run=False,
             )
 
             print(f"\n✓ Import complete:")
@@ -113,9 +102,9 @@ def demo_import_with_filtering():
 
     Shows how to filter which owned objects to include.
     """
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("DEMO: Import with Filtered Owned Objects")
-    print("="*60)
+    print("=" * 60)
 
     from flexlibs2 import FLExProject
 
@@ -126,16 +115,11 @@ def demo_import_with_filtering():
 
     # Only include senses and examples, not pronunciations
     config = DependencyConfig(
-        include_owned=True,
-        owned_types=["LexSense", "LexExampleSentence"],  # Filter types
-        resolve_references=True
+        include_owned=True, owned_types=["LexSense", "LexExampleSentence"], resolve_references=True  # Filter types
     )
 
     result = importer.import_with_dependencies(
-        object_type="LexEntry",
-        guids=["entry-guid"],
-        config=config,
-        dry_run=False
+        object_type="LexEntry", guids=["entry-guid"], config=config, dry_run=False
     )
 
     print(f"\n✓ Imported {result.num_created} objects (senses & examples only)")
@@ -148,9 +132,9 @@ def demo_import_semantic_domain_with_entries():
     Shows bidirectional import - import a reference object and all
     objects that refer to it.
     """
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("DEMO: Import Semantic Domain with All Referencing Entries")
-    print("="*60)
+    print("=" * 60)
 
     from flexlibs2 import FLExProject
 
@@ -168,7 +152,7 @@ def demo_import_semantic_domain_with_entries():
         object_type="CmSemanticDomain",
         guid=domain_guid,
         include_referring_objects=["LexSense"],  # Import senses using this domain
-        dry_run=True
+        dry_run=True,
     )
 
     print(f"\n✓ Would import:")
@@ -184,9 +168,9 @@ def demo_batch_import_multiple_entries():
     Shows how to import several entries in one operation, automatically
     resolving shared dependencies (same POS, domains, etc.).
     """
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("DEMO: Batch Import Multiple Entries")
-    print("="*60)
+    print("=" * 60)
 
     from flexlibs2 import FLExProject
 
@@ -196,28 +180,15 @@ def demo_batch_import_multiple_entries():
     importer = HierarchicalImporter(source, target)
 
     # Import 5 entries at once
-    entry_guids = [
-        "entry-1-guid",
-        "entry-2-guid",
-        "entry-3-guid",
-        "entry-4-guid",
-        "entry-5-guid"
-    ]
+    entry_guids = ["entry-1-guid", "entry-2-guid", "entry-3-guid", "entry-4-guid", "entry-5-guid"]
 
     config = DependencyConfig(
-        include_owned=True,
-        resolve_references=True,
-        skip_existing=True  # Won't duplicate shared POS/domains
+        include_owned=True, resolve_references=True, skip_existing=True  # Won't duplicate shared POS/domains
     )
 
     print(f"\nImporting {len(entry_guids)} entries...")
 
-    result = importer.import_with_dependencies(
-        object_type="LexEntry",
-        guids=entry_guids,
-        config=config,
-        dry_run=False
-    )
+    result = importer.import_with_dependencies(object_type="LexEntry", guids=entry_guids, config=config, dry_run=False)
 
     print(f"\n✓ Import complete:")
     print(f"  Entries: 5")
@@ -236,9 +207,9 @@ def demo_handle_validation_errors():
     Shows what happens when imported objects have missing references
     or validation issues.
     """
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("DEMO: Handling Validation Errors")
-    print("="*60)
+    print("=" * 60)
 
     from flexlibs2 import FLExProject
 
@@ -252,10 +223,7 @@ def demo_handle_validation_errors():
 
     try:
         result = importer.import_with_dependencies(
-            object_type="LexEntry",
-            guids=[problematic_entry],
-            validate_references=True,
-            dry_run=False
+            object_type="LexEntry", guids=[problematic_entry], validate_references=True, dry_run=False
         )
 
         print("✓ Import succeeded")
@@ -276,9 +244,9 @@ def demo_handle_circular_dependencies():
     Shows what happens when objects have circular references
     (e.g., variant entries referencing each other).
     """
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("DEMO: Handling Circular Dependencies")
-    print("="*60)
+    print("=" * 60)
 
     from flexlibs2 import FLExProject
 
@@ -292,11 +260,7 @@ def demo_handle_circular_dependencies():
 
     try:
         # By default, cycles cause error
-        result = importer.import_with_dependencies(
-            object_type="LexEntry",
-            guids=[entry_with_cycle],
-            dry_run=False
-        )
+        result = importer.import_with_dependencies(object_type="LexEntry", guids=[entry_with_cycle], dry_run=False)
 
     except CircularDependencyError as e:
         print(f"❌ Circular dependency detected: {e}")
@@ -306,10 +270,7 @@ def demo_handle_circular_dependencies():
         config = DependencyConfig(allow_cycles=True)
 
         result = importer.import_with_dependencies(
-            object_type="LexEntry",
-            guids=[entry_with_cycle],
-            config=config,
-            dry_run=False
+            object_type="LexEntry", guids=[entry_with_cycle], config=config, dry_run=False
         )
 
         print(f"✓ Import succeeded by breaking cycles")
@@ -324,9 +285,9 @@ def demo_progress_tracking():
 
     Shows how to use progress callbacks for long-running imports.
     """
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("DEMO: Progress Tracking")
-    print("="*60)
+    print("=" * 60)
 
     from flexlibs2 import FLExProject
 
@@ -346,10 +307,7 @@ def demo_progress_tracking():
     print("\nImporting large entry with 50+ senses...")
 
     result = importer.import_with_dependencies(
-        object_type="LexEntry",
-        guids=["large-entry-guid"],
-        progress_callback=track_progress,
-        dry_run=False
+        object_type="LexEntry", guids=["large-entry-guid"], progress_callback=track_progress, dry_run=False
     )
 
     print(f"\n✓ Import complete")
@@ -362,9 +320,9 @@ def demo_comparison_selective_vs_hierarchical():
 
     Shows the differences and appropriate use cases for each.
     """
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("COMPARISON: SelectiveImport vs HierarchicalImporter")
-    print("="*60)
+    print("=" * 60)
 
     print("\n1. SelectiveImport (Phase 2.5):")
     print("   Use when:")
@@ -404,6 +362,6 @@ if __name__ == "__main__":
     # demo_progress_tracking()
     demo_comparison_selective_vs_hierarchical()
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Demos complete!")
-    print("="*60)
+    print("=" * 60)

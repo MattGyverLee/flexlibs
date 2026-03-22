@@ -27,9 +27,9 @@ def demo_constituent_charts(project):
 
     Shows how to create and manage discourse analysis charts.
     """
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("DEMO: Constituent Chart Operations")
-    print("="*60)
+    print("=" * 60)
 
     # Create a new constituent chart
     print("\n1. Creating a constituent chart...")
@@ -60,22 +60,19 @@ def demo_chart_rows(project, chart):
 
     Shows how to create and manage rows in a constituent chart.
     """
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("DEMO: Chart Row Operations")
-    print("="*60)
+    print("=" * 60)
 
     # Create rows
     print("\n1. Creating chart rows...")
-    row1 = project.ConstChartRows.Create(chart, label="Verse 1a",
-                                         notes="Subject clause")
+    row1 = project.ConstChartRows.Create(chart, label="Verse 1a", notes="Subject clause")
     print(f"   Created row 1: {project.ConstChartRows.GetLabel(row1)}")
 
-    row2 = project.ConstChartRows.Create(chart, label="Verse 1b",
-                                         notes="Predicate clause")
+    row2 = project.ConstChartRows.Create(chart, label="Verse 1b", notes="Predicate clause")
     print(f"   Created row 2: {project.ConstChartRows.GetLabel(row2)}")
 
-    row3 = project.ConstChartRows.Create(chart, label="Verse 1c",
-                                         notes="Object clause")
+    row3 = project.ConstChartRows.Create(chart, label="Verse 1c", notes="Object clause")
     print(f"   Created row 3: {project.ConstChartRows.GetLabel(row3)}")
 
     # Update row properties
@@ -114,9 +111,9 @@ def demo_word_groups(project, chart, row1):
     Shows how to create word groups linked to text segments.
     Note: This requires an actual text with segments in the project.
     """
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("DEMO: Word Group Operations")
-    print("="*60)
+    print("=" * 60)
 
     print("\n1. Checking for texts in project...")
     texts = list(project.TextCatalog())
@@ -171,9 +168,9 @@ def demo_moved_text(project, chart, word_group):
 
     Shows how to mark text as preposed or postposed.
     """
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("DEMO: Moved Text Marker Operations")
-    print("="*60)
+    print("=" * 60)
 
     if not word_group:
         print("\n   No word group available for moved text demo.")
@@ -207,9 +204,9 @@ def demo_chart_tags(project, chart):
 
     Shows how to create and manage tags for discourse annotation.
     """
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("DEMO: Chart Tag Operations")
-    print("="*60)
+    print("=" * 60)
 
     # Create tags
     print("\n1. Creating discourse tags...")
@@ -247,9 +244,9 @@ def demo_clause_markers(project, row1, word_group):
 
     Shows how to create clause markers with dependencies.
     """
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("DEMO: Clause Marker Operations")
-    print("="*60)
+    print("=" * 60)
 
     if not word_group:
         print("\n   No word group available for clause marker demo.")
@@ -295,14 +292,14 @@ def cleanup_demo_data(project, chart):
 
     Removes the demo chart created during the demonstration.
     """
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("CLEANUP: Removing Demo Data")
-    print("="*60)
+    print("=" * 60)
 
-    print("\nDo you want to delete the demo chart? (y/n): ", end='')
+    print("\nDo you want to delete the demo chart? (y/n): ", end="")
     response = input().strip().lower()
 
-    if response == 'y':
+    if response == "y":
         chart_name = project.ConstCharts.GetName(chart)
         project.ConstCharts.Delete(chart)
         print(f"   Deleted chart: {chart_name}")
@@ -316,9 +313,9 @@ def main():
 
     Runs through all discourse analysis operations demonstrations.
     """
-    print("="*60)
+    print("=" * 60)
     print("FLEXLIBS DISCOURSE ANALYSIS OPERATIONS DEMO")
-    print("="*60)
+    print("=" * 60)
     print("\nThis demo demonstrates constituent chart analysis features.")
     print("It will create charts, rows, word groups, and markers.")
 
@@ -347,14 +344,15 @@ def main():
         # Optional cleanup
         cleanup_demo_data(project, chart)
 
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("DEMO COMPLETE")
-        print("="*60)
+        print("=" * 60)
         print("\nAll discourse analysis operations demonstrated successfully!")
 
     except Exception as e:
         print(f"\nError: {e}")
         import traceback
+
         traceback.print_exc()
 
     finally:

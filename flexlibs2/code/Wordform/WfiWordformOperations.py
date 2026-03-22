@@ -29,6 +29,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+
 class WfiWordformOperations(BaseOperations):
     """
     This class provides operations for managing wordforms in the Wordform Inventory.
@@ -595,7 +596,4 @@ class WfiWordformOperations(BaseOperations):
         """
         if wsHandle is None:
             return self.project.project.DefaultVernWs
-        return self.project._FLExProject__WSHandle(
-            wsHandle,
-            self.project.project.DefaultVernWs
-        )
+        return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultVernWs)

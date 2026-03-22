@@ -64,19 +64,15 @@ class TestSyncEngine(unittest.TestCase):
         self.target_project.writeEnabled = False
 
         # Force write mode even though writeEnabled=False
-        engine = SyncEngine(
-            self.source_project,
-            self.target_project,
-            mode=SyncMode.WRITE
-        )
+        engine = SyncEngine(self.source_project, self.target_project, mode=SyncMode.WRITE)
 
         self.assertEqual(engine.mode, SyncMode.WRITE)
 
     def test_init_no_write_enabled_attribute(self):
         """Test when target has no writeEnabled attribute"""
         # Remove writeEnabled attribute
-        if hasattr(self.target_project, 'writeEnabled'):
-            delattr(self.target_project, 'writeEnabled')
+        if hasattr(self.target_project, "writeEnabled"):
+            delattr(self.target_project, "writeEnabled")
 
         engine = SyncEngine(self.source_project, self.target_project)
 
@@ -149,10 +145,7 @@ class TestSyncEngine(unittest.TestCase):
         self.source_project.Allomorph.GetAll = Mock(return_value=[])
         self.target_project.Allomorph.GetAll = Mock(return_value=[])
 
-        result = engine.compare(
-            object_type="Allomorph",
-            match_strategy=GuidMatchStrategy()
-        )
+        result = engine.compare(object_type="Allomorph", match_strategy=GuidMatchStrategy())
 
         self.assertIsNotNone(result)
 
@@ -169,10 +162,7 @@ class TestSyncEngine(unittest.TestCase):
         self.target_project.Allomorph.GetAll = Mock(return_value=[])
 
         # Use strategy by name
-        result = engine.compare(
-            object_type="Allomorph",
-            match_strategy="custom"
-        )
+        result = engine.compare(object_type="Allomorph", match_strategy="custom")
 
         self.assertIsNotNone(result)
 
@@ -182,10 +172,7 @@ class TestSyncEngine(unittest.TestCase):
         engine = SyncEngine(self.source_project, self.target_project)
 
         with self.assertRaises(ValueError) as cm:
-            engine.compare(
-                object_type="Allomorph",
-                match_strategy="unknown_strategy"
-            )
+            engine.compare(object_type="Allomorph", match_strategy="unknown_strategy")
 
         self.assertIn("Unknown match strategy", str(cm.exception))
 
@@ -209,10 +196,7 @@ class TestSyncEngine(unittest.TestCase):
         # Filter function
         filter_fn = lambda obj: "include" in obj.form
 
-        result = engine.compare(
-            object_type="Allomorph",
-            filter_fn=filter_fn
-        )
+        result = engine.compare(object_type="Allomorph", filter_fn=filter_fn)
 
         # Only obj1 should be included
         self.assertEqual(result.num_new, 1)
@@ -230,10 +214,7 @@ class TestSyncEngine(unittest.TestCase):
         def callback(msg):
             messages.append(msg)
 
-        result = engine.compare(
-            object_type="Allomorph",
-            progress_callback=callback
-        )
+        result = engine.compare(object_type="Allomorph", progress_callback=callback)
 
         # Should have received progress messages
         self.assertGreater(len(messages), 0)
@@ -324,17 +305,14 @@ class TestSyncEnginePhase2Execution(unittest.TestCase):
         """Test dry run sync with no changes"""
         engine = SyncEngine(self.source_project, self.target_project)
 
-        result = engine.sync(
-            object_type="Allomorph",
-            dry_run=True
-        )
+        result = engine.sync(object_type="Allomorph", dry_run=True)
 
         self.assertIsInstance(result, SyncResult)
         self.assertEqual(result.total, 0)
         self.assertTrue(result.success)
         self.assertEqual(result.object_type, "Allomorph")
 
-    @patch('flexlibs2.sync.merge_ops.MergeOperations')
+    @patch("flexlibs2.sync.merge_ops.MergeOperations")
     def test_sync_create_new_objects(self, mock_merger_class):
         """Test sync creates new objects"""
         engine = SyncEngine(self.source_project, self.target_project)
@@ -356,17 +334,14 @@ class TestSyncEnginePhase2Execution(unittest.TestCase):
         # Mock Object() calls
         self.source_project.Object = Mock(return_value=source_obj)
 
-        result = engine.sync(
-            object_type="Allomorph",
-            dry_run=False
-        )
+        result = engine.sync(object_type="Allomorph", dry_run=False)
 
         # Should create the new object
         self.assertEqual(result.num_created, 1)
         self.assertEqual(result.total, 1)
         mock_merger.create_object.assert_called_once()
 
-    @patch('flexlibs2.sync.merge_ops.MergeOperations')
+    @patch("flexlibs2.sync.merge_ops.MergeOperations")
     def test_sync_update_modified_objects(self, mock_merger_class):
         """Test sync updates modified objects"""
         engine = SyncEngine(self.source_project, self.target_project)
@@ -393,11 +368,7 @@ class TestSyncEnginePhase2Execution(unittest.TestCase):
         self.source_project.Object = Mock(return_value=source_obj)
         self.target_project.Object = Mock(return_value=target_obj)
 
-        result = engine.sync(
-            object_type="Allomorph",
-            conflict_resolver="source_wins",
-            dry_run=False
-        )
+        result = engine.sync(object_type="Allomorph", conflict_resolver="source_wins", dry_run=False)
 
         # Should update the object
         self.assertEqual(result.num_updated, 1)
@@ -415,17 +386,14 @@ class TestSyncEnginePhase2Execution(unittest.TestCase):
         target_obj.Guid = MockGuid("delete-me-789")
         self.target_ops.GetAll = Mock(return_value=[target_obj])
 
-        result = engine.sync(
-            object_type="Allomorph",
-            dry_run=False
-        )
+        result = engine.sync(object_type="Allomorph", dry_run=False)
 
         # Should skip delete (safety)
         self.assertEqual(result.num_deleted, 0)
         self.assertEqual(result.num_skipped, 1)
         self.target_ops.Delete.assert_not_called()
 
-    @patch('flexlibs2.sync.merge_ops.MergeOperations')
+    @patch("flexlibs2.sync.merge_ops.MergeOperations")
     def test_sync_with_progress_callback(self, mock_merger_class):
         """Test sync calls progress callback"""
         engine = SyncEngine(self.source_project, self.target_project)
@@ -438,16 +406,12 @@ class TestSyncEnginePhase2Execution(unittest.TestCase):
         def callback(msg):
             messages.append(msg)
 
-        result = engine.sync(
-            object_type="Allomorph",
-            progress_callback=callback,
-            dry_run=True
-        )
+        result = engine.sync(object_type="Allomorph", progress_callback=callback, dry_run=True)
 
         # Should have received progress messages
         self.assertGreater(len(messages), 0)
 
-    @patch('flexlibs2.sync.merge_ops.MergeOperations')
+    @patch("flexlibs2.sync.merge_ops.MergeOperations")
     def test_sync_dry_run_doesnt_modify(self, mock_merger_class):
         """Test dry run doesn't actually create/update objects"""
         engine = SyncEngine(self.source_project, self.target_project)
@@ -462,10 +426,7 @@ class TestSyncEnginePhase2Execution(unittest.TestCase):
         mock_merger = Mock()
         mock_merger_class.return_value = mock_merger
 
-        result = engine.sync(
-            object_type="Allomorph",
-            dry_run=True
-        )
+        result = engine.sync(object_type="Allomorph", dry_run=True)
 
         # In dry_run mode, changes are skipped rather than executed
         self.assertEqual(result.num_skipped, 1)
@@ -485,11 +446,7 @@ class TestSyncEnginePhase2Execution(unittest.TestCase):
         self.source_ops.GetAll = Mock(return_value=[])
         self.target_ops.GetAll = Mock(return_value=[])
 
-        result = engine.sync(
-            object_type="Allomorph",
-            match_strategy="custom",
-            dry_run=True
-        )
+        result = engine.sync(object_type="Allomorph", match_strategy="custom", dry_run=True)
 
         self.assertIsInstance(result, SyncResult)
 
@@ -501,11 +458,7 @@ class TestSyncEnginePhase2Execution(unittest.TestCase):
         self.target_ops.GetAll = Mock(return_value=[])
 
         # Use built-in resolver by name
-        result = engine.sync(
-            object_type="Allomorph",
-            conflict_resolver="source_wins",
-            dry_run=True
-        )
+        result = engine.sync(object_type="Allomorph", conflict_resolver="source_wins", dry_run=True)
 
         self.assertIsInstance(result, SyncResult)
 
@@ -517,15 +470,11 @@ class TestSyncEnginePhase2Execution(unittest.TestCase):
         self.target_ops.GetAll = Mock(return_value=[])
 
         # Use resolver object
-        result = engine.sync(
-            object_type="Allomorph",
-            conflict_resolver=SourceWinsResolver(),
-            dry_run=True
-        )
+        result = engine.sync(object_type="Allomorph", conflict_resolver=SourceWinsResolver(), dry_run=True)
 
         self.assertIsInstance(result, SyncResult)
 
-    @patch('flexlibs2.sync.merge_ops.MergeOperations')
+    @patch("flexlibs2.sync.merge_ops.MergeOperations")
     def test_sync_handles_create_error(self, mock_merger_class):
         """Test sync handles errors during create"""
         engine = SyncEngine(self.source_project, self.target_project)
@@ -543,16 +492,13 @@ class TestSyncEnginePhase2Execution(unittest.TestCase):
 
         self.source_project.Object = Mock(return_value=source_obj)
 
-        result = engine.sync(
-            object_type="Allomorph",
-            dry_run=False
-        )
+        result = engine.sync(object_type="Allomorph", dry_run=False)
 
         # Should record error
         self.assertEqual(result.num_errors, 1)
         self.assertFalse(result.success)
 
-    @patch('flexlibs2.sync.merge_ops.MergeOperations')
+    @patch("flexlibs2.sync.merge_ops.MergeOperations")
     def test_sync_handles_update_error(self, mock_merger_class):
         """Test sync handles errors during update"""
         engine = SyncEngine(self.source_project, self.target_project)
@@ -576,16 +522,12 @@ class TestSyncEnginePhase2Execution(unittest.TestCase):
         self.source_project.Object = Mock(return_value=source_obj)
         self.target_project.Object = Mock(return_value=target_obj)
 
-        result = engine.sync(
-            object_type="Allomorph",
-            conflict_resolver="source_wins",
-            dry_run=False
-        )
+        result = engine.sync(object_type="Allomorph", conflict_resolver="source_wins", dry_run=False)
 
         # Should record error
         self.assertEqual(result.num_errors, 1)
         self.assertFalse(result.success)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

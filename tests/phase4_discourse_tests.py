@@ -38,6 +38,7 @@ from test_helpers import (
 
 # ========== DISCOURSE - CONSTCHARTCLAUSEMARKOPERATIONS ==========
 
+
 @pytest.mark.validation
 @pytest.mark.phase4
 class TestConstChartClauseMarkerOperations(
@@ -110,6 +111,7 @@ class TestConstChartClauseMarkerOperations(
 
 # ========== DISCOURSE - CONSTCHARTMOVEDTEXTOPERATIONS ==========
 
+
 @pytest.mark.validation
 @pytest.mark.phase4
 class TestConstChartMovedTextOperations(
@@ -181,6 +183,7 @@ class TestConstChartMovedTextOperations(
 
 
 # ========== DISCOURSE - CONSTCHARTOPERATIONS ==========
+
 
 @pytest.mark.validation
 @pytest.mark.phase4
@@ -267,6 +270,7 @@ class TestConstChartOperations(
 
 # ========== DISCOURSE - CONSTCHARTROWOPERATIONS ==========
 
+
 @pytest.mark.validation
 @pytest.mark.phase4
 class TestConstChartRowOperations(
@@ -340,6 +344,7 @@ class TestConstChartRowOperations(
 
 # ========== DISCOURSE - CONSTCHARTTAGOPERATIONS ==========
 
+
 @pytest.mark.validation
 @pytest.mark.phase4
 class TestConstChartTagOperations(
@@ -412,6 +417,7 @@ class TestConstChartTagOperations(
 
 
 # ========== DISCOURSE - CONSTCHARTWORDGROUPOPERATIONS ==========
+
 
 @pytest.mark.validation
 @pytest.mark.phase4

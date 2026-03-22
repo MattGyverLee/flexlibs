@@ -43,12 +43,14 @@ from tests.operations import (
 # UNIT TESTS - Using Mocks
 # =============================================================================
 
+
 class TestLexSenseOperationsImport:
     """Test that LexSenseOperations can be imported and instantiated."""
 
     def test_import_lexsense_operations(self):
         """Test importing LexSenseOperations class."""
         from flexlibs2.code.Lexicon.LexSenseOperations import LexSenseOperations
+
         assert LexSenseOperations is not None
 
     def test_instantiate_with_mock_project(self, mock_flex_project):
@@ -82,7 +84,7 @@ class TestLexSenseOperationsInheritance:
         from flexlibs2.code.Lexicon.LexSenseOperations import LexSenseOperations
 
         ops = LexSenseOperations(mock_flex_project)
-        assert hasattr(ops, '_GetSequence')
+        assert hasattr(ops, "_GetSequence")
 
         # Test with mock entry
         mock_entry = MockLCMObject()
@@ -101,7 +103,7 @@ class TestLexSenseOperationsCRUDMethods:
         from flexlibs2.code.Lexicon.LexSenseOperations import LexSenseOperations
 
         ops = LexSenseOperations(mock_flex_project)
-        assert hasattr(ops, 'Create')
+        assert hasattr(ops, "Create")
         assert callable(ops.Create)
 
     def test_has_delete_method(self, mock_flex_project):
@@ -109,7 +111,7 @@ class TestLexSenseOperationsCRUDMethods:
         from flexlibs2.code.Lexicon.LexSenseOperations import LexSenseOperations
 
         ops = LexSenseOperations(mock_flex_project)
-        assert hasattr(ops, 'Delete')
+        assert hasattr(ops, "Delete")
         assert callable(ops.Delete)
 
     def test_has_find_method(self, mock_flex_project):
@@ -117,7 +119,7 @@ class TestLexSenseOperationsCRUDMethods:
         from flexlibs2.code.Lexicon.LexSenseOperations import LexSenseOperations
 
         ops = LexSenseOperations(mock_flex_project)
-        assert hasattr(ops, 'Find')
+        assert hasattr(ops, "Find")
         assert callable(ops.Find)
 
 
@@ -129,7 +131,7 @@ class TestLexSenseOperationsPropertyGetters:
         from flexlibs2.code.Lexicon.LexSenseOperations import LexSenseOperations
 
         ops = LexSenseOperations(mock_flex_project)
-        assert hasattr(ops, 'GetGloss')
+        assert hasattr(ops, "GetGloss")
         assert callable(ops.GetGloss)
 
     def test_has_getdefinition_method(self, mock_flex_project):
@@ -137,7 +139,7 @@ class TestLexSenseOperationsPropertyGetters:
         from flexlibs2.code.Lexicon.LexSenseOperations import LexSenseOperations
 
         ops = LexSenseOperations(mock_flex_project)
-        assert hasattr(ops, 'GetDefinition')
+        assert hasattr(ops, "GetDefinition")
         assert callable(ops.GetDefinition)
 
     def test_has_getpartofspeech_method(self, mock_flex_project):
@@ -145,7 +147,7 @@ class TestLexSenseOperationsPropertyGetters:
         from flexlibs2.code.Lexicon.LexSenseOperations import LexSenseOperations
 
         ops = LexSenseOperations(mock_flex_project)
-        assert hasattr(ops, 'GetPartOfSpeech')
+        assert hasattr(ops, "GetPartOfSpeech")
         assert callable(ops.GetPartOfSpeech)
 
 
@@ -157,7 +159,7 @@ class TestLexSenseOperationsPropertySetters:
         from flexlibs2.code.Lexicon.LexSenseOperations import LexSenseOperations
 
         ops = LexSenseOperations(mock_flex_project)
-        assert hasattr(ops, 'SetGloss')
+        assert hasattr(ops, "SetGloss")
         assert callable(ops.SetGloss)
 
     def test_has_setdefinition_method(self, mock_flex_project):
@@ -165,7 +167,7 @@ class TestLexSenseOperationsPropertySetters:
         from flexlibs2.code.Lexicon.LexSenseOperations import LexSenseOperations
 
         ops = LexSenseOperations(mock_flex_project)
-        assert hasattr(ops, 'SetDefinition')
+        assert hasattr(ops, "SetDefinition")
         assert callable(ops.SetDefinition)
 
     def test_has_setpartofspeech_method(self, mock_flex_project):
@@ -173,7 +175,7 @@ class TestLexSenseOperationsPropertySetters:
         from flexlibs2.code.Lexicon.LexSenseOperations import LexSenseOperations
 
         ops = LexSenseOperations(mock_flex_project)
-        assert hasattr(ops, 'SetPartOfSpeech')
+        assert hasattr(ops, "SetPartOfSpeech")
         assert callable(ops.SetPartOfSpeech)
 
 
@@ -185,7 +187,7 @@ class TestLexSenseOperationsExampleMethods:
         from flexlibs2.code.Lexicon.LexSenseOperations import LexSenseOperations
 
         ops = LexSenseOperations(mock_flex_project)
-        assert hasattr(ops, 'AddExample')
+        assert hasattr(ops, "AddExample")
         assert callable(ops.AddExample)
 
     def test_has_getexamples_method(self, mock_flex_project):
@@ -194,7 +196,7 @@ class TestLexSenseOperationsExampleMethods:
 
         ops = LexSenseOperations(mock_flex_project)
         # Check for GetExamples or GetExampleCount
-        assert hasattr(ops, 'GetExamples') or hasattr(ops, 'GetExampleCount')
+        assert hasattr(ops, "GetExamples") or hasattr(ops, "GetExampleCount")
 
 
 class TestLexSenseOperationsReordering:
@@ -208,14 +210,14 @@ class TestLexSenseOperationsReordering:
         senses = generate_test_senses(mock_lex_entry, count=3)
 
         # Update glosses to test sorting
-        senses[0].Gloss = MockMultiString({'en': 'zebra'})
-        senses[1].Gloss = MockMultiString({'en': 'apple'})
-        senses[2].Gloss = MockMultiString({'en': 'banana'})
+        senses[0].Gloss = MockMultiString({"en": "zebra"})
+        senses[1].Gloss = MockMultiString({"en": "apple"})
+        senses[2].Gloss = MockMultiString({"en": "banana"})
 
         ops = LexSenseOperations(mock_flex_project)
 
         # Sort method exists
-        assert hasattr(ops, 'Sort')
+        assert hasattr(ops, "Sort")
         assert callable(ops.Sort)
 
     def test_moveup_sense(self, mock_flex_project, mock_lex_entry):
@@ -228,7 +230,7 @@ class TestLexSenseOperationsReordering:
         ops = LexSenseOperations(mock_flex_project)
 
         # MoveUp method exists
-        assert hasattr(ops, 'MoveUp')
+        assert hasattr(ops, "MoveUp")
         assert callable(ops.MoveUp)
 
         # Test actual move (using mock sequence)
@@ -262,6 +264,7 @@ class TestLexSenseOperationsValidation:
 # =============================================================================
 # INTEGRATION TESTS - Require Real FLEx Project
 # =============================================================================
+
 
 @pytest.mark.integration
 class TestLexSenseOperationsIntegration:
@@ -316,12 +319,11 @@ class TestLexSenseOperationsIntegration:
 # PYTEST CONFIGURATION
 # =============================================================================
 
+
 def pytest_configure(config):
     """Register custom markers."""
-    config.addinivalue_line(
-        "markers", "integration: mark test as integration test (requires real FLEx)"
-    )
+    config.addinivalue_line("markers", "integration: mark test as integration test (requires real FLEx)")
 
 
-if __name__ == '__main__':
-    pytest.main([__file__, '-v', '--tb=short', '-m', 'not integration'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v", "--tb=short", "-m", "not integration"])

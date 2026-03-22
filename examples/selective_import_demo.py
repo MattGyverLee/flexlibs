@@ -59,7 +59,8 @@ def demo_linguist_workflow():
     # For demo, we'll show the code pattern
     print("CODE PATTERN:")
     print("-" * 60)
-    print("""
+    print(
+        """
     from flexlibs2.sync import SelectiveImport
     from datetime import datetime
 
@@ -89,7 +90,8 @@ def demo_linguist_workflow():
             dry_run=False              # Actually import
         )
         print(f"✅ Imported {result_real.num_created} allomorphs")
-    """)
+    """
+    )
     print("-" * 60)
     print()
 
@@ -117,7 +119,8 @@ def demo_filtered_import():
 
     print("CODE PATTERN:")
     print("-" * 60)
-    print("""
+    print(
+        """
     from flexlibs2.sync import SelectiveImport
 
     importer = SelectiveImport(source_project, target_project)
@@ -165,7 +168,8 @@ def demo_filtered_import():
         filter_fn=has_examples,
         validate_references=True
     )
-    """)
+    """
+    )
     print("-" * 60)
     print()
 
@@ -197,7 +201,8 @@ def demo_validation_workflow():
 
     print("VALIDATION OUTPUT EXAMPLE:")
     print("-" * 60)
-    print("""
+    print(
+        """
     VALIDATION RESULTS
     ----------------------------------------
     Critical Issues: 2
@@ -219,7 +224,8 @@ def demo_validation_workflow():
       num_examples: 3
 
     ❌ Cannot import - fix references first!
-    """)
+    """
+    )
     print("-" * 60)
     print()
 
@@ -241,7 +247,8 @@ def demo_what_not_to_do():
 
     print("❌ WRONG WAY (Bidirectional Sync):")
     print("-" * 60)
-    print("""
+    print(
+        """
     # DON'T DO THIS for linguistic data!
     from flexlibs2.sync import SyncEngine
 
@@ -250,7 +257,8 @@ def demo_what_not_to_do():
         object_type="Allomorph",
         conflict_resolver="source_wins"  # ❌ Overwrites stable!
     )
-    """)
+    """
+    )
     print()
     print("Problems:")
     print("  ❌ Bidirectional (can corrupt both projects)")
@@ -261,7 +269,8 @@ def demo_what_not_to_do():
 
     print("✅ RIGHT WAY (Selective Import):")
     print("-" * 60)
-    print("""
+    print(
+        """
     # DO THIS instead!
     from flexlibs2.sync import SelectiveImport
     from datetime import datetime
@@ -273,7 +282,8 @@ def demo_what_not_to_do():
         validate_references=True,   # ✅ Check safety
         dry_run=True               # ✅ Preview first
     )
-    """)
+    """
+    )
     print()
     print("Benefits:")
     print("  ✅ One-way (stable project protected)")

@@ -47,31 +47,25 @@ __all__ = [
     # Core engine
     "SyncEngine",
     "SyncResult",
-
     # Diff functionality
     "DiffEngine",
     "DiffResult",
     "ChangeType",
-
     # Match strategies
     "MatchStrategy",
     "GuidMatchStrategy",
     "FieldMatchStrategy",
-
     # Conflict resolution
     "ConflictResolver",
     "SourceWinsResolver",
     "TargetWinsResolver",
     "ManualResolver",
-
     # Export
     "ReportExporter",
-
     # Merge operations (Phase 2)
     "MergeOperations",
     "SyncChange",
     "SyncError",
-
     # Linguistic safety (Phase 2.5)
     "LinguisticValidator",
     "ValidationResult",
@@ -79,7 +73,6 @@ __all__ = [
     "ValidationSeverity",
     "ValidationError",
     "SelectiveImport",
-
     # Dependency management (Phase 3)
     "DependencyGraph",
     "DependencyType",

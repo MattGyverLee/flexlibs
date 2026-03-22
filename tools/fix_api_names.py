@@ -15,54 +15,49 @@ import re
 # Mapping: filename pattern -> correct API name
 # Based on actual FLExProject.py property definitions
 FILENAME_TO_API_MAP = {
-    'grammar_environment': 'Environments',
-    'grammar_gramcat': 'GramCat',
-    'grammar_inflection': 'InflectionFeatures',  # Note: inflection -> InflectionFeatures
-    'grammar_morphrule': 'MorphRules',
-    'grammar_naturalclass': 'NaturalClasses',
-    'grammar_phoneme': 'Phonemes',
-    'grammar_phonrule': 'PhonRules',
-    'grammar_pos': 'POS',
-
-    'lexentry': 'LexEntry',
-    'lexicon_allomorph': 'Allomorphs',
-    'lexicon_etymology': 'Etymology',
-    'lexicon_example': 'Examples',
-    'lexicon_lexreference': 'LexReferences',
-    'lexicon_pronunciation': 'Pronunciations',
-    'lexicon_reversal': 'Reversal',
-    'lexicon_semanticdomain': 'SemanticDomains',
-    'lexicon_sense': 'Senses',
-    'lexicon_variant': 'Variants',
-
-    'lists_agent': 'Agents',
-    'lists_confidence': 'Confidence',
-    'lists_overlay': 'Overlays',
-    'lists_possibilitylist': 'PossibilityLists',
-    'lists_publication': 'Publications',
-    'lists_translationtype': 'TranslationTypes',
-
-    'notebook_anthropology': 'Anthropology',
-    'notebook_datanotebook': 'DataNotebook',
-    'notebook_location': 'Location',
-    'notebook_note': 'Notes',
-    'notebook_person': 'Person',
-
-    'system_annotationdef': 'AnnotationDefs',
-    'system_check': 'Checks',
-    'system_customfield': 'CustomFields',
-    'system_projectsettings': 'ProjectSettings',
-    'system_writingsystem': 'WritingSystems',
-
-    'textswords_discourse': 'Discourse',
-    'textswords_media': 'Media',
-    'textswords_paragraph': 'Paragraphs',
-    'textswords_segment': 'Segments',
-    'textswords_text': 'Texts',
-    'textswords_wfianalysis': 'WfiAnalyses',
-    'textswords_wfigloss': 'WfiGlosses',
-    'textswords_wfimorphbundle': 'WfiMorphBundles',
-    'textswords_wordform': 'Wordforms',
+    "grammar_environment": "Environments",
+    "grammar_gramcat": "GramCat",
+    "grammar_inflection": "InflectionFeatures",  # Note: inflection -> InflectionFeatures
+    "grammar_morphrule": "MorphRules",
+    "grammar_naturalclass": "NaturalClasses",
+    "grammar_phoneme": "Phonemes",
+    "grammar_phonrule": "PhonRules",
+    "grammar_pos": "POS",
+    "lexentry": "LexEntry",
+    "lexicon_allomorph": "Allomorphs",
+    "lexicon_etymology": "Etymology",
+    "lexicon_example": "Examples",
+    "lexicon_lexreference": "LexReferences",
+    "lexicon_pronunciation": "Pronunciations",
+    "lexicon_reversal": "Reversal",
+    "lexicon_semanticdomain": "SemanticDomains",
+    "lexicon_sense": "Senses",
+    "lexicon_variant": "Variants",
+    "lists_agent": "Agents",
+    "lists_confidence": "Confidence",
+    "lists_overlay": "Overlays",
+    "lists_possibilitylist": "PossibilityLists",
+    "lists_publication": "Publications",
+    "lists_translationtype": "TranslationTypes",
+    "notebook_anthropology": "Anthropology",
+    "notebook_datanotebook": "DataNotebook",
+    "notebook_location": "Location",
+    "notebook_note": "Notes",
+    "notebook_person": "Person",
+    "system_annotationdef": "AnnotationDefs",
+    "system_check": "Checks",
+    "system_customfield": "CustomFields",
+    "system_projectsettings": "ProjectSettings",
+    "system_writingsystem": "WritingSystems",
+    "textswords_discourse": "Discourse",
+    "textswords_media": "Media",
+    "textswords_paragraph": "Paragraphs",
+    "textswords_segment": "Segments",
+    "textswords_text": "Texts",
+    "textswords_wfianalysis": "WfiAnalyses",
+    "textswords_wfigloss": "WfiGlosses",
+    "textswords_wfimorphbundle": "WfiMorphBundles",
+    "textswords_wordform": "Wordforms",
 }
 
 
@@ -77,7 +72,7 @@ def get_api_name(filename):
         Correct API name from the mapping, or None if not found
     """
     # Remove _operations_demo.py suffix
-    base = filename.replace('_operations_demo.py', '')
+    base = filename.replace("_operations_demo.py", "")
 
     # Look up in map
     if base in FILENAME_TO_API_MAP:
@@ -104,12 +99,12 @@ def fix_api_names_in_file(filepath):
         print(f"  ERROR: No API mapping found for {filepath.name}")
         return False
 
-    with open(filepath, 'r', encoding='utf-8') as f:
+    with open(filepath, "r", encoding="utf-8") as f:
         content = f.read()
 
     # Find all project.XXXXX references and replace with correct API name
     # Pattern: project.<CapitalizedWord>
-    pattern = r'project\.([A-Z][a-z]+)'
+    pattern = r"project\.([A-Z][a-z]+)"
 
     # Count occurrences of incorrect names
     matches = re.findall(pattern, content)
@@ -125,8 +120,8 @@ def fix_api_names_in_file(filepath):
     for incorrect_name in unique_incorrect:
         if incorrect_name != correct_api_name:
             # Replace project.IncorrectName with project.CorrectName
-            old_ref = f'project.{incorrect_name}'
-            new_ref = f'project.{correct_api_name}'
+            old_ref = f"project.{incorrect_name}"
+            new_ref = f"project.{correct_api_name}"
 
             count_before = content.count(old_ref)
             content = content.replace(old_ref, new_ref)
@@ -137,7 +132,7 @@ def fix_api_names_in_file(filepath):
                 changes_made += count_before
 
     if changes_made > 0:
-        with open(filepath, 'w', encoding='utf-8') as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             f.write(content)
         print(f"  Total changes: {changes_made}")
         return True
@@ -155,11 +150,11 @@ def main():
     """
     examples_dir = Path(__file__).parent
 
-    demo_files = sorted(examples_dir.glob('*_operations_demo.py'))
+    demo_files = sorted(examples_dir.glob("*_operations_demo.py"))
 
     print("=" * 70)
     print("COMPREHENSIVE API NAME FIXER")
-    print("="*70)
+    print("=" * 70)
     print(f"\nFound {len(demo_files)} demo files\n")
 
     fixed_count = 0

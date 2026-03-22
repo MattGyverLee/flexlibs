@@ -28,6 +28,7 @@ from ..FLExProject import (
 )
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
+
 class TranslationTypeOperations(BaseOperations):
     """
     This class provides operations for managing translation types in a
@@ -176,8 +177,7 @@ class TranslationTypeOperations(BaseOperations):
 
         # Check if translation type already exists
         if self.Exists(name):
-            raise FP_ParameterError(
-                f"Translation type '{name}' already exists")
+            raise FP_ParameterError(f"Translation type '{name}' already exists")
 
         # Default abbreviation to name if not provided
         if abbreviation is None:
@@ -187,8 +187,7 @@ class TranslationTypeOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the new translation type using the factory
-        factory = self.project.project.ServiceLocator.GetService(
-            ICmPossibilityFactory)
+        factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
         new_type = factory.Create()
 
         # Add to the translation tags list (must be done before setting properties)
@@ -196,8 +195,8 @@ class TranslationTypeOperations(BaseOperations):
         if trans_list is None:
             # Create translation tags list if it doesn't exist
             from SIL.LCModel import ICmPossibilityListFactory
-            list_factory = self.project.project.ServiceLocator.GetService(
-                ICmPossibilityListFactory)
+
+            list_factory = self.project.project.ServiceLocator.GetService(ICmPossibilityListFactory)
             trans_list = list_factory.Create()
             self.project.lp.TranslationTagsOA = trans_list
 
@@ -263,8 +262,8 @@ class TranslationTypeOperations(BaseOperations):
 
         if guid in predefined_guids:
             raise FP_ParameterError(
-                "Cannot delete predefined translation types "
-                "(free, literal, or back translation)")
+                "Cannot delete predefined translation types " "(free, literal, or back translation)"
+            )
 
         # Remove from the translation tags list
         trans_list = self.project.lp.TranslationTagsOA
@@ -332,8 +331,8 @@ class TranslationTypeOperations(BaseOperations):
         if trans_list is None:
             # Create translation tags list if it doesn't exist
             from SIL.LCModel import ICmPossibilityListFactory
-            list_factory = self.project.project.ServiceLocator.GetService(
-                ICmPossibilityListFactory)
+
+            list_factory = self.project.project.ServiceLocator.GetService(ICmPossibilityListFactory)
             trans_list = list_factory.Create()
             self.project.lp.TranslationTagsOA = trans_list
 
@@ -384,8 +383,8 @@ class TranslationTypeOperations(BaseOperations):
         props = {}
 
         # MultiString properties
-        props['Name'] = ITsString(trans_type.Name.get_String(wsHandle)).Text or ""
-        props['Abbreviation'] = ITsString(trans_type.Abbreviation.get_String(wsHandle)).Text or ""
+        props["Name"] = ITsString(trans_type.Name.get_String(wsHandle)).Text or ""
+        props["Abbreviation"] = ITsString(trans_type.Abbreviation.get_String(wsHandle)).Text or ""
 
         return props
 
@@ -416,7 +415,7 @@ class TranslationTypeOperations(BaseOperations):
             ops2 = self
 
         is_different = False
-        differences = {'properties': {}}
+        differences = {"properties": {}}
 
         # Get syncable properties from both items
         props1 = ops1.GetSyncableProperties(item1)
@@ -429,11 +428,7 @@ class TranslationTypeOperations(BaseOperations):
 
             if val1 != val2:
                 is_different = True
-                differences['properties'][key] = {
-                    'source': val1,
-                    'target': val2,
-                    'type': 'modified'
-                }
+                differences["properties"][key] = {"source": val1, "target": val2, "type": "modified"}
 
         return is_different, differences
 
@@ -482,8 +477,7 @@ class TranslationTypeOperations(BaseOperations):
         trans_list = self.project.lp.TranslationTagsOA
         if trans_list:
             for trans_type in trans_list.PossibilitiesOS:
-                type_name = ITsString(
-                    trans_type.Name.get_String(wsHandle)).Text
+                type_name = ITsString(trans_type.Name.get_String(wsHandle)).Text
                 if type_name and type_name.lower() == name_lower:
                     return trans_type
 
@@ -738,8 +732,7 @@ class TranslationTypeOperations(BaseOperations):
         return ws_list
 
     @OperationsMethod
-    def SetAnalysisWS(self, type_or_hvo, wsHandle, name=None,
-                      abbreviation=None):
+    def SetAnalysisWS(self, type_or_hvo, wsHandle, name=None, abbreviation=None):
         """
         Set the name and abbreviation for a translation type in a specific
         writing system.
@@ -835,13 +828,12 @@ class TranslationTypeOperations(BaseOperations):
         type_guid = trans_type.Guid
 
         # Search all texts
-        text_repo = self.project.project.ServiceLocator.GetInstance(
-            ITextRepository)
+        text_repo = self.project.project.ServiceLocator.GetInstance(ITextRepository)
         for text in text_repo.AllInstances():
             # Check if text has translations using this type
-            if hasattr(text, 'TranslationsOC') and text.TranslationsOC:
+            if hasattr(text, "TranslationsOC") and text.TranslationsOC:
                 for translation in text.TranslationsOC:
-                    if hasattr(translation, 'TypeRA') and translation.TypeRA:
+                    if hasattr(translation, "TypeRA") and translation.TypeRA:
                         if translation.TypeRA.Guid == type_guid:
                             yield text
                             break  # Count each text only once
@@ -889,15 +881,14 @@ class TranslationTypeOperations(BaseOperations):
         type_guid = trans_type.Guid
 
         # Search all paragraphs and their segments
-        para_repo = self.project.project.ServiceLocator.GetInstance(
-            IStTxtParaRepository)
+        para_repo = self.project.project.ServiceLocator.GetInstance(IStTxtParaRepository)
         for para in para_repo.AllInstances():
-            if hasattr(para, 'SegmentsOS'):
+            if hasattr(para, "SegmentsOS"):
                 for segment in para.SegmentsOS:
                     # Check segment translations
                     # Note: Segments typically don't have typed translations
                     # in the same way texts do, but we check for completeness
-                    if hasattr(segment, 'FreeTranslation'):
+                    if hasattr(segment, "FreeTranslation"):
                         # Segments have FreeTranslation and LiteralTranslation
                         # but these are typically not typed in the same way
                         # This method is provided for API completeness
@@ -1149,8 +1140,8 @@ class TranslationTypeOperations(BaseOperations):
         # This functionality is not directly supported in FLEx
         # as there's no single "default" translation type
         raise FP_ParameterError(
-            "SetDefault is not supported for translation types. "
-            "Translation type defaults are context-dependent.")
+            "SetDefault is not supported for translation types. " "Translation type defaults are context-dependent."
+        )
 
     # --- Metadata ---
 
@@ -1222,8 +1213,7 @@ class TranslationTypeOperations(BaseOperations):
         """
         if wsHandle is None:
             return self.project.project.DefaultAnalWs
-        return self.project._FLExProject__WSHandle(
-            wsHandle, self.project.project.DefaultAnalWs)
+        return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultAnalWs)
 
     def __FindByGuid(self, guid):
         """

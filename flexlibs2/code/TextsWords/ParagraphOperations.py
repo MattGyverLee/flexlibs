@@ -9,6 +9,7 @@
 #
 
 import clr
+
 clr.AddReference("System")
 import System
 
@@ -25,6 +26,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
+
 
 class ParagraphOperations(BaseOperations):
     """
@@ -226,7 +228,7 @@ class ParagraphOperations(BaseOperations):
 
         # Get the owner (StText) and remove the paragraph
         owner = para_obj.Owner
-        if owner and hasattr(owner, 'ParagraphsOS'):
+        if owner and hasattr(owner, "ParagraphsOS"):
             owner.ParagraphsOS.Remove(para_obj)
         else:
             raise FP_ParameterError("Paragraph has no valid owner or cannot be removed")
@@ -288,7 +290,7 @@ class ParagraphOperations(BaseOperations):
 
         # Get the owner (StText/IText)
         owner = para_obj.Owner
-        if not owner or not hasattr(owner, 'ParagraphsOS'):
+        if not owner or not hasattr(owner, "ParagraphsOS"):
             raise FP_ParameterError("Paragraph has no valid owner text")
 
         # Get parent text - owner is StText, need to go up one more level to IText
@@ -321,12 +323,12 @@ class ParagraphOperations(BaseOperations):
         if deep:
             segments = self.GetSegments(para_obj)
             for segment in segments:
-                if hasattr(self.project, 'Segments') and hasattr(self.project.Segments, 'Duplicate'):
+                if hasattr(self.project, "Segments") and hasattr(self.project.Segments, "Duplicate"):
                     # Note: Segments.Duplicate may not exist yet, so we create manually
                     # Get segment baseline text
-                    if hasattr(segment, 'BaselineText'):
+                    if hasattr(segment, "BaselineText"):
                         seg_text = ITsString(segment.BaselineText).Text or ""
-                        if seg_text and hasattr(self.project, 'Segments'):
+                        if seg_text and hasattr(self.project, "Segments"):
                             # Create segment in new paragraph
                             self.project.Segments.Create(new_para, seg_text, wsHandle)
 
@@ -357,7 +359,7 @@ class ParagraphOperations(BaseOperations):
         props = {}
 
         # TsString property - Contents (paragraph text)
-        if hasattr(item, 'Contents') and item.Contents:
+        if hasattr(item, "Contents") and item.Contents:
             # Convert TsString to dict with WS keys
             ws_dict = {}
             text = ITsString(item.Contents).Text
@@ -366,7 +368,7 @@ class ParagraphOperations(BaseOperations):
                 ws = item.Contents.get_WritingSystemAt(0) if item.Contents.Length > 0 else None
                 if ws:
                     ws_dict[self.project.GetWritingSystemTag(ws)] = text
-            props['Contents'] = ws_dict
+            props["Contents"] = ws_dict
 
         return props
 

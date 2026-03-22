@@ -87,7 +87,7 @@ def demo_wordform_analyses(project, wordform):
     # Try to find a verb POS
     for pos in project.POS.GetAll():
         pos_name = pos.Name.BestAnalysisAlternative.Text
-        if pos_name and 'verb' in pos_name.lower():
+        if pos_name and "verb" in pos_name.lower():
             project.WfiAnalyses.SetCategory(analysis, pos)
             print(f"   Set category to: {pos_name}")
             break
@@ -115,7 +115,7 @@ def demo_wordform_glosses(project, analysis):
 
     # Create a new gloss
     print("\n2. Create new gloss:")
-    en_ws = project.WSHandle('en')
+    en_ws = project.WSHandle("en")
     gloss = project.WfiGlosses.Create(analysis, "example", en_ws)
     print(f"   Created gloss: {project.WfiGlosses.GetForm(gloss)}")
 
@@ -262,7 +262,7 @@ def demo_typical_workflow(project):
     print(f"   ✓ Created analysis")
 
     # Step 3: Add gloss
-    gloss = project.WfiGlosses.Create(analysis, "running", project.WSHandle('en'))
+    gloss = project.WfiGlosses.Create(analysis, "running", project.WSHandle("en"))
     print(f"   ✓ Added gloss: {project.WfiGlosses.GetForm(gloss)}")
 
     # Step 4: Create morpheme breakdown
@@ -319,6 +319,7 @@ def main():
     except Exception as e:
         print(f"\nError: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
 

@@ -148,10 +148,7 @@ class ContextCollection(SmartCollection):
         filtered = self._items
 
         if name_contains is not None:
-            filtered = [
-                ctx for ctx in filtered
-                if name_contains in (ctx.context_name or "")
-            ]
+            filtered = [ctx for ctx in filtered if name_contains in (ctx.context_name or "")]
 
         return ContextCollection(filtered)
 
@@ -208,10 +205,7 @@ class ContextCollection(SmartCollection):
             - Includes both PhSimpleContextSeg and PhSimpleContextNC
             - Use simple_context_seg() or simple_context_nc() to distinguish
         """
-        filtered = [
-            ctx for ctx in self._items
-            if ctx.is_simple_context
-        ]
+        filtered = [ctx for ctx in self._items if ctx.is_simple_context]
         return ContextCollection(filtered)
 
     def simple_context_seg(self):
@@ -234,7 +228,7 @@ class ContextCollection(SmartCollection):
             - Simple segment contexts represent a single segment
             - Equivalent to by_type('PhSimpleContextSeg')
         """
-        return self.by_type('PhSimpleContextSeg')
+        return self.by_type("PhSimpleContextSeg")
 
     def simple_context_nc(self):
         """
@@ -256,7 +250,7 @@ class ContextCollection(SmartCollection):
             - Simple natural class contexts represent a natural class
             - Equivalent to by_type('PhSimpleContextNC')
         """
-        return self.by_type('PhSimpleContextNC')
+        return self.by_type("PhSimpleContextNC")
 
     def complex_contexts(self):
         """
@@ -280,10 +274,7 @@ class ContextCollection(SmartCollection):
             - Includes both PhComplexContextSeg and PhComplexContextNC
             - Use complex_context_seg() or complex_context_nc() to distinguish
         """
-        filtered = [
-            ctx for ctx in self._items
-            if ctx.is_complex_context
-        ]
+        filtered = [ctx for ctx in self._items if ctx.is_complex_context]
         return ContextCollection(filtered)
 
     def complex_context_seg(self):
@@ -304,7 +295,7 @@ class ContextCollection(SmartCollection):
             - Equivalent to by_type('PhComplexContextSeg')
             - Complex segment contexts have multiple segment specifications
         """
-        return self.by_type('PhComplexContextSeg')
+        return self.by_type("PhComplexContextSeg")
 
     def complex_context_nc(self):
         """
@@ -324,7 +315,7 @@ class ContextCollection(SmartCollection):
             - Equivalent to by_type('PhComplexContextNC')
             - Complex natural class contexts have multiple natural class specifications
         """
-        return self.by_type('PhComplexContextNC')
+        return self.by_type("PhComplexContextNC")
 
     def boundary_contexts(self):
         """
@@ -346,7 +337,7 @@ class ContextCollection(SmartCollection):
             - Boundary contexts represent word/morpheme boundaries
             - Equivalent to by_type('PhBoundaryContext')
         """
-        return self.by_type('PhBoundaryContext')
+        return self.by_type("PhBoundaryContext")
 
     def __repr__(self):
         """Technical representation."""

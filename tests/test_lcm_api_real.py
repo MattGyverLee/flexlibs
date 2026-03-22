@@ -17,10 +17,7 @@ import sys
 class TestRealLCMAPI:
     """Test actual LCM API methods if SIL.LCModel is available."""
 
-    @pytest.mark.skipif(
-        'SIL.LCModel' not in sys.modules,
-        reason="Requires SIL.LCModel (FieldWorks installed)"
-    )
+    @pytest.mark.skipif("SIL.LCModel" not in sys.modules, reason="Requires SIL.LCModel (FieldWorks installed)")
     def test_import_lcm_modules(self):
         """Test that all required LCM modules can be imported."""
         try:
@@ -28,47 +25,41 @@ class TestRealLCMAPI:
             from SIL.LCModel.Core.Text import TsStringUtils
             from SIL.LCModel import IPhPhonemeFactory
             from SIL.LCModel.Core.KernelInterfaces import ITsString
+
             assert True, "All LCM modules imported successfully"
         except ImportError as e:
             pytest.skip(f"SIL.LCModel not available: {e}")
 
-    @pytest.mark.skipif(
-        'SIL.LCModel' not in sys.modules,
-        reason="Requires SIL.LCModel (FieldWorks installed)"
-    )
+    @pytest.mark.skipif("SIL.LCModel" not in sys.modules, reason="Requires SIL.LCModel (FieldWorks installed)")
     def test_tsstringutils_makestring_exists(self):
         """Test that TsStringUtils.MakeString method exists."""
         try:
             from SIL.LCModel.Core.Text import TsStringUtils
-            assert hasattr(TsStringUtils, 'MakeString'), \
-                "TsStringUtils.MakeString should exist"
+
+            assert hasattr(TsStringUtils, "MakeString"), "TsStringUtils.MakeString should exist"
         except ImportError:
             pytest.skip("SIL.LCModel not available")
 
-    @pytest.mark.skipif(
-        'SIL.LCModel' not in sys.modules,
-        reason="Requires SIL.LCModel (FieldWorks installed)"
-    )
+    @pytest.mark.skipif("SIL.LCModel" not in sys.modules, reason="Requires SIL.LCModel (FieldWorks installed)")
     def test_factory_create_pattern(self):
         """Test that factory Create() pattern works."""
         try:
             from SIL.LCModel import IPhPhonemeFactory
+
             # Verify factory interface exists
-            assert hasattr(IPhPhonemeFactory, 'Create') or \
-                   'Create' in str(IPhPhonemeFactory.__dict__), \
-                "Factory should have Create method"
+            assert hasattr(IPhPhonemeFactory, "Create") or "Create" in str(
+                IPhPhonemeFactory.__dict__
+            ), "Factory should have Create method"
         except ImportError:
             pytest.skip("SIL.LCModel not available")
 
-    @pytest.mark.skipif(
-        'SIL.LCModel' not in sys.modules,
-        reason="Requires SIL.LCModel (FieldWorks installed)"
-    )
+    @pytest.mark.skipif("SIL.LCModel" not in sys.modules, reason="Requires SIL.LCModel (FieldWorks installed)")
     def test_service_locator_pattern(self):
         """Test that ServiceLocator pattern is available."""
         try:
             # ServiceLocator should be accessible through projects
             from SIL.LCModel import ILangProject
+
             assert True, "ServiceLocator pattern should be available"
         except ImportError:
             pytest.skip("SIL.LCModel not available")

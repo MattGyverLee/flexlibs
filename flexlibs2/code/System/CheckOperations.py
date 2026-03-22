@@ -12,9 +12,11 @@
 #
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 import clr
+
 clr.AddReference("System")
 import System
 from datetime import datetime
@@ -39,6 +41,7 @@ from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import string utilities
 from ..Shared.string_utils import normalize_text
+
 
 class CheckOperations(BaseOperations):
     """
@@ -565,12 +568,7 @@ class CheckOperations(BaseOperations):
             raise FP_ParameterError("Check must be enabled before running")
 
         # Initialize results
-        results = {
-            'errors': [],
-            'warnings': [],
-            'passed': [],
-            'timestamp': datetime.now()
-        }
+        results = {"errors": [], "warnings": [], "passed": [], "timestamp": datetime.now()}
 
         # Get target objects if not specified
         if target_objects is None:
@@ -582,7 +580,7 @@ class CheckOperations(BaseOperations):
         # Cache results
         guid = check_obj.Guid
         self._check_results[guid] = results
-        self._check_last_run[guid] = results['timestamp']
+        self._check_last_run[guid] = results["timestamp"]
 
         return results
 
@@ -628,13 +626,13 @@ class CheckOperations(BaseOperations):
         guid = check_obj.Guid
 
         if not self.IsEnabled(check_obj):
-            return 'Disabled'
+            return "Disabled"
         elif guid in self._check_results:
-            return 'Completed'
+            return "Completed"
         elif guid in self._check_last_run:
-            return 'Completed'
+            return "Completed"
         else:
-            return 'Never Run'
+            return "Never Run"
 
     @OperationsMethod
     def GetLastRun(self, check_or_hvo):
@@ -752,7 +750,7 @@ class CheckOperations(BaseOperations):
 
         results = self._check_results.get(guid, None)
         if results:
-            return len(results.get('errors', []))
+            return len(results.get("errors", []))
         return 0
 
     @OperationsMethod
@@ -789,7 +787,7 @@ class CheckOperations(BaseOperations):
 
         results = self._check_results.get(guid, None)
         if results:
-            return len(results.get('warnings', []))
+            return len(results.get("warnings", []))
         return 0
 
     # --- Filter Methods ---
@@ -936,7 +934,7 @@ class CheckOperations(BaseOperations):
     # --- Query Methods ---
 
     @OperationsMethod
-    def FindItemsWithIssues(self, check_or_hvo, issue_type='all'):
+    def FindItemsWithIssues(self, check_or_hvo, issue_type="all"):
         """
         Find all items that have issues according to a check.
 
@@ -990,7 +988,7 @@ class CheckOperations(BaseOperations):
         check_obj = self.__GetCheckObject(check_or_hvo)
         guid = check_obj.Guid
 
-        if issue_type not in ['all', 'errors', 'warnings']:
+        if issue_type not in ["all", "errors", "warnings"]:
             raise FP_ParameterError("issue_type must be 'all', 'errors', or 'warnings'")
 
         results = self._check_results.get(guid, None)
@@ -998,10 +996,10 @@ class CheckOperations(BaseOperations):
             return []
 
         items = []
-        if issue_type in ['all', 'errors']:
-            items.extend(results.get('errors', []))
-        if issue_type in ['all', 'warnings']:
-            items.extend(results.get('warnings', []))
+        if issue_type in ["all", "errors"]:
+            items.extend(results.get("errors", []))
+        if issue_type in ["all", "warnings"]:
+            items.extend(results.get("warnings", []))
 
         return items
 
@@ -1058,13 +1056,13 @@ class CheckOperations(BaseOperations):
 
         # Search for object in errors and warnings
         issues = []
-        for item in results.get('errors', []):
-            if hasattr(item, 'Hvo') and hasattr(obj, 'Hvo'):
+        for item in results.get("errors", []):
+            if hasattr(item, "Hvo") and hasattr(obj, "Hvo"):
                 if item.Hvo == obj.Hvo:
                     issues.append(f"Error: {self._GetIssueDescription(item)}")
 
-        for item in results.get('warnings', []):
-            if hasattr(item, 'Hvo') and hasattr(obj, 'Hvo'):
+        for item in results.get("warnings", []):
+            if hasattr(item, "Hvo") and hasattr(obj, "Hvo"):
                 if item.Hvo == obj.Hvo:
                     issues.append(f"Warning: {self._GetIssueDescription(item)}")
 
@@ -1155,10 +1153,7 @@ class CheckOperations(BaseOperations):
         """
         if wsHandle is None:
             return self.project.project.DefaultAnalWs
-        return self.project._FLExProject__WSHandle(
-            wsHandle,
-            self.project.project.DefaultAnalWs
-        )
+        return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultAnalWs)
 
     def _GetCheckList(self):
         """
@@ -1188,6 +1183,7 @@ class CheckOperations(BaseOperations):
         # Note: This is a simplified implementation
         # Actual implementation would depend on FLEx data model
         from SIL.LCModel import ICmPossibilityListFactory
+
         factory = self.project.project.ServiceLocator.GetInstance(ICmPossibilityListFactory)
         new_list = factory.Create()
 
@@ -1231,12 +1227,7 @@ class CheckOperations(BaseOperations):
             - Duplicate Entries (WARNING): Entries with same lexeme form
             - Missing Etymology (WARNING): Entries without etymology
         """
-        results = {
-            'errors': [],
-            'warnings': [],
-            'passed': [],
-            'timestamp': datetime.now()
-        }
+        results = {"errors": [], "warnings": [], "passed": [], "timestamp": datetime.now()}
 
         # Get check name - use exact matching (Craig's pattern)
         check_name = self.GetName(check_obj)
@@ -1251,7 +1242,7 @@ class CheckOperations(BaseOperations):
                         obj = ILexEntry(obj)
                     except TypeError:
                         # Object is not a lexical entry - skip it
-                        results['passed'].append(obj)
+                        results["passed"].append(obj)
                         continue
 
                 entry = obj
@@ -1263,7 +1254,7 @@ class CheckOperations(BaseOperations):
                     for sense in entry.SensesOS:
                         gloss_text = ITsString(sense.Gloss.get_String(wsHandle)).Text
                         if not gloss_text or not gloss_text.strip():
-                            results['errors'].append(entry)
+                            results["errors"].append(entry)
                             has_issue = True
                             break
 
@@ -1272,7 +1263,7 @@ class CheckOperations(BaseOperations):
                     for sense in entry.SensesOS:
                         def_text = ITsString(sense.Definition.get_String(wsHandle)).Text
                         if not def_text or not def_text.strip():
-                            results['warnings'].append(entry)
+                            results["warnings"].append(entry)
                             has_issue = True
                             break
 
@@ -1280,7 +1271,7 @@ class CheckOperations(BaseOperations):
                     # WARNING: Senses without examples
                     for sense in entry.SensesOS:
                         if sense.ExamplesOS.Count == 0:
-                            results['warnings'].append(entry)
+                            results["warnings"].append(entry)
                             has_issue = True
                             break
 
@@ -1288,20 +1279,20 @@ class CheckOperations(BaseOperations):
                     # ERROR: Senses without POS/MSA
                     for sense in entry.SensesOS:
                         if sense.MorphoSyntaxAnalysisRA is None:
-                            results['errors'].append(entry)
+                            results["errors"].append(entry)
                             has_issue = True
                             break
 
                 elif check_name == "Duplicate Entries":
                     # WARNING: Entries with same lexeme form lacking homograph numbers
-                    if hasattr(entry, 'HomographNumber') and entry.HomographNumber == 0:
-                        results['warnings'].append(entry)
+                    if hasattr(entry, "HomographNumber") and entry.HomographNumber == 0:
+                        results["warnings"].append(entry)
                         has_issue = True
 
                 elif check_name == "Missing Etymology":
                     # WARNING: Entries without etymology
                     if entry.EtymologyOS.Count == 0:
-                        results['warnings'].append(entry)
+                        results["warnings"].append(entry)
                         has_issue = True
 
                 else:
@@ -1310,12 +1301,12 @@ class CheckOperations(BaseOperations):
 
                 # If no issue found, mark as passed
                 if not has_issue:
-                    results['passed'].append(entry)
+                    results["passed"].append(entry)
 
             except (AttributeError, KeyError) as e:
                 # Entry structure incompatible with this check type
                 logger.warning(f"Entry {obj} incompatible with check '{check_name}': {e}")
-                results['passed'].append(obj)
+                results["passed"].append(obj)
             except Exception as e:
                 # Unexpected error - this indicates a bug, don't hide it
                 logger.error(f"Unexpected error checking entry {obj} with '{check_name}': {e}")
@@ -1335,7 +1326,7 @@ class CheckOperations(BaseOperations):
         """
         # Placeholder implementation
         # Actual description would be based on check type and object
-        if hasattr(obj, 'HeadWord') and obj.HeadWord:
+        if hasattr(obj, "HeadWord") and obj.HeadWord:
             return f"Issue with '{normalize_text(obj.HeadWord.Text)}'"
         return "Issue found"
 
@@ -1385,29 +1376,29 @@ class CheckOperations(BaseOperations):
         # ADD TO PARENT FIRST
         if insert_after:
             # Insert after source
-            if hasattr(parent, 'PossibilitiesOS'):
+            if hasattr(parent, "PossibilitiesOS"):
                 source_index = parent.PossibilitiesOS.IndexOf(check_obj)
                 parent.PossibilitiesOS.Insert(source_index + 1, duplicate)
-            elif hasattr(parent, 'SubPossibilitiesOS'):
+            elif hasattr(parent, "SubPossibilitiesOS"):
                 source_index = parent.SubPossibilitiesOS.IndexOf(check_obj)
                 parent.SubPossibilitiesOS.Insert(source_index + 1, duplicate)
         else:
             # Insert at end
-            if hasattr(parent, 'PossibilitiesOS'):
+            if hasattr(parent, "PossibilitiesOS"):
                 parent.PossibilitiesOS.Add(duplicate)
-            elif hasattr(parent, 'SubPossibilitiesOS'):
+            elif hasattr(parent, "SubPossibilitiesOS"):
                 parent.SubPossibilitiesOS.Add(duplicate)
 
         # Copy MultiString properties (AFTER adding to parent)
         duplicate.Name.CopyAlternatives(check_obj.Name)
-        if hasattr(check_obj, 'Description') and check_obj.Description:
+        if hasattr(check_obj, "Description") and check_obj.Description:
             duplicate.Description.CopyAlternatives(check_obj.Description)
 
         # Note: Check state and results are not copied
         # The duplicate starts as disabled with no results
 
         # Deep copy: duplicate sub-checks into the NEW duplicate
-        if deep and hasattr(check_obj, 'SubPossibilitiesOS') and check_obj.SubPossibilitiesOS.Count > 0:
+        if deep and hasattr(check_obj, "SubPossibilitiesOS") and check_obj.SubPossibilitiesOS.Count > 0:
             for sub in check_obj.SubPossibilitiesOS:
                 self._DuplicateSubCheckInto(sub, duplicate, deep=True)
 
@@ -1421,11 +1412,11 @@ class CheckOperations(BaseOperations):
 
         # Copy properties
         dup_check.Name.CopyAlternatives(source_check.Name)
-        if hasattr(source_check, 'Description') and source_check.Description:
+        if hasattr(source_check, "Description") and source_check.Description:
             dup_check.Description.CopyAlternatives(source_check.Description)
 
         # Recurse into nested sub-checks
-        if deep and hasattr(source_check, 'SubPossibilitiesOS') and source_check.SubPossibilitiesOS.Count > 0:
+        if deep and hasattr(source_check, "SubPossibilitiesOS") and source_check.SubPossibilitiesOS.Count > 0:
             for nested_check in source_check.SubPossibilitiesOS:
                 self._DuplicateSubCheckInto(nested_check, dup_check, deep=True)
 
@@ -1438,9 +1429,9 @@ class CheckOperations(BaseOperations):
         wsHandle = self.__WSHandle(None)
 
         props = {}
-        props['Name'] = ITsString(check_obj.Name.get_String(wsHandle)).Text or ""
-        if hasattr(check_obj, 'Description') and check_obj.Description:
-            props['Description'] = ITsString(check_obj.Description.get_String(wsHandle)).Text or ""
+        props["Name"] = ITsString(check_obj.Name.get_String(wsHandle)).Text or ""
+        if hasattr(check_obj, "Description") and check_obj.Description:
+            props["Description"] = ITsString(check_obj.Description.get_String(wsHandle)).Text or ""
 
         return props
 
@@ -1453,7 +1444,7 @@ class CheckOperations(BaseOperations):
             ops2 = self
 
         is_different = False
-        differences = {'properties': {}}
+        differences = {"properties": {}}
 
         props1 = ops1.GetSyncableProperties(item1)
         props2 = ops2.GetSyncableProperties(item2)
@@ -1463,11 +1454,6 @@ class CheckOperations(BaseOperations):
             val2 = props2.get(key)
             if val1 != val2:
                 is_different = True
-                differences['properties'][key] = {
-                    'source': val1,
-                    'target': val2,
-                    'type': 'modified'
-                }
+                differences["properties"][key] = {"source": val1, "target": val2, "type": "modified"}
 
         return is_different, differences
-

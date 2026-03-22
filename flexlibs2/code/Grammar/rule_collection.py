@@ -155,30 +155,24 @@ class RuleCollection(SmartCollection):
         filtered = self._items
 
         if name_contains is not None:
-            filtered = [
-                rule for rule in filtered
-                if name_contains in (rule.name or "")
-            ]
+            filtered = [rule for rule in filtered if name_contains in (rule.name or "")]
 
         if direction is not None:
-            filtered = [
-                rule for rule in filtered
-                if rule.direction == direction
-            ]
+            filtered = [rule for rule in filtered if rule.direction == direction]
 
         if stratum is not None:
             # Handle both object and GUID comparisons
             stratum_guid = None
             if stratum is not None:
-                if hasattr(stratum, 'Guid'):
+                if hasattr(stratum, "Guid"):
                     stratum_guid = str(stratum.Guid)
                 else:
                     stratum_guid = str(stratum)
 
             filtered = [
-                rule for rule in filtered
-                if rule.stratum is not None and
-                   (str(rule.stratum.Guid) == stratum_guid if stratum_guid else False)
+                rule
+                for rule in filtered
+                if rule.stratum is not None and (str(rule.stratum.Guid) == stratum_guid if stratum_guid else False)
             ]
 
         return RuleCollection(filtered)
@@ -239,7 +233,7 @@ class RuleCollection(SmartCollection):
             - Regular rules have RightHandSidesOS (output specifications)
             - Use has_output_specs on individual rules to check type
         """
-        return self.by_type('PhRegularRule')
+        return self.by_type("PhRegularRule")
 
     def metathesis_rules(self):
         """
@@ -263,7 +257,7 @@ class RuleCollection(SmartCollection):
             - Metathesis rules swap segments (left <-> right)
             - Use has_metathesis_parts on individual rules to check type
         """
-        return self.by_type('PhMetathesisRule')
+        return self.by_type("PhMetathesisRule")
 
     def redup_rules(self):
         """
@@ -287,7 +281,7 @@ class RuleCollection(SmartCollection):
             - Reduplication rules repeat segments
             - Use has_redup_parts on individual rules to check type
         """
-        return self.by_type('PhReduplicationRule')
+        return self.by_type("PhReduplicationRule")
 
     def __repr__(self):
         """Technical representation."""

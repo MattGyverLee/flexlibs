@@ -28,6 +28,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+
 class ScrDraftOperations(BaseOperations):
     """
     This class provides operations for managing Scripture drafts/versions in a
@@ -408,7 +409,7 @@ class ScrDraftOperations(BaseOperations):
         Returns:
             IScripture or None: The Scripture object if available
         """
-        if not hasattr(self.project, 'lp') or not self.project.lp:
+        if not hasattr(self.project, "lp") or not self.project.lp:
             return None
 
         return self.project.lp.TranslatedScriptureOA

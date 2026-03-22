@@ -32,6 +32,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+
 class PhonologicalRuleOperations(BaseOperations):
     """
     This class provides operations for managing phonological rules in a
@@ -133,7 +134,7 @@ class PhonologicalRuleOperations(BaseOperations):
             return RuleCollection()
 
         rules = []
-        if hasattr(phon_data, 'PhonRulesOS'):
+        if hasattr(phon_data, "PhonRulesOS"):
             for rule in phon_data.PhonRulesOS:
                 wrapped = PhonologicalRule(rule)
                 rules.append(wrapped)
@@ -246,7 +247,7 @@ class PhonologicalRuleOperations(BaseOperations):
 
         # Remove from phonological rules collection
         phon_data = self.project.lp.PhonologicalDataOA
-        if phon_data and hasattr(phon_data, 'PhonRulesOS'):
+        if phon_data and hasattr(phon_data, "PhonRulesOS"):
             if rule in phon_data.PhonRulesOS:
                 phon_data.PhonRulesOS.Remove(rule)
 
@@ -491,7 +492,7 @@ class PhonologicalRuleOperations(BaseOperations):
 
         rule = self.__ResolveObject(rule_or_hvo)
 
-        if hasattr(rule, 'StratumRA') and rule.StratumRA:
+        if hasattr(rule, "StratumRA") and rule.StratumRA:
             return rule.StratumRA
 
         return None
@@ -527,7 +528,7 @@ class PhonologicalRuleOperations(BaseOperations):
 
         rule = self.__ResolveObject(rule_or_hvo)
 
-        if hasattr(rule, 'StratumRA'):
+        if hasattr(rule, "StratumRA"):
             if stratum is None:
                 rule.StratumRA = None
             else:
@@ -564,7 +565,7 @@ class PhonologicalRuleOperations(BaseOperations):
 
         rule = self.__ResolveObject(rule_or_hvo)
 
-        if hasattr(rule, 'Direction'):
+        if hasattr(rule, "Direction"):
             return rule.Direction
 
         return 0  # Default: left-to-right
@@ -601,7 +602,7 @@ class PhonologicalRuleOperations(BaseOperations):
 
         rule = self.__ResolveObject(rule_or_hvo)
 
-        if hasattr(rule, 'Direction'):
+        if hasattr(rule, "Direction"):
             rule.Direction = direction
 
     @OperationsMethod
@@ -646,16 +647,16 @@ class PhonologicalRuleOperations(BaseOperations):
         # Access the rule's input contexts
         # This requires accessing the StrucDesc (structural description)
         # which contains the input specification
-        if hasattr(rule, 'StrucDescOS') and rule.StrucDescOS.Count == 0:
+        if hasattr(rule, "StrucDescOS") and rule.StrucDescOS.Count == 0:
             # Create a segment rule for the input
             seg_factory = self.project.project.ServiceLocator.GetService(IPhSimpleContextSegFactory)
             input_context = seg_factory.Create()
             rule.StrucDescOS.Add(input_context)
 
         # Add the phoneme/class to the input context
-        if hasattr(rule, 'StrucDescOS') and rule.StrucDescOS.Count > 0:
+        if hasattr(rule, "StrucDescOS") and rule.StrucDescOS.Count > 0:
             input_context = rule.StrucDescOS[0]
-            if hasattr(input_context, 'FeatureStructureRA'):
+            if hasattr(input_context, "FeatureStructureRA"):
                 input_context.FeatureStructureRA = phoneme_or_class
 
     @OperationsMethod
@@ -698,15 +699,15 @@ class PhonologicalRuleOperations(BaseOperations):
             phoneme_or_class = self.project.Object(phoneme_or_class)
 
         # Create RHS (right-hand side) for output if needed
-        if hasattr(rule, 'RightHandSidesOS') and rule.RightHandSidesOS.Count == 0:
+        if hasattr(rule, "RightHandSidesOS") and rule.RightHandSidesOS.Count == 0:
             rhs_factory = self.project.project.ServiceLocator.GetService(IPhSegRuleRHSFactory)
             rhs = rhs_factory.Create()
             rule.RightHandSidesOS.Add(rhs)
 
         # Add the phoneme/class to the output
-        if hasattr(rule, 'RightHandSidesOS') and rule.RightHandSidesOS.Count > 0:
+        if hasattr(rule, "RightHandSidesOS") and rule.RightHandSidesOS.Count > 0:
             rhs = rule.RightHandSidesOS[0]
-            if hasattr(rhs, 'StrucChangeOS') and hasattr(phoneme_or_class, 'Hvo'):
+            if hasattr(rhs, "StrucChangeOS") and hasattr(phoneme_or_class, "Hvo"):
                 # Add to structural change specification
                 seg_factory = self.project.project.ServiceLocator.GetService(IPhSimpleContextSegFactory)
                 output_seg = seg_factory.Create()
@@ -752,9 +753,9 @@ class PhonologicalRuleOperations(BaseOperations):
 
         # Set left context in the rule's structural description
         # This typically uses the LeftContext property
-        if hasattr(rule, 'StrucDescOS') and rule.StrucDescOS.Count > 0:
+        if hasattr(rule, "StrucDescOS") and rule.StrucDescOS.Count > 0:
             input_context = rule.StrucDescOS[0]
-            if hasattr(input_context, 'LeftContextOA'):
+            if hasattr(input_context, "LeftContextOA"):
                 if context_item is None:
                     input_context.LeftContextOA = None
                 else:
@@ -804,9 +805,9 @@ class PhonologicalRuleOperations(BaseOperations):
             context_item = self.project.Object(context_item)
 
         # Set right context in the rule's structural description
-        if hasattr(rule, 'StrucDescOS') and rule.StrucDescOS.Count > 0:
+        if hasattr(rule, "StrucDescOS") and rule.StrucDescOS.Count > 0:
             input_context = rule.StrucDescOS[0]
-            if hasattr(input_context, 'RightContextOA'):
+            if hasattr(input_context, "RightContextOA"):
                 if context_item is None:
                     input_context.RightContextOA = None
                 else:
@@ -870,7 +871,7 @@ class PhonologicalRuleOperations(BaseOperations):
         phon_data = self.project.lp.PhonologicalDataOA
 
         # Try to use CreateAndAppendElement (proper LCM registration)
-        if hasattr(phon_data.PhonRulesOS, 'CreateAndAppendElement'):
+        if hasattr(phon_data.PhonRulesOS, "CreateAndAppendElement"):
             duplicate = phon_data.PhonRulesOS.CreateAndAppendElement()
             # If we need to insert at a specific position, remove and reinsert
             if insert_after:
@@ -891,6 +892,7 @@ class PhonologicalRuleOperations(BaseOperations):
         if deep:
             # Deep clone using the LCM cloning utilities
             from ..lcm_casting import clone_properties
+
             clone_properties(source, duplicate, self.project)
         else:
             # Shallow copy - only simple properties
@@ -898,11 +900,11 @@ class PhonologicalRuleOperations(BaseOperations):
             duplicate.Description.CopyAlternatives(source.Description)
 
             # Copy Reference Atomic (RA) properties
-            if hasattr(source, 'StratumRA') and source.StratumRA:
+            if hasattr(source, "StratumRA") and source.StratumRA:
                 duplicate.StratumRA = source.StratumRA
 
             # Copy integer properties
-            if hasattr(source, 'Direction'):
+            if hasattr(source, "Direction"):
                 duplicate.Direction = source.Direction
 
         return duplicate
@@ -958,7 +960,7 @@ class PhonologicalRuleOperations(BaseOperations):
         props = {}
 
         # MultiString properties
-        for prop_name in ['Name', 'Description']:
+        for prop_name in ["Name", "Description"]:
             if hasattr(rule, prop_name):
                 prop_obj = getattr(rule, prop_name)
                 ws_values = {}
@@ -970,12 +972,12 @@ class PhonologicalRuleOperations(BaseOperations):
                     props[prop_name] = ws_values
 
         # Integer properties
-        if hasattr(rule, 'Direction'):
-            props['Direction'] = rule.Direction
+        if hasattr(rule, "Direction"):
+            props["Direction"] = rule.Direction
 
         # Reference Atomic (RA) properties - return GUID as string
-        if hasattr(rule, 'StratumRA') and rule.StratumRA:
-            props['StratumGuid'] = str(rule.StratumRA.Guid)
+        if hasattr(rule, "StratumRA") and rule.StratumRA:
+            props["StratumGuid"] = str(rule.StratumRA.Guid)
 
         return props
 

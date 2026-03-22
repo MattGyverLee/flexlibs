@@ -10,6 +10,7 @@ Date: 2025-11-22
 
 class FlexLibsError(Exception):
     """Base exception for all flexlibs errors."""
+
     pass
 
 
@@ -32,6 +33,7 @@ class InvalidParameterError(FlexLibsError, ValueError):
 
     This combines FlexLibsError with ValueError for backwards compatibility.
     """
+
     pass
 
 
@@ -54,6 +56,7 @@ class OperationFailedError(FlexLibsError, RuntimeError):
 
     This combines FlexLibsError with RuntimeError for backwards compatibility.
     """
+
     pass
 
 
@@ -76,6 +79,7 @@ class WritingSystemError(FlexLibsError, ValueError):
 
     This combines FlexLibsError with ValueError for backwards compatibility.
     """
+
     pass
 
 
@@ -91,12 +95,12 @@ class NotImplementedYetError(FlexLibsError, NotImplementedError):
 
 
 __all__ = [
-    'FlexLibsError',
-    'ObjectNotFoundError',
-    'InvalidParameterError',
-    'DuplicateObjectError',
-    'OperationFailedError',
-    'ObjectInUseError',
-    'WritingSystemError',
-    'NotImplementedYetError',
+    "FlexLibsError",
+    "ObjectNotFoundError",
+    "InvalidParameterError",
+    "DuplicateObjectError",
+    "OperationFailedError",
+    "ObjectInUseError",
+    "WritingSystemError",
+    "NotImplementedYetError",
 ]

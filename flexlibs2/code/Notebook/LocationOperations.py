@@ -12,6 +12,7 @@
 #
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 import math
@@ -31,6 +32,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
+
 
 class LocationOperations(BaseOperations):
     """
@@ -134,11 +136,7 @@ class LocationOperations(BaseOperations):
         if not location_list:
             return []
 
-        return list(self.project.UnpackNestedPossibilityList(
-            location_list.PossibilitiesOS,
-            ICmLocation,
-            flat
-        ))
+        return list(self.project.UnpackNestedPossibilityList(location_list.PossibilitiesOS, ICmLocation, flat))
 
     @OperationsMethod
     def Create(self, name, wsHandle=None, alias=None):
@@ -200,9 +198,7 @@ class LocationOperations(BaseOperations):
             raise FP_ParameterError("Locations list not found in project")
 
         # Create the new location using the factory
-        factory = self.project.project.ServiceLocator.GetService(
-            ICmLocationFactory
-        )
+        factory = self.project.project.ServiceLocator.GetService(ICmLocationFactory)
         new_location = factory.Create()
 
         # Add to top-level list (must be done before setting properties)
@@ -605,9 +601,9 @@ class LocationOperations(BaseOperations):
         # Coordinates are stored in GenDate fields
         # Latitude in GenDate.GenDateVal1
         # Longitude in GenDate.GenDateVal2
-        if hasattr(location, 'DateOfEvent') and location.DateOfEvent:
+        if hasattr(location, "DateOfEvent") and location.DateOfEvent:
             date_info = location.DateOfEvent
-            if hasattr(date_info, 'GenDateVal1') and hasattr(date_info, 'GenDateVal2'):
+            if hasattr(date_info, "GenDateVal1") and hasattr(date_info, "GenDateVal2"):
                 lat = date_info.GenDateVal1
                 lon = date_info.GenDateVal2
                 # Check if valid coordinates (both non-zero or explicitly set)
@@ -668,26 +664,23 @@ class LocationOperations(BaseOperations):
             raise FP_ParameterError("Latitude and longitude must be numeric")
 
         if lat < -90 or lat > 90:
-            raise FP_ParameterError(
-                f"Latitude must be between -90 and +90 (got {lat})"
-            )
+            raise FP_ParameterError(f"Latitude must be between -90 and +90 (got {lat})")
         if lon < -180 or lon > 180:
-            raise FP_ParameterError(
-                f"Longitude must be between -180 and +180 (got {lon})"
-            )
+            raise FP_ParameterError(f"Longitude must be between -180 and +180 (got {lon})")
 
         location = self.__ResolveObject(location_or_hvo)
 
         # Create or update GenDate for coordinates
-        if not hasattr(location, 'DateOfEvent') or not location.DateOfEvent:
+        if not hasattr(location, "DateOfEvent") or not location.DateOfEvent:
             # Need to create GenDate - this may require factory
             # For now, set directly if property exists
-            if hasattr(location, 'DateOfEvent'):
+            if hasattr(location, "DateOfEvent"):
                 # Try to initialize the GenDate object
                 from SIL.LCModel import GenDate
+
                 location.DateOfEvent = GenDate()
 
-        if hasattr(location, 'DateOfEvent') and location.DateOfEvent:
+        if hasattr(location, "DateOfEvent") and location.DateOfEvent:
             location.DateOfEvent.GenDateVal1 = int(lat * 10000)  # Store with precision
             location.DateOfEvent.GenDateVal2 = int(lon * 10000)
 
@@ -736,7 +729,7 @@ class LocationOperations(BaseOperations):
 
         # Elevation might be stored in a numeric field
         # Check if the field exists and has a value
-        if hasattr(location, 'Elevation'):
+        if hasattr(location, "Elevation"):
             elev = location.Elevation
             if elev != 0:  # Assume 0 means not set
                 return int(elev)
@@ -795,14 +788,12 @@ class LocationOperations(BaseOperations):
 
         # Reasonable range check (deepest inhabited to highest)
         if elev < -500 or elev > 10000:
-            logger.warning(
-                f"Elevation {elev} is outside typical range (-500 to 10000m)"
-            )
+            logger.warning(f"Elevation {elev} is outside typical range (-500 to 10000m)")
 
         location = self.__ResolveObject(location_or_hvo)
 
         # Set elevation if field exists
-        if hasattr(location, 'Elevation'):
+        if hasattr(location, "Elevation"):
             location.Elevation = elev
         else:
             logger.warning("Elevation field not available on ICmLocation")
@@ -849,7 +840,7 @@ class LocationOperations(BaseOperations):
         location = self.__ResolveObject(location_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
 
-        if hasattr(location, 'Description'):
+        if hasattr(location, "Description"):
             desc = ITsString(location.Description.get_String(wsHandle)).Text
             return desc or ""
 
@@ -898,7 +889,7 @@ class LocationOperations(BaseOperations):
         location = self.__ResolveObject(location_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
 
-        if hasattr(location, 'Description'):
+        if hasattr(location, "Description"):
             mkstr = TsStringUtils.MakeString(description, wsHandle)
             location.Description.set_String(wsHandle, mkstr)
 
@@ -952,8 +943,8 @@ class LocationOperations(BaseOperations):
         owner = location.Owner
 
         # Check if owner is a location (sublocation) or the list (top-level)
-        if owner and hasattr(owner, 'ClassName'):
-            if owner.ClassName == 'CmLocation':
+        if owner and hasattr(owner, "ClassName"):
+            if owner.ClassName == "CmLocation":
                 return owner
 
         return None
@@ -1016,9 +1007,7 @@ class LocationOperations(BaseOperations):
             current = new_parent
             while current:
                 if current == location:
-                    raise FP_ParameterError(
-                        "Cannot create circular hierarchy"
-                    )
+                    raise FP_ParameterError("Cannot create circular hierarchy")
                 current = self.GetRegion(current)
 
         # Get current parent
@@ -1090,7 +1079,7 @@ class LocationOperations(BaseOperations):
 
         location = self.__ResolveObject(location_or_hvo)
 
-        if hasattr(location, 'SubPossibilitiesOS'):
+        if hasattr(location, "SubPossibilitiesOS"):
             return list(location.SubPossibilitiesOS)
 
         return []
@@ -1149,9 +1138,7 @@ class LocationOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the new location using the factory
-        factory = self.project.project.ServiceLocator.GetService(
-            ICmLocationFactory
-        )
+        factory = self.project.project.ServiceLocator.GetService(ICmLocationFactory)
         new_location = factory.Create()
 
         # Add to parent's sublocations (must be done before setting properties)
@@ -1251,7 +1238,7 @@ class LocationOperations(BaseOperations):
         # Copy simple MultiString properties
         duplicate.Name.CopyAlternatives(source.Name)
         duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)
-        if hasattr(source, 'Description'):
+        if hasattr(source, "Description"):
             duplicate.Description.CopyAlternatives(source.Description)
 
         # Copy coordinates and elevation
@@ -1260,13 +1247,13 @@ class LocationOperations(BaseOperations):
             lat, lon = coords
             self.SetCoordinates(duplicate, lat, lon)
 
-        if hasattr(source, 'DateOfEvent') and source.DateOfEvent:
-            if hasattr(duplicate, 'DateOfEvent'):
+        if hasattr(source, "DateOfEvent") and source.DateOfEvent:
+            if hasattr(duplicate, "DateOfEvent"):
                 duplicate.DateOfEvent = source.DateOfEvent
 
         elevation = self.GetElevation(source)
         if elevation is not None:
-            if hasattr(duplicate, 'Elevation'):
+            if hasattr(duplicate, "Elevation"):
                 duplicate.Elevation = elevation
 
         # Set creation date
@@ -1275,7 +1262,7 @@ class LocationOperations(BaseOperations):
         # Handle owned objects if deep=True
         if deep:
             # Duplicate sublocations into the NEW duplicate (not the original's parent)
-            if hasattr(source, 'SubPossibilitiesOS'):
+            if hasattr(source, "SubPossibilitiesOS"):
                 for sublocation in source.SubPossibilitiesOS:
                     self._DuplicateSublocationInto(sublocation, duplicate, deep=True)
 
@@ -1290,7 +1277,7 @@ class LocationOperations(BaseOperations):
         # Copy properties
         dup_loc.Name.CopyAlternatives(source_loc.Name)
         dup_loc.Abbreviation.CopyAlternatives(source_loc.Abbreviation)
-        if hasattr(source_loc, 'Description'):
+        if hasattr(source_loc, "Description"):
             dup_loc.Description.CopyAlternatives(source_loc.Description)
 
         coords = self.GetCoordinates(source_loc)
@@ -1298,19 +1285,19 @@ class LocationOperations(BaseOperations):
             lat, lon = coords
             self.SetCoordinates(dup_loc, lat, lon)
 
-        if hasattr(source_loc, 'DateOfEvent') and source_loc.DateOfEvent:
-            if hasattr(dup_loc, 'DateOfEvent'):
+        if hasattr(source_loc, "DateOfEvent") and source_loc.DateOfEvent:
+            if hasattr(dup_loc, "DateOfEvent"):
                 dup_loc.DateOfEvent = source_loc.DateOfEvent
 
         elevation = self.GetElevation(source_loc)
         if elevation is not None:
-            if hasattr(dup_loc, 'Elevation'):
+            if hasattr(dup_loc, "Elevation"):
                 dup_loc.Elevation = elevation
 
         dup_loc.DateCreated = DateTime.Now
 
         # Recurse into nested sublocations
-        if deep and hasattr(source_loc, 'SubPossibilitiesOS'):
+        if deep and hasattr(source_loc, "SubPossibilitiesOS"):
             for nested_loc in source_loc.SubPossibilitiesOS:
                 self._DuplicateSublocationInto(nested_loc, dup_loc, deep=True)
 
@@ -1333,14 +1320,14 @@ class LocationOperations(BaseOperations):
         wsHandle = self.project.project.DefaultAnalWs
 
         props = {}
-        props['Name'] = ITsString(location.Name.get_String(wsHandle)).Text or ""
-        props['Abbreviation'] = ITsString(location.Abbreviation.get_String(wsHandle)).Text or ""
-        if hasattr(location, 'Description'):
-            props['Description'] = ITsString(location.Description.get_String(wsHandle)).Text or ""
+        props["Name"] = ITsString(location.Name.get_String(wsHandle)).Text or ""
+        props["Abbreviation"] = ITsString(location.Abbreviation.get_String(wsHandle)).Text or ""
+        if hasattr(location, "Description"):
+            props["Description"] = ITsString(location.Description.get_String(wsHandle)).Text or ""
 
         coords = self.GetCoordinates(location)
-        props['Coordinates'] = coords if coords else None
-        props['Elevation'] = self.GetElevation(location)
+        props["Coordinates"] = coords if coords else None
+        props["Elevation"] = self.GetElevation(location)
 
         return props
 
@@ -1364,7 +1351,7 @@ class LocationOperations(BaseOperations):
             ops2 = self
 
         is_different = False
-        differences = {'properties': {}}
+        differences = {"properties": {}}
 
         props1 = ops1.GetSyncableProperties(item1)
         props2 = ops2.GetSyncableProperties(item2)
@@ -1374,11 +1361,7 @@ class LocationOperations(BaseOperations):
             val2 = props2.get(key)
             if val1 != val2:
                 is_different = True
-                differences['properties'][key] = {
-                    'source': val1,
-                    'target': val2,
-                    'type': 'modified'
-                }
+                differences["properties"][key] = {"source": val1, "target": val2, "type": "modified"}
 
         return is_different, differences
 
@@ -1464,7 +1447,7 @@ class LocationOperations(BaseOperations):
 
         location = self.__ResolveObject(location_or_hvo)
 
-        if hasattr(location, 'DateCreated'):
+        if hasattr(location, "DateCreated"):
             return location.DateCreated
 
         return None
@@ -1512,7 +1495,7 @@ class LocationOperations(BaseOperations):
 
         location = self.__ResolveObject(location_or_hvo)
 
-        if hasattr(location, 'DateModified'):
+        if hasattr(location, "DateModified"):
             return location.DateModified
 
         return None
@@ -1645,9 +1628,7 @@ class LocationOperations(BaseOperations):
         # Get coordinates of reference location
         coords = self.GetCoordinates(location)
         if not coords:
-            raise FP_ParameterError(
-                "Reference location must have coordinates set"
-            )
+            raise FP_ParameterError("Reference location must have coordinates set")
 
         lat, lon = coords
 
@@ -1693,10 +1674,7 @@ class LocationOperations(BaseOperations):
         """
         if wsHandle is None:
             return self.project.project.DefaultAnalWs
-        return self.project._FLExProject__WSHandle(
-            wsHandle,
-            self.project.project.DefaultAnalWs
-        )
+        return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultAnalWs)
 
     def __HaversineDistance(self, lat1, lon1, lat2, lon2):
         """
@@ -1724,9 +1702,7 @@ class LocationOperations(BaseOperations):
         dlat = lat2_rad - lat1_rad
         dlon = lon2_rad - lon1_rad
 
-        a = (math.sin(dlat / 2) ** 2 +
-             math.cos(lat1_rad) * math.cos(lat2_rad) *
-             math.sin(dlon / 2) ** 2)
+        a = math.sin(dlat / 2) ** 2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(dlon / 2) ** 2
 
         c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 

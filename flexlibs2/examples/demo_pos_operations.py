@@ -6,7 +6,8 @@
 #
 
 import sys
-sys.path.insert(0, '../code')
+
+sys.path.insert(0, "../code")
 
 from FLExProject import FLExProject
 from POSOperations import POSOperations
@@ -23,7 +24,7 @@ def main():
     try:
         # Open project (replace with your project name)
         # For write operations, use writeEnabled=True
-        project.OpenProject('test-project', writeEnabled=False)
+        project.OpenProject("test-project", writeEnabled=False)
 
         print(f"Project: {project.ProjectName()}\n")
 
@@ -93,5 +94,5 @@ def main():
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

@@ -122,7 +122,7 @@ class MorphosyntaxAnalysis(LCMObjectWrapper):
                 pos = wrapped.pos_main
                 print(f"Stem POS: {pos}")
         """
-        return self.class_type == 'MoStemMsa'
+        return self.class_type == "MoStemMsa"
 
     @property
     def is_deriv_aff_msa(self):
@@ -139,7 +139,7 @@ class MorphosyntaxAnalysis(LCMObjectWrapper):
                 to_pos = wrapped.pos_to
                 print(f"Derives: {from_pos} -> {to_pos}")
         """
-        return self.class_type == 'MoDerivAffMsa'
+        return self.class_type == "MoDerivAffMsa"
 
     @property
     def is_infl_aff_msa(self):
@@ -155,7 +155,7 @@ class MorphosyntaxAnalysis(LCMObjectWrapper):
                 pos = wrapped.pos_main
                 print(f"Inflectional affix for POS: {pos}")
         """
-        return self.class_type == 'MoInflAffMsa'
+        return self.class_type == "MoInflAffMsa"
 
     @property
     def is_unclassified_aff_msa(self):
@@ -171,7 +171,7 @@ class MorphosyntaxAnalysis(LCMObjectWrapper):
                 pos = wrapped.pos_main
                 print(f"Unclassified affix with POS: {pos}")
         """
-        return self.class_type == 'MoUnclassifiedAffixMsa'
+        return self.class_type == "MoUnclassifiedAffixMsa"
 
     # ========== Common Properties (work across most MSA types) ==========
 
@@ -312,7 +312,7 @@ class MorphosyntaxAnalysis(LCMObjectWrapper):
             - Only useful if you need to call methods or access properties
               that aren't exposed through the wrapper
         """
-        if self.class_type == 'MoStemMsa':
+        if self.class_type == "MoStemMsa":
             return self._concrete
         return None
 
@@ -337,7 +337,7 @@ class MorphosyntaxAnalysis(LCMObjectWrapper):
             - For users who know C# interfaces and want advanced control
             - Most users should use properties like pos_from and pos_to instead
         """
-        if self.class_type == 'MoDerivAffMsa':
+        if self.class_type == "MoDerivAffMsa":
             return self._concrete
         return None
 
@@ -362,7 +362,7 @@ class MorphosyntaxAnalysis(LCMObjectWrapper):
             - For users who know C# interfaces and want advanced control
             - Most users should use properties like pos_main instead
         """
-        if self.class_type == 'MoInflAffMsa':
+        if self.class_type == "MoInflAffMsa":
             return self._concrete
         return None
 
@@ -387,7 +387,7 @@ class MorphosyntaxAnalysis(LCMObjectWrapper):
             - For users who know C# interfaces and want advanced control
             - Most users should use properties like pos_main instead
         """
-        if self.class_type == 'MoUnclassifiedAffixMsa':
+        if self.class_type == "MoUnclassifiedAffixMsa":
             return self._concrete
         return None
 

@@ -129,6 +129,7 @@ class PhonologicalRule(LCMObjectWrapper):
         """
         try:
             from SIL.LCModel.Core.KernelInterfaces import ITsString
+
             name_multistring = self._obj.Name
             if name_multistring:
                 # Get from default analysis writing system
@@ -154,14 +155,14 @@ class PhonologicalRule(LCMObjectWrapper):
                 print("Left-to-right application")
         """
         try:
-            if hasattr(self._concrete, 'Direction'):
+            if hasattr(self._concrete, "Direction"):
                 return self._concrete.Direction
             return 0  # Default: left-to-right
         except Exception:
             return 0
 
     @property
-    def stratum(self) -> 'Optional[object]':
+    def stratum(self) -> "Optional[object]":
         """
         Get the stratum this rule applies in.
 
@@ -174,14 +175,14 @@ class PhonologicalRule(LCMObjectWrapper):
                 print(f"Stratum: {wrapped.stratum.Name.BestAnalysisAlternative.Text}")
         """
         try:
-            if hasattr(self._concrete, 'StratumRA'):
+            if hasattr(self._concrete, "StratumRA"):
                 return self._concrete.StratumRA
             return None
         except Exception:
             return None
 
     @property
-    def input_contexts(self) -> 'ContextCollection':
+    def input_contexts(self) -> "ContextCollection":
         """
         Get the input contexts (structural description) for this rule.
 
@@ -209,7 +210,7 @@ class PhonologicalRule(LCMObjectWrapper):
             - Contexts are wrapped in PhonologicalContext for unified interface
         """
         try:
-            if hasattr(self._concrete, 'StrucDescOS'):
+            if hasattr(self._concrete, "StrucDescOS"):
                 contexts = list(self._concrete.StrucDescOS)
                 # Wrap each context in PhonologicalContext
                 wrapped_contexts = [PhonologicalContext(ctx) for ctx in contexts]
@@ -240,10 +241,7 @@ class PhonologicalRule(LCMObjectWrapper):
               output representations
         """
         try:
-            return (
-                self.class_type == 'PhRegularRule' and
-                hasattr(self._concrete, 'RightHandSidesOS')
-            )
+            return self.class_type == "PhRegularRule" and hasattr(self._concrete, "RightHandSidesOS")
         except Exception:
             return False
 
@@ -271,7 +269,7 @@ class PhonologicalRule(LCMObjectWrapper):
             return []
 
         try:
-            if hasattr(self._concrete, 'RightHandSidesOS'):
+            if hasattr(self._concrete, "RightHandSidesOS"):
                 return list(self._concrete.RightHandSidesOS)
             return []
         except Exception:
@@ -297,9 +295,9 @@ class PhonologicalRule(LCMObjectWrapper):
         """
         try:
             return (
-                self.class_type == 'PhMetathesisRule' and
-                hasattr(self._concrete, 'LeftPartOfMetathesisOS') and
-                hasattr(self._concrete, 'RightPartOfMetathesisOS')
+                self.class_type == "PhMetathesisRule"
+                and hasattr(self._concrete, "LeftPartOfMetathesisOS")
+                and hasattr(self._concrete, "RightPartOfMetathesisOS")
             )
         except Exception:
             return False
@@ -328,12 +326,14 @@ class PhonologicalRule(LCMObjectWrapper):
             return [], []
 
         try:
-            left = list(self._concrete.LeftPartOfMetathesisOS) if hasattr(
-                self._concrete, 'LeftPartOfMetathesisOS'
-            ) else []
-            right = list(self._concrete.RightPartOfMetathesisOS) if hasattr(
-                self._concrete, 'RightPartOfMetathesisOS'
-            ) else []
+            left = (
+                list(self._concrete.LeftPartOfMetathesisOS) if hasattr(self._concrete, "LeftPartOfMetathesisOS") else []
+            )
+            right = (
+                list(self._concrete.RightPartOfMetathesisOS)
+                if hasattr(self._concrete, "RightPartOfMetathesisOS")
+                else []
+            )
             return left, right
         except Exception:
             return [], []
@@ -358,9 +358,9 @@ class PhonologicalRule(LCMObjectWrapper):
         """
         try:
             return (
-                self.class_type == 'PhReduplicationRule' and
-                hasattr(self._concrete, 'LeftPartOfReduplicationOS') and
-                hasattr(self._concrete, 'RightPartOfReduplicationOS')
+                self.class_type == "PhReduplicationRule"
+                and hasattr(self._concrete, "LeftPartOfReduplicationOS")
+                and hasattr(self._concrete, "RightPartOfReduplicationOS")
             )
         except Exception:
             return False
@@ -389,12 +389,16 @@ class PhonologicalRule(LCMObjectWrapper):
             return [], []
 
         try:
-            left = list(self._concrete.LeftPartOfReduplicationOS) if hasattr(
-                self._concrete, 'LeftPartOfReduplicationOS'
-            ) else []
-            right = list(self._concrete.RightPartOfReduplicationOS) if hasattr(
-                self._concrete, 'RightPartOfReduplicationOS'
-            ) else []
+            left = (
+                list(self._concrete.LeftPartOfReduplicationOS)
+                if hasattr(self._concrete, "LeftPartOfReduplicationOS")
+                else []
+            )
+            right = (
+                list(self._concrete.RightPartOfReduplicationOS)
+                if hasattr(self._concrete, "RightPartOfReduplicationOS")
+                else []
+            )
             return left, right
         except Exception:
             return [], []
@@ -427,7 +431,7 @@ class PhonologicalRule(LCMObjectWrapper):
             - Only useful if you need to call methods or access properties
               that aren't exposed through the wrapper
         """
-        if self.class_type == 'PhRegularRule':
+        if self.class_type == "PhRegularRule":
             return self._concrete
         return None
 
@@ -453,7 +457,7 @@ class PhonologicalRule(LCMObjectWrapper):
             - Most users should use properties like has_metathesis_parts and
               metathesis_parts instead
         """
-        if self.class_type == 'PhMetathesisRule':
+        if self.class_type == "PhMetathesisRule":
             return self._concrete
         return None
 
@@ -479,7 +483,7 @@ class PhonologicalRule(LCMObjectWrapper):
             - Most users should use properties like has_redup_parts and
               redup_parts instead
         """
-        if self.class_type == 'PhReduplicationRule':
+        if self.class_type == "PhReduplicationRule":
             return self._concrete
         return None
 

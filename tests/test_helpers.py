@@ -21,6 +21,7 @@ import re
 
 # ========== FACTORY FUNCTIONS ==========
 
+
 def create_mock_entry(entry_id="test-entry", num_senses=3, num_allomorphs=2):
     """
     Create a mock ILexEntry object with specified properties.
@@ -125,6 +126,7 @@ def create_mock_example(example_id="test-example", owner=None):
 
 
 # ========== ERROR VALIDATORS ==========
+
 
 class ErrorValidator:
     """Validator for exception messages and types."""
@@ -242,6 +244,7 @@ class ErrorValidator:
 
 # ========== EXCEPTION TYPE CHECKERS ==========
 
+
 class ExceptionChecker:
     """Helper for checking exception types and properties."""
 
@@ -346,6 +349,7 @@ class ExceptionChecker:
 
 # ========== TEST DATA BUILDERS ==========
 
+
 class TestDataBuilder:
     """Builder for creating complex test data structures."""
 
@@ -433,6 +437,7 @@ class TestDataBuilder:
 
 # ========== ASSERTION HELPERS ==========
 
+
 class AssertionHelper:
     """Helper methods for common test assertions."""
 
@@ -451,9 +456,9 @@ class AssertionHelper:
         """
         error_msg = str(exc)
         validator = ErrorValidator()
-        assert validator.contains_text(error_msg, expected_text, case_sensitive), (
-            f"Expected '{expected_text}' in error message, got: {error_msg}"
-        )
+        assert validator.contains_text(
+            error_msg, expected_text, case_sensitive
+        ), f"Expected '{expected_text}' in error message, got: {error_msg}"
 
     @staticmethod
     def assert_valid_object_at_index(obj, index, expected_id=None):
@@ -471,10 +476,7 @@ class AssertionHelper:
         assert obj is not None, f"Object at index {index} is None"
         assert hasattr(obj, "Hvo"), f"Object at index {index} missing Hvo"
         if expected_id:
-            assert obj.Id == expected_id, (
-                f"Object at index {index} has Id {obj.Id}, "
-                f"expected {expected_id}"
-            )
+            assert obj.Id == expected_id, f"Object at index {index} has Id {obj.Id}, " f"expected {expected_id}"
 
     @staticmethod
     def assert_collection_size(collection, expected_size):
@@ -489,12 +491,11 @@ class AssertionHelper:
             AssertionError: If size does not match
         """
         actual_size = len(collection)
-        assert actual_size == expected_size, (
-            f"Collection size {actual_size} does not match expected {expected_size}"
-        )
+        assert actual_size == expected_size, f"Collection size {actual_size} does not match expected {expected_size}"
 
 
 # ========== TEST RESULT REPORTERS ==========
+
 
 class TestResultReporter:
     """Helper for reporting test results and coverage."""
@@ -523,19 +524,13 @@ class TestResultReporter:
 
     def get_summary(self):
         """Get summary of test results."""
-        total = (
-            self.results["passed"]
-            + self.results["failed"]
-            + self.results["skipped"]
-        )
+        total = self.results["passed"] + self.results["failed"] + self.results["skipped"]
         return {
             "total": total,
             "passed": self.results["passed"],
             "failed": self.results["failed"],
             "skipped": self.results["skipped"],
-            "pass_rate": (
-                (self.results["passed"] / total * 100) if total > 0 else 0
-            ),
+            "pass_rate": ((self.results["passed"] / total * 100) if total > 0 else 0),
         }
 
     def print_summary(self):

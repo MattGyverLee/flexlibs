@@ -28,26 +28,74 @@ from typing import Dict, Set, List, Tuple, Optional
 
 # Known LibLCM interface prefixes - objects starting with these are LibLCM types
 LCM_INTERFACE_PREFIXES = [
-    'IWfi', 'ILex', 'ICm', 'IFs', 'IDs', 'IText', 'IScrBook', 'IScrSection',
-    'IStText', 'IStPara', 'ISegment', 'IMo', 'IPhon', 'IRnGenericRec',
-    'IReversalIndex', 'IConstChart', 'IChkRef', 'IChkTerm', 'IChkSense',
-    'ILangProject', 'IPartOfSpeech', 'IAnalysis', 'IWfiWordform',
+    "IWfi",
+    "ILex",
+    "ICm",
+    "IFs",
+    "IDs",
+    "IText",
+    "IScrBook",
+    "IScrSection",
+    "IStText",
+    "IStPara",
+    "ISegment",
+    "IMo",
+    "IPhon",
+    "IRnGenericRec",
+    "IReversalIndex",
+    "IConstChart",
+    "IChkRef",
+    "IChkTerm",
+    "IChkSense",
+    "ILangProject",
+    "IPartOfSpeech",
+    "IAnalysis",
+    "IWfiWordform",
 ]
 
 # Variable names that typically hold LibLCM objects
 # Be specific to avoid false positives on Python string variables
 LCM_VARIABLE_PATTERNS = [
-    r'^wordform$', r'^analysis$', r'^gloss$', r'^entry$', r'^sense$', r'^bundle$',
-    r'^morph$', r'^allomorph$', r'^pos$', r'^category$', r'^owner$', r'^target$',
-    r'^lexeme$', r'^msa$', r'^example$', r'^domain$', r'^reference$', r'^variant$',
-    r'^component$', r'^reversal$', r'^pronunciation$', r'^new_\w+$', r'^source_\w+$',
-    r'^morph_data$', r'^entry_ref$', r'_or_hvo$',
+    r"^wordform$",
+    r"^analysis$",
+    r"^gloss$",
+    r"^entry$",
+    r"^sense$",
+    r"^bundle$",
+    r"^morph$",
+    r"^allomorph$",
+    r"^pos$",
+    r"^category$",
+    r"^owner$",
+    r"^target$",
+    r"^lexeme$",
+    r"^msa$",
+    r"^example$",
+    r"^domain$",
+    r"^reference$",
+    r"^variant$",
+    r"^component$",
+    r"^reversal$",
+    r"^pronunciation$",
+    r"^new_\w+$",
+    r"^source_\w+$",
+    r"^morph_data$",
+    r"^entry_ref$",
+    r"_or_hvo$",
 ]
 
 # Exclude these variable names (commonly hold Python strings, not LCM objects)
 EXCLUDE_VARIABLE_PATTERNS = [
-    r'^form$', r'^text$', r'^name$', r'^translation$', r'_text$', r'_name$',
-    r'^gloss_text$', r'^example_text$', r'^pos_name$', r'^platform$',
+    r"^form$",
+    r"^text$",
+    r"^name$",
+    r"^translation$",
+    r"_text$",
+    r"_name$",
+    r"^gloss_text$",
+    r"^example_text$",
+    r"^pos_name$",
+    r"^platform$",
 ]
 
 
@@ -93,20 +141,20 @@ def load_lcm_properties(index_path: Path) -> Dict[str, Set[str]]:
         print(f"[WARN] LibLCM index not found: {index_path}")
         return properties
 
-    with open(index_path, 'r', encoding='utf-8') as f:
+    with open(index_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    entities = data.get('entities', {})
+    entities = data.get("entities", {})
     for entity_name, entity_data in entities.items():
         # Add methods
-        for method in entity_data.get('methods', []):
-            method_name = method.get('name', '')
+        for method in entity_data.get("methods", []):
+            method_name = method.get("name", "")
             if method_name:
                 properties[entity_name].add(method_name)
 
         # Add properties
-        for prop in entity_data.get('properties', []):
-            prop_name = prop.get('name', '')
+        for prop in entity_data.get("properties", []):
+            prop_name = prop.get("name", "")
             if prop_name:
                 properties[entity_name].add(prop_name)
 
@@ -127,30 +175,30 @@ def load_lcm_properties_enhanced(index_path: Path) -> Tuple[Dict[str, Set[str]],
         print(f"[WARN] LibLCM index not found: {index_path}")
         return properties, all_properties
 
-    with open(index_path, 'r', encoding='utf-8') as f:
+    with open(index_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    entities = data.get('entities', {})
+    entities = data.get("entities", {})
     for entity_name, entity_data in entities.items():
         # Add methods
-        for method in entity_data.get('methods', []):
-            method_name = method.get('name', '')
+        for method in entity_data.get("methods", []):
+            method_name = method.get("name", "")
             if method_name:
                 properties[entity_name].add(method_name)
                 all_properties.add(method_name)
 
         # Add properties
-        for prop in entity_data.get('properties', []):
-            prop_name = prop.get('name', '')
+        for prop in entity_data.get("properties", []):
+            prop_name = prop.get("name", "")
             if prop_name:
                 properties[entity_name].add(prop_name)
                 all_properties.add(prop_name)
 
     # Also check method_index for additional properties
-    method_index = data.get('method_index', {})
+    method_index = data.get("method_index", {})
     for method_key in method_index.keys():
-        if '.' in method_key:
-            prop_name = method_key.split('.')[-1]
+        if "." in method_key:
+            prop_name = method_key.split(".")[-1]
             all_properties.add(prop_name)
 
     return properties, all_properties
@@ -181,7 +229,7 @@ def is_likely_lcm_variable(var_name: str) -> bool:
 def find_suspicious_properties(
     accesses: List[Tuple[str, str, int, str]],  # (var, prop, line, file)
     known_properties: Set[str],
-    verbose: bool = False
+    verbose: bool = False,
 ) -> List[Tuple[str, str, str, int, List[str]]]:
     """
     Find property accesses that might be typos.
@@ -197,28 +245,63 @@ def find_suspicious_properties(
             continue
 
         # Skip private/dunder methods
-        if prop_name.startswith('_'):
+        if prop_name.startswith("_"):
             continue
 
         # Skip common Python/CLR attributes and methods
-        if prop_name in {'Count', 'Add', 'Remove', 'Clear', 'Contains',
-                         'Insert', 'append', 'extend', 'items', 'keys',
-                         'values', 'get', 'set', 'update', 'pop', 'copy',
-                         # Python string methods (false positives on 'form', 'text' vars)
-                         'strip', 'lower', 'upper', 'split', 'join', 'replace',
-                         'startswith', 'endswith', 'find', 'format', 'encode',
-                         # CLR TsString methods (valid LCM patterns)
-                         'get_String', 'set_String', 'GetWsString', 'SetString',
-                         # CLR collection methods
-                         'GetEnumerator', 'ToArray', 'CopyTo', 'ToList',
-                         # CLR type checking patterns
-                         'IsInstance', 'IsAssignableFrom',
-                         # Tags constants
-                         'kClassId', 'kflidOwner',
-                         # Standard .NET
-                         'ToString', 'GetType', 'Equals', 'GetHashCode',
-                         # CLR list append pattern
-                         'Append'}:
+        if prop_name in {
+            "Count",
+            "Add",
+            "Remove",
+            "Clear",
+            "Contains",
+            "Insert",
+            "append",
+            "extend",
+            "items",
+            "keys",
+            "values",
+            "get",
+            "set",
+            "update",
+            "pop",
+            "copy",
+            # Python string methods (false positives on 'form', 'text' vars)
+            "strip",
+            "lower",
+            "upper",
+            "split",
+            "join",
+            "replace",
+            "startswith",
+            "endswith",
+            "find",
+            "format",
+            "encode",
+            # CLR TsString methods (valid LCM patterns)
+            "get_String",
+            "set_String",
+            "GetWsString",
+            "SetString",
+            # CLR collection methods
+            "GetEnumerator",
+            "ToArray",
+            "CopyTo",
+            "ToList",
+            # CLR type checking patterns
+            "IsInstance",
+            "IsAssignableFrom",
+            # Tags constants
+            "kClassId",
+            "kflidOwner",
+            # Standard .NET
+            "ToString",
+            "GetType",
+            "Equals",
+            "GetHashCode",
+            # CLR list append pattern
+            "Append",
+        }:
             continue
 
         # Find similar properties (for suggestions)
@@ -240,9 +323,9 @@ def find_similar_properties(prop_name: str, known_properties: Set[str]) -> List[
         if levenshtein_distance(prop_name.lower(), known.lower()) <= 3:
             suggestions.append(known)
         # Check for common suffix/prefix issues (like RS suffix)
-        elif prop_name.rstrip('RS').rstrip('OC').rstrip('OS') == known:
+        elif prop_name.rstrip("RS").rstrip("OC").rstrip("OS") == known:
             suggestions.append(known)
-        elif prop_name == known.rstrip('RS').rstrip('OC').rstrip('OS'):
+        elif prop_name == known.rstrip("RS").rstrip("OC").rstrip("OS"):
             suggestions.append(known)
         # Check for substring matches
         elif prop_name in known or known in prop_name:
@@ -277,11 +360,11 @@ def is_suspicious_pattern(prop_name: str) -> bool:
     """Check if property name has suspicious patterns (common typo indicators)."""
     # Properties ending in RS, OC, OS are LibLCM collection conventions
     # A typo might add/remove these incorrectly
-    if prop_name.endswith('RS') or prop_name.endswith('OC') or prop_name.endswith('OS'):
+    if prop_name.endswith("RS") or prop_name.endswith("OC") or prop_name.endswith("OS"):
         return True
 
     # CamelCase with unusual capitalization
-    if re.search(r'[a-z][A-Z]{2,}[a-z]', prop_name):
+    if re.search(r"[a-z][A-Z]{2,}[a-z]", prop_name):
         return True
 
     return False
@@ -295,15 +378,15 @@ def scan_flexlibs2_code(flexlibs2_path: Path) -> List[Tuple[str, str, int, str]]
         List of (variable_name, property_name, line_number, filename)
     """
     all_accesses = []
-    code_path = flexlibs2_path / 'flexlibs2' / 'code'
+    code_path = flexlibs2_path / "flexlibs2" / "code"
 
     if not code_path.exists():
         print(f"[ERROR] FlexLibs2 code directory not found: {code_path}")
         return all_accesses
 
-    for py_file in code_path.rglob('*.py'):
+    for py_file in code_path.rglob("*.py"):
         try:
-            with open(py_file, 'r', encoding='utf-8') as f:
+            with open(py_file, "r", encoding="utf-8") as f:
                 source = f.read()
 
             tree = ast.parse(source, filename=str(py_file))
@@ -327,16 +410,18 @@ def scan_flexlibs2_code(flexlibs2_path: Path) -> List[Tuple[str, str, int, str]]
 def main():
     import argparse
 
-    parser = argparse.ArgumentParser(description='Validate LibLCM property accesses in FlexLibs2')
-    parser.add_argument('--flexlibs2-path', type=Path, default=Path(__file__).parent.parent,
-                        help='Path to FlexLibs2 repository')
-    parser.add_argument('--lcm-index', type=Path,
-                        default=Path(__file__).parent.parent.parent / 'FlexToolsMCP' / 'index' / 'liblcm' / 'liblcm_api.json',
-                        help='Path to LibLCM API index JSON')
-    parser.add_argument('--verbose', '-v', action='store_true',
-                        help='Show verbose output')
-    parser.add_argument('--all', '-a', action='store_true',
-                        help='Show all suspicious accesses, not just likely typos')
+    parser = argparse.ArgumentParser(description="Validate LibLCM property accesses in FlexLibs2")
+    parser.add_argument(
+        "--flexlibs2-path", type=Path, default=Path(__file__).parent.parent, help="Path to FlexLibs2 repository"
+    )
+    parser.add_argument(
+        "--lcm-index",
+        type=Path,
+        default=Path(__file__).parent.parent.parent / "FlexToolsMCP" / "index" / "liblcm" / "liblcm_api.json",
+        help="Path to LibLCM API index JSON",
+    )
+    parser.add_argument("--verbose", "-v", action="store_true", help="Show verbose output")
+    parser.add_argument("--all", "-a", action="store_true", help="Show all suspicious accesses, not just likely typos")
 
     args = parser.parse_args()
 
@@ -395,5 +480,5 @@ def main():
     return 1 if suspicious else 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

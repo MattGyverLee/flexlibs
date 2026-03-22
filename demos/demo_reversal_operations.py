@@ -41,7 +41,7 @@ def demo_reversal_indexes(project):
 
     # Find or create English reversal index
     print("\n2. Find or create English reversal index:")
-    en_ws = project.WSHandle('en')
+    en_ws = project.WSHandle("en")
     en_idx = project.ReversalIndexes.FindByWritingSystem(en_ws)
 
     if not en_idx:
@@ -219,6 +219,7 @@ def main():
     except Exception as e:
         print(f"\nError: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
 

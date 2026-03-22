@@ -16,6 +16,7 @@ class SpellingStatusStates(IntEnum):
 
     These correspond to the FLEx SpellingStatusStates enumeration.
     """
+
     UNDECIDED = 0
     INCORRECT = 1
     CORRECT = 2
@@ -29,7 +30,7 @@ CORE_VERSION = "0.1.0"
 
 
 __all__ = [
-    'SpellingStatusStates',
-    'API_INTEGRATION_STATUS',
-    'CORE_VERSION',
+    "SpellingStatusStates",
+    "API_INTEGRATION_STATUS",
+    "CORE_VERSION",
 ]

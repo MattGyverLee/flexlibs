@@ -2,7 +2,7 @@
 #   FLExProject.py
 #
 #   Class: FLExProject
-#            Fieldworks Language Explorer project access functions 
+#            Fieldworks Language Explorer project access functions
 #            via SIL Language and Culture Model (LCM) API.
 #
 #
@@ -22,17 +22,24 @@ from .FLExGlobals import FWExecutable
 
 import logging
 import clr
+
 clr.AddReference("System")
 import System
 
 from SIL.LCModel import (
     ICmObjectRepository,
-    ILexEntryRepository, ILexEntry, LexEntryTags,
-                         ILexSense, LexSenseTags,
-    IWfiWordformRepository, WfiWordformTags,
-                            WfiGlossTags,
-    IWfiAnalysisRepository, IWfiAnalysis, WfiAnalysisTags,
-                            WfiMorphBundleTags,
+    ILexEntryRepository,
+    ILexEntry,
+    LexEntryTags,
+    ILexSense,
+    LexSenseTags,
+    IWfiWordformRepository,
+    WfiWordformTags,
+    WfiGlossTags,
+    IWfiAnalysisRepository,
+    IWfiAnalysis,
+    WfiAnalysisTags,
+    WfiMorphBundleTags,
     LexExampleSentenceTags,
     MoFormTags,
     ILexRefTypeRepository,
@@ -43,7 +50,9 @@ from SIL.LCModel import (
     ITextRepository,
     IStTxtPara,
     ISegmentRepository,
-    IReversalIndex, IReversalIndexEntry, ReversalIndexEntryTags,
+    IReversalIndex,
+    IReversalIndexEntry,
+    ReversalIndexEntryTags,
     IMoMorphType,
     SpecialWritingSystemCodes,
     LcmInvalidClassException,
@@ -51,16 +60,16 @@ from SIL.LCModel import (
     LcmFileLockedException,
     LcmDataMigrationForbiddenException,
     IUndoStackManager,
-    )
+)
 
 from SIL.LCModel.Core.Cellar import (
-    CellarPropertyType, 
+    CellarPropertyType,
     CellarPropertyTypeFilter,
-    )
-    
+)
+
 from SIL.LCModel.Infrastructure import (
     IFwMetaDataCacheManaged,
-    )
+)
 
 from SIL.LCModel.Core.KernelInterfaces import ITsString, ITsStrBldr
 from SIL.LCModel.Core.Text import TsStringUtils
@@ -68,9 +77,10 @@ from SIL.LCModel.Utils import WorkerThreadException, ReflectionHelper
 from SIL.FieldWorks.Common.FwUtils import (
     StartupException,
     FwAppArgs,
-    )
+)
 
-#--- Exceptions ------------------------------------------------------
+# --- Exceptions ------------------------------------------------------
+
 
 class FP_ProjectError(Exception):
     """Exception raised for any problems opening the project.
@@ -82,28 +92,34 @@ class FP_ProjectError(Exception):
     def __init__(self, message):
         self.message = message
 
+
 class FP_FileNotFoundError(FP_ProjectError):
     def __init__(self, projectName, e):
         # Normally this will be a mispelled/wrong project name...
         if projectName in str(e):
-            FP_ProjectError.__init__(self,
-                "Project file not found: %s" % projectName)
+            FP_ProjectError.__init__(self, "Project file not found: %s" % projectName)
         # ...however, it could be an internal FLEx error.
         else:
-            FP_ProjectError.__init__(self,
-                "File not found error: %s" % e)
+            FP_ProjectError.__init__(self, "File not found error: %s" % e)
+
 
 class FP_FileLockedError(FP_ProjectError):
     def __init__(self):
-        FP_ProjectError.__init__(self,
-            "This project is in use by another program. To allow shared access to this project, turn on the sharing option in the Sharing tab of the Fieldworks Project Properties dialog.")
-            
+        FP_ProjectError.__init__(
+            self,
+            "This project is in use by another program. To allow shared access to this project, turn on the sharing option in the Sharing tab of the Fieldworks Project Properties dialog.",
+        )
+
+
 class FP_MigrationRequired(FP_ProjectError):
     def __init__(self):
-        FP_ProjectError.__init__(self,
-            "This project needs to be opened in FieldWorks in order for it to be migrated to the latest format.")
+        FP_ProjectError.__init__(
+            self, "This project needs to be opened in FieldWorks in order for it to be migrated to the latest format."
+        )
 
-#-----------------------------------------------------            
+
+# -----------------------------------------------------
+
 
 class FP_RuntimeError(Exception):
     """Exception raised for any problems running the module.
@@ -115,50 +131,57 @@ class FP_RuntimeError(Exception):
     def __init__(self, message):
         self.message = message
 
+
 class FP_ReadOnlyError(FP_RuntimeError):
     def __init__(self):
-        FP_RuntimeError.__init__(self,
-            "Trying to write to the project database without changes enabled.")
-            
+        FP_RuntimeError.__init__(self, "Trying to write to the project database without changes enabled.")
+
+
 class FP_WritingSystemError(FP_RuntimeError):
     def __init__(self, writingSystemName):
-        FP_RuntimeError.__init__(self,
-            "Invalid Writing System for this project: %s" % writingSystemName)
+        FP_RuntimeError.__init__(self, "Invalid Writing System for this project: %s" % writingSystemName)
+
 
 class FP_NullParameterError(FP_RuntimeError):
     def __init__(self):
-        FP_RuntimeError.__init__(self,
-            "Null parameter.")
+        FP_RuntimeError.__init__(self, "Null parameter.")
+
 
 class FP_ParameterError(FP_RuntimeError):
     def __init__(self, msg):
         FP_RuntimeError.__init__(self, msg)
 
+
 class FP_TransactionError(FP_RuntimeError):
     def __init__(self, message):
         FP_RuntimeError.__init__(self, message)
 
-#-----------------------------------------------------------
+
+# -----------------------------------------------------------
+
 
 def AllProjectNames():
     """
     Returns a list of FieldWorks projects that are in the default location.
     """
-    
+
     return FLExLCM.GetListOfProjects()
 
-#-----------------------------------------------------------
+
+# -----------------------------------------------------------
+
 
 def OpenProjectInFW(projectName):
-    
-    Popen([FWExecutable, '-db', projectName],
-          creationflags=DETACHED_PROCESS)
 
-#-----------------------------------------------------------
-   
-class FLExProject (object):
+    Popen([FWExecutable, "-db", projectName], creationflags=DETACHED_PROCESS)
+
+
+# -----------------------------------------------------------
+
+
+class FLExProject(object):
     """
-    This class provides convenience methods for accessing a FieldWorks 
+    This class provides convenience methods for accessing a FieldWorks
     project by hiding some of the complexity of LCM.
     For functionality that isn't provided here, LCM data and methods
     can be used directly via `FLExProject.project`, `FLExProject.lp` and
@@ -168,7 +191,7 @@ class FLExProject (object):
     Usage::
 
         from SIL.LCModel.Core.KernelInterfaces import ITsString, ITsStrBldr
-        from SIL.LCModel.Core.Text import TsStringUtils 
+        from SIL.LCModel.Core.Text import TsStringUtils
 
         project = FLExProject()
         try:
@@ -189,18 +212,15 @@ class FLExProject (object):
             headword = project.LexiconGetHeadword(lexEntry)
 
             # Use get_String() and set_String() with text fields:
-            lexForm = lexEntry.LexemeFormOA                              
+            lexForm = lexEntry.LexemeFormOA
             lexEntryValue = ITsString(lexForm.Form.get_String(WSHandle)).Text
             newValue = convert_headword(lexEntryValue)
-            mkstr = TsStringUtils.MakeString(newValue, WSHandle) 
+            mkstr = TsStringUtils.MakeString(newValue, WSHandle)
             lexForm.Form.set_String(WSHandle, mkstr)
 
     """
-        
-    def OpenProject(self,
-                    projectName,
-                    writeEnabled = False,
-                    undoable = False):
+
+    def OpenProject(self, projectName, writeEnabled=False, undoable=False):
         """
         Open a project. The project must be closed with `CloseProject()` to
         save any changes, and release the lock.
@@ -246,8 +266,7 @@ class FLExProject (object):
         except LcmFileLockedException as e:
             raise FP_FileLockedError()
 
-        except (LcmDataMigrationForbiddenException,
-                WorkerThreadException) as e:
+        except (LcmDataMigrationForbiddenException, WorkerThreadException) as e:
             # Raised if the FW project needs to be migrated
             # to a later version. The user needs to open the project
             # in FW to do the migration.
@@ -260,7 +279,7 @@ class FLExProject (object):
             # An unknown error -- pass on the full information
             raise FP_ProjectError(e.Message)
 
-        self.lp    = self.project.LangProject
+        self.lp = self.project.LangProject
         self.lexDB = self.lp.LexDbOA
 
         # Set up FieldWorks for making changes to the project.
@@ -368,25 +387,21 @@ class FLExProject (object):
             tuple: (mark_fn: callable or None, rollback_fn: callable or None)
         """
         # Candidate 1: UndoStack on the project object
-        undo_stack = getattr(self.project, 'UndoStack', None)
+        undo_stack = getattr(self.project, "UndoStack", None)
         if undo_stack is not None:
-            mark_fn = getattr(undo_stack, 'Mark', None)
-            rollback_fn = getattr(undo_stack, 'RollbackToMark', None)
+            mark_fn = getattr(undo_stack, "Mark", None)
+            rollback_fn = getattr(undo_stack, "RollbackToMark", None)
             if mark_fn is not None and rollback_fn is not None:
-                logging.getLogger(__name__).debug(
-                    "Transaction API: Using UndoStack.Mark/RollbackToMark"
-                )
+                logging.getLogger(__name__).debug("Transaction API: Using UndoStack.Mark/RollbackToMark")
                 return (mark_fn, rollback_fn)
 
         # Candidate 2: MainCacheAccessor
         try:
             mca = self.project.MainCacheAccessor
-            mark_fn = getattr(mca, 'Mark', None)
-            rollback_fn = getattr(mca, 'RollbackToMark', None)
+            mark_fn = getattr(mca, "Mark", None)
+            rollback_fn = getattr(mca, "RollbackToMark", None)
             if mark_fn is not None and rollback_fn is not None:
-                logging.getLogger(__name__).debug(
-                    "Transaction API: Using MainCacheAccessor.Mark/RollbackToMark"
-                )
+                logging.getLogger(__name__).debug("Transaction API: Using MainCacheAccessor.Mark/RollbackToMark")
                 return (mark_fn, rollback_fn)
         except Exception:
             pass
@@ -394,12 +409,10 @@ class FLExProject (object):
         # Candidate 3: IUndoStackManager
         try:
             usm = self.ObjectRepository(IUndoStackManager)
-            mark_fn = getattr(usm, 'Mark', None)
-            rollback_fn = getattr(usm, 'RollbackToMark', None)
+            mark_fn = getattr(usm, "Mark", None)
+            rollback_fn = getattr(usm, "RollbackToMark", None)
             if mark_fn is not None and rollback_fn is not None:
-                logging.getLogger(__name__).debug(
-                    "Transaction API: Using IUndoStackManager.Mark/RollbackToMark"
-                )
+                logging.getLogger(__name__).debug("Transaction API: Using IUndoStackManager.Mark/RollbackToMark")
                 return (mark_fn, rollback_fn)
         except Exception:
             pass
@@ -498,23 +511,19 @@ class FLExProject (object):
             FP_TransactionError: If no undo/redo API found
         """
         # Candidate 1: project-level BeginUndoTask
-        begin_fn = getattr(self.project, 'BeginUndoTask', None)
-        end_fn = getattr(self.project, 'EndUndoTask', None)
+        begin_fn = getattr(self.project, "BeginUndoTask", None)
+        end_fn = getattr(self.project, "EndUndoTask", None)
         if begin_fn is not None and end_fn is not None:
-            logging.getLogger(__name__).debug(
-                "Undo/Redo API: Using project.BeginUndoTask/EndUndoTask"
-            )
+            logging.getLogger(__name__).debug("Undo/Redo API: Using project.BeginUndoTask/EndUndoTask")
             return (begin_fn, end_fn)
 
         # Candidate 2: MainCacheAccessor
         try:
             mca = self.project.MainCacheAccessor
-            begin_fn = getattr(mca, 'BeginUndoTask', None)
-            end_fn = getattr(mca, 'EndUndoTask', None)
+            begin_fn = getattr(mca, "BeginUndoTask", None)
+            end_fn = getattr(mca, "EndUndoTask", None)
             if begin_fn is not None and end_fn is not None:
-                logging.getLogger(__name__).debug(
-                    "Undo/Redo API: Using MainCacheAccessor.BeginUndoTask/EndUndoTask"
-                )
+                logging.getLogger(__name__).debug("Undo/Redo API: Using MainCacheAccessor.BeginUndoTask/EndUndoTask")
                 return (begin_fn, end_fn)
         except Exception:
             pass
@@ -560,7 +569,7 @@ class FLExProject (object):
                 return False
 
             # Try to call Undo if it exists
-            undo_fn = getattr(undo_stack, 'Undo', None)
+            undo_fn = getattr(undo_stack, "Undo", None)
             if undo_fn is not None:
                 undo_fn()
                 logging.getLogger(__name__).debug("Undo() called successfully")
@@ -606,7 +615,7 @@ class FLExProject (object):
                 return False
 
             # Try to call Redo if it exists
-            redo_fn = getattr(undo_stack, 'Redo', None)
+            redo_fn = getattr(undo_stack, "Redo", None)
             if redo_fn is not None:
                 redo_fn()
                 logging.getLogger(__name__).debug("Redo() called successfully")
@@ -641,8 +650,9 @@ class FLExProject (object):
             >>> if verb:
             ...     project.POS.SetAbbreviation(verb, "V")
         """
-        if not hasattr(self, '_pos_ops'):
+        if not hasattr(self, "_pos_ops"):
             from .Grammar.POSOperations import POSOperations
+
             self._pos_ops = POSOperations(self)
         return self._pos_ops
 
@@ -667,8 +677,9 @@ class FLExProject (object):
             >>> # Set citation form
             >>> project.LexEntry.SetCitationForm(entry, "run")
         """
-        if not hasattr(self, '_lexentry_ops'):
+        if not hasattr(self, "_lexentry_ops"):
             from .Lexicon.LexEntryOperations import LexEntryOperations
+
             self._lexentry_ops = LexEntryOperations(self)
         return self._lexentry_ops
 
@@ -691,8 +702,9 @@ class FLExProject (object):
             >>> # Update text name
             >>> project.Texts.SetName(text, "Genesis Chapter 1")
         """
-        if not hasattr(self, '_text_ops'):
+        if not hasattr(self, "_text_ops"):
             from .TextsWords.TextOperations import TextOperations
+
             self._text_ops = TextOperations(self)
         return self._text_ops
 
@@ -717,8 +729,9 @@ class FLExProject (object):
             >>> if wf.AnalysesOC.Count > 0:
             ...     project.Wordforms.SetApprovedAnalysis(wf, wf.AnalysesOC[0])
         """
-        if not hasattr(self, '_wordform_ops'):
+        if not hasattr(self, "_wordform_ops"):
             from .Wordform.WfiWordformOperations import WfiWordformOperations
+
             self._wordform_ops = WfiWordformOperations(self)
         return self._wordform_ops
 
@@ -745,8 +758,9 @@ class FLExProject (object):
             >>> # Get morph bundles
             >>> bundles = project.WfiAnalyses.GetMorphBundles(analysis)
         """
-        if not hasattr(self, '_wfianalysis_ops'):
+        if not hasattr(self, "_wfianalysis_ops"):
             from .Wordform.WfiAnalysisOperations import WfiAnalysisOperations
+
             self._wfianalysis_ops = WfiAnalysisOperations(self)
         return self._wfianalysis_ops
 
@@ -772,8 +786,9 @@ class FLExProject (object):
             >>> # Get style
             >>> style = project.Paragraphs.GetStyleName(para)
         """
-        if not hasattr(self, '_paragraph_ops'):
+        if not hasattr(self, "_paragraph_ops"):
             from .TextsWords.ParagraphOperations import ParagraphOperations
+
             self._paragraph_ops = ParagraphOperations(self)
         return self._paragraph_ops
 
@@ -798,8 +813,9 @@ class FLExProject (object):
             >>> project.Segments.SetFreeTranslation(segment, "In the beginning...")
             >>> project.Segments.SetLiteralTranslation(segment, "In-the beginning...")
         """
-        if not hasattr(self, '_segment_ops'):
+        if not hasattr(self, "_segment_ops"):
             from .TextsWords.SegmentOperations import SegmentOperations
+
             self._segment_ops = SegmentOperations(self)
         return self._segment_ops
 
@@ -829,8 +845,9 @@ class FLExProject (object):
             >>> if project.Phonemes.IsConsonant(phoneme):
             ...     print("Consonant phoneme")
         """
-        if not hasattr(self, '_phoneme_ops'):
+        if not hasattr(self, "_phoneme_ops"):
             from .Grammar.PhonemeOperations import PhonemeOperations
+
             self._phoneme_ops = PhonemeOperations(self)
         return self._phoneme_ops
 
@@ -855,8 +872,9 @@ class FLExProject (object):
             >>> phoneme_b = project.Phonemes.Find("/b/")
             >>> project.NaturalClasses.AddPhoneme(nc, phoneme_b)
         """
-        if not hasattr(self, '_naturalclass_ops'):
+        if not hasattr(self, "_naturalclass_ops"):
             from .Grammar.NaturalClassOperations import NaturalClassOperations
+
             self._naturalclass_ops = NaturalClassOperations(self)
         return self._naturalclass_ops
 
@@ -879,8 +897,9 @@ class FLExProject (object):
             >>> # Create a new environment
             >>> env = project.Environments.Create("Between vowels", "V_V")
         """
-        if not hasattr(self, '_environment_ops'):
+        if not hasattr(self, "_environment_ops"):
             from .Grammar.EnvironmentOperations import EnvironmentOperations
+
             self._environment_ops = EnvironmentOperations(self)
         return self._environment_ops
 
@@ -903,8 +922,9 @@ class FLExProject (object):
             >>> # Create a new allomorph
             >>> allo = project.Allomorphs.Create(entry, "-ed")
         """
-        if not hasattr(self, '_allomorph_ops'):
+        if not hasattr(self, "_allomorph_ops"):
             from .Lexicon.AllomorphOperations import AllomorphOperations
+
             self._allomorph_ops = AllomorphOperations(self)
         return self._allomorph_ops
 
@@ -926,8 +946,9 @@ class FLExProject (object):
             >>> # Create a compound rule
             >>> rule = project.MorphRules.CreateCompoundRule("Noun-Noun Compound")
         """
-        if not hasattr(self, '_morphrule_ops'):
+        if not hasattr(self, "_morphrule_ops"):
             from .Grammar.MorphRuleOperations import MorphRuleOperations
+
             self._morphrule_ops = MorphRuleOperations(self)
         return self._morphrule_ops
 
@@ -951,8 +972,9 @@ class FLExProject (object):
             ...     name = project.InflectionFeatures.GetFeatureName(feat)
             ...     print(f"Feature: {name}")
         """
-        if not hasattr(self, '_inflectionfeature_ops'):
+        if not hasattr(self, "_inflectionfeature_ops"):
             from .Grammar.InflectionFeatureOperations import InflectionFeatureOperations
+
             self._inflectionfeature_ops = InflectionFeatureOperations(self)
         return self._inflectionfeature_ops
 
@@ -974,8 +996,9 @@ class FLExProject (object):
             >>> # Create a new category
             >>> gc = project.GramCat.Create("Transitive")
         """
-        if not hasattr(self, '_gramcat_ops'):
+        if not hasattr(self, "_gramcat_ops"):
             from .Grammar.GramCatOperations import GramCatOperations
+
             self._gramcat_ops = GramCatOperations(self)
         return self._gramcat_ops
 
@@ -1003,8 +1026,9 @@ class FLExProject (object):
             >>> project.PhonRules.SetLeftContext(rule, vowels)
             >>> project.PhonRules.SetRightContext(rule, vowels)
         """
-        if not hasattr(self, '_phonrule_ops'):
+        if not hasattr(self, "_phonrule_ops"):
             from .Grammar.PhonologicalRuleOperations import PhonologicalRuleOperations
+
             self._phonrule_ops = PhonologicalRuleOperations(self)
         return self._phonrule_ops
 
@@ -1033,8 +1057,9 @@ class FLExProject (object):
             >>> if domains:
             ...     project.Senses.AddSemanticDomain(sense, domains[0])
         """
-        if not hasattr(self, '_sense_ops'):
+        if not hasattr(self, "_sense_ops"):
             from .Lexicon.LexSenseOperations import LexSenseOperations
+
             self._sense_ops = LexSenseOperations(self)
         return self._sense_ops
 
@@ -1062,8 +1087,9 @@ class FLExProject (object):
             >>> project.Examples.SetTranslation(example, "Le chat a dormi.")
             >>> project.Examples.SetReference(example, "Corpus A:123")
         """
-        if not hasattr(self, '_example_ops'):
+        if not hasattr(self, "_example_ops"):
             from .Lexicon.ExampleOperations import ExampleOperations
+
             self._example_ops = ExampleOperations(self)
         return self._example_ops
 
@@ -1099,8 +1125,9 @@ class FLExProject (object):
             ...     targets = project.LexReferences.GetTargets(ref)
             ...     print(f"Related to {len(targets)} items")
         """
-        if not hasattr(self, '_lexref_ops'):
+        if not hasattr(self, "_lexref_ops"):
             from .Lexicon.LexReferenceOperations import LexReferenceOperations
+
             self._lexref_ops = LexReferenceOperations(self)
         return self._lexref_ops
 
@@ -1135,8 +1162,9 @@ class FLExProject (object):
             ...         if senses:
             ...             project.Reversal.AddSense(entry, senses[0])
         """
-        if not hasattr(self, '_reversal_ops'):
+        if not hasattr(self, "_reversal_ops"):
             from .Lexicon.ReversalOperations import ReversalOperations
+
             self._reversal_ops = ReversalOperations(self)
         return self._reversal_ops
 
@@ -1161,8 +1189,9 @@ class FLExProject (object):
             ...     form = project.ReversalEntries.GetForm(entry)
             ...     print(f"Reversal: {form}")
         """
-        if not hasattr(self, '_reversalindex_ops'):
+        if not hasattr(self, "_reversalindex_ops"):
             from .Reversal.ReversalIndexOperations import ReversalIndexOperations
+
             self._reversalindex_ops = ReversalIndexOperations(self)
         return self._reversalindex_ops
 
@@ -1187,8 +1216,9 @@ class FLExProject (object):
             ...     sense = lex_entry.SensesOS[0]
             ...     project.ReversalEntries.AddSense(entry, sense)
         """
-        if not hasattr(self, '_reversalentry_ops'):
+        if not hasattr(self, "_reversalentry_ops"):
             from .Reversal.ReversalIndexEntryOperations import ReversalIndexEntryOperations
+
             self._reversalentry_ops = ReversalIndexEntryOperations(self)
         return self._reversalentry_ops
 
@@ -1217,8 +1247,9 @@ class FLExProject (object):
             >>> # Create a custom domain
             >>> custom = project.SemanticDomains.Create("Technology", "900")
         """
-        if not hasattr(self, '_semantic_domain_ops'):
+        if not hasattr(self, "_semantic_domain_ops"):
             from .Lexicon.SemanticDomainOperations import SemanticDomainOperations
+
             self._semantic_domain_ops = SemanticDomainOperations(self)
         return self._semantic_domain_ops
 
@@ -1246,8 +1277,9 @@ class FLExProject (object):
             >>> media = project.Pronunciations.GetMediaFiles(pron)
             >>> print(f"Audio files: {len(media)}")
         """
-        if not hasattr(self, '_pronunciation_ops'):
+        if not hasattr(self, "_pronunciation_ops"):
             from .Lexicon.PronunciationOperations import PronunciationOperations
+
             self._pronunciation_ops = PronunciationOperations(self)
         return self._pronunciation_ops
 
@@ -1283,8 +1315,9 @@ class FLExProject (object):
             >>> variant_ref = project.Variants.Create(went_entry, "went", irregular_type)
             >>> project.Variants.AddComponentLexeme(variant_ref, go_entry)
         """
-        if not hasattr(self, '_variant_ops'):
+        if not hasattr(self, "_variant_ops"):
             from .Lexicon.VariantOperations import VariantOperations
+
             self._variant_ops = VariantOperations(self)
         return self._variant_ops
 
@@ -1312,8 +1345,9 @@ class FLExProject (object):
             ...     gloss = project.Etymology.GetGloss(etym)
             ...     print(f"{source}: {form} ({gloss})")
         """
-        if not hasattr(self, '_etymology_ops'):
+        if not hasattr(self, "_etymology_ops"):
             from .Lexicon.EtymologyOperations import EtymologyOperations
+
             self._etymology_ops = EtymologyOperations(self)
         return self._etymology_ops
 
@@ -1354,8 +1388,9 @@ class FLExProject (object):
             ...     # Move items in hierarchy
             ...     project.PossibilityLists.MoveItem(folktale, None)  # Move to top
         """
-        if not hasattr(self, '_possibilitylist_ops'):
+        if not hasattr(self, "_possibilitylist_ops"):
             from .Lists.PossibilityListOperations import PossibilityListOperations
+
             self._possibilitylist_ops = PossibilityListOperations(self)
         return self._possibilitylist_ops
 
@@ -1387,8 +1422,9 @@ class FLExProject (object):
             >>> regions = project.CustomFields.GetListValues(sense, "Regions")
             >>> project.CustomFields.AddListValue(sense, "Regions", "North")
         """
-        if not hasattr(self, '_customfield_ops'):
+        if not hasattr(self, "_customfield_ops"):
             from .System.CustomFieldOperations import CustomFieldOperations
+
             self._customfield_ops = CustomFieldOperations(self)
         return self._customfield_ops
 
@@ -1416,8 +1452,9 @@ class FLExProject (object):
             >>> if project.WritingSystems.Exists("ar"):
             ...     project.WritingSystems.SetRightToLeft("ar", True)
         """
-        if not hasattr(self, '_writingsystem_ops'):
+        if not hasattr(self, "_writingsystem_ops"):
             from .System.WritingSystemOperations import WritingSystemOperations
+
             self._writingsystem_ops = WritingSystemOperations(self)
         return self._writingsystem_ops
 
@@ -1442,8 +1479,9 @@ class FLExProject (object):
             ...         form = project.WfiGlosses.GetForm(g, "en")
             ...         print(f"Gloss: {form}")
         """
-        if not hasattr(self, '_wfigloss_ops'):
+        if not hasattr(self, "_wfigloss_ops"):
             from .Wordform.WfiGlossOperations import WfiGlossOperations
+
             self._wfigloss_ops = WfiGlossOperations(self)
         return self._wfigloss_ops
 
@@ -1469,8 +1507,9 @@ class FLExProject (object):
             >>> # Set morpheme type
             >>> project.WfiMorphBundles.SetMorphemeType(stem, "stem")
         """
-        if not hasattr(self, '_wfimorphbundle_ops'):
+        if not hasattr(self, "_wfimorphbundle_ops"):
             from .Wordform.WfiMorphBundleOperations import WfiMorphBundleOperations
+
             self._wfimorphbundle_ops = WfiMorphBundleOperations(self)
         return self._wfimorphbundle_ops
 
@@ -1498,8 +1537,9 @@ class FLExProject (object):
             >>> orphans = project.Media.GetOrphanedMedia()
             >>> print(f"Found {len(orphans)} orphaned files")
         """
-        if not hasattr(self, '_media_ops'):
+        if not hasattr(self, "_media_ops"):
             from .Shared.MediaOperations import MediaOperations
+
             self._media_ops = MediaOperations(self)
         return self._media_ops
 
@@ -1525,8 +1565,9 @@ class FLExProject (object):
             ...     replies = project.Notes.GetReplies(n)
             ...     print(f"Note: {content} ({len(replies)} replies)")
         """
-        if not hasattr(self, '_note_ops'):
+        if not hasattr(self, "_note_ops"):
             from .Notebook.NoteOperations import NoteOperations
+
             self._note_ops = NoteOperations(self)
         return self._note_ops
 
@@ -1556,8 +1597,9 @@ class FLExProject (object):
             >>> # Export filter
             >>> json_str = project.Filters.ExportFilter(filter_obj)
         """
-        if not hasattr(self, '_filter_ops'):
+        if not hasattr(self, "_filter_ops"):
             from .Shared.FilterOperations import FilterOperations
+
             self._filter_ops = FilterOperations(self)
         return self._filter_ops
 
@@ -1584,8 +1626,9 @@ class FLExProject (object):
             ...     rows = project.Discourse.GetRows(c)
             ...     print(f"Chart: {name} ({len(rows)} rows)")
         """
-        if not hasattr(self, '_discourse_ops'):
+        if not hasattr(self, "_discourse_ops"):
             from .TextsWords.DiscourseOperations import DiscourseOperations
+
             self._discourse_ops = DiscourseOperations(self)
         return self._discourse_ops
 
@@ -1616,8 +1659,9 @@ class FLExProject (object):
             ...     email = project.Person.GetEmail(person)
             ...     print(f"{name}: {email}")
         """
-        if not hasattr(self, '_person_ops'):
+        if not hasattr(self, "_person_ops"):
             from .Notebook.PersonOperations import PersonOperations
+
             self._person_ops = PersonOperations(self)
         return self._person_ops
 
@@ -1646,8 +1690,9 @@ class FLExProject (object):
             ...     coords = project.Location.GetCoordinates(loc)
             ...     print(f"{name}: {coords}")
         """
-        if not hasattr(self, '_location_ops'):
+        if not hasattr(self, "_location_ops"):
             from .Notebook.LocationOperations import LocationOperations
+
             self._location_ops = LocationOperations(self)
         return self._location_ops
 
@@ -1681,8 +1726,9 @@ class FLExProject (object):
             ...     code = project.Anthropology.GetAnthroCode(item)
             ...     print(f"{code}: {name}")
         """
-        if not hasattr(self, '_anthropology_ops'):
+        if not hasattr(self, "_anthropology_ops"):
             from .Notebook.AnthropologyOperations import AnthropologyOperations
+
             self._anthropology_ops = AnthropologyOperations(self)
         return self._anthropology_ops
 
@@ -1707,8 +1753,9 @@ class FLExProject (object):
             >>> project.ProjectSettings.SetDefaultFont("en", "Charis SIL")
             >>> project.ProjectSettings.SetDefaultFontSize("en", 14)
         """
-        if not hasattr(self, '_projectsettings_ops'):
+        if not hasattr(self, "_projectsettings_ops"):
             from .System.ProjectSettingsOperations import ProjectSettingsOperations
+
             self._projectsettings_ops = ProjectSettingsOperations(self)
         return self._projectsettings_ops
 
@@ -1733,8 +1780,9 @@ class FLExProject (object):
             ...     is_default = project.Publications.GetIsDefault(p)
             ...     print(f"{name} (default: {is_default})")
         """
-        if not hasattr(self, '_publication_ops'):
+        if not hasattr(self, "_publication_ops"):
             from .Lists.PublicationOperations import PublicationOperations
+
             self._publication_ops = PublicationOperations(self)
         return self._publication_ops
 
@@ -1763,8 +1811,9 @@ class FLExProject (object):
             ...         version = project.Agents.GetVersion(a)
             ...         print(f"Parser: {name} v{version}")
         """
-        if not hasattr(self, '_agent_ops'):
+        if not hasattr(self, "_agent_ops"):
             from .Lists.AgentOperations import AgentOperations
+
             self._agent_ops = AgentOperations(self)
         return self._agent_ops
 
@@ -1788,8 +1837,9 @@ class FLExProject (object):
             >>> project.Confidence.SetDescription(verified,
             ...     "Confirmed by native speaker", "en")
         """
-        if not hasattr(self, '_confidence_ops'):
+        if not hasattr(self, "_confidence_ops"):
             from .Lists.ConfidenceOperations import ConfidenceOperations
+
             self._confidence_ops = ConfidenceOperations(self)
         return self._confidence_ops
 
@@ -1815,8 +1865,9 @@ class FLExProject (object):
             ...     name = project.Overlays.GetName(o)
             ...     print(f"Overlay: {name}")
         """
-        if not hasattr(self, '_overlay_ops'):
+        if not hasattr(self, "_overlay_ops"):
             from .Lists.OverlayOperations import OverlayOperations
+
             self._overlay_ops = OverlayOperations(self)
         return self._overlay_ops
 
@@ -1842,8 +1893,9 @@ class FLExProject (object):
             ...     abbr = project.TranslationTypes.GetAbbreviation(t)
             ...     print(f"{name} ({abbr})")
         """
-        if not hasattr(self, '_translationtype_ops'):
+        if not hasattr(self, "_translationtype_ops"):
             from .Lists.TranslationTypeOperations import TranslationTypeOperations
+
             self._translationtype_ops = TranslationTypeOperations(self)
         return self._translationtype_ops
 
@@ -1867,8 +1919,9 @@ class FLExProject (object):
             >>> note_type = project.AnnotationDefs.Create("Field Note", "en")
             >>> project.AnnotationDefs.SetUserCanCreate(note_type, True)
         """
-        if not hasattr(self, '_annotationdef_ops'):
+        if not hasattr(self, "_annotationdef_ops"):
             from .System.AnnotationDefOperations import AnnotationDefOperations
+
             self._annotationdef_ops = AnnotationDefOperations(self)
         return self._annotationdef_ops
 
@@ -1897,8 +1950,9 @@ class FLExProject (object):
             ...     status = project.Checks.GetCheckStatus(c)
             ...     print(f"{name}: {status}")
         """
-        if not hasattr(self, '_check_ops'):
+        if not hasattr(self, "_check_ops"):
             from .System.CheckOperations import CheckOperations
+
             self._check_ops = CheckOperations(self)
         return self._check_ops
 
@@ -1931,8 +1985,9 @@ class FLExProject (object):
             ...     date = project.DataNotebook.GetDateOfEvent(rec)
             ...     print(f"{title} ({date})")
         """
-        if not hasattr(self, '_datanotebook_ops'):
+        if not hasattr(self, "_datanotebook_ops"):
             from .Notebook.DataNotebookOperations import DataNotebookOperations
+
             self._datanotebook_ops = DataNotebookOperations(self)
         return self._datanotebook_ops
 
@@ -1957,8 +2012,9 @@ class FLExProject (object):
             ...     rows = project.ConstCharts.GetRows(chart)
             ...     print(f"Chart: {name} ({len(rows)} rows)")
         """
-        if not hasattr(self, '_constchart_ops'):
+        if not hasattr(self, "_constchart_ops"):
             from .Discourse.ConstChartOperations import ConstChartOperations
+
             self._constchart_ops = ConstChartOperations(self)
         return self._constchart_ops
 
@@ -1985,8 +2041,9 @@ class FLExProject (object):
             ...     label = project.ConstChartRows.GetLabel(row)
             ...     print(f"Row: {label}")
         """
-        if not hasattr(self, '_constchartrow_ops'):
+        if not hasattr(self, "_constchartrow_ops"):
             from .Discourse.ConstChartRowOperations import ConstChartRowOperations
+
             self._constchartrow_ops = ConstChartRowOperations(self)
         return self._constchartrow_ops
 
@@ -2013,8 +2070,9 @@ class FLExProject (object):
             ...     begin = project.ConstChartWordGroups.GetBeginSegment(wg)
             ...     print(f"Word group starts at segment {begin.Hvo}")
         """
-        if not hasattr(self, '_constchartwordgroup_ops'):
+        if not hasattr(self, "_constchartwordgroup_ops"):
             from .Discourse.ConstChartWordGroupOperations import ConstChartWordGroupOperations
+
             self._constchartwordgroup_ops = ConstChartWordGroupOperations(self)
         return self._constchartwordgroup_ops
 
@@ -2042,8 +2100,9 @@ class FLExProject (object):
             ...     wg = project.ConstChartMovedText.GetWordGroup(marker)
             ...     print(f"Moved text in word group {wg.Hvo}")
         """
-        if not hasattr(self, '_constchartmovedtext_ops'):
+        if not hasattr(self, "_constchartmovedtext_ops"):
             from .Discourse.ConstChartMovedTextOperations import ConstChartMovedTextOperations
+
             self._constchartmovedtext_ops = ConstChartMovedTextOperations(self)
         return self._constchartmovedtext_ops
 
@@ -2069,8 +2128,9 @@ class FLExProject (object):
             ...     desc = project.ConstChartTags.GetDescription(tag)
             ...     print(f"Tag: {name} - {desc}")
         """
-        if not hasattr(self, '_constcharttag_ops'):
+        if not hasattr(self, "_constcharttag_ops"):
             from .Discourse.ConstChartTagOperations import ConstChartTagOperations
+
             self._constcharttag_ops = ConstChartTagOperations(self)
         return self._constcharttag_ops
 
@@ -2099,8 +2159,9 @@ class FLExProject (object):
             ...     wg = project.ConstChartClauseMarkers.GetWordGroup(marker)
             ...     print(f"Clause marker for word group {wg.Hvo}")
         """
-        if not hasattr(self, '_constchartclausemarker_ops'):
+        if not hasattr(self, "_constchartclausemarker_ops"):
             from .Discourse.ConstChartClauseMarkerOperations import ConstChartClauseMarkerOperations
+
             self._constchartclausemarker_ops = ConstChartClauseMarkerOperations(self)
         return self._constchartclausemarker_ops
 
@@ -2164,7 +2225,7 @@ class FLExProject (object):
         """
 
         return self.project.ProjectId.UiName
-            
+
     # --- String Utilities ---
 
     def BestStr(self, stringObj):
@@ -2180,19 +2241,21 @@ class FLExProject (object):
         # Handle strings gracefully - just return them with a warning
         if isinstance(stringObj, str):
             logger = logging.getLogger("flexlibs2")
-            logger.warning(f"BestStr() called with a string instead of IMultiUnicode/IMultiString. "
-                         f"This should be called on multistring objects only. Returning the string as-is.")
+            logger.warning(
+                f"BestStr() called with a string instead of IMultiUnicode/IMultiString. "
+                f"This should be called on multistring objects only. Returning the string as-is."
+            )
             return stringObj
 
         return self.WritingSystems.GetBestString(stringObj)
 
     # --- LCM Utilities ---
-    
+
     def UnpackNestedPossibilityList(self, possibilityList, objClass, flat=False):
         """
         Returns a nested or flat list of a Fieldworks possibility list.
         `objClass` is the class of object to cast the `CmPossibility` elements into.
-        
+
         Return items are objects with properties/methods:
             - `Hvo`         - ID (value not the same across projects)
             - `Guid`        - Global Unique ID (same across all projects)
@@ -2205,8 +2268,9 @@ class FLExProject (object):
                     yield objClass(j)
             else:
                 l = list(self.UnpackNestedPossibilityList(i.SubPossibilitiesOS, objClass, flat))
-                if l: yield l
-    
+                if l:
+                    yield l
+
     # --- Global: Writing Systems ---
 
     def GetAllVernacularWSs(self):
@@ -2217,8 +2281,7 @@ class FLExProject (object):
         Note: This method now delegates to WritingSystemOperations for single source of truth.
         """
         return set(self.WritingSystems.GetLanguageTag(ws) for ws in self.WritingSystems.GetVernacular())
-           
-           
+
     def GetAllAnalysisWSs(self):
         """
         Returns a set of language tags for all analysis writing systems used
@@ -2228,7 +2291,6 @@ class FLExProject (object):
         """
         return set(self.WritingSystems.GetLanguageTag(ws) for ws in self.WritingSystems.GetAnalysis())
 
-        
     def GetWritingSystems(self):
         """
         Returns the writing systems that are active in this project as a
@@ -2249,7 +2311,6 @@ class FLExProject (object):
             WSList.append((name, tag, handle, isVern))
         return WSList
 
-        
     def WSUIName(self, languageTagOrHandle):
         """
         Returns the UI name of the writing system for the given language tag
@@ -2277,16 +2338,15 @@ class FLExProject (object):
         except KeyError:
             return None
 
-            
     def WSHandle(self, languageTag):
         """
         Returns the handle of the writing system for `languageTag`.
         Ignores case and '-'/'_' differences.
         Returns `None` if the language tag is not found.
         """
-        
+
         languageTag = self.__NormaliseLangTag(languageTag)
-        
+
         try:
             return self.__WSLCIDCache[languageTag]
         except AttributeError:
@@ -2299,8 +2359,7 @@ class FLExProject (object):
             return self.WSHandle(languageTag)
         except KeyError:
             return None
-            
-            
+
     def GetDefaultVernacularWS(self):
         """
         Returns the default vernacular writing system: (Language-tag, Name)
@@ -2308,10 +2367,8 @@ class FLExProject (object):
         Note: This method now delegates to WritingSystemOperations for single source of truth.
         """
         ws = self.WritingSystems.GetDefaultVernacular()
-        return (self.WritingSystems.GetLanguageTag(ws),
-                self.WritingSystems.GetDisplayName(ws))
-    
-    
+        return (self.WritingSystems.GetLanguageTag(ws), self.WritingSystems.GetDisplayName(ws))
+
     def GetDefaultAnalysisWS(self):
         """
         Returns the default analysis writing system: (Language-tag, Name)
@@ -2319,8 +2376,7 @@ class FLExProject (object):
         Note: This method now delegates to WritingSystemOperations for single source of truth.
         """
         ws = self.WritingSystems.GetDefaultAnalysis()
-        return (self.WritingSystems.GetLanguageTag(ws),
-                self.WritingSystems.GetDisplayName(ws))
+        return (self.WritingSystems.GetLanguageTag(ws), self.WritingSystems.GetDisplayName(ws))
 
     # --- Media and LinkedFiles support ---
 
@@ -2349,11 +2405,11 @@ class FLExProject (object):
         import os
 
         # Try to get LinkedFilesRootDir from project
-        if hasattr(self.project, 'LinkedFilesRootDir') and self.project.LinkedFilesRootDir:
+        if hasattr(self.project, "LinkedFilesRootDir") and self.project.LinkedFilesRootDir:
             return self.project.LinkedFilesRootDir
 
         # Fallback: construct default path from project folder
-        if hasattr(self.project, 'ProjectId') and hasattr(self.project.ProjectId, 'ProjectFolder'):
+        if hasattr(self.project, "ProjectId") and hasattr(self.project.ProjectId, "ProjectFolder"):
             return os.path.join(self.project.ProjectId.ProjectFolder, "LinkedFiles")
 
         # Last resort: raise error
@@ -2428,7 +2484,7 @@ class FLExProject (object):
 
             # Look for ORC character with embedded path
             text = ts_string.Text
-            if text is None or '\ufffc' not in text:
+            if text is None or "\ufffc" not in text:
                 return None
 
             # Get the ObjData property which contains the file path
@@ -2437,7 +2493,7 @@ class FLExProject (object):
                 run_props = ts_string.get_Properties(i)
                 obj_data = run_props.GetStrPropValue(
                     self.project.ServiceLocator.GetInstance("FwKernelLib.ITsPropsBldr").GetIntPropValues(
-                        ord('k'), None
+                        ord("k"), None
                     )[0]
                 )
                 if obj_data and len(obj_data) > 1:
@@ -2448,6 +2504,7 @@ class FLExProject (object):
 
         except Exception as e:
             import logging
+
             logging.warning(f"Could not extract audio path: {e}")
             return None
 
@@ -2485,14 +2542,12 @@ class FLExProject (object):
             # Create properties with embedded path
             # Format: kodtExternalPathName character + file path
             from SIL.LCModel.Core.KernelInterfaces import FwObjDataTypes
+
             obj_data = chr(FwObjDataTypes.kodtExternalPathName) + file_path
 
             # Set the ObjData property on the character
             props_bldr = self.project.ServiceLocator.GetInstance("ITsPropsBldr")
-            props_bldr.SetStrPropValue(
-                ord('k'),  # Property tag for ObjData
-                obj_data
-            )
+            props_bldr.SetStrPropValue(ord("k"), obj_data)  # Property tag for ObjData
 
             # Apply properties to the ORC character
             bldr.SetProperties(0, 1, props_bldr.GetTextProps())
@@ -2502,15 +2557,15 @@ class FLExProject (object):
 
         except Exception as e:
             import logging
+
             logging.error(f"Could not set audio path: {e}")
             raise
 
     # --- Global: other information ---
-    
+
     def GetDateLastModified(self):
         return self.lp.DateModified
-    
-    
+
     def GetPartsOfSpeech(self):
         """
         Returns a list of the parts of speech defined in this project.
@@ -2520,7 +2575,6 @@ class FLExProject (object):
         """
         return [self.POS.GetName(pos) for pos in self.POS.GetAll()]
 
-        
     def GetAllSemanticDomains(self, flat=False):
         """
         Returns a nested or flat list of all semantic domains defined
@@ -2534,7 +2588,7 @@ class FLExProject (object):
         return self.SemanticDomains.GetAll(flat=flat)
 
     # --- Global utility functions ---
-    
+
     def BuildGotoURL(self, objectOrGuid):
         """
         Builds a URL that can be used with `os.startfile()` to jump to the
@@ -2550,41 +2604,39 @@ class FLExProject (object):
             flexObject = self.Object(objectOrGuid)
         else:
             flexObject = objectOrGuid
-            
+
         # Quick sanity check that we have the right thing
         try:
             flexObject.Guid
         except (AttributeError, Exception):
-            raise FP_ParameterError("BuildGotoURL: objectOrGuid is neither System.Guid nor an object with attribute Guid")
+            raise FP_ParameterError(
+                "BuildGotoURL: objectOrGuid is neither System.Guid nor an object with attribute Guid"
+            )
 
         if flexObject.ClassID == ReversalIndexEntryTags.kClassId:
             tool = "reversalToolEditComplete"
 
-        elif flexObject.ClassID in (WfiWordformTags.kClassId,
-                                    WfiAnalysisTags.kClassId,
-                                    WfiGlossTags.kClassId):
+        elif flexObject.ClassID in (WfiWordformTags.kClassId, WfiAnalysisTags.kClassId, WfiGlossTags.kClassId):
             tool = "Analyses"
-            
+
         elif flexObject.ClassID == TextTags.kClassId:
             tool = "interlinearEdit"
-            
+
         else:
-            tool = "lexiconEdit"                # Default tool is Lexicon Edit
+            tool = "lexiconEdit"  # Default tool is Lexicon Edit
 
         # Build the URL
-        linkObj = FwAppArgs(self.project.ProjectId.Handle,
-                            tool,
-                            flexObject.Guid)
+        linkObj = FwAppArgs(self.project.ProjectId.Handle, tool, flexObject.Guid)
 
         return str(linkObj)
 
     # --- Generic Repository Access ---
 
-    def ObjectRepository(self, repository):        
+    def ObjectRepository(self, repository):
         """
         Returns an object repository.
         `repository` is specified by the interface class, such as:
-        
+
             - `ITextRepository`
             - `ILexEntryRepository`
         """
@@ -2595,29 +2647,28 @@ class FLExProject (object):
         """
         Returns the number of objects in `repository`.
         `repository` is specified by the interface class, such as:
-        
+
             - `ITextRepository`
             - `ILexEntryRepository`
 
         All repository names can be viewed by opening a project in
-        LCMBrowser, which can be launched via the Help menu. Add "I" 
+        LCMBrowser, which can be launched via the Help menu. Add "I"
         to the front and import from `SIL.LCModel`.
         """
-        
+
         repo = self.ObjectRepository(repository)
         return repo.Count
-    
-    
+
     def ObjectsIn(self, repository):
         """
         Returns an iterator over all the objects in `repository`.
         `repository` is specified by the interface class, such as:
-        
+
             - `ITextRepository`
             - `ILexEntryRepository`
-            
+
         All repository names can be viewed by opening a project in
-        LCMBrowser, which can be launched via the Help menu. Add "I" 
+        LCMBrowser, which can be launched via the Help menu. Add "I"
         to the front and import from `SIL.LCModel`.
         """
 
@@ -2634,7 +2685,7 @@ class FLExProject (object):
                 hvoOrGuid = System.Guid(hvoOrGuid)
             except System.FormatException:
                 raise FP_ParameterError("Invalid parameter, hvoOrGuid")
-                
+
         if isinstance(hvoOrGuid, (System.Guid, int)):
             return self.project.ServiceLocator.GetObject(hvoOrGuid)
         else:
@@ -2644,7 +2695,7 @@ class FLExProject (object):
 
     def LexiconNumberOfEntries(self):
         return self.ObjectCountFor(ILexEntryRepository)
-        
+
     def LexiconAllEntries(self):
         """
         Returns an iterator over all entries in the lexicon.
@@ -2679,15 +2730,14 @@ class FLExProject (object):
 
         for h, e in sorted(entries, key=lambda x: x[0].lower()):
             yield e
-        
 
     #  Private writing system utilities
-    
+
     def __WSHandle(self, languageTagOrHandle, defaultWS):
         if languageTagOrHandle == None:
             handle = defaultWS
         else:
-            #print "Specified ws =", languageTagOrHandle
+            # print "Specified ws =", languageTagOrHandle
             if isinstance(languageTagOrHandle, str):
                 handle = self.WSHandle(languageTagOrHandle)
             else:
@@ -2697,18 +2747,16 @@ class FLExProject (object):
         return handle
 
     def __WSHandleVernacular(self, languageTagOrHandle):
-        return self.__WSHandle(languageTagOrHandle,
-                               self.project.DefaultVernWs)
+        return self.__WSHandle(languageTagOrHandle, self.project.DefaultVernWs)
 
     def __WSHandleAnalysis(self, languageTagOrHandle):
-        return self.__WSHandle(languageTagOrHandle,
-                               self.project.DefaultAnalWs)
-    
+        return self.__WSHandle(languageTagOrHandle, self.project.DefaultAnalWs)
+
     def __NormaliseLangTag(self, languageTag):
         return languageTag.replace("-", "_").lower()
-    
+
     #  Vernacular WS fields
-    
+
     def LexiconGetHeadword(self, entry):
         """
         Returns the headword for `entry`.
@@ -2717,7 +2765,6 @@ class FLExProject (object):
         """
         return self.LexEntry.GetHeadword(entry)
 
-        
     def LexiconGetLexemeForm(self, entry, languageTagOrHandle=None):
         """
         Returns the lexeme form for `entry` in the default vernacular WS
@@ -2736,8 +2783,7 @@ class FLExProject (object):
         Note: This method now delegates to LexEntryOperations for single source of truth.
         """
         return self.LexEntry.SetLexemeForm(entry, form, languageTagOrHandle)
-            
-        
+
     def LexiconGetCitationForm(self, entry, languageTagOrHandle=None):
         """
         Returns the citation form for `entry` in the default vernacular WS
@@ -2760,12 +2806,11 @@ class FLExProject (object):
 
     def LexiconGetPublishInCount(self, entry):
         """
-        Returns the number of dictionaries that `entry` is configured 
+        Returns the number of dictionaries that `entry` is configured
         to be published in.
         """
         return entry.PublishIn.Count
 
-        
     def LexiconGetPronunciation(self, pronunciation, languageTagOrHandle=None):
         """
         Returns the form for `pronunciation` in the default vernacular WS
@@ -2775,7 +2820,6 @@ class FLExProject (object):
         """
         return self.Pronunciations.GetForm(pronunciation, languageTagOrHandle)
 
-        
     def LexiconGetExample(self, example, languageTagOrHandle=None):
         """
         Returns the example text in the default vernacular WS or
@@ -2785,7 +2829,6 @@ class FLExProject (object):
         """
         return self.Examples.GetExample(example, languageTagOrHandle)
 
-        
     def LexiconSetExample(self, example, newString, languageTagOrHandle=None):
         """
         Set the default vernacular string for `example`:
@@ -2799,7 +2842,6 @@ class FLExProject (object):
         """
         return self.Examples.SetExample(example, newString, languageTagOrHandle)
 
-        
     def LexiconGetExampleTranslation(self, translation, languageTagOrHandle=None):
         """
         Returns the translation of an example in the default analysis WS or
@@ -2841,7 +2883,6 @@ class FLExProject (object):
         """
         return self.Senses.GetGloss(sense, languageTagOrHandle)
 
-        
     def LexiconSetSenseGloss(self, sense, gloss, languageTagOrHandle=None):
         """
         Set the default analysis gloss for `sense`:
@@ -2851,8 +2892,7 @@ class FLExProject (object):
         Note: This method now delegates to LexSenseOperations for single source of truth.
         """
         return self.Senses.SetGloss(sense, gloss, languageTagOrHandle)
-    
-    
+
     def LexiconGetSenseDefinition(self, sense, languageTagOrHandle=None):
         """
         Returns the definition for the sense in the default analysis WS or
@@ -2862,9 +2902,8 @@ class FLExProject (object):
         """
         return self.Senses.GetDefinition(sense, languageTagOrHandle)
 
-    
     #  Non-string types
-    
+
     def LexiconGetSensePOS(self, sense):
         """
         Returns the part of speech abbreviation for the sense.
@@ -2873,7 +2912,6 @@ class FLExProject (object):
         """
         return self.Senses.GetPartOfSpeech(sense)
 
-            
     def LexiconGetSenseSemanticDomains(self, sense):
         """
         Returns a list of semantic domain objects belonging to the sense.
@@ -2891,21 +2929,20 @@ class FLExProject (object):
         """
         return self.Senses.GetSemanticDomains(sense)
 
-        
     def LexiconEntryAnalysesCount(self, entry):
         """
         Returns a count of the occurrences of the entry in the text corpus.
 
-        NOTE: This calculation can produce slightly different results to 
-        that shown in FieldWorks (where the same analysis in the same text 
-        segment is only counted once in some displays). See LT-13997 for 
+        NOTE: This calculation can produce slightly different results to
+        that shown in FieldWorks (where the same analysis in the same text
+        segment is only counted once in some displays). See LT-13997 for
         more details.
         """
-        
-        # EntryAnalysesCount is not part of the interface ILexEntry, 
-        # and you can't cast to LexEntry outside the LCM assembly 
+
+        # EntryAnalysesCount is not part of the interface ILexEntry,
+        # and you can't cast to LexEntry outside the LCM assembly
         # because LexEntry is internal.
-        # Therefore we use reflection since it is a public method which 
+        # Therefore we use reflection since it is a public method which
         # any instance of ILexEntry implements.
         # (Instructions from JohnT)
 
@@ -2926,10 +2963,10 @@ class FLExProject (object):
     def GetFieldID(self, className, fieldName):
         """
         Return the `FieldID` ('flid') for the given field of an LCM class.
-        `className` and `fieldName` are strings, where `fieldName` may omit 
+        `className` and `fieldName` are strings, where `fieldName` may omit
         the type suffix (e.g. 'OS'). Both are case-sensitive.
         For example, find the `FieldID` for academic domains with::
-        
+
             GetFieldID("LexSense", "DomainTypes")
         """
 
@@ -2940,39 +2977,38 @@ class FLExProject (object):
 
         try:
             # True=include base classes if needed.
-            flid = mdc.GetFieldId(className, fieldName, True) 
-        except (LcmInvalidFieldException, 
-                LcmInvalidClassException) as e:
+            flid = mdc.GetFieldId(className, fieldName, True)
+        except (LcmInvalidFieldException, LcmInvalidClassException) as e:
             # "from None" avoids confusion of both exceptions being reported.
             raise FP_ParameterError(e.Message) from None
         return flid
- 
- 
+
     def __ValidatedHvo(self, senseOrEntryOrHvo, fieldID):
         """
         Internal function to check for valid parameters to lexicon functions.
         """
-        if not senseOrEntryOrHvo: raise FP_NullParameterError()
-        if not fieldID: raise FP_NullParameterError()
+        if not senseOrEntryOrHvo:
+            raise FP_NullParameterError()
+        if not fieldID:
+            raise FP_NullParameterError()
 
         try:
             hvo = senseOrEntryOrHvo.Hvo
         except AttributeError:
             hvo = senseOrEntryOrHvo
-        
+
         return hvo
 
-    def GetCustomFieldValue(self, senseOrEntryOrHvo, fieldID,
-                            languageTagOrHandle=None):
+    def GetCustomFieldValue(self, senseOrEntryOrHvo, fieldID, languageTagOrHandle=None):
         """
-        Returns the field value for String, MultiString, Integer 
+        Returns the field value for String, MultiString, Integer
         and List (both single and multiple) fields.
         Raises `FP_ParameterError` for other field types.
-        
+
         `languageTagOrHandle` only applies to MultiStrings; if `None` the
-        best analysis or venacular string is returned. 
-        
-        Note: if the field is a vernacular WS field, then the 
+        best analysis or venacular string is returned.
+
+        Note: if the field is a vernacular WS field, then the
         `languageTagOrHandle` must be specified.
         """
 
@@ -2983,8 +3019,7 @@ class FLExProject (object):
         fieldType = CellarPropertyType(mdc.GetFieldType(fieldID))
 
         if fieldType in FLExLCM.CellarStringTypes:
-            return ITsString(self.project.DomainDataByFlid.\
-                             get_StringProp(hvo, fieldID))
+            return ITsString(self.project.DomainDataByFlid.get_StringProp(hvo, fieldID))
 
         elif fieldType in FLExLCM.CellarMultiStringTypes:
             mua = self.project.DomainDataByFlid.get_MultiStringProp(hvo, fieldID)
@@ -3006,8 +3041,7 @@ class FLExProject (object):
 
         elif fieldType == CellarPropertyType.ReferenceCollection:
             numItems = self.project.DomainDataByFlid.get_VecSize(hvo, fieldID)
-            getPossibilityObject = self.ObjectRepository(
-                                        ICmPossibilityRepository).GetObject
+            getPossibilityObject = self.ObjectRepository(ICmPossibilityRepository).GetObject
             items = []
             for i in range(numItems):
                 item = self.project.DomainDataByFlid.get_VecItem(hvo, fieldID, i)
@@ -3024,7 +3058,8 @@ class FLExProject (object):
 
         Delegates to: CustomFields.GetFieldType()
         """
-        if not fieldID: raise FP_NullParameterError()
+        if not fieldID:
+            raise FP_NullParameterError()
 
         field_type = self.CustomFields.GetFieldType(fieldID)
         return field_type == CellarPropertyType.String
@@ -3036,48 +3071,46 @@ class FLExProject (object):
 
         Delegates to: CustomFields.IsMultiString()
         """
-        if not fieldID: raise FP_NullParameterError()
+        if not fieldID:
+            raise FP_NullParameterError()
 
         return self.CustomFields.IsMultiString(fieldID)
 
-        
     def LexiconFieldIsAnyStringType(self, fieldID):
         """
         Returns `True` if the given field is any of the string types.
 
         Delegates to: CustomFields.GetFieldType()
         """
-        if not fieldID: raise FP_NullParameterError()
+        if not fieldID:
+            raise FP_NullParameterError()
 
         field_type = self.CustomFields.GetFieldType(fieldID)
-        return field_type in (CellarPropertyType.String,
-                              CellarPropertyType.MultiString,
-                              CellarPropertyType.MultiUnicode)
+        return field_type in (
+            CellarPropertyType.String,
+            CellarPropertyType.MultiString,
+            CellarPropertyType.MultiUnicode,
+        )
 
-        
-        
-    def LexiconGetFieldText(self, senseOrEntryOrHvo, fieldID,
-                            languageTagOrHandle=None):
+    def LexiconGetFieldText(self, senseOrEntryOrHvo, fieldID, languageTagOrHandle=None):
         """
         Return the text value for the given entry/sense and field ID.
         Provided for use with custom fields.
         Returns the empty string if the value is null.
         `languageTagOrHandle` only applies to MultiStrings; if `None` the
-        default analysis writing system is returned. 
-        
-        Note: if the field is a vernacular WS field, then 
+        default analysis writing system is returned.
+
+        Note: if the field is a vernacular WS field, then
         `languageTagOrHandle` must be specified.
 
-        For normal fields, the object can be used directly with 
+        For normal fields, the object can be used directly with
         `get_String()`. E.g.::
-        
+
             lexForm = lexEntry.LexemeFormOA
             lexEntryValue = ITsString(lexForm.Form.get_String(WSHandle)).Text
         """
-        
-        value = self.GetCustomFieldValue(senseOrEntryOrHvo, 
-                                         fieldID,
-                                         languageTagOrHandle)
+
+        value = self.GetCustomFieldValue(senseOrEntryOrHvo, fieldID, languageTagOrHandle)
 
         # (value.Text is None if the field is empty.)
         if value and value.Text and value.Text != "***":
@@ -3085,9 +3118,7 @@ class FLExProject (object):
         else:
             return ""
 
-        
-    def LexiconSetFieldText(self, senseOrEntryOrHvo, fieldID, text, 
-                            languageTagOrHandle=None):
+    def LexiconSetFieldText(self, senseOrEntryOrHvo, fieldID, text, languageTagOrHandle=None):
         """
         Set the text value for the given entry/sense and field ID.
         Provided for use with custom fields.
@@ -3097,23 +3128,24 @@ class FLExProject (object):
 
         For normal fields the object can be used directly with
         `set_String()`. E.g.::
-        
+
             lexForm = lexEntry.LexemeFormOA
-            mkstr = TsStringUtils.MakeString("text to write", WSHandle) 
+            mkstr = TsStringUtils.MakeString("text to write", WSHandle)
             lexForm.Form.set_String(WSHandle, mkstr)
         """
 
-        if not self.writeEnabled: raise FP_ReadOnlyError()
+        if not self.writeEnabled:
+            raise FP_ReadOnlyError()
 
         hvo = self.__ValidatedHvo(senseOrEntryOrHvo, fieldID)
-        
+
         WSHandle = self.__WSHandleAnalysis(languageTagOrHandle)
 
         mdc = IFwMetaDataCacheManaged(self.project.MetaDataCacheAccessor)
         fieldType = CellarPropertyType(mdc.GetFieldType(fieldID))
 
         tss = TsStringUtils.MakeString(text, WSHandle)
-        
+
         if fieldType in FLExLCM.CellarStringTypes:
             try:
                 self.project.DomainDataByFlid.SetString(hvo, fieldID, tss)
@@ -3126,10 +3158,9 @@ class FLExProject (object):
             try:
                 mua.set_String(WSHandle, tss)
             except LcmInvalidFieldException as msg:
-                raise FP_ReadOnlyError()        
+                raise FP_ReadOnlyError()
         else:
             raise FP_ParameterError("LexiconSetFieldText: field is not a supported type")
-            
 
     def LexiconClearField(self, senseOrEntryOrHvo, fieldID):
         """
@@ -3138,13 +3169,14 @@ class FLExProject (object):
         Can be used to clear out a custom field.
         """
 
-        if not self.writeEnabled: raise FP_ReadOnlyError()
+        if not self.writeEnabled:
+            raise FP_ReadOnlyError()
 
         hvo = self.__ValidatedHvo(senseOrEntryOrHvo, fieldID)
 
         mdc = IFwMetaDataCacheManaged(self.project.MetaDataCacheAccessor)
         fieldType = CellarPropertyType(mdc.GetFieldType(fieldID))
-        
+
         if fieldType in FLExLCM.CellarStringTypes:
             try:
                 self.project.DomainDataByFlid.SetString(hvo, fieldID, None)
@@ -3155,10 +3187,10 @@ class FLExProject (object):
             # MultiUnicodeAccessor
             mua = self.project.DomainDataByFlid.get_MultiStringProp(hvo, fieldID)
             try:
-                for ws in (self.GetAllAnalysisWSs() | self.GetAllVernacularWSs()):
+                for ws in self.GetAllAnalysisWSs() | self.GetAllVernacularWSs():
                     mua.set_String(self.WSHandle(ws), None)
             except LcmInvalidFieldException as msg:
-                raise FP_ReadOnlyError()        
+                raise FP_ReadOnlyError()
         else:
             raise FP_ParameterError("LexiconClearField: field is not a supported type")
 
@@ -3168,7 +3200,8 @@ class FLExProject (object):
         Provided for use with custom fields.
         """
 
-        if not self.writeEnabled: raise FP_ReadOnlyError()
+        if not self.writeEnabled:
+            raise FP_ReadOnlyError()
 
         hvo = self.__ValidatedHvo(senseOrEntryOrHvo, fieldID)
 
@@ -3191,16 +3224,15 @@ class FLExProject (object):
         """
 
         s = self.LexiconGetFieldText(senseOrEntryOrHvo, fieldID)
-                
+
         if s:
-            if tag in s: return
+            if tag in s:
+                return
             newText = "; ".join((s, tag))
         else:
             newText = tag
 
-        self.LexiconSetFieldText(senseOrEntryOrHvo,
-                                 fieldID,
-                                 newText)
+        self.LexiconSetFieldText(senseOrEntryOrHvo, fieldID, newText)
 
         return
 
@@ -3213,13 +3245,14 @@ class FLExProject (object):
         or multiple/Collection)
         """
 
-        if not senseOrEntry: raise FP_NullParameterError()
-        if not fieldID: raise FP_NullParameterError()
+        if not senseOrEntry:
+            raise FP_NullParameterError()
+        if not fieldID:
+            raise FP_NullParameterError()
 
         mdc = IFwMetaDataCacheManaged(self.project.MetaDataCacheAccessor)
         fieldType = CellarPropertyType(mdc.GetFieldType(fieldID))
-        if fieldType not in (CellarPropertyType.ReferenceAtom, 
-                             CellarPropertyType.ReferenceCollection):
+        if fieldType not in (CellarPropertyType.ReferenceAtom, CellarPropertyType.ReferenceCollection):
             raise FP_ParameterError("ListFieldPossibilityList: field must be a List type")
         return ICmPossibilityList(senseOrEntry.ReferenceTargetOwner(fieldID))
 
@@ -3229,13 +3262,13 @@ class FLExProject (object):
         is a list of `CmPossibility` objects.
         Raises an exception if the field is not a list (single/Atomic
         or multiple/Collection)
-        
-        Note: this returns the top-level `CmPossibility` objects. Subitems 
-        can be found via the `SubPossibilitiesOS` attribute. Alternatively, 
+
+        Note: this returns the top-level `CmPossibility` objects. Subitems
+        can be found via the `SubPossibilitiesOS` attribute. Alternatively,
         a flat list of all possible options can be obtained with::
-        
+
             options = project.UnpackNestedPossibilityList(possibilities,
-                                                          str, 
+                                                          str,
                                                           True)
         """
 
@@ -3248,41 +3281,35 @@ class FLExProject (object):
         given field.
         Returns the `CmPossibility` object, or `None` if it can't be found.
         """
-        
+
         pList = self.ListFieldPossibilityList(senseOrEntry, fieldID)
         wsa = self.lp.DefaultAnalysisWritingSystem.Handle
-        return pList.FindPossibilityByName(pList.PossibilitiesOS,
-                                           value,
-                                           wsa)
+        return pList.FindPossibilityByName(pList.PossibilitiesOS, value, wsa)
 
-    def LexiconSetListFieldSingle(self, 
-                                  senseOrEntry, 
-                                  fieldID, 
-                                  possibilityOrString):
+    def LexiconSetListFieldSingle(self, senseOrEntry, fieldID, possibilityOrString):
         """
         Sets the value for a 'single' (Atomic) list field.
         `possibilityOrString` can be a `CmPossibility` object, or a string.
         A string value can be the full name or the abbreviation (case-sensitive).
-        
+
         Use `ListFieldPossibilities()` to find the valid values for the list.
-        
-        Note: this function is primarily for use with custom fields, 
+
+        Note: this function is primarily for use with custom fields,
         since regular list field values can be assigned directly. E.g.::
-             
+
              status_poss = project.ListFieldPossibilities(
-                               sense, 
+                               sense,
                                project.GetFieldID("LexSense", "Status"))
              sense.StatusRA = status_poss[3]    # Tentative
         """
 
-        if not self.writeEnabled: raise FP_ReadOnlyError()
+        if not self.writeEnabled:
+            raise FP_ReadOnlyError()
 
         hvo = self.__ValidatedHvo(senseOrEntry, fieldID)
-        
+
         if type(possibilityOrString) is str:
-            possibility = self.ListFieldLookup(senseOrEntry, 
-                                               fieldID, 
-                                               possibilityOrString)
+            possibility = self.ListFieldLookup(senseOrEntry, fieldID, possibilityOrString)
             if not possibility:
                 raise FP_ParameterError(f"'{possibilityOrString}' not found in the Possibility list")
         else:
@@ -3294,48 +3321,41 @@ class FLExProject (object):
             except AttributeError:
                 raise FP_ParameterError("possibilityOrString must be a string or CmPossibility")
 
-        self.project.DomainDataByFlid.SetObjProp(hvo, 
-                                                 fieldID, 
-                                                 possibility.Hvo)
+        self.project.DomainDataByFlid.SetObjProp(hvo, fieldID, possibility.Hvo)
 
-    def LexiconClearListFieldSingle(self, 
-                                    senseOrEntry, 
-                                    fieldID):
+    def LexiconClearListFieldSingle(self, senseOrEntry, fieldID):
         """
         Clears the value for a 'single' (Atomic) list field.
         """
 
-        if not self.writeEnabled: raise FP_ReadOnlyError()
+        if not self.writeEnabled:
+            raise FP_ReadOnlyError()
 
         hvo = self.__ValidatedHvo(senseOrEntry, fieldID)
-        
-        self.project.DomainDataByFlid.SetObjProp(hvo, 
-                                                 fieldID, 
-                                                 0)
 
-    def LexiconSetListFieldMultiple(self, 
-                                    senseOrEntry, 
-                                    fieldID,
-                                    listOfValues):
+        self.project.DomainDataByFlid.SetObjProp(hvo, fieldID, 0)
+
+    def LexiconSetListFieldMultiple(self, senseOrEntry, fieldID, listOfValues):
         """
         Sets the value(s) for a 'multiple' (Collection) list field.
         `listOfValues` can be a list of:
-        
+
             - `CmPossibility` objects; or
             - `CmPossibility` hvos; or
             - `str` (either the full name or the abbreviation; case-sensitive).
 
         Use `ListFieldPossibilities()` to find the valid values for the list.
-        
-        Note: this function is primarily for use with custom fields, 
-        since regular fields can use the `Add()`, `Remove()` and `Clear()` 
+
+        Note: this function is primarily for use with custom fields,
+        since regular fields can use the `Add()`, `Remove()` and `Clear()`
         methods of the field itself (see LcmReferenceCollection).
         """
-        
-        if not self.writeEnabled: raise FP_ReadOnlyError()
+
+        if not self.writeEnabled:
+            raise FP_ReadOnlyError()
 
         hvo = self.__ValidatedHvo(senseOrEntry, fieldID)
-        
+
         if not listOfValues:
             raise FP_ParameterError("LexiconSetListFieldMultiple: listOfValues cannot be empty or None")
 
@@ -3343,10 +3363,7 @@ class FLExProject (object):
             hvoList = listOfValues
         else:
             if type(listOfValues[0]) is str:
-                possibilities = [self.ListFieldLookup(senseOrEntry,
-                                                      fieldID, 
-                                                      s)
-                                 for s in listOfValues]
+                possibilities = [self.ListFieldLookup(senseOrEntry, fieldID, s) for s in listOfValues]
                 if not all(possibilities):
                     raise FP_ParameterError("LexiconSetListFieldMultiple: one or more values not valid.")
             else:
@@ -3362,12 +3379,10 @@ class FLExProject (object):
         numItems = ddbf.get_VecSize(senseOrEntry.Hvo, fieldID)
 
         # Replace the current items with the new list
-        ddbf.Replace(senseOrEntry.Hvo, fieldID,
-                     0, numItems,
-                     hvoList, len(hvoList))
+        ddbf.Replace(senseOrEntry.Hvo, fieldID, 0, numItems, hvoList, len(hvoList))
 
     # --- Lexicon: Custom fields ---
-    
+
     def __GetCustomFieldsOfType(self, classID):
         """
         Generator for finding all the custom fields belonging to the
@@ -3378,7 +3393,7 @@ class FLExProject (object):
         # The MetaDataCache defines the project structure: we can
         # find the custom fields in here.
         mdc = IFwMetaDataCacheManaged(self.project.MetaDataCacheAccessor)
-        
+
         for flid in mdc.GetFields(classID, False, int(CellarPropertyTypeFilter.All)):
             if self.project.GetIsCustomField(flid):
                 yield ((flid, mdc.GetFieldLabel(flid)))
@@ -3415,8 +3430,7 @@ class FLExProject (object):
         Delegates to: CustomFields.GetAllFields("LexExampleSentence")
         """
         return self.CustomFields.GetAllFields("LexExampleSentence")
-        
-        
+
     def LexiconGetAllomorphCustomFields(self):
         """
         Returns a list of the custom fields defined at allomorph level.
@@ -3425,8 +3439,7 @@ class FLExProject (object):
         Delegates to: CustomFields.GetAllFields("MoForm")
         """
         return self.CustomFields.GetAllFields("MoForm")
-        
-        
+
     def LexiconGetEntryCustomFieldNamed(self, fieldName):
         """
         Return the entry-level field ID given its name.
@@ -3700,14 +3713,14 @@ class FLExProject (object):
             return self.Variants.Delete(obj)
         else:
             # Generic delete using LCM
-            if hasattr(obj, 'Owner') and obj.Owner:
+            if hasattr(obj, "Owner") and obj.Owner:
                 owner = obj.Owner
                 # Try to find and remove from owning collection
                 for prop_name in dir(owner):
-                    if prop_name.endswith('OS') or prop_name.endswith('OC'):
+                    if prop_name.endswith("OS") or prop_name.endswith("OC"):
                         try:
                             collection = getattr(owner, prop_name)
-                            if hasattr(collection, 'Remove') and obj in collection:
+                            if hasattr(collection, "Remove") and obj in collection:
                                 collection.Remove(obj)
                                 return
                         except Exception:
@@ -3715,6 +3728,7 @@ class FLExProject (object):
 
             # Fallback: use DeleteUnderlyingObject
             from SIL.LCModel.Infrastructure import IDataReader
+
             self.project.ServiceLocator.GetInstance(IDataReader).DeleteUnderlyingObject(obj.Hvo)
 
     def LexiconGetHeadWord(self, entry):
@@ -3923,7 +3937,7 @@ class FLExProject (object):
         Note:
             Returns None if the entry reference is not a complex form type.
         """
-        if hasattr(entry_ref, 'ComplexEntryTypesRS') and entry_ref.ComplexEntryTypesRS.Count > 0:
+        if hasattr(entry_ref, "ComplexEntryTypesRS") and entry_ref.ComplexEntryTypesRS.Count > 0:
             return entry_ref.ComplexEntryTypesRS[0]
         return None
 
@@ -3944,7 +3958,7 @@ class FLExProject (object):
         Note:
             Replaces any existing complex form types with the specified one.
         """
-        if hasattr(entry_ref, 'ComplexEntryTypesRS'):
+        if hasattr(entry_ref, "ComplexEntryTypesRS"):
             entry_ref.ComplexEntryTypesRS.Clear()
             entry_ref.ComplexEntryTypesRS.Append(complex_form_type)
 
@@ -3988,7 +4002,7 @@ class FLExProject (object):
         return entry_ref
 
     # --- Lexical Relations ---
-    
+
     def GetLexicalRelationTypes(self):
         """
         Returns an iterator over `LexRefType` objects, which define a
@@ -4016,10 +4030,9 @@ class FLExProject (object):
            This method delegates to :meth:`LexReferenceOperations.GetAllTypes`.
         """
         return self.LexReferences.GetAllTypes()
-        
-    
+
     # --- Publications ---
-    
+
     def GetPublications(self):
         """
         Returns a list of the names of the publications defined in the
@@ -4089,7 +4102,7 @@ class FLExProject (object):
            This method delegates to :meth:`ReversalOperations.SetForm`.
         """
         return self.Reversal.SetForm(entry, form, languageTagOrHandle)
-    
+
     # --- Texts ---
 
     def TextsNumberOfTexts(self):
@@ -4129,5 +4142,4 @@ class FLExProject (object):
                     name = ITsString(t.Name.BestVernacularAnalysisAlternative).Text
                     yield name, "\n".join(content)
                 else:
-                    yield "\n".join(content)        
-
+                    yield "\n".join(content)

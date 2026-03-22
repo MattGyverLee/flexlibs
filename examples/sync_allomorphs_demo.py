@@ -45,10 +45,7 @@ def demo_compare_allomorphs():
         # Create sync engine
         print()
         print("Creating sync engine...")
-        sync = SyncEngine(
-            source_project=source,
-            target_project=target
-        )
+        sync = SyncEngine(source_project=source, target_project=target)
 
         print(f"Mode: {sync.mode.value}")
         print()
@@ -58,9 +55,7 @@ def demo_compare_allomorphs():
         print()
 
         diff = sync.compare(
-            object_type="Allomorph",
-            match_strategy=GuidMatchStrategy(),
-            progress_callback=lambda msg: print(f"  {msg}")
+            object_type="Allomorph", match_strategy=GuidMatchStrategy(), progress_callback=lambda msg: print(f"  {msg}")
         )
 
         # Display summary
@@ -128,11 +123,7 @@ def demo_compare_with_filter():
             return False
 
         print("Comparing stem allomorphs only...")
-        diff = sync.compare(
-            object_type="Allomorph",
-            match_strategy=GuidMatchStrategy(),
-            filter_fn=stem_only
-        )
+        diff = sync.compare(object_type="Allomorph", match_strategy=GuidMatchStrategy(), filter_fn=stem_only)
 
         print(diff.summary())
 
@@ -163,18 +154,12 @@ def demo_field_based_matching():
         sync = SyncEngine(source_project=source, target_project=target)
 
         # Register custom strategy
-        field_strategy = FieldMatchStrategy(
-            key_fields=["form"],
-            case_sensitive=False
-        )
+        field_strategy = FieldMatchStrategy(key_fields=["form"], case_sensitive=False)
 
         sync.register_strategy("form_match", field_strategy)
 
         print("Comparing allomorphs (form-based matching)...")
-        diff = sync.compare(
-            object_type="Allomorph",
-            match_strategy="form_match"  # Use registered strategy name
-        )
+        diff = sync.compare(object_type="Allomorph", match_strategy="form_match")  # Use registered strategy name
 
         print(diff.summary())
         print()

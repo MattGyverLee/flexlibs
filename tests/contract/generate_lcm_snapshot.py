@@ -40,6 +40,7 @@ def _get_lcm_version():
     try:
         import clr
         from SIL.LCModel import LcmCache
+
         asm = LcmCache.__class__.__module__
         # Try to get assembly version
         for a in clr.ListAssemblies():
@@ -119,6 +120,7 @@ def _introspect_type(type_name, namespace_hint=None):
             # For static classes and interfaces, try to get the type object
             try:
                 import System
+
                 clr_type = obj if hasattr(obj, "GetProperties") else type(obj)
             except Exception:
                 pass
@@ -135,8 +137,7 @@ def _introspect_type(type_name, namespace_hint=None):
                     name = str(method.Name)
                     # Skip property accessors and standard object methods
                     if not name.startswith(("get_", "set_", "add_", "remove_")):
-                        if name not in ("ToString", "GetHashCode", "Equals",
-                                        "GetType", "ReferenceEquals"):
+                        if name not in ("ToString", "GetHashCode", "Equals", "GetType", "ReferenceEquals"):
                             result["methods"].append(name)
             except Exception:
                 pass
@@ -177,10 +178,12 @@ def generate_snapshot(expected_contract):
     # Initialize FLEx/pythonnet
     try:
         from flexlibs2.code.FLExInit import FLExInitialize
+
         FLExInitialize()
     except ImportError:
         # Try direct pythonnet init
         import clr
+
         clr.AddReference("SIL.LCModel")
         clr.AddReference("SIL.LCModel.Core")
 
@@ -267,15 +270,12 @@ def main():
     """CLI entry point: generate and save a liblcm snapshot."""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Generate liblcm API snapshot from installed assemblies."
-    )
+    parser = argparse.ArgumentParser(description="Generate liblcm API snapshot from installed assemblies.")
     parser.add_argument(
         "--contract",
         "-c",
         default=None,
-        help="Path to expected contract JSON (from extract_lcm_contract). "
-             "If omitted, extracts contract first.",
+        help="Path to expected contract JSON (from extract_lcm_contract). " "If omitted, extracts contract first.",
     )
     parser.add_argument(
         "--output",
@@ -290,6 +290,7 @@ def main():
         contract = json.loads(Path(args.contract).read_text(encoding="utf-8"))
     else:
         from tests.contract.extract_lcm_contract import extract_contract
+
         contract = extract_contract()
 
     snapshot = generate_snapshot(contract)

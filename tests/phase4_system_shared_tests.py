@@ -39,6 +39,7 @@ from test_helpers import (
 
 # ========== SYSTEM - ANNOTATIONDEFOPERATIONS ==========
 
+
 @pytest.mark.validation
 @pytest.mark.phase4
 class TestAnnotationDefOperations(
@@ -113,6 +114,7 @@ class TestAnnotationDefOperations(
 
 # ========== SYSTEM - CHECKOPERATIONS ==========
 
+
 @pytest.mark.validation
 @pytest.mark.phase4
 class TestCheckOperations(
@@ -186,6 +188,7 @@ class TestCheckOperations(
 
 # ========== SYSTEM - CUSTOMFIELDOPERATIONS ==========
 
+
 @pytest.mark.validation
 @pytest.mark.phase4
 class TestCustomFieldOperations(
@@ -258,6 +261,7 @@ class TestCustomFieldOperations(
 
 
 # ========== SYSTEM - PROJECTSETTINGSOPERATIONS ==========
+
 
 @pytest.mark.validation
 @pytest.mark.phase4
@@ -335,6 +339,7 @@ class TestProjectSettingsOperations(
 
 # ========== SYSTEM - WRITINGSYSTEMOPERATIONS ==========
 
+
 @pytest.mark.validation
 @pytest.mark.phase4
 class TestWritingSystemOperations(
@@ -408,6 +413,7 @@ class TestWritingSystemOperations(
 
 
 # ========== SHARED - FILTEROPERATIONS ==========
+
 
 @pytest.mark.validation
 @pytest.mark.phase4
@@ -494,6 +500,7 @@ class TestFilterOperations(
 
 
 # ========== SHARED - MEDIAOPERATIONS ==========
+
 
 @pytest.mark.validation
 @pytest.mark.phase4

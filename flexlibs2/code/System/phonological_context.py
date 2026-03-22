@@ -129,7 +129,7 @@ class PhonologicalContext(LCMObjectWrapper):
         """
         try:
             # Many contexts have a Name property
-            if hasattr(self._concrete, 'Name'):
+            if hasattr(self._concrete, "Name"):
                 return str(self._concrete.Name) if self._concrete.Name else ""
             return ""
         except Exception:
@@ -148,7 +148,7 @@ class PhonologicalContext(LCMObjectWrapper):
             print(f"Context: {wrapped.description}")
         """
         try:
-            if hasattr(self._concrete, 'Description'):
+            if hasattr(self._concrete, "Description"):
                 return str(self._concrete.Description) if self._concrete.Description else ""
             return ""
         except Exception:
@@ -174,7 +174,7 @@ class PhonologicalContext(LCMObjectWrapper):
             - Use segment property to access the actual segment
         """
         try:
-            return self.class_type == 'PhSimpleContextSeg'
+            return self.class_type == "PhSimpleContextSeg"
         except Exception:
             return False
 
@@ -196,7 +196,7 @@ class PhonologicalContext(LCMObjectWrapper):
             - Use natural_class property to access the actual natural class
         """
         try:
-            return self.class_type == 'PhSimpleContextNC'
+            return self.class_type == "PhSimpleContextNC"
         except Exception:
             return False
 
@@ -236,7 +236,7 @@ class PhonologicalContext(LCMObjectWrapper):
             - Complex segment contexts have multiple segment specifications
         """
         try:
-            return self.class_type == 'PhComplexContextSeg'
+            return self.class_type == "PhComplexContextSeg"
         except Exception:
             return False
 
@@ -257,7 +257,7 @@ class PhonologicalContext(LCMObjectWrapper):
             - Complex natural class contexts have multiple natural class specifications
         """
         try:
-            return self.class_type == 'PhComplexContextNC'
+            return self.class_type == "PhComplexContextNC"
         except Exception:
             return False
 
@@ -298,14 +298,14 @@ class PhonologicalContext(LCMObjectWrapper):
             - Different from other context types in purpose and properties
         """
         try:
-            return self.class_type == 'PhBoundaryContext'
+            return self.class_type == "PhBoundaryContext"
         except Exception:
             return False
 
     # ========== Type-Specific Property Access (via capability checks) ==========
 
     @property
-    def segment(self) -> 'Optional[object]':
+    def segment(self) -> "Optional[object]":
         """
         Get the segment from a simple segment context.
 
@@ -327,14 +327,14 @@ class PhonologicalContext(LCMObjectWrapper):
             return None
 
         try:
-            if hasattr(self._concrete, 'SegmentRA'):
+            if hasattr(self._concrete, "SegmentRA"):
                 return self._concrete.SegmentRA
             return None
         except Exception:
             return None
 
     @property
-    def natural_class(self) -> 'Optional[object]':
+    def natural_class(self) -> "Optional[object]":
         """
         Get the natural class from a simple natural class context.
 
@@ -356,7 +356,7 @@ class PhonologicalContext(LCMObjectWrapper):
             return None
 
         try:
-            if hasattr(self._concrete, 'NaturalClassRA'):
+            if hasattr(self._concrete, "NaturalClassRA"):
                 return self._concrete.NaturalClassRA
             return None
         except Exception:
@@ -384,7 +384,7 @@ class PhonologicalContext(LCMObjectWrapper):
             return -1
 
         try:
-            if hasattr(self._concrete, 'Type'):
+            if hasattr(self._concrete, "Type"):
                 return self._concrete.Type
             return -1
         except Exception:
@@ -416,7 +416,7 @@ class PhonologicalContext(LCMObjectWrapper):
             - Most users should use properties like is_simple_context_seg and
               segment instead
         """
-        if self.class_type == 'PhSimpleContextSeg':
+        if self.class_type == "PhSimpleContextSeg":
             return self._concrete
         return None
 
@@ -442,7 +442,7 @@ class PhonologicalContext(LCMObjectWrapper):
             - Most users should use properties like is_simple_context_nc and
               natural_class instead
         """
-        if self.class_type == 'PhSimpleContextNC':
+        if self.class_type == "PhSimpleContextNC":
             return self._concrete
         return None
 
@@ -466,7 +466,7 @@ class PhonologicalContext(LCMObjectWrapper):
             - For users who know C# interfaces and want advanced control
             - Most users should use properties like is_complex_context_seg instead
         """
-        if self.class_type == 'PhComplexContextSeg':
+        if self.class_type == "PhComplexContextSeg":
             return self._concrete
         return None
 
@@ -490,7 +490,7 @@ class PhonologicalContext(LCMObjectWrapper):
             - For users who know C# interfaces and want advanced control
             - Most users should use properties like is_complex_context_nc instead
         """
-        if self.class_type == 'PhComplexContextNC':
+        if self.class_type == "PhComplexContextNC":
             return self._concrete
         return None
 
@@ -516,7 +516,7 @@ class PhonologicalContext(LCMObjectWrapper):
             - Most users should use properties like is_boundary_context and
               boundary_type instead
         """
-        if self.class_type == 'PhBoundaryContext':
+        if self.class_type == "PhBoundaryContext":
             return self._concrete
         return None
 

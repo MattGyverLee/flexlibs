@@ -288,4 +288,3 @@ class AdhocProhibition(LCMObjectWrapper):
             str: Description like "Morpheme prohibition (uuid...)"
         """
         return f"{self.prohibition_type} prohibition ({self.guid[:8]}...)"
-

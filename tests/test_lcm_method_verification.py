@@ -21,31 +21,14 @@ class LCMMethodVerifier:
 
     # Known valid LCM methods by category
     KNOWN_VALID_METHODS = {
-        'ServiceLocator': {
-            'GetService', 'GetInstance'
-        },
-        'TsStringUtils': {
-            'MakeString'
-        },
-        'Factory': {
-            'Create'
-        },
-        'Repository': {
-            'CopyObject'
-        },
-        'MultiString': {
-            'CopyAlternatives'
-        },
-        'Collections': {
-            'Add', 'Insert', 'Remove', 'RemoveAt', 'Count', 'IndexOf',
-            'Clear', 'Contains'
-        },
-        'OwnedObjects': {
-            'CopyObject'
-        },
-        'Properties': {
-            'Text', 'Owner', 'Hvo', 'Id', 'WriteEnabled', 'CanModify'
-        }
+        "ServiceLocator": {"GetService", "GetInstance"},
+        "TsStringUtils": {"MakeString"},
+        "Factory": {"Create"},
+        "Repository": {"CopyObject"},
+        "MultiString": {"CopyAlternatives"},
+        "Collections": {"Add", "Insert", "Remove", "RemoveAt", "Count", "IndexOf", "Clear", "Contains"},
+        "OwnedObjects": {"CopyObject"},
+        "Properties": {"Text", "Owner", "Hvo", "Id", "WriteEnabled", "CanModify"},
     }
 
     def __init__(self):
@@ -64,16 +47,16 @@ class LCMMethodVerifier:
     def _analyze_file(self, file_path):
         """Extract method calls from a file."""
         try:
-            content = file_path.read_text(encoding='utf-8')
+            content = file_path.read_text(encoding="utf-8")
 
             # Pattern: object.method() or object.property
-            pattern = r'\.(\w+)(?:\()?'
+            pattern = r"\.(\w+)(?:\()?"
 
             for match in re.finditer(pattern, content):
                 method_name = match.group(1)
 
                 # Skip common Python built-ins
-                if method_name not in {'__init__', '__str__', '__repr__', '__enter__', '__exit__'}:
+                if method_name not in {"__init__", "__str__", "__repr__", "__enter__", "__exit__"}:
                     self.found_methods[method_name].add(str(file_path))
 
         except Exception:
@@ -89,13 +72,13 @@ class LCMMethodVerifier:
             # Check against known valid methods
             for category, methods in self.KNOWN_VALID_METHODS.items():
                 if method in methods:
-                    categorized[f'{category} (VERIFIED)'].append(method)
+                    categorized[f"{category} (VERIFIED)"].append(method)
                     found = True
                     break
 
             if not found:
                 # Unknown method - flag for review
-                categorized['UNKNOWN'].append(method)
+                categorized["UNKNOWN"].append(method)
 
         return categorized
 
@@ -113,17 +96,17 @@ class TestLCMMethodVerification:
         """
         ops_dir = Path("flexlibs2/code")
         for py_file in ops_dir.rglob("*Operations.py"):
-            content = py_file.read_text(encoding='utf-8')
+            content = py_file.read_text(encoding="utf-8")
 
-            if 'CopyObject' in content:
+            if "CopyObject" in content:
                 # Should NOT have generic syntax
-                assert 'CopyObject[' not in content, \
-                    f"{py_file}: Has invalid CopyObject[T] syntax"
+                assert "CopyObject[" not in content, f"{py_file}: Has invalid CopyObject[T] syntax"
 
                 # Should use ServiceLocator pattern
-                if 'cache.CopyObject' in content:
-                    assert 'GetInstance("ICmObjectRepository")' in content, \
-                        f"{py_file}: CopyObject not accessed via ServiceLocator"
+                if "cache.CopyObject" in content:
+                    assert (
+                        'GetInstance("ICmObjectRepository")' in content
+                    ), f"{py_file}: CopyObject not accessed via ServiceLocator"
 
     def test_all_copy_alternatives_on_multistring(self):
         """
@@ -135,15 +118,15 @@ class TestLCMMethodVerification:
         """
         ops_dir = Path("flexlibs2/code")
 
-        invalid_properties = {'StringRepresentation'}
+        invalid_properties = {"StringRepresentation"}
 
         for py_file in ops_dir.rglob("*Operations.py"):
-            content = py_file.read_text(encoding='utf-8')
+            content = py_file.read_text(encoding="utf-8")
 
             for invalid_prop in invalid_properties:
-                assert f'{invalid_prop}.CopyAlternatives' not in content, \
-                    f"{py_file}: {invalid_prop} is not MultiString, " \
-                    f"cannot use CopyAlternatives"
+                assert f"{invalid_prop}.CopyAlternatives" not in content, (
+                    f"{py_file}: {invalid_prop} is not MultiString, " f"cannot use CopyAlternatives"
+                )
 
     def test_all_makestring_has_proper_imports(self):
         """
@@ -154,11 +137,12 @@ class TestLCMMethodVerification:
         ops_dir = Path("flexlibs2/code")
 
         for py_file in ops_dir.rglob("*Operations.py"):
-            content = py_file.read_text(encoding='utf-8')
+            content = py_file.read_text(encoding="utf-8")
 
-            if 'TsStringUtils.MakeString' in content:
-                assert 'from SIL.LCModel.Core.Text import TsStringUtils' in content, \
-                    f"{py_file}: Must import TsStringUtils"
+            if "TsStringUtils.MakeString" in content:
+                assert (
+                    "from SIL.LCModel.Core.Text import TsStringUtils" in content
+                ), f"{py_file}: Must import TsStringUtils"
 
     def test_all_factory_creates_have_service_locator(self):
         """
@@ -171,17 +155,16 @@ class TestLCMMethodVerification:
         ops_dir = Path("flexlibs2/code")
 
         for py_file in ops_dir.rglob("*Operations.py"):
-            content = py_file.read_text(encoding='utf-8')
+            content = py_file.read_text(encoding="utf-8")
 
             # Only check actual code, not docstrings
             # Remove docstrings first
-            code_only = re.sub(r'"""[\s\S]*?"""', '', content)
-            code_only = re.sub(r"'''[\s\S]*?'''", '', code_only)
+            code_only = re.sub(r'"""[\s\S]*?"""', "", content)
+            code_only = re.sub(r"'''[\s\S]*?'''", "", code_only)
 
-            if '.Create()' in code_only or 'factory.Create()' in code_only:
+            if ".Create()" in code_only or "factory.Create()" in code_only:
                 # Should have GetService somewhere in actual code
-                assert 'GetService(' in code_only, \
-                    f"{py_file}: Create() should be on factory from GetService"
+                assert "GetService(" in code_only, f"{py_file}: Create() should be on factory from GetService"
 
     def test_collection_methods_valid(self):
         """
@@ -190,28 +173,35 @@ class TestLCMMethodVerification:
         Valid methods: Add(), Insert(), Remove(), RemoveAt(), Count, IndexOf()
         """
         valid_collection_methods = {
-            'Add', 'Insert', 'Remove', 'RemoveAt', 'Count', 'IndexOf',
-            'Clear', 'Contains', 'Create', 'MoveTo'  # LCM collection methods
+            "Add",
+            "Insert",
+            "Remove",
+            "RemoveAt",
+            "Count",
+            "IndexOf",
+            "Clear",
+            "Contains",
+            "Create",
+            "MoveTo",  # LCM collection methods
         }
 
         ops_dir = Path("flexlibs2/code")
 
         for py_file in ops_dir.rglob("*Operations.py"):
-            content = py_file.read_text(encoding='utf-8')
+            content = py_file.read_text(encoding="utf-8")
 
             # Remove docstrings to avoid false positives
-            code_only = re.sub(r'"""[\s\S]*?"""', '', content)
-            code_only = re.sub(r"'''[\s\S]*?'''", '', code_only)
+            code_only = re.sub(r'"""[\s\S]*?"""', "", content)
+            code_only = re.sub(r"'''[\s\S]*?'''", "", code_only)
 
             # Find patterns like something.OS.XXX in actual code
-            pattern = r'\.([A-Za-z]+OS|OC)\.(\w+)'
+            pattern = r"\.([A-Za-z]+OS|OC)\.(\w+)"
 
             for match in re.finditer(pattern, code_only):
                 method = match.group(2)
                 # Collection methods are usually parenthesized
-                if '(' in code_only[match.end():match.end()+10]:
-                    assert method in valid_collection_methods, \
-                        f"{py_file}: Invalid collection method {method}"
+                if "(" in code_only[match.end() : match.end() + 10]:
+                    assert method in valid_collection_methods, f"{py_file}: Invalid collection method {method}"
 
     def test_itsstring_text_property(self):
         """
@@ -224,13 +214,15 @@ class TestLCMMethodVerification:
         ops_dir = Path("flexlibs2/code")
 
         for py_file in ops_dir.rglob("*Operations.py"):
-            content = py_file.read_text(encoding='utf-8')
+            content = py_file.read_text(encoding="utf-8")
 
             # If StringRepresentation is used
-            if 'StringRepresentation' in content:
+            if "StringRepresentation" in content:
                 # Should use .Text property
-                if 'StringRepresentation.Text' not in content and \
-                   'StringRepresentation.CopyAlternatives' not in content:
+                if (
+                    "StringRepresentation.Text" not in content
+                    and "StringRepresentation.CopyAlternatives" not in content
+                ):
                     # This might be OK - could be in comments or just checking existence
                     pass
 
@@ -299,11 +291,11 @@ class TestLCMAPICompleteness:
         found_imports = set()
 
         for py_file in ops_dir.rglob("*Operations.py"):
-            content = py_file.read_text(encoding='utf-8')
+            content = py_file.read_text(encoding="utf-8")
 
             # Extract imports
-            for match in re.finditer(r'from SIL\.LCModel[^;]*import ([^\n]+)', content):
-                imports = match.group(1).split(',')
+            for match in re.finditer(r"from SIL\.LCModel[^;]*import ([^\n]+)", content):
+                imports = match.group(1).split(",")
                 for imp in imports:
                     found_imports.add(imp.strip())
 
@@ -324,16 +316,16 @@ class TestLCMAPICompleteness:
         """
         ops_dir = Path("flexlibs2/code")
         patterns_found = {
-            'ServiceLocator': False,
-            'Factory': False,
-            'CopyAlternatives': False,
-            'TsStringUtils': False,
-            'OS': False,
-            'writeEnabled': False
+            "ServiceLocator": False,
+            "Factory": False,
+            "CopyAlternatives": False,
+            "TsStringUtils": False,
+            "OS": False,
+            "writeEnabled": False,
         }
 
         for py_file in ops_dir.rglob("*Operations.py"):
-            content = py_file.read_text(encoding='utf-8')
+            content = py_file.read_text(encoding="utf-8")
 
             for pattern, _ in patterns_found.items():
                 if pattern in content:

@@ -40,12 +40,14 @@ from tests.operations import (
 # UNIT TESTS - Using Mocks
 # =============================================================================
 
+
 class TestWordformOperationsImport:
     """Test that WfiWordformOperations can be imported and instantiated."""
 
     def test_import_wordform_operations(self):
         """Test importing WfiWordformOperations class."""
         from flexlibs2.code.Wordform.WfiWordformOperations import WfiWordformOperations
+
         assert WfiWordformOperations is not None
 
     def test_instantiate_with_mock_project(self, mock_flex_project):
@@ -83,7 +85,7 @@ class TestWordformOperationsCRUDMethods:
         from flexlibs2.code.Wordform.WfiWordformOperations import WfiWordformOperations
 
         ops = WfiWordformOperations(mock_flex_project)
-        assert hasattr(ops, 'GetAll')
+        assert hasattr(ops, "GetAll")
         assert callable(ops.GetAll)
 
     def test_has_create_method(self, mock_flex_project):
@@ -91,7 +93,7 @@ class TestWordformOperationsCRUDMethods:
         from flexlibs2.code.Wordform.WfiWordformOperations import WfiWordformOperations
 
         ops = WfiWordformOperations(mock_flex_project)
-        assert hasattr(ops, 'Create')
+        assert hasattr(ops, "Create")
         assert callable(ops.Create)
 
     def test_has_delete_method(self, mock_flex_project):
@@ -99,7 +101,7 @@ class TestWordformOperationsCRUDMethods:
         from flexlibs2.code.Wordform.WfiWordformOperations import WfiWordformOperations
 
         ops = WfiWordformOperations(mock_flex_project)
-        assert hasattr(ops, 'Delete')
+        assert hasattr(ops, "Delete")
         assert callable(ops.Delete)
 
     def test_has_find_method(self, mock_flex_project):
@@ -107,7 +109,7 @@ class TestWordformOperationsCRUDMethods:
         from flexlibs2.code.Wordform.WfiWordformOperations import WfiWordformOperations
 
         ops = WfiWordformOperations(mock_flex_project)
-        assert hasattr(ops, 'Find')
+        assert hasattr(ops, "Find")
         assert callable(ops.Find)
 
 
@@ -119,7 +121,7 @@ class TestWordformOperationsPropertyGetters:
         from flexlibs2.code.Wordform.WfiWordformOperations import WfiWordformOperations
 
         ops = WfiWordformOperations(mock_flex_project)
-        assert hasattr(ops, 'GetForm')
+        assert hasattr(ops, "GetForm")
         assert callable(ops.GetForm)
 
     def test_has_getanalyses_method(self, mock_flex_project):
@@ -128,7 +130,7 @@ class TestWordformOperationsPropertyGetters:
 
         ops = WfiWordformOperations(mock_flex_project)
         # Check for analysis-related methods
-        assert hasattr(ops, 'GetAnalyses') or hasattr(ops, 'GetAnalysisCount')
+        assert hasattr(ops, "GetAnalyses") or hasattr(ops, "GetAnalysisCount")
 
 
 class TestWordformOperationsPropertySetters:
@@ -139,7 +141,7 @@ class TestWordformOperationsPropertySetters:
         from flexlibs2.code.Wordform.WfiWordformOperations import WfiWordformOperations
 
         ops = WfiWordformOperations(mock_flex_project)
-        assert hasattr(ops, 'SetForm')
+        assert hasattr(ops, "SetForm")
         assert callable(ops.SetForm)
 
 
@@ -152,7 +154,7 @@ class TestWordformOperationsAnalysisMethods:
 
         ops = WfiWordformOperations(mock_flex_project)
         # Check for analysis methods
-        assert hasattr(ops, 'AddAnalysis') or hasattr(ops, 'GetAnalyses')
+        assert hasattr(ops, "AddAnalysis") or hasattr(ops, "GetAnalyses")
 
 
 class TestWordformOperationsMockBehavior:
@@ -160,10 +162,10 @@ class TestWordformOperationsMockBehavior:
 
     def test_mock_wordform_structure(self, mock_wordform):
         """Test mock wordform has expected structure."""
-        assert hasattr(mock_wordform, 'Form')
-        assert hasattr(mock_wordform, 'AnalysesOC')
-        assert hasattr(mock_wordform, 'Hvo')
-        assert hasattr(mock_wordform, 'Guid')
+        assert hasattr(mock_wordform, "Form")
+        assert hasattr(mock_wordform, "AnalysesOC")
+        assert hasattr(mock_wordform, "Hvo")
+        assert hasattr(mock_wordform, "Guid")
 
     def test_getall_with_mock_repository(self, mock_flex_project):
         """Test GetAll returns iterator from mock repository."""
@@ -172,11 +174,7 @@ class TestWordformOperationsMockBehavior:
         # Setup mock to return test wordforms
         mock_wordforms = [MockLCMObject(hvo=5000 + i) for i in range(3)]
 
-        with patch.object(
-            mock_flex_project,
-            'ObjectsIn',
-            return_value=iter(mock_wordforms)
-        ):
+        with patch.object(mock_flex_project, "ObjectsIn", return_value=iter(mock_wordforms)):
             ops = WfiWordformOperations(mock_flex_project)
             result = list(ops.GetAll())
 
@@ -187,12 +185,12 @@ class TestWordformOperationsMockBehavior:
         from flexlibs2.code.Wordform.WfiWordformOperations import WfiWordformOperations
 
         # Set form on mock
-        mock_wordform.Form = MockMultiString({'en': 'running'})
+        mock_wordform.Form = MockMultiString({"en": "running"})
 
         ops = WfiWordformOperations(mock_flex_project)
 
         # The method should exist
-        assert hasattr(ops, 'GetForm')
+        assert hasattr(ops, "GetForm")
 
 
 class TestWordformOperationsValidation:
@@ -216,6 +214,7 @@ class TestWordformOperationsValidation:
 # =============================================================================
 # INTEGRATION TESTS - Require Real FLEx Project
 # =============================================================================
+
 
 @pytest.mark.integration
 class TestWordformOperationsIntegration:
@@ -287,12 +286,11 @@ class TestWordformOperationsIntegration:
 # PYTEST CONFIGURATION
 # =============================================================================
 
+
 def pytest_configure(config):
     """Register custom markers."""
-    config.addinivalue_line(
-        "markers", "integration: mark test as integration test (requires real FLEx)"
-    )
+    config.addinivalue_line("markers", "integration: mark test as integration test (requires real FLEx)")
 
 
-if __name__ == '__main__':
-    pytest.main([__file__, '-v', '--tb=short', '-m', 'not integration'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v", "--tb=short", "-m", "not integration"])

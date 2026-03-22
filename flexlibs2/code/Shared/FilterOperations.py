@@ -12,9 +12,11 @@
 #
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 import clr
+
 clr.AddReference("System")
 import System
 from System import Guid
@@ -52,18 +54,22 @@ from ..BaseOperations import OperationsMethod, wrap_enumerable
 
 # --- Filter Type Constants ---
 
+
 class FilterTypes:
     """
     Filter type constants for different object classes.
     """
-    LEXENTRY = "LexEntry"           # Lexical entry filters
-    WORDFORM = "Wordform"           # Wordform filters
-    TEXT = "Text"                   # Text filters
-    SENSE = "Sense"                 # Sense filters
-    ALLOMORPH = "Allomorph"         # Allomorph filters
-    CUSTOM = "Custom"               # Custom/generic filters
+
+    LEXENTRY = "LexEntry"  # Lexical entry filters
+    WORDFORM = "Wordform"  # Wordform filters
+    TEXT = "Text"  # Text filters
+    SENSE = "Sense"  # Sense filters
+    ALLOMORPH = "Allomorph"  # Allomorph filters
+    CUSTOM = "Custom"  # Custom/generic filters
+
 
 # --- FilterOperations Class ---
+
 
 class FilterOperations:
     """
@@ -226,23 +232,26 @@ class FilterOperations:
             raise FP_ParameterError(f"Filter with name '{name}' already exists")
 
         # Validate filter type
-        valid_types = [FilterTypes.LEXENTRY, FilterTypes.WORDFORM, FilterTypes.TEXT,
-                      FilterTypes.SENSE, FilterTypes.ALLOMORPH, FilterTypes.CUSTOM]
+        valid_types = [
+            FilterTypes.LEXENTRY,
+            FilterTypes.WORDFORM,
+            FilterTypes.TEXT,
+            FilterTypes.SENSE,
+            FilterTypes.ALLOMORPH,
+            FilterTypes.CUSTOM,
+        ]
         if filter_type not in valid_types:
-            raise FP_ParameterError(
-                f"Invalid filter type: {filter_type}. "
-                f"Use one of: {', '.join(valid_types)}"
-            )
+            raise FP_ParameterError(f"Invalid filter type: {filter_type}. " f"Use one of: {', '.join(valid_types)}")
 
         # Create filter object with unique GUID
         filter_guid = str(Guid.NewGuid())
         filter_obj = {
-            'guid': filter_guid,
-            'name': name.strip(),
-            'filter_type': filter_type,
-            'criteria': criteria,
-            'date_created': System.DateTime.Now.ToString(),
-            'date_modified': System.DateTime.Now.ToString()
+            "guid": filter_guid,
+            "name": name.strip(),
+            "filter_type": filter_type,
+            "criteria": criteria,
+            "date_created": System.DateTime.Now.ToString(),
+            "date_modified": System.DateTime.Now.ToString(),
         }
 
         # Save to project
@@ -290,7 +299,7 @@ class FilterOperations:
 
         self._ValidateParam(filter_obj, "filter_obj")
 
-        filter_guid = filter_obj.get('guid')
+        filter_guid = filter_obj.get("guid")
         if not filter_guid:
             raise FP_ParameterError("Invalid filter object: missing GUID")
 
@@ -347,7 +356,7 @@ class FilterOperations:
 
         filters = self._LoadFiltersFromProject()
         for filter_data in filters.values():
-            if filter_data['name'] == name.strip():
+            if filter_data["name"] == name.strip():
                 return filter_data
 
         return None
@@ -423,10 +432,10 @@ class FilterOperations:
         """
         self._ValidateParam(filter_obj, "filter_obj")
 
-        if not isinstance(filter_obj, dict) or 'name' not in filter_obj:
+        if not isinstance(filter_obj, dict) or "name" not in filter_obj:
             raise FP_ParameterError("Invalid filter object")
 
-        return filter_obj['name']
+        return filter_obj["name"]
 
     @OperationsMethod
     def SetName(self, filter_obj, name):
@@ -464,16 +473,16 @@ class FilterOperations:
         if not name or not name.strip():
             raise FP_ParameterError("Filter name cannot be empty")
 
-        if not isinstance(filter_obj, dict) or 'guid' not in filter_obj:
+        if not isinstance(filter_obj, dict) or "guid" not in filter_obj:
             raise FP_ParameterError("Invalid filter object")
 
         # Update filter
-        filter_obj['name'] = name.strip()
-        filter_obj['date_modified'] = System.DateTime.Now.ToString()
+        filter_obj["name"] = name.strip()
+        filter_obj["date_modified"] = System.DateTime.Now.ToString()
 
         # Save to project
         filters = self._LoadFiltersFromProject()
-        filter_guid = filter_obj['guid']
+        filter_guid = filter_obj["guid"]
         filters[filter_guid] = filter_obj
         self._SaveFiltersToProject(filters)
 
@@ -517,10 +526,10 @@ class FilterOperations:
         """
         self._ValidateParam(filter_obj, "filter_obj")
 
-        if not isinstance(filter_obj, dict) or 'criteria' not in filter_obj:
+        if not isinstance(filter_obj, dict) or "criteria" not in filter_obj:
             raise FP_ParameterError("Invalid filter object")
 
-        return filter_obj['criteria']
+        return filter_obj["criteria"]
 
     @OperationsMethod
     def SetCriteria(self, filter_obj, criteria):
@@ -562,16 +571,16 @@ class FilterOperations:
 
         self._ValidateParam(filter_obj, "filter_obj")
 
-        if not isinstance(filter_obj, dict) or 'guid' not in filter_obj:
+        if not isinstance(filter_obj, dict) or "guid" not in filter_obj:
             raise FP_ParameterError("Invalid filter object")
 
         # Update filter
-        filter_obj['criteria'] = criteria
-        filter_obj['date_modified'] = System.DateTime.Now.ToString()
+        filter_obj["criteria"] = criteria
+        filter_obj["date_modified"] = System.DateTime.Now.ToString()
 
         # Save to project
         filters = self._LoadFiltersFromProject()
-        filter_guid = filter_obj['guid']
+        filter_guid = filter_obj["guid"]
         filters[filter_guid] = filter_obj
         self._SaveFiltersToProject(filters)
 
@@ -612,10 +621,10 @@ class FilterOperations:
         """
         self._ValidateParam(filter_obj, "filter_obj")
 
-        if not isinstance(filter_obj, dict) or 'filter_type' not in filter_obj:
+        if not isinstance(filter_obj, dict) or "filter_type" not in filter_obj:
             raise FP_ParameterError("Invalid filter object")
 
-        return filter_obj['filter_type']
+        return filter_obj["filter_type"]
 
     @OperationsMethod
     def GetGuid(self, filter_obj):
@@ -649,10 +658,10 @@ class FilterOperations:
         """
         self._ValidateParam(filter_obj, "filter_obj")
 
-        if not isinstance(filter_obj, dict) or 'guid' not in filter_obj:
+        if not isinstance(filter_obj, dict) or "guid" not in filter_obj:
             raise FP_ParameterError("Invalid filter object")
 
-        return filter_obj['guid']
+        return filter_obj["guid"]
 
     # --- Filter Application ---
 
@@ -810,7 +819,7 @@ class FilterOperations:
             raise FP_ParameterError("Invalid filter object")
 
         try:
-            with open(file_path, 'w', encoding='utf-8') as f:
+            with open(file_path, "w", encoding="utf-8") as f:
                 json.dump(filter_obj, f, indent=2, ensure_ascii=False)
         except Exception as e:
             raise FP_ParameterError(f"Failed to export filter: {e}")
@@ -862,7 +871,7 @@ class FilterOperations:
             raise FP_ParameterError(f"Filter file not found: {file_path}")
 
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 filter_data = json.load(f)
         except Exception as e:
             raise FP_ParameterError(f"Failed to import filter: {e}")
@@ -871,13 +880,13 @@ class FilterOperations:
         if not isinstance(filter_data, dict):
             raise FP_ParameterError("Invalid filter file: not a dictionary")
 
-        required_keys = ['name', 'filter_type', 'criteria']
+        required_keys = ["name", "filter_type", "criteria"]
         for key in required_keys:
             if key not in filter_data:
                 raise FP_ParameterError(f"Invalid filter file: missing '{key}'")
 
         # Handle name conflicts
-        original_name = filter_data['name']
+        original_name = filter_data["name"]
         import_name = original_name
 
         if self.Exists(import_name):
@@ -889,16 +898,11 @@ class FilterOperations:
                 import_name = f"{original_name} {counter}"
             else:
                 raise FP_ParameterError(
-                    f"Filter with name '{original_name}' already exists. "
-                    f"Use rename_if_exists=True to auto-rename."
+                    f"Filter with name '{original_name}' already exists. " f"Use rename_if_exists=True to auto-rename."
                 )
 
         # Create the filter (this assigns new GUID and dates)
-        return self.Create(
-            import_name,
-            filter_data['filter_type'],
-            filter_data['criteria']
-        )
+        return self.Create(import_name, filter_data["filter_type"], filter_data["criteria"])
 
     # --- Utility Methods ---
 
@@ -940,7 +944,7 @@ class FilterOperations:
         self._ValidateParam(filter_type, "filter_type")
 
         for filter_obj in self.GetAll():
-            if filter_obj['filter_type'] == filter_type:
+            if filter_obj["filter_type"] == filter_type:
                 yield filter_obj
 
     @OperationsMethod
@@ -974,10 +978,10 @@ class FilterOperations:
         """
         self._ValidateParam(filter_obj, "filter_obj")
 
-        if not isinstance(filter_obj, dict) or 'date_created' not in filter_obj:
+        if not isinstance(filter_obj, dict) or "date_created" not in filter_obj:
             raise FP_ParameterError("Invalid filter object")
 
-        return filter_obj.get('date_created', '')
+        return filter_obj.get("date_created", "")
 
     @OperationsMethod
     def GetDateModified(self, filter_obj):
@@ -1010,10 +1014,10 @@ class FilterOperations:
         """
         self._ValidateParam(filter_obj, "filter_obj")
 
-        if not isinstance(filter_obj, dict) or 'date_modified' not in filter_obj:
+        if not isinstance(filter_obj, dict) or "date_modified" not in filter_obj:
             raise FP_ParameterError("Invalid filter object")
 
-        return filter_obj.get('date_modified', '')
+        return filter_obj.get("date_modified", "")
 
     # --- Private Helper Methods ---
 
@@ -1028,8 +1032,8 @@ class FilterOperations:
         # Since FLEx doesn't have a built-in filter storage API,
         # we store filters as JSON in a custom project property
         try:
-            if hasattr(self.project, 'GetProjectProperty'):
-                filters_json = self.project.GetProjectProperty('flexlibs_filters')
+            if hasattr(self.project, "GetProjectProperty"):
+                filters_json = self.project.GetProjectProperty("flexlibs_filters")
                 if filters_json:
                     return json.loads(filters_json)
         except (json.JSONDecodeError, KeyError, AttributeError) as e:
@@ -1048,15 +1052,12 @@ class FilterOperations:
         # Save to project settings as JSON
         filters_json = json.dumps(filters, indent=2, ensure_ascii=False)
 
-        if hasattr(self.project, 'SetProjectProperty'):
-            self.project.SetProjectProperty('flexlibs_filters', filters_json)
+        if hasattr(self.project, "SetProjectProperty"):
+            self.project.SetProjectProperty("flexlibs_filters", filters_json)
         else:
             # Fallback: store in memory cache only
             # (will be lost when project closes)
-            logger.warning(
-                "Project does not support custom properties. "
-                "Filters will only persist in memory."
-            )
+            logger.warning("Project does not support custom properties. " "Filters will only persist in memory.")
 
     def _GetAllObjectsOfType(self, filter_type):
         """
@@ -1120,8 +1121,8 @@ class FilterOperations:
         # This can be extended based on actual requirements
 
         # Check POS (part of speech)
-        if 'pos' in criteria:
-            pos_name = criteria['pos'].lower()
+        if "pos" in criteria:
+            pos_name = criteria["pos"].lower()
             # Get entry's POS and compare
             # Use get_pos_from_msa() to handle pythonnet interface casting
             try:
@@ -1139,8 +1140,8 @@ class FilterOperations:
                 return False
 
         # Check morph type
-        if 'morph_type' in criteria:
-            morph_type_name = criteria['morph_type'].lower()
+        if "morph_type" in criteria:
+            morph_type_name = criteria["morph_type"].lower()
             try:
                 if entry.LexemeFormOA and entry.LexemeFormOA.MorphTypeRA:
                     mt = entry.LexemeFormOA.MorphTypeRA
@@ -1151,9 +1152,10 @@ class FilterOperations:
                 return False
 
         # Check form pattern (regex)
-        if 'form_pattern' in criteria:
+        if "form_pattern" in criteria:
             import re
-            pattern = criteria['form_pattern']
+
+            pattern = criteria["form_pattern"]
             try:
                 form = normalize_text(ITsString(entry.LexemeFormOA.Form.BestVernacularAlternative).Text)
                 if form and not re.search(pattern, form):
@@ -1176,15 +1178,16 @@ class FilterOperations:
             bool: True if matches all criteria
         """
         # Check spelling status
-        if 'spelling_status' in criteria:
-            expected_status = criteria['spelling_status']
+        if "spelling_status" in criteria:
+            expected_status = criteria["spelling_status"]
             if wordform.SpellingStatus != expected_status:
                 return False
 
         # Check form pattern (regex)
-        if 'form_pattern' in criteria:
+        if "form_pattern" in criteria:
             import re
-            pattern = criteria['form_pattern']
+
+            pattern = criteria["form_pattern"]
             try:
                 form = ITsString(wordform.Form.BestVernacularAlternative).Text
                 if form and not re.search(pattern, form):
@@ -1206,8 +1209,8 @@ class FilterOperations:
             bool: True if matches all criteria
         """
         # Check genre
-        if 'genre' in criteria:
-            genre_name = criteria['genre'].lower()
+        if "genre" in criteria:
+            genre_name = criteria["genre"].lower()
             try:
                 if text.GenresRC and text.GenresRC.Count > 0:
                     for genre in text.GenresRC:
@@ -1219,9 +1222,10 @@ class FilterOperations:
                 return False
 
         # Check title pattern (regex)
-        if 'title_pattern' in criteria:
+        if "title_pattern" in criteria:
             import re
-            pattern = criteria['title_pattern']
+
+            pattern = criteria["title_pattern"]
             try:
                 title = ITsString(text.Title.BestAnalysisAlternative).Text
                 if title and not re.search(pattern, title):
@@ -1278,12 +1282,12 @@ class FilterOperations:
 
         filter_guid = str(Guid.NewGuid())
         duplicate = {
-            'guid': filter_guid,
-            'name': source['name'],  # Copy name as-is
-            'filter_type': source['filter_type'],
-            'criteria': dict(source['criteria']),  # Deep copy criteria dict
-            'date_created': System.DateTime.Now.ToString(),
-            'date_modified': System.DateTime.Now.ToString()
+            "guid": filter_guid,
+            "name": source["name"],  # Copy name as-is
+            "filter_type": source["filter_type"],
+            "criteria": dict(source["criteria"]),  # Deep copy criteria dict
+            "date_created": System.DateTime.Now.ToString(),
+            "date_modified": System.DateTime.Now.ToString(),
         }
 
         # Save to project
@@ -1324,15 +1328,15 @@ class FilterOperations:
         props = {}
 
         # String properties
-        if 'name' in item:
-            props['name'] = item['name']
+        if "name" in item:
+            props["name"] = item["name"]
 
-        if 'filter_type' in item:
-            props['filter_type'] = item['filter_type']
+        if "filter_type" in item:
+            props["filter_type"] = item["filter_type"]
 
         # Dict property
-        if 'criteria' in item:
-            props['criteria'] = item['criteria']
+        if "criteria" in item:
+            props["criteria"] = item["criteria"]
 
         return props
 
@@ -1380,7 +1384,7 @@ class FilterOperations:
             val2 = props2.get(key)
 
             # Compare values (handle dicts specially for criteria)
-            if key == 'criteria':
+            if key == "criteria":
                 # Deep comparison for criteria dict
                 if val1 != val2:
                     differences[key] = (val1, val2)

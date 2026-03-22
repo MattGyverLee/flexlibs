@@ -27,15 +27,15 @@ class TestPhonemeDuplicateFix:
         which is the actual method available in LCM (CopyObject doesn't exist).
         """
         phoneme_ops_file = Path("flexlibs2/code/Grammar/PhonemeOperations.py")
-        content = phoneme_ops_file.read_text(encoding='utf-8')
+        content = phoneme_ops_file.read_text(encoding="utf-8")
 
         # Verify the correct pattern is used
-        assert 'SetCloneProperties' in content, \
-            "Code should use SetCloneProperties for deep copy"
+        assert "SetCloneProperties" in content, "Code should use SetCloneProperties for deep copy"
 
         # Verify ObjectRepository.NewObject is used to create new objects
-        assert 'ObjectRepository.NewObject' in content, \
-            "Code should create new objects with ObjectRepository.NewObject()"
+        assert (
+            "ObjectRepository.NewObject" in content
+        ), "Code should create new objects with ObjectRepository.NewObject()"
 
     def test_no_copyobject_method_calls(self):
         """
@@ -46,26 +46,20 @@ class TestPhonemeDuplicateFix:
         """
         from pathlib import Path
 
-        phoneme_ops_file = Path(
-            "flexlibs2/code/Grammar/PhonemeOperations.py"
-        )
-        content = phoneme_ops_file.read_text(encoding='utf-8')
+        phoneme_ops_file = Path("flexlibs2/code/Grammar/PhonemeOperations.py")
+        content = phoneme_ops_file.read_text(encoding="utf-8")
 
         # Check that generic bracket syntax is not used
-        assert "CopyObject[" not in content, \
-            "File still contains CopyObject[T] generic syntax"
+        assert "CopyObject[" not in content, "File still contains CopyObject[T] generic syntax"
 
         # Check that CloneLcmObject is not used
-        assert "CloneLcmObject" not in content, \
-            "File still contains CloneLcmObject method call"
+        assert "CloneLcmObject" not in content, "File still contains CloneLcmObject method call"
 
         # Check that broken cache.CopyObject pattern is not used
-        assert "cache.CopyObject" not in content, \
-            "File should not use cache.CopyObject (method doesn't exist)"
+        assert "cache.CopyObject" not in content, "File should not use cache.CopyObject (method doesn't exist)"
 
         # Verify SetCloneProperties is used instead
-        assert 'SetCloneProperties' in content, \
-            "File should use SetCloneProperties for deep copy"
+        assert "SetCloneProperties" in content, "File should use SetCloneProperties for deep copy"
 
 
 class TestCopyObjectImportRemoved:
@@ -80,18 +74,16 @@ class TestCopyObjectImportRemoved:
         """
         from pathlib import Path
 
-        phoneme_ops_file = Path(
-            "flexlibs2/code/Grammar/PhonemeOperations.py"
-        )
-        content = phoneme_ops_file.read_text(encoding='utf-8')
+        phoneme_ops_file = Path("flexlibs2/code/Grammar/PhonemeOperations.py")
+        content = phoneme_ops_file.read_text(encoding="utf-8")
 
         # Check that the try/except import is removed
-        assert "from SIL.LCModel.DomainServices import CopyObject" not in content, \
-            "CopyObject import from DomainServices should be removed"
+        assert (
+            "from SIL.LCModel.DomainServices import CopyObject" not in content
+        ), "CopyObject import from DomainServices should be removed"
 
         # Check that CopyObject = None fallback is removed
-        assert "CopyObject = None" not in content, \
-            "CopyObject = None fallback should be removed"
+        assert "CopyObject = None" not in content, "CopyObject = None fallback should be removed"
 
 
 if __name__ == "__main__":

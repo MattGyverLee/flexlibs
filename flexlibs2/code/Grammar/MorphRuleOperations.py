@@ -51,6 +51,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+
 class MorphRuleOperations(BaseOperations):
     """
     Operations for managing morphological rules in a FieldWorks project.
@@ -115,14 +116,11 @@ class MorphRuleOperations(BaseOperations):
         Ad hoc co-prohibitions are in an owning collection (OC),
         not an owning sequence (OS), so reordering does not apply.
         """
-        if hasattr(parent, 'CompoundRulesOS'):
+        if hasattr(parent, "CompoundRulesOS"):
             return parent.CompoundRulesOS
-        elif hasattr(parent, 'AffixTemplatesOS'):
+        elif hasattr(parent, "AffixTemplatesOS"):
             return parent.AffixTemplatesOS
-        raise ValueError(
-            "Parent must be MoMorphData (for compound rules) or "
-            "PartOfSpeech (for affix templates)"
-        )
+        raise ValueError("Parent must be MoMorphData (for compound rules) or " "PartOfSpeech (for affix templates)")
 
     # ========== ENUMERATION ==========
 
@@ -257,7 +255,7 @@ class MorphRuleOperations(BaseOperations):
         self._ValidateParam(pos_or_hvo, "pos_or_hvo")
 
         pos = self.__ResolveObject(pos_or_hvo)
-        if hasattr(pos, 'AffixTemplatesOS'):
+        if hasattr(pos, "AffixTemplatesOS"):
             wrapped = [AffixTemplate(t) for t in pos.AffixTemplatesOS]
             return AffixTemplateCollection(wrapped)
         return AffixTemplateCollection()
@@ -449,16 +447,15 @@ class MorphRuleOperations(BaseOperations):
 
         morph_data = self.project.lp.MorphologicalDataOA
 
-        if class_name in ('MoEndoCompound', 'MoExoCompound'):
+        if class_name in ("MoEndoCompound", "MoExoCompound"):
             if morph_data:
                 morph_data.CompoundRulesOS.Remove(rule)
-        elif class_name == 'MoInflAffixTemplate':
+        elif class_name == "MoInflAffixTemplate":
             # Template is owned by a PartOfSpeech
             owner = self._GetObject(rule.Owner.Hvo)
-            if hasattr(owner, 'AffixTemplatesOS'):
+            if hasattr(owner, "AffixTemplatesOS"):
                 owner.AffixTemplatesOS.Remove(rule)
-        elif class_name in ('MoAdhocProhibGr', 'MoAdhocProhibMorph',
-                            'MoAdhocProhibAllomorph'):
+        elif class_name in ("MoAdhocProhibGr", "MoAdhocProhibMorph", "MoAdhocProhibAllomorph"):
             if morph_data:
                 morph_data.AdhocCoProhibitionsOC.Remove(rule)
 
@@ -621,7 +618,7 @@ class MorphRuleOperations(BaseOperations):
 
         rule = self.__ResolveObject(rule_or_hvo)
 
-        if hasattr(rule, 'StratumRA') and rule.StratumRA:
+        if hasattr(rule, "StratumRA") and rule.StratumRA:
             return rule.StratumRA
 
         return None
@@ -656,7 +653,7 @@ class MorphRuleOperations(BaseOperations):
 
         rule = self.__ResolveObject(rule_or_hvo)
 
-        if hasattr(rule, 'StratumRA'):
+        if hasattr(rule, "StratumRA"):
             if stratum is None:
                 rule.StratumRA = None
             else:
@@ -693,7 +690,7 @@ class MorphRuleOperations(BaseOperations):
 
         rule = self.__ResolveObject(rule_or_hvo)
 
-        if hasattr(rule, 'Disabled'):
+        if hasattr(rule, "Disabled"):
             return rule.Disabled
 
         return False
@@ -728,7 +725,7 @@ class MorphRuleOperations(BaseOperations):
 
         rule = self.__ResolveObject(rule_or_hvo)
 
-        if hasattr(rule, 'Disabled'):
+        if hasattr(rule, "Disabled"):
             rule.Disabled = bool(disabled)
 
     # ========== DUPLICATION ==========
@@ -784,35 +781,32 @@ class MorphRuleOperations(BaseOperations):
         class_name = source.ClassName
 
         # Create duplicate and add to owning collection
-        if class_name in ('MoEndoCompound', 'MoExoCompound'):
+        if class_name in ("MoEndoCompound", "MoExoCompound"):
             duplicate = self.__DuplicateCompoundRule(source, class_name, insert_after)
-        elif class_name == 'MoInflAffixTemplate':
+        elif class_name == "MoInflAffixTemplate":
             duplicate = self.__DuplicateAffixTemplate(source, insert_after)
         else:
-            raise FP_ParameterError(
-                f"Unsupported rule type for duplication: {class_name}"
-            )
+            raise FP_ParameterError(f"Unsupported rule type for duplication: {class_name}")
 
         # Copy MultiString properties (AFTER adding to parent)
         duplicate.Name.CopyAlternatives(source.Name)
         duplicate.Description.CopyAlternatives(source.Description)
 
         # Copy Reference Atomic (RA) properties
-        if hasattr(source, 'StratumRA') and source.StratumRA:
+        if hasattr(source, "StratumRA") and source.StratumRA:
             duplicate.StratumRA = source.StratumRA
 
         # Copy boolean properties (where applicable)
-        if hasattr(source, 'Disabled'):
+        if hasattr(source, "Disabled"):
             duplicate.Disabled = source.Disabled
-        if hasattr(source, 'HeadLast'):
+        if hasattr(source, "HeadLast"):
             duplicate.HeadLast = source.HeadLast
-        if hasattr(source, 'Final'):
+        if hasattr(source, "Final"):
             duplicate.Final = source.Final
 
         # Deep copy: reference sequences for affix templates
-        if deep and class_name == 'MoInflAffixTemplate':
-            for slot_prop in ('PrefixSlotsRS', 'SuffixSlotsRS',
-                              'ProcliticSlotsRS', 'EncliticSlotsRS'):
+        if deep and class_name == "MoInflAffixTemplate":
+            for slot_prop in ("PrefixSlotsRS", "SuffixSlotsRS", "ProcliticSlotsRS", "EncliticSlotsRS"):
                 if hasattr(source, slot_prop) and hasattr(duplicate, slot_prop):
                     src_slots = getattr(source, slot_prop)
                     dst_slots = getattr(duplicate, slot_prop)
@@ -823,7 +817,7 @@ class MorphRuleOperations(BaseOperations):
 
     def __DuplicateCompoundRule(self, source, class_name, insert_after):
         """Create and insert a duplicate compound rule."""
-        if class_name == 'MoEndoCompound':
+        if class_name == "MoEndoCompound":
             factory = self.project.project.ServiceLocator.GetService(IMoEndoCompoundFactory)
         else:
             factory = self.project.project.ServiceLocator.GetService(IMoExoCompoundFactory)
@@ -886,7 +880,7 @@ class MorphRuleOperations(BaseOperations):
         props = {}
 
         # MultiString properties
-        for prop_name in ['Name', 'Description']:
+        for prop_name in ["Name", "Description"]:
             if hasattr(rule, prop_name):
                 prop_obj = getattr(rule, prop_name)
                 ws_values = {}
@@ -898,13 +892,13 @@ class MorphRuleOperations(BaseOperations):
                     props[prop_name] = ws_values
 
         # Boolean properties
-        for prop_name in ['Disabled', 'HeadLast', 'Final']:
+        for prop_name in ["Disabled", "HeadLast", "Final"]:
             if hasattr(rule, prop_name):
                 props[prop_name] = getattr(rule, prop_name)
 
         # Reference Atomic (RA) properties - return GUID as string
-        if hasattr(rule, 'StratumRA') and rule.StratumRA:
-            props['StratumGuid'] = str(rule.StratumRA.Guid)
+        if hasattr(rule, "StratumRA") and rule.StratumRA:
+            props["StratumGuid"] = str(rule.StratumRA.Guid)
 
         return props
 
@@ -970,9 +964,9 @@ class MorphRuleOperations(BaseOperations):
 
     def __WalkPOSForTemplates(self, pos):
         """Recursively yield affix templates from a POS and its subcategories."""
-        if hasattr(pos, 'AffixTemplatesOS'):
+        if hasattr(pos, "AffixTemplatesOS"):
             for template in pos.AffixTemplatesOS:
                 yield template
-        if hasattr(pos, 'SubPossibilitiesOS'):
+        if hasattr(pos, "SubPossibilitiesOS"):
             for sub in pos.SubPossibilitiesOS:
                 yield from self.__WalkPOSForTemplates(sub)

@@ -30,6 +30,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+
 class ConstChartTagOperations(BaseOperations):
     """
     This class provides operations for managing chart tags (discourse markers)
@@ -120,7 +121,7 @@ class ConstChartTagOperations(BaseOperations):
         wsHandle = self.__WSHandleAnalysis()
 
         # Get or create the tag possibility list
-        if not hasattr(chart, 'TagsOC') or chart.TagsOC is None:
+        if not hasattr(chart, "TagsOC") or chart.TagsOC is None:
             # Chart doesn't have tags collection - this is normal
             # Tags would be in a CmPossibilityList referenced by the chart
             # For simplicity, we'll create the tag as a CmPossibility
@@ -137,7 +138,7 @@ class ConstChartTagOperations(BaseOperations):
         # Add to chart's tags collection
         # Note: In FLEx, tags may be stored differently depending on the chart structure
         # This implementation assumes a basic tag storage
-        if hasattr(chart, 'TagsOC'):
+        if hasattr(chart, "TagsOC"):
             chart.TagsOC.Add(new_tag)
 
         return new_tag
@@ -218,7 +219,7 @@ class ConstChartTagOperations(BaseOperations):
         wsHandle = self.__WSHandleAnalysis()
 
         # Search through chart tags
-        if hasattr(chart, 'TagsOC'):
+        if hasattr(chart, "TagsOC"):
             for tag in chart.TagsOC:
                 tag_name = ITsString(tag.Name.get_String(wsHandle)).Text
                 if tag_name == name:
@@ -260,7 +261,7 @@ class ConstChartTagOperations(BaseOperations):
 
         chart = self.__ResolveChart(chart_or_hvo)
 
-        if hasattr(chart, 'TagsOC'):
+        if hasattr(chart, "TagsOC"):
             return list(chart.TagsOC)
 
         return []
@@ -470,10 +471,7 @@ class ConstChartTagOperations(BaseOperations):
         """
         if ws is None:
             return self.project.project.DefaultAnalWs
-        return self.project._FLExProject__WSHandle(
-            ws,
-            self.project.project.DefaultAnalWs
-        )
+        return self.project._FLExProject__WSHandle(ws, self.project.project.DefaultAnalWs)
 
     def __WSHandleAnalysis(self):
         """
@@ -501,9 +499,8 @@ class ConstChartTagOperations(BaseOperations):
             - Tags are in an owning collection (OC), not sequence (OS)
             - Reordering may not be applicable to tag collections
         """
-        if hasattr(parent, 'TagsOC'):
+        if hasattr(parent, "TagsOC"):
             return parent.TagsOC
         raise NotImplementedError(
-            "Chart does not have a TagsOC collection. "
-            "Tag reordering may not be applicable to this chart structure."
+            "Chart does not have a TagsOC collection. " "Tag reordering may not be applicable to this chart structure."
         )

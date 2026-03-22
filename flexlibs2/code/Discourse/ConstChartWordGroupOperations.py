@@ -28,6 +28,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+
 class ConstChartWordGroupOperations(BaseOperations):
     """
     This class provides operations for managing word groups in constituent chart rows
@@ -289,7 +290,7 @@ class ConstChartWordGroupOperations(BaseOperations):
 
         group = self.__ResolveObject(group_or_hvo)
 
-        return group.BeginSegmentRA if hasattr(group, 'BeginSegmentRA') else None
+        return group.BeginSegmentRA if hasattr(group, "BeginSegmentRA") else None
 
     @OperationsMethod
     def SetBeginSegment(self, group_or_hvo, segment):
@@ -361,7 +362,7 @@ class ConstChartWordGroupOperations(BaseOperations):
 
         group = self.__ResolveObject(group_or_hvo)
 
-        return group.EndSegmentRA if hasattr(group, 'EndSegmentRA') else None
+        return group.EndSegmentRA if hasattr(group, "EndSegmentRA") else None
 
     @OperationsMethod
     def SetEndSegment(self, group_or_hvo, segment):
@@ -434,7 +435,7 @@ class ConstChartWordGroupOperations(BaseOperations):
 
         group = self.__ResolveObject(group_or_hvo)
 
-        return group.ColumnRA if hasattr(group, 'ColumnRA') else None
+        return group.ColumnRA if hasattr(group, "ColumnRA") else None
 
     @OperationsMethod
     def SetColumn(self, group_or_hvo, column):

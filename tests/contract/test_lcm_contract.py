@@ -51,16 +51,21 @@ BASELINE_SNAPSHOT_PATH = SNAPSHOTS_DIR / "liblcm_baseline.json"
 
 # --- Markers ---
 
-requires_liblcm = pytest.mark.skipif(
-    not _has_liblcm(),
-    reason="Requires FieldWorks/liblcm (pythonnet + SIL.LCModel)",
-) if not callable else None  # defined below
+requires_liblcm = (
+    pytest.mark.skipif(
+        not _has_liblcm(),
+        reason="Requires FieldWorks/liblcm (pythonnet + SIL.LCModel)",
+    )
+    if not callable
+    else None
+)  # defined below
 
 
 def _has_liblcm():
     """Check if liblcm is available via pythonnet."""
     try:
         import clr
+
         clr.AddReference("SIL.LCModel")
         return True
     except Exception:
@@ -75,6 +80,7 @@ requires_liblcm = pytest.mark.skipif(
 
 # --- Fixtures ---
 
+
 @pytest.fixture(scope="session")
 def expected_contract():
     """Extract the expected LCM contract from flexlibs2 source."""
@@ -85,9 +91,11 @@ def expected_contract():
 def baseline_contract():
     """Load the checked-in baseline contract, if it exists."""
     if not BASELINE_CONTRACT_PATH.exists():
-        pytest.skip("No baseline contract snapshot found. Run: "
-                     "python -m tests.contract.extract_lcm_contract "
-                     f"-o {BASELINE_CONTRACT_PATH}")
+        pytest.skip(
+            "No baseline contract snapshot found. Run: "
+            "python -m tests.contract.extract_lcm_contract "
+            f"-o {BASELINE_CONTRACT_PATH}"
+        )
     return json.loads(BASELINE_CONTRACT_PATH.read_text(encoding="utf-8"))
 
 
@@ -95,14 +103,14 @@ def baseline_contract():
 def baseline_snapshot():
     """Load the checked-in liblcm baseline snapshot, if it exists."""
     if not BASELINE_SNAPSHOT_PATH.exists():
-        pytest.skip("No liblcm baseline snapshot found. Generate one on a "
-                     "machine with FieldWorks installed.")
+        pytest.skip("No liblcm baseline snapshot found. Generate one on a " "machine with FieldWorks installed.")
     return json.loads(BASELINE_SNAPSHOT_PATH.read_text(encoding="utf-8"))
 
 
 # ============================================================
 # MODE 1: Static analysis tests (run anywhere)
 # ============================================================
+
 
 class TestContractExtraction:
     """Verify that the contract extractor works and produces valid output."""
@@ -116,30 +124,22 @@ class TestContractExtraction:
     def test_contract_has_files(self, expected_contract):
         """Contract should cover multiple source files."""
         files = expected_contract["files"]
-        assert len(files) > 30, (
-            f"Expected 30+ files with LCM deps, found {len(files)}"
-        )
+        assert len(files) > 30, f"Expected 30+ files with LCM deps, found {len(files)}"
 
     def test_contract_has_factories(self, expected_contract):
         """Contract should identify factory types."""
         factories = expected_contract["factories"]
-        assert len(factories) > 10, (
-            f"Expected 10+ factories, found {len(factories)}"
-        )
+        assert len(factories) > 10, f"Expected 10+ factories, found {len(factories)}"
 
     def test_contract_has_repositories(self, expected_contract):
         """Contract should identify repository types."""
         repos = expected_contract["repositories"]
-        assert len(repos) > 5, (
-            f"Expected 5+ repositories, found {len(repos)}"
-        )
+        assert len(repos) > 5, f"Expected 5+ repositories, found {len(repos)}"
 
     def test_contract_has_interfaces(self, expected_contract):
         """Contract should identify interface types (I-prefixed)."""
         interfaces = expected_contract["interfaces"]
-        assert len(interfaces) > 20, (
-            f"Expected 20+ interfaces, found {len(interfaces)}"
-        )
+        assert len(interfaces) > 20, f"Expected 20+ interfaces, found {len(interfaces)}"
 
     def test_critical_types_present(self, expected_contract):
         """
@@ -158,9 +158,7 @@ class TestContractExtraction:
             "IPartOfSpeech",
         ]
         for name in critical:
-            assert name in all_names, (
-                f"Critical type {name} not found in contract"
-            )
+            assert name in all_names, f"Critical type {name} not found in contract"
 
     def test_summary_is_consistent(self, expected_contract):
         """Summary counts should match actual data."""
@@ -213,9 +211,9 @@ class TestContractStability:
         if removed:
             # This is a warning, not a failure
             import warnings
+
             warnings.warn(
-                f"LCM type dependencies removed (update baseline):\n"
-                + "\n".join(f"  - {n}" for n in sorted(removed))
+                f"LCM type dependencies removed (update baseline):\n" + "\n".join(f"  - {n}" for n in sorted(removed))
             )
 
     def test_file_count_not_dramatically_changed(self, expected_contract, baseline_contract):
@@ -238,6 +236,7 @@ class TestContractStability:
 # MODE 2: Live liblcm verification (requires deps)
 # ============================================================
 
+
 @requires_liblcm
 class TestLiveContractVerification:
     """
@@ -249,6 +248,7 @@ class TestLiveContractVerification:
     def liblcm_snapshot(self, expected_contract):
         """Generate a live snapshot from installed liblcm."""
         from tests.contract.generate_lcm_snapshot import generate_snapshot
+
         return generate_snapshot(expected_contract)
 
     def test_all_types_found(self, liblcm_snapshot):
@@ -256,36 +256,28 @@ class TestLiveContractVerification:
         missing = liblcm_snapshot.get("missing_types", [])
         if missing:
             lines = [f"  - {t}" for t in missing]
-            pytest.fail(
-                f"{len(missing)} types not found in liblcm:\n"
-                + "\n".join(lines)
-            )
+            pytest.fail(f"{len(missing)} types not found in liblcm:\n" + "\n".join(lines))
 
     def test_no_missing_members(self, expected_contract, liblcm_snapshot):
         """
         Every property/method flexlibs2 uses should exist on the type.
         """
         from tests.contract.compare_contracts import compare
+
         report = compare(expected_contract, liblcm_snapshot)
 
         missing = report["missing_members"]
         if missing:
-            lines = [
-                f"  - {mm['type']}.{mm['member']} ({mm['kind']})"
-                for mm in missing
-            ]
-            pytest.fail(
-                f"{len(missing)} missing members:\n" + "\n".join(lines)
-            )
+            lines = [f"  - {mm['type']}.{mm['member']} ({mm['kind']})" for mm in missing]
+            pytest.fail(f"{len(missing)} missing members:\n" + "\n".join(lines))
 
     def test_compatibility_score(self, expected_contract, liblcm_snapshot):
         """Compatibility score should be 100%."""
         from tests.contract.compare_contracts import compare
+
         report = compare(expected_contract, liblcm_snapshot)
         score = report["summary"]["compatibility_score"]
-        assert score == 100.0, (
-            f"Compatibility score: {score}% (expected 100%)"
-        )
+        assert score == 100.0, f"Compatibility score: {score}% (expected 100%)"
 
     def test_save_snapshot_for_regression(self, liblcm_snapshot, tmp_path):
         """
@@ -311,6 +303,7 @@ class TestLiveRegressionCheck:
     @pytest.fixture(scope="class")
     def liblcm_snapshot(self, expected_contract):
         from tests.contract.generate_lcm_snapshot import generate_snapshot
+
         return generate_snapshot(expected_contract)
 
     def test_no_regressions_from_baseline(self, liblcm_snapshot, baseline_snapshot):
@@ -318,20 +311,19 @@ class TestLiveRegressionCheck:
         No types or members should disappear compared to baseline.
         """
         from tests.contract.compare_contracts import compare_snapshots
+
         report = compare_snapshots(baseline_snapshot, liblcm_snapshot)
 
         regressions = report["regressions"]
         if regressions:
             lines = [f"  - {r['detail']}" for r in regressions]
-            pytest.fail(
-                f"{len(regressions)} regressions from baseline:\n"
-                + "\n".join(lines)
-            )
+            pytest.fail(f"{len(regressions)} regressions from baseline:\n" + "\n".join(lines))
 
 
 # ============================================================
 # Utility: per-file impact tests
 # ============================================================
+
 
 class TestPerFileImpact:
     """
@@ -345,6 +337,7 @@ class TestPerFileImpact:
         This test always passes but prints the report for visibility.
         """
         from tests.contract.compare_contracts import compare, format_report
+
         report = compare(expected_contract, baseline_snapshot)
         text = format_report(report, verbose=True)
         print("\n" + text)
@@ -352,6 +345,4 @@ class TestPerFileImpact:
         # Store report as test artifact
         report_path = SNAPSHOTS_DIR / "latest_report.json"
         if SNAPSHOTS_DIR.exists():
-            report_path.write_text(
-                json.dumps(report, indent=2) + "\n", encoding="utf-8"
-            )
+            report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")

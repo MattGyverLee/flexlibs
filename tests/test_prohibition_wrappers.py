@@ -28,11 +28,11 @@ import sys
 from unittest.mock import Mock, MagicMock, PropertyMock, patch
 
 # Mock SIL.LCModel before importing wrapper classes
-sys.modules['SIL'] = MagicMock()
-sys.modules['SIL.LCModel'] = MagicMock()
-sys.modules['SIL.LCModel.Core'] = MagicMock()
-sys.modules['SIL.LCModel.Core.KernelInterfaces'] = MagicMock()
-sys.modules['SIL.LCModel.Core.Text'] = MagicMock()
+sys.modules["SIL"] = MagicMock()
+sys.modules["SIL.LCModel"] = MagicMock()
+sys.modules["SIL.LCModel.Core"] = MagicMock()
+sys.modules["SIL.LCModel.Core.KernelInterfaces"] = MagicMock()
+sys.modules["SIL.LCModel.Core.Text"] = MagicMock()
 
 from flexlibs2.code.Grammar.adhoc_prohibition import AdhocProhibition
 from flexlibs2.code.Grammar.prohibition_collection import ProhibitionCollection
@@ -41,6 +41,7 @@ from flexlibs2.code.Grammar.prohibition_collection import ProhibitionCollection
 # ============================================================================
 # Test Fixtures
 # ============================================================================
+
 
 @pytest.fixture
 def mock_grammatical_prohibition():
@@ -92,6 +93,7 @@ def mock_unknown_prohibition():
 # ============================================================================
 # AdhocProhibition Wrapper Tests
 # ============================================================================
+
 
 class TestAdhocProhibitionInitialization:
     """Test AdhocProhibition wrapper initialization."""
@@ -267,6 +269,7 @@ class TestAdhocProhibitionRepresentation:
 # ProhibitionCollection Tests
 # ============================================================================
 
+
 class TestProhibitionCollectionInitialization:
     """Test ProhibitionCollection initialization."""
 
@@ -275,8 +278,7 @@ class TestProhibitionCollectionInitialization:
         collection = ProhibitionCollection()
         assert len(collection) == 0
 
-    def test_init_with_items(self, mock_grammatical_prohibition,
-                             mock_morpheme_prohibition):
+    def test_init_with_items(self, mock_grammatical_prohibition, mock_morpheme_prohibition):
         """Test initialization with items."""
         wrapped_items = [
             AdhocProhibition(mock_grammatical_prohibition),
@@ -294,8 +296,7 @@ class TestProhibitionCollectionInitialization:
 class TestProhibitionCollectionIteration:
     """Test collection iteration."""
 
-    def test_iteration(self, mock_grammatical_prohibition,
-                       mock_morpheme_prohibition):
+    def test_iteration(self, mock_grammatical_prohibition, mock_morpheme_prohibition):
         """Test iterating over collection."""
         wrapped_items = [
             AdhocProhibition(mock_grammatical_prohibition),
@@ -308,8 +309,7 @@ class TestProhibitionCollectionIteration:
         assert items[0].is_grammatical_prohibition
         assert items[1].is_morpheme_prohibition
 
-    def test_indexing(self, mock_grammatical_prohibition,
-                      mock_morpheme_prohibition):
+    def test_indexing(self, mock_grammatical_prohibition, mock_morpheme_prohibition):
         """Test indexing into collection."""
         wrapped_items = [
             AdhocProhibition(mock_grammatical_prohibition),
@@ -320,8 +320,7 @@ class TestProhibitionCollectionIteration:
         assert collection[0].is_grammatical_prohibition
         assert collection[1].is_morpheme_prohibition
 
-    def test_slicing(self, mock_grammatical_prohibition,
-                     mock_morpheme_prohibition, mock_allomorph_prohibition):
+    def test_slicing(self, mock_grammatical_prohibition, mock_morpheme_prohibition, mock_allomorph_prohibition):
         """Test slicing collection."""
         wrapped_items = [
             AdhocProhibition(mock_grammatical_prohibition),
@@ -334,8 +333,7 @@ class TestProhibitionCollectionIteration:
         assert len(sliced) == 2
         assert isinstance(sliced, ProhibitionCollection)
 
-    def test_len(self, mock_grammatical_prohibition,
-                 mock_morpheme_prohibition):
+    def test_len(self, mock_grammatical_prohibition, mock_morpheme_prohibition):
         """Test len() on collection."""
         wrapped_items = [
             AdhocProhibition(mock_grammatical_prohibition),
@@ -348,9 +346,9 @@ class TestProhibitionCollectionIteration:
 class TestProhibitionCollectionFiltering:
     """Test collection filtering."""
 
-    def test_filter_by_grammatical(self, mock_grammatical_prohibition,
-                                   mock_morpheme_prohibition,
-                                   mock_allomorph_prohibition):
+    def test_filter_by_grammatical(
+        self, mock_grammatical_prohibition, mock_morpheme_prohibition, mock_allomorph_prohibition
+    ):
         """Test filtering by grammatical type."""
         wrapped_items = [
             AdhocProhibition(mock_grammatical_prohibition),
@@ -363,9 +361,9 @@ class TestProhibitionCollectionFiltering:
         assert len(filtered) == 1
         assert filtered[0].is_grammatical_prohibition
 
-    def test_filter_by_morpheme(self, mock_grammatical_prohibition,
-                                mock_morpheme_prohibition,
-                                mock_allomorph_prohibition):
+    def test_filter_by_morpheme(
+        self, mock_grammatical_prohibition, mock_morpheme_prohibition, mock_allomorph_prohibition
+    ):
         """Test filtering by morpheme type."""
         wrapped_items = [
             AdhocProhibition(mock_grammatical_prohibition),
@@ -378,9 +376,9 @@ class TestProhibitionCollectionFiltering:
         assert len(filtered) == 1
         assert filtered[0].is_morpheme_prohibition
 
-    def test_filter_by_allomorph(self, mock_grammatical_prohibition,
-                                 mock_morpheme_prohibition,
-                                 mock_allomorph_prohibition):
+    def test_filter_by_allomorph(
+        self, mock_grammatical_prohibition, mock_morpheme_prohibition, mock_allomorph_prohibition
+    ):
         """Test filtering by allomorph type."""
         wrapped_items = [
             AdhocProhibition(mock_grammatical_prohibition),
@@ -434,8 +432,7 @@ class TestProhibitionCollectionFiltering:
 class TestProhibitionCollectionConvenienceMethods:
     """Test type-specific convenience filter methods."""
 
-    def test_grammatical_prohibitions(self, mock_grammatical_prohibition,
-                                      mock_morpheme_prohibition):
+    def test_grammatical_prohibitions(self, mock_grammatical_prohibition, mock_morpheme_prohibition):
         """Test grammatical_prohibitions() method."""
         wrapped_items = [
             AdhocProhibition(mock_grammatical_prohibition),
@@ -447,8 +444,7 @@ class TestProhibitionCollectionConvenienceMethods:
         assert len(filtered) == 1
         assert filtered[0].is_grammatical_prohibition
 
-    def test_morpheme_prohibitions(self, mock_grammatical_prohibition,
-                                   mock_morpheme_prohibition):
+    def test_morpheme_prohibitions(self, mock_grammatical_prohibition, mock_morpheme_prohibition):
         """Test morpheme_prohibitions() method."""
         wrapped_items = [
             AdhocProhibition(mock_grammatical_prohibition),
@@ -460,8 +456,7 @@ class TestProhibitionCollectionConvenienceMethods:
         assert len(filtered) == 1
         assert filtered[0].is_morpheme_prohibition
 
-    def test_allomorph_prohibitions(self, mock_morpheme_prohibition,
-                                    mock_allomorph_prohibition):
+    def test_allomorph_prohibitions(self, mock_morpheme_prohibition, mock_allomorph_prohibition):
         """Test allomorph_prohibitions() method."""
         wrapped_items = [
             AdhocProhibition(mock_morpheme_prohibition),
@@ -477,8 +472,7 @@ class TestProhibitionCollectionConvenienceMethods:
 class TestProhibitionCollectionCustomFiltering:
     """Test where() custom filtering."""
 
-    def test_where_basic(self, mock_grammatical_prohibition,
-                         mock_morpheme_prohibition):
+    def test_where_basic(self, mock_grammatical_prohibition, mock_morpheme_prohibition):
         """Test basic where() filtering."""
         wrapped_items = [
             AdhocProhibition(mock_grammatical_prohibition),
@@ -490,9 +484,9 @@ class TestProhibitionCollectionCustomFiltering:
         assert len(filtered) == 1
         assert filtered[0].is_grammatical_prohibition
 
-    def test_where_combining_conditions(self, mock_grammatical_prohibition,
-                                        mock_morpheme_prohibition,
-                                        mock_allomorph_prohibition):
+    def test_where_combining_conditions(
+        self, mock_grammatical_prohibition, mock_morpheme_prohibition, mock_allomorph_prohibition
+    ):
         """Test where() with multiple conditions."""
         wrapped_items = [
             AdhocProhibition(mock_grammatical_prohibition),
@@ -502,9 +496,7 @@ class TestProhibitionCollectionCustomFiltering:
         collection = ProhibitionCollection(wrapped_items)
 
         # Morpheme or Allomorph (not Grammatical)
-        filtered = collection.where(
-            lambda p: p.is_morpheme_prohibition or p.is_allomorph_prohibition
-        )
+        filtered = collection.where(lambda p: p.is_morpheme_prohibition or p.is_allomorph_prohibition)
         assert len(filtered) == 2
 
     def test_where_by_guid(self, mock_grammatical_prohibition):
@@ -519,9 +511,9 @@ class TestProhibitionCollectionCustomFiltering:
 class TestProhibitionCollectionChaining:
     """Test chainable filtering."""
 
-    def test_chain_type_and_where(self, mock_grammatical_prohibition,
-                                  mock_morpheme_prohibition,
-                                  mock_allomorph_prohibition):
+    def test_chain_type_and_where(
+        self, mock_grammatical_prohibition, mock_morpheme_prohibition, mock_allomorph_prohibition
+    ):
         """Test chaining filter() with where()."""
         wrapped_items = [
             AdhocProhibition(mock_grammatical_prohibition),
@@ -531,13 +523,10 @@ class TestProhibitionCollectionChaining:
         collection = ProhibitionCollection(wrapped_items)
 
         # Filter by type first, then custom filter
-        filtered = collection.filter(
-            prohibition_type="Morpheme"
-        ).where(lambda p: "8765" in p.guid)
+        filtered = collection.filter(prohibition_type="Morpheme").where(lambda p: "8765" in p.guid)
         assert len(filtered) == 1
 
-    def test_chain_convenience_and_where(self, mock_grammatical_prohibition,
-                                         mock_morpheme_prohibition):
+    def test_chain_convenience_and_where(self, mock_grammatical_prohibition, mock_morpheme_prohibition):
         """Test chaining convenience method with where()."""
         wrapped_items = [
             AdhocProhibition(mock_grammatical_prohibition),
@@ -545,9 +534,7 @@ class TestProhibitionCollectionChaining:
         ]
         collection = ProhibitionCollection(wrapped_items)
 
-        filtered = collection.morpheme_prohibitions().where(
-            lambda p: "8765" in p.guid
-        )
+        filtered = collection.morpheme_prohibitions().where(lambda p: "8765" in p.guid)
         assert len(filtered) == 1
 
 
@@ -559,8 +546,7 @@ class TestProhibitionCollectionRepresentation:
         collection = ProhibitionCollection()
         assert "ProhibitionCollection(0 items)" in repr(collection)
 
-    def test_repr_with_items(self, mock_grammatical_prohibition,
-                             mock_morpheme_prohibition):
+    def test_repr_with_items(self, mock_grammatical_prohibition, mock_morpheme_prohibition):
         """Test __repr__ for collection with items."""
         wrapped_items = [
             AdhocProhibition(mock_grammatical_prohibition),
@@ -574,6 +560,7 @@ class TestProhibitionCollectionRepresentation:
 # Integration and Edge Cases
 # ============================================================================
 
+
 class TestProhibitionIntegration:
     """Integration tests for wrapper and collection."""
 
@@ -586,9 +573,7 @@ class TestProhibitionIntegration:
         assert item.is_grammatical_prohibition
         assert item.prohibition_type == "Grammatical"
 
-    def test_collection_filter_returns_new_collection(self,
-                                                      mock_grammatical_prohibition,
-                                                      mock_morpheme_prohibition):
+    def test_collection_filter_returns_new_collection(self, mock_grammatical_prohibition, mock_morpheme_prohibition):
         """Test that filter returns new collection, not modifying original."""
         wrapped_items = [
             AdhocProhibition(mock_grammatical_prohibition),
@@ -613,6 +598,7 @@ class TestProhibitionIntegration:
 # Backward Compatibility
 # ============================================================================
 
+
 class TestBackwardCompatibility:
     """Test backward compatibility with existing code."""
 
@@ -629,4 +615,3 @@ class TestBackwardCompatibility:
 
         for item in collection:
             assert isinstance(item, AdhocProhibition)
-

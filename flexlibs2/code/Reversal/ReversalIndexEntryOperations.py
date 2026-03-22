@@ -29,6 +29,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+
 class ReversalIndexEntryOperations(BaseOperations):
     """
     This class provides operations for managing reversal index entries in a FieldWorks project.

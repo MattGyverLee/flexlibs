@@ -12,6 +12,7 @@
 #
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 # Import FLEx LCM types
@@ -39,6 +40,7 @@ from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
 # Import string utilities
 from ..Shared.string_utils import normalize_text
+
 
 class DataNotebookOperations(BaseOperations):
     """
@@ -179,7 +181,13 @@ class DataNotebookOperations(BaseOperations):
         try:
             obj = self.project.project.GetObject(hvo)
             return IRnGenericRec(obj)
-        except (TypeError, System.InvalidCastException, AttributeError, KeyError, System.Collections.Generic.KeyNotFoundException) as e:
+        except (
+            TypeError,
+            System.InvalidCastException,
+            AttributeError,
+            KeyError,
+            System.Collections.Generic.KeyNotFoundException,
+        ) as e:
             raise FP_ParameterError(f"Invalid notebook record object or HVO: {record_or_hvo} - {e}")
 
     # --- Core CRUD Operations ---
@@ -295,9 +303,7 @@ class DataNotebookOperations(BaseOperations):
 
         # Create the record in the RecordsOC collection
         self.project.project.UndoableUnitOfWorkHelper.Do(
-            "Create Notebook Record",
-            "Undo Create Notebook Record",
-            lambda: None
+            "Create Notebook Record", "Undo Create Notebook Record", lambda: None
         )
 
         record = factory.Create()
@@ -367,15 +373,13 @@ class DataNotebookOperations(BaseOperations):
         repos = self.project.project.ServiceLocator.GetService(IRnResearchNbkRepository)
 
         self.project.project.UndoableUnitOfWorkHelper.Do(
-            "Delete Notebook Record",
-            "Undo Delete Notebook Record",
-            lambda: None
+            "Delete Notebook Record", "Undo Delete Notebook Record", lambda: None
         )
 
         # Remove from its owner's collection
-        if hasattr(record, 'Owner') and record.Owner:
+        if hasattr(record, "Owner") and record.Owner:
             owner = record.Owner
-            if hasattr(owner, 'SubRecordsOS'):
+            if hasattr(owner, "SubRecordsOS"):
                 owner.SubRecordsOS.Remove(record)
             else:
                 repos.RecordsOC.Remove(record)
@@ -575,11 +579,7 @@ class DataNotebookOperations(BaseOperations):
 
         mkstr = TsStringUtils.MakeString(title, wsHandle)
 
-        self.project.project.UndoableUnitOfWorkHelper.Do(
-            "Set Notebook Record Title",
-            "Undo Set Title",
-            lambda: None
-        )
+        self.project.project.UndoableUnitOfWorkHelper.Do("Set Notebook Record Title", "Undo Set Title", lambda: None)
 
         record.Title.set_String(wsHandle, mkstr)
 
@@ -683,9 +683,7 @@ class DataNotebookOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(content, wsHandle)
 
         self.project.project.UndoableUnitOfWorkHelper.Do(
-            "Set Notebook Record Content",
-            "Undo Set Content",
-            lambda: None
+            "Set Notebook Record Content", "Undo Set Content", lambda: None
         )
 
         record.Text.set_String(wsHandle, mkstr)
@@ -734,7 +732,7 @@ class DataNotebookOperations(BaseOperations):
         """
         record = self.__GetRecordObject(record_or_hvo)
 
-        if hasattr(record, 'Type') and record.Type:
+        if hasattr(record, "Type") and record.Type:
             return record.Type
 
         return None
@@ -783,11 +781,7 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        self.project.project.UndoableUnitOfWorkHelper.Do(
-            "Set Record Type",
-            "Undo Set Record Type",
-            lambda: None
-        )
+        self.project.project.UndoableUnitOfWorkHelper.Do("Set Record Type", "Undo Set Record Type", lambda: None)
 
         record.Type = record_type
 
@@ -830,7 +824,7 @@ class DataNotebookOperations(BaseOperations):
             GetRecordType, SetRecordType, FindRecordTypeByName
         """
         # Get the record types list from the project
-        if hasattr(self.project.lp, 'RecTypesOA'):
+        if hasattr(self.project.lp, "RecTypesOA"):
             rec_types_list = self.project.lp.RecTypesOA
             if rec_types_list:
                 return list(rec_types_list.PossibilitiesOS)
@@ -915,7 +909,7 @@ class DataNotebookOperations(BaseOperations):
         record = self.__GetRecordObject(record_or_hvo)
 
         try:
-            if hasattr(record, 'DateCreated'):
+            if hasattr(record, "DateCreated"):
                 return record.DateCreated
         except (AttributeError, System.NullReferenceException) as e:
             pass
@@ -955,7 +949,7 @@ class DataNotebookOperations(BaseOperations):
         record = self.__GetRecordObject(record_or_hvo)
 
         try:
-            if hasattr(record, 'DateModified'):
+            if hasattr(record, "DateModified"):
                 return record.DateModified
         except (AttributeError, System.NullReferenceException) as e:
             pass
@@ -1000,7 +994,7 @@ class DataNotebookOperations(BaseOperations):
         record = self.__GetRecordObject(record_or_hvo)
 
         try:
-            if hasattr(record, 'DateOfEvent') and record.DateOfEvent:
+            if hasattr(record, "DateOfEvent") and record.DateOfEvent:
                 return record.DateOfEvent
         except (AttributeError, System.NullReferenceException) as e:
             pass
@@ -1056,15 +1050,9 @@ class DataNotebookOperations(BaseOperations):
             try:
                 date = DateTime.Parse(date)
             except (System.FormatException, ValueError, TypeError) as e:
-                raise FP_ParameterError(
-                    f"Invalid date format: {date}. Use 'YYYY-MM-DD' or 'YYYY-MM-DD HH:MM:SS' - {e}"
-                )
+                raise FP_ParameterError(f"Invalid date format: {date}. Use 'YYYY-MM-DD' or 'YYYY-MM-DD HH:MM:SS' - {e}")
 
-        self.project.project.UndoableUnitOfWorkHelper.Do(
-            "Set Event Date",
-            "Undo Set Event Date",
-            lambda: None
-        )
+        self.project.project.UndoableUnitOfWorkHelper.Do("Set Event Date", "Undo Set Event Date", lambda: None)
 
         record.DateOfEvent = date
 
@@ -1121,7 +1109,7 @@ class DataNotebookOperations(BaseOperations):
         """
         record = self.__GetRecordObject(record_or_hvo)
 
-        if hasattr(record, 'SubRecordsOS'):
+        if hasattr(record, "SubRecordsOS"):
             return list(record.SubRecordsOS)
 
         return []
@@ -1191,11 +1179,7 @@ class DataNotebookOperations(BaseOperations):
         # Create the sub-record
         factory = self.project.project.ServiceLocator.GetService(IRnGenericRecFactory)
 
-        self.project.project.UndoableUnitOfWorkHelper.Do(
-            "Create Sub-Record",
-            "Undo Create Sub-Record",
-            lambda: None
-        )
+        self.project.project.UndoableUnitOfWorkHelper.Do("Create Sub-Record", "Undo Create Sub-Record", lambda: None)
 
         subrecord = factory.Create()
         parent.SubRecordsOS.Add(subrecord)
@@ -1309,7 +1293,7 @@ class DataNotebookOperations(BaseOperations):
         """
         record = self.__GetRecordObject(record_or_hvo)
 
-        if hasattr(record, 'Researchers') and record.Researchers:
+        if hasattr(record, "Researchers") and record.Researchers:
             return list(record.Researchers)
 
         return []
@@ -1363,13 +1347,9 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        self.project.project.UndoableUnitOfWorkHelper.Do(
-            "Add Researcher",
-            "Undo Add Researcher",
-            lambda: None
-        )
+        self.project.project.UndoableUnitOfWorkHelper.Do("Add Researcher", "Undo Add Researcher", lambda: None)
 
-        if hasattr(record, 'Researchers'):
+        if hasattr(record, "Researchers"):
             if person not in record.Researchers:
                 record.Researchers.Add(person)
 
@@ -1408,13 +1388,9 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        self.project.project.UndoableUnitOfWorkHelper.Do(
-            "Remove Researcher",
-            "Undo Remove Researcher",
-            lambda: None
-        )
+        self.project.project.UndoableUnitOfWorkHelper.Do("Remove Researcher", "Undo Remove Researcher", lambda: None)
 
-        if hasattr(record, 'Researchers'):
+        if hasattr(record, "Researchers"):
             if person in record.Researchers:
                 record.Researchers.Remove(person)
 
@@ -1460,7 +1436,7 @@ class DataNotebookOperations(BaseOperations):
         """
         record = self.__GetRecordObject(record_or_hvo)
 
-        if hasattr(record, 'Participants') and record.Participants:
+        if hasattr(record, "Participants") and record.Participants:
             return list(record.Participants)
 
         return []
@@ -1510,13 +1486,9 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        self.project.project.UndoableUnitOfWorkHelper.Do(
-            "Add Participant",
-            "Undo Add Participant",
-            lambda: None
-        )
+        self.project.project.UndoableUnitOfWorkHelper.Do("Add Participant", "Undo Add Participant", lambda: None)
 
-        if hasattr(record, 'Participants'):
+        if hasattr(record, "Participants"):
             if person not in record.Participants:
                 record.Participants.Add(person)
 
@@ -1555,13 +1527,9 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        self.project.project.UndoableUnitOfWorkHelper.Do(
-            "Remove Participant",
-            "Undo Remove Participant",
-            lambda: None
-        )
+        self.project.project.UndoableUnitOfWorkHelper.Do("Remove Participant", "Undo Remove Participant", lambda: None)
 
-        if hasattr(record, 'Participants'):
+        if hasattr(record, "Participants"):
             if person in record.Participants:
                 record.Participants.Remove(person)
 
@@ -1608,7 +1576,7 @@ class DataNotebookOperations(BaseOperations):
         """
         record = self.__GetRecordObject(record_or_hvo)
 
-        if hasattr(record, 'LocationsRC') and record.LocationsRC:
+        if hasattr(record, "LocationsRC") and record.LocationsRC:
             return list(record.LocationsRC)
 
         return []
@@ -1664,13 +1632,9 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        self.project.project.UndoableUnitOfWorkHelper.Do(
-            "Add Location",
-            "Undo Add Location",
-            lambda: None
-        )
+        self.project.project.UndoableUnitOfWorkHelper.Do("Add Location", "Undo Add Location", lambda: None)
 
-        if hasattr(record, 'LocationsRC'):
+        if hasattr(record, "LocationsRC"):
             if location not in record.LocationsRC:
                 record.LocationsRC.Add(location)
 
@@ -1709,13 +1673,9 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        self.project.project.UndoableUnitOfWorkHelper.Do(
-            "Remove Location",
-            "Undo Remove Location",
-            lambda: None
-        )
+        self.project.project.UndoableUnitOfWorkHelper.Do("Remove Location", "Undo Remove Location", lambda: None)
 
-        if hasattr(record, 'LocationsRC'):
+        if hasattr(record, "LocationsRC"):
             if location in record.LocationsRC:
                 record.LocationsRC.Remove(location)
 
@@ -1762,7 +1722,7 @@ class DataNotebookOperations(BaseOperations):
         """
         record = self.__GetRecordObject(record_or_hvo)
 
-        if hasattr(record, 'SourcesRC') and record.SourcesRC:
+        if hasattr(record, "SourcesRC") and record.SourcesRC:
             return list(record.SourcesRC)
 
         return []
@@ -1818,13 +1778,9 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        self.project.project.UndoableUnitOfWorkHelper.Do(
-            "Add Source",
-            "Undo Add Source",
-            lambda: None
-        )
+        self.project.project.UndoableUnitOfWorkHelper.Do("Add Source", "Undo Add Source", lambda: None)
 
-        if hasattr(record, 'SourcesRC'):
+        if hasattr(record, "SourcesRC"):
             if source not in record.SourcesRC:
                 record.SourcesRC.Add(source)
 
@@ -1863,13 +1819,9 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        self.project.project.UndoableUnitOfWorkHelper.Do(
-            "Remove Source",
-            "Undo Remove Source",
-            lambda: None
-        )
+        self.project.project.UndoableUnitOfWorkHelper.Do("Remove Source", "Undo Remove Source", lambda: None)
 
-        if hasattr(record, 'SourcesRC'):
+        if hasattr(record, "SourcesRC"):
             if source in record.SourcesRC:
                 record.SourcesRC.Remove(source)
 
@@ -1915,7 +1867,7 @@ class DataNotebookOperations(BaseOperations):
         """
         record = self.__GetRecordObject(record_or_hvo)
 
-        if hasattr(record, 'TextsRC') and record.TextsRC:
+        if hasattr(record, "TextsRC") and record.TextsRC:
             return list(record.TextsRC)
 
         return []
@@ -1965,13 +1917,9 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        self.project.project.UndoableUnitOfWorkHelper.Do(
-            "Link to Text",
-            "Undo Link to Text",
-            lambda: None
-        )
+        self.project.project.UndoableUnitOfWorkHelper.Do("Link to Text", "Undo Link to Text", lambda: None)
 
-        if hasattr(record, 'TextsRC'):
+        if hasattr(record, "TextsRC"):
             if text not in record.TextsRC:
                 record.TextsRC.Add(text)
 
@@ -2011,13 +1959,9 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        self.project.project.UndoableUnitOfWorkHelper.Do(
-            "Unlink from Text",
-            "Undo Unlink from Text",
-            lambda: None
-        )
+        self.project.project.UndoableUnitOfWorkHelper.Do("Unlink from Text", "Undo Unlink from Text", lambda: None)
 
-        if hasattr(record, 'TextsRC'):
+        if hasattr(record, "TextsRC"):
             if text in record.TextsRC:
                 record.TextsRC.Remove(text)
 
@@ -2062,7 +2006,7 @@ class DataNotebookOperations(BaseOperations):
         """
         record = self.__GetRecordObject(record_or_hvo)
 
-        if hasattr(record, 'MediaFilesOS') and record.MediaFilesOS:
+        if hasattr(record, "MediaFilesOS") and record.MediaFilesOS:
             return list(record.MediaFilesOS)
 
         return []
@@ -2115,13 +2059,9 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        self.project.project.UndoableUnitOfWorkHelper.Do(
-            "Add Media File",
-            "Undo Add Media File",
-            lambda: None
-        )
+        self.project.project.UndoableUnitOfWorkHelper.Do("Add Media File", "Undo Add Media File", lambda: None)
 
-        if hasattr(record, 'MediaFilesOS'):
+        if hasattr(record, "MediaFilesOS"):
             if media_file not in record.MediaFilesOS:
                 record.MediaFilesOS.Add(media_file)
 
@@ -2161,13 +2101,9 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        self.project.project.UndoableUnitOfWorkHelper.Do(
-            "Remove Media File",
-            "Undo Remove Media File",
-            lambda: None
-        )
+        self.project.project.UndoableUnitOfWorkHelper.Do("Remove Media File", "Undo Remove Media File", lambda: None)
 
-        if hasattr(record, 'MediaFilesOS'):
+        if hasattr(record, "MediaFilesOS"):
             if media_file in record.MediaFilesOS:
                 record.MediaFilesOS.Remove(media_file)
 
@@ -2213,7 +2149,7 @@ class DataNotebookOperations(BaseOperations):
         """
         record = self.__GetRecordObject(record_or_hvo)
 
-        if hasattr(record, 'Status') and record.Status:
+        if hasattr(record, "Status") and record.Status:
             return record.Status
 
         return None
@@ -2272,11 +2208,7 @@ class DataNotebookOperations(BaseOperations):
                 raise FP_ParameterError(f"Status not found: {status}")
             status = status_obj
 
-        self.project.project.UndoableUnitOfWorkHelper.Do(
-            "Set Status",
-            "Undo Set Status",
-            lambda: None
-        )
+        self.project.project.UndoableUnitOfWorkHelper.Do("Set Status", "Undo Set Status", lambda: None)
 
         record.Status = status
 
@@ -2313,7 +2245,7 @@ class DataNotebookOperations(BaseOperations):
             GetStatus, SetStatus, FindStatusByName
         """
         # Get the status list from the project
-        if hasattr(self.project.lp, 'StatusOA'):
+        if hasattr(self.project.lp, "StatusOA"):
             status_list = self.project.lp.StatusOA
             if status_list:
                 return list(status_list.PossibilitiesOS)
@@ -2611,21 +2543,21 @@ class DataNotebookOperations(BaseOperations):
         duplicate.Text.CopyAlternatives(source.Text)
 
         # Copy Reference Atomic (RA) properties
-        if hasattr(source, 'Type') and source.Type:
+        if hasattr(source, "Type") and source.Type:
             duplicate.Type = source.Type
-        if hasattr(source, 'Status') and source.Status:
+        if hasattr(source, "Status") and source.Status:
             duplicate.Status = source.Status
-        if hasattr(source, 'Confidence') and source.Confidence:
+        if hasattr(source, "Confidence") and source.Confidence:
             duplicate.Confidence = source.Confidence
 
         # Copy DateTime properties
-        if hasattr(source, 'DateOfEvent') and source.DateOfEvent:
+        if hasattr(source, "DateOfEvent") and source.DateOfEvent:
             duplicate.DateOfEvent = source.DateOfEvent
 
         # Handle owned objects if deep=True
         if deep:
             # Duplicate sub-records into the NEW duplicate (not the original's parent)
-            if hasattr(source, 'SubRecordsOS'):
+            if hasattr(source, "SubRecordsOS"):
                 for subrecord in source.SubRecordsOS:
                     self._DuplicateSubRecordInto(subrecord, duplicate, deep=True)
 
@@ -2641,18 +2573,18 @@ class DataNotebookOperations(BaseOperations):
         dup_rec.Title.CopyAlternatives(source_rec.Title)
         dup_rec.Text.CopyAlternatives(source_rec.Text)
 
-        if hasattr(source_rec, 'Type') and source_rec.Type:
+        if hasattr(source_rec, "Type") and source_rec.Type:
             dup_rec.Type = source_rec.Type
-        if hasattr(source_rec, 'Status') and source_rec.Status:
+        if hasattr(source_rec, "Status") and source_rec.Status:
             dup_rec.Status = source_rec.Status
-        if hasattr(source_rec, 'Confidence') and source_rec.Confidence:
+        if hasattr(source_rec, "Confidence") and source_rec.Confidence:
             dup_rec.Confidence = source_rec.Confidence
 
-        if hasattr(source_rec, 'DateOfEvent') and source_rec.DateOfEvent:
+        if hasattr(source_rec, "DateOfEvent") and source_rec.DateOfEvent:
             dup_rec.DateOfEvent = source_rec.DateOfEvent
 
         # Recurse into nested sub-records
-        if deep and hasattr(source_rec, 'SubRecordsOS'):
+        if deep and hasattr(source_rec, "SubRecordsOS"):
             for nested_rec in source_rec.SubRecordsOS:
                 self._DuplicateSubRecordInto(nested_rec, dup_rec, deep=True)
 
@@ -2667,28 +2599,28 @@ class DataNotebookOperations(BaseOperations):
         wsHandle = self.project.project.DefaultAnalWs
 
         props = {}
-        props['Title'] = ITsString(record.Title.get_String(wsHandle)).Text or ""
-        props['Text'] = ITsString(record.Text.get_String(wsHandle)).Text or ""
+        props["Title"] = ITsString(record.Title.get_String(wsHandle)).Text or ""
+        props["Text"] = ITsString(record.Text.get_String(wsHandle)).Text or ""
 
-        if hasattr(record, 'Type') and record.Type:
-            props['Type'] = str(record.Type.Guid)
+        if hasattr(record, "Type") and record.Type:
+            props["Type"] = str(record.Type.Guid)
         else:
-            props['Type'] = None
+            props["Type"] = None
 
-        if hasattr(record, 'Status') and record.Status:
-            props['Status'] = str(record.Status.Guid)
+        if hasattr(record, "Status") and record.Status:
+            props["Status"] = str(record.Status.Guid)
         else:
-            props['Status'] = None
+            props["Status"] = None
 
-        if hasattr(record, 'Confidence') and record.Confidence:
-            props['Confidence'] = str(record.Confidence.Guid)
+        if hasattr(record, "Confidence") and record.Confidence:
+            props["Confidence"] = str(record.Confidence.Guid)
         else:
-            props['Confidence'] = None
+            props["Confidence"] = None
 
-        if hasattr(record, 'DateOfEvent') and record.DateOfEvent:
-            props['DateOfEvent'] = str(record.DateOfEvent)
+        if hasattr(record, "DateOfEvent") and record.DateOfEvent:
+            props["DateOfEvent"] = str(record.DateOfEvent)
         else:
-            props['DateOfEvent'] = None
+            props["DateOfEvent"] = None
 
         return props
 
@@ -2701,7 +2633,7 @@ class DataNotebookOperations(BaseOperations):
             ops2 = self
 
         is_different = False
-        differences = {'properties': {}}
+        differences = {"properties": {}}
 
         props1 = ops1.GetSyncableProperties(item1)
         props2 = ops2.GetSyncableProperties(item2)
@@ -2711,11 +2643,7 @@ class DataNotebookOperations(BaseOperations):
             val2 = props2.get(key)
             if val1 != val2:
                 is_different = True
-                differences['properties'][key] = {
-                    'source': val1,
-                    'target': val2,
-                    'type': 'modified'
-                }
+                differences["properties"][key] = {"source": val1, "target": val2, "type": "modified"}
 
         return is_different, differences
 
@@ -2793,7 +2721,7 @@ class DataNotebookOperations(BaseOperations):
         """
         record = self.__GetRecordObject(record_or_hvo)
 
-        if hasattr(record, 'Confidence') and record.Confidence:
+        if hasattr(record, "Confidence") and record.Confidence:
             return record.Confidence
 
         return None
@@ -2844,10 +2772,6 @@ class DataNotebookOperations(BaseOperations):
                 raise FP_ParameterError(f"Confidence level not found: {confidence}")
             confidence = conf_obj
 
-        self.project.project.UndoableUnitOfWorkHelper.Do(
-            "Set Confidence",
-            "Undo Set Confidence",
-            lambda: None
-        )
+        self.project.project.UndoableUnitOfWorkHelper.Do("Set Confidence", "Undo Set Confidence", lambda: None)
 
         record.Confidence = confidence

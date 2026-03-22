@@ -12,6 +12,7 @@
 #
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 # Import FLEx LCM types
@@ -28,6 +29,7 @@ from ..FLExProject import (
     FP_WritingSystemError,
 )
 from ..BaseOperations import BaseOperations, OperationsMethod
+
 
 class ProjectSettingsOperations(BaseOperations):
     """
@@ -118,7 +120,7 @@ class ProjectSettingsOperations(BaseOperations):
         See Also:
             SetProjectName, GetDescription
         """
-        if hasattr(self.project.lp, 'Name') and self.project.lp.Name:
+        if hasattr(self.project.lp, "Name") and self.project.lp.Name:
             ts = ITsString(self.project.lp.Name)
             return ts.Text if ts else ""
         return ""
@@ -197,7 +199,7 @@ class ProjectSettingsOperations(BaseOperations):
         """
         ws_handle = self._ResolveWSHandle(ws_handle_or_tag)
 
-        if hasattr(self.project.lp, 'Description') and self.project.lp.Description:
+        if hasattr(self.project.lp, "Description") and self.project.lp.Description:
             ts = ITsString(self.project.lp.Description.get_String(ws_handle))
             return ts.Text if ts else ""
         return ""
@@ -282,7 +284,7 @@ class ProjectSettingsOperations(BaseOperations):
         See Also:
             GetAnalysisWSs, SetDefaultVernacular
         """
-        if hasattr(self.project.lp, 'CurVernWss') and self.project.lp.CurVernWss:
+        if hasattr(self.project.lp, "CurVernWss") and self.project.lp.CurVernWss:
             return self.project.lp.CurVernWss.split()
         return []
 
@@ -313,7 +315,7 @@ class ProjectSettingsOperations(BaseOperations):
         See Also:
             GetVernacularWSs, SetDefaultAnalysis
         """
-        if hasattr(self.project.lp, 'CurAnalysisWss') and self.project.lp.CurAnalysisWss:
+        if hasattr(self.project.lp, "CurAnalysisWss") and self.project.lp.CurAnalysisWss:
             return self.project.lp.CurAnalysisWss.split()
         return []
 
@@ -361,9 +363,7 @@ class ProjectSettingsOperations(BaseOperations):
         # Verify it's a vernacular WS
         vern_tags = set(self.GetVernacularWSs())
         if ws.Id not in vern_tags:
-            raise FP_ParameterError(
-                f"Writing system '{ws.Id}' is not a vernacular writing system"
-            )
+            raise FP_ParameterError(f"Writing system '{ws.Id}' is not a vernacular writing system")
 
         # Set as default
         self.project.lp.DefaultVernacularWritingSystem = ws
@@ -412,9 +412,7 @@ class ProjectSettingsOperations(BaseOperations):
         # Verify it's an analysis WS
         anal_tags = set(self.GetAnalysisWSs())
         if ws.Id not in anal_tags:
-            raise FP_ParameterError(
-                f"Writing system '{ws.Id}' is not an analysis writing system"
-            )
+            raise FP_ParameterError(f"Writing system '{ws.Id}' is not an analysis writing system")
 
         # Set as default
         self.project.lp.DefaultAnalysisWritingSystem = ws
@@ -444,7 +442,7 @@ class ProjectSettingsOperations(BaseOperations):
             SetInterfaceLanguage
         """
         # The UI language is stored in UserWs
-        if hasattr(self.project.lp, 'UserWs'):
+        if hasattr(self.project.lp, "UserWs"):
             return self.project.lp.UserWs
         # Fall back to default analysis
         return self.project.lp.DefaultAnalysisWritingSystem
@@ -487,7 +485,7 @@ class ProjectSettingsOperations(BaseOperations):
             raise FP_WritingSystemError(str(ws_handle_or_tag))
 
         # Set the UI language
-        if hasattr(self.project.lp, 'UserWs'):
+        if hasattr(self.project.lp, "UserWs"):
             self.project.lp.UserWs = ws
 
     # --- Default Font Settings ---
@@ -532,9 +530,9 @@ class ProjectSettingsOperations(BaseOperations):
             raise FP_WritingSystemError(str(ws_handle_or_tag))
 
         # Get default font name
-        if hasattr(ws, 'DefaultFontName') and ws.DefaultFontName:
+        if hasattr(ws, "DefaultFontName") and ws.DefaultFontName:
             return ws.DefaultFontName
-        elif hasattr(ws, 'DefaultFont') and ws.DefaultFont:
+        elif hasattr(ws, "DefaultFont") and ws.DefaultFont:
             return ws.DefaultFont
         return ""
 
@@ -580,9 +578,9 @@ class ProjectSettingsOperations(BaseOperations):
             raise FP_WritingSystemError(str(ws_handle_or_tag))
 
         # Set default font name
-        if hasattr(ws, 'DefaultFontName'):
+        if hasattr(ws, "DefaultFontName"):
             ws.DefaultFontName = font_name
-        elif hasattr(ws, 'DefaultFont'):
+        elif hasattr(ws, "DefaultFont"):
             ws.DefaultFont = font_name
 
     @OperationsMethod
@@ -619,7 +617,7 @@ class ProjectSettingsOperations(BaseOperations):
             raise FP_WritingSystemError(str(ws_handle_or_tag))
 
         # Get default font size
-        if hasattr(ws, 'DefaultFontSize') and ws.DefaultFontSize:
+        if hasattr(ws, "DefaultFontSize") and ws.DefaultFontSize:
             return float(ws.DefaultFontSize)
         return 12.0  # Default size
 
@@ -669,7 +667,7 @@ class ProjectSettingsOperations(BaseOperations):
             raise FP_WritingSystemError(str(ws_handle_or_tag))
 
         # Set default font size
-        if hasattr(ws, 'DefaultFontSize'):
+        if hasattr(ws, "DefaultFontSize"):
             ws.DefaultFontSize = float(size)
 
     # --- Advanced Settings ---
@@ -696,7 +694,7 @@ class ProjectSettingsOperations(BaseOperations):
         See Also:
             SetLinkedFilesRootDir, GetExtLinkRootDir
         """
-        if hasattr(self.project.lp, 'LinkedFilesRootDir') and self.project.lp.LinkedFilesRootDir:
+        if hasattr(self.project.lp, "LinkedFilesRootDir") and self.project.lp.LinkedFilesRootDir:
             return self.project.lp.LinkedFilesRootDir
         return ""
 
@@ -758,7 +756,7 @@ class ProjectSettingsOperations(BaseOperations):
         See Also:
             SetExtLinkRootDir, GetLinkedFilesRootDir
         """
-        if hasattr(self.project.lp, 'ExtLinkRootDir') and self.project.lp.ExtLinkRootDir:
+        if hasattr(self.project.lp, "ExtLinkRootDir") and self.project.lp.ExtLinkRootDir:
             return self.project.lp.ExtLinkRootDir
         return ""
 
@@ -826,7 +824,7 @@ class ProjectSettingsOperations(BaseOperations):
         See Also:
             GetVernacularWritingSystems, GetAnalysisWSs
         """
-        if hasattr(self.project.lp, 'AnalysisWss') and self.project.lp.AnalysisWss:
+        if hasattr(self.project.lp, "AnalysisWss") and self.project.lp.AnalysisWss:
             return self.project.lp.AnalysisWss.split()
         return []
 
@@ -857,7 +855,7 @@ class ProjectSettingsOperations(BaseOperations):
         See Also:
             GetAnalysisWritingSystems, GetVernacularWSs
         """
-        if hasattr(self.project.lp, 'CurVernWss') and self.project.lp.CurVernWss:
+        if hasattr(self.project.lp, "CurVernWss") and self.project.lp.CurVernWss:
             return self.project.lp.CurVernWss.split()
         return []
 
@@ -885,7 +883,7 @@ class ProjectSettingsOperations(BaseOperations):
         See Also:
             GetDateModified
         """
-        if hasattr(self.project.lp, 'DateCreated'):
+        if hasattr(self.project.lp, "DateCreated"):
             return self.project.lp.DateCreated
         return None
 
@@ -912,7 +910,7 @@ class ProjectSettingsOperations(BaseOperations):
         See Also:
             GetDateCreated
         """
-        if hasattr(self.project.lp, 'DateModified'):
+        if hasattr(self.project.lp, "DateModified"):
             return self.project.lp.DateModified
         return None
 
@@ -1059,6 +1057,5 @@ class ProjectSettingsOperations(BaseOperations):
             NotImplementedError: Project settings are not syncable
         """
         raise NotImplementedError(
-            "Project settings cannot be compared for sync. "
-            "Settings are configuration data unique to each project."
+            "Project settings cannot be compared for sync. " "Settings are configuration data unique to each project."
         )

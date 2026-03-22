@@ -12,6 +12,7 @@ Version: 2.3.0
 
 from flexlibs2 import FLExProject, FLExInitialize, FLExCleanup
 
+
 def demo_gramcat_crud():
     """
     Demonstrate full CRUD operations for gramcat.
@@ -44,16 +45,16 @@ def demo_gramcat_crud():
 
     try:
         # ==================== READ: Initial state ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("STEP 1: READ - Get existing gramcats")
-        print("="*70)
+        print("=" * 70)
 
         print("\nGetting all gramcats...")
         initial_count = 0
         for obj in project.GramCat.GetAll():
             # Display first few objects
             try:
-                name = project.GramCat.GetName(obj) if hasattr(project.GramCat, 'GetName') else str(obj)
+                name = project.GramCat.GetName(obj) if hasattr(project.GramCat, "GetName") else str(obj)
                 print(f"  - {name}")
             except:
                 print(f"  - [Object {initial_count + 1}]")
@@ -64,16 +65,16 @@ def demo_gramcat_crud():
         print(f"\nTotal gramcats (showing first 5): {initial_count}")
 
         # ==================== CREATE ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("STEP 2: CREATE - Create new test gramcat")
-        print("="*70)
+        print("=" * 70)
 
         # Check if test object already exists
         try:
-            if hasattr(project.GramCat, 'Exists') and project.GramCat.Exists(test_name):
+            if hasattr(project.GramCat, "Exists") and project.GramCat.Exists(test_name):
                 print(f"\nTest gramcat '{test_name}' already exists")
                 print("Deleting existing one first...")
-                existing = project.GramCat.Find(test_name) if hasattr(project.GramCat, 'Find') else None
+                existing = project.GramCat.Find(test_name) if hasattr(project.GramCat, "Find") else None
                 if existing:
                     project.GramCat.Delete(existing)
                     print("  Deleted existing test gramcat")
@@ -90,7 +91,7 @@ def demo_gramcat_crud():
             try:
                 # Try without parameters if that fails
                 test_obj = project.GramCat.Create()
-                if hasattr(project.GramCat, 'SetName'):
+                if hasattr(project.GramCat, "SetName"):
                     project.GramCat.SetName(test_obj, test_name)
             except Exception as e:
                 print(f"  Note: Create method may require specific parameters: {e}")
@@ -99,7 +100,7 @@ def demo_gramcat_crud():
         if test_obj:
             print(f"  SUCCESS: Gramcat created!")
             try:
-                if hasattr(project.GramCat, 'GetName'):
+                if hasattr(project.GramCat, "GetName"):
                     print(f"  Name: {project.GramCat.GetName(test_obj)}")
             except:
                 pass
@@ -109,24 +110,24 @@ def demo_gramcat_crud():
             return
 
         # ==================== READ: Verify creation ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("STEP 3: READ - Verify gramcat was created")
-        print("="*70)
+        print("=" * 70)
 
         # Test Exists
-        if hasattr(project.GramCat, 'Exists'):
+        if hasattr(project.GramCat, "Exists"):
             print(f"\nChecking if '{test_name}' exists...")
             exists = project.GramCat.Exists(test_name)
             print(f"  Exists: {exists}")
 
         # Test Find
-        if hasattr(project.GramCat, 'Find'):
+        if hasattr(project.GramCat, "Find"):
             print(f"\nFinding gramcat by name...")
             found_obj = project.GramCat.Find(test_name)
             if found_obj:
                 print(f"  FOUND: gramcat")
                 try:
-                    if hasattr(project.GramCat, 'GetName'):
+                    if hasattr(project.GramCat, "GetName"):
                         print(f"  Name: {project.GramCat.GetName(found_obj)}")
                 except:
                     pass
@@ -141,21 +142,23 @@ def demo_gramcat_crud():
         print(f"  Difference:   +{current_count - initial_count}")
 
         # ==================== UPDATE ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("STEP 4: UPDATE - Modify gramcat properties")
-        print("="*70)
+        print("=" * 70)
 
         if test_obj:
             updated = False
 
             # Try common update methods
-            if hasattr(project.GramCat, 'SetName'):
+            if hasattr(project.GramCat, "SetName"):
                 try:
                     new_name = "crud_test_gramcat_modified"
                     print(f"\nUpdating name to: '{new_name}'")
-                    old_name = project.GramCat.GetName(test_obj) if hasattr(project.GramCat, 'GetName') else test_name
+                    old_name = project.GramCat.GetName(test_obj) if hasattr(project.GramCat, "GetName") else test_name
                     project.GramCat.SetName(test_obj, new_name)
-                    updated_name = project.GramCat.GetName(test_obj) if hasattr(project.GramCat, 'GetName') else new_name
+                    updated_name = (
+                        project.GramCat.GetName(test_obj) if hasattr(project.GramCat, "GetName") else new_name
+                    )
                     print(f"  Old name: {old_name}")
                     print(f"  New name: {updated_name}")
                     test_name = new_name  # Update for cleanup
@@ -165,7 +168,7 @@ def demo_gramcat_crud():
 
             # Try other Set methods
             for method_name in dir(project.GramCat):
-                if method_name.startswith('Set') and method_name != 'SetName' and not updated:
+                if method_name.startswith("Set") and method_name != "SetName" and not updated:
                     print(f"\nFound update method: {method_name}")
                     print("  (Method available but not tested in this demo)")
                     break
@@ -176,17 +179,17 @@ def demo_gramcat_crud():
                 print("\n  Note: No standard update methods found or tested")
 
         # ==================== READ: Verify updates ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("STEP 5: READ - Verify updates persisted")
-        print("="*70)
+        print("=" * 70)
 
-        if hasattr(project.GramCat, 'Find'):
+        if hasattr(project.GramCat, "Find"):
             print(f"\nFinding gramcat after update...")
             updated_obj = project.GramCat.Find(test_name)
             if updated_obj:
                 print(f"  FOUND: gramcat")
                 try:
-                    if hasattr(project.GramCat, 'GetName'):
+                    if hasattr(project.GramCat, "GetName"):
                         print(f"  Name: {project.GramCat.GetName(updated_obj)}")
                 except:
                     pass
@@ -194,14 +197,14 @@ def demo_gramcat_crud():
                 print("  NOT FOUND - Update may not have persisted")
 
         # ==================== DELETE ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("STEP 6: DELETE - Remove test gramcat")
-        print("="*70)
+        print("=" * 70)
 
         if test_obj:
             print(f"\nDeleting test gramcat...")
             try:
-                obj_name = project.GramCat.GetName(test_obj) if hasattr(project.GramCat, 'GetName') else test_name
+                obj_name = project.GramCat.GetName(test_obj) if hasattr(project.GramCat, "GetName") else test_name
             except:
                 obj_name = test_name
 
@@ -210,7 +213,7 @@ def demo_gramcat_crud():
 
             # Verify deletion
             print("\nVerifying deletion...")
-            if hasattr(project.GramCat, 'Exists'):
+            if hasattr(project.GramCat, "Exists"):
                 still_exists = project.GramCat.Exists(test_name)
                 print(f"  Still exists: {still_exists}")
 
@@ -225,9 +228,9 @@ def demo_gramcat_crud():
             print(f"  Back to initial:    {final_count == initial_count}")
 
         # ==================== SUMMARY ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("CRUD TEST SUMMARY")
-        print("="*70)
+        print("=" * 70)
         print("\nOperations tested:")
         print("  [CREATE] Create new gramcat")
         print("  [READ]   GetAll, Find, Exists, Get methods")
@@ -238,18 +241,19 @@ def demo_gramcat_crud():
     except Exception as e:
         print(f"\n\nERROR during CRUD test: {e}")
         import traceback
+
         traceback.print_exc()
 
     finally:
         # Cleanup: Ensure test object is removed
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("CLEANUP")
-        print("="*70)
+        print("=" * 70)
 
         try:
             for name in ["crud_test_gramcat", "crud_test_gramcat_modified"]:
-                if hasattr(project.GramCat, 'Exists') and project.GramCat.Exists(name):
-                    obj = project.GramCat.Find(name) if hasattr(project.GramCat, 'Find') else None
+                if hasattr(project.GramCat, "Exists") and project.GramCat.Exists(name):
+                    obj = project.GramCat.Find(name) if hasattr(project.GramCat, "Find") else None
                     if obj:
                         project.GramCat.Delete(obj)
                         print(f"  Cleaned up: {name}")
@@ -260,13 +264,14 @@ def demo_gramcat_crud():
         project.CloseProject()
         FLExCleanup()
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("DEMO COMPLETE")
-    print("="*70)
+    print("=" * 70)
 
 
 if __name__ == "__main__":
-    print("""
+    print(
+        """
 Gramcat Operations - Full CRUD Demo
 =====================================================
 
@@ -296,10 +301,11 @@ Requirements:
 
 WARNING: This demo modifies the database!
          Test gramcat is created and deleted during the demo.
-    """)
+    """
+    )
 
     response = input("\nRun CRUD demo? (y/N): ")
-    if response.lower() == 'y':
+    if response.lower() == "y":
         demo_gramcat_crud()
     else:
         print("\nDemo skipped.")

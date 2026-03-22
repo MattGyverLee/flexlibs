@@ -41,27 +41,32 @@ from core.exceptions import (
 # Mock FLExProject exceptions
 class FP_ParameterError(FlexLibsError, ValueError):
     """FLEx parameter error - invalid parameter passed to operation."""
+
     pass
 
 
 class FP_ReadOnlyError(FlexLibsError, RuntimeError):
     """FLEx project is read-only, cannot write."""
+
     pass
 
 
 class FP_NullParameterError(FlexLibsError, ValueError):
     """FLEx null parameter error - required parameter is null."""
+
     pass
 
 
 class FP_ProjectError(FlexLibsError, RuntimeError):
     """FLEx project operation failed."""
+
     pass
 
 
 # =============================================================================
 # TESTS FOR AGENT OPERATIONS EXCEPTION HANDLING
 # =============================================================================
+
 
 class TestAgentOperationsExceptionHandling:
     """Test that AgentOperations properly handles specific exception types."""
@@ -81,10 +86,9 @@ class TestAgentOperationsExceptionHandling:
         # not catch it silently with bare except
         with pytest.raises((FP_ParameterError, AttributeError, TypeError)):
             # This should fail with specific exception, not silently fail
-            if not hasattr(invalid_person, 'Name'):
+            if not hasattr(invalid_person, "Name"):
                 raise FP_ParameterError(
-                    "Invalid parameter: expected ICmPerson object, "
-                    f"got {type(invalid_person).__name__}"
+                    "Invalid parameter: expected ICmPerson object, " f"got {type(invalid_person).__name__}"
                 )
 
     def test_cast_error_not_caught_by_bare_except(self):
@@ -102,9 +106,7 @@ class TestAgentOperationsExceptionHandling:
                 # Attempt to access ICmPerson-specific method
                 _ = mock_object.Name
             except AttributeError as e:
-                raise FP_ParameterError(
-                    f"Cannot cast object to ICmPerson: {str(e)}"
-                )
+                raise FP_ParameterError(f"Cannot cast object to ICmPerson: {str(e)}")
 
     def test_exception_preserves_error_details(self):
         """Test that exception includes details about what failed."""
@@ -124,6 +126,7 @@ class TestAgentOperationsExceptionHandling:
 # TESTS FOR DATA NOTEBOOK OPERATIONS EXCEPTION HANDLING
 # =============================================================================
 
+
 class TestDataNotebookExceptionHandling:
     """Test that DataNotebookOperations properly handles property access errors."""
 
@@ -142,14 +145,14 @@ class TestDataNotebookExceptionHandling:
 
     def test_missing_property_access_raises_error(self):
         """Test that accessing non-existent property raises specific error."""
-        mock_object = Mock(spec=['Name'])  # Only has Name property
+        mock_object = Mock(spec=["Name"])  # Only has Name property
 
         with pytest.raises(AttributeError):
             _ = mock_object.NonExistentProperty
 
     def test_property_error_includes_context(self):
         """Test that property access error includes meaningful context."""
-        mock_notebook = Mock(spec=['Title', 'Description'])
+        mock_notebook = Mock(spec=["Title", "Description"])
 
         try:
             # Try to access property that doesn't exist
@@ -164,6 +167,7 @@ class TestDataNotebookExceptionHandling:
 # TESTS FOR CUSTOM FIELD OPERATIONS EXCEPTION HANDLING
 # =============================================================================
 
+
 class TestCustomFieldExceptionHandling:
     """Test that CustomFieldOperations properly handles field access errors."""
 
@@ -175,8 +179,7 @@ class TestCustomFieldExceptionHandling:
         with pytest.raises((FP_ParameterError, ValueError)):
             if invalid_field_type not in valid_types:
                 raise FP_ParameterError(
-                    f"Invalid field type '{invalid_field_type}'. "
-                    f"Must be one of: {', '.join(valid_types)}"
+                    f"Invalid field type '{invalid_field_type}'. " f"Must be one of: {', '.join(valid_types)}"
                 )
 
     def test_field_not_found_raises_error(self):
@@ -186,7 +189,7 @@ class TestCustomFieldExceptionHandling:
 
         with pytest.raises((ObjectNotFoundError, FP_ParameterError)):
             mock_fields = []  # Empty field list
-            matching_fields = [f for f in mock_fields if f.get('name') == field_name]
+            matching_fields = [f for f in mock_fields if f.get("name") == field_name]
             if not matching_fields:
                 raise ObjectNotFoundError("CustomField", field_name)
 
@@ -207,6 +210,7 @@ class TestCustomFieldExceptionHandling:
 # TESTS FOR FLEXPROJECT EXCEPTION HANDLING
 # =============================================================================
 
+
 class TestFLExProjectExceptionHandling:
     """Test that FLExProject properly handles operation errors."""
 
@@ -218,9 +222,7 @@ class TestFLExProjectExceptionHandling:
             # Simulate project opening logic
             projects = []  # No projects available
             if non_existent_project not in projects:
-                raise FP_ProjectError(
-                    f"Project '{non_existent_project}' not found"
-                )
+                raise FP_ProjectError(f"Project '{non_existent_project}' not found")
 
     def test_invalid_project_path_raises_error(self):
         """Test that invalid project path raises specific error."""
@@ -228,10 +230,9 @@ class TestFLExProjectExceptionHandling:
 
         with pytest.raises((FP_ProjectError, FileNotFoundError, OSError)):
             import os as _os
+
             if not _os.path.exists(invalid_path):
-                raise FP_ProjectError(
-                    f"Project path does not exist: {invalid_path}"
-                )
+                raise FP_ProjectError(f"Project path does not exist: {invalid_path}")
 
     def test_write_to_readonly_project_raises_error(self):
         """Test that write operation on read-only project raises FP_ReadOnlyError."""
@@ -239,14 +240,13 @@ class TestFLExProjectExceptionHandling:
             # Simulate read-only project
             is_writable = False
             if not is_writable:
-                raise FP_ReadOnlyError(
-                    "Cannot write to project: project is read-only"
-                )
+                raise FP_ReadOnlyError("Cannot write to project: project is read-only")
 
 
 # =============================================================================
 # TESTS FOR EXCEPTION CHAINING AND CONTEXT PRESERVATION
 # =============================================================================
+
 
 class TestExceptionContextPreservation:
     """Test that exception context and chain is preserved during error handling."""
@@ -295,6 +295,7 @@ class TestExceptionContextPreservation:
 # TESTS FOR SPECIFIC OPERATION EXCEPTION PATHS
 # =============================================================================
 
+
 class TestOperationSpecificExceptions:
     """Test exception handling in specific operations."""
 
@@ -311,9 +312,7 @@ class TestOperationSpecificExceptions:
             # Simulate attempt to delete protected object
             is_protected = True
             if is_protected:
-                raise OperationFailedError(
-                    "Cannot delete object: it is protected"
-                )
+                raise OperationFailedError("Cannot delete object: it is protected")
 
     def test_update_operation_with_incompatible_value(self):
         """Test that Update operation raises error for incompatible value."""
@@ -324,14 +323,13 @@ class TestOperationSpecificExceptions:
             try:
                 _ = int(value)
             except (ValueError, TypeError) as e:
-                raise FP_ParameterError(
-                    f"Cannot set field to {value}: expected {expected_type.__name__}"
-                ) from e
+                raise FP_ParameterError(f"Cannot set field to {value}: expected {expected_type.__name__}") from e
 
 
 # =============================================================================
 # INTEGRATION TESTS
 # =============================================================================
+
 
 class TestExceptionHandlingIntegration:
     """Integration tests for exception handling across multiple operations."""

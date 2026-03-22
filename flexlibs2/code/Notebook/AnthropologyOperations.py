@@ -38,6 +38,7 @@ from ..FLExProject import (
 )
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
+
 class AnthropologyOperations(BaseOperations):
     """
     This class provides operations for managing anthropological and cultural
@@ -207,11 +208,7 @@ class AnthropologyOperations(BaseOperations):
         if not anthro_list:
             return []
 
-        return list(self.project.UnpackNestedPossibilityList(
-            anthro_list.PossibilitiesOS,
-            ICmAnthroItem,
-            flat
-        ))
+        return list(self.project.UnpackNestedPossibilityList(anthro_list.PossibilitiesOS, ICmAnthroItem, flat))
 
     @OperationsMethod
     def Create(self, name, abbreviation=None, anthro_code=None):
@@ -279,6 +276,7 @@ class AnthropologyOperations(BaseOperations):
         # Ensure anthropology list exists
         if not self.project.lp.AnthroListOA:
             from SIL.LCModel import ICmPossibilityListFactory
+
             list_factory = self.project.project.ServiceLocator.GetService(ICmPossibilityListFactory)
             anthro_list = list_factory.Create()
             self.project.lp.AnthroListOA = anthro_list
@@ -305,7 +303,7 @@ class AnthropologyOperations(BaseOperations):
             new_item.Abbreviation.set_String(wsHandle, mkstr_abbr)
 
         # Set OCM code if provided (note: AnthroCode may not exist on CmAnthroItem)
-        if anthro_code and hasattr(new_item, 'AnthroCode'):
+        if anthro_code and hasattr(new_item, "AnthroCode"):
             new_item.AnthroCode = anthro_code
 
         return new_item
@@ -394,7 +392,7 @@ class AnthropologyOperations(BaseOperations):
             new_item.Abbreviation.set_String(wsHandle, mkstr_abbr)
 
         # Set OCM code if provided (note: AnthroCode may not exist on CmAnthroItem)
-        if anthro_code and hasattr(new_item, 'AnthroCode'):
+        if anthro_code and hasattr(new_item, "AnthroCode"):
             new_item.AnthroCode = anthro_code
 
         return new_item
@@ -445,10 +443,10 @@ class AnthropologyOperations(BaseOperations):
                 anthro_list.PossibilitiesOS.Remove(item)
             else:
                 # It's a subitem, remove from parent
-                if hasattr(item, 'Owner') and item.Owner:
+                if hasattr(item, "Owner") and item.Owner:
                     try:
                         parent = ICmPossibility(item.Owner)
-                        if hasattr(parent, 'SubPossibilitiesOS'):
+                        if hasattr(parent, "SubPossibilitiesOS"):
                             parent.SubPossibilitiesOS.Remove(item)
                     except Exception:
                         pass
@@ -614,7 +612,7 @@ class AnthropologyOperations(BaseOperations):
 
         # Search through all items
         for item in self.GetAll(flat=True):
-            if hasattr(item, 'AnthroCode') and item.AnthroCode:
+            if hasattr(item, "AnthroCode") and item.AnthroCode:
                 if item.AnthroCode == anthro_code:
                     return item
 
@@ -663,7 +661,7 @@ class AnthropologyOperations(BaseOperations):
         # Search through all items
         for item in self.GetAll(flat=True):
             # Check if item has this category
-            if hasattr(item, 'CategoryRA') and item.CategoryRA:
+            if hasattr(item, "CategoryRA") and item.CategoryRA:
                 if item.CategoryRA == category:
                     results.append(item)
 
@@ -987,7 +985,7 @@ class AnthropologyOperations(BaseOperations):
         """
         item = self.__GetItemObject(item_or_hvo)
 
-        if hasattr(item, 'AnthroCode') and item.AnthroCode:
+        if hasattr(item, "AnthroCode") and item.AnthroCode:
             return item.AnthroCode
         return ""
 
@@ -1034,7 +1032,7 @@ class AnthropologyOperations(BaseOperations):
         item = self.__GetItemObject(item_or_hvo)
 
         # Note: AnthroCode may not exist on CmAnthroItem
-        if hasattr(item, 'AnthroCode'):
+        if hasattr(item, "AnthroCode"):
             item.AnthroCode = anthro_code
 
     @OperationsMethod
@@ -1071,7 +1069,7 @@ class AnthropologyOperations(BaseOperations):
         """
         item = self.__GetItemObject(item_or_hvo)
 
-        if hasattr(item, 'CategoryRA') and item.CategoryRA:
+        if hasattr(item, "CategoryRA") and item.CategoryRA:
             return item.CategoryRA
         return None
 
@@ -1179,7 +1177,7 @@ class AnthropologyOperations(BaseOperations):
         """
         item = self.__GetItemObject(item_or_hvo)
 
-        if hasattr(item, 'SubPossibilitiesOS'):
+        if hasattr(item, "SubPossibilitiesOS"):
             return list(item.SubPossibilitiesOS)
         return []
 
@@ -1232,7 +1230,7 @@ class AnthropologyOperations(BaseOperations):
         """
         item = self.__GetItemObject(item_or_hvo)
 
-        if hasattr(item, 'Owner') and item.Owner:
+        if hasattr(item, "Owner") and item.Owner:
             try:
                 # Check if owner is an ICmAnthroItem (not the list)
                 parent = ICmAnthroItem(item.Owner)
@@ -1283,7 +1281,7 @@ class AnthropologyOperations(BaseOperations):
         """
         item = self.__GetItemObject(item_or_hvo)
 
-        if hasattr(item, 'TextsRC'):
+        if hasattr(item, "TextsRC"):
             return list(item.TextsRC)
         return []
 
@@ -1343,11 +1341,11 @@ class AnthropologyOperations(BaseOperations):
             raise FP_ParameterError("text must be a valid IText object")
 
         # Check if already linked
-        if hasattr(item, 'TextsRC') and item.TextsRC.Contains(text_obj):
+        if hasattr(item, "TextsRC") and item.TextsRC.Contains(text_obj):
             raise FP_ParameterError("Text is already linked to this item")
 
         # Add the text to the item's collection
-        if hasattr(item, 'TextsRC'):
+        if hasattr(item, "TextsRC"):
             item.TextsRC.Add(text_obj)
 
     @OperationsMethod
@@ -1400,11 +1398,11 @@ class AnthropologyOperations(BaseOperations):
             raise FP_ParameterError("text must be a valid IText object")
 
         # Check if linked
-        if hasattr(item, 'TextsRC') and not item.TextsRC.Contains(text_obj):
+        if hasattr(item, "TextsRC") and not item.TextsRC.Contains(text_obj):
             raise FP_ParameterError("Text is not linked to this item")
 
         # Remove the text from the item's collection
-        if hasattr(item, 'TextsRC'):
+        if hasattr(item, "TextsRC"):
             item.TextsRC.Remove(text_obj)
 
     @OperationsMethod
@@ -1446,7 +1444,7 @@ class AnthropologyOperations(BaseOperations):
         """
         item = self.__GetItemObject(item_or_hvo)
 
-        if hasattr(item, 'TextsRC'):
+        if hasattr(item, "TextsRC"):
             return item.TextsRC.Count
         return 0
 
@@ -1506,7 +1504,7 @@ class AnthropologyOperations(BaseOperations):
 
         # Search through all items
         for item in self.GetAll(flat=True):
-            if hasattr(item, 'TextsRC') and item.TextsRC.Contains(text_obj):
+            if hasattr(item, "TextsRC") and item.TextsRC.Contains(text_obj):
                 results.append(item)
 
         return results
@@ -1547,7 +1545,7 @@ class AnthropologyOperations(BaseOperations):
         """
         item = self.__GetItemObject(item_or_hvo)
 
-        if hasattr(item, 'ResearchersRC'):
+        if hasattr(item, "ResearchersRC"):
             return list(item.ResearchersRC)
         return []
 
@@ -1606,11 +1604,11 @@ class AnthropologyOperations(BaseOperations):
             raise FP_ParameterError("person must be a valid ICmPerson object")
 
         # Check if already linked
-        if hasattr(item, 'ResearchersRC') and item.ResearchersRC.Contains(person_obj):
+        if hasattr(item, "ResearchersRC") and item.ResearchersRC.Contains(person_obj):
             raise FP_ParameterError("Person is already linked to this item")
 
         # Add the person to the item's collection
-        if hasattr(item, 'ResearchersRC'):
+        if hasattr(item, "ResearchersRC"):
             item.ResearchersRC.Add(person_obj)
 
     @OperationsMethod
@@ -1663,11 +1661,11 @@ class AnthropologyOperations(BaseOperations):
             raise FP_ParameterError("person must be a valid ICmPerson object")
 
         # Check if linked
-        if hasattr(item, 'ResearchersRC') and not item.ResearchersRC.Contains(person_obj):
+        if hasattr(item, "ResearchersRC") and not item.ResearchersRC.Contains(person_obj):
             raise FP_ParameterError("Person is not linked to this item")
 
         # Remove the person from the item's collection
-        if hasattr(item, 'ResearchersRC'):
+        if hasattr(item, "ResearchersRC"):
             item.ResearchersRC.Remove(person_obj)
 
     @OperationsMethod
@@ -1729,7 +1727,7 @@ class AnthropologyOperations(BaseOperations):
         duplicate = factory.Create()
 
         # Determine insertion position and add to parent FIRST
-        if hasattr(owner, 'SubPossibilitiesOS'):
+        if hasattr(owner, "SubPossibilitiesOS"):
             # Parent is another anthropology item
             if insert_after:
                 source_index = owner.SubPossibilitiesOS.IndexOf(source)
@@ -1752,17 +1750,17 @@ class AnthropologyOperations(BaseOperations):
         duplicate.Description.CopyAlternatives(source.Description)
 
         # Copy simple string property
-        if hasattr(source, 'AnthroCode') and source.AnthroCode:
+        if hasattr(source, "AnthroCode") and source.AnthroCode:
             duplicate.AnthroCode = source.AnthroCode
 
         # Copy Reference Atomic (RA) properties
-        if hasattr(source, 'CategoryRA') and source.CategoryRA:
+        if hasattr(source, "CategoryRA") and source.CategoryRA:
             duplicate.CategoryRA = source.CategoryRA
 
         # Handle owned objects if deep=True
         if deep:
             # Duplicate subitems into the NEW duplicate (not the original's parent)
-            if hasattr(source, 'SubPossibilitiesOS'):
+            if hasattr(source, "SubPossibilitiesOS"):
                 for subitem in source.SubPossibilitiesOS:
                     self._DuplicateSubitemInto(subitem, duplicate, deep=True)
 
@@ -1779,13 +1777,13 @@ class AnthropologyOperations(BaseOperations):
         dup_item.Abbreviation.CopyAlternatives(source_item.Abbreviation)
         dup_item.Description.CopyAlternatives(source_item.Description)
 
-        if hasattr(source_item, 'AnthroCode') and source_item.AnthroCode:
+        if hasattr(source_item, "AnthroCode") and source_item.AnthroCode:
             dup_item.AnthroCode = source_item.AnthroCode
-        if hasattr(source_item, 'CategoryRA') and source_item.CategoryRA:
+        if hasattr(source_item, "CategoryRA") and source_item.CategoryRA:
             dup_item.CategoryRA = source_item.CategoryRA
 
         # Recurse into nested subitems
-        if deep and hasattr(source_item, 'SubPossibilitiesOS'):
+        if deep and hasattr(source_item, "SubPossibilitiesOS"):
             for nested_item in source_item.SubPossibilitiesOS:
                 self._DuplicateSubitemInto(nested_item, dup_item, deep=True)
 
@@ -1800,19 +1798,19 @@ class AnthropologyOperations(BaseOperations):
         wsHandle = self.project.project.DefaultAnalWs
 
         props = {}
-        props['Name'] = ITsString(anthro_item.Name.get_String(wsHandle)).Text or ""
-        props['Abbreviation'] = ITsString(anthro_item.Abbreviation.get_String(wsHandle)).Text or ""
-        props['Description'] = ITsString(anthro_item.Description.get_String(wsHandle)).Text or ""
+        props["Name"] = ITsString(anthro_item.Name.get_String(wsHandle)).Text or ""
+        props["Abbreviation"] = ITsString(anthro_item.Abbreviation.get_String(wsHandle)).Text or ""
+        props["Description"] = ITsString(anthro_item.Description.get_String(wsHandle)).Text or ""
 
-        if hasattr(anthro_item, 'AnthroCode') and anthro_item.AnthroCode:
-            props['AnthroCode'] = anthro_item.AnthroCode
+        if hasattr(anthro_item, "AnthroCode") and anthro_item.AnthroCode:
+            props["AnthroCode"] = anthro_item.AnthroCode
         else:
-            props['AnthroCode'] = None
+            props["AnthroCode"] = None
 
-        if hasattr(anthro_item, 'CategoryRA') and anthro_item.CategoryRA:
-            props['Category'] = str(anthro_item.CategoryRA.Guid)
+        if hasattr(anthro_item, "CategoryRA") and anthro_item.CategoryRA:
+            props["Category"] = str(anthro_item.CategoryRA.Guid)
         else:
-            props['Category'] = None
+            props["Category"] = None
 
         return props
 
@@ -1825,7 +1823,7 @@ class AnthropologyOperations(BaseOperations):
             ops2 = self
 
         is_different = False
-        differences = {'properties': {}}
+        differences = {"properties": {}}
 
         props1 = ops1.GetSyncableProperties(item1)
         props2 = ops2.GetSyncableProperties(item2)
@@ -1835,11 +1833,7 @@ class AnthropologyOperations(BaseOperations):
             val2 = props2.get(key)
             if val1 != val2:
                 is_different = True
-                differences['properties'][key] = {
-                    'source': val1,
-                    'target': val2,
-                    'type': 'modified'
-                }
+                differences["properties"][key] = {"source": val1, "target": val2, "type": "modified"}
 
         return is_different, differences
 
@@ -1926,7 +1920,7 @@ class AnthropologyOperations(BaseOperations):
         """
         item = self.__GetItemObject(item_or_hvo)
 
-        if hasattr(item, 'DateCreated'):
+        if hasattr(item, "DateCreated"):
             return item.DateCreated
         return None
 
@@ -1975,6 +1969,6 @@ class AnthropologyOperations(BaseOperations):
         """
         item = self.__GetItemObject(item_or_hvo)
 
-        if hasattr(item, 'DateModified'):
+        if hasattr(item, "DateModified"):
             return item.DateModified
         return None

@@ -37,7 +37,7 @@ try:
         try:
             # Name is a MultiUnicodeAccessor - get the actual string
             ws_handle = project.WSHandle("en")  # Try English
-            name_val = rule.Name.get(ws_handle) if hasattr(rule.Name, 'get') else str(rule.Name)
+            name_val = rule.Name.get(ws_handle) if hasattr(rule.Name, "get") else str(rule.Name)
             print(f"Name: {name_val}")
         except:
             print(f"Name: {rule.Name}")
@@ -45,7 +45,7 @@ try:
         try:
             # Description is a MultiStringAccessor
             ws_handle = project.WSHandle("en")
-            desc_val = rule.Description.get(ws_handle) if hasattr(rule.Description, 'get') else str(rule.Description)
+            desc_val = rule.Description.get(ws_handle) if hasattr(rule.Description, "get") else str(rule.Description)
             print(f"Description: {desc_val}")
         except:
             print(f"Description: {rule.Description}")
@@ -72,12 +72,12 @@ try:
                 print(f"  [{i}] {sd.ClassName} (HVO: {sd.Hvo})")
                 # This is the INPUT SEGMENT
                 try:
-                    fs = getattr(sd, 'FeatureStructureRA', None)
+                    fs = getattr(sd, "FeatureStructureRA", None)
                     if fs:
                         # Get the name of the phoneme/feature
                         try:
                             fs_name = fs.Name
-                            if hasattr(fs_name, 'get'):
+                            if hasattr(fs_name, "get"):
                                 fs_name = fs_name.get(project.WSHandle("en"))
                             print(f"      FeatureStructureRA (Input): {fs.ClassName} - {fs_name}")
                         except:
@@ -104,27 +104,29 @@ try:
                         print(f"      [{j}] {child.ClassName} (HVO: {child.Hvo})")
 
                         # Check what this output element references
-                        if hasattr(child, 'FeatureStructureRA'):
+                        if hasattr(child, "FeatureStructureRA"):
                             try:
                                 fs = child.FeatureStructureRA
                                 if fs:
                                     try:
                                         fs_name = fs.Name
-                                        if hasattr(fs_name, 'get'):
+                                        if hasattr(fs_name, "get"):
                                             fs_name = fs_name.get(project.WSHandle("en"))
-                                        print(f"          Output element (via FeatureStructureRA): {fs.ClassName} - {fs_name}")
+                                        print(
+                                            f"          Output element (via FeatureStructureRA): {fs.ClassName} - {fs_name}"
+                                        )
                                     except:
                                         print(f"          Output element: {fs.ClassName}")
                             except:
                                 pass
 
-                        if hasattr(child, 'NatlClassRA'):
+                        if hasattr(child, "NatlClassRA"):
                             try:
                                 nc = child.NatlClassRA
                                 if nc:
                                     try:
                                         nc_name = nc.Name
-                                        if hasattr(nc_name, 'get'):
+                                        if hasattr(nc_name, "get"):
                                             nc_name = nc_name.get(project.WSHandle("en"))
                                         print(f"          Natural class (via NatlClassRA): {nc.ClassName} - {nc_name}")
                                     except:
@@ -142,7 +144,7 @@ try:
                     if fs:
                         try:
                             fs_name = fs.Name
-                            if hasattr(fs_name, 'get'):
+                            if hasattr(fs_name, "get"):
                                 fs_name = fs_name.get(project.WSHandle("en"))
                             print(f"      Input segment (FeatureStructureRA): {fs.ClassName} - {fs_name}")
                         except:

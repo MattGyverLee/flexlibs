@@ -12,6 +12,7 @@
 #
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 import os
@@ -36,14 +37,18 @@ from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
 # --- Media Type Enum ---
 
+
 class MediaType:
     """Media file type constants."""
+
     UNKNOWN = 0
     AUDIO = 1
     VIDEO = 2
     IMAGE = 3
 
+
 # --- MediaOperations Class ---
+
 
 class MediaOperations(BaseOperations):
     """
@@ -335,10 +340,7 @@ class MediaOperations(BaseOperations):
                 # Ensure uniqueness
                 counter = 1
                 while True:
-                    new_external_path = os.path.join(
-                        os.path.dirname(external_path),
-                        os.path.basename(new_path)
-                    )
+                    new_external_path = os.path.join(os.path.dirname(external_path), os.path.basename(new_path))
                     if not os.path.exists(new_external_path):
                         break
                     new_file_name = f"{name_base}_copy{counter}{ext}"
@@ -358,7 +360,7 @@ class MediaOperations(BaseOperations):
 
         # Copy full Description MultiString (all writing systems)
         # Create() only sets a single-WS label; CopyAlternatives preserves all WS
-        if hasattr(source_media, 'Description') and source_media.Description:
+        if hasattr(source_media, "Description") and source_media.Description:
             new_media.Description.CopyAlternatives(source_media.Description)
 
         return new_media
@@ -391,12 +393,12 @@ class MediaOperations(BaseOperations):
         props = {}
 
         # String property - InternalPath
-        if hasattr(item, 'InternalPath') and item.InternalPath:
-            props['InternalPath'] = item.InternalPath
+        if hasattr(item, "InternalPath") and item.InternalPath:
+            props["InternalPath"] = item.InternalPath
 
         # MultiString property - Description
-        if hasattr(item, 'Description') and item.Description:
-            props['Description'] = self.project.GetMultiStringDict(item.Description)
+        if hasattr(item, "Description") and item.Description:
+            props["Description"] = self.project.GetMultiStringDict(item.Description)
 
         return props
 
@@ -637,7 +639,7 @@ class MediaOperations(BaseOperations):
         # Otherwise, resolve relative to project LinkedFiles directory
         # Note: This assumes project has a LinkedFiles directory
         # In actual FLEx, this would use the project's LinkedFilesRootDir
-        if hasattr(self.project.project, 'LinkedFilesRootDir'):
+        if hasattr(self.project.project, "LinkedFilesRootDir"):
             linked_files_dir = self.project.project.LinkedFilesRootDir
             return os.path.join(linked_files_dir, internal_path)
 
@@ -767,10 +769,8 @@ class MediaOperations(BaseOperations):
         new_filename = new_filename.strip()
 
         # Validate that new_filename is just a filename, not a path
-        if os.sep in new_filename or '/' in new_filename or '\\' in new_filename:
-            raise FP_ParameterError(
-                f"New filename cannot contain path separators: {new_filename}"
-            )
+        if os.sep in new_filename or "/" in new_filename or "\\" in new_filename:
+            raise FP_ParameterError(f"New filename cannot contain path separators: {new_filename}")
 
         # Resolve to media object
         if isinstance(media_or_hvo, int):
@@ -812,9 +812,7 @@ class MediaOperations(BaseOperations):
                     break
                 counter += 1
 
-            logger.warning(
-                f"File {new_filename} already exists, using {new_filename_conflict}"
-            )
+            logger.warning(f"File {new_filename} already exists, using {new_filename_conflict}")
 
         # Rename the physical file
         try:
@@ -887,7 +885,7 @@ class MediaOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
 
         # Get the label/description string
-        if hasattr(media, 'Description'):
+        if hasattr(media, "Description"):
             label = ITsString(media.Description.get_String(wsHandle)).Text
             return label or ""
         return ""
@@ -941,7 +939,7 @@ class MediaOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
 
         # Set the label/description string
-        if hasattr(media, 'Description'):
+        if hasattr(media, "Description"):
             mkstr = TsStringUtils.MakeString(text, wsHandle)
             media.Description.set_String(wsHandle, mkstr)
 
@@ -1006,9 +1004,9 @@ class MediaOperations(BaseOperations):
         _, ext = os.path.splitext(internal_path.lower())
 
         # Define media type by extension
-        audio_exts = {'.wav', '.mp3', '.ogg', '.wma', '.m4a', '.flac', '.aac', '.opus'}
-        video_exts = {'.mp4', '.avi', '.mov', '.wmv', '.mpg', '.mpeg', '.mkv', '.webm'}
-        image_exts = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tif', '.tiff', '.svg'}
+        audio_exts = {".wav", ".mp3", ".ogg", ".wma", ".m4a", ".flac", ".aac", ".opus"}
+        video_exts = {".mp4", ".avi", ".mov", ".wmv", ".mpg", ".mpeg", ".mkv", ".webm"}
+        image_exts = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tif", ".tiff", ".svg"}
 
         if ext in audio_exts:
             return MediaType.AUDIO
@@ -1178,7 +1176,7 @@ class MediaOperations(BaseOperations):
         # Get all incoming references
         # ICmFile objects track their owners via the Owner property
         owners = []
-        if hasattr(media, 'Owner') and media.Owner:
+        if hasattr(media, "Owner") and media.Owner:
             owners.append(media.Owner)
 
         return owners
@@ -1221,8 +1219,7 @@ class MediaOperations(BaseOperations):
     # --- Utility Methods ---
 
     @OperationsMethod
-    def CopyToProject(self, external_path, internal_subdir="AudioVisual",
-                      label=None, wsHandle=None):
+    def CopyToProject(self, external_path, internal_subdir="AudioVisual", label=None, wsHandle=None):
         """
         Copy an external file into the project's LinkedFiles directory
         and create a media reference.
@@ -1281,7 +1278,7 @@ class MediaOperations(BaseOperations):
             raise FP_ParameterError(f"File not found: {external_path}")
 
         # Get LinkedFiles directory
-        if not hasattr(self.project.project, 'LinkedFilesRootDir'):
+        if not hasattr(self.project.project, "LinkedFilesRootDir"):
             # If LinkedFilesRootDir not available, create reference only
             logger.warning("LinkedFilesRootDir not available, creating reference without copying")
             return self.Create(external_path, label, wsHandle)
@@ -1542,11 +1539,9 @@ class MediaOperations(BaseOperations):
         See Also:
             GetAll, GetMediaType, IsAudio, IsVideo, IsImage
         """
-        if media_type not in (MediaType.AUDIO, MediaType.VIDEO,
-                              MediaType.IMAGE, MediaType.UNKNOWN):
+        if media_type not in (MediaType.AUDIO, MediaType.VIDEO, MediaType.IMAGE, MediaType.UNKNOWN):
             raise FP_ParameterError(
-                f"Invalid media type: {media_type}. "
-                f"Use MediaType.AUDIO, VIDEO, IMAGE, or UNKNOWN"
+                f"Invalid media type: {media_type}. " f"Use MediaType.AUDIO, VIDEO, IMAGE, or UNKNOWN"
             )
 
         for media in self.GetAll():

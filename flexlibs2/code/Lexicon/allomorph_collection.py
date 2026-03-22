@@ -149,26 +149,21 @@ class AllomorphCollection(SmartCollection):
         filtered = self._items
 
         if form_contains is not None:
-            filtered = [
-                allomorph for allomorph in filtered
-                if form_contains in (allomorph.form or "")
-            ]
+            filtered = [allomorph for allomorph in filtered if form_contains in (allomorph.form or "")]
 
         if environment is not None:
             # Handle both object and GUID comparisons
             environment_guid = None
             if environment is not None:
-                if hasattr(environment, 'Guid'):
+                if hasattr(environment, "Guid"):
                     environment_guid = str(environment.Guid)
                 else:
                     environment_guid = str(environment)
 
             filtered = [
-                allomorph for allomorph in filtered
-                if any(
-                    str(env.Guid) == environment_guid
-                    for env in allomorph.environment
-                )
+                allomorph
+                for allomorph in filtered
+                if any(str(env.Guid) == environment_guid for env in allomorph.environment)
             ]
 
         return AllomorphCollection(filtered)
@@ -229,7 +224,7 @@ class AllomorphCollection(SmartCollection):
             - Stem allomorphs are variants of stems/roots
             - Use is_stem_allomorph on individual allomorphs to check type
         """
-        return self.by_type('MoStemAllomorph')
+        return self.by_type("MoStemAllomorph")
 
     def affix_allomorphs(self):
         """
@@ -253,7 +248,7 @@ class AllomorphCollection(SmartCollection):
             - Affix allomorphs are variants of prefixes, suffixes, infixes, etc.
             - Use is_affix_allomorph on individual allomorphs to check type
         """
-        return self.by_type('MoAffixAllomorph')
+        return self.by_type("MoAffixAllomorph")
 
     def __repr__(self):
         """Technical representation."""

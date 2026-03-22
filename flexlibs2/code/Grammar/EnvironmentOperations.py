@@ -24,6 +24,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+
 class EnvironmentOperations(BaseOperations):
     """
     This class provides operations for managing phonological environments in a
@@ -470,7 +471,7 @@ class EnvironmentOperations(BaseOperations):
         env = self.__ResolveObject(env_or_hvo)
 
         # Return the left context if it exists
-        if hasattr(env, 'LeftContextOA') and env.LeftContextOA:
+        if hasattr(env, "LeftContextOA") and env.LeftContextOA:
             return env.LeftContextOA
 
         return None
@@ -526,7 +527,7 @@ class EnvironmentOperations(BaseOperations):
         env = self.__ResolveObject(env_or_hvo)
 
         # Return the right context if it exists
-        if hasattr(env, 'RightContextOA') and env.RightContextOA:
+        if hasattr(env, "RightContextOA") and env.RightContextOA:
             return env.RightContextOA
 
         return None
@@ -608,12 +609,11 @@ class EnvironmentOperations(BaseOperations):
             from ..lcm_casting import clone_properties
 
             # Copy LeftContextOA if exists
-            if hasattr(source, 'LeftContextOA') and source.LeftContextOA:
+            if hasattr(source, "LeftContextOA") and source.LeftContextOA:
                 try:
                     # Create new context object of the same type
                     src_context = source.LeftContextOA
-                    new_context = self.project.project.ServiceLocator.ObjectRepository.NewObject(
-                        src_context.ClassID)
+                    new_context = self.project.project.ServiceLocator.ObjectRepository.NewObject(src_context.ClassID)
                     # Deep clone all properties
                     clone_properties(src_context, new_context, self.project)
                     duplicate.LeftContextOA = new_context
@@ -621,12 +621,11 @@ class EnvironmentOperations(BaseOperations):
                     pass
 
             # Copy RightContextOA if exists
-            if hasattr(source, 'RightContextOA') and source.RightContextOA:
+            if hasattr(source, "RightContextOA") and source.RightContextOA:
                 try:
                     # Create new context object of the same type
                     src_context = source.RightContextOA
-                    new_context = self.project.project.ServiceLocator.ObjectRepository.NewObject(
-                        src_context.ClassID)
+                    new_context = self.project.project.ServiceLocator.ObjectRepository.NewObject(src_context.ClassID)
                     # Deep clone all properties
                     clone_properties(src_context, new_context, self.project)
                     duplicate.RightContextOA = new_context
@@ -686,7 +685,7 @@ class EnvironmentOperations(BaseOperations):
         props = {}
 
         # MultiString properties
-        for prop_name in ['Name', 'Description', 'StringRepresentation']:
+        for prop_name in ["Name", "Description", "StringRepresentation"]:
             prop_obj = getattr(env, prop_name)
             ws_values = {}
             for ws_id, ws_handle in all_ws.items():

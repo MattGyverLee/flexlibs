@@ -16,9 +16,9 @@ from .compound_rule_collection import CompoundRuleCollection
 # from .MorphRuleOperations import MorphRuleOperations
 
 __all__ = [
-    'AffixTemplate',
-    'AffixTemplateCollection',
-    'CompoundRule',
-    'CompoundRuleCollection',
+    "AffixTemplate",
+    "AffixTemplateCollection",
+    "CompoundRule",
+    "CompoundRuleCollection",
     # 'MorphRuleOperations',  # Import directly when needed
 ]

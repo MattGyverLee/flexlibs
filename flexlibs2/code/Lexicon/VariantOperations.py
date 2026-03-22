@@ -31,6 +31,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+
 class VariantOperations(BaseOperations):
     """
     This class provides operations for managing variant forms in a FieldWorks project.
@@ -467,7 +468,7 @@ class VariantOperations(BaseOperations):
         owner = variant.Owner
 
         # Remove from entry's EntryRefsOS
-        if hasattr(owner, 'EntryRefsOS'):
+        if hasattr(owner, "EntryRefsOS"):
             owner.EntryRefsOS.Remove(variant)
 
     @OperationsMethod
@@ -526,22 +527,22 @@ class VariantOperations(BaseOperations):
         duplicate = factory.Create()
 
         # Determine insertion position
-        if insert_after and hasattr(parent, 'EntryRefsOS'):
+        if insert_after and hasattr(parent, "EntryRefsOS"):
             # Insert after source variant
             source_index = parent.EntryRefsOS.IndexOf(source)
             parent.EntryRefsOS.Insert(source_index + 1, duplicate)
         else:
             # Insert at end
-            if hasattr(parent, 'EntryRefsOS'):
+            if hasattr(parent, "EntryRefsOS"):
                 parent.EntryRefsOS.Add(duplicate)
 
         # Copy simple properties
         duplicate.RefType = source.RefType
 
-        if hasattr(source, 'HideMinorEntry'):
+        if hasattr(source, "HideMinorEntry"):
             duplicate.HideMinorEntry = source.HideMinorEntry
 
-        if hasattr(source, 'ShowComplexFormsIn'):
+        if hasattr(source, "ShowComplexFormsIn"):
             duplicate.ShowComplexFormsIn = source.ShowComplexFormsIn
 
         # Copy Reference Sequence (RS) properties
@@ -554,12 +555,12 @@ class VariantOperations(BaseOperations):
             duplicate.ComponentLexemesRS.Add(component)
 
         # Copy complex entry types (if applicable)
-        if hasattr(source, 'ComplexEntryTypesRS'):
+        if hasattr(source, "ComplexEntryTypesRS"):
             for ctype in source.ComplexEntryTypesRS:
                 duplicate.ComplexEntryTypesRS.Add(ctype)
 
         # Copy primary lexemes (if applicable)
-        if hasattr(source, 'PrimaryLexemesRS'):
+        if hasattr(source, "PrimaryLexemesRS"):
             for plex in source.PrimaryLexemesRS:
                 duplicate.PrimaryLexemesRS.Add(plex)
 
@@ -582,16 +583,16 @@ class VariantOperations(BaseOperations):
 
         # Atomic properties
         # RefType - type of reference (0 = Variant, 1 = Complex Form)
-        if hasattr(item, 'RefType'):
-            props['RefType'] = item.RefType
+        if hasattr(item, "RefType"):
+            props["RefType"] = item.RefType
 
         # HideMinorEntry - whether to hide minor entry
-        if hasattr(item, 'HideMinorEntry'):
-            props['HideMinorEntry'] = item.HideMinorEntry
+        if hasattr(item, "HideMinorEntry"):
+            props["HideMinorEntry"] = item.HideMinorEntry
 
         # ShowComplexFormsIn - flags for showing complex forms
-        if hasattr(item, 'ShowComplexFormsIn'):
-            props['ShowComplexFormsIn'] = item.ShowComplexFormsIn
+        if hasattr(item, "ShowComplexFormsIn"):
+            props["ShowComplexFormsIn"] = item.ShowComplexFormsIn
 
         # Note: The variant form itself is stored on the owning entry's LexemeFormOA
         # Note: VariantEntryTypesRS is a Reference Sequence (complex relationships) - not included as simple property
@@ -672,7 +673,7 @@ class VariantOperations(BaseOperations):
         owner = variant.Owner
 
         # Get the lexeme form from the entry
-        if hasattr(owner, 'LexemeFormOA') and owner.LexemeFormOA:
+        if hasattr(owner, "LexemeFormOA") and owner.LexemeFormOA:
             form = ITsString(owner.LexemeFormOA.Form.get_String(wsHandle)).Text
             return form or ""
 
@@ -724,7 +725,7 @@ class VariantOperations(BaseOperations):
         # Get the owning entry
         owner = variant.Owner
 
-        if not hasattr(owner, 'LexemeFormOA') or not owner.LexemeFormOA:
+        if not hasattr(owner, "LexemeFormOA") or not owner.LexemeFormOA:
             raise FP_ParameterError("Entry has no lexeme form object")
 
         mkstr = TsStringUtils.MakeString(text, wsHandle)
@@ -1114,10 +1115,7 @@ class VariantOperations(BaseOperations):
         """
         if wsHandle is None:
             return self.project.project.DefaultVernWs
-        return self.project._FLExProject__WSHandle(
-            wsHandle,
-            self.project.project.DefaultVernWs
-        )
+        return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultVernWs)
 
     def __WSHandleAnalysis(self, wsHandle):
         """
@@ -1131,7 +1129,4 @@ class VariantOperations(BaseOperations):
         """
         if wsHandle is None:
             return self.project.project.DefaultAnalWs
-        return self.project._FLExProject__WSHandle(
-            wsHandle,
-            self.project.project.DefaultAnalWs
-        )
+        return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultAnalWs)

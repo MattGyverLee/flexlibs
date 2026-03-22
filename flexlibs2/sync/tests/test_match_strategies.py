@@ -50,10 +50,7 @@ class TestGuidMatchStrategy(unittest.TestCase):
     def test_match_found(self):
         """Test matching when GUID exists in target"""
         match = self.strategy.match(
-            self.source_obj,
-            self.target_candidates,
-            None,  # Projects not used in GUID strategy
-            None
+            self.source_obj, self.target_candidates, None, None  # Projects not used in GUID strategy
         )
 
         self.assertIsNotNone(match)
@@ -64,23 +61,13 @@ class TestGuidMatchStrategy(unittest.TestCase):
         # Remove matching object
         candidates = [self.target_obj2]
 
-        match = self.strategy.match(
-            self.source_obj,
-            candidates,
-            None,
-            None
-        )
+        match = self.strategy.match(self.source_obj, candidates, None, None)
 
         self.assertIsNone(match)
 
     def test_empty_candidates(self):
         """Test with empty candidate list"""
-        match = self.strategy.match(
-            self.source_obj,
-            [],
-            None,
-            None
-        )
+        match = self.strategy.match(self.source_obj, [], None, None)
 
         self.assertIsNone(match)
 
@@ -92,12 +79,7 @@ class TestGuidMatchStrategy(unittest.TestCase):
 
         candidates = [self.target_obj1, duplicate]
 
-        match = self.strategy.match(
-            self.source_obj,
-            candidates,
-            None,
-            None
-        )
+        match = self.strategy.match(self.source_obj, candidates, None, None)
 
         # Should return first match
         self.assertEqual(match, self.target_obj1)
@@ -139,12 +121,7 @@ class TestFieldMatchStrategy(unittest.TestCase):
         """Test matching on single field"""
         strategy = FieldMatchStrategy(key_fields=["form"])
 
-        match = strategy.match(
-            self.source_obj,
-            self.target_candidates,
-            self.source_project,
-            self.target_project
-        )
+        match = strategy.match(self.source_obj, self.target_candidates, self.source_project, self.target_project)
 
         self.assertIsNotNone(match)
         self.assertEqual(match, self.target_obj1)
@@ -156,55 +133,34 @@ class TestFieldMatchStrategy(unittest.TestCase):
         # Only non-matching candidate
         candidates = [self.target_obj2]
 
-        match = strategy.match(
-            self.source_obj,
-            candidates,
-            self.source_project,
-            self.target_project
-        )
+        match = strategy.match(self.source_obj, candidates, self.source_project, self.target_project)
 
         self.assertIsNone(match)
 
     def test_case_insensitive_matching(self):
         """Test case-insensitive matching"""
-        strategy = FieldMatchStrategy(
-            key_fields=["form"],
-            case_sensitive=False
-        )
+        strategy = FieldMatchStrategy(key_fields=["form"], case_sensitive=False)
 
         # Create object with different case
         target_different_case = Mock()
         target_different_case.form = "RUN-ING"  # Different case
         target_different_case.ClassName = "MoStemAllomorph"
 
-        match = strategy.match(
-            self.source_obj,
-            [target_different_case],
-            self.source_project,
-            self.target_project
-        )
+        match = strategy.match(self.source_obj, [target_different_case], self.source_project, self.target_project)
 
         self.assertIsNotNone(match)
         self.assertEqual(match, target_different_case)
 
     def test_case_sensitive_matching(self):
         """Test case-sensitive matching (default)"""
-        strategy = FieldMatchStrategy(
-            key_fields=["form"],
-            case_sensitive=True
-        )
+        strategy = FieldMatchStrategy(key_fields=["form"], case_sensitive=True)
 
         # Create object with different case
         target_different_case = Mock()
         target_different_case.form = "RUN-ING"  # Different case
         target_different_case.ClassName = "MoStemAllomorph"
 
-        match = strategy.match(
-            self.source_obj,
-            [target_different_case],
-            self.source_project,
-            self.target_project
-        )
+        match = strategy.match(self.source_obj, [target_different_case], self.source_project, self.target_project)
 
         # Should NOT match (case-sensitive)
         self.assertIsNone(match)
@@ -251,12 +207,7 @@ class TestHybridMatchStrategy(unittest.TestCase):
         # Both GUID and field matches available
         candidates = [self.target_form_match, self.target_guid_match]
 
-        match = strategy.match(
-            self.source_obj,
-            candidates,
-            self.source_project,
-            self.target_project
-        )
+        match = strategy.match(self.source_obj, candidates, self.source_project, self.target_project)
 
         # Should prefer GUID match
         self.assertEqual(match, self.target_guid_match)
@@ -268,12 +219,7 @@ class TestHybridMatchStrategy(unittest.TestCase):
         # Only field match available (no GUID match)
         candidates = [self.target_form_match]
 
-        match = strategy.match(
-            self.source_obj,
-            candidates,
-            self.source_project,
-            self.target_project
-        )
+        match = strategy.match(self.source_obj, candidates, self.source_project, self.target_project)
 
         # Should fall back to field match
         self.assertEqual(match, self.target_form_match)
@@ -288,15 +234,10 @@ class TestHybridMatchStrategy(unittest.TestCase):
         no_match.form = "walk-ed"
         no_match.ClassName = "MoStemAllomorph"
 
-        match = strategy.match(
-            self.source_obj,
-            [no_match],
-            self.source_project,
-            self.target_project
-        )
+        match = strategy.match(self.source_obj, [no_match], self.source_project, self.target_project)
 
         self.assertIsNone(match)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

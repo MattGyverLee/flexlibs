@@ -8,12 +8,13 @@
 
 import sys
 
+
 def test_lcm_api_directly():
     """Directly test LCM API with FieldWorks installed."""
 
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("TESTING ACTUAL LCM API METHODS")
-    print("="*80)
+    print("=" * 80)
 
     try:
         print("\n[TEST 1] Importing SIL.LCModel modules...")
@@ -21,6 +22,7 @@ def test_lcm_api_directly():
         from SIL.LCModel.Core.Text import TsStringUtils
         from SIL.LCModel import IPhPhonemeFactory
         from SIL.LCModel.Core.KernelInterfaces import ITsString
+
         print("  [OK] All SIL.LCModel modules imported successfully")
 
     except ModuleNotFoundError as e:
@@ -30,8 +32,7 @@ def test_lcm_api_directly():
 
     try:
         print("\n[TEST 2] Checking TsStringUtils.MakeString...")
-        assert hasattr(TsStringUtils, 'MakeString'), \
-            "TsStringUtils.MakeString method not found"
+        assert hasattr(TsStringUtils, "MakeString"), "TsStringUtils.MakeString method not found"
         print("  [OK] TsStringUtils.MakeString exists")
 
     except AssertionError as e:
@@ -44,7 +45,7 @@ def test_lcm_api_directly():
         print(f"     Available methods: {len(repo_methods)}")
 
         # Check for CopyObject
-        has_copy = any('Copy' in m for m in repo_methods)
+        has_copy = any("Copy" in m for m in repo_methods)
         if has_copy:
             print("  [OK] CopyObject-related methods exist on ICmObjectRepository")
         else:
@@ -59,7 +60,7 @@ def test_lcm_api_directly():
         factory_methods = dir(IPhPhonemeFactory)
         print(f"     Available methods: {len(factory_methods)}")
 
-        has_create = any('Create' in m for m in factory_methods)
+        has_create = any("Create" in m for m in factory_methods)
         if has_create:
             print("  [OK] Factory.Create() pattern exists")
         else:
@@ -74,7 +75,7 @@ def test_lcm_api_directly():
         ts_methods = dir(ITsString)
         print(f"     Available methods/properties: {len(ts_methods)}")
 
-        has_text = any('Text' in m for m in ts_methods)
+        has_text = any("Text" in m for m in ts_methods)
         if has_text:
             print("  [OK] ITsString.Text property exists")
         else:
@@ -84,9 +85,9 @@ def test_lcm_api_directly():
         print(f"  [FAIL] {e}")
         return False
 
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("LCM API VERIFICATION COMPLETE")
-    print("="*80)
+    print("=" * 80)
     print("\nSummary: All required LCM methods are available")
     print("\nVerified copy/clone methods:")
     print("  ✓ TsStringUtils.MakeString() - for ITsString creation")
@@ -94,9 +95,10 @@ def test_lcm_api_directly():
     print("  ✓ Factory.Create() - for new object creation")
     print("  ✓ MultiString.CopyAlternatives() - for alternative copying")
     print("\nAll fixes use correct LCM API methods!")
-    print("="*80 + "\n")
+    print("=" * 80 + "\n")
 
     return True
+
 
 if __name__ == "__main__":
     result = test_lcm_api_directly()

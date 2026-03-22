@@ -20,7 +20,7 @@ import os
 
 # Add parent directory to sys.path to allow importing flexlibs
 _test_dir = os.path.dirname(os.path.abspath(__file__))
-_project_root = os.path.join(_test_dir, '..', '..', '..')
+_project_root = os.path.join(_test_dir, "..", "..", "..")
 sys.path.insert(0, _project_root)
 
 from flexlibs2.code.FLExProject import FLExProject
@@ -2434,6 +2434,6 @@ class TestNaturalClassDuplicate(unittest.TestCase):
 
 
 # Test runner
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Run tests with verbose output
     unittest.main(verbosity=2)

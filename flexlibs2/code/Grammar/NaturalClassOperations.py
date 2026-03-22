@@ -29,6 +29,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+
 class NaturalClassOperations(BaseOperations):
     """
     This class provides operations for managing natural classes in a
@@ -336,7 +337,7 @@ class NaturalClassOperations(BaseOperations):
         duplicate.Description.CopyAlternatives(source.Description)
 
         # Copy Reference Collection (RC) properties - phoneme members
-        if hasattr(source, 'SegmentsRC'):
+        if hasattr(source, "SegmentsRC"):
             for phoneme in source.SegmentsRC:
                 duplicate.SegmentsRC.Add(phoneme)
 
@@ -520,7 +521,7 @@ class NaturalClassOperations(BaseOperations):
         nc = self.__GetNaturalClassObject(nc_or_hvo)
 
         # Check if it's a segment-based natural class
-        if hasattr(nc, 'SegmentsRC'):
+        if hasattr(nc, "SegmentsRC"):
             return list(nc.SegmentsRC)
         return []
 
@@ -576,10 +577,8 @@ class NaturalClassOperations(BaseOperations):
         phoneme = self.__GetPhonemeObject(phoneme_or_hvo)
 
         # Check if it's a segment-based natural class
-        if not hasattr(nc, 'SegmentsRC'):
-            raise FP_ParameterError(
-                "Cannot add phoneme to feature-based natural class"
-            )
+        if not hasattr(nc, "SegmentsRC"):
+            raise FP_ParameterError("Cannot add phoneme to feature-based natural class")
 
         # Add the phoneme if not already present
         if phoneme not in nc.SegmentsRC:
@@ -632,10 +631,8 @@ class NaturalClassOperations(BaseOperations):
         phoneme = self.__GetPhonemeObject(phoneme_or_hvo)
 
         # Check if it's a segment-based natural class
-        if not hasattr(nc, 'SegmentsRC'):
-            raise FP_ParameterError(
-                "Cannot remove phoneme from feature-based natural class"
-            )
+        if not hasattr(nc, "SegmentsRC"):
+            raise FP_ParameterError("Cannot remove phoneme from feature-based natural class")
 
         # Check if phoneme is in the collection
         if phoneme not in nc.SegmentsRC:
@@ -679,7 +676,7 @@ class NaturalClassOperations(BaseOperations):
         props = {}
 
         # MultiString properties
-        for prop_name in ['Name', 'Abbreviation', 'Description']:
+        for prop_name in ["Name", "Abbreviation", "Description"]:
             if hasattr(nc, prop_name):
                 prop_obj = getattr(nc, prop_name)
                 ws_values = {}
@@ -691,10 +688,10 @@ class NaturalClassOperations(BaseOperations):
                     props[prop_name] = ws_values
 
         # Reference Collection (RC) properties - return list of GUIDs
-        if hasattr(nc, 'SegmentsRC'):
+        if hasattr(nc, "SegmentsRC"):
             phoneme_guids = [str(phoneme.Guid) for phoneme in nc.SegmentsRC]
             if phoneme_guids:
-                props['PhonemeGuids'] = phoneme_guids
+                props["PhonemeGuids"] = phoneme_guids
 
         return props
 
@@ -753,7 +750,7 @@ class NaturalClassOperations(BaseOperations):
             val2 = props2.get(key)
 
             # For PhonemeGuids, compare as sets (order doesn't matter)
-            if key == 'PhonemeGuids':
+            if key == "PhonemeGuids":
                 set1 = set(val1) if val1 else set()
                 set2 = set(val2) if val2 else set()
                 if set1 != set2:

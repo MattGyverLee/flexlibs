@@ -58,31 +58,31 @@ class MockMorphosyntaxAnalysis:
 
     @property
     def is_stem_msa(self):
-        return self.class_type == 'MoStemMsa'
+        return self.class_type == "MoStemMsa"
 
     @property
     def is_deriv_aff_msa(self):
-        return self.class_type == 'MoDerivAffMsa'
+        return self.class_type == "MoDerivAffMsa"
 
     @property
     def is_infl_aff_msa(self):
-        return self.class_type == 'MoInflAffMsa'
+        return self.class_type == "MoInflAffMsa"
 
     @property
     def is_unclassified_aff_msa(self):
-        return self.class_type == 'MoUnclassifiedAffixMsa'
+        return self.class_type == "MoUnclassifiedAffixMsa"
 
     def as_stem_msa(self):
-        return Mock() if self.class_type == 'MoStemMsa' else None
+        return Mock() if self.class_type == "MoStemMsa" else None
 
     def as_deriv_aff_msa(self):
-        return Mock() if self.class_type == 'MoDerivAffMsa' else None
+        return Mock() if self.class_type == "MoDerivAffMsa" else None
 
     def as_infl_aff_msa(self):
-        return Mock() if self.class_type == 'MoInflAffMsa' else None
+        return Mock() if self.class_type == "MoInflAffMsa" else None
 
     def as_unclassified_aff_msa(self):
-        return Mock() if self.class_type == 'MoUnclassifiedAffixMsa' else None
+        return Mock() if self.class_type == "MoUnclassifiedAffixMsa" else None
 
     @property
     def concrete(self):
@@ -104,9 +104,9 @@ class TestMSACollection:
         """Test creating MSACollection with items."""
         from flexlibs2.code.Lexicon.msa_collection import MSACollection
 
-        msa1 = MockMorphosyntaxAnalysis('MoStemMsa')
-        msa2 = MockMorphosyntaxAnalysis('MoDerivAffMsa')
-        msa3 = MockMorphosyntaxAnalysis('MoInflAffMsa')
+        msa1 = MockMorphosyntaxAnalysis("MoStemMsa")
+        msa2 = MockMorphosyntaxAnalysis("MoDerivAffMsa")
+        msa3 = MockMorphosyntaxAnalysis("MoInflAffMsa")
 
         collection = MSACollection([msa1, msa2, msa3])
         assert len(collection) == 3
@@ -116,8 +116,8 @@ class TestMSACollection:
         """Test iterating over MSACollection."""
         from flexlibs2.code.Lexicon.msa_collection import MSACollection
 
-        msa1 = MockMorphosyntaxAnalysis('MoStemMsa')
-        msa2 = MockMorphosyntaxAnalysis('MoDerivAffMsa')
+        msa1 = MockMorphosyntaxAnalysis("MoStemMsa")
+        msa2 = MockMorphosyntaxAnalysis("MoDerivAffMsa")
 
         collection = MSACollection([msa1, msa2])
 
@@ -131,9 +131,9 @@ class TestMSACollection:
         """Test indexing into MSACollection."""
         from flexlibs2.code.Lexicon.msa_collection import MSACollection
 
-        msa1 = MockMorphosyntaxAnalysis('MoStemMsa')
-        msa2 = MockMorphosyntaxAnalysis('MoDerivAffMsa')
-        msa3 = MockMorphosyntaxAnalysis('MoInflAffMsa')
+        msa1 = MockMorphosyntaxAnalysis("MoStemMsa")
+        msa2 = MockMorphosyntaxAnalysis("MoDerivAffMsa")
+        msa3 = MockMorphosyntaxAnalysis("MoInflAffMsa")
 
         collection = MSACollection([msa1, msa2, msa3])
 
@@ -145,9 +145,9 @@ class TestMSACollection:
         """Test slicing MSACollection."""
         from flexlibs2.code.Lexicon.msa_collection import MSACollection
 
-        msa1 = MockMorphosyntaxAnalysis('MoStemMsa')
-        msa2 = MockMorphosyntaxAnalysis('MoDerivAffMsa')
-        msa3 = MockMorphosyntaxAnalysis('MoInflAffMsa')
+        msa1 = MockMorphosyntaxAnalysis("MoStemMsa")
+        msa2 = MockMorphosyntaxAnalysis("MoDerivAffMsa")
+        msa3 = MockMorphosyntaxAnalysis("MoInflAffMsa")
 
         collection = MSACollection([msa1, msa2, msa3])
         sliced = collection[0:2]
@@ -168,10 +168,10 @@ class TestMSACollection:
         """Test string representation shows type breakdown."""
         from flexlibs2.code.Lexicon.msa_collection import MSACollection
 
-        msa1 = MockMorphosyntaxAnalysis('MoStemMsa')
-        msa2 = MockMorphosyntaxAnalysis('MoStemMsa')
-        msa3 = MockMorphosyntaxAnalysis('MoDerivAffMsa')
-        msa4 = MockMorphosyntaxAnalysis('MoInflAffMsa')
+        msa1 = MockMorphosyntaxAnalysis("MoStemMsa")
+        msa2 = MockMorphosyntaxAnalysis("MoStemMsa")
+        msa3 = MockMorphosyntaxAnalysis("MoDerivAffMsa")
+        msa4 = MockMorphosyntaxAnalysis("MoInflAffMsa")
 
         collection = MSACollection([msa1, msa2, msa3, msa4])
         output = str(collection)
@@ -186,58 +186,58 @@ class TestMSACollection:
         """Test filtering to only stem MSAs."""
         from flexlibs2.code.Lexicon.msa_collection import MSACollection
 
-        msa1 = MockMorphosyntaxAnalysis('MoStemMsa')
-        msa2 = MockMorphosyntaxAnalysis('MoDerivAffMsa')
-        msa3 = MockMorphosyntaxAnalysis('MoStemMsa')
+        msa1 = MockMorphosyntaxAnalysis("MoStemMsa")
+        msa2 = MockMorphosyntaxAnalysis("MoDerivAffMsa")
+        msa3 = MockMorphosyntaxAnalysis("MoStemMsa")
 
         collection = MSACollection([msa1, msa2, msa3])
         stem_only = collection.stem_msas()
 
         assert len(stem_only) == 2
-        assert all(m.class_type == 'MoStemMsa' for m in stem_only)
+        assert all(m.class_type == "MoStemMsa" for m in stem_only)
 
     def test_deriv_aff_msas_filter(self):
         """Test filtering to only derivational affix MSAs."""
         from flexlibs2.code.Lexicon.msa_collection import MSACollection
 
-        msa1 = MockMorphosyntaxAnalysis('MoStemMsa')
-        msa2 = MockMorphosyntaxAnalysis('MoDerivAffMsa')
-        msa3 = MockMorphosyntaxAnalysis('MoInflAffMsa')
-        msa4 = MockMorphosyntaxAnalysis('MoDerivAffMsa')
+        msa1 = MockMorphosyntaxAnalysis("MoStemMsa")
+        msa2 = MockMorphosyntaxAnalysis("MoDerivAffMsa")
+        msa3 = MockMorphosyntaxAnalysis("MoInflAffMsa")
+        msa4 = MockMorphosyntaxAnalysis("MoDerivAffMsa")
 
         collection = MSACollection([msa1, msa2, msa3, msa4])
         deriv_only = collection.deriv_aff_msas()
 
         assert len(deriv_only) == 2
-        assert all(m.class_type == 'MoDerivAffMsa' for m in deriv_only)
+        assert all(m.class_type == "MoDerivAffMsa" for m in deriv_only)
 
     def test_infl_aff_msas_filter(self):
         """Test filtering to only inflectional affix MSAs."""
         from flexlibs2.code.Lexicon.msa_collection import MSACollection
 
-        msa1 = MockMorphosyntaxAnalysis('MoStemMsa')
-        msa2 = MockMorphosyntaxAnalysis('MoInflAffMsa')
-        msa3 = MockMorphosyntaxAnalysis('MoInflAffMsa')
+        msa1 = MockMorphosyntaxAnalysis("MoStemMsa")
+        msa2 = MockMorphosyntaxAnalysis("MoInflAffMsa")
+        msa3 = MockMorphosyntaxAnalysis("MoInflAffMsa")
 
         collection = MSACollection([msa1, msa2, msa3])
         infl_only = collection.infl_aff_msas()
 
         assert len(infl_only) == 2
-        assert all(m.class_type == 'MoInflAffMsa' for m in infl_only)
+        assert all(m.class_type == "MoInflAffMsa" for m in infl_only)
 
     def test_unclassified_aff_msas_filter(self):
         """Test filtering to only unclassified affix MSAs."""
         from flexlibs2.code.Lexicon.msa_collection import MSACollection
 
-        msa1 = MockMorphosyntaxAnalysis('MoStemMsa')
-        msa2 = MockMorphosyntaxAnalysis('MoUnclassifiedAffixMsa')
-        msa3 = MockMorphosyntaxAnalysis('MoUnclassifiedAffixMsa')
+        msa1 = MockMorphosyntaxAnalysis("MoStemMsa")
+        msa2 = MockMorphosyntaxAnalysis("MoUnclassifiedAffixMsa")
+        msa3 = MockMorphosyntaxAnalysis("MoUnclassifiedAffixMsa")
 
         collection = MSACollection([msa1, msa2, msa3])
         unclass_only = collection.unclassified_aff_msas()
 
         assert len(unclass_only) == 2
-        assert all(m.class_type == 'MoUnclassifiedAffixMsa' for m in unclass_only)
+        assert all(m.class_type == "MoUnclassifiedAffixMsa" for m in unclass_only)
 
     def test_filter_by_has_pos_true(self):
         """Test filtering MSAs that have POS."""
@@ -246,9 +246,9 @@ class TestMSACollection:
         pos_mock = Mock()
         pos_mock.Guid = "test-guid"
 
-        msa1 = MockMorphosyntaxAnalysis('MoStemMsa', pos_main=pos_mock)
-        msa2 = MockMorphosyntaxAnalysis('MoStemMsa', pos_main=None)
-        msa3 = MockMorphosyntaxAnalysis('MoDerivAffMsa', pos_main=pos_mock)
+        msa1 = MockMorphosyntaxAnalysis("MoStemMsa", pos_main=pos_mock)
+        msa2 = MockMorphosyntaxAnalysis("MoStemMsa", pos_main=None)
+        msa3 = MockMorphosyntaxAnalysis("MoDerivAffMsa", pos_main=pos_mock)
 
         collection = MSACollection([msa1, msa2, msa3])
         with_pos = collection.filter(has_pos=True)
@@ -263,9 +263,9 @@ class TestMSACollection:
         pos_mock = Mock()
         pos_mock.Guid = "test-guid"
 
-        msa1 = MockMorphosyntaxAnalysis('MoStemMsa', pos_main=pos_mock)
-        msa2 = MockMorphosyntaxAnalysis('MoStemMsa', pos_main=None)
-        msa3 = MockMorphosyntaxAnalysis('MoDerivAffMsa', pos_main=None)
+        msa1 = MockMorphosyntaxAnalysis("MoStemMsa", pos_main=pos_mock)
+        msa2 = MockMorphosyntaxAnalysis("MoStemMsa", pos_main=None)
+        msa3 = MockMorphosyntaxAnalysis("MoDerivAffMsa", pos_main=None)
 
         collection = MSACollection([msa1, msa2, msa3])
         without_pos = collection.filter(has_pos=False)
@@ -282,19 +282,16 @@ class TestMSACollection:
         pos2 = Mock()
         pos2.Guid = "pos2-guid"
 
-        msa1 = MockMorphosyntaxAnalysis('MoStemMsa', pos_main=pos1)
-        msa2 = MockMorphosyntaxAnalysis('MoStemMsa', pos_main=pos2)
-        msa3 = MockMorphosyntaxAnalysis('MoDerivAffMsa', pos_main=pos1)
-        msa4 = MockMorphosyntaxAnalysis('MoInflAffMsa', pos_main=pos2)
+        msa1 = MockMorphosyntaxAnalysis("MoStemMsa", pos_main=pos1)
+        msa2 = MockMorphosyntaxAnalysis("MoStemMsa", pos_main=pos2)
+        msa3 = MockMorphosyntaxAnalysis("MoDerivAffMsa", pos_main=pos1)
+        msa4 = MockMorphosyntaxAnalysis("MoInflAffMsa", pos_main=pos2)
 
         collection = MSACollection([msa1, msa2, msa3, msa4])
         matching = collection.filter(pos_main=pos1)
 
         assert len(matching) == 2
-        assert all(
-            m.pos_main is not None and str(m.pos_main.Guid) == "pos1-guid"
-            for m in matching
-        )
+        assert all(m.pos_main is not None and str(m.pos_main.Guid) == "pos1-guid" for m in matching)
 
     def test_filter_chaining(self):
         """Test chaining filters together."""
@@ -303,10 +300,10 @@ class TestMSACollection:
         pos_mock = Mock()
         pos_mock.Guid = "test-guid"
 
-        msa1 = MockMorphosyntaxAnalysis('MoStemMsa', pos_main=pos_mock)
-        msa2 = MockMorphosyntaxAnalysis('MoStemMsa', pos_main=None)
-        msa3 = MockMorphosyntaxAnalysis('MoDerivAffMsa', pos_main=pos_mock)
-        msa4 = MockMorphosyntaxAnalysis('MoInflAffMsa', pos_main=pos_mock)
+        msa1 = MockMorphosyntaxAnalysis("MoStemMsa", pos_main=pos_mock)
+        msa2 = MockMorphosyntaxAnalysis("MoStemMsa", pos_main=None)
+        msa3 = MockMorphosyntaxAnalysis("MoDerivAffMsa", pos_main=pos_mock)
+        msa4 = MockMorphosyntaxAnalysis("MoInflAffMsa", pos_main=pos_mock)
 
         collection = MSACollection([msa1, msa2, msa3, msa4])
 
@@ -314,7 +311,7 @@ class TestMSACollection:
         result = collection.stem_msas().filter(has_pos=True)
 
         assert len(result) == 1
-        assert result[0].class_type == 'MoStemMsa'
+        assert result[0].class_type == "MoStemMsa"
         assert result[0].pos_main is not None
 
     def test_filter_with_where_custom_predicate(self):
@@ -326,40 +323,38 @@ class TestMSACollection:
         pos2 = Mock()
         pos2.Guid = "pos2-guid"
 
-        msa1 = MockMorphosyntaxAnalysis('MoStemMsa', pos_main=pos1)
-        msa2 = MockMorphosyntaxAnalysis('MoDerivAffMsa', pos_main=pos1, pos_from=pos2)
-        msa3 = MockMorphosyntaxAnalysis('MoInflAffMsa', pos_main=pos2)
+        msa1 = MockMorphosyntaxAnalysis("MoStemMsa", pos_main=pos1)
+        msa2 = MockMorphosyntaxAnalysis("MoDerivAffMsa", pos_main=pos1, pos_from=pos2)
+        msa3 = MockMorphosyntaxAnalysis("MoInflAffMsa", pos_main=pos2)
 
         collection = MSACollection([msa1, msa2, msa3])
 
         # Filter: derivational affixes with from_pos set
-        result = collection.where(
-            lambda m: m.is_deriv_aff_msa and m.has_from_pos
-        )
+        result = collection.where(lambda m: m.is_deriv_aff_msa and m.has_from_pos)
 
         assert len(result) == 1
-        assert result[0].class_type == 'MoDerivAffMsa'
+        assert result[0].class_type == "MoDerivAffMsa"
 
     def test_by_type_filter(self):
         """Test filtering by ClassName."""
         from flexlibs2.code.Lexicon.msa_collection import MSACollection
 
-        msa1 = MockMorphosyntaxAnalysis('MoStemMsa')
-        msa2 = MockMorphosyntaxAnalysis('MoDerivAffMsa')
-        msa3 = MockMorphosyntaxAnalysis('MoStemMsa')
+        msa1 = MockMorphosyntaxAnalysis("MoStemMsa")
+        msa2 = MockMorphosyntaxAnalysis("MoDerivAffMsa")
+        msa3 = MockMorphosyntaxAnalysis("MoStemMsa")
 
         collection = MSACollection([msa1, msa2, msa3])
-        result = collection.by_type('MoStemMsa')
+        result = collection.by_type("MoStemMsa")
 
         assert len(result) == 2
-        assert all(m.class_type == 'MoStemMsa' for m in result)
+        assert all(m.class_type == "MoStemMsa" for m in result)
 
     def test_collection_returns_new_instance(self):
         """Test that filters return new collections, not modifying original."""
         from flexlibs2.code.Lexicon.msa_collection import MSACollection
 
-        msa1 = MockMorphosyntaxAnalysis('MoStemMsa')
-        msa2 = MockMorphosyntaxAnalysis('MoDerivAffMsa')
+        msa1 = MockMorphosyntaxAnalysis("MoStemMsa")
+        msa2 = MockMorphosyntaxAnalysis("MoDerivAffMsa")
 
         collection = MSACollection([msa1, msa2])
         filtered = collection.stem_msas()
@@ -380,10 +375,10 @@ class TestMorphosyntaxAnalysisWrapper:
         from flexlibs2.code.Lexicon.morphosyntax_analysis import MorphosyntaxAnalysis
 
         # Mock the LCMObjectWrapper init
-        with patch('flexlibs2.code.Lexicon.morphosyntax_analysis.LCMObjectWrapper.__init__'):
+        with patch("flexlibs2.code.Lexicon.morphosyntax_analysis.LCMObjectWrapper.__init__"):
             msa = MorphosyntaxAnalysis.__new__(MorphosyntaxAnalysis)
             msa._obj = Mock()
-            msa._obj.ClassName = 'MoStemMsa'
+            msa._obj.ClassName = "MoStemMsa"
             msa._concrete = Mock()
 
             assert msa.is_stem_msa is True
@@ -395,11 +390,11 @@ class TestMorphosyntaxAnalysisWrapper:
         """Test as_stem_msa method."""
         from flexlibs2.code.Lexicon.morphosyntax_analysis import MorphosyntaxAnalysis
 
-        with patch('flexlibs2.code.Lexicon.morphosyntax_analysis.LCMObjectWrapper.__init__'):
+        with patch("flexlibs2.code.Lexicon.morphosyntax_analysis.LCMObjectWrapper.__init__"):
             msa = MorphosyntaxAnalysis.__new__(MorphosyntaxAnalysis)
             msa._obj = Mock()
-            msa._obj.ClassName = 'MoStemMsa'
-            msa._concrete = Mock(spec=['PartOfSpeechRA'])
+            msa._obj.ClassName = "MoStemMsa"
+            msa._concrete = Mock(spec=["PartOfSpeechRA"])
 
             result = msa.as_stem_msa()
             assert result is msa._concrete
@@ -408,17 +403,17 @@ class TestMorphosyntaxAnalysisWrapper:
         """Test as_deriv_aff_msa method."""
         from flexlibs2.code.Lexicon.morphosyntax_analysis import MorphosyntaxAnalysis
 
-        with patch('flexlibs2.code.Lexicon.morphosyntax_analysis.LCMObjectWrapper.__init__'):
+        with patch("flexlibs2.code.Lexicon.morphosyntax_analysis.LCMObjectWrapper.__init__"):
             msa = MorphosyntaxAnalysis.__new__(MorphosyntaxAnalysis)
             msa._obj = Mock()
-            msa._obj.ClassName = 'MoDerivAffMsa'
+            msa._obj.ClassName = "MoDerivAffMsa"
             msa._concrete = Mock()
 
             result = msa.as_deriv_aff_msa()
             assert result is msa._concrete
 
             # Should return None for non-deriv MSAs
-            msa._obj.ClassName = 'MoStemMsa'
+            msa._obj.ClassName = "MoStemMsa"
             result = msa.as_deriv_aff_msa()
             assert result is None
 
@@ -426,10 +421,10 @@ class TestMorphosyntaxAnalysisWrapper:
         """Test as_infl_aff_msa method."""
         from flexlibs2.code.Lexicon.morphosyntax_analysis import MorphosyntaxAnalysis
 
-        with patch('flexlibs2.code.Lexicon.morphosyntax_analysis.LCMObjectWrapper.__init__'):
+        with patch("flexlibs2.code.Lexicon.morphosyntax_analysis.LCMObjectWrapper.__init__"):
             msa = MorphosyntaxAnalysis.__new__(MorphosyntaxAnalysis)
             msa._obj = Mock()
-            msa._obj.ClassName = 'MoInflAffMsa'
+            msa._obj.ClassName = "MoInflAffMsa"
             msa._concrete = Mock()
 
             result = msa.as_infl_aff_msa()
@@ -439,10 +434,10 @@ class TestMorphosyntaxAnalysisWrapper:
         """Test as_unclassified_aff_msa method."""
         from flexlibs2.code.Lexicon.morphosyntax_analysis import MorphosyntaxAnalysis
 
-        with patch('flexlibs2.code.Lexicon.morphosyntax_analysis.LCMObjectWrapper.__init__'):
+        with patch("flexlibs2.code.Lexicon.morphosyntax_analysis.LCMObjectWrapper.__init__"):
             msa = MorphosyntaxAnalysis.__new__(MorphosyntaxAnalysis)
             msa._obj = Mock()
-            msa._obj.ClassName = 'MoUnclassifiedAffixMsa'
+            msa._obj.ClassName = "MoUnclassifiedAffixMsa"
             msa._concrete = Mock()
 
             result = msa.as_unclassified_aff_msa()
@@ -452,10 +447,10 @@ class TestMorphosyntaxAnalysisWrapper:
         """Test concrete property returns _concrete."""
         from flexlibs2.code.Lexicon.morphosyntax_analysis import MorphosyntaxAnalysis
 
-        with patch('flexlibs2.code.Lexicon.morphosyntax_analysis.LCMObjectWrapper.__init__'):
+        with patch("flexlibs2.code.Lexicon.morphosyntax_analysis.LCMObjectWrapper.__init__"):
             msa = MorphosyntaxAnalysis.__new__(MorphosyntaxAnalysis)
             msa._obj = Mock()
-            msa._obj.ClassName = 'MoStemMsa'
+            msa._obj.ClassName = "MoStemMsa"
             msa._concrete = Mock()
 
             assert msa.concrete is msa._concrete
@@ -464,26 +459,26 @@ class TestMorphosyntaxAnalysisWrapper:
         """Test wrapper string representations."""
         from flexlibs2.code.Lexicon.morphosyntax_analysis import MorphosyntaxAnalysis
 
-        with patch('flexlibs2.code.Lexicon.morphosyntax_analysis.LCMObjectWrapper.__init__'):
+        with patch("flexlibs2.code.Lexicon.morphosyntax_analysis.LCMObjectWrapper.__init__"):
             msa = MorphosyntaxAnalysis.__new__(MorphosyntaxAnalysis)
             msa._obj = Mock()
-            msa._obj.ClassName = 'MoStemMsa'
+            msa._obj.ClassName = "MoStemMsa"
             msa._concrete = Mock()
 
             repr_str = repr(msa)
-            assert 'MorphosyntaxAnalysis' in repr_str
-            assert 'MoStemMsa' in repr_str
+            assert "MorphosyntaxAnalysis" in repr_str
+            assert "MoStemMsa" in repr_str
 
     def test_wrapper_str_without_pos(self):
         """Test wrapper string representation without POS."""
         from flexlibs2.code.Lexicon.morphosyntax_analysis import MorphosyntaxAnalysis
 
-        with patch('flexlibs2.code.Lexicon.morphosyntax_analysis.LCMObjectWrapper.__init__'):
-            with patch('flexlibs2.code.Lexicon.morphosyntax_analysis.get_pos_from_msa', return_value=None):
+        with patch("flexlibs2.code.Lexicon.morphosyntax_analysis.LCMObjectWrapper.__init__"):
+            with patch("flexlibs2.code.Lexicon.morphosyntax_analysis.get_pos_from_msa", return_value=None):
                 msa = MorphosyntaxAnalysis.__new__(MorphosyntaxAnalysis)
                 msa._obj = Mock()
-                msa._obj.ClassName = 'MoStemMsa'
+                msa._obj.ClassName = "MoStemMsa"
                 msa._concrete = Mock()
 
                 str_repr = str(msa)
-                assert 'MoStemMsa' in str_repr
+                assert "MoStemMsa" in str_repr

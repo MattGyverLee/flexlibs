@@ -139,9 +139,9 @@ class Annotation(LCMObjectWrapper):
             - Use for type-based filtering and categorization
         """
         try:
-            if hasattr(self._obj, 'AnnotationTypeRA') and self._obj.AnnotationTypeRA:
+            if hasattr(self._obj, "AnnotationTypeRA") and self._obj.AnnotationTypeRA:
                 anno_defn = self._obj.AnnotationTypeRA
-                if hasattr(anno_defn, 'Name'):
+                if hasattr(anno_defn, "Name"):
                     default_ws = self._get_default_ws()
                     name_multistring = anno_defn.Name
                     name_text = ITsString(name_multistring.get_String(default_ws)).Text
@@ -174,7 +174,7 @@ class Annotation(LCMObjectWrapper):
             - Returns None if no AnnotationTypeRA is set
         """
         try:
-            if hasattr(self._obj, 'AnnotationTypeRA'):
+            if hasattr(self._obj, "AnnotationTypeRA"):
                 return self._obj.AnnotationTypeRA
             return None
         except Exception:
@@ -204,7 +204,7 @@ class Annotation(LCMObjectWrapper):
             - Use for quick type filtering
         """
         anno_type = self.annotation_type.lower()
-        return 'scripture' in anno_type or 'scr' in anno_type
+        return "scripture" in anno_type or "scr" in anno_type
 
     @property
     def is_translator(self):
@@ -227,7 +227,7 @@ class Annotation(LCMObjectWrapper):
             - Returns True for types like "TranslatorNote", "Translator Comment", etc.
         """
         anno_type = self.annotation_type.lower()
-        return 'translator' in anno_type
+        return "translator" in anno_type
 
     @property
     def is_consultant(self):
@@ -250,7 +250,7 @@ class Annotation(LCMObjectWrapper):
             - Returns True for types like "ConsultantNote", "Consultant Comment", etc.
         """
         anno_type = self.annotation_type.lower()
-        return 'consultant' in anno_type
+        return "consultant" in anno_type
 
     @property
     def is_todo(self):
@@ -294,7 +294,7 @@ class Annotation(LCMObjectWrapper):
             - Returns True for types like "Question", "Query", etc.
         """
         anno_type = self.annotation_type.lower()
-        return 'question' in anno_type or 'query' in anno_type
+        return "question" in anno_type or "query" in anno_type
 
     # ========== Content Properties ==========
 
@@ -319,7 +319,7 @@ class Annotation(LCMObjectWrapper):
             - Empty string if no content set
         """
         try:
-            if hasattr(self._obj, 'Comment'):
+            if hasattr(self._obj, "Comment"):
                 default_ws = self._get_default_ws()
                 comment_text = ITsString(self._obj.Comment.get_String(default_ws)).Text
                 return comment_text or ""
@@ -348,7 +348,7 @@ class Annotation(LCMObjectWrapper):
             - Empty string if no author set
         """
         try:
-            if hasattr(self._obj, 'Source'):
+            if hasattr(self._obj, "Source"):
                 default_ws = self._get_default_ws()
                 source_text = ITsString(self._obj.Source.get_String(default_ws)).Text
                 return source_text or ""
@@ -378,7 +378,7 @@ class Annotation(LCMObjectWrapper):
             - May be None for annotations without creation date
         """
         try:
-            if hasattr(self._obj, 'DateCreated'):
+            if hasattr(self._obj, "DateCreated"):
                 return self._obj.DateCreated
             return None
         except Exception:
@@ -404,7 +404,7 @@ class Annotation(LCMObjectWrapper):
             - May be None for annotations never modified
         """
         try:
-            if hasattr(self._obj, 'DateModified'):
+            if hasattr(self._obj, "DateModified"):
                 return self._obj.DateModified
             return None
         except Exception:
@@ -433,9 +433,9 @@ class Annotation(LCMObjectWrapper):
             - Use BeginObjectRA for the original annotated object
         """
         try:
-            if hasattr(self._obj, 'Owner'):
+            if hasattr(self._obj, "Owner"):
                 return self._obj.Owner
-            if hasattr(self._obj, 'BeginObjectRA'):
+            if hasattr(self._obj, "BeginObjectRA"):
                 return self._obj.BeginObjectRA
             return None
         except Exception:
@@ -461,7 +461,7 @@ class Annotation(LCMObjectWrapper):
             - Use for external references and tracking
         """
         try:
-            if hasattr(self._obj, 'Guid'):
+            if hasattr(self._obj, "Guid"):
                 return self._obj.Guid
             return None
         except Exception:
@@ -490,7 +490,7 @@ class Annotation(LCMObjectWrapper):
             - Replies can themselves have replies (nested threading)
         """
         try:
-            if hasattr(self._obj, 'RepliesOS'):
+            if hasattr(self._obj, "RepliesOS"):
                 return list(self._obj.RepliesOS)
             return []
         except Exception:
@@ -514,7 +514,7 @@ class Annotation(LCMObjectWrapper):
             - Returns False if no RepliesOS property or no replies
         """
         try:
-            if hasattr(self._obj, 'RepliesOS'):
+            if hasattr(self._obj, "RepliesOS"):
                 return self._obj.RepliesOS.Count > 0
             return False
         except Exception:
@@ -535,11 +535,11 @@ class Annotation(LCMObjectWrapper):
         """
         try:
             # Try to get from the object's owner's project
-            if hasattr(self._obj, 'OwnerOfClass'):
+            if hasattr(self._obj, "OwnerOfClass"):
                 owner_class = self._obj.OwnerOfClass
-                if hasattr(owner_class, 'project'):
+                if hasattr(owner_class, "project"):
                     proj = owner_class.project
-                    if hasattr(proj, 'DefaultAnalWs'):
+                    if hasattr(proj, "DefaultAnalWs"):
                         return proj.DefaultAnalWs
             # Fallback to hardcoded analysis WS (typically -1 or similar)
             return -1

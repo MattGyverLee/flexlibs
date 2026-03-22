@@ -28,6 +28,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+
 class WfiGlossOperations(BaseOperations):
     """
     This class provides operations for managing wordform glosses.
@@ -375,7 +376,7 @@ class WfiGlossOperations(BaseOperations):
         analysis = gloss.Owner
         if isinstance(analysis, IWfiAnalysis):
             wordform = analysis.Owner
-            if hasattr(wordform, 'HumanApprovedAnalyses'):
+            if hasattr(wordform, "HumanApprovedAnalyses"):
                 # If the analysis is approved, its glosses are implicitly approved
                 return wordform.HumanApprovedAnalyses.Contains(analysis)
 
@@ -424,7 +425,7 @@ class WfiGlossOperations(BaseOperations):
             raise FP_ParameterError("Gloss does not have an analysis owner")
 
         wordform = analysis.Owner
-        if not hasattr(wordform, 'HumanApprovedAnalyses'):
+        if not hasattr(wordform, "HumanApprovedAnalyses"):
             raise FP_ParameterError("Analysis does not have a wordform owner")
 
         # Approve the analysis (which implicitly approves the gloss)
@@ -485,7 +486,4 @@ class WfiGlossOperations(BaseOperations):
         """
         if wsHandle is None:
             return self.project.project.DefaultAnalWs
-        return self.project._FLExProject__WSHandle(
-            wsHandle,
-            self.project.project.DefaultAnalWs
-        )
+        return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultAnalWs)

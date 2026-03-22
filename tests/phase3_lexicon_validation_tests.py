@@ -37,6 +37,7 @@ from test_helpers import create_mock_entry, create_mock_sense
 
 # ========== LEXICON - ALLOMORPHOPERATIONS ==========
 
+
 @pytest.mark.validation
 @pytest.mark.phase3
 class TestAllomorphOperations(
@@ -121,6 +122,7 @@ class TestAllomorphOperations(
 
 
 # ========== LEXICON - ETYMOLOGYOPERATIONS ==========
+
 
 @pytest.mark.validation
 @pytest.mark.phase3
@@ -207,6 +209,7 @@ class TestEtymologyOperations(
 
 # ========== LEXICON - EXAMPLEOPERATIONS ==========
 
+
 @pytest.mark.validation
 @pytest.mark.phase3
 class TestExampleOperations(
@@ -291,6 +294,7 @@ class TestExampleOperations(
 
 
 # ========== LEXICON - LEXENTRYOPERATIONS ==========
+
 
 @pytest.mark.validation
 @pytest.mark.phase3
@@ -395,6 +399,7 @@ class TestLexEntryOperations(
 
 # ========== LEXICON - LEXREFERENCEOPERATIONS ==========
 
+
 @pytest.mark.validation
 @pytest.mark.phase3
 class TestLexReferenceOperations(
@@ -478,6 +483,7 @@ class TestLexReferenceOperations(
 
 
 # ========== LEXICON - LEXSENSEOPERATIONS ==========
+
 
 @pytest.mark.validation
 @pytest.mark.phase3
@@ -576,6 +582,7 @@ class TestLexSenseOperations(
 
 # ========== LEXICON - PRONUNCIATIONOPERATIONS ==========
 
+
 @pytest.mark.validation
 @pytest.mark.phase3
 class TestPronunciationOperations(
@@ -661,6 +668,7 @@ class TestPronunciationOperations(
 
 # ========== LEXICON - REVERSALOPERATIONS ==========
 
+
 @pytest.mark.validation
 @pytest.mark.phase3
 class TestReversalOperations(
@@ -726,6 +734,7 @@ class TestReversalOperations(
 
 
 # ========== LEXICON - SEMANTICDOMAINOPERATIONS ==========
+
 
 @pytest.mark.validation
 @pytest.mark.phase3
@@ -811,6 +820,7 @@ class TestSemanticDomainOperations(
 
 
 # ========== LEXICON - VARIANTOPERATIONS ==========
+
 
 @pytest.mark.validation
 @pytest.mark.phase3

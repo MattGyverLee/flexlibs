@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 class ChangeType(Enum):
     """Type of change detected"""
+
     NEW = "new"  # Object exists in source, not in target
     MODIFIED = "modified"  # Object exists in both but differs
     DELETED = "deleted"  # Object exists in target, not in source
@@ -37,6 +38,7 @@ class Change:
         description: Human-readable description
         details: Additional details about the change
     """
+
     change_type: ChangeType
     source_guid: Optional[str]
     target_guid: Optional[str]
@@ -254,37 +256,45 @@ class DiffResult:
         ]
 
         if self.num_new > 0:
-            lines.extend([
-                f"## New {self.object_type}",
-                "",
-            ])
+            lines.extend(
+                [
+                    f"## New {self.object_type}",
+                    "",
+                ]
+            )
             for change in self.new_changes:
                 lines.append(f"- {change.description}")
             lines.append("")
 
         if self.num_modified > 0:
-            lines.extend([
-                f"## Modified {self.object_type}",
-                "",
-            ])
+            lines.extend(
+                [
+                    f"## Modified {self.object_type}",
+                    "",
+                ]
+            )
             for change in self.modified_changes:
                 lines.append(f"- {change.description}")
             lines.append("")
 
         if self.num_deleted > 0:
-            lines.extend([
-                f"## Deleted {self.object_type}",
-                "",
-            ])
+            lines.extend(
+                [
+                    f"## Deleted {self.object_type}",
+                    "",
+                ]
+            )
             for change in self.deleted_changes:
                 lines.append(f"- {change.description}")
             lines.append("")
 
         if self.num_conflicts > 0:
-            lines.extend([
-                f"## Conflicts",
-                "",
-            ])
+            lines.extend(
+                [
+                    f"## Conflicts",
+                    "",
+                ]
+            )
             for change in self.conflict_changes:
                 lines.append(f"- {change.description}")
             lines.append("")
@@ -304,7 +314,7 @@ class DiffResult:
         """
         # Phase 1: Basic export
         # Full export with HTML/CSV in Phase 4
-        ext = filename.split('.')[-1].lower()
+        ext = filename.split(".")[-1].lower()
 
         if ext == "txt":
             content = self.to_report(format="console", verbose=True)
@@ -313,7 +323,7 @@ class DiffResult:
         else:
             raise ValueError(f"Unsupported export format: {ext} (Phase 1 supports .txt, .md)")
 
-        with open(filename, 'w', encoding='utf-8') as f:
+        with open(filename, "w", encoding="utf-8") as f:
             f.write(content)
 
         logger.info(f"Exported diff report to {filename}")
@@ -345,9 +355,9 @@ class DiffEngine:
         target_objects: Any,
         source_project: Any,
         target_project: Any,
-        match_strategy: 'MatchStrategy',
+        match_strategy: "MatchStrategy",
         filter_fn: Optional[Callable] = None,
-        progress_callback: Optional[Callable[[str], None]] = None
+        progress_callback: Optional[Callable[[str], None]] = None,
     ) -> DiffResult:
         """
         Compare objects between source and target.
@@ -401,20 +411,11 @@ class DiffEngine:
                 progress_callback(f"Comparing {i}/{len(source_items)}...")
 
             # Try to match with target
-            match = match_strategy.match(
-                source_obj,
-                target_items,
-                source_project,
-                target_project
-            )
+            match = match_strategy.match(source_obj, target_items, source_project, target_project)
 
             if match is None:
                 # NEW: Source object doesn't exist in target
-                change = self._create_new_change(
-                    source_obj,
-                    source_objects,
-                    object_type
-                )
+                change = self._create_new_change(source_obj, source_objects, object_type)
                 result.add_change(change)
             else:
                 # Object exists in target
@@ -423,32 +424,16 @@ class DiffEngine:
 
                 # Check if modified
                 is_modified, details = self._compare_objects(
-                    source_obj,
-                    match,
-                    source_objects,
-                    target_objects,
-                    source_project,
-                    target_project
+                    source_obj, match, source_objects, target_objects, source_project, target_project
                 )
 
                 if is_modified:
                     # MODIFIED: Object differs
-                    change = self._create_modified_change(
-                        source_obj,
-                        match,
-                        source_objects,
-                        object_type,
-                        details
-                    )
+                    change = self._create_modified_change(source_obj, match, source_objects, object_type, details)
                     result.add_change(change)
                 else:
                     # UNCHANGED: Object identical
-                    change = self._create_unchanged_change(
-                        source_obj,
-                        match,
-                        source_objects,
-                        object_type
-                    )
+                    change = self._create_unchanged_change(source_obj, match, source_objects, object_type)
                     result.add_change(change)
 
         # Find deleted objects (in target but not matched)
@@ -459,11 +444,7 @@ class DiffEngine:
             target_guid = str(target_obj.Guid)
             if target_guid not in matched_target_guids:
                 # DELETED: Target object doesn't exist in source
-                change = self._create_deleted_change(
-                    target_obj,
-                    target_objects,
-                    object_type
-                )
+                change = self._create_deleted_change(target_obj, target_objects, object_type)
                 result.add_change(change)
 
         if progress_callback:
@@ -471,12 +452,7 @@ class DiffEngine:
 
         return result
 
-    def _create_new_change(
-        self,
-        source_obj: Any,
-        source_ops: Any,
-        object_type: str
-    ) -> Change:
+    def _create_new_change(self, source_obj: Any, source_ops: Any, object_type: str) -> Change:
         """Create a NEW change."""
         source_guid = str(source_obj.Guid)
 
@@ -488,16 +464,11 @@ class DiffEngine:
             source_guid=source_guid,
             target_guid=None,
             object_type=object_type,
-            description=f"NEW: {description}"
+            description=f"NEW: {description}",
         )
 
     def _create_modified_change(
-        self,
-        source_obj: Any,
-        target_obj: Any,
-        source_ops: Any,
-        object_type: str,
-        details: Dict[str, Any]
+        self, source_obj: Any, target_obj: Any, source_ops: Any, object_type: str, details: Dict[str, Any]
     ) -> Change:
         """Create a MODIFIED change."""
         source_guid = str(source_obj.Guid)
@@ -511,15 +482,10 @@ class DiffEngine:
             target_guid=target_guid,
             object_type=object_type,
             description=f"MODIFIED: {description}",
-            details=details
+            details=details,
         )
 
-    def _create_deleted_change(
-        self,
-        target_obj: Any,
-        target_ops: Any,
-        object_type: str
-    ) -> Change:
+    def _create_deleted_change(self, target_obj: Any, target_ops: Any, object_type: str) -> Change:
         """Create a DELETED change."""
         target_guid = str(target_obj.Guid)
 
@@ -530,16 +496,10 @@ class DiffEngine:
             source_guid=None,
             target_guid=target_guid,
             object_type=object_type,
-            description=f"DELETED: {description}"
+            description=f"DELETED: {description}",
         )
 
-    def _create_unchanged_change(
-        self,
-        source_obj: Any,
-        target_obj: Any,
-        source_ops: Any,
-        object_type: str
-    ) -> Change:
+    def _create_unchanged_change(self, source_obj: Any, target_obj: Any, source_ops: Any, object_type: str) -> Change:
         """Create an UNCHANGED change."""
         source_guid = str(source_obj.Guid)
         target_guid = str(target_obj.Guid)
@@ -551,25 +511,25 @@ class DiffEngine:
             source_guid=source_guid,
             target_guid=target_guid,
             object_type=object_type,
-            description=f"UNCHANGED: {description}"
+            description=f"UNCHANGED: {description}",
         )
 
     def _get_object_description(self, obj: Any, ops: Any) -> str:
         """Get human-readable description of object."""
         # Try common description methods
-        if hasattr(ops, 'GetForm'):
+        if hasattr(ops, "GetForm"):
             try:
                 return ops.GetForm(obj)
             except (AttributeError, KeyError):
                 pass
 
-        if hasattr(ops, 'GetHeadword'):
+        if hasattr(ops, "GetHeadword"):
             try:
                 return ops.GetHeadword(obj)
             except (AttributeError, KeyError):
                 pass
 
-        if hasattr(ops, 'GetName'):
+        if hasattr(ops, "GetName"):
             try:
                 return ops.GetName(obj)
             except (AttributeError, KeyError):
@@ -585,7 +545,7 @@ class DiffEngine:
         source_ops: Any,
         target_ops: Any,
         source_project: Any,
-        target_project: Any
+        target_project: Any,
     ) -> tuple[bool, Dict[str, Any]]:
         """
         Compare two objects to detect modifications.
@@ -598,16 +558,13 @@ class DiffEngine:
 
         # Try to use CompareTo() method if available (sync framework integration)
         # CompareTo() provides detailed property-level comparison using GetSyncableProperties()
-        if hasattr(source_ops, 'CompareTo'):
+        if hasattr(source_ops, "CompareTo"):
             try:
                 # Call CompareTo with both operation instances for cross-project comparison
                 # Returns: (is_different, differences_dict) where differences_dict maps
                 # property names to (value1, value2) tuples
                 is_different, differences = source_ops.CompareTo(
-                    source_obj,
-                    target_obj,
-                    ops1=source_ops,
-                    ops2=target_ops
+                    source_obj, target_obj, ops1=source_ops, ops2=target_ops
                 )
 
                 if is_different:
@@ -636,24 +593,24 @@ class DiffEngine:
         # haven't implemented the sync framework methods yet
 
         # Try form comparison (for Allomorphs, etc.)
-        if hasattr(source_ops, 'GetForm'):
+        if hasattr(source_ops, "GetForm"):
             try:
                 source_form = source_ops.GetForm(source_obj)
                 target_form = target_ops.GetForm(target_obj)
                 if source_form != target_form:
                     is_modified = True
-                    details['Form'] = f"{target_form} → {source_form}"
+                    details["Form"] = f"{target_form} → {source_form}"
             except (AttributeError, KeyError):
                 pass
 
         # Try name comparison (for POS, etc.)
-        if hasattr(source_ops, 'GetName'):
+        if hasattr(source_ops, "GetName"):
             try:
                 source_name = source_ops.GetName(source_obj)
                 target_name = target_ops.GetName(target_obj)
                 if source_name != target_name:
                     is_modified = True
-                    details['Name'] = f"{target_name} → {source_name}"
+                    details["Name"] = f"{target_name} → {source_name}"
             except (AttributeError, KeyError):
                 pass
 

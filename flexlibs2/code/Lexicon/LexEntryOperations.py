@@ -12,6 +12,7 @@
 #
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 # Import BaseOperations parent class
@@ -46,6 +47,7 @@ from ..FLExProject import (
 
 # Import string utilities
 from ..Shared.string_utils import normalize_text, best_analysis_text, best_vernacular_text
+
 
 class LexEntryOperations(BaseOperations):
     """
@@ -200,8 +202,7 @@ class LexEntryOperations(BaseOperations):
         morph_type = self.__FindMorphType(morph_type_name)
         if not morph_type:
             raise FP_ParameterError(
-                f"Morph type '{morph_type_name}' not found. "
-                f"Use one of: stem, root, prefix, suffix, infix, etc."
+                f"Morph type '{morph_type_name}' not found. " f"Use one of: stem, root, prefix, suffix, infix, etc."
             )
 
         # Create the new entry using the factory
@@ -211,13 +212,9 @@ class LexEntryOperations(BaseOperations):
         # Create the lexeme form allomorph using the appropriate factory
         # Stems use IMoStemAllomorphFactory, affixes use IMoAffixAllomorphFactory
         if self.__IsStemType(morph_type):
-            allomorph_factory = self.project.project.ServiceLocator.GetService(
-                IMoStemAllomorphFactory
-            )
+            allomorph_factory = self.project.project.ServiceLocator.GetService(IMoStemAllomorphFactory)
         else:
-            allomorph_factory = self.project.project.ServiceLocator.GetService(
-                IMoAffixAllomorphFactory
-            )
+            allomorph_factory = self.project.project.ServiceLocator.GetService(IMoAffixAllomorphFactory)
         lexeme_form_obj = allomorph_factory.Create()
 
         # Attach lexeme form to entry FIRST (must be done before setting properties)
@@ -375,8 +372,7 @@ class LexEntryOperations(BaseOperations):
                 morph_type_name = ITsString(morph_type_name_ts).Text or "stem"
 
         # Create the new entry (skip blank sense when deep copying — we copy source senses)
-        new_entry = self.Create(lexeme_form, morph_type_name, wsHandle,
-                                create_blank_sense=(not deep))
+        new_entry = self.Create(lexeme_form, morph_type_name, wsHandle, create_blank_sense=(not deep))
 
         # Copy lexeme form for all writing systems (Create only sets default vernacular)
         if source_entry.LexemeFormOA and new_entry.LexemeFormOA:
@@ -394,7 +390,7 @@ class LexEntryOperations(BaseOperations):
 
         # Copy boolean properties
         new_entry.DoNotUseForParsing = source_entry.DoNotUseForParsing
-        if hasattr(source_entry, 'ExcludeAsHeadword'):
+        if hasattr(source_entry, "ExcludeAsHeadword"):
             new_entry.ExcludeAsHeadword = source_entry.ExcludeAsHeadword
 
         # Copy reference collections
@@ -417,45 +413,40 @@ class LexEntryOperations(BaseOperations):
             # Duplicate alternate forms (allomorphs) using correct factory type
             for allomorph in source_entry.AlternateFormsOS:
                 class_name = allomorph.ClassName
-                if class_name == 'MoAffixAllomorph':
-                    allomorph_factory = self.project.project.ServiceLocator.GetService(
-                        IMoAffixAllomorphFactory)
+                if class_name == "MoAffixAllomorph":
+                    allomorph_factory = self.project.project.ServiceLocator.GetService(IMoAffixAllomorphFactory)
                 else:
-                    allomorph_factory = self.project.project.ServiceLocator.GetService(
-                        IMoStemAllomorphFactory)
+                    allomorph_factory = self.project.project.ServiceLocator.GetService(IMoStemAllomorphFactory)
                 new_allomorph = allomorph_factory.Create()
                 new_entry.AlternateFormsOS.Add(new_allomorph)
                 new_allomorph.Form.CopyAlternatives(allomorph.Form)
-                if hasattr(allomorph, 'MorphTypeRA'):
+                if hasattr(allomorph, "MorphTypeRA"):
                     new_allomorph.MorphTypeRA = allomorph.MorphTypeRA
                 for env in allomorph.PhoneEnvRC:
                     new_allomorph.PhoneEnvRC.Add(env)
 
             # Duplicate pronunciations (with media files)
             for pronunciation in source_entry.PronunciationsOS:
-                pron_factory = self.project.project.ServiceLocator.GetService(
-                    ILexPronunciationFactory)
+                pron_factory = self.project.project.ServiceLocator.GetService(ILexPronunciationFactory)
                 new_pron = pron_factory.Create()
                 new_entry.PronunciationsOS.Add(new_pron)
                 new_pron.Form.CopyAlternatives(pronunciation.Form)
-                if hasattr(pronunciation, 'LocationRA'):
+                if hasattr(pronunciation, "LocationRA"):
                     new_pron.LocationRA = pronunciation.LocationRA
                 # Copy media files
-                if hasattr(pronunciation, 'MediaFilesOS'):
+                if hasattr(pronunciation, "MediaFilesOS"):
                     for media in pronunciation.MediaFilesOS:
-                        media_factory = self.project.project.ServiceLocator.GetService(
-                            ICmFileFactory)
+                        media_factory = self.project.project.ServiceLocator.GetService(ICmFileFactory)
                         new_media = media_factory.Create()
                         new_pron.MediaFilesOS.Add(new_media)
                         new_media.InternalPath = media.InternalPath
                         new_media.Description.CopyAlternatives(media.Description)
-                        if hasattr(media, 'Copyright'):
+                        if hasattr(media, "Copyright"):
                             new_media.Copyright.CopyAlternatives(media.Copyright)
 
             # Duplicate etymologies
             for etymology in source_entry.EtymologyOS:
-                etym_factory = self.project.project.ServiceLocator.GetService(
-                    ILexEtymologyFactory)
+                etym_factory = self.project.project.ServiceLocator.GetService(ILexEtymologyFactory)
                 new_etym = etym_factory.Create()
                 new_entry.EtymologyOS.Add(new_etym)
                 new_etym.Source.CopyAlternatives(etymology.Source)
@@ -463,7 +454,7 @@ class LexEntryOperations(BaseOperations):
                 new_etym.Gloss.CopyAlternatives(etymology.Gloss)
                 new_etym.Comment.CopyAlternatives(etymology.Comment)
                 new_etym.Bibliography.CopyAlternatives(etymology.Bibliography)
-                if hasattr(etymology, 'LanguageNotesRA') and etymology.LanguageNotesRA:
+                if hasattr(etymology, "LanguageNotesRA") and etymology.LanguageNotesRA:
                     new_etym.LanguageNotesRA = etymology.LanguageNotesRA
 
             # Note: EntryRefsOS (variant/complex form references) are NOT copied.
@@ -490,73 +481,73 @@ class LexEntryOperations(BaseOperations):
 
         # MultiString properties
         # LexemeForm - primary lexeme form
-        if hasattr(item, 'LexemeFormOA') and item.LexemeFormOA:
+        if hasattr(item, "LexemeFormOA") and item.LexemeFormOA:
             form_dict = {}
             for ws_handle in self.project.GetAllWritingSystems():
                 text = ITsString(item.LexemeFormOA.Form.get_String(ws_handle)).Text
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     form_dict[ws_tag] = text
-            props['LexemeForm'] = form_dict
+            props["LexemeForm"] = form_dict
         else:
-            props['LexemeForm'] = {}
+            props["LexemeForm"] = {}
 
         # CitationForm - citation form
         citation_dict = {}
-        if hasattr(item, 'CitationForm'):
+        if hasattr(item, "CitationForm"):
             for ws_handle in self.project.GetAllWritingSystems():
                 text = ITsString(item.CitationForm.get_String(ws_handle)).Text
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     citation_dict[ws_tag] = text
-        props['CitationForm'] = citation_dict
+        props["CitationForm"] = citation_dict
 
         # Comment - entry-level comment
         comment_dict = {}
-        if hasattr(item, 'Comment'):
+        if hasattr(item, "Comment"):
             for ws_handle in self.project.GetAllWritingSystems():
                 text = ITsString(item.Comment.get_String(ws_handle)).Text
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     comment_dict[ws_tag] = text
-        props['Comment'] = comment_dict
+        props["Comment"] = comment_dict
 
         # Bibliography - bibliographic reference
         bibliography_dict = {}
-        if hasattr(item, 'Bibliography'):
+        if hasattr(item, "Bibliography"):
             for ws_handle in self.project.GetAllWritingSystems():
                 text = ITsString(item.Bibliography.get_String(ws_handle)).Text
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     bibliography_dict[ws_tag] = text
-        props['Bibliography'] = bibliography_dict
+        props["Bibliography"] = bibliography_dict
 
         # LiteralMeaning - literal meaning
         literal_dict = {}
-        if hasattr(item, 'LiteralMeaning'):
+        if hasattr(item, "LiteralMeaning"):
             for ws_handle in self.project.GetAllWritingSystems():
                 text = ITsString(item.LiteralMeaning.get_String(ws_handle)).Text
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     literal_dict[ws_tag] = text
-        props['LiteralMeaning'] = literal_dict
+        props["LiteralMeaning"] = literal_dict
 
         # Atomic properties
         # HomographNumber - homograph number
-        if hasattr(item, 'HomographNumber'):
-            props['HomographNumber'] = item.HomographNumber
+        if hasattr(item, "HomographNumber"):
+            props["HomographNumber"] = item.HomographNumber
 
         # DoNotPublishInRC - publication exclusion flags
-        if hasattr(item, 'DoNotPublishInRC'):
-            props['DoNotPublishInRC'] = item.DoNotPublishInRC
+        if hasattr(item, "DoNotPublishInRC"):
+            props["DoNotPublishInRC"] = item.DoNotPublishInRC
 
         # DoNotShowMainEntryInRC - main entry display flags
-        if hasattr(item, 'DoNotShowMainEntryInRC'):
-            props['DoNotShowMainEntryInRC'] = item.DoNotShowMainEntryInRC
+        if hasattr(item, "DoNotShowMainEntryInRC"):
+            props["DoNotShowMainEntryInRC"] = item.DoNotShowMainEntryInRC
 
         # ImportResidue - import residue from LIFT files
-        if hasattr(item, 'ImportResidue'):
-            props['ImportResidue'] = item.ImportResidue
+        if hasattr(item, "ImportResidue"):
+            props["ImportResidue"] = item.ImportResidue
 
         # Reference Atomic (RA) properties
         # MainEntriesOrSensesRS is a Reference Sequence (not included as it's complex)
@@ -1411,9 +1402,7 @@ class LexEntryOperations(BaseOperations):
         if isinstance(morph_type_or_name, str):
             morph_type = self.__FindMorphType(morph_type_or_name)
             if not morph_type:
-                raise FP_ParameterError(
-                    f"Morph type '{morph_type_or_name}' not found"
-                )
+                raise FP_ParameterError(f"Morph type '{morph_type_or_name}' not found")
         else:
             morph_type = morph_type_or_name
 
@@ -2238,10 +2227,7 @@ class LexEntryOperations(BaseOperations):
         """
         if wsHandle is None:
             return self.project.project.DefaultVernWs
-        return self.project._FLExProject__WSHandle(
-            wsHandle,
-            self.project.project.DefaultVernWs
-        )
+        return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultVernWs)
 
     # --- Back-Reference Methods (Pattern 3) ---
 
@@ -2693,6 +2679,7 @@ class LexEntryOperations(BaseOperations):
 
         # Validate merge compatibility (same class, same concrete type if applicable)
         from ..lcm_casting import validate_merge_compatibility
+
         is_compatible, error_msg = validate_merge_compatibility(survivor, victim)
         if not is_compatible:
             raise FP_ParameterError(error_msg)
@@ -2765,14 +2752,10 @@ class LexEntryOperations(BaseOperations):
                             sense_ops.MergeObject(master, dupe, fLoseNoStringData=True)
                             merged_count += 1
                         except Exception as e:
-                            logger.warning(
-                                f"Could not auto-merge duplicate sense (HVO: {dupe.Hvo}): {e}"
-                            )
+                            logger.warning(f"Could not auto-merge duplicate sense (HVO: {dupe.Hvo}): {e}")
 
             if merged_count > 0:
-                logger.info(
-                    f"Auto-deduplicated {merged_count} duplicate sense(s) in entry (HVO: {entry.Hvo})"
-                )
+                logger.info(f"Auto-deduplicated {merged_count} duplicate sense(s) in entry (HVO: {entry.Hvo})")
 
         except Exception as e:
             logger.warning(f"Error during sense deduplication: {e}")
@@ -2833,14 +2816,10 @@ class LexEntryOperations(BaseOperations):
                             dupe.OwningList.Remove(dupe)
                             removed_count += 1
                         except Exception as e:
-                            logger.warning(
-                                f"Could not remove duplicate pronunciation (HVO: {dupe.Hvo}): {e}"
-                            )
+                            logger.warning(f"Could not remove duplicate pronunciation (HVO: {dupe.Hvo}): {e}")
 
             if removed_count > 0:
-                logger.info(
-                    f"Auto-deduplicated {removed_count} duplicate pronunciation(s) in entry (HVO: {entry.Hvo})"
-                )
+                logger.info(f"Auto-deduplicated {removed_count} duplicate pronunciation(s) in entry (HVO: {entry.Hvo})")
 
         except Exception as e:
             logger.warning(f"Error during pronunciation deduplication: {e}")
@@ -2881,7 +2860,7 @@ class LexEntryOperations(BaseOperations):
                             allomorph_dict[ws_handle] = form_text
 
                     # Get morph type
-                    if hasattr(allomorph, 'MorphTypeRA') and allomorph.MorphTypeRA:
+                    if hasattr(allomorph, "MorphTypeRA") and allomorph.MorphTypeRA:
                         morph_type_guid = str(allomorph.MorphTypeRA.Guid)
                 except Exception as e:
                     logger.debug(f"Could not get allomorph form/type: {e}")
@@ -2907,14 +2886,10 @@ class LexEntryOperations(BaseOperations):
                             dupe.OwningList.Remove(dupe)
                             removed_count += 1
                         except Exception as e:
-                            logger.warning(
-                                f"Could not remove duplicate allomorph (HVO: {dupe.Hvo}): {e}"
-                            )
+                            logger.warning(f"Could not remove duplicate allomorph (HVO: {dupe.Hvo}): {e}")
 
             if removed_count > 0:
-                logger.info(
-                    f"Auto-deduplicated {removed_count} duplicate allomorph(s) in entry (HVO: {entry.Hvo})"
-                )
+                logger.info(f"Auto-deduplicated {removed_count} duplicate allomorph(s) in entry (HVO: {entry.Hvo})")
 
         except Exception as e:
             logger.warning(f"Error during allomorph deduplication: {e}")
@@ -2967,10 +2942,7 @@ class LexEntryOperations(BaseOperations):
         """
         if wsHandle is None:
             return self.project.project.DefaultAnalWs
-        return self.project._FLExProject__WSHandle(
-            wsHandle,
-            self.project.project.DefaultAnalWs
-        )
+        return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultAnalWs)
 
     def __FindMorphType(self, name):
         """

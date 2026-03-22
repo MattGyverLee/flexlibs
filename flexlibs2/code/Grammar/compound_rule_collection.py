@@ -148,16 +148,10 @@ class CompoundRuleCollection(SmartCollection):
         filtered = self._items
 
         if name_contains is not None:
-            filtered = [
-                rule for rule in filtered
-                if name_contains in (rule.name or "")
-            ]
+            filtered = [rule for rule in filtered if name_contains in (rule.name or "")]
 
         if head_dependency is not None:
-            filtered = [
-                rule for rule in filtered
-                if rule.head_dependency == head_dependency
-            ]
+            filtered = [rule for rule in filtered if rule.head_dependency == head_dependency]
 
         return CompoundRuleCollection(filtered)
 
@@ -219,7 +213,7 @@ class CompoundRuleCollection(SmartCollection):
             - Endo compounds have head internal to the compound
             - Use is_endo_compound on individual rules to check type
         """
-        return self.by_type('MoEndoCompound')
+        return self.by_type("MoEndoCompound")
 
     def exo_compounds(self):
         """
@@ -243,7 +237,7 @@ class CompoundRuleCollection(SmartCollection):
             - Exo compounds have head external to the compound
             - Use is_exo_compound on individual rules to check type
         """
-        return self.by_type('MoExoCompound')
+        return self.by_type("MoExoCompound")
 
     def __repr__(self):
         """Technical representation."""

@@ -9,6 +9,7 @@
 #
 
 import clr
+
 clr.AddReference("System")
 import System
 
@@ -37,6 +38,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
+
 
 class DiscourseOperations(BaseOperations):
     """
@@ -134,7 +136,13 @@ class DiscourseOperations(BaseOperations):
         if isinstance(text_or_hvo, int):
             try:
                 return IText(self.project.Object(text_or_hvo))
-            except (TypeError, System.InvalidCastException, KeyError, AttributeError, System.Collections.Generic.KeyNotFoundException) as e:
+            except (
+                TypeError,
+                System.InvalidCastException,
+                KeyError,
+                AttributeError,
+                System.Collections.Generic.KeyNotFoundException,
+            ) as e:
                 raise FP_ParameterError(f"Invalid text HVO: {text_or_hvo}")
         return text_or_hvo
 
@@ -160,10 +168,22 @@ class DiscourseOperations(BaseOperations):
                 # Try to cast to IDsConstChart first (most common)
                 try:
                     return IDsConstChart(obj)
-                except (TypeError, System.InvalidCastException, KeyError, AttributeError, System.Collections.Generic.KeyNotFoundException):
+                except (
+                    TypeError,
+                    System.InvalidCastException,
+                    KeyError,
+                    AttributeError,
+                    System.Collections.Generic.KeyNotFoundException,
+                ):
                     # Fall back to IDsChart for discourse charts
                     return IDsChart(obj)
-            except (TypeError, System.InvalidCastException, KeyError, AttributeError, System.Collections.Generic.KeyNotFoundException) as e:
+            except (
+                TypeError,
+                System.InvalidCastException,
+                KeyError,
+                AttributeError,
+                System.Collections.Generic.KeyNotFoundException,
+            ) as e:
                 raise FP_ParameterError(f"Invalid chart HVO: {chart_or_hvo}")
         return chart_or_hvo
 
@@ -187,7 +207,13 @@ class DiscourseOperations(BaseOperations):
             try:
                 obj = self.project.Object(row_or_hvo)
                 return IConstChartRow(obj)
-            except (TypeError, System.InvalidCastException, KeyError, AttributeError, System.Collections.Generic.KeyNotFoundException) as e:
+            except (
+                TypeError,
+                System.InvalidCastException,
+                KeyError,
+                AttributeError,
+                System.Collections.Generic.KeyNotFoundException,
+            ) as e:
                 raise FP_ParameterError(f"Invalid row HVO: {row_or_hvo}")
         return row_or_hvo
 
@@ -237,10 +263,10 @@ class DiscourseOperations(BaseOperations):
 
         # Get the discourse data container
         discourse_data = None
-        if hasattr(text_obj, 'ContentsOA') and text_obj.ContentsOA:
+        if hasattr(text_obj, "ContentsOA") and text_obj.ContentsOA:
             # DiscourseData is typically stored in the text's contents
             # Access charts through the owning text's structure
-            if hasattr(text_obj.ContentsOA, 'ChartsOC'):
+            if hasattr(text_obj.ContentsOA, "ChartsOC"):
                 for chart in text_obj.ContentsOA.ChartsOC:
                     yield chart
 
@@ -295,9 +321,7 @@ class DiscourseOperations(BaseOperations):
         # Validate chart_type
         chart_type_lower = chart_type.lower() if chart_type else "constituent"
         if chart_type_lower not in ["constituent", "discourse"]:
-            raise FP_ParameterError(
-                f"chart_type must be 'constituent' or 'discourse', got '{chart_type}'"
-            )
+            raise FP_ParameterError(f"chart_type must be 'constituent' or 'discourse', got '{chart_type}'")
 
         name = name.strip()
 
@@ -313,7 +337,7 @@ class DiscourseOperations(BaseOperations):
 
         # Add to the text's chart collection
         # Charts are stored in ContentsOA.ChartsOC
-        if hasattr(text_obj.ContentsOA, 'ChartsOC'):
+        if hasattr(text_obj.ContentsOA, "ChartsOC"):
             text_obj.ContentsOA.ChartsOC.Add(chart)
         else:
             # Alternative: If charts are stored differently, adjust accordingly
@@ -370,7 +394,7 @@ class DiscourseOperations(BaseOperations):
 
         # Get the owner and remove the chart
         owner = chart_obj.Owner
-        if owner and hasattr(owner, 'ChartsOC'):
+        if owner and hasattr(owner, "ChartsOC"):
             owner.ChartsOC.Remove(chart_obj)
         else:
             raise FP_ParameterError("Chart has no valid owner or cannot be removed")
@@ -412,7 +436,7 @@ class DiscourseOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
 
         # Get the chart name
-        if hasattr(chart_obj, 'Name'):
+        if hasattr(chart_obj, "Name"):
             name_str = ITsString(chart_obj.Name.get_String(wsHandle)).Text
             return name_str or ""
         return ""
@@ -456,7 +480,7 @@ class DiscourseOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
 
         # Set the chart name
-        if hasattr(chart_obj, 'Name'):
+        if hasattr(chart_obj, "Name"):
             name_str = TsStringUtils.MakeString(name, wsHandle)
             chart_obj.Name.set_String(wsHandle, name_str)
         else:
@@ -573,7 +597,7 @@ class DiscourseOperations(BaseOperations):
         chart_obj = self.__GetChartObject(chart_or_hvo)
 
         # Get rows from the chart
-        if hasattr(chart_obj, 'RowsOS'):
+        if hasattr(chart_obj, "RowsOS"):
             return list(chart_obj.RowsOS)
         return []
 
@@ -616,7 +640,7 @@ class DiscourseOperations(BaseOperations):
         chart_obj = self.__GetChartObject(chart_or_hvo)
 
         # Get row count
-        if hasattr(chart_obj, 'RowsOS'):
+        if hasattr(chart_obj, "RowsOS"):
             return chart_obj.RowsOS.Count
         return 0
 
@@ -669,7 +693,7 @@ class DiscourseOperations(BaseOperations):
         row = factory.Create()
 
         # Add to chart's row collection
-        if hasattr(chart_obj, 'RowsOS'):
+        if hasattr(chart_obj, "RowsOS"):
             chart_obj.RowsOS.Add(row)
         else:
             raise FP_ParameterError("Chart does not support rows")
@@ -721,7 +745,7 @@ class DiscourseOperations(BaseOperations):
 
         # Get the owner (chart) and remove the row
         owner = row_obj.Owner
-        if owner and hasattr(owner, 'RowsOS'):
+        if owner and hasattr(owner, "RowsOS"):
             owner.RowsOS.Remove(row_obj)
         else:
             raise FP_ParameterError("Row has no valid owner or cannot be removed")
@@ -772,7 +796,7 @@ class DiscourseOperations(BaseOperations):
         row_obj = self.__GetRowObject(row_or_hvo)
 
         # Get cells from the row
-        if hasattr(row_obj, 'CellsOS'):
+        if hasattr(row_obj, "CellsOS"):
             return list(row_obj.CellsOS)
         return []
 
@@ -829,18 +853,16 @@ class DiscourseOperations(BaseOperations):
 
         # Check if cell has a content property that can be set
         # Different cell types have different properties
-        if hasattr(cell, 'Label'):
+        if hasattr(cell, "Label"):
             # Some cells have a Label property
             content_str = TsStringUtils.MakeString(content, wsHandle)
             cell.Label.set_String(wsHandle, content_str)
-        elif hasattr(cell, 'Comment'):
+        elif hasattr(cell, "Comment"):
             # Some cells have a Comment property
             content_str = TsStringUtils.MakeString(content, wsHandle)
             cell.Comment.set_String(wsHandle, content_str)
         else:
-            raise FP_ParameterError(
-                "Cell does not support editable content (no Label or Comment property)"
-            )
+            raise FP_ParameterError("Cell does not support editable content (no Label or Comment property)")
 
     @OperationsMethod
     def GetCellContent(self, cell, wsHandle=None):
@@ -893,7 +915,7 @@ class DiscourseOperations(BaseOperations):
         content = ""
 
         # Try Label property (for markers, annotations)
-        if hasattr(cell, 'Label'):
+        if hasattr(cell, "Label"):
             try:
                 label_str = ITsString(cell.Label.get_String(wsHandle)).Text
                 if label_str:
@@ -902,7 +924,7 @@ class DiscourseOperations(BaseOperations):
                 pass
 
         # Try Comment property
-        if not content and hasattr(cell, 'Comment'):
+        if not content and hasattr(cell, "Comment"):
             try:
                 comment_str = ITsString(cell.Comment.get_String(wsHandle)).Text
                 if comment_str:
@@ -911,11 +933,11 @@ class DiscourseOperations(BaseOperations):
                 pass
 
         # For word groups, get the baseline text
-        if not content and hasattr(cell, 'BeginSegment'):
+        if not content and hasattr(cell, "BeginSegment"):
             try:
                 # Word groups reference segments
                 segment = cell.BeginSegment
-                if segment and hasattr(segment, 'BaselineText'):
+                if segment and hasattr(segment, "BaselineText"):
                     baseline = ITsString(segment.BaselineText).Text
                     if baseline:
                         content = baseline
@@ -1013,7 +1035,7 @@ class DiscourseOperations(BaseOperations):
         """
         chart_obj = self.__GetChartObject(chart_or_hvo)
 
-        if hasattr(chart_obj, 'Guid'):
+        if hasattr(chart_obj, "Guid"):
             return chart_obj.Guid
         else:
             raise FP_ParameterError("Chart object does not have a GUID")
@@ -1076,20 +1098,20 @@ class DiscourseOperations(BaseOperations):
         # ADD TO PARENT FIRST
         if insert_after:
             # Insert after source chart
-            if hasattr(parent, 'ChartsOC'):
+            if hasattr(parent, "ChartsOC"):
                 source_index = parent.ChartsOC.IndexOf(source)
                 parent.ChartsOC.Insert(source_index + 1, duplicate)
         else:
             # Insert at end
-            if hasattr(parent, 'ChartsOC'):
+            if hasattr(parent, "ChartsOC"):
                 parent.ChartsOC.Add(duplicate)
 
         # Copy MultiString properties (AFTER adding to parent)
-        if hasattr(source, 'Name') and source.Name:
+        if hasattr(source, "Name") and source.Name:
             duplicate.Name.CopyAlternatives(source.Name)
 
         # Deep copy: duplicate rows
-        if deep and hasattr(source, 'RowsOS') and source.RowsOS.Count > 0:
+        if deep and hasattr(source, "RowsOS") and source.RowsOS.Count > 0:
             for row in source.RowsOS:
                 # Create new row
                 row_factory = self.project.project.ServiceLocator.GetService(IConstChartRowFactory)
@@ -1129,8 +1151,8 @@ class DiscourseOperations(BaseOperations):
         props = {}
 
         # MultiString properties
-        if hasattr(item, 'Name') and item.Name:
-            props['Name'] = self.project.GetMultiStringDict(item.Name)
+        if hasattr(item, "Name") and item.Name:
+            props["Name"] = self.project.GetMultiStringDict(item.Name)
 
         return props
 

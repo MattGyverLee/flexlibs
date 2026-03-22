@@ -14,6 +14,7 @@
 import logging
 import os
 import System
+
 logger = logging.getLogger(__name__)
 
 # Import BaseOperations parent class
@@ -45,6 +46,7 @@ from ..lcm_casting import cast_to_concrete
 
 # Import string utilities
 from ..Shared.string_utils import best_analysis_text
+
 
 class LexSenseOperations(BaseOperations):
     """
@@ -253,10 +255,10 @@ class LexSenseOperations(BaseOperations):
         owner = sense.Owner
 
         # Check if this is a top-level sense or subsense
-        if hasattr(owner, 'SensesOS'):
+        if hasattr(owner, "SensesOS"):
             # Top-level sense owned by entry
             owner.SensesOS.Remove(sense)
-        elif hasattr(owner, 'SensesOS'):
+        elif hasattr(owner, "SensesOS"):
             # Subsense owned by another sense
             owner.SensesOS.Remove(sense)
 
@@ -321,12 +323,12 @@ class LexSenseOperations(BaseOperations):
         # Determine insertion position
         if insert_after:
             # Insert after source sense
-            if hasattr(parent, 'SensesOS'):
+            if hasattr(parent, "SensesOS"):
                 source_index = parent.SensesOS.IndexOf(source)
                 parent.SensesOS.Insert(source_index + 1, duplicate)
         else:
             # Insert at end
-            if hasattr(parent, 'SensesOS'):
+            if hasattr(parent, "SensesOS"):
                 parent.SensesOS.Add(duplicate)
 
         # Copy all content from source to duplicate (including owned objects if deep)
@@ -442,153 +444,165 @@ class LexSenseOperations(BaseOperations):
         # MultiString properties
         # Gloss - short definition
         gloss_dict = {}
-        if hasattr(item, 'Gloss'):
+        if hasattr(item, "Gloss"):
             for ws_handle in self.project.GetAllWritingSystems():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
+
                 text = ITsString(item.Gloss.get_String(ws_handle)).Text
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     gloss_dict[ws_tag] = text
-        props['Gloss'] = gloss_dict
+        props["Gloss"] = gloss_dict
 
         # Definition - longer definition
         definition_dict = {}
-        if hasattr(item, 'Definition'):
+        if hasattr(item, "Definition"):
             for ws_handle in self.project.GetAllWritingSystems():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
+
                 text = ITsString(item.Definition.get_String(ws_handle)).Text
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     definition_dict[ws_tag] = text
-        props['Definition'] = definition_dict
+        props["Definition"] = definition_dict
 
         # DiscourseNote - discourse function notes
         discourse_dict = {}
-        if hasattr(item, 'DiscourseNote'):
+        if hasattr(item, "DiscourseNote"):
             for ws_handle in self.project.GetAllWritingSystems():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
+
                 text = ITsString(item.DiscourseNote.get_String(ws_handle)).Text
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     discourse_dict[ws_tag] = text
-        props['DiscourseNote'] = discourse_dict
+        props["DiscourseNote"] = discourse_dict
 
         # EncyclopedicInfo - encyclopedic information
         encyclo_dict = {}
-        if hasattr(item, 'EncyclopedicInfo'):
+        if hasattr(item, "EncyclopedicInfo"):
             for ws_handle in self.project.GetAllWritingSystems():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
+
                 text = ITsString(item.EncyclopedicInfo.get_String(ws_handle)).Text
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     encyclo_dict[ws_tag] = text
-        props['EncyclopedicInfo'] = encyclo_dict
+        props["EncyclopedicInfo"] = encyclo_dict
 
         # GeneralNote - general notes
         general_dict = {}
-        if hasattr(item, 'GeneralNote'):
+        if hasattr(item, "GeneralNote"):
             for ws_handle in self.project.GetAllWritingSystems():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
+
                 text = ITsString(item.GeneralNote.get_String(ws_handle)).Text
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     general_dict[ws_tag] = text
-        props['GeneralNote'] = general_dict
+        props["GeneralNote"] = general_dict
 
         # GrammarNote - grammatical notes
         grammar_dict = {}
-        if hasattr(item, 'GrammarNote'):
+        if hasattr(item, "GrammarNote"):
             for ws_handle in self.project.GetAllWritingSystems():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
+
                 text = ITsString(item.GrammarNote.get_String(ws_handle)).Text
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     grammar_dict[ws_tag] = text
-        props['GrammarNote'] = grammar_dict
+        props["GrammarNote"] = grammar_dict
 
         # PhonologyNote - phonology notes
         phonology_dict = {}
-        if hasattr(item, 'PhonologyNote'):
+        if hasattr(item, "PhonologyNote"):
             for ws_handle in self.project.GetAllWritingSystems():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
+
                 text = ITsString(item.PhonologyNote.get_String(ws_handle)).Text
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     phonology_dict[ws_tag] = text
-        props['PhonologyNote'] = phonology_dict
+        props["PhonologyNote"] = phonology_dict
 
         # SemanticsNote - semantics notes
         semantics_dict = {}
-        if hasattr(item, 'SemanticsNote'):
+        if hasattr(item, "SemanticsNote"):
             for ws_handle in self.project.GetAllWritingSystems():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
+
                 text = ITsString(item.SemanticsNote.get_String(ws_handle)).Text
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     semantics_dict[ws_tag] = text
-        props['SemanticsNote'] = semantics_dict
+        props["SemanticsNote"] = semantics_dict
 
         # SocioLinguisticsNote - sociolinguistics notes
         socio_dict = {}
-        if hasattr(item, 'SocioLinguisticsNote'):
+        if hasattr(item, "SocioLinguisticsNote"):
             for ws_handle in self.project.GetAllWritingSystems():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
+
                 text = ITsString(item.SocioLinguisticsNote.get_String(ws_handle)).Text
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     socio_dict[ws_tag] = text
-        props['SocioLinguisticsNote'] = socio_dict
+        props["SocioLinguisticsNote"] = socio_dict
 
         # Source - bibliographic source
         source_dict = {}
-        if hasattr(item, 'Source'):
+        if hasattr(item, "Source"):
             for ws_handle in self.project.GetAllWritingSystems():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
+
                 text = ITsString(item.Source.get_String(ws_handle)).Text
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     source_dict[ws_tag] = text
-        props['Source'] = source_dict
+        props["Source"] = source_dict
 
         # Restrictions - usage restrictions
         restrictions_dict = {}
-        if hasattr(item, 'Restrictions'):
+        if hasattr(item, "Restrictions"):
             for ws_handle in self.project.GetAllWritingSystems():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
+
                 text = ITsString(item.Restrictions.get_String(ws_handle)).Text
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     restrictions_dict[ws_tag] = text
-        props['Restrictions'] = restrictions_dict
+        props["Restrictions"] = restrictions_dict
 
         # Bibliography - bibliographic reference
         bibliography_dict = {}
-        if hasattr(item, 'Bibliography'):
+        if hasattr(item, "Bibliography"):
             for ws_handle in self.project.GetAllWritingSystems():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
+
                 text = ITsString(item.Bibliography.get_String(ws_handle)).Text
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     bibliography_dict[ws_tag] = text
-        props['Bibliography'] = bibliography_dict
+        props["Bibliography"] = bibliography_dict
 
         # Reference Atomic (RA) properties
         # MorphoSyntaxAnalysisRA - grammatical info
-        if hasattr(item, 'MorphoSyntaxAnalysisRA') and item.MorphoSyntaxAnalysisRA:
-            props['MorphoSyntaxAnalysisRA'] = str(item.MorphoSyntaxAnalysisRA.Guid)
+        if hasattr(item, "MorphoSyntaxAnalysisRA") and item.MorphoSyntaxAnalysisRA:
+            props["MorphoSyntaxAnalysisRA"] = str(item.MorphoSyntaxAnalysisRA.Guid)
         else:
-            props['MorphoSyntaxAnalysisRA'] = None
+            props["MorphoSyntaxAnalysisRA"] = None
 
         # StatusRA - status (e.g., confirmed, tentative)
-        if hasattr(item, 'StatusRA') and item.StatusRA:
-            props['StatusRA'] = str(item.StatusRA.Guid)
+        if hasattr(item, "StatusRA") and item.StatusRA:
+            props["StatusRA"] = str(item.StatusRA.Guid)
         else:
-            props['StatusRA'] = None
+            props["StatusRA"] = None
 
         # Atomic properties
         # ImportResidue - import residue from LIFT files
-        if hasattr(item, 'ImportResidue'):
-            props['ImportResidue'] = item.ImportResidue
+        if hasattr(item, "ImportResidue"):
+            props["ImportResidue"] = item.ImportResidue
 
         return props
 
@@ -997,11 +1011,12 @@ class LexSenseOperations(BaseOperations):
             # Update existing MSA's Category
             # Use cast_to_concrete() to handle pythonnet interface casting
             msa = cast_to_concrete(sense.MorphoSyntaxAnalysisRA)
-            if hasattr(msa, 'PartOfSpeechRA'):
+            if hasattr(msa, "PartOfSpeechRA"):
                 msa.PartOfSpeechRA = pos_obj
             else:
                 # If existing MSA is not a stem MSA, create new one
                 from SIL.LCModel import IMoStemMsaFactory
+
                 factory = self.project.project.ServiceLocator.GetService(IMoStemMsaFactory)
                 new_msa = factory.Create()
                 new_msa.PartOfSpeechRA = pos_obj
@@ -1009,6 +1024,7 @@ class LexSenseOperations(BaseOperations):
         else:
             # Create new stem MSA
             from SIL.LCModel import IMoStemMsaFactory
+
             factory = self.project.project.ServiceLocator.GetService(IMoStemMsaFactory)
             msa = factory.Create()
             msa.PartOfSpeechRA = pos_obj
@@ -1330,9 +1346,7 @@ class LexSenseOperations(BaseOperations):
         wsHandle = self.__WSHandleVernacular(wsHandle)
 
         # Create the new example using the factory
-        factory = self.project.project.ServiceLocator.GetService(
-            ILexExampleSentenceFactory
-        )
+        factory = self.project.project.ServiceLocator.GetService(ILexExampleSentenceFactory)
         new_example = factory.Create()
 
         # Add to sense (must be done before setting properties)
@@ -1481,7 +1495,7 @@ class LexSenseOperations(BaseOperations):
         owner = sense.Owner
 
         # Check if owner is a sense (subsense) or entry (top-level)
-        if hasattr(owner, 'ClassName') and owner.ClassName == 'LexSense':
+        if hasattr(owner, "ClassName") and owner.ClassName == "LexSense":
             return owner
         else:
             return None
@@ -1951,7 +1965,7 @@ class LexSenseOperations(BaseOperations):
 
         # Get file path before removing (for optional deletion)
         file_path = None
-        if delete_file and hasattr(picture, 'PictureFileRA') and picture.PictureFileRA:
+        if delete_file and hasattr(picture, "PictureFileRA") and picture.PictureFileRA:
             file_path = self.project.Media.GetExternalPath(picture.PictureFileRA)
 
         # Remove from collection
@@ -2200,7 +2214,7 @@ class LexSenseOperations(BaseOperations):
         self._ValidateParam(new_filename, "new_filename")
 
         # Verify picture has an associated file
-        if not hasattr(picture, 'PictureFileRA') or not picture.PictureFileRA:
+        if not hasattr(picture, "PictureFileRA") or not picture.PictureFileRA:
             raise FP_ParameterError("Picture has no associated file")
 
         # Get the current file object
@@ -2212,9 +2226,9 @@ class LexSenseOperations(BaseOperations):
             raise FP_ParameterError("Cannot determine current file path")
 
         # Get the directory part (e.g., "Pictures")
-        path_parts = current_path.replace('\\', '/').split('/')
+        path_parts = current_path.replace("\\", "/").split("/")
         if len(path_parts) > 1:
-            directory = '/'.join(path_parts[:-1])
+            directory = "/".join(path_parts[:-1])
             new_internal_path = f"{directory}/{new_filename}"
         else:
             new_internal_path = new_filename
@@ -2317,10 +2331,10 @@ class LexSenseOperations(BaseOperations):
         # Climb the ownership chain to find the entry
         owner = sense.Owner
         while owner is not None:
-            if hasattr(owner, 'ClassName'):
-                if owner.ClassName == 'LexEntry':
+            if hasattr(owner, "ClassName"):
+                if owner.ClassName == "LexEntry":
                     return owner
-                elif owner.ClassName == 'LexSense':
+                elif owner.ClassName == "LexSense":
                     # Keep climbing
                     owner = owner.Owner
                 else:
@@ -3038,16 +3052,10 @@ class LexSenseOperations(BaseOperations):
                     definition_dict[ws_handle] = def_text
 
             # Get semantic domains (as tuple of GUIDs for hashability)
-            semantic_domains = tuple(
-                sorted([str(domain.Guid) for domain in sense.SemanticDomainsRC])
-            )
+            semantic_domains = tuple(sorted([str(domain.Guid) for domain in sense.SemanticDomainsRC]))
 
             # Create signature tuple
-            sig = (
-                frozenset(gloss_dict.items()),
-                frozenset(definition_dict.items()),
-                semantic_domains
-            )
+            sig = (frozenset(gloss_dict.items()), frozenset(definition_dict.items()), semantic_domains)
 
             return sig
 
@@ -3089,10 +3097,7 @@ class LexSenseOperations(BaseOperations):
                 master = senses[0]
                 dupes = senses[1:]
                 duplicates.append((master, dupes))
-                logger.debug(
-                    f"Found {len(dupes)} duplicate sense(s) with gloss/definition: "
-                    f"{sig[0]} / {sig[1]}"
-                )
+                logger.debug(f"Found {len(dupes)} duplicate sense(s) with gloss/definition: " f"{sig[0]} / {sig[1]}")
 
         return duplicates
 
@@ -3153,6 +3158,7 @@ class LexSenseOperations(BaseOperations):
 
         # Validate merge compatibility (same class, same concrete type if applicable)
         from ..lcm_casting import validate_merge_compatibility
+
         is_compatible, error_msg = validate_merge_compatibility(survivor, victim)
         if not is_compatible:
             raise FP_ParameterError(error_msg)
@@ -3287,7 +3293,6 @@ class LexSenseOperations(BaseOperations):
 
         except Exception as e:
             logger.warning(f"Error during example deduplication: {e}")
-
 
     # --- Private Helper Methods ---
 

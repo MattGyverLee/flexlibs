@@ -30,6 +30,7 @@ from ..FLExProject import (
 )
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
+
 class WfiMorphBundleOperations(BaseOperations):
     """
     This class provides operations for managing morpheme bundles in a FieldWorks project.
@@ -227,7 +228,7 @@ class WfiMorphBundleOperations(BaseOperations):
         owner = bundle.Owner
 
         # Remove from the analysis's morph bundles collection
-        if hasattr(owner, 'MorphBundlesOS'):
+        if hasattr(owner, "MorphBundlesOS"):
             owner.MorphBundlesOS.Remove(bundle)
 
     @OperationsMethod
@@ -303,13 +304,13 @@ class WfiMorphBundleOperations(BaseOperations):
         duplicate.Gloss.CopyAlternatives(source.Gloss)
 
         # Copy Reference Atomic (RA) properties
-        if hasattr(source, 'SenseRA') and source.SenseRA:
+        if hasattr(source, "SenseRA") and source.SenseRA:
             duplicate.SenseRA = source.SenseRA
-        if hasattr(source, 'MsaRA') and source.MsaRA:
+        if hasattr(source, "MsaRA") and source.MsaRA:
             duplicate.MsaRA = source.MsaRA
-        if hasattr(source, 'MorphRA') and source.MorphRA:
+        if hasattr(source, "MorphRA") and source.MorphRA:
             duplicate.MorphRA = source.MorphRA
-        if hasattr(source, 'InflClassRA') and source.InflClassRA:
+        if hasattr(source, "InflClassRA") and source.InflClassRA:
             duplicate.InflClassRA = source.InflClassRA
 
         # Note: WfiMorphBundle has no owned objects (OS collections), so deep has no effect
@@ -345,24 +346,24 @@ class WfiMorphBundleOperations(BaseOperations):
         props = {}
 
         # MultiString properties
-        if hasattr(item, 'Form') and item.Form:
-            props['Form'] = self.project.GetMultiStringDict(item.Form)
+        if hasattr(item, "Form") and item.Form:
+            props["Form"] = self.project.GetMultiStringDict(item.Form)
 
-        if hasattr(item, 'Gloss') and item.Gloss:
-            props['Gloss'] = self.project.GetMultiStringDict(item.Gloss)
+        if hasattr(item, "Gloss") and item.Gloss:
+            props["Gloss"] = self.project.GetMultiStringDict(item.Gloss)
 
         # Reference Atomic properties (return GUIDs)
-        if hasattr(item, 'SenseRA') and item.SenseRA:
-            props['SenseRA'] = str(item.SenseRA.Guid)
+        if hasattr(item, "SenseRA") and item.SenseRA:
+            props["SenseRA"] = str(item.SenseRA.Guid)
 
-        if hasattr(item, 'MsaRA') and item.MsaRA:
-            props['MsaRA'] = str(item.MsaRA.Guid)
+        if hasattr(item, "MsaRA") and item.MsaRA:
+            props["MsaRA"] = str(item.MsaRA.Guid)
 
-        if hasattr(item, 'MorphRA') and item.MorphRA:
-            props['MorphRA'] = str(item.MorphRA.Guid)
+        if hasattr(item, "MorphRA") and item.MorphRA:
+            props["MorphRA"] = str(item.MorphRA.Guid)
 
-        if hasattr(item, 'InflClassRA') and item.InflClassRA:
-            props['InflClassRA'] = str(item.InflClassRA.Guid)
+        if hasattr(item, "InflClassRA") and item.InflClassRA:
+            props["InflClassRA"] = str(item.InflClassRA.Guid)
 
         return props
 
@@ -467,9 +468,7 @@ class WfiMorphBundleOperations(BaseOperations):
         new_bundles = set(bundle_list)
 
         if current_bundles != new_bundles:
-            raise FP_ParameterError(
-                "Bundle list must contain exactly the same bundles as the analysis"
-            )
+            raise FP_ParameterError("Bundle list must contain exactly the same bundles as the analysis")
 
         # Clear and re-add in new order
         analysis.MorphBundlesOS.Clear()

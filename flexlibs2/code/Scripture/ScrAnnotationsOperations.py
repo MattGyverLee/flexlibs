@@ -27,6 +27,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+
 class ScrAnnotationsOperations(BaseOperations):
     """
     This class provides operations for managing Scripture book annotations in a
@@ -116,9 +117,7 @@ class ScrAnnotationsOperations(BaseOperations):
 
         # Check if annotations already exist
         if book.FootnotesOS.Count > 0:
-            raise FP_ParameterError(
-                "Book already has annotations container. Use GetForBook() instead."
-            )
+            raise FP_ParameterError("Book already has annotations container. Use GetForBook() instead.")
 
         # Create the new annotations using the factory
         factory = self.project.project.ServiceLocator.GetService(IScrBookAnnotationsFactory)

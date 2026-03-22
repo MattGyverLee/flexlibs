@@ -18,26 +18,19 @@ class TestSyncChange(unittest.TestCase):
     def test_sync_change_create(self):
         """Test creating a SyncChange for create operation."""
         change = SyncChange(
-            operation='create',
-            object_type='Allomorph',
-            object_guid='test-guid-123',
-            details={'form': 'test'}
+            operation="create", object_type="Allomorph", object_guid="test-guid-123", details={"form": "test"}
         )
 
-        self.assertEqual(change.operation, 'create')
-        self.assertEqual(change.object_type, 'Allomorph')
-        self.assertEqual(change.object_guid, 'test-guid-123')
-        self.assertEqual(change.details, {'form': 'test'})
+        self.assertEqual(change.operation, "create")
+        self.assertEqual(change.object_type, "Allomorph")
+        self.assertEqual(change.object_guid, "test-guid-123")
+        self.assertEqual(change.details, {"form": "test"})
 
     def test_sync_change_minimal(self):
         """Test creating a SyncChange with minimal info."""
-        change = SyncChange(
-            operation='update',
-            object_type='LexEntry',
-            object_guid='guid-456'
-        )
+        change = SyncChange(operation="update", object_type="LexEntry", object_guid="guid-456")
 
-        self.assertEqual(change.operation, 'update')
+        self.assertEqual(change.operation, "update")
         self.assertEqual(change.details, {})
 
 
@@ -46,27 +39,19 @@ class TestSyncError(unittest.TestCase):
 
     def test_sync_error_create(self):
         """Test creating a SyncError."""
-        error = SyncError(
-            operation='create',
-            object_guid='error-guid',
-            error_message='Failed to create object'
-        )
+        error = SyncError(operation="create", object_guid="error-guid", error_message="Failed to create object")
 
-        self.assertEqual(error.operation, 'create')
-        self.assertEqual(error.object_guid, 'error-guid')
-        self.assertEqual(error.error_message, 'Failed to create object')
+        self.assertEqual(error.operation, "create")
+        self.assertEqual(error.object_guid, "error-guid")
+        self.assertEqual(error.error_message, "Failed to create object")
 
     def test_sync_error_minimal(self):
         """Test creating a SyncError without guid."""
-        error = SyncError(
-            operation='delete',
-            object_guid=None,
-            error_message='Object not found'
-        )
+        error = SyncError(operation="delete", object_guid=None, error_message="Object not found")
 
-        self.assertEqual(error.operation, 'delete')
+        self.assertEqual(error.operation, "delete")
         self.assertIsNone(error.object_guid)
-        self.assertEqual(error.error_message, 'Object not found')
+        self.assertEqual(error.error_message, "Object not found")
 
 
 class TestMergeOperationsInit(unittest.TestCase):
@@ -178,7 +163,7 @@ class TestMergeOperationsCreate(unittest.TestCase):
 
         merger = MergeOperations(target_project)
 
-        with patch.object(merger, 'copy_properties', return_value=True) as mock_copy:
+        with patch.object(merger, "copy_properties", return_value=True) as mock_copy:
             result = merger.create_object(target_ops, source_obj, source_ops)
 
         self.assertEqual(result, new_obj)
@@ -204,11 +189,8 @@ class TestMergeOperationsCreate(unittest.TestCase):
 
         merger = MergeOperations(target_project)
 
-        with patch.object(merger, 'copy_properties', return_value=True):
-            result = merger.create_object(
-                target_ops, source_obj, source_ops,
-                parent_obj=parent_obj
-            )
+        with patch.object(merger, "copy_properties", return_value=True):
+            result = merger.create_object(target_ops, source_obj, source_ops, parent_obj=parent_obj)
 
         self.assertEqual(result, new_obj)
         # Should pass parent and form to Create
@@ -248,10 +230,8 @@ class TestMergeOperationsUpdate(unittest.TestCase):
 
         merger = MergeOperations(target_project)
 
-        with patch.object(merger, 'copy_properties', return_value=True) as mock_copy:
-            result = merger.update_object(
-                target_obj, source_obj, source_ops, target_ops
-            )
+        with patch.object(merger, "copy_properties", return_value=True) as mock_copy:
+            result = merger.update_object(target_obj, source_obj, source_ops, target_ops)
 
         self.assertTrue(result)
         mock_copy.assert_called_once_with(source_obj, target_obj, source_ops, target_ops)
@@ -269,10 +249,7 @@ class TestMergeOperationsUpdate(unittest.TestCase):
         source_ops.GetName.return_value = "updated-name"
 
         merger = MergeOperations(target_project)
-        result = merger.update_object(
-            target_obj, source_obj, source_ops, target_ops,
-            fields=['form', 'name']
-        )
+        result = merger.update_object(target_obj, source_obj, source_ops, target_ops, fields=["form", "name"])
 
         self.assertTrue(result)
         # Should call SetForm and SetName
@@ -289,10 +266,8 @@ class TestMergeOperationsUpdate(unittest.TestCase):
 
         merger = MergeOperations(target_project)
 
-        with patch.object(merger, 'copy_properties', return_value=False):
-            result = merger.update_object(
-                target_obj, source_obj, source_ops, target_ops
-            )
+        with patch.object(merger, "copy_properties", return_value=False):
+            result = merger.update_object(target_obj, source_obj, source_ops, target_ops)
 
         self.assertFalse(result)
 
@@ -355,7 +330,7 @@ class TestMergeOperationsDelete(unittest.TestCase):
     def test_delete_no_validation_method(self):
         """Test deleting when GetReferringObjects doesn't exist."""
         target_project = Mock(writeEnabled=True)
-        target_ops = Mock(spec=['Delete'])  # No GetReferringObjects
+        target_ops = Mock(spec=["Delete"])  # No GetReferringObjects
         target_obj = Mock()
 
         target_ops.Delete.return_value = True
@@ -400,7 +375,7 @@ class TestMergeOperationsIntegration(unittest.TestCase):
 
         merger = MergeOperations(target_project)
 
-        with patch.object(merger, 'copy_properties', return_value=True):
+        with patch.object(merger, "copy_properties", return_value=True):
             created = merger.create_object(target_ops, source_obj, source_ops)
 
         self.assertEqual(created, new_obj)
@@ -409,13 +384,11 @@ class TestMergeOperationsIntegration(unittest.TestCase):
         source_obj_updated = Mock()
         source_ops.GetForm.return_value = "updated-form"
 
-        with patch.object(merger, 'copy_properties', return_value=True):
-            updated = merger.update_object(
-                new_obj, source_obj_updated, source_ops, target_ops
-            )
+        with patch.object(merger, "copy_properties", return_value=True):
+            updated = merger.update_object(new_obj, source_obj_updated, source_ops, target_ops)
 
         self.assertTrue(updated)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -168,53 +168,52 @@ def _ensure_interfaces() -> None:
 
     _interface_cache = {
         # MSA types - used for grammatical category assignment
-        'MoStemMsa': IMoStemMsa,
-        'MoDerivAffMsa': IMoDerivAffMsa,
-        'MoInflAffMsa': IMoInflAffMsa,
-        'MoUnclassifiedAffixMsa': IMoUnclassifiedAffixMsa,
-
+        "MoStemMsa": IMoStemMsa,
+        "MoDerivAffMsa": IMoDerivAffMsa,
+        "MoInflAffMsa": IMoInflAffMsa,
+        "MoUnclassifiedAffixMsa": IMoUnclassifiedAffixMsa,
         # Allomorph types - used for morpheme form variants
-        'MoStemAllomorph': IMoStemAllomorph,
-        'MoAffixAllomorph': IMoAffixAllomorph,
-        'MoAffixForm': IMoAffixForm,
+        "MoStemAllomorph": IMoStemAllomorph,
+        "MoAffixAllomorph": IMoAffixAllomorph,
+        "MoAffixForm": IMoAffixForm,
     }
 
     # Add phonological rule types if imports succeeded
     # The 3 main rule types in FLEx phonology:
     if IPhRegularRule is not None:
-        _interface_cache['PhRegularRule'] = IPhRegularRule
+        _interface_cache["PhRegularRule"] = IPhRegularRule
     if IPhMetathesisRule is not None:
-        _interface_cache['PhMetathesisRule'] = IPhMetathesisRule
+        _interface_cache["PhMetathesisRule"] = IPhMetathesisRule
     if IPhReduplicationRule is not None:
-        _interface_cache['PhReduplicationRule'] = IPhReduplicationRule
+        _interface_cache["PhReduplicationRule"] = IPhReduplicationRule
 
     # Context and RHS types used within rules:
     if IPhSimpleContextSeg is not None:
-        _interface_cache['PhSimpleContextSeg'] = IPhSimpleContextSeg
+        _interface_cache["PhSimpleContextSeg"] = IPhSimpleContextSeg
     if IPhSimpleContextNC is not None:
-        _interface_cache['PhSimpleContextNC'] = IPhSimpleContextNC
+        _interface_cache["PhSimpleContextNC"] = IPhSimpleContextNC
     if IPhSegRuleRHS is not None:
-        _interface_cache['PhSegRuleRHS'] = IPhSegRuleRHS
+        _interface_cache["PhSegRuleRHS"] = IPhSegRuleRHS
 
     # Add compound rule types if imports succeeded
     # The 2 main compound rule types in FLEx morphology:
     if IMoEndoCompound is not None:
-        _interface_cache['MoEndoCompound'] = IMoEndoCompound
+        _interface_cache["MoEndoCompound"] = IMoEndoCompound
     if IMoExoCompound is not None:
-        _interface_cache['MoExoCompound'] = IMoExoCompound
+        _interface_cache["MoExoCompound"] = IMoExoCompound
 
     # Add morphosyntactic prohibition types if imports succeeded
     # The 3 main ad hoc prohibition types in FLEx morphology:
     if IMoAdhocProhibGr is not None:
-        _interface_cache['MoAdhocProhibGr'] = IMoAdhocProhibGr
+        _interface_cache["MoAdhocProhibGr"] = IMoAdhocProhibGr
     if IMoAdhocProhibMorph is not None:
-        _interface_cache['MoAdhocProhibMorph'] = IMoAdhocProhibMorph
+        _interface_cache["MoAdhocProhibMorph"] = IMoAdhocProhibMorph
     if IMoAdhocProhibAllomorph is not None:
-        _interface_cache['MoAdhocProhibAllomorph'] = IMoAdhocProhibAllomorph
+        _interface_cache["MoAdhocProhibAllomorph"] = IMoAdhocProhibAllomorph
 
     # Add affix template type if import succeeded
     if IMoInflAffixTemplate is not None:
-        _interface_cache['MoInflAffixTemplate'] = IMoInflAffixTemplate
+        _interface_cache["MoInflAffixTemplate"] = IMoInflAffixTemplate
 
     _interfaces_loaded = True
 
@@ -267,7 +266,7 @@ def cast_to_concrete(obj):
     _ensure_interfaces()
 
     # Get the class name from the object
-    if not hasattr(obj, 'ClassName'):
+    if not hasattr(obj, "ClassName"):
         return obj
 
     class_name = obj.ClassName
@@ -336,33 +335,33 @@ def get_pos_from_msa(msa):
     """
     _ensure_interfaces()
 
-    if not hasattr(msa, 'ClassName'):
+    if not hasattr(msa, "ClassName"):
         return None
 
     class_name = msa.ClassName
 
     try:
-        if class_name == 'MoStemMsa':
-            interface_type = _interface_cache.get('MoStemMsa')
+        if class_name == "MoStemMsa":
+            interface_type = _interface_cache.get("MoStemMsa")
             if interface_type:
                 concrete = interface_type(msa)
                 return concrete.PartOfSpeechRA
 
-        elif class_name == 'MoDerivAffMsa':
-            interface_type = _interface_cache.get('MoDerivAffMsa')
+        elif class_name == "MoDerivAffMsa":
+            interface_type = _interface_cache.get("MoDerivAffMsa")
             if interface_type:
                 concrete = interface_type(msa)
                 # Return the "to" POS (output of derivation)
                 return concrete.ToPartOfSpeechRA
 
-        elif class_name == 'MoInflAffMsa':
-            interface_type = _interface_cache.get('MoInflAffMsa')
+        elif class_name == "MoInflAffMsa":
+            interface_type = _interface_cache.get("MoInflAffMsa")
             if interface_type:
                 concrete = interface_type(msa)
                 return concrete.PartOfSpeechRA
 
-        elif class_name == 'MoUnclassifiedAffixMsa':
-            interface_type = _interface_cache.get('MoUnclassifiedAffixMsa')
+        elif class_name == "MoUnclassifiedAffixMsa":
+            interface_type = _interface_cache.get("MoUnclassifiedAffixMsa")
             if interface_type:
                 concrete = interface_type(msa)
                 return concrete.PartOfSpeechRA
@@ -409,7 +408,7 @@ def clone_properties(source_obj, dest_obj, project=None):
         - Handles collections by adding cloned items to the destination collection
         - Silently skips any properties that cannot be cloned
     """
-    if not hasattr(source_obj, 'ClassName') or not hasattr(dest_obj, 'ClassName'):
+    if not hasattr(source_obj, "ClassName") or not hasattr(dest_obj, "ClassName"):
         return
 
     # Cast both to concrete types for full property access
@@ -417,7 +416,7 @@ def clone_properties(source_obj, dest_obj, project=None):
     dest = cast_to_concrete(dest_obj)
 
     # If project not provided, try to get it from the destination object
-    if project is None and hasattr(dest, 'OwnerOfClass'):
+    if project is None and hasattr(dest, "OwnerOfClass"):
         try:
             project = dest.OwnerOfClass.project
         except Exception:
@@ -426,21 +425,21 @@ def clone_properties(source_obj, dest_obj, project=None):
     # Get all properties from the source object
     for attr_name in dir(source):
         # Skip private, special, and known method attributes
-        if attr_name.startswith('_') or attr_name in ['Clone', 'PostClone']:
+        if attr_name.startswith("_") or attr_name in ["Clone", "PostClone"]:
             continue
 
         try:
             attr_value = getattr(source, attr_name, None)
 
             # Skip methods and special attributes
-            if callable(attr_value) or attr_name in ['Hvo', 'ClassID', 'ClassName', 'Guid', 'Owner', 'OwningFlid']:
+            if callable(attr_value) or attr_name in ["Hvo", "ClassID", "ClassName", "Guid", "Owner", "OwningFlid"]:
                 continue
 
             # Try to set the property on destination
             if hasattr(dest, attr_name):
                 try:
                     # Check if it's a collection (OS/OC) - these need special handling
-                    if hasattr(attr_value, 'Count') and hasattr(attr_value, 'Add'):
+                    if hasattr(attr_value, "Count") and hasattr(attr_value, "Add"):
                         # This is a collection - clone each item
                         dest_collection = getattr(dest, attr_name)
                         try:
@@ -472,7 +471,7 @@ def clone_properties(source_obj, dest_obj, project=None):
             pass
 
 
-def _get_factory_for_class(class_name: str, project: object) -> 'Optional[object]':
+def _get_factory_for_class(class_name: str, project: object) -> "Optional[object]":
     """
     Get the factory for creating an object of the given class.
 
@@ -495,13 +494,13 @@ def _get_factory_for_class(class_name: str, project: object) -> 'Optional[object
 
         factory_map = {
             # The 3 main phonological rule types
-            'PhRegularRule': IPhRegularRuleFactory,
-            'PhMetathesisRule': IPhMetathesisRuleFactory,
-            'PhReduplicationRule': IPhReduplicationRuleFactory,
+            "PhRegularRule": IPhRegularRuleFactory,
+            "PhMetathesisRule": IPhMetathesisRuleFactory,
+            "PhReduplicationRule": IPhReduplicationRuleFactory,
             # Context and RHS types
-            'PhSegRuleRHS': IPhSegRuleRHSFactory,
-            'PhSimpleContextSeg': IPhSimpleContextSegFactory,
-            'PhSimpleContextNC': IPhSimpleContextNCFactory,
+            "PhSegRuleRHS": IPhSegRuleRHSFactory,
+            "PhSimpleContextSeg": IPhSimpleContextSegFactory,
+            "PhSimpleContextNC": IPhSimpleContextNCFactory,
         }
 
         factory_type = factory_map.get(class_name)
@@ -543,7 +542,7 @@ def cast_phonological_rule(rule_obj):
     """
     _ensure_interfaces()
 
-    if not hasattr(rule_obj, 'ClassName'):
+    if not hasattr(rule_obj, "ClassName"):
         return rule_obj
 
     class_name = rule_obj.ClassName
@@ -599,10 +598,10 @@ def validate_merge_compatibility(survivor_obj, victim_obj):
         - Prevents data corruption from merging incompatible object types
     """
     # Check that both objects exist and have ClassName
-    if not hasattr(survivor_obj, 'ClassName'):
+    if not hasattr(survivor_obj, "ClassName"):
         return False, "Survivor object has no ClassName attribute"
 
-    if not hasattr(victim_obj, 'ClassName'):
+    if not hasattr(victim_obj, "ClassName"):
         return False, "Victim object has no ClassName attribute"
 
     survivor_class = survivor_obj.ClassName
@@ -654,14 +653,14 @@ def get_from_pos_from_msa(msa):
     """
     _ensure_interfaces()
 
-    if not hasattr(msa, 'ClassName'):
+    if not hasattr(msa, "ClassName"):
         return None
 
-    if msa.ClassName != 'MoDerivAffMsa':
+    if msa.ClassName != "MoDerivAffMsa":
         return None
 
     try:
-        interface_type = _interface_cache.get('MoDerivAffMsa')
+        interface_type = _interface_cache.get("MoDerivAffMsa")
         if interface_type:
             concrete = interface_type(msa)
             return concrete.FromPartOfSpeechRA
@@ -727,7 +726,7 @@ def get_common_properties(objects):
 
     for attr_name in dir(first_obj):
         # Skip private attributes and methods
-        if attr_name.startswith('_'):
+        if attr_name.startswith("_"):
             continue
 
         # Check if this attribute exists on all other objects
@@ -788,7 +787,7 @@ def get_concrete_type_properties(lcm_obj):
         - Callable attributes (methods) are excluded
         - Use with get_common_properties() to understand type diversity
     """
-    if not hasattr(lcm_obj, 'ClassName'):
+    if not hasattr(lcm_obj, "ClassName"):
         return {}
 
     # Get the concrete type
@@ -798,11 +797,11 @@ def get_concrete_type_properties(lcm_obj):
     # Get all public, non-callable attributes from concrete type
     for attr_name in dir(concrete):
         # Skip private attributes
-        if attr_name.startswith('_'):
+        if attr_name.startswith("_"):
             continue
 
         # Skip known system attributes
-        if attr_name in ['ClassName', 'Guid', 'Hvo', 'ClassID', 'Owner', 'OwningFlid']:
+        if attr_name in ["ClassName", "Guid", "Hvo", "ClassID", "Owner", "OwningFlid"]:
             continue
 
         try:

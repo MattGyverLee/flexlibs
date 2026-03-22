@@ -9,6 +9,7 @@
 #
 
 import clr
+
 clr.AddReference("System")
 import System
 
@@ -32,6 +33,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
+
 
 class TextOperations(BaseOperations):
     """
@@ -280,13 +282,13 @@ class TextOperations(BaseOperations):
         new_text = self.Create(new_name, genre=source_genre)
 
         # Copy remaining MultiString properties (all writing systems)
-        if hasattr(text_obj, 'Abbreviation') and text_obj.Abbreviation:
+        if hasattr(text_obj, "Abbreviation") and text_obj.Abbreviation:
             new_text.Abbreviation.CopyAlternatives(text_obj.Abbreviation)
-        if hasattr(text_obj, 'Title') and text_obj.Title:
+        if hasattr(text_obj, "Title") and text_obj.Title:
             new_text.Title.CopyAlternatives(text_obj.Title)
-        if hasattr(text_obj, 'Description') and text_obj.Description:
+        if hasattr(text_obj, "Description") and text_obj.Description:
             new_text.Description.CopyAlternatives(text_obj.Description)
-        if hasattr(text_obj, 'Source') and text_obj.Source:
+        if hasattr(text_obj, "Source") and text_obj.Source:
             new_text.Source.CopyAlternatives(text_obj.Source)
 
         # Deep duplication: copy paragraph contents
@@ -295,8 +297,7 @@ class TextOperations(BaseOperations):
             for para in paragraphs:
                 if para.Contents:
                     # Copy the full TsString (preserves formatting and all WS runs)
-                    para_factory = self.project.project.ServiceLocator.GetService(
-                        IStTxtParaFactory)
+                    para_factory = self.project.project.ServiceLocator.GetService(IStTxtParaFactory)
                     new_para = para_factory.Create()
                     new_text.ContentsOA.ParagraphsOS.Add(new_para)
                     new_para.Contents = para.Contents
@@ -332,28 +333,28 @@ class TextOperations(BaseOperations):
         props = {}
 
         # MultiString properties
-        if hasattr(item, 'Title') and item.Title:
-            props['Title'] = self.project.GetMultiStringDict(item.Title)
+        if hasattr(item, "Title") and item.Title:
+            props["Title"] = self.project.GetMultiStringDict(item.Title)
 
-        if hasattr(item, 'Description') and item.Description:
-            props['Description'] = self.project.GetMultiStringDict(item.Description)
+        if hasattr(item, "Description") and item.Description:
+            props["Description"] = self.project.GetMultiStringDict(item.Description)
 
-        if hasattr(item, 'Source') and item.Source:
-            props['Source'] = self.project.GetMultiStringDict(item.Source)
+        if hasattr(item, "Source") and item.Source:
+            props["Source"] = self.project.GetMultiStringDict(item.Source)
 
         # DateTime properties
-        if hasattr(item, 'DateCreated') and item.DateCreated:
-            props['DateCreated'] = str(item.DateCreated)
+        if hasattr(item, "DateCreated") and item.DateCreated:
+            props["DateCreated"] = str(item.DateCreated)
 
-        if hasattr(item, 'DateModified') and item.DateModified:
-            props['DateModified'] = str(item.DateModified)
+        if hasattr(item, "DateModified") and item.DateModified:
+            props["DateModified"] = str(item.DateModified)
 
         # Reference Collection properties (return list of GUIDs)
-        if hasattr(item, 'GenresRC') and item.GenresRC:
-            props['GenresRC'] = [str(g.Guid) for g in item.GenresRC]
+        if hasattr(item, "GenresRC") and item.GenresRC:
+            props["GenresRC"] = [str(g.Guid) for g in item.GenresRC]
 
-        if hasattr(item, 'MediaFilesRC') and item.MediaFilesRC:
-            props['MediaFilesRC'] = [str(m.Guid) for m in item.MediaFilesRC]
+        if hasattr(item, "MediaFilesRC") and item.MediaFilesRC:
+            props["MediaFilesRC"] = [str(m.Guid) for m in item.MediaFilesRC]
 
         return props
 
@@ -847,11 +848,7 @@ class TextOperations(BaseOperations):
 
         # Use MediaOperations to properly copy file and create ICmFile
         # Copy file to project and get ICmFile reference
-        cm_file = self.project.Media.CopyToProject(
-            filepath,
-            internal_subdir="AudioVisual",
-            label=label
-        )
+        cm_file = self.project.Media.CopyToProject(filepath, internal_subdir="AudioVisual", label=label)
 
         # Create ICmMedia object
         media_factory = self.project.project.ServiceLocator.GetService(ICmMediaFactory)

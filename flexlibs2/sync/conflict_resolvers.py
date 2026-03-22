@@ -25,13 +25,7 @@ class ConflictResolver(ABC):
     """
 
     @abstractmethod
-    def resolve(
-        self,
-        source_obj: Any,
-        target_obj: Any,
-        source_project: Any,
-        target_project: Any
-    ) -> Any:
+    def resolve(self, source_obj: Any, target_obj: Any, source_project: Any, target_project: Any) -> Any:
         """
         Resolve conflict between source and target objects.
 
@@ -67,13 +61,7 @@ class SourceWinsResolver(ConflictResolver):
         ... )
     """
 
-    def resolve(
-        self,
-        source_obj: Any,
-        target_obj: Any,
-        source_project: Any,
-        target_project: Any
-    ) -> Any:
+    def resolve(self, source_obj: Any, target_obj: Any, source_project: Any, target_project: Any) -> Any:
         """
         Always choose source version.
 
@@ -86,9 +74,7 @@ class SourceWinsResolver(ConflictResolver):
         Returns:
             source_obj
         """
-        logger.debug(
-            f"Conflict resolved: source wins (GUID: {source_obj.Guid})"
-        )
+        logger.debug(f"Conflict resolved: source wins (GUID: {source_obj.Guid})")
         return source_obj
 
 
@@ -112,13 +98,7 @@ class TargetWinsResolver(ConflictResolver):
         ... )
     """
 
-    def resolve(
-        self,
-        source_obj: Any,
-        target_obj: Any,
-        source_project: Any,
-        target_project: Any
-    ) -> Any:
+    def resolve(self, source_obj: Any, target_obj: Any, source_project: Any, target_project: Any) -> Any:
         """
         Always keep target version.
 
@@ -131,9 +111,7 @@ class TargetWinsResolver(ConflictResolver):
         Returns:
             target_obj
         """
-        logger.debug(
-            f"Conflict resolved: target wins (GUID: {target_obj.Guid})"
-        )
+        logger.debug(f"Conflict resolved: target wins (GUID: {target_obj.Guid})")
         return target_obj
 
 
@@ -160,13 +138,7 @@ class NewestWinsResolver(ConflictResolver):
         Full implementation in Phase 2. Phase 1 placeholder.
     """
 
-    def resolve(
-        self,
-        source_obj: Any,
-        target_obj: Any,
-        source_project: Any,
-        target_project: Any
-    ) -> Any:
+    def resolve(self, source_obj: Any, target_obj: Any, source_project: Any, target_project: Any) -> Any:
         """
         Choose version with most recent modification date.
 
@@ -183,21 +155,15 @@ class NewestWinsResolver(ConflictResolver):
         # Full implementation with proper date comparison in Phase 2
 
         try:
-            source_date = getattr(source_obj, 'DateModified', None)
-            target_date = getattr(target_obj, 'DateModified', None)
+            source_date = getattr(source_obj, "DateModified", None)
+            target_date = getattr(target_obj, "DateModified", None)
 
             if source_date and target_date:
                 if source_date > target_date:
-                    logger.debug(
-                        f"Conflict resolved: source newer "
-                        f"({source_date} > {target_date})"
-                    )
+                    logger.debug(f"Conflict resolved: source newer " f"({source_date} > {target_date})")
                     return source_obj
                 else:
-                    logger.debug(
-                        f"Conflict resolved: target newer "
-                        f"({target_date} >= {source_date})"
-                    )
+                    logger.debug(f"Conflict resolved: target newer " f"({target_date} >= {source_date})")
                     return target_obj
 
         except Exception as e:
@@ -231,13 +197,7 @@ class ManualResolver(ConflictResolver):
         Full implementation in Phase 2. Phase 1 placeholder.
     """
 
-    def resolve(
-        self,
-        source_obj: Any,
-        target_obj: Any,
-        source_project: Any,
-        target_project: Any
-    ) -> Any:
+    def resolve(self, source_obj: Any, target_obj: Any, source_project: Any, target_project: Any) -> Any:
         """
         Prompt user to choose version.
 
@@ -279,11 +239,7 @@ class FieldMergeResolver(ConflictResolver):
         Full implementation in Phase 4. Phase 1 placeholder.
     """
 
-    def __init__(
-        self,
-        source_fields: List[str],
-        target_fields: List[str]
-    ):
+    def __init__(self, source_fields: List[str], target_fields: List[str]):
         """
         Initialize FieldMergeResolver.
 
@@ -294,13 +250,7 @@ class FieldMergeResolver(ConflictResolver):
         self.source_fields = source_fields
         self.target_fields = target_fields
 
-    def resolve(
-        self,
-        source_obj: Any,
-        target_obj: Any,
-        source_project: Any,
-        target_project: Any
-    ) -> Any:
+    def resolve(self, source_obj: Any, target_obj: Any, source_project: Any, target_project: Any) -> Any:
         """
         Merge fields from both versions.
 

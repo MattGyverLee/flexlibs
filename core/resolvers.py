@@ -11,6 +11,7 @@ Date: 2025-11-22
 
 from typing import Union, Any, Optional
 import clr
+
 clr.AddReference("System")
 import System
 
@@ -156,6 +157,7 @@ def resolve_analysis(analysis_or_hvo: Union[Any, HVO], project: Any) -> Optional
 
 # Phase 2 Resolvers
 
+
 def resolve_pos(pos_or_hvo: Union[Any, HVO], project: Any) -> Optional[Any]:
     """
     Resolve a part of speech reference to an IPartOfSpeech object.
@@ -242,18 +244,17 @@ def resolve_possibility(poss_or_hvo: Union[Any, HVO], project: Any) -> Optional[
 
 __all__ = [
     # Phase 1 resolvers
-    'resolve_object',
-    'resolve_text',
-    'resolve_paragraph',
-    'resolve_segment',
-    'resolve_wordform',
-    'resolve_analysis',
-
+    "resolve_object",
+    "resolve_text",
+    "resolve_paragraph",
+    "resolve_segment",
+    "resolve_wordform",
+    "resolve_analysis",
     # Phase 2 resolvers
-    'resolve_pos',
-    'resolve_phoneme',
-    'resolve_natural_class',
-    'resolve_environment',
-    'resolve_allomorph',
-    'resolve_possibility',
+    "resolve_pos",
+    "resolve_phoneme",
+    "resolve_natural_class",
+    "resolve_environment",
+    "resolve_allomorph",
+    "resolve_possibility",
 ]

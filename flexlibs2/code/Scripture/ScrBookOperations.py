@@ -30,6 +30,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+
 class ScrBookOperations(BaseOperations):
     """
     This class provides operations for managing Scripture books in a
@@ -158,9 +159,7 @@ class ScrBookOperations(BaseOperations):
         self._ValidateParam(canonical_num, "canonical_num")
 
         if not isinstance(canonical_num, int) or canonical_num < 1 or canonical_num > 66:
-            raise FP_ParameterError(
-                f"Canonical number must be an integer between 1 and 66, got {canonical_num}"
-            )
+            raise FP_ParameterError(f"Canonical number must be an integer between 1 and 66, got {canonical_num}")
 
         scripture = self.__GetScripture()
         if not scripture:
@@ -169,9 +168,7 @@ class ScrBookOperations(BaseOperations):
         # Check if book already exists
         existing = self.Find(canonical_num)
         if existing:
-            raise FP_ParameterError(
-                f"Book with canonical number {canonical_num} already exists"
-            )
+            raise FP_ParameterError(f"Book with canonical number {canonical_num} already exists")
 
         # Create the new book using the factory
         factory = self.project.project.ServiceLocator.GetService(IScrBookFactory)
@@ -514,10 +511,7 @@ class ScrBookOperations(BaseOperations):
         """
         if wsHandle is None:
             return self.project.project.DefaultVernWs
-        return self.project._FLExProject__WSHandle(
-            wsHandle,
-            self.project.project.DefaultVernWs
-        )
+        return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultVernWs)
 
     def __GetScripture(self):
         """
@@ -526,7 +520,7 @@ class ScrBookOperations(BaseOperations):
         Returns:
             IScripture or None: The Scripture object if available
         """
-        if not hasattr(self.project, 'lp') or not self.project.lp:
+        if not hasattr(self.project, "lp") or not self.project.lp:
             return None
 
         return self.project.lp.TranslatedScriptureOA

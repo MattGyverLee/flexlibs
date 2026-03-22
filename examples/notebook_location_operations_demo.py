@@ -12,6 +12,7 @@ Version: 2.3.0
 
 from flexlibs2 import FLExProject, FLExInitialize, FLExCleanup
 
+
 def demo_location_crud():
     """
     Demonstrate full CRUD operations for location.
@@ -44,16 +45,16 @@ def demo_location_crud():
 
     try:
         # ==================== READ: Initial state ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("STEP 1: READ - Get existing locations")
-        print("="*70)
+        print("=" * 70)
 
         print("\nGetting all locations...")
         initial_count = 0
         for obj in project.Location.GetAll():
             # Display first few objects
             try:
-                name = project.Location.GetName(obj) if hasattr(project.Location, 'GetName') else str(obj)
+                name = project.Location.GetName(obj) if hasattr(project.Location, "GetName") else str(obj)
                 print(f"  - {name}")
             except:
                 print(f"  - [Object {initial_count + 1}]")
@@ -64,16 +65,16 @@ def demo_location_crud():
         print(f"\nTotal locations (showing first 5): {initial_count}")
 
         # ==================== CREATE ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("STEP 2: CREATE - Create new test location")
-        print("="*70)
+        print("=" * 70)
 
         # Check if test object already exists
         try:
-            if hasattr(project.Location, 'Exists') and project.Location.Exists(test_name):
+            if hasattr(project.Location, "Exists") and project.Location.Exists(test_name):
                 print(f"\nTest location '{test_name}' already exists")
                 print("Deleting existing one first...")
-                existing = project.Location.Find(test_name) if hasattr(project.Location, 'Find') else None
+                existing = project.Location.Find(test_name) if hasattr(project.Location, "Find") else None
                 if existing:
                     project.Location.Delete(existing)
                     print("  Deleted existing test location")
@@ -90,7 +91,7 @@ def demo_location_crud():
             try:
                 # Try without parameters if that fails
                 test_obj = project.Location.Create()
-                if hasattr(project.Location, 'SetName'):
+                if hasattr(project.Location, "SetName"):
                     project.Location.SetName(test_obj, test_name)
             except Exception as e:
                 print(f"  Note: Create method may require specific parameters: {e}")
@@ -99,7 +100,7 @@ def demo_location_crud():
         if test_obj:
             print(f"  SUCCESS: Location created!")
             try:
-                if hasattr(project.Location, 'GetName'):
+                if hasattr(project.Location, "GetName"):
                     print(f"  Name: {project.Location.GetName(test_obj)}")
             except:
                 pass
@@ -109,24 +110,24 @@ def demo_location_crud():
             return
 
         # ==================== READ: Verify creation ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("STEP 3: READ - Verify location was created")
-        print("="*70)
+        print("=" * 70)
 
         # Test Exists
-        if hasattr(project.Location, 'Exists'):
+        if hasattr(project.Location, "Exists"):
             print(f"\nChecking if '{test_name}' exists...")
             exists = project.Location.Exists(test_name)
             print(f"  Exists: {exists}")
 
         # Test Find
-        if hasattr(project.Location, 'Find'):
+        if hasattr(project.Location, "Find"):
             print(f"\nFinding location by name...")
             found_obj = project.Location.Find(test_name)
             if found_obj:
                 print(f"  FOUND: location")
                 try:
-                    if hasattr(project.Location, 'GetName'):
+                    if hasattr(project.Location, "GetName"):
                         print(f"  Name: {project.Location.GetName(found_obj)}")
                 except:
                     pass
@@ -141,21 +142,23 @@ def demo_location_crud():
         print(f"  Difference:   +{current_count - initial_count}")
 
         # ==================== UPDATE ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("STEP 4: UPDATE - Modify location properties")
-        print("="*70)
+        print("=" * 70)
 
         if test_obj:
             updated = False
 
             # Try common update methods
-            if hasattr(project.Location, 'SetName'):
+            if hasattr(project.Location, "SetName"):
                 try:
                     new_name = "crud_test_location_modified"
                     print(f"\nUpdating name to: '{new_name}'")
-                    old_name = project.Location.GetName(test_obj) if hasattr(project.Location, 'GetName') else test_name
+                    old_name = project.Location.GetName(test_obj) if hasattr(project.Location, "GetName") else test_name
                     project.Location.SetName(test_obj, new_name)
-                    updated_name = project.Location.GetName(test_obj) if hasattr(project.Location, 'GetName') else new_name
+                    updated_name = (
+                        project.Location.GetName(test_obj) if hasattr(project.Location, "GetName") else new_name
+                    )
                     print(f"  Old name: {old_name}")
                     print(f"  New name: {updated_name}")
                     test_name = new_name  # Update for cleanup
@@ -165,7 +168,7 @@ def demo_location_crud():
 
             # Try other Set methods
             for method_name in dir(project.Location):
-                if method_name.startswith('Set') and method_name != 'SetName' and not updated:
+                if method_name.startswith("Set") and method_name != "SetName" and not updated:
                     print(f"\nFound update method: {method_name}")
                     print("  (Method available but not tested in this demo)")
                     break
@@ -176,17 +179,17 @@ def demo_location_crud():
                 print("\n  Note: No standard update methods found or tested")
 
         # ==================== READ: Verify updates ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("STEP 5: READ - Verify updates persisted")
-        print("="*70)
+        print("=" * 70)
 
-        if hasattr(project.Location, 'Find'):
+        if hasattr(project.Location, "Find"):
             print(f"\nFinding location after update...")
             updated_obj = project.Location.Find(test_name)
             if updated_obj:
                 print(f"  FOUND: location")
                 try:
-                    if hasattr(project.Location, 'GetName'):
+                    if hasattr(project.Location, "GetName"):
                         print(f"  Name: {project.Location.GetName(updated_obj)}")
                 except:
                     pass
@@ -194,14 +197,14 @@ def demo_location_crud():
                 print("  NOT FOUND - Update may not have persisted")
 
         # ==================== DELETE ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("STEP 6: DELETE - Remove test location")
-        print("="*70)
+        print("=" * 70)
 
         if test_obj:
             print(f"\nDeleting test location...")
             try:
-                obj_name = project.Location.GetName(test_obj) if hasattr(project.Location, 'GetName') else test_name
+                obj_name = project.Location.GetName(test_obj) if hasattr(project.Location, "GetName") else test_name
             except:
                 obj_name = test_name
 
@@ -210,7 +213,7 @@ def demo_location_crud():
 
             # Verify deletion
             print("\nVerifying deletion...")
-            if hasattr(project.Location, 'Exists'):
+            if hasattr(project.Location, "Exists"):
                 still_exists = project.Location.Exists(test_name)
                 print(f"  Still exists: {still_exists}")
 
@@ -225,9 +228,9 @@ def demo_location_crud():
             print(f"  Back to initial:    {final_count == initial_count}")
 
         # ==================== SUMMARY ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("CRUD TEST SUMMARY")
-        print("="*70)
+        print("=" * 70)
         print("\nOperations tested:")
         print("  [CREATE] Create new location")
         print("  [READ]   GetAll, Find, Exists, Get methods")
@@ -238,18 +241,19 @@ def demo_location_crud():
     except Exception as e:
         print(f"\n\nERROR during CRUD test: {e}")
         import traceback
+
         traceback.print_exc()
 
     finally:
         # Cleanup: Ensure test object is removed
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("CLEANUP")
-        print("="*70)
+        print("=" * 70)
 
         try:
             for name in ["crud_test_location", "crud_test_location_modified"]:
-                if hasattr(project.Location, 'Exists') and project.Location.Exists(name):
-                    obj = project.Location.Find(name) if hasattr(project.Location, 'Find') else None
+                if hasattr(project.Location, "Exists") and project.Location.Exists(name):
+                    obj = project.Location.Find(name) if hasattr(project.Location, "Find") else None
                     if obj:
                         project.Location.Delete(obj)
                         print(f"  Cleaned up: {name}")
@@ -260,13 +264,14 @@ def demo_location_crud():
         project.CloseProject()
         FLExCleanup()
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("DEMO COMPLETE")
-    print("="*70)
+    print("=" * 70)
 
 
 if __name__ == "__main__":
-    print("""
+    print(
+        """
 Location Operations - Full CRUD Demo
 =====================================================
 
@@ -296,10 +301,11 @@ Requirements:
 
 WARNING: This demo modifies the database!
          Test location is created and deleted during the demo.
-    """)
+    """
+    )
 
     response = input("\nRun CRUD demo? (y/N): ")
-    if response.lower() == 'y':
+    if response.lower() == "y":
         demo_location_crud()
     else:
         print("\nDemo skipped.")

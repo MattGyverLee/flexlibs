@@ -112,6 +112,7 @@ class AffixTemplate(LCMObjectWrapper):
         """
         try:
             from SIL.LCModel.Core.KernelInterfaces import ITsString
+
             name_multistring = self._obj.Name
             if name_multistring:
                 # Get from default analysis writing system
@@ -136,6 +137,7 @@ class AffixTemplate(LCMObjectWrapper):
         """
         try:
             from SIL.LCModel.Core.KernelInterfaces import ITsString
+
             desc_multistring = self._obj.Description
             if desc_multistring:
                 # Get from default analysis writing system
@@ -160,7 +162,7 @@ class AffixTemplate(LCMObjectWrapper):
                 print(f"Stratum: {wrapped.stratum.Name}")
         """
         try:
-            if hasattr(self._concrete, 'StratumRA'):
+            if hasattr(self._concrete, "StratumRA"):
                 return self._concrete.StratumRA
             return None
         except Exception:
@@ -180,7 +182,7 @@ class AffixTemplate(LCMObjectWrapper):
                 print("Template is disabled")
         """
         try:
-            if hasattr(self._concrete, 'Disabled'):
+            if hasattr(self._concrete, "Disabled"):
                 return self._concrete.Disabled
             return False
         except Exception:
@@ -189,7 +191,7 @@ class AffixTemplate(LCMObjectWrapper):
     # ========== Slot Properties (access to slot collections) ==========
 
     @property
-    def prefix_slots(self) -> 'list[object]':
+    def prefix_slots(self) -> "list[object]":
         """
         Get the prefix slots collection.
 
@@ -206,7 +208,7 @@ class AffixTemplate(LCMObjectWrapper):
             - Returns empty list if slots not available
         """
         try:
-            if hasattr(self._concrete, 'PrefixSlotsRS'):
+            if hasattr(self._concrete, "PrefixSlotsRS"):
                 slots = self._concrete.PrefixSlotsRS
                 return list(slots) if slots else []
             return []
@@ -231,7 +233,7 @@ class AffixTemplate(LCMObjectWrapper):
             - Returns empty list if slots not available
         """
         try:
-            if hasattr(self._concrete, 'SuffixSlotsRS'):
+            if hasattr(self._concrete, "SuffixSlotsRS"):
                 slots = self._concrete.SuffixSlotsRS
                 return list(slots) if slots else []
             return []
@@ -256,7 +258,7 @@ class AffixTemplate(LCMObjectWrapper):
             - Returns empty list if slots not available
         """
         try:
-            if hasattr(self._concrete, 'ProcliticSlotsRS'):
+            if hasattr(self._concrete, "ProcliticSlotsRS"):
                 slots = self._concrete.ProcliticSlotsRS
                 return list(slots) if slots else []
             return []
@@ -281,7 +283,7 @@ class AffixTemplate(LCMObjectWrapper):
             - Returns empty list if slots not available
         """
         try:
-            if hasattr(self._concrete, 'EncliticSlotsRS'):
+            if hasattr(self._concrete, "EncliticSlotsRS"):
                 slots = self._concrete.EncliticSlotsRS
                 return list(slots) if slots else []
             return []
@@ -373,8 +375,9 @@ class AffixTemplate(LCMObjectWrapper):
             print(f"Total slots: {wrapped.total_slots}")
         """
         try:
-            return (self.prefix_slot_count + self.suffix_slot_count +
-                    self.proclitic_slot_count + self.enclitic_slot_count)
+            return (
+                self.prefix_slot_count + self.suffix_slot_count + self.proclitic_slot_count + self.enclitic_slot_count
+            )
         except Exception:
             return 0
 
@@ -394,7 +397,7 @@ class AffixTemplate(LCMObjectWrapper):
                 print(f"Template for POS: {wrapped.owner_pos.Name}")
         """
         try:
-            if hasattr(self._concrete, 'OwnerOfClass'):
+            if hasattr(self._concrete, "OwnerOfClass"):
                 owner = self._concrete.OwnerOfClass
                 return owner
             return None

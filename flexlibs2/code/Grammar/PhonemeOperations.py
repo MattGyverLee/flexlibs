@@ -35,6 +35,7 @@ from ..FLExProject import (
 # Import string utilities
 from ..Shared.string_utils import normalize_text
 
+
 class PhonemeOperations(BaseOperations):
     """
     This class provides operations for managing Phonemes in a FieldWorks project.
@@ -305,7 +306,7 @@ class PhonemeOperations(BaseOperations):
         # Copy simple MultiString properties
         duplicate.Name.CopyAlternatives(source.Name)
         duplicate.Description.CopyAlternatives(source.Description)
-        if hasattr(source, 'BasicIPASymbol') and source.BasicIPASymbol:
+        if hasattr(source, "BasicIPASymbol") and source.BasicIPASymbol:
             duplicate.BasicIPASymbol.CopyAlternatives(source.BasicIPASymbol)
 
         # Note: FeaturesOA is an owned atomic object (OA), NOT a reference.
@@ -318,13 +319,14 @@ class PhonemeOperations(BaseOperations):
             from ..lcm_casting import clone_properties
 
             # Deep copy FeaturesOA (feature structure)
-            if hasattr(source, 'FeaturesOA') and source.FeaturesOA:
+            if hasattr(source, "FeaturesOA") and source.FeaturesOA:
                 # Create new feature structure and copy all properties
                 try:
                     source_features = source.FeaturesOA
                     # Create new object of same type
                     new_features = self.project.project.ServiceLocator.ObjectRepository.NewObject(
-                        source_features.ClassID)
+                        source_features.ClassID
+                    )
 
                     # Set as the feature structure for this phoneme
                     duplicate.FeaturesOA = new_features
@@ -336,7 +338,7 @@ class PhonemeOperations(BaseOperations):
                     pass
 
             # Duplicate codes (allophonic representations)
-            if hasattr(source, 'CodesOS') and source.CodesOS.Count > 0:
+            if hasattr(source, "CodesOS") and source.CodesOS.Count > 0:
                 for code in source.CodesOS:
                     try:
                         code_factory = self.project.project.ServiceLocator.GetService(IPhCodeFactory)
@@ -869,7 +871,7 @@ class PhonemeOperations(BaseOperations):
         phoneme = self.__GetPhonemeObject(phoneme_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
 
-        if hasattr(phoneme, 'BasicIPASymbol') and phoneme.BasicIPASymbol:
+        if hasattr(phoneme, "BasicIPASymbol") and phoneme.BasicIPASymbol:
             ipa_str = ITsString(phoneme.BasicIPASymbol.get_String(wsHandle)).Text
             return ipa_str or ""
         return ""
@@ -919,7 +921,7 @@ class PhonemeOperations(BaseOperations):
         phoneme = self.__GetPhonemeObject(phoneme_or_hvo)
 
         # Check feature structure for vowel features
-        if not hasattr(phoneme, 'FeaturesOA') or not phoneme.FeaturesOA:
+        if not hasattr(phoneme, "FeaturesOA") or not phoneme.FeaturesOA:
             return False
 
         features = phoneme.FeaturesOA
@@ -927,18 +929,18 @@ class PhonemeOperations(BaseOperations):
         # Check for typical vowel features
         # Feature system varies by project, but common vowel features include:
         # [-consonantal], [+sonorant], [+syllabic]
-        if hasattr(features, 'FeatureSpecsOC'):
+        if hasattr(features, "FeatureSpecsOC"):
             for spec in features.FeatureSpecsOC:
-                if hasattr(spec, 'FeatureRA') and spec.FeatureRA:
+                if hasattr(spec, "FeatureRA") and spec.FeatureRA:
                     feature_name = ""
-                    if hasattr(spec.FeatureRA, 'Name'):
+                    if hasattr(spec.FeatureRA, "Name"):
                         ws = self.project.project.DefaultAnalWs
                         feature_name = ITsString(spec.FeatureRA.Name.get_String(ws)).Text or ""
 
                     # Check for common vowel feature indicators
-                    if feature_name.lower() in ['syllabic', 'vocalic', 'vowel']:
+                    if feature_name.lower() in ["syllabic", "vocalic", "vowel"]:
                         # Check if feature value is positive
-                        if hasattr(spec, 'ValueRA') and spec.ValueRA:
+                        if hasattr(spec, "ValueRA") and spec.ValueRA:
                             return True
 
         return False
@@ -989,7 +991,7 @@ class PhonemeOperations(BaseOperations):
         phoneme = self.__GetPhonemeObject(phoneme_or_hvo)
 
         # Check feature structure for consonant features
-        if not hasattr(phoneme, 'FeaturesOA') or not phoneme.FeaturesOA:
+        if not hasattr(phoneme, "FeaturesOA") or not phoneme.FeaturesOA:
             return False
 
         features = phoneme.FeaturesOA
@@ -997,18 +999,18 @@ class PhonemeOperations(BaseOperations):
         # Check for typical consonant features
         # Feature system varies by project, but common consonant features include:
         # [+consonantal], [-syllabic]
-        if hasattr(features, 'FeatureSpecsOC'):
+        if hasattr(features, "FeatureSpecsOC"):
             for spec in features.FeatureSpecsOC:
-                if hasattr(spec, 'FeatureRA') and spec.FeatureRA:
+                if hasattr(spec, "FeatureRA") and spec.FeatureRA:
                     feature_name = ""
-                    if hasattr(spec.FeatureRA, 'Name'):
+                    if hasattr(spec.FeatureRA, "Name"):
                         ws = self.project.project.DefaultAnalWs
                         feature_name = ITsString(spec.FeatureRA.Name.get_String(ws)).Text or ""
 
                     # Check for common consonant feature indicators
-                    if feature_name.lower() in ['consonantal', 'consonant']:
+                    if feature_name.lower() in ["consonantal", "consonant"]:
                         # Check if feature value is positive
-                        if hasattr(spec, 'ValueRA') and spec.ValueRA:
+                        if hasattr(spec, "ValueRA") and spec.ValueRA:
                             return True
 
         return False
@@ -1079,7 +1081,7 @@ class PhonemeOperations(BaseOperations):
         props = {}
 
         # MultiString properties (Name = representation)
-        for prop_name in ['Name', 'Description', 'BasicIPASymbol']:
+        for prop_name in ["Name", "Description", "BasicIPASymbol"]:
             if hasattr(phoneme, prop_name):
                 prop_obj = getattr(phoneme, prop_name)
                 if prop_obj:  # Check if property exists
@@ -1092,8 +1094,8 @@ class PhonemeOperations(BaseOperations):
                         props[prop_name] = ws_values
 
         # Reference Atomic (RA) properties - return GUID as string
-        if hasattr(phoneme, 'FeaturesOA') and phoneme.FeaturesOA:
-            props['FeaturesGuid'] = str(phoneme.FeaturesOA.Guid)
+        if hasattr(phoneme, "FeaturesOA") and phoneme.FeaturesOA:
+            props["FeaturesGuid"] = str(phoneme.FeaturesOA.Guid)
 
         return props
 

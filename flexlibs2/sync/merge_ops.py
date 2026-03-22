@@ -46,27 +46,19 @@ class MergeOperations:
         self.target_project = target_project
 
         # Validate write access
-        if hasattr(target_project, 'writeEnabled') and not target_project.writeEnabled:
-            raise RuntimeError(
-                "Target project not opened with writeEnabled=True. "
-                "Cannot perform merge operations."
-            )
+        if hasattr(target_project, "writeEnabled") and not target_project.writeEnabled:
+            raise RuntimeError("Target project not opened with writeEnabled=True. " "Cannot perform merge operations.")
 
         logger.info(f"MergeOperations initialized for {self._get_project_name()}")
 
     def _get_project_name(self) -> str:
         """Get project name for logging."""
-        if hasattr(self.target_project, 'ProjectName'):
+        if hasattr(self.target_project, "ProjectName"):
             return self.target_project.ProjectName()
         return "unknown"
 
     def create_object(
-        self,
-        target_ops: Any,
-        source_obj: Any,
-        source_ops: Any,
-        parent_obj: Optional[Any] = None,
-        **create_kwargs
+        self, target_ops: Any, source_obj: Any, source_ops: Any, parent_obj: Optional[Any] = None, **create_kwargs
     ) -> Any:
         """
         Create a new object in target project.
@@ -97,19 +89,17 @@ class MergeOperations:
             ...     parent_obj=target_entry
             ... )
         """
-        if not hasattr(target_ops, 'Create'):
-            raise AttributeError(
-                f"{target_ops.__class__.__name__} does not have Create() method"
-            )
+        if not hasattr(target_ops, "Create"):
+            raise AttributeError(f"{target_ops.__class__.__name__} does not have Create() method")
 
         try:
             # Extract properties needed for creation
             # This varies by object type, so we try common patterns
 
             # For Allomorphs: Create(entry, form, morph_type)
-            if hasattr(source_ops, 'GetForm'):
+            if hasattr(source_ops, "GetForm"):
                 form = source_ops.GetForm(source_obj)
-                morph_type = source_ops.GetMorphType(source_obj) if hasattr(source_ops, 'GetMorphType') else None
+                morph_type = source_ops.GetMorphType(source_obj) if hasattr(source_ops, "GetMorphType") else None
 
                 logger.debug(f"Creating object with form: {form}")
 
@@ -121,9 +111,9 @@ class MergeOperations:
                     created_obj = target_ops.Create(form, **create_kwargs)
 
             # For LexEntry: Create(lexeme_form, morph_type)
-            elif hasattr(source_ops, 'GetLexemeForm'):
+            elif hasattr(source_ops, "GetLexemeForm"):
                 lexeme_form = source_ops.GetLexemeForm(source_obj)
-                morph_type = source_ops.GetMorphType(source_obj) if hasattr(source_ops, 'GetMorphType') else None
+                morph_type = source_ops.GetMorphType(source_obj) if hasattr(source_ops, "GetMorphType") else None
 
                 logger.debug(f"Creating entry with lexeme form: {lexeme_form}")
 
@@ -133,7 +123,7 @@ class MergeOperations:
                     created_obj = target_ops.Create(lexeme_form, **create_kwargs)
 
             # For objects with name: Create(name)
-            elif hasattr(source_ops, 'GetName'):
+            elif hasattr(source_ops, "GetName"):
                 name = source_ops.GetName(source_obj)
 
                 logger.debug(f"Creating object with name: {name}")
@@ -159,12 +149,7 @@ class MergeOperations:
             raise RuntimeError(f"Object creation failed: {e}")
 
     def update_object(
-        self,
-        target_obj: Any,
-        source_obj: Any,
-        source_ops: Any,
-        target_ops: Any,
-        fields: Optional[List[str]] = None
+        self, target_obj: Any, source_obj: Any, source_ops: Any, target_ops: Any, fields: Optional[List[str]] = None
     ) -> bool:
         """
         Update an existing object in target project.
@@ -211,11 +196,10 @@ class MergeOperations:
             else:
                 # Try to use CompareTo() if available for efficient difference detection
                 # This is the new sync framework integration
-                if hasattr(source_ops, 'CompareTo'):
+                if hasattr(source_ops, "CompareTo"):
                     try:
                         is_different, differences = source_ops.CompareTo(
-                            source_obj, target_obj,
-                            ops1=source_ops, ops2=target_ops
+                            source_obj, target_obj, ops1=source_ops, ops2=target_ops
                         )
 
                         if is_different:
@@ -244,12 +228,7 @@ class MergeOperations:
             logger.error(f"Failed to update object: {e}")
             raise RuntimeError(f"Object update failed: {e}")
 
-    def delete_object(
-        self,
-        target_ops: Any,
-        target_obj: Any,
-        validate_safe: bool = True
-    ) -> bool:
+    def delete_object(self, target_ops: Any, target_obj: Any, validate_safe: bool = True) -> bool:
         """
         Delete an object from target project.
 
@@ -271,10 +250,8 @@ class MergeOperations:
             ...     target_obj=target_allomorph
             ... )
         """
-        if not hasattr(target_ops, 'Delete'):
-            raise AttributeError(
-                f"{target_ops.__class__.__name__} does not have Delete() method"
-            )
+        if not hasattr(target_ops, "Delete"):
+            raise AttributeError(f"{target_ops.__class__.__name__} does not have Delete() method")
 
         try:
             # Optional: Validate that deletion is safe
@@ -294,13 +271,7 @@ class MergeOperations:
             logger.error(f"Failed to delete object: {e}")
             raise RuntimeError(f"Object deletion failed: {e}")
 
-    def copy_properties(
-        self,
-        source_obj: Any,
-        target_obj: Any,
-        source_ops: Any,
-        target_ops: Any
-    ) -> bool:
+    def copy_properties(self, source_obj: Any, target_obj: Any, source_ops: Any, target_ops: Any) -> bool:
         """
         Copy properties from source to target object.
 
@@ -333,7 +304,7 @@ class MergeOperations:
 
         # NEW: Try to use GetSyncableProperties() if available (sync framework integration)
         # This method provides comprehensive property coverage and is the preferred approach
-        if hasattr(source_ops, 'GetSyncableProperties'):
+        if hasattr(source_ops, "GetSyncableProperties"):
             try:
                 logger.debug("Using GetSyncableProperties() for property copying")
                 source_props = source_ops.GetSyncableProperties(source_obj)
@@ -341,14 +312,14 @@ class MergeOperations:
                 # Map syncable property names to their setter methods
                 # This mapping handles the conversion from property dict keys to operation methods
                 property_to_setter = {
-                    'Form': 'SetForm',
-                    'Name': 'SetName',
-                    'Gloss': 'SetGloss',
-                    'Definition': 'SetDefinition',
-                    'Comment': 'SetComment',
-                    'CitationForm': 'SetCitationForm',
-                    'IsAbstract': None,  # Boolean properties often set directly
-                    'MorphTypeRA': 'SetMorphType',
+                    "Form": "SetForm",
+                    "Name": "SetName",
+                    "Gloss": "SetGloss",
+                    "Definition": "SetDefinition",
+                    "Comment": "SetComment",
+                    "CitationForm": "SetCitationForm",
+                    "IsAbstract": None,  # Boolean properties often set directly
+                    "MorphTypeRA": "SetMorphType",
                     # Add more mappings as needed for other object types
                 }
 
@@ -358,7 +329,7 @@ class MergeOperations:
                     if setter_name and hasattr(target_ops, setter_name):
                         try:
                             # Get current value for comparison
-                            getter_name = setter_name.replace('Set', 'Get')
+                            getter_name = setter_name.replace("Set", "Get")
                             target_value = None
                             if hasattr(target_ops, getter_name):
                                 target_value = getattr(target_ops, getter_name)(target_obj)
@@ -401,12 +372,12 @@ class MergeOperations:
         # Common property patterns to check
         # Each tuple: (getter_name, setter_name, property_name)
         property_patterns = [
-            ('GetForm', 'SetForm', 'form'),
-            ('GetName', 'SetName', 'name'),
-            ('GetGloss', 'SetGloss', 'gloss'),
-            ('GetDefinition', 'SetDefinition', 'definition'),
-            ('GetComment', 'SetComment', 'comment'),
-            ('GetCitationForm', 'SetCitationForm', 'citation_form'),
+            ("GetForm", "SetForm", "form"),
+            ("GetName", "SetName", "name"),
+            ("GetGloss", "SetGloss", "gloss"),
+            ("GetDefinition", "SetDefinition", "definition"),
+            ("GetComment", "SetComment", "comment"),
+            ("GetCitationForm", "SetCitationForm", "citation_form"),
         ]
 
         for getter, setter, prop_name in property_patterns:
@@ -428,22 +399,17 @@ class MergeOperations:
         return changed
 
     def _update_field(
-        self,
-        target_obj: Any,
-        source_obj: Any,
-        source_ops: Any,
-        target_ops: Any,
-        field_name: str
+        self, target_obj: Any, source_obj: Any, source_ops: Any, target_ops: Any, field_name: str
     ) -> bool:
         """Update a single field."""
         # Map field name to getter/setter methods
         field_map = {
-            'form': ('GetForm', 'SetForm'),
-            'name': ('GetName', 'SetName'),
-            'gloss': ('GetGloss', 'SetGloss'),
-            'definition': ('GetDefinition', 'SetDefinition'),
-            'comment': ('GetComment', 'SetComment'),
-            'citation_form': ('GetCitationForm', 'SetCitationForm'),
+            "form": ("GetForm", "SetForm"),
+            "name": ("GetName", "SetName"),
+            "gloss": ("GetGloss", "SetGloss"),
+            "definition": ("GetDefinition", "SetDefinition"),
+            "comment": ("GetComment", "SetComment"),
+            "citation_form": ("GetCitationForm", "SetCitationForm"),
         }
 
         if field_name not in field_map:
@@ -484,7 +450,7 @@ class SyncChange:
         operation: str,  # 'create', 'update', 'delete'
         object_type: str,
         object_guid: str,
-        details: Optional[Dict] = None
+        details: Optional[Dict] = None,
     ):
         """Initialize sync change record."""
         self.operation = operation
@@ -501,12 +467,7 @@ class SyncError:
     Record of an error during sync.
     """
 
-    def __init__(
-        self,
-        operation: str,
-        object_guid: Optional[str],
-        error_message: str
-    ):
+    def __init__(self, operation: str, object_guid: Optional[str], error_message: str):
         """Initialize sync error record."""
         self.operation = operation
         self.object_guid = object_guid

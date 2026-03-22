@@ -35,6 +35,7 @@ from ..FLExProject import (
 
 # --- Lexical Reference Mapping Type Constants ---
 
+
 class LexRefMappingTypes:
     """
     Lexical reference mapping type constants.
@@ -54,10 +55,12 @@ class LexRefMappingTypes:
     - SEQUENCE: Ordered sequence relations (A → B → C)
       Example: temporal sequences, procedural steps
     """
-    SYMMETRIC = 1   # krtSym - Symmetric (A ↔ B)
+
+    SYMMETRIC = 1  # krtSym - Symmetric (A ↔ B)
     ASYMMETRIC = 2  # krtAsym - Asymmetric with forward/reverse (A → B, B ← A)
-    TREE = 3        # krtTree - Tree/hierarchical (parent-child)
-    SEQUENCE = 4    # krtSequence - Ordered sequence (A → B → C)
+    TREE = 3  # krtTree - Tree/hierarchical (parent-child)
+    SEQUENCE = 4  # krtSequence - Ordered sequence (A → B → C)
+
 
 class LexReferenceOperations(BaseOperations):
     """
@@ -236,8 +239,7 @@ class LexReferenceOperations(BaseOperations):
             mapping_value = LexRefMappingTypes.SEQUENCE
         else:
             raise FP_ParameterError(
-                f"Invalid mapping type '{mapping_type}'. "
-                f"Must be one of: Symmetric, Asymmetric, Tree, Sequence"
+                f"Invalid mapping type '{mapping_type}'. " f"Must be one of: Symmetric, Asymmetric, Tree, Sequence"
             )
 
         wsHandle = self.__WSHandleAnalysis(wsHandle)
@@ -265,9 +267,8 @@ class LexReferenceOperations(BaseOperations):
         else:
             # Create the reference list if it doesn't exist
             from SIL.LCModel import ICmPossibilityListFactory
-            list_factory = self.project.project.ServiceLocator.GetService(
-                ICmPossibilityListFactory
-            )
+
+            list_factory = self.project.project.ServiceLocator.GetService(ICmPossibilityListFactory)
             new_list = list_factory.Create()
             self.project.lexDB.ReferencesOA = new_list
             new_list.PossibilitiesOS.Add(new_ref_type)
@@ -532,9 +533,7 @@ class LexReferenceOperations(BaseOperations):
 
         # Verify this is an asymmetric relation
         if ref_type.MappingType != LexRefMappingTypes.ASYMMETRIC:
-            raise FP_ParameterError(
-                "SetTypeReverseName can only be used with asymmetric relations"
-            )
+            raise FP_ParameterError("SetTypeReverseName can only be used with asymmetric relations")
 
         wsHandle = self.__WSHandleAnalysis(wsHandle)
 
@@ -665,12 +664,12 @@ class LexReferenceOperations(BaseOperations):
             obj = self.__ResolveSenseOrEntry(sense_or_entry)
 
             # Determine if this is a sense or entry
-            if hasattr(obj, 'ClassName'):
-                if obj.ClassName == 'LexSense':
+            if hasattr(obj, "ClassName"):
+                if obj.ClassName == "LexSense":
                     # Get references for this sense
                     for ref in obj.ReferringLexReferences:
                         yield ref
-                elif obj.ClassName == 'LexEntry':
+                elif obj.ClassName == "LexEntry":
                     # Get references for all senses of this entry
                     seen_refs = set()
                     for sense in obj.SensesOS:
@@ -734,17 +733,13 @@ class LexReferenceOperations(BaseOperations):
         self._ValidateParam(targets, "targets")
 
         if not targets or len(targets) < 2:
-            raise FP_ParameterError(
-                "At least 2 targets required to create a reference"
-            )
+            raise FP_ParameterError("At least 2 targets required to create a reference")
 
         # Resolve reference type
         if isinstance(ref_type_or_name, str):
             ref_type = self.FindType(ref_type_or_name)
             if not ref_type:
-                raise FP_ParameterError(
-                    f"Reference type '{ref_type_or_name}' not found"
-                )
+                raise FP_ParameterError(f"Reference type '{ref_type_or_name}' not found")
         else:
             ref_type = self.__ResolveRefType(ref_type_or_name)
 
@@ -757,9 +752,7 @@ class LexReferenceOperations(BaseOperations):
         # Verify all targets are the same type
         first_class = resolved_targets[0].ClassName
         if not all(t.ClassName == first_class for t in resolved_targets):
-            raise FP_ParameterError(
-                "All targets must be the same type (all LexSense or all LexEntry)"
-            )
+            raise FP_ParameterError("All targets must be the same type (all LexSense or all LexEntry)")
 
         # Create the new reference using the factory
         factory = self.project.project.ServiceLocator.GetService(ILexReferenceFactory)
@@ -815,7 +808,7 @@ class LexReferenceOperations(BaseOperations):
 
         # Get the owning type and remove the reference
         owner = lex_ref.Owner
-        if hasattr(owner, 'MembersOC'):
+        if hasattr(owner, "MembersOC"):
             owner.MembersOC.Remove(lex_ref)
 
     @OperationsMethod
@@ -1065,9 +1058,7 @@ class LexReferenceOperations(BaseOperations):
         if isinstance(ref_type_or_name, str):
             ref_type = self.FindType(ref_type_or_name)
             if not ref_type:
-                raise FP_ParameterError(
-                    f"Reference type '{ref_type_or_name}' not found"
-                )
+                raise FP_ParameterError(f"Reference type '{ref_type_or_name}' not found")
         else:
             ref_type = self.__ResolveRefType(ref_type_or_name)
 
@@ -1138,11 +1129,7 @@ class LexReferenceOperations(BaseOperations):
         complex_type = self.FindType("Complex Forms")
         if not complex_type:
             # Create it as a tree relation
-            complex_type = self.CreateType(
-                "Complex Forms",
-                "Tree",
-                reverse_name="Components"
-            )
+            complex_type = self.CreateType("Complex Forms", "Tree", reverse_name="Components")
 
         # Create reference with complex form as parent, component as child
         # In tree relations, first target is typically the parent
@@ -1293,32 +1280,34 @@ class LexReferenceOperations(BaseOperations):
         # MultiString properties
         # Name - optional name of the relationship
         name_dict = {}
-        if hasattr(item, 'Name'):
+        if hasattr(item, "Name"):
             for ws_handle in self.project.GetAllWritingSystems():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
+
                 text = ITsString(item.Name.get_String(ws_handle)).Text
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     name_dict[ws_tag] = text
-        props['Name'] = name_dict
+        props["Name"] = name_dict
 
         # Comment - additional notes
         comment_dict = {}
-        if hasattr(item, 'Comment'):
+        if hasattr(item, "Comment"):
             for ws_handle in self.project.GetAllWritingSystems():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
+
                 text = ITsString(item.Comment.get_String(ws_handle)).Text
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     comment_dict[ws_tag] = text
-        props['Comment'] = comment_dict
+        props["Comment"] = comment_dict
 
         # Reference Atomic (RA) properties
         # ReferenceTypeRA - the type of reference relationship
-        if hasattr(item, 'ReferenceTypeRA') and item.ReferenceTypeRA:
-            props['ReferenceTypeRA'] = str(item.ReferenceTypeRA.Guid)
+        if hasattr(item, "ReferenceTypeRA") and item.ReferenceTypeRA:
+            props["ReferenceTypeRA"] = str(item.ReferenceTypeRA.Guid)
         else:
-            props['ReferenceTypeRA'] = None
+            props["ReferenceTypeRA"] = None
 
         return props
 
@@ -1371,7 +1360,7 @@ class LexReferenceOperations(BaseOperations):
         if isinstance(ref_type_or_hvo, int):
             obj = self.project.Object(ref_type_or_hvo)
             # Verify it's the right type
-            if not hasattr(obj, 'MappingType'):
+            if not hasattr(obj, "MappingType"):
                 raise FP_ParameterError("HVO does not refer to a LexRefType")
             return obj
         return ref_type_or_hvo
@@ -1392,7 +1381,7 @@ class LexReferenceOperations(BaseOperations):
         if isinstance(lex_ref_or_hvo, int):
             obj = self.project.Object(lex_ref_or_hvo)
             # Verify it's the right type
-            if not hasattr(obj, 'TargetsRS'):
+            if not hasattr(obj, "TargetsRS"):
                 raise FP_ParameterError("HVO does not refer to a LexReference")
             return obj
         return lex_ref_or_hvo
@@ -1412,14 +1401,10 @@ class LexReferenceOperations(BaseOperations):
         """
         if isinstance(sense_or_entry, int):
             obj = self.project.Object(sense_or_entry)
-            if not hasattr(obj, 'ClassName'):
-                raise FP_ParameterError(
-                    "HVO does not refer to a LexSense or LexEntry"
-                )
-            if obj.ClassName not in ('LexSense', 'LexEntry'):
-                raise FP_ParameterError(
-                    f"Object is {obj.ClassName}, not LexSense or LexEntry"
-                )
+            if not hasattr(obj, "ClassName"):
+                raise FP_ParameterError("HVO does not refer to a LexSense or LexEntry")
+            if obj.ClassName not in ("LexSense", "LexEntry"):
+                raise FP_ParameterError(f"Object is {obj.ClassName}, not LexSense or LexEntry")
             return obj
         return sense_or_entry
 
@@ -1438,7 +1423,7 @@ class LexReferenceOperations(BaseOperations):
         """
         if isinstance(entry_or_hvo, int):
             obj = self.project.Object(entry_or_hvo)
-            if not hasattr(obj, 'ClassName') or obj.ClassName != 'LexEntry':
+            if not hasattr(obj, "ClassName") or obj.ClassName != "LexEntry":
                 raise FP_ParameterError("Object is not a LexEntry")
             return obj
         return entry_or_hvo
@@ -1455,7 +1440,4 @@ class LexReferenceOperations(BaseOperations):
         """
         if wsHandle is None:
             return self.project.project.DefaultAnalWs
-        return self.project._FLExProject__WSHandle(
-            wsHandle,
-            self.project.project.DefaultAnalWs
-        )
+        return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultAnalWs)

@@ -27,6 +27,7 @@ from ..FLExProject import (
 )
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
+
 class ConfidenceOperations(BaseOperations):
     """
     This class provides operations for managing confidence levels (quality
@@ -193,9 +194,7 @@ class ConfidenceOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the new confidence level using the factory
-        factory = self.project.project.ServiceLocator.GetService(
-            ICmPossibilityFactory
-        )
+        factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
         new_level = factory.Create()
 
         # Add to the confidence levels list (must be done before setting properties)
@@ -364,8 +363,8 @@ class ConfidenceOperations(BaseOperations):
         props = {}
 
         # MultiString properties
-        props['Name'] = ITsString(level.Name.get_String(wsHandle)).Text or ""
-        props['Description'] = ITsString(level.Description.get_String(wsHandle)).Text or ""
+        props["Name"] = ITsString(level.Name.get_String(wsHandle)).Text or ""
+        props["Description"] = ITsString(level.Description.get_String(wsHandle)).Text or ""
 
         return props
 
@@ -396,7 +395,7 @@ class ConfidenceOperations(BaseOperations):
             ops2 = self
 
         is_different = False
-        differences = {'properties': {}}
+        differences = {"properties": {}}
 
         # Get syncable properties from both items
         props1 = ops1.GetSyncableProperties(item1)
@@ -409,11 +408,7 @@ class ConfidenceOperations(BaseOperations):
 
             if val1 != val2:
                 is_different = True
-                differences['properties'][key] = {
-                    'source': val1,
-                    'target': val2,
-                    'type': 'modified'
-                }
+                differences["properties"][key] = {"source": val1, "target": val2, "type": "modified"}
 
         return is_different, differences
 
@@ -762,15 +757,13 @@ class ConfidenceOperations(BaseOperations):
         level_hvo = level.Hvo
 
         analyses = []
-        analysis_repo = self.project.project.ServiceLocator.GetInstance(
-            IWfiAnalysisRepository
-        )
+        analysis_repo = self.project.project.ServiceLocator.GetInstance(IWfiAnalysisRepository)
 
         # Search through all analyses
         for analysis in analysis_repo.AllInstances():
             # Check if this analysis has this confidence level
             # Note: IWfiAnalysis may have Confidence property as reference
-            if hasattr(analysis, 'ConfidenceRA') and analysis.ConfidenceRA:
+            if hasattr(analysis, "ConfidenceRA") and analysis.ConfidenceRA:
                 if analysis.ConfidenceRA.Hvo == level_hvo:
                     analyses.append(analysis)
 
@@ -826,15 +819,13 @@ class ConfidenceOperations(BaseOperations):
         level_hvo = level.Hvo
 
         glosses = []
-        gloss_repo = self.project.project.ServiceLocator.GetInstance(
-            IWfiGlossRepository
-        )
+        gloss_repo = self.project.project.ServiceLocator.GetInstance(IWfiGlossRepository)
 
         # Search through all glosses
         for gloss in gloss_repo.AllInstances():
             # Check if this gloss has this confidence level
             # Note: IWfiGloss may have Confidence property as reference
-            if hasattr(gloss, 'ConfidenceRA') and gloss.ConfidenceRA:
+            if hasattr(gloss, "ConfidenceRA") and gloss.ConfidenceRA:
                 if gloss.ConfidenceRA.Hvo == level_hvo:
                     glosses.append(gloss)
 
@@ -950,9 +941,7 @@ class ConfidenceOperations(BaseOperations):
         if isinstance(level_or_hvo, int):
             obj = self.project.Object(level_or_hvo)
             if not isinstance(obj, ICmPossibility):
-                raise FP_ParameterError(
-                    "HVO does not refer to a confidence level (ICmPossibility)"
-                )
+                raise FP_ParameterError("HVO does not refer to a confidence level (ICmPossibility)")
             return obj
         return level_or_hvo
 
@@ -968,7 +957,4 @@ class ConfidenceOperations(BaseOperations):
         """
         if wsHandle is None:
             return self.project.project.DefaultAnalWs
-        return self.project._FLExProject__WSHandle(
-            wsHandle,
-            self.project.project.DefaultAnalWs
-        )
+        return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultAnalWs)

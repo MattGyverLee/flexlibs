@@ -27,6 +27,7 @@ from ..FLExProject import (
 )
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
+
 class PublicationOperations(BaseOperations):
     """
     This class provides operations for managing publications and publishing
@@ -136,11 +137,7 @@ class PublicationOperations(BaseOperations):
         if not pub_list:
             return []
 
-        return list(self.project.UnpackNestedPossibilityList(
-            pub_list.PossibilitiesOS,
-            ICmPossibility,
-            flat
-        ))
+        return list(self.project.UnpackNestedPossibilityList(pub_list.PossibilitiesOS, ICmPossibility, flat))
 
     @OperationsMethod
     def Create(self, name, wsHandle=None):
@@ -206,9 +203,7 @@ class PublicationOperations(BaseOperations):
             raise FP_ParameterError("Publication types list not found in project")
 
         # Create the new publication using the factory
-        factory = self.project.project.ServiceLocator.GetService(
-            ICmPossibilityFactory
-        )
+        factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
         new_pub = factory.Create()
 
         # Add to publications list (must be done before setting properties)
@@ -269,10 +264,7 @@ class PublicationOperations(BaseOperations):
 
         # Check if this is the default publication
         if self.GetIsDefault(publication):
-            raise FP_ParameterError(
-                "Cannot delete the default publication. "
-                "Set a different default first."
-            )
+            raise FP_ParameterError("Cannot delete the default publication. " "Set a different default first.")
 
         # Get the parent or top-level list
         parent = self.GetParent(publication)
@@ -376,22 +368,22 @@ class PublicationOperations(BaseOperations):
 
         # Copy MultiString properties using CopyAlternatives
         duplicate.Name.CopyAlternatives(source.Name)
-        if hasattr(source, 'Description'):
+        if hasattr(source, "Description"):
             duplicate.Description.CopyAlternatives(source.Description)
-        if hasattr(source, 'Abbreviation'):
+        if hasattr(source, "Abbreviation"):
             duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)
 
         # Copy numeric properties for page dimensions
-        if hasattr(source, 'SortKey') and hasattr(duplicate, 'SortKey'):
+        if hasattr(source, "SortKey") and hasattr(duplicate, "SortKey"):
             duplicate.SortKey = source.SortKey  # PageWidth
-        if hasattr(source, 'SortKey2') and hasattr(duplicate, 'SortKey2'):
+        if hasattr(source, "SortKey2") and hasattr(duplicate, "SortKey2"):
             duplicate.SortKey2 = source.SortKey2  # PageHeight
 
         # Note: DateCreated/DateModified are NOT copied from source.
         # The duplicate gets current timestamps automatically from the framework.
 
         # Deep copy: duplicate owned divisions (SubPossibilitiesOS)
-        if deep and hasattr(source, 'SubPossibilitiesOS') and source.SubPossibilitiesOS.Count > 0:
+        if deep and hasattr(source, "SubPossibilitiesOS") and source.SubPossibilitiesOS.Count > 0:
             for division in source.SubPossibilitiesOS:
                 self._DuplicateDivisionInto(division, duplicate, deep=True)
 
@@ -403,13 +395,13 @@ class PublicationOperations(BaseOperations):
 
         # Copy division properties
         div_dup.Name.CopyAlternatives(source_div.Name)
-        if hasattr(source_div, 'Description'):
+        if hasattr(source_div, "Description"):
             div_dup.Description.CopyAlternatives(source_div.Description)
-        if hasattr(source_div, 'Abbreviation'):
+        if hasattr(source_div, "Abbreviation"):
             div_dup.Abbreviation.CopyAlternatives(source_div.Abbreviation)
 
         # Recurse into nested sub-divisions
-        if deep and hasattr(source_div, 'SubPossibilitiesOS') and source_div.SubPossibilitiesOS.Count > 0:
+        if deep and hasattr(source_div, "SubPossibilitiesOS") and source_div.SubPossibilitiesOS.Count > 0:
             for nested_div in source_div.SubPossibilitiesOS:
                 self._DuplicateDivisionInto(nested_div, div_dup, deep=True)
 
@@ -443,11 +435,11 @@ class PublicationOperations(BaseOperations):
         props = {}
 
         # MultiString properties
-        props['Name'] = ITsString(pub.Name.get_String(wsHandle)).Text or ""
-        if hasattr(pub, 'Description'):
-            props['Description'] = ITsString(pub.Description.get_String(wsHandle)).Text or ""
-        if hasattr(pub, 'Abbreviation'):
-            props['Abbreviation'] = ITsString(pub.Abbreviation.get_String(wsHandle)).Text or ""
+        props["Name"] = ITsString(pub.Name.get_String(wsHandle)).Text or ""
+        if hasattr(pub, "Description"):
+            props["Description"] = ITsString(pub.Description.get_String(wsHandle)).Text or ""
+        if hasattr(pub, "Abbreviation"):
+            props["Abbreviation"] = ITsString(pub.Abbreviation.get_String(wsHandle)).Text or ""
 
         return props
 
@@ -478,7 +470,7 @@ class PublicationOperations(BaseOperations):
             ops2 = self
 
         is_different = False
-        differences = {'properties': {}}
+        differences = {"properties": {}}
 
         # Get syncable properties from both items
         props1 = ops1.GetSyncableProperties(item1)
@@ -491,11 +483,7 @@ class PublicationOperations(BaseOperations):
 
             if val1 != val2:
                 is_different = True
-                differences['properties'][key] = {
-                    'source': val1,
-                    'target': val2,
-                    'type': 'modified'
-                }
+                differences["properties"][key] = {"source": val1, "target": val2, "type": "modified"}
 
         return is_different, differences
 
@@ -718,7 +706,7 @@ class PublicationOperations(BaseOperations):
         publication = self.__ResolveObject(publication_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
 
-        if hasattr(publication, 'Description'):
+        if hasattr(publication, "Description"):
             desc = ITsString(publication.Description.get_String(wsHandle)).Text
             return desc or ""
 
@@ -765,7 +753,7 @@ class PublicationOperations(BaseOperations):
         publication = self.__ResolveObject(publication_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
 
-        if hasattr(publication, 'Description'):
+        if hasattr(publication, "Description"):
             mkstr = TsStringUtils.MakeString(description, wsHandle)
             publication.Description.set_String(wsHandle, mkstr)
 
@@ -810,7 +798,7 @@ class PublicationOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
 
         # Use Abbreviation field for page layout description
-        if hasattr(publication, 'Abbreviation'):
+        if hasattr(publication, "Abbreviation"):
             layout = ITsString(publication.Abbreviation.get_String(wsHandle)).Text
             return layout or ""
 
@@ -855,7 +843,7 @@ class PublicationOperations(BaseOperations):
         publication = self.__ResolveObject(publication_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
 
-        if hasattr(publication, 'Abbreviation'):
+        if hasattr(publication, "Abbreviation"):
             mkstr = TsStringUtils.MakeString(layout, wsHandle)
             publication.Abbreviation.set_String(wsHandle, mkstr)
 
@@ -1015,7 +1003,7 @@ class PublicationOperations(BaseOperations):
         publication = self.__ResolveObject(publication_or_hvo)
 
         # Store in SortKey2 field (encoded as integer, divide by 1000 for inches)
-        if hasattr(publication, 'SortKey2') and publication.SortKey2 != 0:
+        if hasattr(publication, "SortKey2") and publication.SortKey2 != 0:
             return float(publication.SortKey2) / 1000.0
 
         return None
@@ -1070,7 +1058,7 @@ class PublicationOperations(BaseOperations):
         publication = self.__ResolveObject(publication_or_hvo)
 
         # Store in SortKey2 field (multiply by 1000 to store as integer)
-        if hasattr(publication, 'SortKey2'):
+        if hasattr(publication, "SortKey2"):
             publication.SortKey2 = int(h * 1000)
 
             # Update modification date
@@ -1118,7 +1106,7 @@ class PublicationOperations(BaseOperations):
         publication = self.__ResolveObject(publication_or_hvo)
 
         # Store in SortKey field (encoded as integer, divide by 1000 for inches)
-        if hasattr(publication, 'SortKey') and publication.SortKey != 0:
+        if hasattr(publication, "SortKey") and publication.SortKey != 0:
             return float(publication.SortKey) / 1000.0
 
         return None
@@ -1173,7 +1161,7 @@ class PublicationOperations(BaseOperations):
         publication = self.__ResolveObject(publication_or_hvo)
 
         # Store in SortKey field (multiply by 1000 to store as integer)
-        if hasattr(publication, 'SortKey'):
+        if hasattr(publication, "SortKey"):
             publication.SortKey = int(w * 1000)
 
             # Update modification date
@@ -1219,7 +1207,7 @@ class PublicationOperations(BaseOperations):
         publication = self.__ResolveObject(publication_or_hvo)
 
         # Divisions are stored as sub-possibilities
-        if hasattr(publication, 'SubPossibilitiesOS'):
+        if hasattr(publication, "SubPossibilitiesOS"):
             return list(publication.SubPossibilitiesOS)
 
         return []
@@ -1274,13 +1262,11 @@ class PublicationOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the new division using the factory
-        factory = self.project.project.ServiceLocator.GetService(
-            ICmPossibilityFactory
-        )
+        factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
         new_division = factory.Create()
 
         # Add to publication's sub-possibilities (must be done before setting properties)
-        if hasattr(publication, 'SubPossibilitiesOS'):
+        if hasattr(publication, "SubPossibilitiesOS"):
             publication.SubPossibilitiesOS.Add(new_division)
 
         # Set name
@@ -1329,7 +1315,7 @@ class PublicationOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
 
         # Use Comment field for header/footer information
-        if hasattr(publication, 'Comment'):
+        if hasattr(publication, "Comment"):
             header = ITsString(publication.Comment.get_String(wsHandle)).Text
             return header or ""
 
@@ -1382,7 +1368,7 @@ class PublicationOperations(BaseOperations):
         publication = self.__ResolveObject(publication_or_hvo)
 
         # Check for IsLandscape property
-        if hasattr(publication, 'IsLandscape'):
+        if hasattr(publication, "IsLandscape"):
             return bool(publication.IsLandscape)
 
         return False
@@ -1422,7 +1408,7 @@ class PublicationOperations(BaseOperations):
 
         publication = self.__ResolveObject(publication_or_hvo)
 
-        if hasattr(publication, 'SubPossibilitiesOS'):
+        if hasattr(publication, "SubPossibilitiesOS"):
             return list(publication.SubPossibilitiesOS)
 
         return []
@@ -1462,8 +1448,8 @@ class PublicationOperations(BaseOperations):
         owner = publication.Owner
 
         # Check if owner is a publication (sub-publication) or the list (top-level)
-        if owner and hasattr(owner, 'ClassName'):
-            if owner.ClassName == 'CmPossibility':
+        if owner and hasattr(owner, "ClassName"):
+            if owner.ClassName == "CmPossibility":
                 return ICmPossibility(owner)
 
         return None
@@ -1548,7 +1534,7 @@ class PublicationOperations(BaseOperations):
 
         publication = self.__ResolveObject(publication_or_hvo)
 
-        if hasattr(publication, 'DateCreated'):
+        if hasattr(publication, "DateCreated"):
             return publication.DateCreated
 
         return None
@@ -1595,7 +1581,7 @@ class PublicationOperations(BaseOperations):
 
         publication = self.__ResolveObject(publication_or_hvo)
 
-        if hasattr(publication, 'DateModified'):
+        if hasattr(publication, "DateModified"):
             return publication.DateModified
 
         return None
@@ -1634,7 +1620,4 @@ class PublicationOperations(BaseOperations):
         """
         if wsHandle is None:
             return self.project.project.DefaultAnalWs
-        return self.project._FLExProject__WSHandle(
-            wsHandle,
-            self.project.project.DefaultAnalWs
-        )
+        return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultAnalWs)

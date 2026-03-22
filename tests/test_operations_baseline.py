@@ -40,6 +40,7 @@ sys.path.insert(0, _project_root)
 # MOCK FLEXPROJECT FIXTURE
 # =============================================================================
 
+
 @pytest.fixture
 def mock_flex_project():
     """
@@ -69,135 +70,150 @@ def mock_flex_project():
 # =============================================================================
 
 GRAMMAR_OPERATIONS = [
-    ('POSOperations', 'flexlibs2.code.Grammar.POSOperations'),
-    ('PhonemeOperations', 'flexlibs2.code.Grammar.PhonemeOperations'),
-    ('NaturalClassOperations', 'flexlibs2.code.Grammar.NaturalClassOperations'),
-    ('EnvironmentOperations', 'flexlibs2.code.Grammar.EnvironmentOperations'),
-    ('PhonologicalRuleOperations', 'flexlibs2.code.Grammar.PhonologicalRuleOperations'),
-    ('MorphRuleOperations', 'flexlibs2.code.Grammar.MorphRuleOperations'),
-    ('GramCatOperations', 'flexlibs2.code.Grammar.GramCatOperations'),
-    ('InflectionFeatureOperations', 'flexlibs2.code.Grammar.InflectionFeatureOperations'),
+    ("POSOperations", "flexlibs2.code.Grammar.POSOperations"),
+    ("PhonemeOperations", "flexlibs2.code.Grammar.PhonemeOperations"),
+    ("NaturalClassOperations", "flexlibs2.code.Grammar.NaturalClassOperations"),
+    ("EnvironmentOperations", "flexlibs2.code.Grammar.EnvironmentOperations"),
+    ("PhonologicalRuleOperations", "flexlibs2.code.Grammar.PhonologicalRuleOperations"),
+    ("MorphRuleOperations", "flexlibs2.code.Grammar.MorphRuleOperations"),
+    ("GramCatOperations", "flexlibs2.code.Grammar.GramCatOperations"),
+    ("InflectionFeatureOperations", "flexlibs2.code.Grammar.InflectionFeatureOperations"),
 ]
 
 LEXICON_OPERATIONS = [
-    ('LexEntryOperations', 'flexlibs2.code.Lexicon.LexEntryOperations'),
-    ('LexSenseOperations', 'flexlibs2.code.Lexicon.LexSenseOperations'),
-    ('AllomorphOperations', 'flexlibs2.code.Lexicon.AllomorphOperations'),
-    ('ExampleOperations', 'flexlibs2.code.Lexicon.ExampleOperations'),
-    ('PronunciationOperations', 'flexlibs2.code.Lexicon.PronunciationOperations'),
-    ('EtymologyOperations', 'flexlibs2.code.Lexicon.EtymologyOperations'),
-    ('VariantOperations', 'flexlibs2.code.Lexicon.VariantOperations'),
-    ('LexReferenceOperations', 'flexlibs2.code.Lexicon.LexReferenceOperations'),
-    ('SemanticDomainOperations', 'flexlibs2.code.Lexicon.SemanticDomainOperations'),
-    ('ReversalOperations', 'flexlibs2.code.Lexicon.ReversalOperations'),
+    ("LexEntryOperations", "flexlibs2.code.Lexicon.LexEntryOperations"),
+    ("LexSenseOperations", "flexlibs2.code.Lexicon.LexSenseOperations"),
+    ("AllomorphOperations", "flexlibs2.code.Lexicon.AllomorphOperations"),
+    ("ExampleOperations", "flexlibs2.code.Lexicon.ExampleOperations"),
+    ("PronunciationOperations", "flexlibs2.code.Lexicon.PronunciationOperations"),
+    ("EtymologyOperations", "flexlibs2.code.Lexicon.EtymologyOperations"),
+    ("VariantOperations", "flexlibs2.code.Lexicon.VariantOperations"),
+    ("LexReferenceOperations", "flexlibs2.code.Lexicon.LexReferenceOperations"),
+    ("SemanticDomainOperations", "flexlibs2.code.Lexicon.SemanticDomainOperations"),
+    ("ReversalOperations", "flexlibs2.code.Lexicon.ReversalOperations"),
 ]
 
 TEXTSWORDS_OPERATIONS = [
-    ('TextOperations', 'flexlibs2.code.TextsWords.TextOperations'),
-    ('ParagraphOperations', 'flexlibs2.code.TextsWords.ParagraphOperations'),
-    ('SegmentOperations', 'flexlibs2.code.TextsWords.SegmentOperations'),
-    ('WordformOperations', 'flexlibs2.code.TextsWords.WordformOperations'),
-    ('WfiAnalysisOperations', 'flexlibs2.code.TextsWords.WfiAnalysisOperations'),
-    ('WfiGlossOperations', 'flexlibs2.code.TextsWords.WfiGlossOperations'),
-    ('WfiMorphBundleOperations', 'flexlibs2.code.TextsWords.WfiMorphBundleOperations'),
-    ('DiscourseOperations', 'flexlibs2.code.TextsWords.DiscourseOperations'),
+    ("TextOperations", "flexlibs2.code.TextsWords.TextOperations"),
+    ("ParagraphOperations", "flexlibs2.code.TextsWords.ParagraphOperations"),
+    ("SegmentOperations", "flexlibs2.code.TextsWords.SegmentOperations"),
+    ("WordformOperations", "flexlibs2.code.TextsWords.WordformOperations"),
+    ("WfiAnalysisOperations", "flexlibs2.code.TextsWords.WfiAnalysisOperations"),
+    ("WfiGlossOperations", "flexlibs2.code.TextsWords.WfiGlossOperations"),
+    ("WfiMorphBundleOperations", "flexlibs2.code.TextsWords.WfiMorphBundleOperations"),
+    ("DiscourseOperations", "flexlibs2.code.TextsWords.DiscourseOperations"),
 ]
 
 WORDFORM_OPERATIONS = [
-    ('WfiWordformOperations', 'flexlibs2.code.Wordform.WfiWordformOperations'),
-    ('WfiAnalysisOperations', 'flexlibs2.code.Wordform.WfiAnalysisOperations'),
-    ('WfiGlossOperations', 'flexlibs2.code.Wordform.WfiGlossOperations'),
-    ('WfiMorphBundleOperations', 'flexlibs2.code.Wordform.WfiMorphBundleOperations'),
+    ("WfiWordformOperations", "flexlibs2.code.Wordform.WfiWordformOperations"),
+    ("WfiAnalysisOperations", "flexlibs2.code.Wordform.WfiAnalysisOperations"),
+    ("WfiGlossOperations", "flexlibs2.code.Wordform.WfiGlossOperations"),
+    ("WfiMorphBundleOperations", "flexlibs2.code.Wordform.WfiMorphBundleOperations"),
 ]
 
 DISCOURSE_OPERATIONS = [
-    ('ConstChartOperations', 'flexlibs2.code.Discourse.ConstChartOperations'),
-    ('ConstChartRowOperations', 'flexlibs2.code.Discourse.ConstChartRowOperations'),
-    ('ConstChartTagOperations', 'flexlibs2.code.Discourse.ConstChartTagOperations'),
-    ('ConstChartClauseMarkerOperations', 'flexlibs2.code.Discourse.ConstChartClauseMarkerOperations'),
-    ('ConstChartWordGroupOperations', 'flexlibs2.code.Discourse.ConstChartWordGroupOperations'),
-    ('ConstChartMovedTextOperations', 'flexlibs2.code.Discourse.ConstChartMovedTextOperations'),
+    ("ConstChartOperations", "flexlibs2.code.Discourse.ConstChartOperations"),
+    ("ConstChartRowOperations", "flexlibs2.code.Discourse.ConstChartRowOperations"),
+    ("ConstChartTagOperations", "flexlibs2.code.Discourse.ConstChartTagOperations"),
+    ("ConstChartClauseMarkerOperations", "flexlibs2.code.Discourse.ConstChartClauseMarkerOperations"),
+    ("ConstChartWordGroupOperations", "flexlibs2.code.Discourse.ConstChartWordGroupOperations"),
+    ("ConstChartMovedTextOperations", "flexlibs2.code.Discourse.ConstChartMovedTextOperations"),
 ]
 
 SCRIPTURE_OPERATIONS = [
-    ('ScrBookOperations', 'flexlibs2.code.Scripture.ScrBookOperations'),
-    ('ScrSectionOperations', 'flexlibs2.code.Scripture.ScrSectionOperations'),
-    ('ScrTxtParaOperations', 'flexlibs2.code.Scripture.ScrTxtParaOperations'),
-    ('ScrNoteOperations', 'flexlibs2.code.Scripture.ScrNoteOperations'),
-    ('ScrAnnotationsOperations', 'flexlibs2.code.Scripture.ScrAnnotationsOperations'),
-    ('ScrDraftOperations', 'flexlibs2.code.Scripture.ScrDraftOperations'),
+    ("ScrBookOperations", "flexlibs2.code.Scripture.ScrBookOperations"),
+    ("ScrSectionOperations", "flexlibs2.code.Scripture.ScrSectionOperations"),
+    ("ScrTxtParaOperations", "flexlibs2.code.Scripture.ScrTxtParaOperations"),
+    ("ScrNoteOperations", "flexlibs2.code.Scripture.ScrNoteOperations"),
+    ("ScrAnnotationsOperations", "flexlibs2.code.Scripture.ScrAnnotationsOperations"),
+    ("ScrDraftOperations", "flexlibs2.code.Scripture.ScrDraftOperations"),
 ]
 
 NOTEBOOK_OPERATIONS = [
-    ('DataNotebookOperations', 'flexlibs2.code.Notebook.DataNotebookOperations'),
-    ('NoteOperations', 'flexlibs2.code.Notebook.NoteOperations'),
-    ('PersonOperations', 'flexlibs2.code.Notebook.PersonOperations'),
-    ('LocationOperations', 'flexlibs2.code.Notebook.LocationOperations'),
-    ('AnthropologyOperations', 'flexlibs2.code.Notebook.AnthropologyOperations'),
+    ("DataNotebookOperations", "flexlibs2.code.Notebook.DataNotebookOperations"),
+    ("NoteOperations", "flexlibs2.code.Notebook.NoteOperations"),
+    ("PersonOperations", "flexlibs2.code.Notebook.PersonOperations"),
+    ("LocationOperations", "flexlibs2.code.Notebook.LocationOperations"),
+    ("AnthropologyOperations", "flexlibs2.code.Notebook.AnthropologyOperations"),
 ]
 
 REVERSAL_OPERATIONS = [
-    ('ReversalIndexOperations', 'flexlibs2.code.Reversal.ReversalIndexOperations'),
-    ('ReversalIndexEntryOperations', 'flexlibs2.code.Reversal.ReversalIndexEntryOperations'),
+    ("ReversalIndexOperations", "flexlibs2.code.Reversal.ReversalIndexOperations"),
+    ("ReversalIndexEntryOperations", "flexlibs2.code.Reversal.ReversalIndexEntryOperations"),
 ]
 
 LISTS_OPERATIONS = [
-    ('PossibilityListOperations', 'flexlibs2.code.Lists.PossibilityListOperations'),
-    ('AgentOperations', 'flexlibs2.code.Lists.AgentOperations'),
-    ('ConfidenceOperations', 'flexlibs2.code.Lists.ConfidenceOperations'),
-    ('PublicationOperations', 'flexlibs2.code.Lists.PublicationOperations'),
-    ('TranslationTypeOperations', 'flexlibs2.code.Lists.TranslationTypeOperations'),
-    ('OverlayOperations', 'flexlibs2.code.Lists.OverlayOperations'),
+    ("PossibilityListOperations", "flexlibs2.code.Lists.PossibilityListOperations"),
+    ("AgentOperations", "flexlibs2.code.Lists.AgentOperations"),
+    ("ConfidenceOperations", "flexlibs2.code.Lists.ConfidenceOperations"),
+    ("PublicationOperations", "flexlibs2.code.Lists.PublicationOperations"),
+    ("TranslationTypeOperations", "flexlibs2.code.Lists.TranslationTypeOperations"),
+    ("OverlayOperations", "flexlibs2.code.Lists.OverlayOperations"),
 ]
 
 SYSTEM_OPERATIONS = [
-    ('WritingSystemOperations', 'flexlibs2.code.System.WritingSystemOperations'),
-    ('ProjectSettingsOperations', 'flexlibs2.code.System.ProjectSettingsOperations'),
-    ('CustomFieldOperations', 'flexlibs2.code.System.CustomFieldOperations'),
-    ('CheckOperations', 'flexlibs2.code.System.CheckOperations'),
-    ('AnnotationDefOperations', 'flexlibs2.code.System.AnnotationDefOperations'),
+    ("WritingSystemOperations", "flexlibs2.code.System.WritingSystemOperations"),
+    ("ProjectSettingsOperations", "flexlibs2.code.System.ProjectSettingsOperations"),
+    ("CustomFieldOperations", "flexlibs2.code.System.CustomFieldOperations"),
+    ("CheckOperations", "flexlibs2.code.System.CheckOperations"),
+    ("AnnotationDefOperations", "flexlibs2.code.System.AnnotationDefOperations"),
 ]
 
 SHARED_OPERATIONS = [
-    ('MediaOperations', 'flexlibs2.code.Shared.MediaOperations'),
-    ('FilterOperations', 'flexlibs2.code.Shared.FilterOperations'),
+    ("MediaOperations", "flexlibs2.code.Shared.MediaOperations"),
+    ("FilterOperations", "flexlibs2.code.Shared.FilterOperations"),
 ]
 
 # All operations classes
 ALL_OPERATIONS = (
-    GRAMMAR_OPERATIONS +
-    LEXICON_OPERATIONS +
-    TEXTSWORDS_OPERATIONS +
-    WORDFORM_OPERATIONS +
-    DISCOURSE_OPERATIONS +
-    SCRIPTURE_OPERATIONS +
-    NOTEBOOK_OPERATIONS +
-    REVERSAL_OPERATIONS +
-    LISTS_OPERATIONS +
-    SYSTEM_OPERATIONS +
-    SHARED_OPERATIONS
+    GRAMMAR_OPERATIONS
+    + LEXICON_OPERATIONS
+    + TEXTSWORDS_OPERATIONS
+    + WORDFORM_OPERATIONS
+    + DISCOURSE_OPERATIONS
+    + SCRIPTURE_OPERATIONS
+    + NOTEBOOK_OPERATIONS
+    + REVERSAL_OPERATIONS
+    + LISTS_OPERATIONS
+    + SYSTEM_OPERATIONS
+    + SHARED_OPERATIONS
 )
 
 # Operations classes that should have Create
 CREATE_OPERATIONS = [
-    'LexEntryOperations', 'LexSenseOperations', 'AllomorphOperations',
-    'ExampleOperations', 'POSOperations', 'TextOperations', 'ParagraphOperations',
-    'NoteOperations', 'PersonOperations', 'LocationOperations',
-    'WfiWordformOperations', 'ReversalIndexEntryOperations',
-    'ScrBookOperations', 'ScrSectionOperations',
+    "LexEntryOperations",
+    "LexSenseOperations",
+    "AllomorphOperations",
+    "ExampleOperations",
+    "POSOperations",
+    "TextOperations",
+    "ParagraphOperations",
+    "NoteOperations",
+    "PersonOperations",
+    "LocationOperations",
+    "WfiWordformOperations",
+    "ReversalIndexEntryOperations",
+    "ScrBookOperations",
+    "ScrSectionOperations",
 ]
 
 # Operations classes that should have Delete
 DELETE_OPERATIONS = [
-    'LexEntryOperations', 'LexSenseOperations', 'AllomorphOperations',
-    'ExampleOperations', 'TextOperations', 'NoteOperations',
-    'WfiWordformOperations', 'ReversalIndexEntryOperations',
+    "LexEntryOperations",
+    "LexSenseOperations",
+    "AllomorphOperations",
+    "ExampleOperations",
+    "TextOperations",
+    "NoteOperations",
+    "WfiWordformOperations",
+    "ReversalIndexEntryOperations",
 ]
 
 
 # =============================================================================
 # HELPER FUNCTION FOR SMART IMPORTS
 # =============================================================================
+
 
 def get_operations_class(class_name, module_path):
     """
@@ -221,12 +237,12 @@ def get_operations_class(class_name, module_path):
     # Do NOT attempt fresh imports - they cause circular import issues
     try:
         import flexlibs2
+
         ops_class = getattr(flexlibs2, class_name, None)
         if ops_class is not None:
             return ops_class
         else:
-            raise ImportError(f"{class_name} not in pre-cached flexlibs2 namespace. "
-                             f"FLEx may not be initialized.")
+            raise ImportError(f"{class_name} not in pre-cached flexlibs2 namespace. " f"FLEx may not be initialized.")
     except ImportError:
         raise
     except Exception as e:
@@ -237,6 +253,7 @@ def get_operations_class(class_name, module_path):
 # BASELINE TESTS - IMPORT AND INSTANTIATION
 # =============================================================================
 
+
 class TestOperationsImport:
     """Test that all operations classes can be imported successfully."""
 
@@ -246,7 +263,7 @@ class TestOperationsImport:
         try:
             ops_class = get_operations_class(class_name, module_path)
             assert ops_class is not None
-            assert hasattr(ops_class, '__name__')
+            assert hasattr(ops_class, "__name__")
             assert ops_class.__name__ == class_name
         except ImportError as e:
             pytest.fail(f"Failed to import {class_name} from {module_path}: {e}")
@@ -285,8 +302,7 @@ class TestOperationsInheritance:
             ops_class = get_operations_class(class_name, module_path)
 
             # Check inheritance
-            assert issubclass(ops_class, BaseOperations), \
-                f"{class_name} does not inherit from BaseOperations"
+            assert issubclass(ops_class, BaseOperations), f"{class_name} does not inherit from BaseOperations"
 
         except ImportError as e:
             pytest.fail(f"Failed to verify inheritance for {class_name}: {e}")
@@ -296,13 +312,13 @@ class TestReorderingMethods:
     """Test that all operations classes have the 7 reordering methods from BaseOperations."""
 
     REORDERING_METHODS = [
-        'Sort',
-        'MoveUp',
-        'MoveDown',
-        'MoveToIndex',
-        'MoveBefore',
-        'MoveAfter',
-        'Swap',
+        "Sort",
+        "MoveUp",
+        "MoveDown",
+        "MoveToIndex",
+        "MoveBefore",
+        "MoveAfter",
+        "Swap",
     ]
 
     @pytest.mark.parametrize("class_name,module_path", ALL_OPERATIONS)
@@ -313,13 +329,11 @@ class TestReorderingMethods:
             instance = ops_class(mock_flex_project)
 
             for method_name in self.REORDERING_METHODS:
-                assert hasattr(instance, method_name), \
-                    f"{class_name} missing reordering method: {method_name}"
+                assert hasattr(instance, method_name), f"{class_name} missing reordering method: {method_name}"
 
                 # Verify it's callable
                 method = getattr(instance, method_name)
-                assert callable(method), \
-                    f"{class_name}.{method_name} is not callable"
+                assert callable(method), f"{class_name}.{method_name} is not callable"
 
         except Exception as e:
             pytest.fail(f"Failed to verify reordering methods for {class_name}: {e}")
@@ -330,8 +344,8 @@ class TestCommonCRUDMethods:
 
     # Common methods that most operations classes should have
     COMMON_METHODS = {
-        'GetAll': 'Retrieve all items',
-        'Find': 'Find specific item',
+        "GetAll": "Retrieve all items",
+        "Find": "Find specific item",
     }
 
     @pytest.mark.parametrize("class_name,module_path", ALL_OPERATIONS)
@@ -342,23 +356,23 @@ class TestCommonCRUDMethods:
             instance = ops_class(mock_flex_project)
 
             # Most operations should have GetAll
-            if hasattr(instance, 'GetAll'):
+            if hasattr(instance, "GetAll"):
                 assert callable(instance.GetAll)
             # It's okay if some don't have it
 
         except Exception as e:
             pytest.fail(f"Failed to check GetAll for {class_name}: {e}")
 
-    @pytest.mark.parametrize("class_name,module_path",
-                             [(cn, mp) for cn, mp in ALL_OPERATIONS if cn in CREATE_OPERATIONS])
+    @pytest.mark.parametrize(
+        "class_name,module_path", [(cn, mp) for cn, mp in ALL_OPERATIONS if cn in CREATE_OPERATIONS]
+    )
     def test_has_create_method(self, class_name, module_path, mock_flex_project):
         """Test that operations classes expected to have Create do have it."""
         try:
             ops_class = get_operations_class(class_name, module_path)
             instance = ops_class(mock_flex_project)
 
-            assert hasattr(instance, 'Create'), \
-                f"{class_name} should have Create method"
+            assert hasattr(instance, "Create"), f"{class_name} should have Create method"
             assert callable(instance.Create)
 
         except Exception as e:
@@ -368,6 +382,7 @@ class TestCommonCRUDMethods:
 # =============================================================================
 # DOMAIN-SPECIFIC BASELINE TESTS
 # =============================================================================
+
 
 class TestGrammarOperations:
     """Baseline tests specific to Grammar operations."""
@@ -379,7 +394,7 @@ class TestGrammarOperations:
         instance = ops_class(mock_flex_project)
 
         # Grammar operations should have GetAll
-        assert hasattr(instance, 'GetAll')
+        assert hasattr(instance, "GetAll")
 
 
 class TestLexiconOperations:
@@ -392,7 +407,7 @@ class TestLexiconOperations:
         instance = ops_class(mock_flex_project)
 
         # Lexicon operations should have GetAll or Find
-        assert hasattr(instance, 'GetAll') or hasattr(instance, 'Find')
+        assert hasattr(instance, "GetAll") or hasattr(instance, "Find")
 
 
 class TestTextsWordsOperations:
@@ -405,7 +420,7 @@ class TestTextsWordsOperations:
         instance = ops_class(mock_flex_project)
 
         # TextsWords operations should have GetAll
-        assert hasattr(instance, 'GetAll')
+        assert hasattr(instance, "GetAll")
 
 
 class TestScriptureOperations:
@@ -424,6 +439,7 @@ class TestScriptureOperations:
 # =============================================================================
 # SUMMARY TEST
 # =============================================================================
+
 
 class TestOperationsSummary:
     """Generate summary statistics about operations coverage."""
@@ -458,6 +474,6 @@ class TestOperationsSummary:
 # PYTEST CONFIGURATION
 # =============================================================================
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Run with pytest
-    pytest.main([__file__, '-v', '--tb=short'])
+    pytest.main([__file__, "-v", "--tb=short"])

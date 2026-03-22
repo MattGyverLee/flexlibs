@@ -48,6 +48,7 @@ from ..FLExProject import (
 from .. import FLExLCM  # Fixed: was "from ." (wrong path)
 from ..BaseOperations import BaseOperations, OperationsMethod
 
+
 class CustomFieldOperations(BaseOperations):
     """
     This class provides operations for managing custom fields in a
@@ -248,13 +249,17 @@ class CustomFieldOperations(BaseOperations):
             raise FP_ParameterError(f"Custom field '{name}' already exists for {owner_class}")
 
         # Validate field type
-        valid_types = ["String", "Integer", "GenDate", "MultiString",
-                      "MultiUnicode", "ReferenceAtom", "ReferenceCollection"]
+        valid_types = [
+            "String",
+            "Integer",
+            "GenDate",
+            "MultiString",
+            "MultiUnicode",
+            "ReferenceAtom",
+            "ReferenceCollection",
+        ]
         if field_type not in valid_types:
-            raise FP_ParameterError(
-                f"Invalid field type '{field_type}'. "
-                f"Valid types: {', '.join(valid_types)}"
-            )
+            raise FP_ParameterError(f"Invalid field type '{field_type}'. " f"Valid types: {', '.join(valid_types)}")
 
         # Note: The actual creation of custom fields through the LCM API
         # is a complex operation that typically requires using the
@@ -318,8 +323,7 @@ class CustomFieldOperations(BaseOperations):
         # Note: Actual deletion of custom fields through LCM API is complex
         # and should be done through FLEx UI for safety
         raise NotImplementedError(
-            "Custom field deletion must be done through FLEx UI: "
-            "Tools > Configure > Custom Fields"
+            "Custom field deletion must be done through FLEx UI: " "Tools > Configure > Custom Fields"
         )
 
     @OperationsMethod
@@ -505,8 +509,7 @@ class CustomFieldOperations(BaseOperations):
 
         # Note: Renaming custom fields through LCM API is not commonly supported
         raise NotImplementedError(
-            "Custom field renaming must be done through FLEx UI: "
-            "Tools > Configure > Custom Fields"
+            "Custom field renaming must be done through FLEx UI: " "Tools > Configure > Custom Fields"
         )
 
     # --- Field Values (Generic) ---
@@ -575,9 +578,7 @@ class CustomFieldOperations(BaseOperations):
         # Find the field
         field_id = self.FindField(class_name, field_name)
         if field_id is None:
-            raise FP_ParameterError(
-                f"Custom field '{field_name}' not found for {class_name}"
-            )
+            raise FP_ParameterError(f"Custom field '{field_name}' not found for {class_name}")
 
         # Get the value using existing FLExProject method
         ws_handle = None
@@ -642,9 +643,7 @@ class CustomFieldOperations(BaseOperations):
         # Find the field
         field_id = self.FindField(class_name, field_name)
         if field_id is None:
-            raise FP_ParameterError(
-                f"Custom field '{field_name}' not found for {class_name}"
-            )
+            raise FP_ParameterError(f"Custom field '{field_name}' not found for {class_name}")
 
         # Determine field type and use appropriate setter
         field_type = self.GetFieldType(field_id)
@@ -717,9 +716,7 @@ class CustomFieldOperations(BaseOperations):
         # Find the field
         field_id = self.FindField(class_name, field_name)
         if field_id is None:
-            raise FP_ParameterError(
-                f"Custom field '{field_name}' not found for {class_name}"
-            )
+            raise FP_ParameterError(f"Custom field '{field_name}' not found for {class_name}")
 
         # Get field type to determine how to clear
         mdc = IFwMetaDataCacheManaged(self.project.project.MetaDataCacheAccessor)
@@ -785,16 +782,12 @@ class CustomFieldOperations(BaseOperations):
         # Find the field
         field_id = self.FindField(class_name, field_name)
         if field_id is None:
-            raise FP_ParameterError(
-                f"Custom field '{field_name}' not found for {class_name}"
-            )
+            raise FP_ParameterError(f"Custom field '{field_name}' not found for {class_name}")
 
         # Verify it's a ReferenceCollection field
         field_type = self.GetFieldType(field_id)
         if field_type != CellarPropertyType.ReferenceCollection:
-            raise FP_ParameterError(
-                f"Field '{field_name}' is not a ReferenceCollection type"
-            )
+            raise FP_ParameterError(f"Field '{field_name}' is not a ReferenceCollection type")
 
         # Get the values
         result = self.project.GetCustomFieldValue(obj, field_id, None)
@@ -849,16 +842,12 @@ class CustomFieldOperations(BaseOperations):
         # Find the field
         field_id = self.FindField(class_name, field_name)
         if field_id is None:
-            raise FP_ParameterError(
-                f"Custom field '{field_name}' not found for {class_name}"
-            )
+            raise FP_ParameterError(f"Custom field '{field_name}' not found for {class_name}")
 
         # Verify it's a ReferenceCollection field
         field_type = self.GetFieldType(field_id)
         if field_type != CellarPropertyType.ReferenceCollection:
-            raise FP_ParameterError(
-                f"Field '{field_name}' is not a ReferenceCollection type"
-            )
+            raise FP_ParameterError(f"Field '{field_name}' is not a ReferenceCollection type")
 
         # Get current values and add new one
         current_values = self.GetListValues(obj, field_name)
@@ -913,16 +902,12 @@ class CustomFieldOperations(BaseOperations):
         # Find the field
         field_id = self.FindField(class_name, field_name)
         if field_id is None:
-            raise FP_ParameterError(
-                f"Custom field '{field_name}' not found for {class_name}"
-            )
+            raise FP_ParameterError(f"Custom field '{field_name}' not found for {class_name}")
 
         # Verify it's a ReferenceCollection field
         field_type = self.GetFieldType(field_id)
         if field_type != CellarPropertyType.ReferenceCollection:
-            raise FP_ParameterError(
-                f"Field '{field_name}' is not a ReferenceCollection type"
-            )
+            raise FP_ParameterError(f"Field '{field_name}' is not a ReferenceCollection type")
 
         # Get current values and remove the specified one
         current_values = self.GetListValues(obj, field_name)
@@ -1074,8 +1059,7 @@ class CustomFieldOperations(BaseOperations):
         self._ValidateParam(field_id, "field_id")
 
         field_type = self.GetFieldType(field_id)
-        return field_type in (CellarPropertyType.ReferenceAtom,
-                             CellarPropertyType.ReferenceCollection)
+        return field_type in (CellarPropertyType.ReferenceAtom, CellarPropertyType.ReferenceCollection)
 
     @OperationsMethod
     def IsStringType(self, field_id):
@@ -1212,16 +1196,12 @@ class CustomFieldOperations(BaseOperations):
         # Find the field
         field_id = self.FindField(class_name, field_name)
         if field_id is None:
-            raise FP_ParameterError(
-                f"Custom field '{field_name}' not found for {class_name}"
-            )
+            raise FP_ParameterError(f"Custom field '{field_name}' not found for {class_name}")
 
         # Verify it's a ReferenceAtom field
         field_type = self.GetFieldType(field_id)
         if field_type != CellarPropertyType.ReferenceAtom:
-            raise FP_ParameterError(
-                f"Field '{field_name}' is not a ReferenceAtom type"
-            )
+            raise FP_ParameterError(f"Field '{field_name}' is not a ReferenceAtom type")
 
         # Set the value
         self.project.LexiconSetListFieldSingle(obj, field_id, value)
@@ -1277,16 +1257,12 @@ class CustomFieldOperations(BaseOperations):
         # Find the field
         field_id = self.FindField(class_name, field_name)
         if field_id is None:
-            raise FP_ParameterError(
-                f"Custom field '{field_name}' not found for {class_name}"
-            )
+            raise FP_ParameterError(f"Custom field '{field_name}' not found for {class_name}")
 
         # Verify it's a ReferenceCollection field
         field_type = self.GetFieldType(field_id)
         if field_type != CellarPropertyType.ReferenceCollection:
-            raise FP_ParameterError(
-                f"Field '{field_name}' is not a ReferenceCollection type"
-            )
+            raise FP_ParameterError(f"Field '{field_name}' is not a ReferenceCollection type")
 
         # Set the values
         if not values:
@@ -1381,9 +1357,7 @@ class CustomFieldOperations(BaseOperations):
         See Also:
             CreateField, DeleteField
         """
-        raise NotImplementedError(
-            "Custom fields cannot be duplicated. Use CreateField() to create a new field."
-        )
+        raise NotImplementedError("Custom fields cannot be duplicated. Use CreateField() to create a new field.")
 
     # ========== SYNC INTEGRATION METHODS ==========
 
@@ -1415,6 +1389,5 @@ class CustomFieldOperations(BaseOperations):
             NotImplementedError: Custom fields are not syncable
         """
         raise NotImplementedError(
-            "Custom fields cannot be compared for sync. "
-            "Custom fields are schema definitions unique to each project."
+            "Custom fields cannot be compared for sync. " "Custom fields are schema definitions unique to each project."
         )

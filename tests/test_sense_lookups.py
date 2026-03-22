@@ -36,12 +36,14 @@ from core.exceptions import ObjectNotFoundError, InvalidParameterError
 
 class FP_ParameterError(InvalidParameterError):
     """FLEx parameter error - invalid parameter passed to operation."""
+
     pass
 
 
 # =============================================================================
 # FIXTURES FOR TEST DATA
 # =============================================================================
+
 
 @pytest.fixture
 def mock_project():
@@ -107,6 +109,7 @@ def mock_entry():
 # =============================================================================
 # TESTS FOR USAGE TYPE STRING LOOKUP
 # =============================================================================
+
 
 class TestUsageTypeStringLookup:
     """Test that usage types can be added by string name."""
@@ -178,6 +181,7 @@ class TestUsageTypeStringLookup:
 # TESTS FOR DOMAIN TYPE STRING LOOKUP
 # =============================================================================
 
+
 class TestDomainTypeStringLookup:
     """Test that semantic domains can be looked up by string name."""
 
@@ -224,6 +228,7 @@ class TestDomainTypeStringLookup:
 # TESTS FOR ANTHROPOLOGICAL CODE STRING LOOKUP
 # =============================================================================
 
+
 class TestAnthroCodeStringLookup:
     """Test that anthropological codes can be looked up by string name."""
 
@@ -260,6 +265,7 @@ class TestAnthroCodeStringLookup:
 # TESTS FOR BACKWARD COMPATIBILITY WITH OBJECT PARAMETERS
 # =============================================================================
 
+
 class TestBackwardCompatibilityWithObjects:
     """Test that operations still work with object parameters (backward compat)."""
 
@@ -270,7 +276,7 @@ class TestBackwardCompatibilityWithObjects:
 
         # Should work with object parameter
         assert usage_type_obj.Name == "Do Not Use"
-        assert hasattr(usage_type_obj, 'Hvo')
+        assert hasattr(usage_type_obj, "Hvo")
 
     def test_add_domain_with_object(self, mock_project, mock_sense):
         """Test that adding domain with object still works."""
@@ -279,7 +285,7 @@ class TestBackwardCompatibilityWithObjects:
 
         # Should work with object parameter
         assert domain_obj.Name == "1 Universe, creation"
-        assert hasattr(domain_obj, 'Hvo')
+        assert hasattr(domain_obj, "Hvo")
 
     def test_add_anthro_code_with_object(self, mock_project, mock_sense):
         """Test that adding anthropological code with object still works."""
@@ -288,7 +294,7 @@ class TestBackwardCompatibilityWithObjects:
 
         # Should work with object parameter
         assert code_obj.Name == "Kinship"
-        assert hasattr(code_obj, 'Hvo')
+        assert hasattr(code_obj, "Hvo")
 
     def test_mixed_string_and_object_parameters(self, mock_project, mock_sense):
         """Test that string and object parameters can be mixed in same code."""
@@ -308,6 +314,7 @@ class TestBackwardCompatibilityWithObjects:
 # =============================================================================
 # TESTS FOR STRING LOOKUP IMPLEMENTATION DETAILS
 # =============================================================================
+
 
 class TestStringLookupImplementation:
     """Test implementation details of string lookup support."""
@@ -369,6 +376,7 @@ class TestStringLookupImplementation:
 # TESTS FOR ERROR MESSAGES IN STRING LOOKUPS
 # =============================================================================
 
+
 class TestStringLookupErrorMessages:
     """Test that string lookup errors provide helpful messages."""
 
@@ -397,9 +405,7 @@ class TestStringLookupErrorMessages:
         try:
             if not matching:
                 valid_list = ", ".join(valid_names)
-                raise FP_ParameterError(
-                    f"Usage type '{invalid_name}' not found. Valid: {valid_list}"
-                )
+                raise FP_ParameterError(f"Usage type '{invalid_name}' not found. Valid: {valid_list}")
         except FP_ParameterError as e:
             error_msg = str(e)
             # Should mention valid options
@@ -409,6 +415,7 @@ class TestStringLookupErrorMessages:
 # =============================================================================
 # TESTS FOR SPECIAL CHARACTERS IN STRING LOOKUPS
 # =============================================================================
+
 
 class TestSpecialCharactersInLookups:
     """Test string lookup with special characters."""
@@ -457,6 +464,7 @@ class TestSpecialCharactersInLookups:
 # =============================================================================
 # INTEGRATION TESTS
 # =============================================================================
+
 
 class TestSenseLookupIntegration:
     """Integration tests for sense lookup string support."""

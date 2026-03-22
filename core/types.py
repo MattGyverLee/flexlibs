@@ -52,7 +52,7 @@ IMoMorphSynAnalysis = Any  # Morphosyntactic analysis (MSA)
 
 
 # Generic type variable for objects or HVOs
-ObjectOrHVO = TypeVar('ObjectOrHVO', bound=Union[Any, int])
+ObjectOrHVO = TypeVar("ObjectOrHVO", bound=Union[Any, int])
 
 
 # Writing system handle type - can be string (language tag) or int (ID)
@@ -115,61 +115,56 @@ OptionalAllomorph = Optional[IMoForm]
 
 __all__ = [
     # Phase 1 Type aliases
-    'IText',
-    'IStText',
-    'IStTxtPara',
-    'ISegment',
-    'IAnalysis',
-    'IWfiWordform',
-    'IWfiAnalysis',
-    'IWfiGloss',
-    'IWfiMorphBundle',
-    'ICmMedia',
-    'ICmFile',
-    'INote',
-    'ICmBaseAnnotation',
-    'ICmTranslation',
-
+    "IText",
+    "IStText",
+    "IStTxtPara",
+    "ISegment",
+    "IAnalysis",
+    "IWfiWordform",
+    "IWfiAnalysis",
+    "IWfiGloss",
+    "IWfiMorphBundle",
+    "ICmMedia",
+    "ICmFile",
+    "INote",
+    "ICmBaseAnnotation",
+    "ICmTranslation",
     # Phase 2 Type aliases
-    'IPartOfSpeech',
-    'ICmPossibility',
-    'ICmPossibilityList',
-    'IPhPhoneme',
-    'IPhCode',
-    'IPhNaturalClass',
-    'IPhEnvironment',
-    'IMoForm',
-    'IMoMorphType',
-    'IMoMorphRule',
-    'IMoStratum',
-    'IMoInflClass',
-    'IMoInflAffixSlot',
-    'IFsFeatStruc',
-    'IFsFeatureDefn',
-    'IFsSymFeatVal',
-    'ILexEntry',
-    'ILexSense',
-    'IMoMorphSynAnalysis',
-
+    "IPartOfSpeech",
+    "ICmPossibility",
+    "ICmPossibilityList",
+    "IPhPhoneme",
+    "IPhCode",
+    "IPhNaturalClass",
+    "IPhEnvironment",
+    "IMoForm",
+    "IMoMorphType",
+    "IMoMorphRule",
+    "IMoStratum",
+    "IMoInflClass",
+    "IMoInflAffixSlot",
+    "IFsFeatStruc",
+    "IFsFeatureDefn",
+    "IFsSymFeatVal",
+    "ILexEntry",
+    "ILexSense",
+    "IMoMorphSynAnalysis",
     # Generic types
-    'ObjectOrHVO',
-    'WritingSystemHandle',
-    'HVO',
-
+    "ObjectOrHVO",
+    "WritingSystemHandle",
+    "HVO",
     # Protocols
-    'FlexObject',
-    'FlexProject',
-
+    "FlexObject",
+    "FlexProject",
     # Phase 1 Optional types
-    'OptionalText',
-    'OptionalParagraph',
-    'OptionalSegment',
-    'OptionalWordform',
-    'OptionalAnalysis',
-
+    "OptionalText",
+    "OptionalParagraph",
+    "OptionalSegment",
+    "OptionalWordform",
+    "OptionalAnalysis",
     # Phase 2 Optional types
-    'OptionalPOS',
-    'OptionalPhoneme',
-    'OptionalNaturalClass',
-    'OptionalAllomorph',
+    "OptionalPOS",
+    "OptionalPhoneme",
+    "OptionalNaturalClass",
+    "OptionalAllomorph",
 ]

@@ -55,16 +55,15 @@ class SelectiveImport:
         self.target_project = target_project
 
         # Validate write access
-        if hasattr(target_project, 'writeEnabled') and not target_project.writeEnabled:
-            raise RuntimeError(
-                "Target project not opened with writeEnabled=True. "
-                "Cannot perform import operations."
-            )
+        if hasattr(target_project, "writeEnabled") and not target_project.writeEnabled:
+            raise RuntimeError("Target project not opened with writeEnabled=True. " "Cannot perform import operations.")
 
         self.validator = LinguisticValidator(target_project)
         self.merger = MergeOperations(target_project)
 
-        logger.info(f"SelectiveImport initialized: {self._get_project_name(source_project)} → {self._get_project_name(target_project)}")
+        logger.info(
+            f"SelectiveImport initialized: {self._get_project_name(source_project)} → {self._get_project_name(target_project)}"
+        )
 
     def import_new_objects(
         self,
@@ -74,7 +73,7 @@ class SelectiveImport:
         validate_references: bool = True,
         include_owned: bool = False,
         progress_callback: Optional[Callable[[str], None]] = None,
-        dry_run: bool = False
+        dry_run: bool = False,
     ) -> SyncResult:
         """
         Import objects created/modified after specified date.
@@ -130,12 +129,12 @@ class SelectiveImport:
                     continue  # Skip existing - NEVER overwrite
 
                 # Check creation date
-                if created_after and hasattr(obj, 'DateCreated'):
+                if created_after and hasattr(obj, "DateCreated"):
                     if obj.DateCreated < created_after:
                         continue
 
                 # Check modification date
-                if modified_after and hasattr(obj, 'DateModified'):
+                if modified_after and hasattr(obj, "DateModified"):
                     if obj.DateModified < modified_after:
                         continue
 
@@ -151,11 +150,7 @@ class SelectiveImport:
 
                 validation_issues = []
                 for obj in candidates:
-                    validation = self.validator.validate_before_create(
-                        obj,
-                        self.source_project,
-                        object_type
-                    )
+                    validation = self.validator.validate_before_create(obj, self.source_project, object_type)
                     if validation.has_critical:
                         validation_issues.append((obj, validation))
 
@@ -166,11 +161,13 @@ class SelectiveImport:
                         logger.warning(f"Validation failed for {guid}:")
                         logger.warning(validation.detailed_report())
 
-                        result.add_error(SyncError(
-                            operation='validate',
-                            object_guid=guid,
-                            error_message=f"Validation failed: {validation.num_critical} critical issues"
-                        ))
+                        result.add_error(
+                            SyncError(
+                                operation="validate",
+                                object_guid=guid,
+                                error_message=f"Validation failed: {validation.num_critical} critical issues",
+                            )
+                        )
 
                     if not dry_run:
                         # Create consolidated validation result for error
@@ -189,38 +186,28 @@ class SelectiveImport:
                     if not dry_run:
                         # Create object in target
                         created_obj = self.merger.create_object(
-                            target_ops=target_ops,
-                            source_obj=obj,
-                            source_ops=source_ops
+                            target_ops=target_ops, source_obj=obj, source_ops=source_ops
                         )
 
                         if created_obj:
-                            result.add_change(SyncChange(
-                                operation='create',
-                                object_type=object_type,
-                                object_guid=guid
-                            ))
+                            result.add_change(SyncChange(operation="create", object_type=object_type, object_guid=guid))
                             imported += 1
 
                             if progress_callback and imported % 10 == 0:
                                 progress_callback(f"Imported {imported}/{len(candidates)}")
                         else:
-                            result.add_error(SyncError(
-                                operation='create',
-                                object_guid=guid,
-                                error_message="create_object returned None"
-                            ))
+                            result.add_error(
+                                SyncError(
+                                    operation="create", object_guid=guid, error_message="create_object returned None"
+                                )
+                            )
                     else:
                         # Dry run - just count
                         result.skip()
 
                 except Exception as e:
                     logger.error(f"Failed to import {guid}: {e}")
-                    result.add_error(SyncError(
-                        operation='create',
-                        object_guid=guid,
-                        error_message=str(e)
-                    ))
+                    result.add_error(SyncError(operation="create", object_guid=guid, error_message=str(e)))
 
             if progress_callback:
                 if dry_run:
@@ -233,11 +220,7 @@ class SelectiveImport:
             raise
         except Exception as e:
             logger.error(f"Import failed: {e}")
-            result.add_error(SyncError(
-                operation='import',
-                object_guid=None,
-                error_message=str(e)
-            ))
+            result.add_error(SyncError(operation="import", object_guid=None, error_message=str(e)))
 
         return result
 
@@ -247,7 +230,7 @@ class SelectiveImport:
         filter_fn: Callable[[Any], bool],
         validate_references: bool = True,
         progress_callback: Optional[Callable[[str], None]] = None,
-        dry_run: bool = False
+        dry_run: bool = False,
     ) -> SyncResult:
         """
         Import objects matching custom filter function.
@@ -308,59 +291,41 @@ class SelectiveImport:
 
                 try:
                     if validate_references:
-                        validation = self.validator.validate_before_create(
-                            obj,
-                            self.source_project,
-                            object_type
-                        )
+                        validation = self.validator.validate_before_create(obj, self.source_project, object_type)
                         if validation.has_critical:
-                            result.add_error(SyncError(
-                                operation='validate',
-                                object_guid=guid,
-                                error_message=f"{validation.num_critical} validation errors"
-                            ))
+                            result.add_error(
+                                SyncError(
+                                    operation="validate",
+                                    object_guid=guid,
+                                    error_message=f"{validation.num_critical} validation errors",
+                                )
+                            )
                             continue
 
                     if not dry_run:
                         created_obj = self.merger.create_object(
-                            target_ops=target_ops,
-                            source_obj=obj,
-                            source_ops=source_ops
+                            target_ops=target_ops, source_obj=obj, source_ops=source_ops
                         )
 
                         if created_obj:
-                            result.add_change(SyncChange(
-                                operation='create',
-                                object_type=object_type,
-                                object_guid=guid
-                            ))
+                            result.add_change(SyncChange(operation="create", object_type=object_type, object_guid=guid))
                         else:
-                            result.add_error(SyncError(
-                                operation='create',
-                                object_guid=guid,
-                                error_message="Creation failed"
-                            ))
+                            result.add_error(
+                                SyncError(operation="create", object_guid=guid, error_message="Creation failed")
+                            )
                     else:
                         result.skip()
 
                 except Exception as e:
                     logger.error(f"Failed to import {guid}: {e}")
-                    result.add_error(SyncError(
-                        operation='create',
-                        object_guid=guid,
-                        error_message=str(e)
-                    ))
+                    result.add_error(SyncError(operation="create", object_guid=guid, error_message=str(e)))
 
         except ValidationError:
             # Re-raise validation errors - they should propagate
             raise
         except Exception as e:
             logger.error(f"Import failed: {e}")
-            result.add_error(SyncError(
-                operation='import',
-                object_guid=None,
-                error_message=str(e)
-            ))
+            result.add_error(SyncError(operation="import", object_guid=None, error_message=str(e)))
 
         return result
 
@@ -368,8 +333,7 @@ class SelectiveImport:
         """Get operations class for object type."""
         if not hasattr(project, object_type):
             raise AttributeError(
-                f"Project does not have operations class for '{object_type}'. "
-                f"Available: {dir(project)}"
+                f"Project does not have operations class for '{object_type}'. " f"Available: {dir(project)}"
             )
         return getattr(project, object_type)
 
@@ -383,6 +347,6 @@ class SelectiveImport:
 
     def _get_project_name(self, project: Any) -> str:
         """Get project name for logging."""
-        if hasattr(project, 'ProjectName'):
+        if hasattr(project, "ProjectName"):
             return project.ProjectName()
         return "unknown"

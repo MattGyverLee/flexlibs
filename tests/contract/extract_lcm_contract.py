@@ -86,7 +86,7 @@ class LCMContractVisitor(ast.NodeVisitor):
         """Capture ``from SIL.LCModel... import X, Y, Z``."""
         module = node.module or ""
         if _is_sil_module(module):
-            for alias in (node.names or []):
+            for alias in node.names or []:
                 name = alias.name
                 local = alias.asname or name
                 self.imports[module].append(name)
@@ -95,7 +95,7 @@ class LCMContractVisitor(ast.NodeVisitor):
 
     def visit_Import(self, node):
         """Capture ``import SIL.LCModel...``."""
-        for alias in (node.names or []):
+        for alias in node.names or []:
             if _is_sil_module(alias.name):
                 local = alias.asname or alias.name
                 self.imports[alias.name]  # ensure key exists
@@ -206,9 +206,7 @@ def extract_contract(source_root=None):
                 source_root = c
                 break
         if source_root is None:
-            raise FileNotFoundError(
-                "Cannot find flexlibs2/code/. Pass source_root explicitly."
-            )
+            raise FileNotFoundError("Cannot find flexlibs2/code/. Pass source_root explicitly.")
 
     source_root = Path(source_root)
 
@@ -282,9 +280,7 @@ def main():
     """CLI entry point: extract and save the contract."""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Extract LCM API contract from flexlibs2 source."
-    )
+    parser = argparse.ArgumentParser(description="Extract LCM API contract from flexlibs2 source.")
     parser.add_argument(
         "--source-root",
         default=None,

@@ -30,6 +30,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+
 class ScrNoteOperations(BaseOperations):
     """
     This class provides operations for managing Scripture notes in a
@@ -146,9 +147,8 @@ class ScrNoteOperations(BaseOperations):
         # Ensure book has annotations container
         if book.FootnotesOS.Count == 0:
             from SIL.LCModel import IScrBookAnnotationsFactory
-            annotations_factory = self.project.project.ServiceLocator.GetService(
-                IScrBookAnnotationsFactory
-            )
+
+            annotations_factory = self.project.project.ServiceLocator.GetService(IScrBookAnnotationsFactory)
             annotations = annotations_factory.Create()
             book.FootnotesOS.Add(annotations)
         else:
@@ -174,6 +174,7 @@ class ScrNoteOperations(BaseOperations):
             else:
                 # Create paragraph
                 from SIL.LCModel import IStTxtParaFactory
+
                 para_factory = self.project.project.ServiceLocator.GetService(IStTxtParaFactory)
                 para_obj = para_factory.Create()
                 new_note.DiscussionOA.ParagraphsOS.Add(para_obj)
@@ -181,6 +182,7 @@ class ScrNoteOperations(BaseOperations):
         else:
             # Create discussion StText
             from SIL.LCModel import IStTextFactory, IStTxtParaFactory
+
             text_factory = self.project.project.ServiceLocator.GetService(IStTextFactory)
             new_note.DiscussionOA = text_factory.Create()
             para_factory = self.project.project.ServiceLocator.GetService(IStTxtParaFactory)
@@ -427,12 +429,14 @@ class ScrNoteOperations(BaseOperations):
         # Ensure DiscussionOA exists
         if not note.DiscussionOA:
             from SIL.LCModel import IStTextFactory
+
             text_factory = self.project.project.ServiceLocator.GetService(IStTextFactory)
             note.DiscussionOA = text_factory.Create()
 
         # Ensure discussion has at least one paragraph
         if note.DiscussionOA.ParagraphsOS.Count == 0:
             from SIL.LCModel import IStTxtParaFactory
+
             para_factory = self.project.project.ServiceLocator.GetService(IStTxtParaFactory)
             para = para_factory.Create()
             note.DiscussionOA.ParagraphsOS.Add(para)
@@ -516,7 +520,7 @@ class ScrNoteOperations(BaseOperations):
         # Note: The exact property for resolution may vary
         # For now, we set a simple flag approach
         # A full implementation would use note.ResolutionStatus
-        if hasattr(note, 'ResolutionStatus'):
+        if hasattr(note, "ResolutionStatus"):
             note.ResolutionStatus = 1  # Resolved
 
     @OperationsMethod
@@ -552,7 +556,7 @@ class ScrNoteOperations(BaseOperations):
         note = self.__ResolveObject(note_or_hvo)
 
         # Check resolution status
-        if hasattr(note, 'ResolutionStatus'):
+        if hasattr(note, "ResolutionStatus"):
             return note.ResolutionStatus == 1
 
         return False
@@ -631,7 +635,4 @@ class ScrNoteOperations(BaseOperations):
         """
         if wsHandle is None:
             return self.project.project.DefaultAnalWs
-        return self.project._FLExProject__WSHandle(
-            wsHandle,
-            self.project.project.DefaultAnalWs
-        )
+        return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultAnalWs)

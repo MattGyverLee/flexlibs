@@ -44,12 +44,14 @@ from tests.operations import (
 # UNIT TESTS - Using Mocks
 # =============================================================================
 
+
 class TestLexEntryOperationsImport:
     """Test that LexEntryOperations can be imported and instantiated."""
 
     def test_import_lexentry_operations(self):
         """Test importing LexEntryOperations class."""
         from flexlibs2.code.Lexicon.LexEntryOperations import LexEntryOperations
+
         assert LexEntryOperations is not None
 
     def test_instantiate_with_mock_project(self, mock_flex_project):
@@ -87,7 +89,7 @@ class TestLexEntryOperationsCRUDMethods:
         from flexlibs2.code.Lexicon.LexEntryOperations import LexEntryOperations
 
         ops = LexEntryOperations(mock_flex_project)
-        assert hasattr(ops, 'GetAll')
+        assert hasattr(ops, "GetAll")
         assert callable(ops.GetAll)
 
     def test_has_create_method(self, mock_flex_project):
@@ -95,7 +97,7 @@ class TestLexEntryOperationsCRUDMethods:
         from flexlibs2.code.Lexicon.LexEntryOperations import LexEntryOperations
 
         ops = LexEntryOperations(mock_flex_project)
-        assert hasattr(ops, 'Create')
+        assert hasattr(ops, "Create")
         assert callable(ops.Create)
 
     def test_has_delete_method(self, mock_flex_project):
@@ -103,7 +105,7 @@ class TestLexEntryOperationsCRUDMethods:
         from flexlibs2.code.Lexicon.LexEntryOperations import LexEntryOperations
 
         ops = LexEntryOperations(mock_flex_project)
-        assert hasattr(ops, 'Delete')
+        assert hasattr(ops, "Delete")
         assert callable(ops.Delete)
 
     def test_has_find_method(self, mock_flex_project):
@@ -111,7 +113,7 @@ class TestLexEntryOperationsCRUDMethods:
         from flexlibs2.code.Lexicon.LexEntryOperations import LexEntryOperations
 
         ops = LexEntryOperations(mock_flex_project)
-        assert hasattr(ops, 'Find')
+        assert hasattr(ops, "Find")
         assert callable(ops.Find)
 
 
@@ -123,7 +125,7 @@ class TestLexEntryOperationsPropertyGetters:
         from flexlibs2.code.Lexicon.LexEntryOperations import LexEntryOperations
 
         ops = LexEntryOperations(mock_flex_project)
-        assert hasattr(ops, 'GetHeadword')
+        assert hasattr(ops, "GetHeadword")
         assert callable(ops.GetHeadword)
 
     def test_has_getcitationform_method(self, mock_flex_project):
@@ -131,7 +133,7 @@ class TestLexEntryOperationsPropertyGetters:
         from flexlibs2.code.Lexicon.LexEntryOperations import LexEntryOperations
 
         ops = LexEntryOperations(mock_flex_project)
-        assert hasattr(ops, 'GetCitationForm')
+        assert hasattr(ops, "GetCitationForm")
         assert callable(ops.GetCitationForm)
 
     def test_has_getlexemeform_method(self, mock_flex_project):
@@ -139,7 +141,7 @@ class TestLexEntryOperationsPropertyGetters:
         from flexlibs2.code.Lexicon.LexEntryOperations import LexEntryOperations
 
         ops = LexEntryOperations(mock_flex_project)
-        assert hasattr(ops, 'GetLexemeForm')
+        assert hasattr(ops, "GetLexemeForm")
         assert callable(ops.GetLexemeForm)
 
     def test_has_getsensecount_method(self, mock_flex_project):
@@ -147,7 +149,7 @@ class TestLexEntryOperationsPropertyGetters:
         from flexlibs2.code.Lexicon.LexEntryOperations import LexEntryOperations
 
         ops = LexEntryOperations(mock_flex_project)
-        assert hasattr(ops, 'GetSenseCount')
+        assert hasattr(ops, "GetSenseCount")
         assert callable(ops.GetSenseCount)
 
 
@@ -159,7 +161,7 @@ class TestLexEntryOperationsPropertySetters:
         from flexlibs2.code.Lexicon.LexEntryOperations import LexEntryOperations
 
         ops = LexEntryOperations(mock_flex_project)
-        assert hasattr(ops, 'SetCitationForm')
+        assert hasattr(ops, "SetCitationForm")
         assert callable(ops.SetCitationForm)
 
     def test_has_setlexemeform_method(self, mock_flex_project):
@@ -167,7 +169,7 @@ class TestLexEntryOperationsPropertySetters:
         from flexlibs2.code.Lexicon.LexEntryOperations import LexEntryOperations
 
         ops = LexEntryOperations(mock_flex_project)
-        assert hasattr(ops, 'SetLexemeForm')
+        assert hasattr(ops, "SetLexemeForm")
         assert callable(ops.SetLexemeForm)
 
 
@@ -179,7 +181,7 @@ class TestLexEntryOperationsSenseMethods:
         from flexlibs2.code.Lexicon.LexEntryOperations import LexEntryOperations
 
         ops = LexEntryOperations(mock_flex_project)
-        assert hasattr(ops, 'AddSense')
+        assert hasattr(ops, "AddSense")
         assert callable(ops.AddSense)
 
     def test_has_getsenses_method(self, mock_flex_project):
@@ -189,7 +191,7 @@ class TestLexEntryOperationsSenseMethods:
         ops = LexEntryOperations(mock_flex_project)
         # Check for either GetSenses or direct access to SensesOS
         # The operations class may provide different ways to access senses
-        assert hasattr(ops, 'GetSenses') or hasattr(ops, 'GetSenseCount')
+        assert hasattr(ops, "GetSenses") or hasattr(ops, "GetSenseCount")
 
 
 class TestLexEntryOperationsMockBehavior:
@@ -202,11 +204,7 @@ class TestLexEntryOperationsMockBehavior:
         # Setup mock to return test entries
         mock_entries = [MockLCMObject(hvo=i) for i in range(3)]
 
-        with patch.object(
-            mock_flex_project,
-            'ObjectsIn',
-            return_value=iter(mock_entries)
-        ):
+        with patch.object(mock_flex_project, "ObjectsIn", return_value=iter(mock_entries)):
             ops = LexEntryOperations(mock_flex_project)
             result = list(ops.GetAll())
 
@@ -227,7 +225,7 @@ class TestLexEntryOperationsMockBehavior:
         # The method should be able to count senses
         # Even if it can't actually execute without real LCM objects,
         # we verify the method exists and accepts the right parameters
-        assert hasattr(ops, 'GetSenseCount')
+        assert hasattr(ops, "GetSenseCount")
 
 
 class TestLexEntryOperationsExceptionHandling:
@@ -268,6 +266,7 @@ class TestLexEntryOperationsExceptionHandling:
 # =============================================================================
 # INTEGRATION TESTS - Require Real FLEx Project
 # =============================================================================
+
 
 @pytest.mark.integration
 class TestLexEntryOperationsIntegration:
@@ -333,13 +332,12 @@ class TestLexEntryOperationsIntegration:
 # PYTEST CONFIGURATION
 # =============================================================================
 
+
 def pytest_configure(config):
     """Register custom markers."""
-    config.addinivalue_line(
-        "markers", "integration: mark test as integration test (requires real FLEx)"
-    )
+    config.addinivalue_line("markers", "integration: mark test as integration test (requires real FLEx)")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Run unit tests only by default
-    pytest.main([__file__, '-v', '--tb=short', '-m', 'not integration'])
+    pytest.main([__file__, "-v", "--tb=short", "-m", "not integration"])

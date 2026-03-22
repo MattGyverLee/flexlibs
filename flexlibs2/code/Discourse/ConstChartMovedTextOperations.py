@@ -27,6 +27,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+
 class ConstChartMovedTextOperations(BaseOperations):
     """
     This class provides operations for managing moved text markers in constituent
@@ -119,9 +120,7 @@ class ConstChartMovedTextOperations(BaseOperations):
         word_group = self.__ResolveWordGroup(word_group_or_hvo)
 
         # Create the new moved text marker using the factory
-        factory = self.project.project.ServiceLocator.GetService(
-            IConstChartMovedTextMarkerFactory
-        )
+        factory = self.project.project.ServiceLocator.GetService(IConstChartMovedTextMarkerFactory)
         new_marker = factory.Create()
 
         # Set as owned by the word group
@@ -200,7 +199,7 @@ class ConstChartMovedTextOperations(BaseOperations):
 
         word_group = self.__ResolveWordGroup(word_group_or_hvo)
 
-        return word_group.MovedTextMarkerOA if hasattr(word_group, 'MovedTextMarkerOA') else None
+        return word_group.MovedTextMarkerOA if hasattr(word_group, "MovedTextMarkerOA") else None
 
     @wrap_enumerable
     @OperationsMethod
@@ -355,7 +354,7 @@ class ConstChartMovedTextOperations(BaseOperations):
         marker = self.__ResolveObject(marker_or_hvo)
 
         # Get owner (should be IConstChartWordGroup)
-        if hasattr(marker, 'Owner') and marker.Owner:
+        if hasattr(marker, "Owner") and marker.Owner:
             owner = marker.Owner
             if isinstance(owner, IConstChartWordGroup):
                 return owner

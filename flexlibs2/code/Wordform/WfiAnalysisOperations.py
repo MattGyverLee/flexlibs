@@ -30,6 +30,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+
 class WfiAnalysisOperations(BaseOperations):
     """
     This class provides operations for managing wordform analyses.
@@ -291,7 +292,7 @@ class WfiAnalysisOperations(BaseOperations):
 
         analysis = self.__ResolveObject(analysis_or_hvo)
 
-        return analysis.CategoryRA if hasattr(analysis, 'CategoryRA') else None
+        return analysis.CategoryRA if hasattr(analysis, "CategoryRA") else None
 
     @OperationsMethod
     def SetCategory(self, analysis_or_hvo, pos):
@@ -329,7 +330,7 @@ class WfiAnalysisOperations(BaseOperations):
 
         analysis = self.__ResolveObject(analysis_or_hvo)
 
-        if hasattr(analysis, 'CategoryRA'):
+        if hasattr(analysis, "CategoryRA"):
             analysis.CategoryRA = pos
 
     # --- Human Approval ---

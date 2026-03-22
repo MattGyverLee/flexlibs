@@ -140,18 +140,14 @@ class AffixTemplateCollection(SmartCollection):
         filtered = self._items
 
         if name_contains is not None:
-            filtered = [
-                template for template in filtered
-                if name_contains in (template.name or "")
-            ]
+            filtered = [template for template in filtered if name_contains in (template.name or "")]
 
         if stratum is not None:
             filtered = [
-                template for template in filtered
-                if template.stratum and (
-                    stratum in (template.stratum.Name or "") or
-                    str(stratum) == str(template.stratum)
-                )
+                template
+                for template in filtered
+                if template.stratum
+                and (stratum in (template.stratum.Name or "") or str(stratum) == str(template.stratum))
             ]
 
         return AffixTemplateCollection(filtered)
@@ -307,13 +303,13 @@ class AffixTemplateCollection(SmartCollection):
             - Returns empty collection if slot_type is not recognized
         """
         slot_type = (slot_type or "").lower()
-        if slot_type == 'prefix':
+        if slot_type == "prefix":
             return self.with_prefix_slots()
-        elif slot_type == 'suffix':
+        elif slot_type == "suffix":
             return self.with_suffix_slots()
-        elif slot_type == 'proclitic':
+        elif slot_type == "proclitic":
             return self.with_proclitic_slots()
-        elif slot_type == 'enclitic':
+        elif slot_type == "enclitic":
             return self.with_enclitic_slots()
         else:
             # Unrecognized slot type, return empty collection
@@ -362,8 +358,7 @@ class AffixTemplateCollection(SmartCollection):
                 ]))
         """
         return self.where(
-            lambda t: (t.has_prefix_slots and t.has_suffix_slots and
-                       t.has_proclitic_slots and t.has_enclitic_slots)
+            lambda t: (t.has_prefix_slots and t.has_suffix_slots and t.has_proclitic_slots and t.has_enclitic_slots)
         )
 
     def for_pos(self, pos_name_or_object):
@@ -393,9 +388,7 @@ class AffixTemplateCollection(SmartCollection):
         """
         if isinstance(pos_name_or_object, str):
             pos_name = pos_name_or_object
-            return self.where(
-                lambda t: t.owner_pos and pos_name in (t.owner_pos.Name or "")
-            )
+            return self.where(lambda t: t.owner_pos and pos_name in (t.owner_pos.Name or ""))
         else:
             pos_obj = pos_name_or_object
             return self.where(lambda t: t.owner_pos and t.owner_pos == pos_obj)

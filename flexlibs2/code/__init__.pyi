@@ -16,12 +16,12 @@ from .FLExProject import (
 )
 
 __all__ = [
-    'FLExProject',
-    'FP_ProjectError',
-    'FP_FileNotFoundError',
-    'FP_FileLockedError',
-    'FP_MigrationRequired',
-    'FP_ReadOnlyError',
-    'FP_NullParameterError',
-    'FP_ParameterError',
+    "FLExProject",
+    "FP_ProjectError",
+    "FP_FileNotFoundError",
+    "FP_FileLockedError",
+    "FP_MigrationRequired",
+    "FP_ReadOnlyError",
+    "FP_NullParameterError",
+    "FP_ParameterError",
 ]

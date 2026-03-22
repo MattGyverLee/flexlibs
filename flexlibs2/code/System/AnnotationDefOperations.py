@@ -28,6 +28,7 @@ from ..FLExProject import (
 )
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
+
 class AnnotationDefOperations(BaseOperations):
     """
     This class provides operations for managing annotation type definitions
@@ -121,9 +122,7 @@ class AnnotationDefOperations(BaseOperations):
         See Also:
             Find, FindByType, GetUserCreatableTypes
         """
-        repo = self.project.project.ServiceLocator.GetInstance(
-            ICmAnnotationDefnRepository
-        )
+        repo = self.project.project.ServiceLocator.GetInstance(ICmAnnotationDefnRepository)
 
         for anno_def in repo.AllInstances():
             yield anno_def
@@ -195,16 +194,12 @@ class AnnotationDefOperations(BaseOperations):
 
         # Check if annotation definition with this name already exists
         if self.Find(name):
-            raise FP_ParameterError(
-                f"Annotation definition '{name}' already exists"
-            )
+            raise FP_ParameterError(f"Annotation definition '{name}' already exists")
 
         wsHandle = self.__WSHandle(wsHandle)
 
         # Get the factory
-        factory = self.project.project.ServiceLocator.GetService(
-            ICmAnnotationDefnFactory
-        )
+        factory = self.project.project.ServiceLocator.GetService(ICmAnnotationDefnFactory)
 
         # Create the annotation definition
         anno_def = factory.Create()
@@ -214,7 +209,7 @@ class AnnotationDefOperations(BaseOperations):
         if anno_list:
             if parent:
                 # Add as sub-possibility under parent
-                if hasattr(parent, 'SubPossibilitiesOS'):
+                if hasattr(parent, "SubPossibilitiesOS"):
                     parent.SubPossibilitiesOS.Add(anno_def)
             else:
                 # Add as top-level possibility
@@ -225,7 +220,7 @@ class AnnotationDefOperations(BaseOperations):
         anno_def.Name.set_String(wsHandle, mkstr)
 
         # Set the annotation type
-        if hasattr(anno_def, 'AnnotationType'):
+        if hasattr(anno_def, "AnnotationType"):
             anno_def.AnnotationType = int(annotation_type)
 
         return anno_def
@@ -271,15 +266,15 @@ class AnnotationDefOperations(BaseOperations):
 
         # Remove from parent's collection
         owner = anno_def.Owner
-        if hasattr(owner, 'PossibilitiesOS'):
+        if hasattr(owner, "PossibilitiesOS"):
             if anno_def in owner.PossibilitiesOS:
                 owner.PossibilitiesOS.Remove(anno_def)
-        elif hasattr(owner, 'SubPossibilitiesOS'):
+        elif hasattr(owner, "SubPossibilitiesOS"):
             if anno_def in owner.SubPossibilitiesOS:
                 owner.SubPossibilitiesOS.Remove(anno_def)
 
         # Delete the object
-        if hasattr(anno_def, 'Delete'):
+        if hasattr(anno_def, "Delete"):
             anno_def.Delete()
 
     @OperationsMethod
@@ -486,7 +481,7 @@ class AnnotationDefOperations(BaseOperations):
 
         wsHandle = self.__WSHandle(wsHandle)
 
-        if hasattr(anno_def, 'HelpString'):
+        if hasattr(anno_def, "HelpString"):
             help_str = ITsString(anno_def.HelpString.get_String(wsHandle)).Text
             return help_str or ""
         return ""
@@ -533,7 +528,7 @@ class AnnotationDefOperations(BaseOperations):
 
         wsHandle = self.__WSHandle(wsHandle)
 
-        if hasattr(anno_def, 'HelpString'):
+        if hasattr(anno_def, "HelpString"):
             mkstr = TsStringUtils.MakeString(help_string, wsHandle)
             anno_def.HelpString.set_String(wsHandle, mkstr)
 
@@ -576,7 +571,7 @@ class AnnotationDefOperations(BaseOperations):
         """
         self._ValidateParam(anno_def, "anno_def")
 
-        if hasattr(anno_def, 'AnnotationType'):
+        if hasattr(anno_def, "AnnotationType"):
             return anno_def.AnnotationType
         return 0
 
@@ -610,7 +605,7 @@ class AnnotationDefOperations(BaseOperations):
         """
         self._ValidateParam(anno_def, "anno_def")
 
-        if hasattr(anno_def, 'InstanceOf'):
+        if hasattr(anno_def, "InstanceOf"):
             return anno_def.InstanceOf
         return 0
 
@@ -654,7 +649,7 @@ class AnnotationDefOperations(BaseOperations):
         """
         self._ValidateParam(anno_def, "anno_def")
 
-        if hasattr(anno_def, 'UserCanCreate'):
+        if hasattr(anno_def, "UserCanCreate"):
             return bool(anno_def.UserCanCreate)
         return False
 
@@ -698,7 +693,7 @@ class AnnotationDefOperations(BaseOperations):
         self._ValidateParam(anno_def, "anno_def")
         self._ValidateParam(can_create, "can_create")
 
-        if hasattr(anno_def, 'UserCanCreate'):
+        if hasattr(anno_def, "UserCanCreate"):
             anno_def.UserCanCreate = bool(can_create)
 
     @OperationsMethod
@@ -735,7 +730,7 @@ class AnnotationDefOperations(BaseOperations):
         """
         self._ValidateParam(anno_def, "anno_def")
 
-        if hasattr(anno_def, 'AllowsMultiple'):
+        if hasattr(anno_def, "AllowsMultiple"):
             return bool(anno_def.AllowsMultiple)
         return True  # Default to allowing multiple
 
@@ -777,7 +772,7 @@ class AnnotationDefOperations(BaseOperations):
         self._ValidateParam(anno_def, "anno_def")
         self._ValidateParam(allow_multiple, "allow_multiple")
 
-        if hasattr(anno_def, 'AllowsMultiple'):
+        if hasattr(anno_def, "AllowsMultiple"):
             anno_def.AllowsMultiple = bool(allow_multiple)
 
     # --- Prompt and Copy/Paste Settings ---
@@ -816,7 +811,7 @@ class AnnotationDefOperations(BaseOperations):
 
         wsHandle = self.__WSHandle(wsHandle)
 
-        if hasattr(anno_def, 'Prompt'):
+        if hasattr(anno_def, "Prompt"):
             prompt = ITsString(anno_def.Prompt.get_String(wsHandle)).Text
             return prompt or ""
         return ""
@@ -861,7 +856,7 @@ class AnnotationDefOperations(BaseOperations):
 
         wsHandle = self.__WSHandle(wsHandle)
 
-        if hasattr(anno_def, 'Prompt'):
+        if hasattr(anno_def, "Prompt"):
             mkstr = TsStringUtils.MakeString(prompt_text, wsHandle)
             anno_def.Prompt.set_String(wsHandle, mkstr)
 
@@ -897,7 +892,7 @@ class AnnotationDefOperations(BaseOperations):
         """
         self._ValidateParam(anno_def, "anno_def")
 
-        if hasattr(anno_def, 'CopyCutPasteAllowed'):
+        if hasattr(anno_def, "CopyCutPasteAllowed"):
             return bool(anno_def.CopyCutPasteAllowed)
         return True  # Default to allowing copy/paste
 
@@ -1054,7 +1049,7 @@ class AnnotationDefOperations(BaseOperations):
         """
         self._ValidateParam(anno_def, "anno_def")
 
-        if hasattr(anno_def, 'DateCreated'):
+        if hasattr(anno_def, "DateCreated"):
             return anno_def.DateCreated
         return None
 
@@ -1097,7 +1092,11 @@ class AnnotationDefOperations(BaseOperations):
         self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         # Get source object
-        source = ICmAnnotationDefn(item_or_hvo) if not isinstance(item_or_hvo, int) else ICmAnnotationDefn(self.project.Object(item_or_hvo))
+        source = (
+            ICmAnnotationDefn(item_or_hvo)
+            if not isinstance(item_or_hvo, int)
+            else ICmAnnotationDefn(self.project.Object(item_or_hvo))
+        )
         parent = source.Owner
 
         # Create new annotation definition using factory (auto-generates new GUID)
@@ -1107,38 +1106,38 @@ class AnnotationDefOperations(BaseOperations):
         # ADD TO PARENT FIRST
         if insert_after:
             # Insert after source
-            if hasattr(parent, 'PossibilitiesOS'):
+            if hasattr(parent, "PossibilitiesOS"):
                 source_index = parent.PossibilitiesOS.IndexOf(source)
                 parent.PossibilitiesOS.Insert(source_index + 1, duplicate)
-            elif hasattr(parent, 'SubPossibilitiesOS'):
+            elif hasattr(parent, "SubPossibilitiesOS"):
                 source_index = parent.SubPossibilitiesOS.IndexOf(source)
                 parent.SubPossibilitiesOS.Insert(source_index + 1, duplicate)
         else:
             # Insert at end
-            if hasattr(parent, 'PossibilitiesOS'):
+            if hasattr(parent, "PossibilitiesOS"):
                 parent.PossibilitiesOS.Add(duplicate)
-            elif hasattr(parent, 'SubPossibilitiesOS'):
+            elif hasattr(parent, "SubPossibilitiesOS"):
                 parent.SubPossibilitiesOS.Add(duplicate)
 
         # Copy MultiString properties (AFTER adding to parent)
         duplicate.Name.CopyAlternatives(source.Name)
-        if hasattr(source, 'HelpString') and source.HelpString:
+        if hasattr(source, "HelpString") and source.HelpString:
             duplicate.HelpString.CopyAlternatives(source.HelpString)
-        if hasattr(source, 'Prompt') and source.Prompt:
+        if hasattr(source, "Prompt") and source.Prompt:
             duplicate.Prompt.CopyAlternatives(source.Prompt)
 
         # Copy simple properties
-        if hasattr(source, 'AnnotationType'):
+        if hasattr(source, "AnnotationType"):
             duplicate.AnnotationType = source.AnnotationType
-        if hasattr(source, 'InstanceOf'):
+        if hasattr(source, "InstanceOf"):
             duplicate.InstanceOf = source.InstanceOf
-        if hasattr(source, 'UserCanCreate'):
+        if hasattr(source, "UserCanCreate"):
             duplicate.UserCanCreate = source.UserCanCreate
-        if hasattr(source, 'AllowsMultiple'):
+        if hasattr(source, "AllowsMultiple"):
             duplicate.AllowsMultiple = source.AllowsMultiple
 
         # Deep copy: duplicate sub-possibilities into the NEW duplicate
-        if deep and hasattr(source, 'SubPossibilitiesOS') and source.SubPossibilitiesOS.Count > 0:
+        if deep and hasattr(source, "SubPossibilitiesOS") and source.SubPossibilitiesOS.Count > 0:
             for sub in source.SubPossibilitiesOS:
                 self._DuplicateSubDefInto(sub, duplicate, deep=True)
 
@@ -1152,22 +1151,22 @@ class AnnotationDefOperations(BaseOperations):
 
         # Copy properties
         dup_def.Name.CopyAlternatives(source_def.Name)
-        if hasattr(source_def, 'HelpString') and source_def.HelpString:
+        if hasattr(source_def, "HelpString") and source_def.HelpString:
             dup_def.HelpString.CopyAlternatives(source_def.HelpString)
-        if hasattr(source_def, 'Prompt') and source_def.Prompt:
+        if hasattr(source_def, "Prompt") and source_def.Prompt:
             dup_def.Prompt.CopyAlternatives(source_def.Prompt)
 
-        if hasattr(source_def, 'AnnotationType'):
+        if hasattr(source_def, "AnnotationType"):
             dup_def.AnnotationType = source_def.AnnotationType
-        if hasattr(source_def, 'InstanceOf'):
+        if hasattr(source_def, "InstanceOf"):
             dup_def.InstanceOf = source_def.InstanceOf
-        if hasattr(source_def, 'UserCanCreate'):
+        if hasattr(source_def, "UserCanCreate"):
             dup_def.UserCanCreate = source_def.UserCanCreate
-        if hasattr(source_def, 'AllowsMultiple'):
+        if hasattr(source_def, "AllowsMultiple"):
             dup_def.AllowsMultiple = source_def.AllowsMultiple
 
         # Recurse into nested sub-definitions
-        if deep and hasattr(source_def, 'SubPossibilitiesOS') and source_def.SubPossibilitiesOS.Count > 0:
+        if deep and hasattr(source_def, "SubPossibilitiesOS") and source_def.SubPossibilitiesOS.Count > 0:
             for nested_def in source_def.SubPossibilitiesOS:
                 self._DuplicateSubDefInto(nested_def, dup_def, deep=True)
 
@@ -1182,21 +1181,21 @@ class AnnotationDefOperations(BaseOperations):
         wsHandle = self.__WSHandle(None)
 
         props = {}
-        props['Name'] = ITsString(anno_def.Name.get_String(wsHandle)).Text or ""
+        props["Name"] = ITsString(anno_def.Name.get_String(wsHandle)).Text or ""
 
-        if hasattr(anno_def, 'HelpString'):
-            props['HelpString'] = ITsString(anno_def.HelpString.get_String(wsHandle)).Text or ""
-        if hasattr(anno_def, 'Prompt'):
-            props['Prompt'] = ITsString(anno_def.Prompt.get_String(wsHandle)).Text or ""
+        if hasattr(anno_def, "HelpString"):
+            props["HelpString"] = ITsString(anno_def.HelpString.get_String(wsHandle)).Text or ""
+        if hasattr(anno_def, "Prompt"):
+            props["Prompt"] = ITsString(anno_def.Prompt.get_String(wsHandle)).Text or ""
 
-        if hasattr(anno_def, 'AnnotationType'):
-            props['AnnotationType'] = int(anno_def.AnnotationType)
-        if hasattr(anno_def, 'InstanceOf'):
-            props['InstanceOf'] = int(anno_def.InstanceOf)
-        if hasattr(anno_def, 'UserCanCreate'):
-            props['UserCanCreate'] = bool(anno_def.UserCanCreate)
-        if hasattr(anno_def, 'AllowsMultiple'):
-            props['AllowsMultiple'] = bool(anno_def.AllowsMultiple)
+        if hasattr(anno_def, "AnnotationType"):
+            props["AnnotationType"] = int(anno_def.AnnotationType)
+        if hasattr(anno_def, "InstanceOf"):
+            props["InstanceOf"] = int(anno_def.InstanceOf)
+        if hasattr(anno_def, "UserCanCreate"):
+            props["UserCanCreate"] = bool(anno_def.UserCanCreate)
+        if hasattr(anno_def, "AllowsMultiple"):
+            props["AllowsMultiple"] = bool(anno_def.AllowsMultiple)
 
         return props
 
@@ -1209,7 +1208,7 @@ class AnnotationDefOperations(BaseOperations):
             ops2 = self
 
         is_different = False
-        differences = {'properties': {}}
+        differences = {"properties": {}}
 
         props1 = ops1.GetSyncableProperties(item1)
         props2 = ops2.GetSyncableProperties(item2)
@@ -1219,11 +1218,7 @@ class AnnotationDefOperations(BaseOperations):
             val2 = props2.get(key)
             if val1 != val2:
                 is_different = True
-                differences['properties'][key] = {
-                    'source': val1,
-                    'target': val2,
-                    'type': 'modified'
-                }
+                differences["properties"][key] = {"source": val1, "target": val2, "type": "modified"}
 
         return is_different, differences
 
@@ -1241,6 +1236,4 @@ class AnnotationDefOperations(BaseOperations):
         """
         if wsHandle is None:
             return self.project.project.DefaultAnalWs
-        return self.project._FLExProject__WSHandle(
-            wsHandle, self.project.project.DefaultAnalWs
-        )
+        return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultAnalWs)

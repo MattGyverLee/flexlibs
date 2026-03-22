@@ -12,6 +12,7 @@ Version: 2.3.0
 
 from flexlibs2 import FLExProject, FLExInitialize, FLExCleanup
 
+
 def demo_environment_crud():
     """
     Demonstrate full CRUD operations for phonological environments.
@@ -44,9 +45,9 @@ def demo_environment_crud():
 
     try:
         # ==================== READ: Initial state ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("STEP 1: READ - Get existing environments")
-        print("="*70)
+        print("=" * 70)
 
         print("\nGetting all environments...")
         initial_count = 0
@@ -61,9 +62,9 @@ def demo_environment_crud():
         print(f"\nTotal environments (showing first 5): {initial_count}")
 
         # ==================== CREATE ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("STEP 2: CREATE - Create new test environment")
-        print("="*70)
+        print("=" * 70)
 
         # Check if test environment already exists
         if project.Environments.Exists(test_name):
@@ -78,10 +79,7 @@ def demo_environment_crud():
         print(f"\nCreating new environment: '{test_name}'")
         print("  String representation: '/ _ #'")
 
-        test_env = project.Environments.Create(
-            name=test_name,
-            string_representation="/ _ #"
-        )
+        test_env = project.Environments.Create(name=test_name, string_representation="/ _ #")
 
         if test_env:
             print(f"  SUCCESS: Environment created!")
@@ -92,9 +90,9 @@ def demo_environment_crud():
             return
 
         # ==================== READ: Verify creation ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("STEP 3: READ - Verify environment was created")
-        print("="*70)
+        print("=" * 70)
 
         # Test Exists
         print(f"\nChecking if '{test_name}' exists...")
@@ -118,9 +116,9 @@ def demo_environment_crud():
         print(f"  Difference:   +{current_count - initial_count}")
 
         # ==================== UPDATE ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("STEP 4: UPDATE - Modify environment properties")
-        print("="*70)
+        print("=" * 70)
 
         if test_env:
             # Update name
@@ -158,9 +156,9 @@ def demo_environment_crud():
                 print(f"  String update: FAILED (got '{updated_string}')")
 
         # ==================== READ: Verify updates ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("STEP 5: READ - Verify updates persisted")
-        print("="*70)
+        print("=" * 70)
 
         # Re-find with new name
         print(f"\nFinding environment by updated name...")
@@ -172,9 +170,9 @@ def demo_environment_crud():
             print("  NOT FOUND - Update may not have persisted")
 
         # ==================== DELETE ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("STEP 6: DELETE - Remove test environment")
-        print("="*70)
+        print("=" * 70)
 
         if test_env:
             print(f"\nDeleting test environment...")
@@ -199,9 +197,9 @@ def demo_environment_crud():
             print(f"  Back to initial:    {final_count == initial_count}")
 
         # ==================== SUMMARY ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("CRUD TEST SUMMARY")
-        print("="*70)
+        print("=" * 70)
         print("\nOperations tested:")
         print("  [CREATE] Create new environment")
         print("  [READ]   GetAll, Find, Exists, GetName, GetStringRepresentation")
@@ -212,13 +210,14 @@ def demo_environment_crud():
     except Exception as e:
         print(f"\n\nERROR during CRUD test: {e}")
         import traceback
+
         traceback.print_exc()
 
     finally:
         # Cleanup: Ensure test environment is removed
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("CLEANUP")
-        print("="*70)
+        print("=" * 70)
 
         try:
             for name in ["crud_test_environment", "crud_test_environment_modified"]:
@@ -234,13 +233,14 @@ def demo_environment_crud():
         project.CloseProject()
         FLExCleanup()
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("DEMO COMPLETE")
-    print("="*70)
+    print("=" * 70)
 
 
 if __name__ == "__main__":
-    print("""
+    print(
+        """
 Phonological Environment Operations - Full CRUD Demo
 =====================================================
 
@@ -282,10 +282,11 @@ Requirements:
 
 WARNING: This demo modifies the database!
          Test environment is created and deleted during the demo.
-    """)
+    """
+    )
 
     response = input("\nRun CRUD demo? (y/N): ")
-    if response.lower() == 'y':
+    if response.lower() == "y":
         demo_environment_crud()
     else:
         print("\nDemo skipped.")

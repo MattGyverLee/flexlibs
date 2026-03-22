@@ -12,6 +12,7 @@
 #
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 # Import BaseOperations parent class
@@ -37,6 +38,7 @@ from ..FLExProject import (
 # Import wrapper classes
 from .allomorph import Allomorph
 from .allomorph_collection import AllomorphCollection
+
 
 class AllomorphOperations(BaseOperations):
     """
@@ -326,7 +328,7 @@ class AllomorphOperations(BaseOperations):
         owner = allomorph.Owner
 
         # Check if this is the lexeme form or an alternate
-        if hasattr(owner, 'LexemeFormOA') and owner.LexemeFormOA == allomorph:
+        if hasattr(owner, "LexemeFormOA") and owner.LexemeFormOA == allomorph:
             # Deleting the lexeme form
             # If there are alternates, promote the first one to lexeme
             if owner.AlternateFormsOS.Count > 0:
@@ -336,7 +338,7 @@ class AllomorphOperations(BaseOperations):
             else:
                 # No alternates, just clear the lexeme form
                 owner.LexemeFormOA = None
-        elif hasattr(owner, 'AlternateFormsOS'):
+        elif hasattr(owner, "AlternateFormsOS"):
             # Deleting an alternate form
             owner.AlternateFormsOS.Remove(allomorph)
 
@@ -396,30 +398,32 @@ class AllomorphOperations(BaseOperations):
         class_name = source.ClassName
         factory = None
 
-        if class_name == 'MoStemAllomorph':
+        if class_name == "MoStemAllomorph":
             from SIL.LCModel import IMoStemAllomorphFactory
+
             factory = self.project.project.ServiceLocator.GetService(IMoStemAllomorphFactory)
-        elif class_name == 'MoAffixAllomorph':
+        elif class_name == "MoAffixAllomorph":
             from SIL.LCModel import IMoAffixAllomorphFactory
+
             factory = self.project.project.ServiceLocator.GetService(IMoAffixAllomorphFactory)
         else:
             # Unrecognized allomorph type - raise error instead of defaulting
             raise FP_ParameterError(
-                f"Unrecognized allomorph type: {class_name}. "
-                f"Expected 'MoStemAllomorph' or 'MoAffixAllomorph'.")
+                f"Unrecognized allomorph type: {class_name}. " f"Expected 'MoStemAllomorph' or 'MoAffixAllomorph'."
+            )
 
         # Create new allomorph using factory (auto-generates new GUID)
         duplicate = factory.Create()
 
         # Determine insertion position
         # Note: Allomorphs can be lexeme forms or alternate forms
-        if hasattr(parent, 'LexemeFormOA') and parent.LexemeFormOA == source:
+        if hasattr(parent, "LexemeFormOA") and parent.LexemeFormOA == source:
             # Source is lexeme form - add duplicate as alternate form
             if insert_after:
                 parent.AlternateFormsOS.Insert(0, duplicate)
             else:
                 parent.AlternateFormsOS.Add(duplicate)
-        elif hasattr(parent, 'AlternateFormsOS'):
+        elif hasattr(parent, "AlternateFormsOS"):
             # Source is alternate form
             if insert_after:
                 source_index = parent.AlternateFormsOS.IndexOf(source)
@@ -469,25 +473,25 @@ class AllomorphOperations(BaseOperations):
         # MultiString properties
         # Form - the allomorph form in various writing systems
         form_dict = {}
-        if hasattr(item, 'Form'):
+        if hasattr(item, "Form"):
             for ws_handle in self.project.GetAllWritingSystems():
                 text = ITsString(item.Form.get_String(ws_handle)).Text
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     form_dict[ws_tag] = text
-        props['Form'] = form_dict
+        props["Form"] = form_dict
 
         # Atomic properties
         # IsAbstract - whether this is an abstract form
-        if hasattr(item, 'IsAbstract'):
-            props['IsAbstract'] = item.IsAbstract
+        if hasattr(item, "IsAbstract"):
+            props["IsAbstract"] = item.IsAbstract
 
         # Reference Atomic (RA) properties
         # MorphTypeRA - morpheme type (prefix, suffix, stem, etc.)
-        if hasattr(item, 'MorphTypeRA') and item.MorphTypeRA:
-            props['MorphTypeRA'] = str(item.MorphTypeRA.Guid)
+        if hasattr(item, "MorphTypeRA") and item.MorphTypeRA:
+            props["MorphTypeRA"] = str(item.MorphTypeRA.Guid)
         else:
-            props['MorphTypeRA'] = None
+            props["MorphTypeRA"] = None
 
         return props
 
@@ -712,8 +716,7 @@ class AllomorphOperations(BaseOperations):
 
             if wsHandle is None:
                 raise FP_ParameterError(
-                    "No audio writing system found in project. "
-                    "Create one in FLEx first (e.g., en-Zxxx-x-audio)"
+                    "No audio writing system found in project. " "Create one in FLEx first (e.g., en-Zxxx-x-audio)"
                 )
         else:
             # Validate that provided WS is audio
@@ -725,6 +728,7 @@ class AllomorphOperations(BaseOperations):
 
         # Determine if we need to copy the file to LinkedFiles
         import os
+
         internal_path = file_path
 
         # If file_path is an external file (not already in LinkedFiles)
@@ -732,13 +736,11 @@ class AllomorphOperations(BaseOperations):
             # Copy file to project using Media operations
             try:
                 from ..Shared.MediaOperations import MediaOperations
+
                 media_ops = MediaOperations(self.project)
 
                 # Copy file to LinkedFiles/AudioVisual
-                media_file = media_ops.CopyToProject(
-                    file_path,
-                    internal_subdir="AudioVisual"
-                )
+                media_file = media_ops.CopyToProject(file_path, internal_subdir="AudioVisual")
                 internal_path = media_ops.GetInternalPath(media_file)
             except Exception as e:
                 # If Media operations fail, just use the path as-is

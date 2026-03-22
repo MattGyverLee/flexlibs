@@ -2,7 +2,8 @@
 """Unit tests for undo/redo using mocks (no FLEx required)."""
 
 import sys
-sys.path.insert(0, '.')
+
+sys.path.insert(0, ".")
 
 from unittest.mock import Mock
 from flexlibs2.code.transaction import _FLExTransaction
@@ -156,5 +157,6 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n[FAIL] TEST FAILED: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)

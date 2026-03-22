@@ -13,12 +13,7 @@ Date: 2025-11-27
 """
 
 from flexlibs2 import FLExProject, FLExInitialize, FLExCleanup
-from flexlibs2.sync import (
-    HierarchicalImporter,
-    DependencyConfig,
-    CircularDependencyError,
-    ValidationError
-)
+from flexlibs2.sync import HierarchicalImporter, DependencyConfig, CircularDependencyError, ValidationError
 from datetime import datetime
 
 
@@ -77,11 +72,11 @@ def demo_import_entry_with_hierarchy():
 
         # Configure to import full hierarchy
         config = DependencyConfig(
-            include_owned=True,          # Import all owned objects
-            resolve_references=True,     # Import referenced POS/domains
-            max_owned_depth=10,         # Full depth
-            skip_existing=True,          # Don't duplicate
-            validate_all=True            # Validate before import
+            include_owned=True,  # Import all owned objects
+            resolve_references=True,  # Import referenced POS/domains
+            max_owned_depth=10,  # Full depth
+            skip_existing=True,  # Don't duplicate
+            validate_all=True,  # Validate before import
         )
 
         # Preview with dry run
@@ -96,7 +91,7 @@ def demo_import_entry_with_hierarchy():
             config=config,
             validate_references=True,
             progress_callback=show_progress,
-            dry_run=True
+            dry_run=True,
         )
 
         print("\n4. Dry run results:")
@@ -130,6 +125,7 @@ def demo_import_entry_with_hierarchy():
     except Exception as e:
         print(f"\n❌ Error: {e}")
         import traceback
+
         traceback.print_exc()
 
     finally:
@@ -194,18 +190,14 @@ def demo_batch_import():
         print("\n2. Batch importing...")
         importer = HierarchicalImporter(source, target)
 
-        config = DependencyConfig(
-            include_owned=True,
-            resolve_references=True,
-            skip_existing=True
-        )
+        config = DependencyConfig(include_owned=True, resolve_references=True, skip_existing=True)
 
         result = importer.import_with_dependencies(
             object_type="LexEntry",
             guids=entry_guids,
             config=config,
             progress_callback=lambda msg: print(f"   {msg}"),
-            dry_run=True
+            dry_run=True,
         )
 
         print("\n3. Batch import results:")
@@ -219,6 +211,7 @@ def demo_batch_import():
     except Exception as e:
         print(f"\n❌ Error: {e}")
         import traceback
+
         traceback.print_exc()
 
     finally:
@@ -276,7 +269,7 @@ def demo_filtered_import():
             include_owned=True,
             owned_types=["LexSense"],  # Only import senses, not examples/pronunciations
             resolve_references=True,
-            skip_existing=True
+            skip_existing=True,
         )
 
         result = importer.import_with_dependencies(
@@ -284,7 +277,7 @@ def demo_filtered_import():
             guids=[entry_guid],
             config=config,
             progress_callback=lambda msg: print(f"   {msg}"),
-            dry_run=True
+            dry_run=True,
         )
 
         print("\n3. Filtered import results:")
@@ -304,6 +297,7 @@ def demo_filtered_import():
     except Exception as e:
         print(f"\n❌ Error: {e}")
         import traceback
+
         traceback.print_exc()
 
     finally:
@@ -363,10 +357,7 @@ def demo_validation_handling():
         importer = HierarchicalImporter(source, target)
 
         config = DependencyConfig(
-            include_owned=True,
-            resolve_references=True,
-            skip_existing=True,
-            validate_all=True  # Enable validation
+            include_owned=True, resolve_references=True, skip_existing=True, validate_all=True  # Enable validation
         )
 
         try:
@@ -376,7 +367,7 @@ def demo_validation_handling():
                 config=config,
                 validate_references=True,
                 progress_callback=lambda msg: print(f"   {msg}"),
-                dry_run=True
+                dry_run=True,
             )
 
             print("\n3. Validation results:")
@@ -399,6 +390,7 @@ def demo_validation_handling():
     except Exception as e:
         print(f"\n❌ Error: {e}")
         import traceback
+
         traceback.print_exc()
 
     finally:
@@ -459,11 +451,7 @@ def demo_dependency_graph_analysis():
 
         resolver = DependencyResolver(source, target)
 
-        config = DependencyConfig(
-            include_owned=True,
-            resolve_references=True,
-            max_owned_depth=5
-        )
+        config = DependencyConfig(include_owned=True, resolve_references=True, max_owned_depth=5)
 
         graph = resolver.resolve_dependencies(entry, "LexEntry", config)
 
@@ -501,6 +489,7 @@ def demo_dependency_graph_analysis():
     except Exception as e:
         print(f"\n❌ Error: {e}")
         import traceback
+
         traceback.print_exc()
 
     finally:
@@ -564,11 +553,13 @@ def run_all_demos():
     except Exception as e:
         print(f"\n\n❌ Demo suite error: {e}")
         import traceback
+
         traceback.print_exc()
 
 
 if __name__ == "__main__":
-    print("""
+    print(
+        """
 Hierarchical Import Demo - Phase 3
 ===================================
 
@@ -601,10 +592,11 @@ Requirements:
   - Write access to test project
 
 WARNING: These demos modify the test database!
-    """)
+    """
+    )
 
     response = input("\nRun all demos? (y/N): ")
-    if response.lower() == 'y':
+    if response.lower() == "y":
         run_all_demos()
     else:
         print("\nDemos skipped. You can run individual demos by calling:")

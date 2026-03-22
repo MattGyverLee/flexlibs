@@ -30,6 +30,7 @@ from ..lcm_casting import get_pos_from_msa
 # Import string utilities
 from ..Shared.string_utils import normalize_text
 
+
 class POSOperations(BaseOperations):
     """
     This class provides operations for managing Parts of Speech in a
@@ -962,7 +963,7 @@ class POSOperations(BaseOperations):
         props = {}
 
         # MultiString properties
-        for prop_name in ['Name', 'Abbreviation', 'Description']:
+        for prop_name in ["Name", "Abbreviation", "Description"]:
             if hasattr(pos, prop_name):
                 prop_obj = getattr(pos, prop_name)
                 ws_values = {}
@@ -974,8 +975,8 @@ class POSOperations(BaseOperations):
                     props[prop_name] = ws_values
 
         # String properties
-        if hasattr(pos, 'CatalogSourceId') and pos.CatalogSourceId:
-            props['CatalogSourceId'] = pos.CatalogSourceId
+        if hasattr(pos, "CatalogSourceId") and pos.CatalogSourceId:
+            props["CatalogSourceId"] = pos.CatalogSourceId
 
         return props
 

@@ -69,6 +69,7 @@ class TestSuite(unittest.TestCase):
             fp.LexiconSetFieldText(lexEntry, flags_field, "")
 
         self._closeProject(fp)
-    
+
+
 if __name__ == "__main__":
     unittest.main()

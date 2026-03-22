@@ -30,6 +30,7 @@ from ..FLExProject import (
 )
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
+
 class PersonOperations(BaseOperations):
     """
     This class provides operations for managing people (consultants, speakers,
@@ -1032,24 +1033,24 @@ class PersonOperations(BaseOperations):
         duplicate.Gender.CopyAlternatives(source.Gender)
         duplicate.Email.CopyAlternatives(source.Email)
         duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)  # Address
-        duplicate.Description.CopyAlternatives(source.Description)     # Education
-        duplicate.Comment.CopyAlternatives(source.Comment)             # Notes
+        duplicate.Description.CopyAlternatives(source.Description)  # Education
+        duplicate.Comment.CopyAlternatives(source.Comment)  # Notes
         duplicate.PlaceOfBirth.CopyAlternatives(source.PlaceOfBirth)  # Phone
 
         # Copy DateOfBirth (GenDate field)
-        if hasattr(source, 'DateOfBirth') and source.DateOfBirth:
+        if hasattr(source, "DateOfBirth") and source.DateOfBirth:
             duplicate.DateOfBirth = source.DateOfBirth
 
         # Copy Reference Collection (RC) properties
-        if hasattr(source, 'PositionsRC'):
+        if hasattr(source, "PositionsRC"):
             for position in source.PositionsRC:
                 duplicate.PositionsRC.Add(position)
 
-        if hasattr(source, 'PlacesOfResidenceRC'):
+        if hasattr(source, "PlacesOfResidenceRC"):
             for residence in source.PlacesOfResidenceRC:
                 duplicate.PlacesOfResidenceRC.Add(residence)
 
-        if hasattr(source, 'LanguagesRC'):
+        if hasattr(source, "LanguagesRC"):
             for language in source.LanguagesRC:
                 duplicate.LanguagesRC.Add(language)
 
@@ -1086,27 +1087,27 @@ class PersonOperations(BaseOperations):
         props = {}
 
         # MultiString properties
-        props['Name'] = ITsString(person.Name.get_String(wsHandle)).Text or ""
-        props['Gender'] = ITsString(person.Gender.get_String(wsHandle)).Text or ""
-        props['Email'] = ITsString(person.Email.get_String(wsHandle)).Text or ""
-        props['Abbreviation'] = ITsString(person.Abbreviation.get_String(wsHandle)).Text or ""  # Address
-        props['Description'] = ITsString(person.Description.get_String(wsHandle)).Text or ""     # Education
-        props['Comment'] = ITsString(person.Comment.get_String(wsHandle)).Text or ""             # Notes
-        props['PlaceOfBirth'] = ITsString(person.PlaceOfBirth.get_String(wsHandle)).Text or ""  # Phone
+        props["Name"] = ITsString(person.Name.get_String(wsHandle)).Text or ""
+        props["Gender"] = ITsString(person.Gender.get_String(wsHandle)).Text or ""
+        props["Email"] = ITsString(person.Email.get_String(wsHandle)).Text or ""
+        props["Abbreviation"] = ITsString(person.Abbreviation.get_String(wsHandle)).Text or ""  # Address
+        props["Description"] = ITsString(person.Description.get_String(wsHandle)).Text or ""  # Education
+        props["Comment"] = ITsString(person.Comment.get_String(wsHandle)).Text or ""  # Notes
+        props["PlaceOfBirth"] = ITsString(person.PlaceOfBirth.get_String(wsHandle)).Text or ""  # Phone
 
         # GenDate field
-        if hasattr(person, 'DateOfBirth') and person.DateOfBirth:
-            props['DateOfBirth'] = str(person.DateOfBirth)
+        if hasattr(person, "DateOfBirth") and person.DateOfBirth:
+            props["DateOfBirth"] = str(person.DateOfBirth)
         else:
-            props['DateOfBirth'] = None
+            props["DateOfBirth"] = None
 
         # Reference Collection (RC) properties - return GUIDs as strings
-        if hasattr(person, 'PositionsRC'):
-            props['Positions'] = [str(pos.Guid) for pos in person.PositionsRC]
-        if hasattr(person, 'PlacesOfResidenceRC'):
-            props['PlacesOfResidence'] = [str(place.Guid) for place in person.PlacesOfResidenceRC]
-        if hasattr(person, 'LanguagesRC'):
-            props['Languages'] = [str(lang.Guid) for lang in person.LanguagesRC]
+        if hasattr(person, "PositionsRC"):
+            props["Positions"] = [str(pos.Guid) for pos in person.PositionsRC]
+        if hasattr(person, "PlacesOfResidenceRC"):
+            props["PlacesOfResidence"] = [str(place.Guid) for place in person.PlacesOfResidenceRC]
+        if hasattr(person, "LanguagesRC"):
+            props["Languages"] = [str(lang.Guid) for lang in person.LanguagesRC]
 
         return props
 
@@ -1137,7 +1138,7 @@ class PersonOperations(BaseOperations):
             ops2 = self
 
         is_different = False
-        differences = {'properties': {}}
+        differences = {"properties": {}}
 
         # Get syncable properties from both items
         props1 = ops1.GetSyncableProperties(item1)
@@ -1152,18 +1153,10 @@ class PersonOperations(BaseOperations):
             if isinstance(val1, list) and isinstance(val2, list):
                 if set(val1) != set(val2):
                     is_different = True
-                    differences['properties'][key] = {
-                        'source': val1,
-                        'target': val2,
-                        'type': 'modified'
-                    }
+                    differences["properties"][key] = {"source": val1, "target": val2, "type": "modified"}
             elif val1 != val2:
                 is_different = True
-                differences['properties'][key] = {
-                    'source': val1,
-                    'target': val2,
-                    'type': 'modified'
-                }
+                differences["properties"][key] = {"source": val1, "target": val2, "type": "modified"}
 
         return is_different, differences
 
@@ -1567,10 +1560,7 @@ class PersonOperations(BaseOperations):
         """
         if wsHandle is None:
             return self.project.project.DefaultVernWs
-        return self.project._FLExProject__WSHandle(
-            wsHandle,
-            self.project.project.DefaultVernWs
-        )
+        return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultVernWs)
 
     def __WSHandleAnalysis(self, wsHandle):
         """
@@ -1584,7 +1574,4 @@ class PersonOperations(BaseOperations):
         """
         if wsHandle is None:
             return self.project.project.DefaultAnalWs
-        return self.project._FLExProject__WSHandle(
-            wsHandle,
-            self.project.project.DefaultAnalWs
-        )
+        return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultAnalWs)

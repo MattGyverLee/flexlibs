@@ -16,6 +16,7 @@
 import os
 
 import clr
+
 clr.AddReference("System")
 import System
 
@@ -41,13 +42,15 @@ from SIL.FieldWorks.Common.FwUtils import FwUtils
 from SIL.FieldWorks.FdoUi import FwLcmUI
 from SIL.FieldWorks.FwCoreDlgs import ChooseLangProjectDialog
 
-#--- Globals --------------------------------------------------------
+# --- Globals --------------------------------------------------------
 
-CellarStringTypes      = {CellarPropertyType.String, }
-CellarMultiStringTypes = {CellarPropertyType.MultiUnicode,
-                          CellarPropertyType.MultiString}
-CellarAllStringTypes   = CellarStringTypes | CellarMultiStringTypes
-#-----------------------------------------------------------
+CellarStringTypes = {
+    CellarPropertyType.String,
+}
+CellarMultiStringTypes = {CellarPropertyType.MultiUnicode, CellarPropertyType.MultiString}
+CellarAllStringTypes = CellarStringTypes | CellarMultiStringTypes
+# -----------------------------------------------------------
+
 
 def GetListOfProjects():
     # TODO: Use FW Project Chooser (ChooseLangProjectDialog())
@@ -56,16 +59,16 @@ def GetListOfProjects():
     objs = os.listdir(str(projectsPath))
     projectList = []
     for dirname in objs:
-        # FieldWorks can leave ghost directories, so we test 
+        # FieldWorks can leave ghost directories, so we test
         # for the fwdata file, not just the directory. (Issue #48)
-        suffix = LcmFileHelper.ksFwDataXmlFileExtension 
-        if os.path.isfile(os.path.join(projectsPath, 
-                                       dirname, 
-                                       dirname+suffix)):
+        suffix = LcmFileHelper.ksFwDataXmlFileExtension
+        if os.path.isfile(os.path.join(projectsPath, dirname, dirname + suffix)):
             projectList.append(dirname)
     return sorted(projectList)
 
-#-----------------------------------------------------------
+
+# -----------------------------------------------------------
+
 
 def OpenProject(projectName):
     """
@@ -81,11 +84,11 @@ def OpenProject(projectName):
     projId = ProjectId(projectFileName)
 
     th = ThreadHelper()
-    ui = FwLcmUI(None, th)     # IHelpTopicProvider, ISynchronizeInvoke
+    ui = FwLcmUI(None, th)  # IHelpTopicProvider, ISynchronizeInvoke
     dirs = FwDirectoryFinder.LcmDirectories
     settings = LcmSettings()
     # Migration should be done within FieldWorks
-    settings.DisableDataMigration = True    
+    settings.DisableDataMigration = True
 
     dlg = ProgressDialogWithTask(th)
 
@@ -97,9 +100,4 @@ def OpenProject(projectName):
     #    ILcmDirectories dirs,
     #    LcmSettings settings,
     #    IThreadedProgress progressDlg)
-    return LcmCache.CreateCacheFromExistingData(projId,
-                                                "en",
-                                                ui,
-                                                dirs,
-                                                settings,
-                                                dlg)
+    return LcmCache.CreateCacheFromExistingData(projId, "en", ui, dirs, settings, dlg)

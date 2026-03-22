@@ -3,7 +3,7 @@
 #
 #   Module: FieldWorks Language Explorer path initialisation.
 #
-#           This module sets up the path for import of the 
+#           This module sets up the path for import of the
 #           FieldWorks Assemblies.
 #
 #   Platform: Python.NET & IRONPython
@@ -28,6 +28,7 @@ from System.Reflection import Assembly
 from Microsoft.Win32 import Registry, RegistryKey
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 # ----------------------------------------------------------------
@@ -40,32 +41,31 @@ FWShortVersion = None
 FWLongVersion = None
 
 # (Double dirname() goes up a directory)
-APIHelpFile = os.path.join(os.path.dirname(os.path.dirname(__file__)), 
-                           r"docs\flexlibsAPI\flexlibs2.html")
+APIHelpFile = os.path.join(os.path.dirname(os.path.dirname(__file__)), r"docs\flexlibsAPI\flexlibs2.html")
 
 # ----------------------------------------------------------------
 # FieldWorks registry constants
 
 FW_SUPPORTED_VERSIONS = ["9"]
-FWREG_CODEDIR       = "RootCodeDir"
-FWREG_PROJECTSDIR   = "ProjectsDir"
+FWREG_CODEDIR = "RootCodeDir"
+FWREG_PROJECTSDIR = "ProjectsDir"
 
-FWRegKeys = { 
-                "9" : r"SOFTWARE\SIL\FieldWorks\9",
-            }
+FWRegKeys = {
+    "9": r"SOFTWARE\SIL\FieldWorks\9",
+}
+
 
 # ----------------------------------------------------------------
 def GetFWRegKey():
     logger.info(".NET version: %s" % Environment.Version)
 
-    # Note: The registry looks up 32bit (via WOW3264Node) if we are 
-    # running 32 bit Python, so no need for special handling. 
+    # Note: The registry looks up 32bit (via WOW3264Node) if we are
+    # running 32 bit Python, so no need for special handling.
 
-    python32or64 = platform.architecture()[0]   # "32bit"/"64bit"
+    python32or64 = platform.architecture()[0]  # "32bit"/"64bit"
 
     for fwVersion in FW_SUPPORTED_VERSIONS:
-        logger.info("Looking for FieldWorks %s, %s..." \
-                     % (fwVersion, python32or64))
+        logger.info("Looking for FieldWorks %s, %s..." % (fwVersion, python32or64))
 
         RegKey = FWRegKeys[fwVersion]
         rKey = Registry.CurrentUser.OpenSubKey(RegKey)
@@ -78,11 +78,12 @@ def GetFWRegKey():
         if rKey and rKey.GetValue(FWREG_CODEDIR):
             return rKey
 
-    msg = "%s FieldWorks %s not found" \
-            % (python32or64, " or ".join(FW_SUPPORTED_VERSIONS))
+    msg = "%s FieldWorks %s not found" % (python32or64, " or ".join(FW_SUPPORTED_VERSIONS))
     raise Exception(msg)
 
+
 # -------------------------------------------------------------------
+
 
 def InitialiseFWGlobals():
     global FWCodeDir
@@ -99,7 +100,7 @@ def InitialiseFWGlobals():
 
     if platform.system() == "Linux":
         # **********************************************************
-        # TODO: First attempt at Linux support. 
+        # TODO: First attempt at Linux support.
         # As of Apr2024, FW installation has changed to use flatpak
         # and this no longer works.
         # **********************************************************
@@ -122,33 +123,32 @@ def InitialiseFWGlobals():
     FWProjectsDir = rKey.GetValue(FWREG_PROJECTSDIR)
 
     if not os.access(os.path.join(FWCodeDir, "FieldWorks.exe"), os.F_OK):
-        # On developer's machines we also check the build directories 
+        # On developer's machines we also check the build directories
         # for FieldWorks.exe
         if platform.system() == "Linux":
             devPaths = [
                 os.path.dirname(rKey.GetValue(FWREG_CODEDIR)),
-                ]
+            ]
         else:
             # Windows
             devPaths = [
                 os.path.join(FWCodeDir, r"..\Output\Release\\"),
                 os.path.join(FWCodeDir, r"..\Output\Debug\\"),
-                ]
+            ]
 
         for p in devPaths:
             if os.access(os.path.join(p, "FieldWorks.exe"), os.F_OK):
                 FWCodeDir = p
                 break
         else:
-            # This can happen if there is a ghost registry entry for 
+            # This can happen if there is a ghost registry entry for
             # an uninstalled FLEx
-            msg = "FieldWorks.exe not found in %s" \
-                            % FWCodeDir
+            msg = "FieldWorks.exe not found in %s" % FWCodeDir
             logger.error(msg)
             raise Exception(msg)
 
     FWExecutable = os.path.join(FWCodeDir, "FieldWorks.exe")
-    
+
     # Add the FW code directory to the search path for importing FW libs.
     sys.path.append(FWCodeDir)
 
@@ -168,4 +168,3 @@ def InitialiseFWGlobals():
     logger.info("FWProjectsDir = %s" % FWProjectsDir)
     logger.info("FWShortVersion = %s" % FWShortVersion)
     logger.info("FWLongVersion = %s" % FWLongVersion)
-

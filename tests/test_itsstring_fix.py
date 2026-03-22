@@ -25,21 +25,21 @@ class TestITsStringFix:
         instead of the non-existent .CopyAlternatives() method.
         """
         env_ops_file = Path("flexlibs2/code/Grammar/EnvironmentOperations.py")
-        content = env_ops_file.read_text(encoding='utf-8')
+        content = env_ops_file.read_text(encoding="utf-8")
 
         # Check that the old broken method is not used on StringRepresentation
-        assert "duplicate.StringRepresentation.CopyAlternatives" not in content, \
-            "StringRepresentation should not call .CopyAlternatives()"
+        assert (
+            "duplicate.StringRepresentation.CopyAlternatives" not in content
+        ), "StringRepresentation should not call .CopyAlternatives()"
 
         # Check that the correct method is used
-        assert "notation = source.StringRepresentation.Text" in content, \
-            "Should extract .Text from ITsString"
+        assert "notation = source.StringRepresentation.Text" in content, "Should extract .Text from ITsString"
 
-        assert "TsStringUtils.MakeString(notation, wsHandle)" in content, \
-            "Should use TsStringUtils.MakeString to create ITsString"
+        assert (
+            "TsStringUtils.MakeString(notation, wsHandle)" in content
+        ), "Should use TsStringUtils.MakeString to create ITsString"
 
-        assert "duplicate.StringRepresentation = mkstr" in content, \
-            "Should assign ITsString directly"
+        assert "duplicate.StringRepresentation = mkstr" in content, "Should assign ITsString directly"
 
     def test_itsstring_vs_multistring_documented(self):
         """
@@ -49,11 +49,12 @@ class TestITsStringFix:
         ITsString (single value) and MultiString (multiple alternatives).
         """
         env_ops_file = Path("flexlibs2/code/Grammar/EnvironmentOperations.py")
-        content = env_ops_file.read_text(encoding='utf-8')
+        content = env_ops_file.read_text(encoding="utf-8")
 
         # Check for documentation in DuplicateEnvironment
-        assert "ITsString" in content and "MultiString" in content, \
-            "Code should document ITsString vs MultiString difference"
+        assert (
+            "ITsString" in content and "MultiString" in content
+        ), "Code should document ITsString vs MultiString difference"
 
     def test_getstring_representation_uses_text_property(self):
         """
@@ -62,11 +63,10 @@ class TestITsStringFix:
         Verifies that getting StringRepresentation uses .Text to extract the text.
         """
         env_ops_file = Path("flexlibs2/code/Grammar/EnvironmentOperations.py")
-        content = env_ops_file.read_text(encoding='utf-8')
+        content = env_ops_file.read_text(encoding="utf-8")
 
         # Check GetStringRepresentation implementation
-        assert "env.StringRepresentation.Text" in content, \
-            "GetStringRepresentation should use .Text property"
+        assert "env.StringRepresentation.Text" in content, "GetStringRepresentation should use .Text property"
 
     def test_setstring_representation_uses_makestring(self):
         """
@@ -75,14 +75,14 @@ class TestITsStringFix:
         Verifies that setting StringRepresentation uses TsStringUtils.MakeString().
         """
         env_ops_file = Path("flexlibs2/code/Grammar/EnvironmentOperations.py")
-        content = env_ops_file.read_text(encoding='utf-8')
+        content = env_ops_file.read_text(encoding="utf-8")
 
         # Check SetStringRepresentation implementation
-        assert "TsStringUtils.MakeString(notation, wsHandle)" in content, \
-            "SetStringRepresentation should use TsStringUtils.MakeString()"
+        assert (
+            "TsStringUtils.MakeString(notation, wsHandle)" in content
+        ), "SetStringRepresentation should use TsStringUtils.MakeString()"
 
-        assert "env.StringRepresentation = mkstr" in content, \
-            "Should assign ITsString directly to environment"
+        assert "env.StringRepresentation = mkstr" in content, "Should assign ITsString directly to environment"
 
 
 if __name__ == "__main__":

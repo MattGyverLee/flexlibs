@@ -86,6 +86,7 @@ except ImportError:
         def AddDays(self, days):
             result = DateTime()
             import datetime as dt_module
+
             result.dt = self.dt + dt_module.timedelta(days=days)
             return result
 
@@ -146,8 +147,7 @@ class AnnotationCollection(SmartCollection):
         """
         super().__init__(items)
 
-    def filter(self, annotation_type=None, author=None, since=None, until=None,
-               content_contains=None, where=None):
+    def filter(self, annotation_type=None, author=None, since=None, until=None, content_contains=None, where=None):
         """
         Filter the collection by annotation properties.
 

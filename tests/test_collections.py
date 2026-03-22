@@ -46,6 +46,7 @@ from flexlibs2.code.Shared.smart_collection import SmartCollection
 # FIXTURES FOR MOCK WRAPPER OBJECTS
 # =============================================================================
 
+
 @pytest.fixture
 def mock_wrapped_rule_regular():
     """
@@ -54,10 +55,10 @@ def mock_wrapped_rule_regular():
     Simulates a wrapper object with class_type and ClassName properties.
     """
     item = Mock()
-    item.class_type = 'PhRegularRule'
-    item.ClassName = 'PhRegularRule'
-    item.Name = 'voicing_rule'
-    item.Direction = 'LTR'
+    item.class_type = "PhRegularRule"
+    item.ClassName = "PhRegularRule"
+    item.Name = "voicing_rule"
+    item.Direction = "LTR"
     return item
 
 
@@ -69,10 +70,10 @@ def mock_wrapped_rule_metathesis():
     Simulates a wrapper object of a different concrete type.
     """
     item = Mock()
-    item.class_type = 'PhMetathesisRule'
-    item.ClassName = 'PhMetathesisRule'
-    item.Name = 'metathesis_rule'
-    item.Direction = 'LTR'
+    item.class_type = "PhMetathesisRule"
+    item.ClassName = "PhMetathesisRule"
+    item.Name = "metathesis_rule"
+    item.Direction = "LTR"
     return item
 
 
@@ -84,10 +85,10 @@ def mock_wrapped_rule_reduplication():
     Simulates a third concrete type.
     """
     item = Mock()
-    item.class_type = 'PhReduplicationRule'
-    item.ClassName = 'PhReduplicationRule'
-    item.Name = 'reduplication_rule'
-    item.Direction = 'RTL'
+    item.class_type = "PhReduplicationRule"
+    item.ClassName = "PhReduplicationRule"
+    item.Name = "reduplication_rule"
+    item.Direction = "RTL"
     return item
 
 
@@ -95,9 +96,9 @@ def mock_wrapped_rule_reduplication():
 def mock_wrapped_msa_stem():
     """Fixture: Mock wrapped MSA object (MoStemMsa type)."""
     item = Mock()
-    item.class_type = 'MoStemMsa'
-    item.ClassName = 'MoStemMsa'
-    item.Id = 'msa-stem-001'
+    item.class_type = "MoStemMsa"
+    item.ClassName = "MoStemMsa"
+    item.Id = "msa-stem-001"
     return item
 
 
@@ -105,9 +106,9 @@ def mock_wrapped_msa_stem():
 def mock_wrapped_msa_inflaf():
     """Fixture: Mock wrapped MSA object (MoInflAffMsa type)."""
     item = Mock()
-    item.class_type = 'MoInflAffMsa'
-    item.ClassName = 'MoInflAffMsa'
-    item.Id = 'msa-inflaf-001'
+    item.class_type = "MoInflAffMsa"
+    item.ClassName = "MoInflAffMsa"
+    item.Id = "msa-inflaf-001"
     return item
 
 
@@ -118,17 +119,14 @@ def sample_mixed_collection(mock_wrapped_rule_regular, mock_wrapped_rule_metathe
 
     Contains 7 regular rules, 3 metathesis rules, and 2 reduplication rules.
     """
-    items = (
-        [mock_wrapped_rule_regular] * 7 +
-        [mock_wrapped_rule_metathesis] * 3 +
-        [mock_wrapped_rule_reduplication] * 2
-    )
+    items = [mock_wrapped_rule_regular] * 7 + [mock_wrapped_rule_metathesis] * 3 + [mock_wrapped_rule_reduplication] * 2
     return SmartCollection(items)
 
 
 # =============================================================================
 # TESTS FOR INITIALIZATION
 # =============================================================================
+
 
 class TestSmartCollectionInit:
     """Test __init__() method."""
@@ -171,6 +169,7 @@ class TestSmartCollectionInit:
 # TESTS FOR __len__
 # =============================================================================
 
+
 class TestSmartCollectionLen:
     """Test __len__() method."""
 
@@ -212,6 +211,7 @@ class TestSmartCollectionLen:
 # TESTS FOR __iter__
 # =============================================================================
 
+
 class TestSmartCollectionIter:
     """Test __iter__() method and iteration behavior."""
 
@@ -235,7 +235,9 @@ class TestSmartCollectionIter:
             count += 1
         assert count == 12
 
-    def test_iter_unpacking(self, mock_wrapped_rule_regular, mock_wrapped_rule_metathesis, mock_wrapped_rule_reduplication):
+    def test_iter_unpacking(
+        self, mock_wrapped_rule_regular, mock_wrapped_rule_metathesis, mock_wrapped_rule_reduplication
+    ):
         """Test unpacking items using iteration."""
         items = [mock_wrapped_rule_regular, mock_wrapped_rule_metathesis, mock_wrapped_rule_reduplication]
         collection = SmartCollection(items)
@@ -260,6 +262,7 @@ class TestSmartCollectionIter:
 # TESTS FOR __getitem__ (INDEXING AND SLICING)
 # =============================================================================
 
+
 class TestSmartCollectionGetItem:
     """Test __getitem__() method for indexing and slicing."""
 
@@ -269,7 +272,9 @@ class TestSmartCollectionGetItem:
         collection = SmartCollection(items)
         assert collection[0] == mock_wrapped_rule_regular
 
-    def test_getitem_middle_item(self, mock_wrapped_rule_regular, mock_wrapped_rule_metathesis, mock_wrapped_rule_reduplication):
+    def test_getitem_middle_item(
+        self, mock_wrapped_rule_regular, mock_wrapped_rule_metathesis, mock_wrapped_rule_reduplication
+    ):
         """Test indexing to get item in middle."""
         items = [mock_wrapped_rule_regular, mock_wrapped_rule_metathesis, mock_wrapped_rule_reduplication]
         collection = SmartCollection(items)
@@ -328,6 +333,7 @@ class TestSmartCollectionGetItem:
 # TESTS FOR __str__
 # =============================================================================
 
+
 class TestSmartCollectionStr:
     """Test __str__() method displays type breakdown."""
 
@@ -335,7 +341,7 @@ class TestSmartCollectionStr:
         """Test __str__() on empty collection."""
         collection = SmartCollection()
         result = str(collection)
-        assert 'empty' in result.lower()
+        assert "empty" in result.lower()
 
     def test_str_single_type(self, mock_wrapped_rule_regular):
         """Test __str__() with single type."""
@@ -343,52 +349,53 @@ class TestSmartCollectionStr:
         collection = SmartCollection(items)
         result = str(collection)
 
-        assert 'PhRegularRule' in result
-        assert '5' in result
+        assert "PhRegularRule" in result
+        assert "5" in result
 
     def test_str_mixed_types(self, sample_mixed_collection):
         """Test __str__() shows breakdown of mixed types."""
         result = str(sample_mixed_collection)
 
         # Should show total count
-        assert '12' in result or 'total' in result.lower()
+        assert "12" in result or "total" in result.lower()
         # Should show each type
-        assert 'PhRegularRule' in result
-        assert 'PhMetathesisRule' in result
-        assert 'PhReduplicationRule' in result
+        assert "PhRegularRule" in result
+        assert "PhMetathesisRule" in result
+        assert "PhReduplicationRule" in result
 
     def test_str_shows_percentage(self, sample_mixed_collection):
         """Test __str__() includes percentage for each type."""
         result = str(sample_mixed_collection)
         # PhRegularRule is 7/12 = 58%
-        assert '58%' in result
+        assert "58%" in result
 
     def test_str_sorted_by_count(self, sample_mixed_collection):
         """Test __str__() sorts types by count (descending)."""
         result = str(sample_mixed_collection)
-        lines = result.split('\n')
+        lines = result.split("\n")
 
         # First type listed should be most common
-        assert 'PhRegularRule' in lines[1]
+        assert "PhRegularRule" in lines[1]
 
     def test_str_includes_collection_name(self):
         """Test __str__() includes collection class name."""
         collection = SmartCollection()
         result = str(collection)
-        assert 'SmartCollection' in result
+        assert "SmartCollection" in result
 
     def test_str_format_is_readable(self, sample_mixed_collection):
         """Test __str__() format is human-readable."""
         result = str(sample_mixed_collection)
         # Should have multiple lines
-        assert '\n' in result
+        assert "\n" in result
         # Should use consistent formatting
-        assert '(' in result and ')' in result
+        assert "(" in result and ")" in result
 
 
 # =============================================================================
 # TESTS FOR __repr__
 # =============================================================================
+
 
 class TestSmartCollectionRepr:
     """Test __repr__() method."""
@@ -397,20 +404,20 @@ class TestSmartCollectionRepr:
         """Test __repr__() shows number of items."""
         collection = SmartCollection()
         result = repr(collection)
-        assert '0 items' in result
+        assert "0 items" in result
 
     def test_repr_with_items(self, mock_wrapped_rule_regular):
         """Test __repr__() with items."""
         items = [mock_wrapped_rule_regular] * 5
         collection = SmartCollection(items)
         result = repr(collection)
-        assert '5 items' in result
+        assert "5 items" in result
 
     def test_repr_includes_class_name(self):
         """Test __repr__() includes class name."""
         collection = SmartCollection()
         result = repr(collection)
-        assert 'SmartCollection' in result
+        assert "SmartCollection" in result
 
     def test_repr_format(self, sample_mixed_collection):
         """Test __repr__() format."""
@@ -422,40 +429,41 @@ class TestSmartCollectionRepr:
 # TESTS FOR BY_TYPE FILTERING
 # =============================================================================
 
+
 class TestSmartCollectionByType:
     """Test by_type() method for filtering by concrete type."""
 
     def test_by_type_filters_to_specific_type(self, sample_mixed_collection):
         """Test by_type() returns only items of specified type."""
-        regular_only = sample_mixed_collection.by_type('PhRegularRule')
+        regular_only = sample_mixed_collection.by_type("PhRegularRule")
         assert len(regular_only) == 7
         # All items should be PhRegularRule
         for item in regular_only:
-            assert item.class_type == 'PhRegularRule'
+            assert item.class_type == "PhRegularRule"
 
     def test_by_type_returns_new_collection(self, sample_mixed_collection):
         """Test by_type() returns a new collection instance."""
-        filtered = sample_mixed_collection.by_type('PhRegularRule')
+        filtered = sample_mixed_collection.by_type("PhRegularRule")
         assert filtered is not sample_mixed_collection
         assert isinstance(filtered, SmartCollection)
 
     def test_by_type_doesnt_modify_original(self, sample_mixed_collection):
         """Test by_type() doesn't modify original collection."""
         original_len = len(sample_mixed_collection)
-        _ = sample_mixed_collection.by_type('PhRegularRule')
+        _ = sample_mixed_collection.by_type("PhRegularRule")
         assert len(sample_mixed_collection) == original_len
 
     def test_by_type_different_types(self, sample_mixed_collection):
         """Test by_type() with different type filters."""
-        metathesis = sample_mixed_collection.by_type('PhMetathesisRule')
+        metathesis = sample_mixed_collection.by_type("PhMetathesisRule")
         assert len(metathesis) == 3
 
-        reduplication = sample_mixed_collection.by_type('PhReduplicationRule')
+        reduplication = sample_mixed_collection.by_type("PhReduplicationRule")
         assert len(reduplication) == 2
 
     def test_by_type_no_matches_returns_empty(self, sample_mixed_collection):
         """Test by_type() returns empty collection when no matches."""
-        nonexistent = sample_mixed_collection.by_type('NonExistentType')
+        nonexistent = sample_mixed_collection.by_type("NonExistentType")
         assert len(nonexistent) == 0
         assert isinstance(nonexistent, SmartCollection)
 
@@ -463,16 +471,16 @@ class TestSmartCollectionByType:
         """Test by_type() works with items using ClassName fallback."""
         # Create items without class_type, only ClassName
         item = Mock()
-        item.ClassName = 'MoStemMsa'
+        item.ClassName = "MoStemMsa"
         del item.class_type  # Remove class_type to test fallback
         collection = SmartCollection([item])
 
-        filtered = collection.by_type('MoStemMsa')
+        filtered = collection.by_type("MoStemMsa")
         assert len(filtered) == 1
 
     def test_by_type_chaining(self, sample_mixed_collection):
         """Test that by_type() result can be used with other methods."""
-        regular = sample_mixed_collection.by_type('PhRegularRule')
+        regular = sample_mixed_collection.by_type("PhRegularRule")
         # Should be iterable
         count = sum(1 for _ in regular)
         assert count == 7
@@ -482,6 +490,7 @@ class TestSmartCollectionByType:
 # TESTS FOR FILTER METHOD
 # =============================================================================
 
+
 class TestSmartCollectionFilter:
     """Test filter() method raises NotImplementedError on base class."""
 
@@ -490,22 +499,23 @@ class TestSmartCollectionFilter:
         collection = SmartCollection()
         with pytest.raises(NotImplementedError) as exc_info:
             collection.filter()
-        assert 'does not implement filter' in str(exc_info.value)
+        assert "does not implement filter" in str(exc_info.value)
 
     def test_filter_with_kwargs_raises_not_implemented(self, sample_mixed_collection):
         """Test filter() with keyword args raises NotImplementedError."""
         with pytest.raises(NotImplementedError):
-            sample_mixed_collection.filter(name_contains='rule')
+            sample_mixed_collection.filter(name_contains="rule")
 
     def test_filter_error_message_includes_class_name(self):
         """Test filter() error message mentions class name."""
         collection = SmartCollection()
         with pytest.raises(NotImplementedError) as exc_info:
             collection.filter()
-        assert 'SmartCollection' in str(exc_info.value)
+        assert "SmartCollection" in str(exc_info.value)
 
     def test_subclass_can_override_filter(self):
         """Test that subclasses can override filter()."""
+
         class TestCollection(SmartCollection):
             def filter(self, **criteria):
                 return TestCollection([item for item in self._items])
@@ -519,6 +529,7 @@ class TestSmartCollectionFilter:
 # =============================================================================
 # TESTS FOR APPEND AND EXTEND
 # =============================================================================
+
 
 class TestSmartCollectionAppendExtend:
     """Test append() and extend() methods."""
@@ -570,6 +581,7 @@ class TestSmartCollectionAppendExtend:
 # TESTS FOR CLEAR
 # =============================================================================
 
+
 class TestSmartCollectionClear:
     """Test clear() method."""
 
@@ -602,6 +614,7 @@ class TestSmartCollectionClear:
 # TESTS FOR EDGE CASES
 # =============================================================================
 
+
 class TestSmartCollectionEdgeCases:
     """Test edge cases and special scenarios."""
 
@@ -619,14 +632,14 @@ class TestSmartCollectionEdgeCases:
 
     def test_collection_with_items_missing_class_type(self):
         """Test collection with items missing class_type property."""
-        item = Mock(spec=['Name'])
-        item.Name = 'test'
-        item.ClassName = 'TestType'
+        item = Mock(spec=["Name"])
+        item.Name = "test"
+        item.ClassName = "TestType"
         # Don't set class_type
         collection = SmartCollection([item])
         # Should still work, using ClassName fallback
         result = str(collection)
-        assert 'TestType' in result
+        assert "TestType" in result
 
     def test_large_collection(self, mock_wrapped_rule_regular):
         """Test collection with many items."""
@@ -641,9 +654,9 @@ class TestSmartCollectionEdgeCases:
         collection = SmartCollection(items)
 
         assert len(collection) == 3
-        stems = collection.by_type('MoStemMsa')
+        stems = collection.by_type("MoStemMsa")
         assert len(stems) == 2
-        inflaf = collection.by_type('MoInflAffMsa')
+        inflaf = collection.by_type("MoInflAffMsa")
         assert len(inflaf) == 1
 
 
@@ -651,26 +664,27 @@ class TestSmartCollectionEdgeCases:
 # INTEGRATION TESTS
 # =============================================================================
 
+
 class TestSmartCollectionIntegration:
     """Integration tests combining multiple operations."""
 
     def test_workflow_filter_then_iterate(self, sample_mixed_collection):
         """Test typical workflow: filter then iterate."""
-        regular_rules = sample_mixed_collection.by_type('PhRegularRule')
+        regular_rules = sample_mixed_collection.by_type("PhRegularRule")
         count = sum(1 for rule in regular_rules)
         assert count == 7
 
     def test_workflow_modify_and_refilter(self, sample_mixed_collection, mock_wrapped_rule_reduplication):
         """Test modifying collection and re-filtering."""
-        initial_redup = len(sample_mixed_collection.by_type('PhReduplicationRule'))
+        initial_redup = len(sample_mixed_collection.by_type("PhReduplicationRule"))
         sample_mixed_collection.append(mock_wrapped_rule_reduplication)
-        updated_redup = len(sample_mixed_collection.by_type('PhReduplicationRule'))
+        updated_redup = len(sample_mixed_collection.by_type("PhReduplicationRule"))
         assert updated_redup == initial_redup + 1
 
     def test_workflow_slice_then_filter(self, sample_mixed_collection):
         """Test slicing result then filtering."""
         subset = sample_mixed_collection[0:6]
-        regular = subset.by_type('PhRegularRule')
+        regular = subset.by_type("PhRegularRule")
         assert len(regular) <= 6
 
     def test_workflow_clear_and_rebuild(self, sample_mixed_collection, mock_wrapped_rule_regular):
@@ -681,7 +695,7 @@ class TestSmartCollectionIntegration:
         sample_mixed_collection.extend([mock_wrapped_rule_regular] * 5)
         assert len(sample_mixed_collection) == 5
 
-        filtered = sample_mixed_collection.by_type('PhRegularRule')
+        filtered = sample_mixed_collection.by_type("PhRegularRule")
         assert len(filtered) == 5
 
 

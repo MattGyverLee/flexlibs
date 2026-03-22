@@ -10,12 +10,7 @@ Date: 2025-11-27
 import unittest
 from unittest.mock import Mock
 
-from flexlibs2.sync.dependency_graph import (
-    DependencyGraph,
-    DependencyType,
-    DependencyNode,
-    CircularDependencyError
-)
+from flexlibs2.sync.dependency_graph import DependencyGraph, DependencyType, DependencyNode, CircularDependencyError
 
 
 class TestDependencyNode(unittest.TestCase):
@@ -414,10 +409,7 @@ class TestSubgraph(unittest.TestCase):
 
         # Check dependency is preserved
         self.assertIn("entry-1", subgraph.nodes["sense-1"].dependencies)
-        self.assertEqual(
-            subgraph.nodes["sense-1"].dependency_types["entry-1"],
-            DependencyType.OWNERSHIP
-        )
+        self.assertEqual(subgraph.nodes["sense-1"].dependency_types["entry-1"], DependencyType.OWNERSHIP)
 
 
 class TestGraphSummary(unittest.TestCase):
@@ -447,5 +439,5 @@ class TestGraphSummary(unittest.TestCase):
         self.assertIn("ownership", summary.lower())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -22,7 +22,7 @@ def check_file(filepath):
     errors = []
 
     try:
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, "r", encoding="utf-8") as f:
             lines = f.readlines()
     except (IOError, OSError) as e:
         return [f"{filepath}: {e}"]
@@ -32,11 +32,10 @@ def check_file(filepath):
         next_line = lines[i + 1].strip()
 
         # Check for consecutive duplicate decorators
-        if line == '@OperationsMethod' and next_line == '@OperationsMethod':
+        if line == "@OperationsMethod" and next_line == "@OperationsMethod":
             line_num = i + 1
             errors.append(
-                f"{filepath}:{line_num}: "
-                f"Duplicate @OperationsMethod decorator (also at line {line_num + 1})"
+                f"{filepath}:{line_num}: " f"Duplicate @OperationsMethod decorator (also at line {line_num + 1})"
             )
 
         # Check for triple decorator pattern
@@ -44,14 +43,15 @@ def check_file(filepath):
             third = lines[i + 2].strip()
             fourth = lines[i + 3].strip() if i + 3 < len(lines) else ""
 
-            if (line == '@OperationsMethod' and
-                next_line == '@OperationsMethod' and
-                third == '@wrap_enumerable' and
-                fourth == '@OperationsMethod'):
+            if (
+                line == "@OperationsMethod"
+                and next_line == "@OperationsMethod"
+                and third == "@wrap_enumerable"
+                and fourth == "@OperationsMethod"
+            ):
                 line_num = i + 1
                 errors.append(
-                    f"{filepath}:{line_num}: "
-                    f"Triple/quadruple decorator stack - remove duplicate @OperationsMethod"
+                    f"{filepath}:{line_num}: " f"Triple/quadruple decorator stack - remove duplicate @OperationsMethod"
                 )
 
     return errors
@@ -67,7 +67,7 @@ def main():
 
     for filepath in sys.argv[1:]:
         # Only check operation files
-        if not filepath.endswith('Operations.py'):
+        if not filepath.endswith("Operations.py"):
             continue
 
         errors = check_file(filepath)
@@ -83,5 +83,5 @@ def main():
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

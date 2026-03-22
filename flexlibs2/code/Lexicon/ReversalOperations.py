@@ -29,6 +29,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+
 class ReversalOperations(BaseOperations):
     """
     This class provides operations for managing reversal entries in a
@@ -283,9 +284,7 @@ class ReversalOperations(BaseOperations):
         wsHandle = self.__WSHandleAnalysis(ws)
 
         # Create the new reversal entry using the factory
-        factory = self.project.project.ServiceLocator.GetService(
-            IReversalIndexEntryFactory
-        )
+        factory = self.project.project.ServiceLocator.GetService(IReversalIndexEntryFactory)
         new_entry = factory.Create()
 
         # Add entry to reversal index (must be done before setting properties)
@@ -825,9 +824,7 @@ class ReversalOperations(BaseOperations):
         wsHandle = self.__WSHandleAnalysis(ws)
 
         # Create the new reversal entry using the factory
-        factory = self.project.project.ServiceLocator.GetService(
-            IReversalIndexEntryFactory
-        )
+        factory = self.project.project.ServiceLocator.GetService(IReversalIndexEntryFactory)
         new_subentry = factory.Create()
 
         # Add subentry to parent's subentries collection (must be done before setting properties)
@@ -990,9 +987,7 @@ class ReversalOperations(BaseOperations):
         parent_entry = self.GetParentEntry(source)
 
         # Create new reversal entry using factory (auto-generates new GUID)
-        factory = self.project.project.ServiceLocator.GetService(
-            IReversalIndexEntryFactory
-        )
+        factory = self.project.project.ServiceLocator.GetService(IReversalIndexEntryFactory)
         duplicate = factory.Create()
 
         # Determine insertion position - ADD TO PARENT FIRST
@@ -1050,13 +1045,13 @@ class ReversalOperations(BaseOperations):
         # MultiString properties
         # ReversalForm - the reversal form text
         form_dict = {}
-        if hasattr(item, 'ReversalForm'):
+        if hasattr(item, "ReversalForm"):
             for ws_handle in self.project.GetAllWritingSystems():
                 text = ITsString(item.ReversalForm.get_String(ws_handle)).Text
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     form_dict[ws_tag] = text
-        props['ReversalForm'] = form_dict
+        props["ReversalForm"] = form_dict
 
         # Note: SensesRS is a Reference Sequence (complex relationships) - not included
         # Note: SubentriesOS is an Owning Sequence (OS) - not included

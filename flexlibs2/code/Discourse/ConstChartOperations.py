@@ -31,6 +31,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+
 class ConstChartOperations(BaseOperations):
     """
     This class provides operations for managing constituent charts in a
@@ -105,7 +106,7 @@ class ConstChartOperations(BaseOperations):
         """
         # Get the DsDiscourse object that contains all charts
         discourse = self.project.lp.DiscourseDataOA
-        if discourse and hasattr(discourse, 'ChartsOC'):
+        if discourse and hasattr(discourse, "ChartsOC"):
             for chart in discourse.ChartsOC:
                 if isinstance(chart, IDsConstChart):
                     yield chart
@@ -412,7 +413,7 @@ class ConstChartOperations(BaseOperations):
 
         chart = self.__ResolveObject(chart_or_hvo)
 
-        return chart.TemplateRA if hasattr(chart, 'TemplateRA') else None
+        return chart.TemplateRA if hasattr(chart, "TemplateRA") else None
 
     @OperationsMethod
     def SetTemplate(self, chart_or_hvo, template):
@@ -535,6 +536,7 @@ class ConstChartOperations(BaseOperations):
         if not discourse:
             # Create DsDiscourse container
             from SIL.LCModel import IDsDiscourseFactory
+
             factory = self.project.project.ServiceLocator.GetService(IDsDiscourseFactory)
             discourse = factory.Create()
             self.project.lp.DiscourseDataOA = discourse

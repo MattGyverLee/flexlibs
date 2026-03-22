@@ -32,7 +32,7 @@ class TestLCMAPIUsage:
         ops_dir = Path("flexlibs2/code")
 
         for py_file in ops_dir.rglob("*Operations.py"):
-            content = py_file.read_text(encoding='utf-8')
+            content = py_file.read_text(encoding="utf-8")
 
             # Check for wrong usage
             if "CopyObject[" in content:
@@ -43,10 +43,12 @@ class TestLCMAPIUsage:
 
             # If CopyObject is mentioned, verify it's used correctly
             if "CopyObject" in content and "ServiceLocator" in content:
-                assert 'GetInstance("ICmObjectRepository")' in content, \
-                    f"{py_file}: CopyObject should be accessed via GetInstance"
-                assert "hasattr(cache, 'CopyObject')" in content, \
-                    f"{py_file}: Should check if CopyObject exists before use"
+                assert (
+                    'GetInstance("ICmObjectRepository")' in content
+                ), f"{py_file}: CopyObject should be accessed via GetInstance"
+                assert (
+                    "hasattr(cache, 'CopyObject')" in content
+                ), f"{py_file}: Should check if CopyObject exists before use"
 
     def test_copy_alternatives_usage(self):
         """
@@ -61,32 +63,55 @@ class TestLCMAPIUsage:
 
         # Properties that are MultiString/IMultiUnicode (correct for CopyAlternatives)
         correct_multistring_properties = {
-            'Name', 'Description', 'Form', 'Gloss', 'Definition', 'Comment',
-            'Abbreviation', 'Version', 'Source', 'Bibliography', 'Email',
-            'Gender', 'Example', 'Translation', 'Caption', 'Questions',
-            'OcmCodes', 'Title', 'Text', 'BaselineText', 'FreeTranslation',
-            'LiteralTranslation', 'DiscourseNote', 'EncyclopedicInfo',
-            'GeneralNote', 'GrammarNote', 'PhonologyNote', 'Restrictions',
-            'SemanticsNote', 'SocioLinguisticsNote', 'Copyright', 'Reference',
-            'Prompt', 'HelpString', 'PlaceOfBirth', 'Address'
+            "Name",
+            "Description",
+            "Form",
+            "Gloss",
+            "Definition",
+            "Comment",
+            "Abbreviation",
+            "Version",
+            "Source",
+            "Bibliography",
+            "Email",
+            "Gender",
+            "Example",
+            "Translation",
+            "Caption",
+            "Questions",
+            "OcmCodes",
+            "Title",
+            "Text",
+            "BaselineText",
+            "FreeTranslation",
+            "LiteralTranslation",
+            "DiscourseNote",
+            "EncyclopedicInfo",
+            "GeneralNote",
+            "GrammarNote",
+            "PhonologyNote",
+            "Restrictions",
+            "SemanticsNote",
+            "SocioLinguisticsNote",
+            "Copyright",
+            "Reference",
+            "Prompt",
+            "HelpString",
+            "PlaceOfBirth",
+            "Address",
         }
 
         # Properties that are ITsString (incorrect for CopyAlternatives)
-        wrong_for_copy_alternatives = {
-            'StringRepresentation'
-        }
+        wrong_for_copy_alternatives = {"StringRepresentation"}
 
         for py_file in ops_dir.rglob("*Operations.py"):
-            content = py_file.read_text(encoding='utf-8')
+            content = py_file.read_text(encoding="utf-8")
 
             # Check for wrong ITsString usage
             for wrong_prop in wrong_for_copy_alternatives:
-                pattern = rf'{wrong_prop}\.CopyAlternatives'
+                pattern = rf"{wrong_prop}\.CopyAlternatives"
                 if re.search(pattern, content):
-                    pytest.fail(
-                        f"{py_file}: {wrong_prop} is ITsString, "
-                        f"should not use .CopyAlternatives()"
-                    )
+                    pytest.fail(f"{py_file}: {wrong_prop} is ITsString, " f"should not use .CopyAlternatives()")
 
     def test_tsstringutils_makestring_usage(self):
         """
@@ -100,12 +125,13 @@ class TestLCMAPIUsage:
         ops_dir = Path("flexlibs2/code")
 
         for py_file in ops_dir.rglob("*Operations.py"):
-            content = py_file.read_text(encoding='utf-8')
+            content = py_file.read_text(encoding="utf-8")
 
             # If TsStringUtils is used, verify it's imported
             if "TsStringUtils.MakeString" in content:
-                assert "from SIL.LCModel.Core.Text import TsStringUtils" in content, \
-                    f"{py_file}: Must import TsStringUtils"
+                assert (
+                    "from SIL.LCModel.Core.Text import TsStringUtils" in content
+                ), f"{py_file}: Must import TsStringUtils"
 
     def test_factory_create_usage(self):
         """
@@ -119,14 +145,13 @@ class TestLCMAPIUsage:
         ops_dir = Path("flexlibs2/code")
 
         for py_file in ops_dir.rglob("*Operations.py"):
-            content = py_file.read_text(encoding='utf-8')
+            content = py_file.read_text(encoding="utf-8")
 
             # If Create() is used, verify the pattern
             if ".Create()" in content:
                 # Should have factory retrieved via GetService
                 if "ServiceLocator.GetService" in content:
-                    assert "GetService(" in content, \
-                        f"{py_file}: Should use ServiceLocator.GetService to get factory"
+                    assert "GetService(" in content, f"{py_file}: Should use ServiceLocator.GetService to get factory"
 
     def test_owned_object_copy_patterns(self):
         """
@@ -140,18 +165,15 @@ class TestLCMAPIUsage:
         ops_dir = Path("flexlibs2/code")
 
         for py_file in ops_dir.rglob("*Operations.py"):
-            content = py_file.read_text(encoding='utf-8')
+            content = py_file.read_text(encoding="utf-8")
 
             # Check for OA property patterns
-            oa_patterns = [
-                r'LeftContextOA', r'RightContextOA', r'FeaturesOA',
-                r'\.OA\s*=', r'OwnedObject'
-            ]
+            oa_patterns = [r"LeftContextOA", r"RightContextOA", r"FeaturesOA", r"\.OA\s*=", r"OwnedObject"]
 
             for pattern in oa_patterns:
                 if re.search(pattern, content):
                     # When copying OA objects, should use deep copy
-                    if "duplicate" in content and pattern.replace(r'\.', '').replace('OA', '') in content:
+                    if "duplicate" in content and pattern.replace(r"\.", "").replace("OA", "") in content:
                         # This is a duplication method
                         pass  # Pattern verification would be complex
 
@@ -167,18 +189,18 @@ class TestLCMAPIUsage:
         ops_dir = Path("flexlibs2/code")
 
         for py_file in ops_dir.rglob("*Operations.py"):
-            content = py_file.read_text(encoding='utf-8')
+            content = py_file.read_text(encoding="utf-8")
 
             # Check ServiceLocator usage
             if "ServiceLocator.GetService" in content:
                 # Should be getting a Factory
-                assert "Factory" in content, \
-                    f"{py_file}: GetService should be used to get factories"
+                assert "Factory" in content, f"{py_file}: GetService should be used to get factories"
 
             if 'GetInstance("ICmObjectRepository")' in content:
                 # Should check if CopyObject exists
-                assert "hasattr(cache, 'CopyObject')" in content, \
-                    f"{py_file}: Should verify CopyObject exists before use"
+                assert (
+                    "hasattr(cache, 'CopyObject')" in content
+                ), f"{py_file}: Should verify CopyObject exists before use"
 
     def test_null_checks_before_copy(self):
         """
@@ -192,16 +214,12 @@ class TestLCMAPIUsage:
         ops_dir = Path("flexlibs2/code")
 
         for py_file in ops_dir.rglob("*Operations.py"):
-            content = py_file.read_text(encoding='utf-8')
+            content = py_file.read_text(encoding="utf-8")
 
             # Look for copy operations
             if "CopyAlternatives" in content or "CopyObject" in content:
                 # Should have checks
-                checks = [
-                    "if source.",
-                    "if hasattr(",
-                    "and source."
-                ]
+                checks = ["if source.", "if hasattr(", "and source."]
                 has_checks = any(check in content for check in checks)
                 # Note: Not failing here as some simple copies may not check
 
@@ -217,14 +235,13 @@ class TestLCMAPIUsage:
         ops_dir = Path("flexlibs2/code")
 
         for py_file in ops_dir.rglob("*Operations.py"):
-            content = py_file.read_text(encoding='utf-8')
+            content = py_file.read_text(encoding="utf-8")
 
             # Check for write-related checks
             if ".CanModify()" in content:
                 pytest.fail(f"{py_file}: Uses non-existent CanModify() method")
 
-            if "self.project.writeEnabled" not in content and \
-               "self._EnsureWriteEnabled()" in content:
+            if "self.project.writeEnabled" not in content and "self._EnsureWriteEnabled()" in content:
                 # If using write checks, should use writeEnabled property
                 pass  # The method itself uses writeEnabled
 

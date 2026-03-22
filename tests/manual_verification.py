@@ -26,11 +26,14 @@ sys.path.insert(0, _project_root)
 # Import FLEx modules
 try:
     from flexlibs2 import FLExProject, FLExInitialize, FLExCleanup
+
     # Core exceptions are in core module at project root
     try:
         from core.exceptions import (
-            ObjectNotFoundError, InvalidParameterError,
-            DuplicateObjectError, OperationFailedError
+            ObjectNotFoundError,
+            InvalidParameterError,
+            DuplicateObjectError,
+            OperationFailedError,
         )
     except ImportError:
         # Fallback if not available
@@ -46,6 +49,7 @@ except ImportError as e:
 # =============================================================================
 # RESULT TRACKING
 # =============================================================================
+
 
 class VerificationResult:
     """Track verification results"""
@@ -66,10 +70,7 @@ class VerificationResult:
 
     def add_exception(self, exc_type: str, exc_message: str):
         """Record an exception caught"""
-        self.exceptions.append({
-            'type': exc_type,
-            'message': exc_message
-        })
+        self.exceptions.append({"type": exc_type, "message": exc_message})
         print(f"  [EXCEPTION] {exc_type}: {exc_message}")
 
     def set_error(self, message: str):
@@ -87,6 +88,7 @@ class VerificationResult:
 # TEST FUNCTIONS
 # =============================================================================
 
+
 def verify_exception_types(project: FLExProject) -> VerificationResult:
     """
     Test what exceptions are actually thrown by various invalid operations.
@@ -101,9 +103,9 @@ def verify_exception_types(project: FLExProject) -> VerificationResult:
     """
 
     result = VerificationResult("verify_exception_types")
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("PHASE 0: Exception Type Verification")
-    print("="*70)
+    print("=" * 70)
 
     try:
         # Test 1: Invalid type casting with LexEntry
@@ -127,7 +129,7 @@ def verify_exception_types(project: FLExProject) -> VerificationResult:
                 entry = entries[0]
                 # Try to access properties using project wrapper
                 try:
-                    if hasattr(entry, 'HomographNumber'):
+                    if hasattr(entry, "HomographNumber"):
                         hom_num = entry.HomographNumber
                         result.add_finding(f"Property .HomographNumber accessible: {hom_num}")
                     else:
@@ -137,7 +139,7 @@ def verify_exception_types(project: FLExProject) -> VerificationResult:
 
                 # Try LexemeFormOA property
                 try:
-                    if hasattr(entry, 'LexemeFormOA'):
+                    if hasattr(entry, "LexemeFormOA"):
                         form = entry.LexemeFormOA
                         result.add_finding("Property .LexemeFormOA is accessible")
                 except AttributeError as e:
@@ -169,6 +171,7 @@ def verify_exception_types(project: FLExProject) -> VerificationResult:
         print("\n[TEST 4] DateTime parsing")
         try:
             import System
+
             # Try invalid datetime format
             try:
                 invalid_date = System.DateTime.Parse("not-a-date")
@@ -203,9 +206,9 @@ def verify_sense_lookups(project: FLExProject) -> VerificationResult:
     """
 
     result = VerificationResult("verify_sense_lookups")
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("PHASE 0: PossibilityList Lookup Verification")
-    print("="*70)
+    print("=" * 70)
 
     try:
         # Test 1: Verify PossibilityLists exists
@@ -247,7 +250,7 @@ def verify_sense_lookups(project: FLExProject) -> VerificationResult:
                 for plist in all_lists:
                     try:
                         # Get list properties
-                        if hasattr(plist, 'Name'):
+                        if hasattr(plist, "Name"):
                             name = plist.Name
                         else:
                             name = str(plist)
@@ -274,7 +277,7 @@ def verify_sense_lookups(project: FLExProject) -> VerificationResult:
 
                 # Try to access items
                 try:
-                    if hasattr(plist, '__iter__'):
+                    if hasattr(plist, "__iter__"):
                         items = list(plist)
                         item_count = len(items)
                         result.add_finding(f"List has {item_count} items")
@@ -316,9 +319,9 @@ def verify_homograph_logic(project: FLExProject) -> VerificationResult:
     """
 
     result = VerificationResult("verify_homograph_logic")
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("PHASE 0: Homograph Logic Verification")
-    print("="*70)
+    print("=" * 70)
 
     try:
         # Test 1: Find entries with HomographNumber > 0
@@ -329,7 +332,7 @@ def verify_homograph_logic(project: FLExProject) -> VerificationResult:
 
             for entry in entries:
                 try:
-                    if hasattr(entry, 'HomographNumber') and entry.HomographNumber > 0:
+                    if hasattr(entry, "HomographNumber") and entry.HomographNumber > 0:
                         homograph_entries.append(entry)
                         if len(homograph_entries) <= 3:
                             try:
@@ -388,9 +391,9 @@ def verify_property_aliases(project: FLExProject) -> VerificationResult:
     """
 
     result = VerificationResult("verify_property_aliases")
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("PHASE 0: Property Alias Pattern Verification")
-    print("="*70)
+    print("=" * 70)
 
     try:
         # Test 1: Create a test property alias pattern
@@ -425,6 +428,7 @@ def verify_property_aliases(project: FLExProject) -> VerificationResult:
                 # Pattern 3: Test with @property decorator
                 print("  Testing @property decorator pattern...")
                 try:
+
                     class EntryWrapper:
                         def __init__(self, lcm_entry):
                             self._entry = lcm_entry
@@ -468,9 +472,9 @@ def verify_safe_operations(project: FLExProject) -> VerificationResult:
     """
 
     result = VerificationResult("verify_safe_operations")
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("PHASE 0: Safe Operations Verification")
-    print("="*70)
+    print("=" * 70)
 
     try:
         # Test 1: Understand transaction model
@@ -480,18 +484,18 @@ def verify_safe_operations(project: FLExProject) -> VerificationResult:
             attrs = dir(project)
 
             # Look for transaction-related methods
-            if 'SaveChanges' in attrs:
+            if "SaveChanges" in attrs:
                 result.add_finding("SaveChanges() is available - persist changes")
 
-            if 'writeEnabled' in attrs:
+            if "writeEnabled" in attrs:
                 result.add_finding(f"writeEnabled attribute available (current: {project.writeEnabled})")
 
             # Check underlying cache for transaction methods
-            if hasattr(project, 'project'):
+            if hasattr(project, "project"):
                 cache_attrs = dir(project.project)
-                if 'BeginUndoTask' in cache_attrs:
+                if "BeginUndoTask" in cache_attrs:
                     result.add_finding("BeginUndoTask is available in underlying cache")
-                if 'EndUndoTask' in cache_attrs:
+                if "EndUndoTask" in cache_attrs:
                     result.add_finding("EndUndoTask is available in underlying cache")
 
         except Exception as e:
@@ -550,6 +554,7 @@ def verify_safe_operations(project: FLExProject) -> VerificationResult:
 # MAIN VERIFICATION FLOW
 # =============================================================================
 
+
 def run_phase_0_verification():
     """
     Run all Phase 0 verification tests.
@@ -562,9 +567,9 @@ def run_phase_0_verification():
     5. Generate report
     """
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("PHASE 0 VERIFICATION - BEGIN")
-    print("="*70)
+    print("=" * 70)
     print(f"Start time: {datetime.now()}")
 
     project = None
@@ -588,6 +593,7 @@ def run_phase_0_verification():
             print(f"  [ERROR] Cannot open Test project: {e}")
             print("  [INFO] Available projects:")
             from flexlibs2.flexlibs2.code.FLExLCM import GetListOfProjects
+
             try:
                 projects = GetListOfProjects()
                 for p in projects:
@@ -653,14 +659,14 @@ def run_phase_0_verification():
             print(f"  [ERROR] Error cleaning up FLEx: {e}")
 
     # Generate report
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("PHASE 0 VERIFICATION - REPORT")
-    print("="*70)
+    print("=" * 70)
 
     generate_report(results)
 
     print(f"\nEnd time: {datetime.now()}")
-    print("="*70)
+    print("=" * 70)
 
 
 def generate_report(results: List[VerificationResult]):

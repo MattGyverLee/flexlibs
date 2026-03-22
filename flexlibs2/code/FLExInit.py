@@ -7,7 +7,7 @@
 #           using any Fieldworks Assemblies as it sets up the
 #           path, and other low-level things.
 #
-#   Usage:  Call FLExInitialize() and FLExCleanup() as the first and 
+#   Usage:  Call FLExInitialize() and FLExCleanup() as the first and
 #           last actions from the main application.
 #
 #   Platform: Python.NET & IRONPython
@@ -22,11 +22,13 @@ import glob
 import shutil
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 # Defer version import to avoid circular dependency during initialization
 try:
     from .. import version
+
     logger.info("flexlibs version: %s" % version)
 except ImportError:
     # Version module not yet available during initialization
@@ -38,16 +40,19 @@ import clr
 
 # Configure the path for accessing the FW DLLs
 from . import FLExGlobals
-FLExGlobals.InitialiseFWGlobals() 
+
+FLExGlobals.InitialiseFWGlobals()
 
 clr.AddReference("FwUtils")
 from SIL.FieldWorks.Common.FwUtils import FwRegistryHelper, FwUtils
+
 clr.AddReference("SIL.WritingSystems")
 from SIL.WritingSystems import Sldr
 
 # -------------------------------------------------------------------
 
-def FLExInitialize ():
+
+def FLExInitialize():
     """
     Initialize the Fieldworks libraries. An application should call
     this as the first thing it does.
@@ -68,9 +73,10 @@ def FLExInitialize ():
     # then it is likely a dll issue.
     logger.debug("FLExInit.Initialize complete")
 
+
 def FLExCleanup():
     """
     Close up the Fieldworks libraries. An application should call this
     before exiting.
     """
-    Sldr.Cleanup();
+    Sldr.Cleanup()

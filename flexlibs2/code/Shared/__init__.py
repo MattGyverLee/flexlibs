@@ -11,10 +11,10 @@ from .string_utils import (
 )
 
 __all__ = [
-    'normalize_text',
-    'is_empty_text',
-    'best_analysis_text',
-    'best_vernacular_text',
-    'best_text',
-    'FLEX_NULL_MARKER',
+    "normalize_text",
+    "is_empty_text",
+    "best_analysis_text",
+    "best_vernacular_text",
+    "best_text",
+    "FLEX_NULL_MARKER",
 ]

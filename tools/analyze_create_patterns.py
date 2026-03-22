@@ -47,11 +47,11 @@ def analyze_file(filepath):
     Returns:
         List of issues found in the file
     """
-    with open(filepath, 'r', encoding='utf-8') as f:
+    with open(filepath, "r", encoding="utf-8") as f:
         content = f.read()
 
     # Find all factory.Create() calls with context
-    create_pattern = r'(\w+)\s*=\s*factory\.Create\(\)([^\n]*\n(?:.*?\n){0,20})'
+    create_pattern = r"(\w+)\s*=\s*factory\.Create\(\)([^\n]*\n(?:.*?\n){0,20})"
     matches = re.finditer(create_pattern, content, re.MULTILINE)
 
     issues = []
@@ -61,8 +61,8 @@ def analyze_file(filepath):
 
         # Check if properties are set before Add()
         # Look for patterns like: var_name.Property = value OR var_name.Method()
-        property_pattern = rf'{var_name}\.\w+[\.\(]'
-        add_pattern = rf'\.Add\({var_name}\)'
+        property_pattern = rf"{var_name}\.\w+[\.\(]"
+        add_pattern = rf"\.Add\({var_name}\)"
 
         property_match = re.search(property_pattern, context)
         add_match = re.search(add_pattern, context)
@@ -70,12 +70,8 @@ def analyze_file(filepath):
         if property_match and add_match:
             # Check if property comes before Add
             if property_match.start() < add_match.start():
-                line_num = content[:match.start()].count('\n') + 1
-                issues.append({
-                    'line': line_num,
-                    'var': var_name,
-                    'context': match.group(0)[:200]
-                })
+                line_num = content[: match.start()].count("\n") + 1
+                issues.append({"line": line_num, "var": var_name, "context": match.group(0)[:200]})
 
     return issues
 

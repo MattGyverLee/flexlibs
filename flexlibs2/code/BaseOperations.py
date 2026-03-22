@@ -126,12 +126,14 @@ def wrap_enumerable(func):
             count = items.Count      # Works!
             first = items[0]         # Works!
     """
+
     def wrapper(*args, **kwargs):
         result = func(*args, **kwargs)
         # Only wrap if it looks like an IEnumerable (has GetEnumerator)
-        if result is not None and hasattr(result, 'GetEnumerator'):
+        if result is not None and hasattr(result, "GetEnumerator"):
             return EnumerableWrapper(result)
         return result
+
     return wrapper
 
 
@@ -183,6 +185,7 @@ class OperationsMethod:
                 """Automatically instantiate and call the method."""
                 instance = objtype(project)
                 return self.func(instance, *args, **kwargs)
+
             return class_method
         else:
             # Called on instance: POSOperations(project).GetAll()
@@ -616,9 +619,7 @@ class BaseOperations:
 
         # Validate new index
         if new_index < 0 or new_index >= sequence.Count:
-            raise IndexError(
-                f"Index {new_index} out of range [0, {sequence.Count-1}]"
-            )
+            raise IndexError(f"Index {new_index} out of range [0, {sequence.Count-1}]")
 
         # Move using FLEx's MoveTo method
         # Adjust destination index based on direction
@@ -1248,10 +1249,8 @@ class BaseOperations:
             MoveBefore, MoveAfter, Swap
         """
         # Verify items have Owner property
-        if not hasattr(item1, 'Owner') or not hasattr(item2, 'Owner'):
-            raise ValueError(
-                "Items must have Owner property to find common sequence"
-            )
+        if not hasattr(item1, "Owner") or not hasattr(item2, "Owner"):
+            raise ValueError("Items must have Owner property to find common sequence")
 
         # Check if items have same owner
         if item1.Owner != item2.Owner:
@@ -1276,10 +1275,10 @@ class BaseOperations:
         # Iterate through all properties ending in 'OS' (Owning Sequence)
         parent_type = parent.GetType()
         for prop_info in parent_type.GetProperties():
-            if prop_info.Name.endswith('OS'):
+            if prop_info.Name.endswith("OS"):
                 try:
                     sequence = prop_info.GetValue(parent, None)
-                    if sequence is None or not hasattr(sequence, 'Count'):
+                    if sequence is None or not hasattr(sequence, "Count"):
                         continue
 
                     # Check if both items are in this sequence
@@ -1299,8 +1298,7 @@ class BaseOperations:
 
         # Items have same owner but not found in any OS property
         raise ValueError(
-            "Items not in same sequence or sequence not found. "
-            "Both items must be in the same owning sequence (OS)."
+            "Items not in same sequence or sequence not found. " "Both items must be in the same owning sequence (OS)."
         )
 
     # ========== VALIDATION METHODS ==========
@@ -1390,9 +1388,7 @@ class BaseOperations:
         if param is None:
             raise Exception(f"{param_name} cannot be None")
 
-    def _ValidateParamNotEmpty(
-        self, param: any, param_name: str = "parameter"
-    ) -> None:
+    def _ValidateParamNotEmpty(self, param: any, param_name: str = "parameter") -> None:
         """
         Validate that a parameter is not None and not empty.
 
@@ -1443,9 +1439,7 @@ class BaseOperations:
         if len(param) == 0:
             raise Exception(f"{param_name} cannot be empty")
 
-    def _ValidateInstanceOf(
-        self, obj: any, expected_type: type, param_name: str = "object"
-    ) -> None:
+    def _ValidateInstanceOf(self, obj: any, expected_type: type, param_name: str = "object") -> None:
         """
         Validate that an object is an instance of expected type.
 
@@ -1498,10 +1492,7 @@ class BaseOperations:
                 type_names = " or ".join(t.__name__ for t in expected_type)
             else:
                 type_names = expected_type.__name__
-            raise TypeError(
-                f"{param_name} must be {type_names}, "
-                f"got {type(obj).__name__}"
-            )
+            raise TypeError(f"{param_name} must be {type_names}, " f"got {type(obj).__name__}")
 
     def _ValidateStringNotEmpty(self, text: str, param_name: str = "text") -> None:
         """
@@ -1550,19 +1541,13 @@ class BaseOperations:
             - No side effects
         """
         if not isinstance(text, str):
-            raise TypeError(
-                f"{param_name} must be a string, got {type(text).__name__}"
-            )
+            raise TypeError(f"{param_name} must be a string, got {type(text).__name__}")
         if text is None:
             raise Exception(f"{param_name} cannot be None")
         if len(text.strip()) == 0:
-            raise Exception(
-                f"{param_name} cannot be empty or contain only whitespace"
-            )
+            raise Exception(f"{param_name} cannot be empty or contain only whitespace")
 
-    def _ValidateIndexBounds(
-        self, index: int, max_count: int, param_name: str = "index"
-    ) -> None:
+    def _ValidateIndexBounds(self, index: int, max_count: int, param_name: str = "index") -> None:
         """
         Validate that an index is within bounds [0, max_count-1].
 
@@ -1613,22 +1598,13 @@ class BaseOperations:
             - No side effects
         """
         if not isinstance(index, int):
-            raise TypeError(
-                f"{param_name} must be an integer, got {type(index).__name__}"
-            )
+            raise TypeError(f"{param_name} must be an integer, got {type(index).__name__}")
         if index < 0:
-            raise ValueError(
-                f"{param_name} cannot be negative, got {index}"
-            )
+            raise ValueError(f"{param_name} cannot be negative, got {index}")
         if index >= max_count:
-            raise IndexError(
-                f"{param_name} out of bounds: {index} >= {max_count} "
-                f"(valid range: 0-{max_count - 1})"
-            )
+            raise IndexError(f"{param_name} out of bounds: {index} >= {max_count} " f"(valid range: 0-{max_count - 1})")
 
-    def _ValidateOwner(
-        self, obj: any, expected_owner: any, param_name: str = "object"
-    ) -> None:
+    def _ValidateOwner(self, obj: any, expected_owner: any, param_name: str = "object") -> None:
         """
         Validate that an object has expected owner.
 
@@ -1677,9 +1653,7 @@ class BaseOperations:
             - No side effects
         """
         if not hasattr(obj, "Owner"):
-            raise AttributeError(
-                f"{param_name} does not have Owner property"
-            )
+            raise AttributeError(f"{param_name} does not have Owner property")
         if obj.Owner != expected_owner:
             raise ValueError(
                 f"{param_name} owner does not match expected owner. "

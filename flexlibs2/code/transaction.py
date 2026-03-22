@@ -11,6 +11,7 @@
 #
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -96,8 +97,7 @@ class _FLExTransaction:
 
         # Failure path: rollback
         logger.warning(
-            f"Transaction '{self._label}': exception {exc_type.__name__}, "
-            f"rolling back to mark {self._mark}"
+            f"Transaction '{self._label}': exception {exc_type.__name__}, " f"rolling back to mark {self._mark}"
         )
 
         if self._mark is not None and self._rollback_fn is not None:

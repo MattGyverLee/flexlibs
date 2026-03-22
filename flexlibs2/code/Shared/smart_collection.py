@@ -173,7 +173,7 @@ class SmartCollection(Iterable):
         # Count items by ClassName
         type_counts = {}
         for item in self._items:
-            class_type = getattr(item, 'class_type', getattr(item, 'ClassName', 'Unknown'))
+            class_type = getattr(item, "class_type", getattr(item, "ClassName", "Unknown"))
             type_counts[class_type] = type_counts.get(class_type, 0) + 1
 
         # Build summary
@@ -225,8 +225,7 @@ class SmartCollection(Iterable):
             - Use ClassName strings like 'PhRegularRule', 'MoStemMsa', etc.
         """
         filtered = [
-            item for item in self._items
-            if getattr(item, 'class_type', getattr(item, 'ClassName', None)) == class_name
+            item for item in self._items if getattr(item, "class_type", getattr(item, "ClassName", None)) == class_name
         ]
         return type(self)(filtered)
 

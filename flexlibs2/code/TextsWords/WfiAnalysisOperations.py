@@ -12,6 +12,7 @@
 #
 
 import clr
+
 clr.AddReference("System")
 import System
 
@@ -38,13 +39,17 @@ from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
 # --- Approval Status Enum ---
 
+
 class ApprovalStatusTypes:
     """Approval status values for wordform analyses."""
-    DISAPPROVED = 0      # Parser or human has disapproved
-    UNAPPROVED = 1       # Not yet approved/reviewed
-    APPROVED = 2         # Parser or human has approved
+
+    DISAPPROVED = 0  # Parser or human has disapproved
+    UNAPPROVED = 1  # Not yet approved/reviewed
+    APPROVED = 2  # Parser or human has approved
+
 
 # --- WfiAnalysisOperations Class ---
+
 
 class WfiAnalysisOperations(BaseOperations):
     """
@@ -266,8 +271,8 @@ class WfiAnalysisOperations(BaseOperations):
         props = {}
 
         # Reference Atomic property - CategoryRA (Part of Speech)
-        if hasattr(item, 'CategoryRA') and item.CategoryRA:
-            props['CategoryRA'] = str(item.CategoryRA.Guid)
+        if hasattr(item, "CategoryRA") and item.CategoryRA:
+            props["CategoryRA"] = str(item.CategoryRA.Guid)
 
         return props
 
@@ -432,7 +437,7 @@ class WfiAnalysisOperations(BaseOperations):
             parent.AnalysesOC.Add(duplicate)
 
         # Copy Reference Atomic (RA) properties
-        if hasattr(source, 'CategoryRA') and source.CategoryRA:
+        if hasattr(source, "CategoryRA") and source.CategoryRA:
             duplicate.CategoryRA = source.CategoryRA
 
         # Note: We intentionally do NOT copy EvaluationsRC (approval status)
@@ -458,13 +463,13 @@ class WfiAnalysisOperations(BaseOperations):
                 # Copy bundle properties
                 new_bundle.Form.CopyAlternatives(bundle.Form)
                 new_bundle.Gloss.CopyAlternatives(bundle.Gloss)
-                if hasattr(bundle, 'SenseRA') and bundle.SenseRA:
+                if hasattr(bundle, "SenseRA") and bundle.SenseRA:
                     new_bundle.SenseRA = bundle.SenseRA
-                if hasattr(bundle, 'MsaRA') and bundle.MsaRA:
+                if hasattr(bundle, "MsaRA") and bundle.MsaRA:
                     new_bundle.MsaRA = bundle.MsaRA
-                if hasattr(bundle, 'MorphRA') and bundle.MorphRA:
+                if hasattr(bundle, "MorphRA") and bundle.MorphRA:
                     new_bundle.MorphRA = bundle.MorphRA
-                if hasattr(bundle, 'InflClassRA') and bundle.InflClassRA:
+                if hasattr(bundle, "InflClassRA") and bundle.InflClassRA:
                     new_bundle.InflClassRA = bundle.InflClassRA
 
         return duplicate
@@ -564,7 +569,7 @@ class WfiAnalysisOperations(BaseOperations):
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
         # Check human approval first (takes precedence)
-        if hasattr(analysis, 'GetAgentOpinion'):
+        if hasattr(analysis, "GetAgentOpinion"):
             # Human approval status
             # Note: In FLEx, approval is stored via agent opinions
             # This is a simplified implementation
@@ -626,9 +631,11 @@ class WfiAnalysisOperations(BaseOperations):
         self._EnsureWriteEnabled()
         self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
 
-        if status not in (ApprovalStatusTypes.DISAPPROVED,
-                         ApprovalStatusTypes.UNAPPROVED,
-                         ApprovalStatusTypes.APPROVED):
+        if status not in (
+            ApprovalStatusTypes.DISAPPROVED,
+            ApprovalStatusTypes.UNAPPROVED,
+            ApprovalStatusTypes.APPROVED,
+        ):
             raise FP_ParameterError(f"Invalid approval status: {status}. Must be 0, 1, or 2.")
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
@@ -636,6 +643,7 @@ class WfiAnalysisOperations(BaseOperations):
         # Get default human agent for evaluations
         # Import here to avoid circular dependency
         from .AgentOperations import AgentOperations
+
         agent_ops = AgentOperations(self.project)
 
         # Require user to create human agent explicitly (Craig's pattern)
@@ -652,7 +660,7 @@ class WfiAnalysisOperations(BaseOperations):
         # Look for existing evaluation from this agent
         existing_evaluation = None
         for evaluation in analysis.EvaluationsRC:
-            if hasattr(evaluation, 'Agent') and evaluation.Agent == agent:
+            if hasattr(evaluation, "Agent") and evaluation.Agent == agent:
                 existing_evaluation = evaluation
                 break
 
@@ -674,8 +682,8 @@ class WfiAnalysisOperations(BaseOperations):
         # Set approval status via Accepted property
         # APPROVED = Accepted = True
         # DISAPPROVED = Accepted = False
-        if hasattr(evaluation, 'Accepted'):
-            evaluation.Accepted = (status == ApprovalStatusTypes.APPROVED)
+        if hasattr(evaluation, "Accepted"):
+            evaluation.Accepted = status == ApprovalStatusTypes.APPROVED
 
     @OperationsMethod
     def IsHumanApproved(self, analysis_or_hvo):
@@ -721,9 +729,9 @@ class WfiAnalysisOperations(BaseOperations):
         # ICmAgentEvaluation has Human (bool) and Approves (bool) directly
         for evaluation in analysis.EvaluationsRC:
             # Check if this is a human evaluation (not parser/computer)
-            if hasattr(evaluation, 'Human') and evaluation.Human:
+            if hasattr(evaluation, "Human") and evaluation.Human:
                 # Check if it approves this analysis
-                if hasattr(evaluation, 'Approves') and evaluation.Approves:
+                if hasattr(evaluation, "Approves") and evaluation.Approves:
                     return True
 
         return False
@@ -772,9 +780,9 @@ class WfiAnalysisOperations(BaseOperations):
         # ICmAgentEvaluation has Human (bool) directly - False for computer/parser
         for evaluation in analysis.EvaluationsRC:
             # Check if this is a computer evaluation (not human)
-            if hasattr(evaluation, 'Human') and not evaluation.Human:
+            if hasattr(evaluation, "Human") and not evaluation.Human:
                 # Check if it approves this analysis
-                if hasattr(evaluation, 'Approves') and evaluation.Approves:
+                if hasattr(evaluation, "Approves") and evaluation.Approves:
                     return True
 
         return False
@@ -1128,7 +1136,7 @@ class WfiAnalysisOperations(BaseOperations):
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
-        if hasattr(analysis, 'CategoryRA') and analysis.CategoryRA:
+        if hasattr(analysis, "CategoryRA") and analysis.CategoryRA:
             return analysis.CategoryRA
 
         return None
@@ -1181,7 +1189,7 @@ class WfiAnalysisOperations(BaseOperations):
             raise FP_ParameterError("Category must be an IPartOfSpeech object")
 
         # Set the category
-        if hasattr(analysis, 'CategoryRA'):
+        if hasattr(analysis, "CategoryRA"):
             analysis.CategoryRA = category
         else:
             raise FP_ParameterError("Analysis does not support CategoryRA property")
@@ -1273,7 +1281,7 @@ class WfiAnalysisOperations(BaseOperations):
 
         # Search for human evaluation in evaluations collection
         for evaluation in analysis.EvaluationsRC:
-            if hasattr(evaluation, 'Agent'):
+            if hasattr(evaluation, "Agent"):
                 # Check if this is a human agent
                 # This is a simplified check
                 # Full implementation would verify agent type

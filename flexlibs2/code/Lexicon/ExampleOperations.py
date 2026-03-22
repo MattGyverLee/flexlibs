@@ -12,6 +12,7 @@
 #
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 # Import BaseOperations parent class
@@ -35,6 +36,7 @@ from ..FLExProject import (
 
 # Import string utilities
 from ..Shared.string_utils import normalize_text
+
 
 class ExampleOperations(BaseOperations):
     """
@@ -243,7 +245,7 @@ class ExampleOperations(BaseOperations):
 
         # Get the owning sense and remove the example
         owner = example.Owner
-        if hasattr(owner, 'ExamplesOS'):
+        if hasattr(owner, "ExamplesOS"):
             owner.ExamplesOS.Remove(example)
 
     @OperationsMethod
@@ -307,13 +309,13 @@ class ExampleOperations(BaseOperations):
         duplicate = factory.Create()
 
         # Determine insertion position
-        if insert_after and hasattr(parent, 'ExamplesOS'):
+        if insert_after and hasattr(parent, "ExamplesOS"):
             # Insert after source example
             source_index = parent.ExamplesOS.IndexOf(source)
             parent.ExamplesOS.Insert(source_index + 1, duplicate)
         else:
             # Insert at end
-            if hasattr(parent, 'ExamplesOS'):
+            if hasattr(parent, "ExamplesOS"):
                 parent.ExamplesOS.Add(duplicate)
 
         # Copy simple MultiString properties (AFTER adding to parent)
@@ -358,25 +360,27 @@ class ExampleOperations(BaseOperations):
         # MultiString properties
         # Example - the example sentence in various writing systems
         example_dict = {}
-        if hasattr(item, 'Example'):
+        if hasattr(item, "Example"):
             for ws_handle in self.project.GetAllWritingSystems():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
+
                 text = ITsString(item.Example.get_String(ws_handle)).Text
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     example_dict[ws_tag] = text
-        props['Example'] = example_dict
+        props["Example"] = example_dict
 
         # Reference - bibliographic reference (MultiString)
         reference_dict = {}
-        if hasattr(item, 'Reference'):
+        if hasattr(item, "Reference"):
             for ws_handle in self.project.GetAllWritingSystems():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
+
                 text = ITsString(item.Reference.get_String(ws_handle)).Text
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     reference_dict[ws_tag] = text
-        props['Reference'] = reference_dict
+        props["Reference"] = reference_dict
 
         return props
 
@@ -461,9 +465,7 @@ class ExampleOperations(BaseOperations):
         new_examples = set(examples)
 
         if current_examples != new_examples:
-            raise FP_ParameterError(
-                "Example list must contain exactly the same examples as the sense"
-            )
+            raise FP_ParameterError("Example list must contain exactly the same examples as the sense")
 
         # Clear and re-add in new order
         sense.ExamplesOS.Clear()
@@ -839,7 +841,7 @@ class ExampleOperations(BaseOperations):
 
         example = self.__GetExampleObject(example_or_hvo)
 
-        if hasattr(example, 'Reference') and example.Reference:
+        if hasattr(example, "Reference") and example.Reference:
             ref = ITsString(example.Reference).Text
             return self._NormalizeMultiString(ref)
         return ""
@@ -926,7 +928,7 @@ class ExampleOperations(BaseOperations):
 
         example = self.__GetExampleObject(example_or_hvo)
 
-        if hasattr(example, 'MediaFilesOS'):
+        if hasattr(example, "MediaFilesOS"):
             return list(example.MediaFilesOS)
         return []
 
@@ -966,7 +968,7 @@ class ExampleOperations(BaseOperations):
 
         example = self.__GetExampleObject(example_or_hvo)
 
-        if hasattr(example, 'MediaFilesOS'):
+        if hasattr(example, "MediaFilesOS"):
             return example.MediaFilesOS.Count
         return 0
 
@@ -1032,14 +1034,10 @@ class ExampleOperations(BaseOperations):
 
         # Use MediaOperations to properly copy file and create ICmFile
         # Copy file to project and get ICmFile reference
-        media_file = self.project.Media.CopyToProject(
-            file_path,
-            internal_subdir="AudioVisual",
-            label=label
-        )
+        media_file = self.project.Media.CopyToProject(file_path, internal_subdir="AudioVisual", label=label)
 
         # Add to example's media collection
-        if hasattr(example, 'MediaFilesOS'):
+        if hasattr(example, "MediaFilesOS"):
             example.MediaFilesOS.Add(media_file)
         else:
             raise FP_ParameterError("Example does not support media files")
@@ -1100,7 +1098,7 @@ class ExampleOperations(BaseOperations):
             media = media_or_hvo
 
         # Remove from collection
-        if hasattr(example, 'MediaFilesOS'):
+        if hasattr(example, "MediaFilesOS"):
             example.MediaFilesOS.Remove(media)
 
     @OperationsMethod
@@ -1193,14 +1191,14 @@ class ExampleOperations(BaseOperations):
             return False
 
         # Verify media is in source collection
-        if not hasattr(from_example, 'MediaFilesOS'):
+        if not hasattr(from_example, "MediaFilesOS"):
             raise FP_ParameterError("Source example does not support media files")
 
         if media not in from_example.MediaFilesOS:
             raise FP_ParameterError("Media file not found in source example's media collection")
 
         # Verify destination supports media
-        if not hasattr(to_example, 'MediaFilesOS'):
+        if not hasattr(to_example, "MediaFilesOS"):
             raise FP_ParameterError("Destination example does not support media files")
 
         # Move the media (remove from source, add to destination)

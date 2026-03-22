@@ -32,6 +32,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+
 class InflectionFeatureOperations(BaseOperations):
     """
     This class provides operations for managing inflection classes, feature
@@ -114,7 +115,7 @@ class InflectionFeatureOperations(BaseOperations):
             InflectionClassCreate, InflectionClassGetName
         """
         morph_data = self.project.lp.MorphologicalDataOA
-        if morph_data and hasattr(morph_data, 'ProdRestrictOA') and morph_data.ProdRestrictOA:
+        if morph_data and hasattr(morph_data, "ProdRestrictOA") and morph_data.ProdRestrictOA:
             # Inflection classes are stored in the ProdRestrictOA (Production Restrictions)
             infl_classes = morph_data.ProdRestrictOA
             for ic in infl_classes.PossibilitiesOS:
@@ -340,7 +341,7 @@ class InflectionFeatureOperations(BaseOperations):
             # This yields feature definitions which may contain feature structures
             # The actual implementation depends on what the user needs
             for feature in feature_system.FeaturesOS:
-                if hasattr(feature, 'FeaturesOS'):
+                if hasattr(feature, "FeaturesOS"):
                     for fs in feature.FeaturesOS:
                         yield fs
 
@@ -413,9 +414,9 @@ class InflectionFeatureOperations(BaseOperations):
         # Feature structures are typically owned by other objects,
         # so deletion involves removing from the owner's collection
         # This is a simplified implementation
-        if hasattr(fs, 'Owner') and fs.Owner:
+        if hasattr(fs, "Owner") and fs.Owner:
             owner = fs.Owner
-            if hasattr(owner, 'FeaturesOA') and owner.FeaturesOA == fs:
+            if hasattr(owner, "FeaturesOA") and owner.FeaturesOA == fs:
                 owner.FeaturesOA = None
 
     # ========================================================================
@@ -597,9 +598,9 @@ class InflectionFeatureOperations(BaseOperations):
         feature = self.__ResolveFeature(feature_or_hvo)
 
         # Check if feature has values collection
-        if hasattr(feature, 'ValuesOC'):
+        if hasattr(feature, "ValuesOC"):
             return list(feature.ValuesOC)
-        elif hasattr(feature, 'FeaturesOS'):
+        elif hasattr(feature, "FeaturesOS"):
             return list(feature.FeaturesOS)
 
         return []
@@ -653,7 +654,7 @@ class InflectionFeatureOperations(BaseOperations):
             feature_system = feature_system_or_hvo
 
         # Return features collection if it exists
-        if hasattr(feature_system, 'FeaturesOS'):
+        if hasattr(feature_system, "FeaturesOS"):
             return list(feature_system.FeaturesOS)
 
         return []
@@ -702,7 +703,7 @@ class InflectionFeatureOperations(BaseOperations):
             feature_system = feature_system_or_hvo
 
         # Return feature constraints collection if it exists
-        if hasattr(feature_system, 'FeatureConstraintsOC'):
+        if hasattr(feature_system, "FeatureConstraintsOC"):
             return list(feature_system.FeatureConstraintsOC)
 
         return []
@@ -766,7 +767,7 @@ class InflectionFeatureOperations(BaseOperations):
             feature_system = self.__ResolveFeatureSystem(feature_system_or_hvo)
 
         # Return the types collection if it exists
-        if hasattr(feature_system, 'TypesOC'):
+        if hasattr(feature_system, "TypesOC"):
             return list(feature_system.TypesOC)
 
         return []
@@ -869,7 +870,7 @@ class InflectionFeatureOperations(BaseOperations):
         props = {}
 
         # MultiString properties
-        for prop_name in ['Name', 'Abbreviation', 'Description']:
+        for prop_name in ["Name", "Abbreviation", "Description"]:
             if hasattr(ic, prop_name):
                 prop_obj = getattr(ic, prop_name)
                 ws_values = {}

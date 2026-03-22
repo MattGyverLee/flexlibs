@@ -21,7 +21,7 @@ import os
 
 # Add parent directory to sys.path to allow importing flexlibs2.flexlibs
 _test_dir = os.path.dirname(os.path.abspath(__file__))
-_project_root = os.path.join(_test_dir, '..', '..', '..')
+_project_root = os.path.join(_test_dir, "..", "..", "..")
 sys.path.insert(0, _project_root)
 
 from flexlibs2.flexlibs import FLExProject, FLExInitialize, FLExCleanup
@@ -72,33 +72,33 @@ class TestBaseOperationsInheritance(unittest.TestCase):
 
     def test_lexsense_has_reordering_methods(self):
         """Test LexSenseOperations has all 7 reordering methods."""
-        self.assertTrue(hasattr(self.project.Senses, 'Sort'))
-        self.assertTrue(hasattr(self.project.Senses, 'MoveUp'))
-        self.assertTrue(hasattr(self.project.Senses, 'MoveDown'))
-        self.assertTrue(hasattr(self.project.Senses, 'MoveToIndex'))
-        self.assertTrue(hasattr(self.project.Senses, 'MoveBefore'))
-        self.assertTrue(hasattr(self.project.Senses, 'MoveAfter'))
-        self.assertTrue(hasattr(self.project.Senses, 'Swap'))
+        self.assertTrue(hasattr(self.project.Senses, "Sort"))
+        self.assertTrue(hasattr(self.project.Senses, "MoveUp"))
+        self.assertTrue(hasattr(self.project.Senses, "MoveDown"))
+        self.assertTrue(hasattr(self.project.Senses, "MoveToIndex"))
+        self.assertTrue(hasattr(self.project.Senses, "MoveBefore"))
+        self.assertTrue(hasattr(self.project.Senses, "MoveAfter"))
+        self.assertTrue(hasattr(self.project.Senses, "Swap"))
 
     def test_allomorph_has_reordering_methods(self):
         """Test AllomorphOperations has all 7 reordering methods."""
-        self.assertTrue(hasattr(self.project.Allomorphs, 'Sort'))
-        self.assertTrue(hasattr(self.project.Allomorphs, 'MoveUp'))
-        self.assertTrue(hasattr(self.project.Allomorphs, 'MoveDown'))
-        self.assertTrue(hasattr(self.project.Allomorphs, 'MoveToIndex'))
-        self.assertTrue(hasattr(self.project.Allomorphs, 'MoveBefore'))
-        self.assertTrue(hasattr(self.project.Allomorphs, 'MoveAfter'))
-        self.assertTrue(hasattr(self.project.Allomorphs, 'Swap'))
+        self.assertTrue(hasattr(self.project.Allomorphs, "Sort"))
+        self.assertTrue(hasattr(self.project.Allomorphs, "MoveUp"))
+        self.assertTrue(hasattr(self.project.Allomorphs, "MoveDown"))
+        self.assertTrue(hasattr(self.project.Allomorphs, "MoveToIndex"))
+        self.assertTrue(hasattr(self.project.Allomorphs, "MoveBefore"))
+        self.assertTrue(hasattr(self.project.Allomorphs, "MoveAfter"))
+        self.assertTrue(hasattr(self.project.Allomorphs, "Swap"))
 
     def test_example_has_reordering_methods(self):
         """Test ExampleOperations has all 7 reordering methods."""
-        self.assertTrue(hasattr(self.project.Examples, 'Sort'))
-        self.assertTrue(hasattr(self.project.Examples, 'MoveUp'))
-        self.assertTrue(hasattr(self.project.Examples, 'MoveDown'))
-        self.assertTrue(hasattr(self.project.Examples, 'MoveToIndex'))
-        self.assertTrue(hasattr(self.project.Examples, 'MoveBefore'))
-        self.assertTrue(hasattr(self.project.Examples, 'MoveAfter'))
-        self.assertTrue(hasattr(self.project.Examples, 'Swap'))
+        self.assertTrue(hasattr(self.project.Examples, "Sort"))
+        self.assertTrue(hasattr(self.project.Examples, "MoveUp"))
+        self.assertTrue(hasattr(self.project.Examples, "MoveDown"))
+        self.assertTrue(hasattr(self.project.Examples, "MoveToIndex"))
+        self.assertTrue(hasattr(self.project.Examples, "MoveBefore"))
+        self.assertTrue(hasattr(self.project.Examples, "MoveAfter"))
+        self.assertTrue(hasattr(self.project.Examples, "Swap"))
 
 
 class TestBaseOperationsSortMethod(unittest.TestCase):
@@ -125,10 +125,7 @@ class TestBaseOperationsSortMethod(unittest.TestCase):
         sense_count = self.test_entry.SensesOS.Count
 
         # Sort by gloss (whatever order)
-        result = self.project.Senses.Sort(
-            self.test_entry,
-            key_func=lambda s: self.project.Senses.GetGloss(s) or ""
-        )
+        result = self.project.Senses.Sort(self.test_entry, key_func=lambda s: self.project.Senses.GetGloss(s) or "")
 
         # Verify it returns the count
         self.assertEqual(result, sense_count)
@@ -142,10 +139,7 @@ class TestBaseOperationsSortMethod(unittest.TestCase):
         original_guids = set(str(s.Guid) for s in self.test_entry.SensesOS)
 
         # Sort
-        self.project.Senses.Sort(
-            self.test_entry,
-            key_func=lambda s: self.project.Senses.GetGloss(s) or ""
-        )
+        self.project.Senses.Sort(self.test_entry, key_func=lambda s: self.project.Senses.GetGloss(s) or "")
 
         # Verify same GUIDs present
         new_guids = set(str(s.Guid) for s in self.test_entry.SensesOS)
@@ -181,11 +175,7 @@ class TestBaseOperationsMoveUpMethod(unittest.TestCase):
         sense_to_move = senses[middle_index]
 
         # Move up by 1
-        moved = self.project.Senses.MoveUp(
-            self.test_entry,
-            sense_to_move,
-            positions=1
-        )
+        moved = self.project.Senses.MoveUp(self.test_entry, sense_to_move, positions=1)
 
         # Should have moved 1 position
         self.assertEqual(moved, 1)
@@ -201,11 +191,7 @@ class TestBaseOperationsMoveUpMethod(unittest.TestCase):
         """Test that moving first item up returns 0."""
         first_sense = self.test_entry.SensesOS[0]
 
-        moved = self.project.Senses.MoveUp(
-            self.test_entry,
-            first_sense,
-            positions=1
-        )
+        moved = self.project.Senses.MoveUp(self.test_entry, first_sense, positions=1)
 
         # Should return 0 (can't move up from index 0)
         self.assertEqual(moved, 0)
@@ -235,11 +221,7 @@ class TestBaseOperationsMoveDownMethod(unittest.TestCase):
 
         first_sense = self.test_entry.SensesOS[0]
 
-        moved = self.project.Senses.MoveDown(
-            self.test_entry,
-            first_sense,
-            positions=1
-        )
+        moved = self.project.Senses.MoveDown(self.test_entry, first_sense, positions=1)
 
         self.assertEqual(moved, 1)
 
@@ -254,11 +236,7 @@ class TestBaseOperationsMoveDownMethod(unittest.TestCase):
         """Test that moving last item down returns 0."""
         last_sense = self.test_entry.SensesOS[self.test_entry.SensesOS.Count - 1]
 
-        moved = self.project.Senses.MoveDown(
-            self.test_entry,
-            last_sense,
-            positions=1
-        )
+        moved = self.project.Senses.MoveDown(self.test_entry, last_sense, positions=1)
 
         # Should return 0 (can't move down from last position)
         self.assertEqual(moved, 0)
@@ -291,11 +269,7 @@ class TestBaseOperationsMoveToIndexMethod(unittest.TestCase):
         original_index = 0
         target_index = 2
 
-        result = self.project.Senses.MoveToIndex(
-            self.test_entry,
-            first_sense,
-            target_index
-        )
+        result = self.project.Senses.MoveToIndex(self.test_entry, first_sense, target_index)
 
         self.assertTrue(result)
 
@@ -346,11 +320,7 @@ class TestBaseOperationsMoveBeforeMoveAfter(unittest.TestCase):
         self.assertLess(move_index, target_index)
 
         # Restore (move back to end)
-        self.project.Senses.MoveToIndex(
-            self.test_entry,
-            item_to_move,
-            self.test_entry.SensesOS.Count - 1
-        )
+        self.project.Senses.MoveToIndex(self.test_entry, item_to_move, self.test_entry.SensesOS.Count - 1)
 
     def test_move_after(self):
         """Test moving item after another item."""
@@ -440,10 +410,7 @@ class TestBaseOperationsDataPreservation(unittest.TestCase):
         original_count = len(original_guids)
 
         # Sort
-        self.project.Senses.Sort(
-            self.test_entry,
-            key_func=lambda s: self.project.Senses.GetGloss(s) or ""
-        )
+        self.project.Senses.Sort(self.test_entry, key_func=lambda s: self.project.Senses.GetGloss(s) or "")
 
         # Verify same GUIDs present (may be in different order)
         new_guids = [str(s.Guid) for s in self.test_entry.SensesOS]
@@ -457,35 +424,23 @@ class TestBaseOperationsDataPreservation(unittest.TestCase):
         for sense in self.test_entry.SensesOS:
             guid = str(sense.Guid)
             original_data[guid] = {
-                'gloss': self.project.Senses.GetGloss(sense),
-                'definition': self.project.Senses.GetDefinition(sense),
+                "gloss": self.project.Senses.GetGloss(sense),
+                "definition": self.project.Senses.GetDefinition(sense),
             }
 
         # Reorder
         if self.test_entry.SensesOS.Count >= 2:
-            self.project.Senses.Swap(
-                self.test_entry.SensesOS[0],
-                self.test_entry.SensesOS[1]
-            )
+            self.project.Senses.Swap(self.test_entry.SensesOS[0], self.test_entry.SensesOS[1])
 
         # Verify all properties intact
         for sense in self.test_entry.SensesOS:
             guid = str(sense.Guid)
-            self.assertEqual(
-                self.project.Senses.GetGloss(sense),
-                original_data[guid]['gloss']
-            )
-            self.assertEqual(
-                self.project.Senses.GetDefinition(sense),
-                original_data[guid]['definition']
-            )
+            self.assertEqual(self.project.Senses.GetGloss(sense), original_data[guid]["gloss"])
+            self.assertEqual(self.project.Senses.GetDefinition(sense), original_data[guid]["definition"])
 
         # Restore order if we swapped
         if self.test_entry.SensesOS.Count >= 2:
-            self.project.Senses.Swap(
-                self.test_entry.SensesOS[0],
-                self.test_entry.SensesOS[1]
-            )
+            self.project.Senses.Swap(self.test_entry.SensesOS[0], self.test_entry.SensesOS[1])
 
 
 class TestBaseOperationsIntegration(unittest.TestCase):
@@ -500,34 +455,22 @@ class TestBaseOperationsIntegration(unittest.TestCase):
         """Test that all operation classes have inherited methods."""
         # Test a variety of operation classes
         operations_to_test = [
-            ('Senses', self.project.Senses),
-            ('Examples', self.project.Examples),
-            ('Allomorphs', self.project.Allomorphs),
-            ('POS', self.project.POS),
-            ('Phonemes', self.project.Phonemes),
+            ("Senses", self.project.Senses),
+            ("Examples", self.project.Examples),
+            ("Allomorphs", self.project.Allomorphs),
+            ("POS", self.project.POS),
+            ("Phonemes", self.project.Phonemes),
         ]
 
         for name, ops in operations_to_test:
             with self.subTest(operation=name):
-                self.assertTrue(
-                    hasattr(ops, 'Sort'),
-                    f"{name} should have Sort method"
-                )
-                self.assertTrue(
-                    hasattr(ops, 'MoveUp'),
-                    f"{name} should have MoveUp method"
-                )
-                self.assertTrue(
-                    hasattr(ops, 'MoveDown'),
-                    f"{name} should have MoveDown method"
-                )
-                self.assertTrue(
-                    hasattr(ops, 'Swap'),
-                    f"{name} should have Swap method"
-                )
+                self.assertTrue(hasattr(ops, "Sort"), f"{name} should have Sort method")
+                self.assertTrue(hasattr(ops, "MoveUp"), f"{name} should have MoveUp method")
+                self.assertTrue(hasattr(ops, "MoveDown"), f"{name} should have MoveDown method")
+                self.assertTrue(hasattr(ops, "Swap"), f"{name} should have Swap method")
 
 
 # Test runner
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Run tests with verbose output
     unittest.main(verbosity=2)

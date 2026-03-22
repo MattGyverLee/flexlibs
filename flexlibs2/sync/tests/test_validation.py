@@ -31,7 +31,7 @@ class TestValidationIssue(unittest.TestCase):
             object_type="LexSense",
             object_guid="abc-123",
             message="POS reference missing",
-            details={"ref_guid": "def-456"}
+            details={"ref_guid": "def-456"},
         )
 
         self.assertEqual(issue.severity, ValidationSeverity.CRITICAL)
@@ -48,7 +48,7 @@ class TestValidationIssue(unittest.TestCase):
             category="owned_objects",
             object_type="Allomorph",
             object_guid="test-guid-12345678",
-            message="Has phonological environments"
+            message="Has phonological environments",
         )
 
         issue_str = str(issue)
@@ -82,7 +82,7 @@ class TestValidationResult(unittest.TestCase):
             category="test",
             object_type="LexEntry",
             object_guid="guid-1",
-            message="Critical problem"
+            message="Critical problem",
         )
 
         result.add_issue(issue)
@@ -95,18 +95,10 @@ class TestValidationResult(unittest.TestCase):
         """Test adding multiple issues of different severities."""
         result = ValidationResult()
 
-        result.add_issue(ValidationIssue(
-            ValidationSeverity.CRITICAL, "cat1", "Type1", "g1", "msg1"
-        ))
-        result.add_issue(ValidationIssue(
-            ValidationSeverity.CRITICAL, "cat2", "Type2", "g2", "msg2"
-        ))
-        result.add_issue(ValidationIssue(
-            ValidationSeverity.WARNING, "cat3", "Type3", "g3", "msg3"
-        ))
-        result.add_issue(ValidationIssue(
-            ValidationSeverity.INFO, "cat4", "Type4", "g4", "msg4"
-        ))
+        result.add_issue(ValidationIssue(ValidationSeverity.CRITICAL, "cat1", "Type1", "g1", "msg1"))
+        result.add_issue(ValidationIssue(ValidationSeverity.CRITICAL, "cat2", "Type2", "g2", "msg2"))
+        result.add_issue(ValidationIssue(ValidationSeverity.WARNING, "cat3", "Type3", "g3", "msg3"))
+        result.add_issue(ValidationIssue(ValidationSeverity.INFO, "cat4", "Type4", "g4", "msg4"))
 
         self.assertEqual(result.num_critical, 2)
         self.assertEqual(result.num_warnings, 1)
@@ -126,9 +118,7 @@ class TestValidationResult(unittest.TestCase):
     def test_summary_with_critical_issues(self):
         """Test summary with critical issues."""
         result = ValidationResult()
-        result.add_issue(ValidationIssue(
-            ValidationSeverity.CRITICAL, "test", "Type", "guid", "Problem"
-        ))
+        result.add_issue(ValidationIssue(ValidationSeverity.CRITICAL, "test", "Type", "guid", "Problem"))
 
         summary = result.summary()
 
@@ -138,9 +128,7 @@ class TestValidationResult(unittest.TestCase):
     def test_summary_with_warnings_only(self):
         """Test summary with warnings but no critical."""
         result = ValidationResult()
-        result.add_issue(ValidationIssue(
-            ValidationSeverity.WARNING, "test", "Type", "guid", "Warning"
-        ))
+        result.add_issue(ValidationIssue(ValidationSeverity.WARNING, "test", "Type", "guid", "Warning"))
 
         summary = result.summary()
 
@@ -152,14 +140,16 @@ class TestValidationResult(unittest.TestCase):
         """Test detailed report generation."""
         result = ValidationResult()
 
-        result.add_issue(ValidationIssue(
-            ValidationSeverity.CRITICAL,
-            "missing_ref",
-            "LexSense",
-            "abc-123",
-            "Missing POS",
-            {"ref_guid": "def-456"}
-        ))
+        result.add_issue(
+            ValidationIssue(
+                ValidationSeverity.CRITICAL,
+                "missing_ref",
+                "LexSense",
+                "abc-123",
+                "Missing POS",
+                {"ref_guid": "def-456"},
+            )
+        )
 
         report = result.detailed_report()
 
@@ -195,9 +185,7 @@ class TestLinguisticValidator(unittest.TestCase):
         obj.Guid.__str__ = Mock(return_value="test-guid-123")
 
         result = self.validator.validate_before_create(
-            source_obj=obj,
-            source_project=self.source_project,
-            object_type="SimpleType"
+            source_obj=obj, source_project=self.source_project, object_type="SimpleType"
         )
 
         # Should pass with no critical issues
@@ -221,9 +209,7 @@ class TestLinguisticValidator(unittest.TestCase):
         self.target_project.Object = Mock(return_value=None)
 
         result = self.validator.validate_before_create(
-            source_obj=sense,
-            source_project=self.source_project,
-            object_type="LexSense"
+            source_obj=sense, source_project=self.source_project, object_type="LexSense"
         )
 
         # Should have critical issue
@@ -251,9 +237,7 @@ class TestLinguisticValidator(unittest.TestCase):
         self.target_project.Object = Mock(return_value=None)
 
         result = self.validator.validate_before_create(
-            source_obj=sense,
-            source_project=self.source_project,
-            object_type="LexSense"
+            source_obj=sense, source_project=self.source_project, object_type="LexSense"
         )
 
         # Should have critical issue
@@ -284,9 +268,7 @@ class TestLinguisticValidator(unittest.TestCase):
         self.target_project.Object = Mock(return_value=None)
 
         result = self.validator.validate_before_create(
-            source_obj=allomorph,
-            source_project=self.source_project,
-            object_type="Allomorph"
+            source_obj=allomorph, source_project=self.source_project, object_type="Allomorph"
         )
 
         # Should have critical issue
@@ -312,9 +294,7 @@ class TestLinguisticValidator(unittest.TestCase):
         allomorph.MorphTypeRA = None
 
         result = self.validator.validate_before_create(
-            source_obj=allomorph,
-            source_project=self.source_project,
-            object_type="Allomorph"
+            source_obj=allomorph, source_project=self.source_project, object_type="Allomorph"
         )
 
         # Should have warning
@@ -344,9 +324,7 @@ class TestLinguisticValidator(unittest.TestCase):
         sense.Definition = Mock()  # Has definition
 
         result = self.validator.validate_before_create(
-            source_obj=sense,
-            source_project=self.source_project,
-            object_type="LexSense"
+            source_obj=sense, source_project=self.source_project, object_type="LexSense"
         )
 
         # Should have warning
@@ -376,9 +354,7 @@ class TestLinguisticValidator(unittest.TestCase):
         self.target_project.Object = Mock(return_value=None)
 
         result = self.validator.validate_before_create(
-            source_obj=allomorph,
-            source_project=self.source_project,
-            object_type="Allomorph"
+            source_obj=allomorph, source_project=self.source_project, object_type="Allomorph"
         )
 
         # Should have critical issue
@@ -404,9 +380,7 @@ class TestLinguisticValidator(unittest.TestCase):
         sense.ExamplesOS = []
 
         result = self.validator.validate_before_create(
-            source_obj=sense,
-            source_project=self.source_project,
-            object_type="LexSense"
+            source_obj=sense, source_project=self.source_project, object_type="LexSense"
         )
 
         # Should have info message
@@ -425,9 +399,7 @@ class TestLinguisticValidator(unittest.TestCase):
         entry.SensesOS = []
 
         result = self.validator.validate_before_create(
-            source_obj=entry,
-            source_project=self.source_project,
-            object_type="LexEntry"
+            source_obj=entry, source_project=self.source_project, object_type="LexEntry"
         )
 
         # Should have info message
@@ -437,13 +409,7 @@ class TestLinguisticValidator(unittest.TestCase):
     def test_validation_error_exception(self):
         """Test ValidationError exception."""
         result = ValidationResult()
-        result.add_issue(ValidationIssue(
-            ValidationSeverity.CRITICAL,
-            "test",
-            "Type",
-            "guid",
-            "Critical error"
-        ))
+        result.add_issue(ValidationIssue(ValidationSeverity.CRITICAL, "test", "Type", "guid", "Critical error"))
 
         error = ValidationError(result)
 
@@ -491,9 +457,7 @@ class TestValidationIntegration(unittest.TestCase):
 
         validator = LinguisticValidator(target_project)
         result = validator.validate_before_create(
-            source_obj=sense,
-            source_project=source_project,
-            object_type="LexSense"
+            source_obj=sense, source_project=source_project, object_type="LexSense"
         )
 
         # Should have issues at all levels
@@ -510,5 +474,5 @@ class TestValidationIntegration(unittest.TestCase):
         self.assertIn("CRITICAL", summary.upper())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -33,6 +33,7 @@ from ..FLExProject import (
 # Import string utilities
 from ..Shared.string_utils import normalize_text
 
+
 class WfiMorphBundleOperations(BaseOperations):
     """
     This class provides operations for managing wordform morpheme bundles.
@@ -393,7 +394,7 @@ class WfiMorphBundleOperations(BaseOperations):
 
         bundle = self.__ResolveObject(bundle_or_hvo)
 
-        return bundle.SenseRA if hasattr(bundle, 'SenseRA') else None
+        return bundle.SenseRA if hasattr(bundle, "SenseRA") else None
 
     @OperationsMethod
     def SetSense(self, bundle_or_hvo, sense):
@@ -436,7 +437,7 @@ class WfiMorphBundleOperations(BaseOperations):
 
         bundle = self.__ResolveObject(bundle_or_hvo)
 
-        if hasattr(bundle, 'SenseRA'):
+        if hasattr(bundle, "SenseRA"):
             bundle.SenseRA = sense
 
     # --- Morpheme Type ---
@@ -476,7 +477,7 @@ class WfiMorphBundleOperations(BaseOperations):
 
         bundle = self.__ResolveObject(bundle_or_hvo)
 
-        return bundle.MorphRA if hasattr(bundle, 'MorphRA') else None
+        return bundle.MorphRA if hasattr(bundle, "MorphRA") else None
 
     @OperationsMethod
     def SetMorphemeType(self, bundle_or_hvo, type_or_name):
@@ -523,7 +524,7 @@ class WfiMorphBundleOperations(BaseOperations):
                 raise FP_ParameterError(f"Morpheme type '{type_or_name}' not found")
             type_or_name = morph_type
 
-        if hasattr(bundle, 'MorphRA'):
+        if hasattr(bundle, "MorphRA"):
             bundle.MorphRA = type_or_name
 
     # --- Private Helper Methods ---
@@ -580,10 +581,7 @@ class WfiMorphBundleOperations(BaseOperations):
         """
         if wsHandle is None:
             return self.project.project.DefaultVernWs
-        return self.project._FLExProject__WSHandle(
-            wsHandle,
-            self.project.project.DefaultVernWs
-        )
+        return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultVernWs)
 
     def __FindMorphType(self, name):
         """

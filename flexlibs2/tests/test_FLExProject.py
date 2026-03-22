@@ -7,7 +7,7 @@ Author: FlexTools Development Team
 import unittest
 import logging
 
-logging.basicConfig(filename='flexlibs2.log', filemode='w', level=logging.DEBUG)
+logging.basicConfig(filename="flexlibs2.log", filemode="w", level=logging.DEBUG)
 
 from flexlibs2 import FLExInitialize, FLExCleanup
 from flexlibs2 import FLExProject, AllProjectNames
@@ -55,7 +55,6 @@ class TestFLExProject(unittest.TestCase):
             self.assertIsInstance(fp.LexiconGetHeadword(lexEntry), str)
 
         fp.CloseProject()
-
 
 
 if __name__ == "__main__":

@@ -18,9 +18,10 @@ logger = logging.getLogger(__name__)
 
 class ValidationSeverity(Enum):
     """Severity levels for validation issues."""
+
     CRITICAL = "critical"  # Blocks operation
-    WARNING = "warning"    # User should review
-    INFO = "info"          # Informational only
+    WARNING = "warning"  # User should review
+    INFO = "info"  # Informational only
 
 
 @dataclass
@@ -36,6 +37,7 @@ class ValidationIssue:
         message: Human-readable description
         details: Additional context
     """
+
     severity: ValidationSeverity
     category: str
     object_type: str
@@ -54,6 +56,7 @@ class ValidationResult:
 
     Tracks all issues found and provides summary.
     """
+
     issues: List[ValidationIssue] = field(default_factory=list)
 
     @property
@@ -95,7 +98,7 @@ class ValidationResult:
             f"Warnings: {self.num_warnings}",
             f"Info: {self.num_info}",
             f"Total: {len(self.issues)}",
-            ""
+            "",
         ]
 
         if self.has_critical:
@@ -147,12 +150,7 @@ class LinguisticValidator:
         self.target_project = target_project
         self._cache: Dict[str, Set[str]] = {}
 
-    def validate_before_create(
-        self,
-        source_obj: Any,
-        source_project: Any,
-        object_type: str
-    ) -> ValidationResult:
+    def validate_before_create(self, source_obj: Any, source_project: Any, object_type: str) -> ValidationResult:
         """
         Validate object before creating in target.
 
@@ -168,7 +166,7 @@ class LinguisticValidator:
 
         try:
             # Get object GUID for reporting
-            guid = str(source_obj.Guid) if hasattr(source_obj, 'Guid') else "unknown"
+            guid = str(source_obj.Guid) if hasattr(source_obj, "Guid") else "unknown"
 
             # Check references
             self._validate_references(source_obj, object_type, guid, result)
@@ -189,156 +187,155 @@ class LinguisticValidator:
 
         except Exception as e:
             logger.error(f"Validation error: {e}")
-            result.add_issue(ValidationIssue(
-                severity=ValidationSeverity.WARNING,
-                category="validation_error",
-                object_type=object_type,
-                object_guid=guid,
-                message=f"Validation failed: {e}"
-            ))
+            result.add_issue(
+                ValidationIssue(
+                    severity=ValidationSeverity.WARNING,
+                    category="validation_error",
+                    object_type=object_type,
+                    object_guid=guid,
+                    message=f"Validation failed: {e}",
+                )
+            )
 
         return result
 
-    def _validate_references(
-        self,
-        obj: Any,
-        object_type: str,
-        guid: str,
-        result: ValidationResult
-    ):
+    def _validate_references(self, obj: Any, object_type: str, guid: str, result: ValidationResult):
         """Check if referenced objects exist in target."""
 
         # Check MorphoSyntaxAnalysis (POS) reference
-        if hasattr(obj, 'MorphoSyntaxAnalysisRA'):
+        if hasattr(obj, "MorphoSyntaxAnalysisRA"):
             msa = obj.MorphoSyntaxAnalysisRA
             if msa is not None and not self._exists_in_target(msa):
-                result.add_issue(ValidationIssue(
-                    severity=ValidationSeverity.CRITICAL,
-                    category="missing_reference",
-                    object_type=object_type,
-                    object_guid=guid,
-                    message="Referenced POS/MSA does not exist in target project",
-                    details={"reference_guid": str(msa.Guid)}
-                ))
+                result.add_issue(
+                    ValidationIssue(
+                        severity=ValidationSeverity.CRITICAL,
+                        category="missing_reference",
+                        object_type=object_type,
+                        object_guid=guid,
+                        message="Referenced POS/MSA does not exist in target project",
+                        details={"reference_guid": str(msa.Guid)},
+                    )
+                )
 
         # Check SemanticDomains
-        if hasattr(obj, 'SemanticDomainsRC'):
+        if hasattr(obj, "SemanticDomainsRC"):
             domains = obj.SemanticDomainsRC
             if domains:
                 for domain in domains:
                     if not self._exists_in_target(domain):
-                        result.add_issue(ValidationIssue(
-                            severity=ValidationSeverity.CRITICAL,
-                            category="missing_reference",
-                            object_type=object_type,
-                            object_guid=guid,
-                            message=f"Semantic domain not found in target",
-                            details={"domain_guid": str(domain.Guid)}
-                        ))
+                        result.add_issue(
+                            ValidationIssue(
+                                severity=ValidationSeverity.CRITICAL,
+                                category="missing_reference",
+                                object_type=object_type,
+                                object_guid=guid,
+                                message=f"Semantic domain not found in target",
+                                details={"domain_guid": str(domain.Guid)},
+                            )
+                        )
 
         # Check MorphType reference
-        if hasattr(obj, 'MorphTypeRA'):
+        if hasattr(obj, "MorphTypeRA"):
             morph_type = obj.MorphTypeRA
             if morph_type is not None and not self._exists_in_target(morph_type):
-                result.add_issue(ValidationIssue(
-                    severity=ValidationSeverity.CRITICAL,
-                    category="missing_reference",
-                    object_type=object_type,
-                    object_guid=guid,
-                    message="Morph type does not exist in target project",
-                    details={"morph_type_guid": str(morph_type.Guid)}
-                ))
+                result.add_issue(
+                    ValidationIssue(
+                        severity=ValidationSeverity.CRITICAL,
+                        category="missing_reference",
+                        object_type=object_type,
+                        object_guid=guid,
+                        message="Morph type does not exist in target project",
+                        details={"morph_type_guid": str(morph_type.Guid)},
+                    )
+                )
 
-    def _check_owned_objects(
-        self,
-        obj: Any,
-        object_type: str,
-        guid: str,
-        result: ValidationResult
-    ):
+    def _check_owned_objects(self, obj: Any, object_type: str, guid: str, result: ValidationResult):
         """Warn about owned objects that won't be copied."""
 
         # Check PhonologicalEnvironments
-        if hasattr(obj, 'PhonologicalEnvironments'):
+        if hasattr(obj, "PhonologicalEnvironments"):
             envs = obj.PhonologicalEnvironments
             if envs and len(envs) > 0:
-                result.add_issue(ValidationIssue(
-                    severity=ValidationSeverity.WARNING,
-                    category="owned_objects",
-                    object_type=object_type,
-                    object_guid=guid,
-                    message=f"Object has {len(envs)} phonological environment(s) that will NOT be copied",
-                    details={"num_environments": len(envs)}
-                ))
+                result.add_issue(
+                    ValidationIssue(
+                        severity=ValidationSeverity.WARNING,
+                        category="owned_objects",
+                        object_type=object_type,
+                        object_guid=guid,
+                        message=f"Object has {len(envs)} phonological environment(s) that will NOT be copied",
+                        details={"num_environments": len(envs)},
+                    )
+                )
 
         # Check Examples
-        if hasattr(obj, 'ExamplesOS'):
+        if hasattr(obj, "ExamplesOS"):
             examples = obj.ExamplesOS
             if examples and len(examples) > 0:
-                result.add_issue(ValidationIssue(
-                    severity=ValidationSeverity.WARNING,
-                    category="owned_objects",
-                    object_type=object_type,
-                    object_guid=guid,
-                    message=f"Sense has {len(examples)} example(s) that will NOT be copied",
-                    details={"num_examples": len(examples)}
-                ))
+                result.add_issue(
+                    ValidationIssue(
+                        severity=ValidationSeverity.WARNING,
+                        category="owned_objects",
+                        object_type=object_type,
+                        object_guid=guid,
+                        message=f"Sense has {len(examples)} example(s) that will NOT be copied",
+                        details={"num_examples": len(examples)},
+                    )
+                )
 
         # Check Subsenses
-        if hasattr(obj, 'SensesOS'):
+        if hasattr(obj, "SensesOS"):
             subsenses = obj.SensesOS
             if subsenses and len(subsenses) > 0:
-                result.add_issue(ValidationIssue(
-                    severity=ValidationSeverity.WARNING,
-                    category="owned_objects",
-                    object_type=object_type,
-                    object_guid=guid,
-                    message=f"Sense has {len(subsenses)} subsense(s) that will NOT be copied",
-                    details={"num_subsenses": len(subsenses)}
-                ))
+                result.add_issue(
+                    ValidationIssue(
+                        severity=ValidationSeverity.WARNING,
+                        category="owned_objects",
+                        object_type=object_type,
+                        object_guid=guid,
+                        message=f"Sense has {len(subsenses)} subsense(s) that will NOT be copied",
+                        details={"num_subsenses": len(subsenses)},
+                    )
+                )
 
-    def _validate_hierarchy(
-        self,
-        obj: Any,
-        source_project: Any,
-        object_type: str,
-        guid: str,
-        result: ValidationResult
-    ):
+    def _validate_hierarchy(self, obj: Any, source_project: Any, object_type: str, guid: str, result: ValidationResult):
         """Validate hierarchical relationships."""
 
         # Check if object requires parent
         if object_type in ["Allomorph", "MoForm"]:
             # Allomorphs must belong to an entry
-            if hasattr(obj, 'Owner'):
+            if hasattr(obj, "Owner"):
                 owner = obj.Owner
                 if owner is not None:
                     owner_guid = str(owner.Guid)
                     if not self._exists_in_target_by_guid(owner_guid):
-                        result.add_issue(ValidationIssue(
-                            severity=ValidationSeverity.CRITICAL,
-                            category="missing_parent",
-                            object_type=object_type,
-                            object_guid=guid,
-                            message="Parent entry does not exist in target project",
-                            details={"parent_guid": owner_guid}
-                        ))
+                        result.add_issue(
+                            ValidationIssue(
+                                severity=ValidationSeverity.CRITICAL,
+                                category="missing_parent",
+                                object_type=object_type,
+                                object_guid=guid,
+                                message="Parent entry does not exist in target project",
+                                details={"parent_guid": owner_guid},
+                            )
+                        )
 
         elif object_type == "LexSense":
             # Senses must belong to entry or parent sense
-            if hasattr(obj, 'Owner'):
+            if hasattr(obj, "Owner"):
                 owner = obj.Owner
                 if owner is not None:
                     owner_guid = str(owner.Guid)
                     if not self._exists_in_target_by_guid(owner_guid):
-                        result.add_issue(ValidationIssue(
-                            severity=ValidationSeverity.CRITICAL,
-                            category="missing_parent",
-                            object_type=object_type,
-                            object_guid=guid,
-                            message="Parent entry/sense does not exist in target project",
-                            details={"parent_guid": owner_guid}
-                        ))
+                        result.add_issue(
+                            ValidationIssue(
+                                severity=ValidationSeverity.CRITICAL,
+                                category="missing_parent",
+                                object_type=object_type,
+                                object_guid=guid,
+                                message="Parent entry/sense does not exist in target project",
+                                details={"parent_guid": owner_guid},
+                            )
+                        )
 
     def _validate_sense(self, obj: Any, guid: str, result: ValidationResult):
         """Sense-specific validation."""
@@ -346,74 +343,82 @@ class LinguisticValidator:
         # Check if sense has gloss or definition
         has_content = False
 
-        if hasattr(obj, 'Gloss'):
+        if hasattr(obj, "Gloss"):
             gloss = obj.Gloss
-            if gloss and hasattr(gloss, 'AnalysisDefaultWritingSystem'):
+            if gloss and hasattr(gloss, "AnalysisDefaultWritingSystem"):
                 if gloss.AnalysisDefaultWritingSystem:
                     has_content = True
 
-        if not has_content and hasattr(obj, 'Definition'):
+        if not has_content and hasattr(obj, "Definition"):
             definition = obj.Definition
-            if definition and hasattr(definition, 'AnalysisDefaultWritingSystem'):
+            if definition and hasattr(definition, "AnalysisDefaultWritingSystem"):
                 if definition.AnalysisDefaultWritingSystem:
                     has_content = True
 
         if not has_content:
-            result.add_issue(ValidationIssue(
-                severity=ValidationSeverity.INFO,
-                category="data_quality",
-                object_type="LexSense",
-                object_guid=guid,
-                message="Sense has no gloss or definition"
-            ))
+            result.add_issue(
+                ValidationIssue(
+                    severity=ValidationSeverity.INFO,
+                    category="data_quality",
+                    object_type="LexSense",
+                    object_guid=guid,
+                    message="Sense has no gloss or definition",
+                )
+            )
 
     def _validate_allomorph(self, obj: Any, guid: str, result: ValidationResult):
         """Allomorph-specific validation."""
 
         # Check if allomorph has form
-        if hasattr(obj, 'Form'):
+        if hasattr(obj, "Form"):
             form = obj.Form
-            if not form or not hasattr(form, 'VernacularDefaultWritingSystem'):
-                result.add_issue(ValidationIssue(
-                    severity=ValidationSeverity.WARNING,
-                    category="data_quality",
-                    object_type="Allomorph",
-                    object_guid=guid,
-                    message="Allomorph has no vernacular form"
-                ))
+            if not form or not hasattr(form, "VernacularDefaultWritingSystem"):
+                result.add_issue(
+                    ValidationIssue(
+                        severity=ValidationSeverity.WARNING,
+                        category="data_quality",
+                        object_type="Allomorph",
+                        object_guid=guid,
+                        message="Allomorph has no vernacular form",
+                    )
+                )
 
     def _validate_entry(self, obj: Any, guid: str, result: ValidationResult):
         """Entry-specific validation."""
 
         # Check if entry has lexeme form
         has_lexeme = False
-        if hasattr(obj, 'LexemeFormOA'):
+        if hasattr(obj, "LexemeFormOA"):
             if obj.LexemeFormOA is not None:
                 has_lexeme = True
 
         if not has_lexeme:
-            result.add_issue(ValidationIssue(
-                severity=ValidationSeverity.WARNING,
-                category="data_quality",
-                object_type="LexEntry",
-                object_guid=guid,
-                message="Entry has no lexeme form"
-            ))
+            result.add_issue(
+                ValidationIssue(
+                    severity=ValidationSeverity.WARNING,
+                    category="data_quality",
+                    object_type="LexEntry",
+                    object_guid=guid,
+                    message="Entry has no lexeme form",
+                )
+            )
 
         # Check if entry has at least one sense
         has_senses = False
-        if hasattr(obj, 'SensesOS'):
+        if hasattr(obj, "SensesOS"):
             if obj.SensesOS and len(obj.SensesOS) > 0:
                 has_senses = True
 
         if not has_senses:
-            result.add_issue(ValidationIssue(
-                severity=ValidationSeverity.INFO,
-                category="data_quality",
-                object_type="LexEntry",
-                object_guid=guid,
-                message="Entry has no senses"
-            ))
+            result.add_issue(
+                ValidationIssue(
+                    severity=ValidationSeverity.INFO,
+                    category="data_quality",
+                    object_type="LexEntry",
+                    object_guid=guid,
+                    message="Entry has no senses",
+                )
+            )
 
     def _exists_in_target(self, obj: Any) -> bool:
         """Check if object exists in target project."""

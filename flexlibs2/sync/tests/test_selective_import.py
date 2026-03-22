@@ -47,7 +47,7 @@ class TestSelectiveImportInitialization(unittest.TestCase):
     def test_init_without_writeEnabled_attribute(self):
         """Test initialization with target that has no writeEnabled attribute."""
         source = Mock()
-        target = Mock(spec=['Object'])  # No writeEnabled attribute
+        target = Mock(spec=["Object"])  # No writeEnabled attribute
 
         # Should succeed - assumes write access
         importer = SelectiveImport(source, target)
@@ -96,10 +96,7 @@ class TestImportNewObjects(unittest.TestCase):
         # Import only objects after Nov 1
         cutoff_date = datetime(2025, 11, 1)
         result = self.importer.import_new_objects(
-            object_type="Allomorph",
-            created_after=cutoff_date,
-            validate_references=False,
-            dry_run=False
+            object_type="Allomorph", created_after=cutoff_date, validate_references=False, dry_run=False
         )
 
         # Should only import new_obj
@@ -133,10 +130,7 @@ class TestImportNewObjects(unittest.TestCase):
         self.importer.merger.create_object = Mock(return_value=Mock())
 
         result = self.importer.import_new_objects(
-            object_type="Allomorph",
-            created_after=datetime(2025, 11, 1),
-            validate_references=False,
-            dry_run=False
+            object_type="Allomorph", created_after=datetime(2025, 11, 1), validate_references=False, dry_run=False
         )
 
         # Should only import new_obj (not existing_obj)
@@ -161,10 +155,7 @@ class TestImportNewObjects(unittest.TestCase):
         self.importer.merger.create_object = Mock(return_value=Mock())
 
         result = self.importer.import_new_objects(
-            object_type="Allomorph",
-            created_after=datetime(2025, 11, 1),
-            validate_references=True,
-            dry_run=False
+            object_type="Allomorph", created_after=datetime(2025, 11, 1), validate_references=True, dry_run=False
         )
 
         # Validation should have been called
@@ -183,13 +174,15 @@ class TestImportNewObjects(unittest.TestCase):
 
         # Mock validation to fail with critical issue
         mock_validation = ValidationResult()
-        mock_validation.add_issue(ValidationIssue(
-            severity=ValidationSeverity.CRITICAL,
-            category="missing_ref",
-            object_type="Allomorph",
-            object_guid="test-guid",
-            message="Missing POS reference"
-        ))
+        mock_validation.add_issue(
+            ValidationIssue(
+                severity=ValidationSeverity.CRITICAL,
+                category="missing_ref",
+                object_type="Allomorph",
+                object_guid="test-guid",
+                message="Missing POS reference",
+            )
+        )
 
         self.importer.validator.validate_before_create = Mock(return_value=mock_validation)
 
@@ -201,7 +194,7 @@ class TestImportNewObjects(unittest.TestCase):
                 object_type="Allomorph",
                 created_after=datetime(2025, 11, 1),
                 validate_references=True,
-                dry_run=False  # Critical: must be False to raise error
+                dry_run=False,  # Critical: must be False to raise error
             )
 
     def test_import_validation_errors_in_dry_run(self):
@@ -216,13 +209,15 @@ class TestImportNewObjects(unittest.TestCase):
 
         # Mock validation to fail
         mock_validation = ValidationResult()
-        mock_validation.add_issue(ValidationIssue(
-            severity=ValidationSeverity.CRITICAL,
-            category="missing_ref",
-            object_type="Allomorph",
-            object_guid="test-guid",
-            message="Missing POS reference"
-        ))
+        mock_validation.add_issue(
+            ValidationIssue(
+                severity=ValidationSeverity.CRITICAL,
+                category="missing_ref",
+                object_type="Allomorph",
+                object_guid="test-guid",
+                message="Missing POS reference",
+            )
+        )
 
         self.importer.validator.validate_before_create = Mock(return_value=mock_validation)
 
@@ -231,7 +226,7 @@ class TestImportNewObjects(unittest.TestCase):
             object_type="Allomorph",
             created_after=datetime(2025, 11, 1),
             validate_references=True,
-            dry_run=True  # Dry run mode
+            dry_run=True,  # Dry run mode
         )
 
         # Should have errors logged
@@ -251,10 +246,7 @@ class TestImportNewObjects(unittest.TestCase):
         self.importer.merger.create_object = Mock(return_value=Mock())
 
         result = self.importer.import_new_objects(
-            object_type="Allomorph",
-            created_after=datetime(2025, 11, 1),
-            validate_references=False,
-            dry_run=True
+            object_type="Allomorph", created_after=datetime(2025, 11, 1), validate_references=False, dry_run=True
         )
 
         # Should not have called create_object
@@ -288,7 +280,7 @@ class TestImportNewObjects(unittest.TestCase):
             created_after=datetime(2025, 11, 1),
             validate_references=False,
             progress_callback=progress_callback,
-            dry_run=False
+            dry_run=False,
         )
 
         # Should have received progress updates
@@ -316,10 +308,7 @@ class TestImportNewObjects(unittest.TestCase):
         self.importer.merger.create_object = Mock(return_value=Mock())
 
         result = self.importer.import_new_objects(
-            object_type="Allomorph",
-            modified_after=datetime(2025, 11, 1),
-            validate_references=False,
-            dry_run=False
+            object_type="Allomorph", modified_after=datetime(2025, 11, 1), validate_references=False, dry_run=False
         )
 
         # Should only import new_obj
@@ -339,10 +328,7 @@ class TestImportNewObjects(unittest.TestCase):
         self.importer.merger.create_object = Mock(return_value=None)
 
         result = self.importer.import_new_objects(
-            object_type="Allomorph",
-            created_after=datetime(2025, 11, 1),
-            validate_references=False,
-            dry_run=False
+            object_type="Allomorph", created_after=datetime(2025, 11, 1), validate_references=False, dry_run=False
         )
 
         # Should have error
@@ -363,10 +349,7 @@ class TestImportNewObjects(unittest.TestCase):
         self.importer.merger.create_object = Mock(side_effect=Exception("Creation failed"))
 
         result = self.importer.import_new_objects(
-            object_type="Allomorph",
-            created_after=datetime(2025, 11, 1),
-            validate_references=False,
-            dry_run=False
+            object_type="Allomorph", created_after=datetime(2025, 11, 1), validate_references=False, dry_run=False
         )
 
         # Should have logged error
@@ -412,13 +395,10 @@ class TestImportByFilter(unittest.TestCase):
 
         # Filter function: only verified
         def is_verified(obj):
-            return hasattr(obj, 'Status') and obj.Status == 'Verified'
+            return hasattr(obj, "Status") and obj.Status == "Verified"
 
         result = self.importer.import_by_filter(
-            object_type="Allomorph",
-            filter_fn=is_verified,
-            validate_references=False,
-            dry_run=False
+            object_type="Allomorph", filter_fn=is_verified, validate_references=False, dry_run=False
         )
 
         # Should only import verified_obj
@@ -456,10 +436,7 @@ class TestImportByFilter(unittest.TestCase):
             return obj.Status == "Verified"
 
         result = self.importer.import_by_filter(
-            object_type="Allomorph",
-            filter_fn=is_verified,
-            validate_references=False,
-            dry_run=False
+            object_type="Allomorph", filter_fn=is_verified, validate_references=False, dry_run=False
         )
 
         # Should only import new_obj (existing is skipped)
@@ -477,13 +454,15 @@ class TestImportByFilter(unittest.TestCase):
 
         # Mock validation with critical issue
         mock_validation = ValidationResult()
-        mock_validation.add_issue(ValidationIssue(
-            severity=ValidationSeverity.CRITICAL,
-            category="test",
-            object_type="Allomorph",
-            object_guid="test-guid",
-            message="Validation failed"
-        ))
+        mock_validation.add_issue(
+            ValidationIssue(
+                severity=ValidationSeverity.CRITICAL,
+                category="test",
+                object_type="Allomorph",
+                object_guid="test-guid",
+                message="Validation failed",
+            )
+        )
 
         self.importer.validator.validate_before_create = Mock(return_value=mock_validation)
 
@@ -491,10 +470,7 @@ class TestImportByFilter(unittest.TestCase):
             return obj.Status == "Verified"
 
         result = self.importer.import_by_filter(
-            object_type="Allomorph",
-            filter_fn=is_verified,
-            validate_references=True,
-            dry_run=False
+            object_type="Allomorph", filter_fn=is_verified, validate_references=True, dry_run=False
         )
 
         # Should have error, no objects created
@@ -515,10 +491,7 @@ class TestImportByFilter(unittest.TestCase):
             raise Exception("Filter error")
 
         result = self.importer.import_by_filter(
-            object_type="Allomorph",
-            filter_fn=bad_filter,
-            validate_references=False,
-            dry_run=False
+            object_type="Allomorph", filter_fn=bad_filter, validate_references=False, dry_run=False
         )
 
         # Should handle gracefully - no objects imported
@@ -541,10 +514,7 @@ class TestImportByFilter(unittest.TestCase):
             return obj.Status == "Verified"
 
         result = self.importer.import_by_filter(
-            object_type="Allomorph",
-            filter_fn=is_verified,
-            validate_references=False,
-            dry_run=True
+            object_type="Allomorph", filter_fn=is_verified, validate_references=False, dry_run=True
         )
 
         # Should not create
@@ -677,10 +647,7 @@ class TestLinguisticWorkflowIntegration(unittest.TestCase):
 
         # Import new allomorphs
         result = importer.import_new_objects(
-            object_type="Allomorph",
-            created_after=backup_time,
-            validate_references=False,
-            dry_run=False
+            object_type="Allomorph", created_after=backup_time, validate_references=False, dry_run=False
         )
 
         # Should only import new_allo
@@ -732,10 +699,7 @@ class TestLinguisticWorkflowIntegration(unittest.TestCase):
         importer_a.merger.create_object = Mock(return_value=Mock())
 
         result_a = importer_a.import_new_objects(
-            object_type="LexEntry",
-            created_after=datetime(2025, 11, 1),
-            validate_references=False,
-            dry_run=False
+            object_type="LexEntry", created_after=datetime(2025, 11, 1), validate_references=False, dry_run=False
         )
 
         # Import from consultant B
@@ -743,10 +707,7 @@ class TestLinguisticWorkflowIntegration(unittest.TestCase):
         importer_b.merger.create_object = Mock(return_value=Mock())
 
         result_b = importer_b.import_new_objects(
-            object_type="LexEntry",
-            created_after=datetime(2025, 11, 1),
-            validate_references=False,
-            dry_run=False
+            object_type="LexEntry", created_after=datetime(2025, 11, 1), validate_references=False, dry_run=False
         )
 
         # Total imported
@@ -754,5 +715,5 @@ class TestLinguisticWorkflowIntegration(unittest.TestCase):
         self.assertEqual(total, 3)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

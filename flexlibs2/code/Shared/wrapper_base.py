@@ -129,7 +129,7 @@ class LCMObjectWrapper:
             wrapped.SomeMethod()
         """
         # Prevent infinite recursion when accessing _obj or _concrete
-        if name in ('_obj', '_concrete'):
+        if name in ("_obj", "_concrete"):
             raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
 
         # Try concrete type first (more specific)
@@ -145,9 +145,7 @@ class LCMObjectWrapper:
             pass
 
         # Property not found on either type
-        raise AttributeError(
-            f"'{type(self).__name__}' object and its wrapped LCM object have no attribute '{name}'"
-        )
+        raise AttributeError(f"'{type(self).__name__}' object and its wrapped LCM object have no attribute '{name}'")
 
     @property
     def class_type(self):

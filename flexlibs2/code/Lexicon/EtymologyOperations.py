@@ -31,6 +31,7 @@ from ..FLExProject import (
 # Import string utilities
 from ..Shared.string_utils import normalize_text
 
+
 class EtymologyOperations(BaseOperations):
     """
     This class provides operations for managing etymological information in a
@@ -270,7 +271,7 @@ class EtymologyOperations(BaseOperations):
 
         # Get the owning entry and remove the etymology
         owner = etymology.Owner
-        if hasattr(owner, 'EtymologyOS'):
+        if hasattr(owner, "EtymologyOS"):
             owner.EtymologyOS.Remove(etymology)
 
     @OperationsMethod
@@ -334,12 +335,12 @@ class EtymologyOperations(BaseOperations):
         # Determine insertion position
         if insert_after:
             # Insert after source etymology
-            if hasattr(parent, 'EtymologyOS'):
+            if hasattr(parent, "EtymologyOS"):
                 source_index = parent.EtymologyOS.IndexOf(source)
                 parent.EtymologyOS.Insert(source_index + 1, duplicate)
         else:
             # Insert at end
-            if hasattr(parent, 'EtymologyOS'):
+            if hasattr(parent, "EtymologyOS"):
                 parent.EtymologyOS.Add(duplicate)
 
         # Copy simple MultiString properties (AFTER adding to parent)
@@ -350,7 +351,7 @@ class EtymologyOperations(BaseOperations):
         duplicate.Bibliography.CopyAlternatives(source.Bibliography)
 
         # Copy Reference Atomic (RA) properties
-        if hasattr(source, 'LanguageNotesRA') and source.LanguageNotesRA:
+        if hasattr(source, "LanguageNotesRA") and source.LanguageNotesRA:
             duplicate.LanguageNotesRA = source.LanguageNotesRA
 
         # Note: Etymology has no owned objects (OS collections), so deep has no effect
@@ -375,65 +376,70 @@ class EtymologyOperations(BaseOperations):
         # MultiString properties
         # Form - the etymological form
         form_dict = {}
-        if hasattr(item, 'Form'):
+        if hasattr(item, "Form"):
             for ws_handle in self.project.GetAllWritingSystems():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
+
                 text = normalize_text(ITsString(item.Form.get_String(ws_handle)).Text)
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     form_dict[ws_tag] = text
-        props['Form'] = form_dict
+        props["Form"] = form_dict
 
         # Gloss - meaning of the etymological form
         gloss_dict = {}
-        if hasattr(item, 'Gloss'):
+        if hasattr(item, "Gloss"):
             for ws_handle in self.project.GetAllWritingSystems():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
+
                 text = normalize_text(ITsString(item.Gloss.get_String(ws_handle)).Text)
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     gloss_dict[ws_tag] = text
-        props['Gloss'] = gloss_dict
+        props["Gloss"] = gloss_dict
 
         # Source - source language or reference
         source_dict = {}
-        if hasattr(item, 'Source'):
+        if hasattr(item, "Source"):
             for ws_handle in self.project.GetAllWritingSystems():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
+
                 text = normalize_text(ITsString(item.Source.get_String(ws_handle)).Text)
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     source_dict[ws_tag] = text
-        props['Source'] = source_dict
+        props["Source"] = source_dict
 
         # Comment - additional notes
         comment_dict = {}
-        if hasattr(item, 'Comment'):
+        if hasattr(item, "Comment"):
             for ws_handle in self.project.GetAllWritingSystems():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
+
                 text = normalize_text(ITsString(item.Comment.get_String(ws_handle)).Text)
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     comment_dict[ws_tag] = text
-        props['Comment'] = comment_dict
+        props["Comment"] = comment_dict
 
         # Bibliography - bibliographic reference
         bibliography_dict = {}
-        if hasattr(item, 'Bibliography'):
+        if hasattr(item, "Bibliography"):
             for ws_handle in self.project.GetAllWritingSystems():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
+
                 text = normalize_text(ITsString(item.Bibliography.get_String(ws_handle)).Text)
                 if text:
                     ws_tag = self.project.GetWritingSystemTag(ws_handle)
                     bibliography_dict[ws_tag] = text
-        props['Bibliography'] = bibliography_dict
+        props["Bibliography"] = bibliography_dict
 
         # Reference Atomic (RA) properties
         # LanguageRA - source language
-        if hasattr(item, 'LanguageRA') and item.LanguageRA:
-            props['LanguageRA'] = str(item.LanguageRA.Guid)
+        if hasattr(item, "LanguageRA") and item.LanguageRA:
+            props["LanguageRA"] = str(item.LanguageRA.Guid)
         else:
-            props['LanguageRA'] = None
+            props["LanguageRA"] = None
 
         return props
 
@@ -520,9 +526,7 @@ class EtymologyOperations(BaseOperations):
         new_etymologies = set(etymologies)
 
         if current_etymologies != new_etymologies:
-            raise FP_ParameterError(
-                "Etymology list must contain exactly the same etymologies as the entry"
-            )
+            raise FP_ParameterError("Etymology list must contain exactly the same etymologies as the entry")
 
         # Clear and re-add in new order
         entry.EtymologyOS.Clear()
@@ -928,11 +932,11 @@ class EtymologyOperations(BaseOperations):
 
         # Bibliography can be stored as a string property or Unicode accessor
         # Check both possibilities
-        if hasattr(etymology, 'Bibliography'):
+        if hasattr(etymology, "Bibliography"):
             bib = etymology.Bibliography
             if bib:
                 # If it's an ITsString, extract text
-                if hasattr(bib, 'Text'):
+                if hasattr(bib, "Text"):
                     return self._NormalizeMultiString(bib.Text)
                 # If it's already a string
                 elif isinstance(bib, str):
@@ -993,9 +997,9 @@ class EtymologyOperations(BaseOperations):
 
         # Bibliography might be stored as string or ITsString
         # Try to set it appropriately
-        if hasattr(etymology, 'Bibliography'):
+        if hasattr(etymology, "Bibliography"):
             # Check if it's a MultiUnicodeAccessor
-            if hasattr(etymology.Bibliography, 'set_String'):
+            if hasattr(etymology.Bibliography, "set_String"):
                 mkstr = TsStringUtils.MakeString(bibliography_text, wsHandle)
                 etymology.Bibliography.set_String(wsHandle, mkstr)
             # Otherwise treat as direct string property
@@ -1188,7 +1192,4 @@ class EtymologyOperations(BaseOperations):
         """
         if ws is None:
             return self.project.project.DefaultAnalWs
-        return self.project._FLExProject__WSHandle(
-            ws,
-            self.project.project.DefaultAnalWs
-        )
+        return self.project._FLExProject__WSHandle(ws, self.project.project.DefaultAnalWs)

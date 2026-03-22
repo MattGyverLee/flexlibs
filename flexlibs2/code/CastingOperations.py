@@ -1,9 +1,9 @@
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Name:         CastingOperations
 # Purpose:      Wrapper for LCM casting utilities to help with pythonnet interface resolution
 #
 # FlexLibs 2.3 - Casting utilities for handling polymorphic collections and interface types
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 """
 CastingOperations provides utilities for handling pythonnet's strict interface typing.
@@ -105,20 +105,20 @@ class CastingOperations:
     @staticmethod
     def cast_to_concrete(obj):
         """Cast an LCM object to its concrete interface type.
-        
+
         When you retrieve an object from a polymorphic collection, it's typed as the
         base interface (e.g., IMoMorphSynAnalysis). This function inspects the object's
         ClassName and casts it to the actual concrete type (e.g., IMoAffixAllomorph).
-        
+
         Args:
             obj: An LCM object that may be a base interface type
-            
+
         Returns:
             The same object cast to its concrete interface type, or the original if
             already concrete or if concrete type is not available
-            
+
         Example::
-        
+
             # Morph could be IMoAffixAllomorph or IMoStemAllomorph
             morph = entry.LexemeFormOA
             concrete = CastingOperations.cast_to_concrete(morph)
@@ -131,18 +131,18 @@ class CastingOperations:
     @staticmethod
     def get_pos_from_msa(msa):
         """Extract the Part of Speech from a Morph-Syntax Analysis.
-        
+
         This is a common pattern: entries have allomorphs/morphemes with MSAs that
         specify the part of speech. This helper navigates that relationship.
-        
+
         Args:
             msa: An IMoMorphSynAnalysis object (or any type of morph analysis)
-            
+
         Returns:
             The IPartOfSpeech object, or None if not found
-            
+
         Example::
-        
+
             entry = project.LexEntry.Find("walk")
             for sense in entry.SensesOS:
                 msa = sense.MorphoSyntaxAnalysisRA
@@ -155,13 +155,13 @@ class CastingOperations:
     @staticmethod
     def get_from_pos_from_msa(msa):
         """Extract the source Part of Speech from a derivational MSA.
-        
+
         For derivational analyses that show what a word is derived from,
         this returns the POS of the source form.
-        
+
         Args:
             msa: An IMoDerivationalMorphoSynAnalysis object
-            
+
         Returns:
             The source IPartOfSpeech, or None if not derivational or not found
         """
@@ -170,13 +170,13 @@ class CastingOperations:
     @staticmethod
     def cast_phonological_rule(rule_obj):
         """Cast a phonological rule to its concrete type.
-        
+
         Phonological rules can be different subtypes (metathesis, insertion, etc.).
         This function casts to the actual concrete type.
-        
+
         Args:
             rule_obj: An IPhPhonologicalRule object
-            
+
         Returns:
             The rule cast to its concrete type
         """
@@ -185,15 +185,15 @@ class CastingOperations:
     @staticmethod
     def clone_properties(source_obj, dest_obj, project=None):
         """Deep clone properties from one object to another.
-        
+
         Useful for copying data between similar objects while preserving
         object identity and relationships.
-        
+
         Args:
             source_obj: Source LCM object to copy from
             dest_obj: Destination LCM object to copy to
             project: Optional FLExProject for factory access
-            
+
         Returns:
             The dest_obj with cloned properties
         """
@@ -202,14 +202,14 @@ class CastingOperations:
     @staticmethod
     def validate_merge_compatibility(survivor_obj, victim_obj):
         """Check if two objects can be safely merged.
-        
+
         Before merging entries or senses, validate that they have compatible structures
         to avoid data loss or corruption.
-        
+
         Args:
             survivor_obj: The object that will survive the merge
             victim_obj: The object that will be merged into survivor
-            
+
         Returns:
             Tuple (bool, str) - (is_compatible, explanation)
         """
@@ -218,13 +218,13 @@ class CastingOperations:
     @staticmethod
     def get_common_properties(objects):
         """Find properties that all objects in a collection share.
-        
+
         When batch processing objects, determine what properties you can safely
         access on all of them.
-        
+
         Args:
             objects: List/iterable of LCM objects
-            
+
         Returns:
             Set of property names common to all objects
         """
@@ -233,13 +233,13 @@ class CastingOperations:
     @staticmethod
     def get_concrete_type_properties(lcm_obj):
         """Get all properties available on an object's concrete type.
-        
+
         Discovers the full property set for an object after casting to its concrete type.
         Useful for introspection and batch operations.
-        
+
         Args:
             lcm_obj: An LCM object
-            
+
         Returns:
             Dict mapping property names to their types
         """

@@ -112,9 +112,9 @@ def validate_enum_value(value: Any, enum_class: type, param_name: str = "value")
 
 
 __all__ = [
-    'validate_non_empty_string',
-    'validate_object_exists',
-    'validate_index_in_range',
-    'validate_writing_system',
-    'validate_enum_value',
+    "validate_non_empty_string",
+    "validate_object_exists",
+    "validate_index_in_range",
+    "validate_writing_system",
+    "validate_enum_value",
 ]

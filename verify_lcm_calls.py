@@ -11,6 +11,7 @@ from pathlib import Path
 from collections import defaultdict
 import json
 
+
 class LCMCallAnalyzer:
     """Analyze all LCM method/property calls in flexlibs2."""
 
@@ -18,9 +19,9 @@ class LCMCallAnalyzer:
         self.calls = defaultdict(list)  # type -> [(method, file, line)]
         self.imports = defaultdict(list)  # type -> files imported from
         self.patterns = {
-            'method_call': r'(\w+)\.(\w+)\(',
-            'property_access': r'(\w+)\.(\w+)(?!\()',
-            'import': r'from .* import (.+)',
+            "method_call": r"(\w+)\.(\w+)\(",
+            "property_access": r"(\w+)\.(\w+)(?!\()",
+            "import": r"from .* import (.+)",
         }
 
     def extract_lcm_calls(self, codebase_path):
@@ -39,33 +40,33 @@ class LCMCallAnalyzer:
     def _analyze_file(self, file_path):
         """Analyze a single Python file."""
         try:
-            content = file_path.read_text(encoding='utf-8')
-            lines = content.split('\n')
+            content = file_path.read_text(encoding="utf-8")
+            lines = content.split("\n")
 
             # Extract imports
             for line in lines:
-                if 'from SIL.LCModel' in line or 'from SIL.FieldWorks' in line:
-                    match = re.search(r'import (.+)', line)
+                if "from SIL.LCModel" in line or "from SIL.FieldWorks" in line:
+                    match = re.search(r"import (.+)", line)
                     if match:
-                        imports = match.group(1).split(',')
+                        imports = match.group(1).split(",")
                         for imp in imports:
                             type_name = imp.strip()
-                            if type_name and not type_name.startswith('('):
+                            if type_name and not type_name.startswith("("):
                                 self.imports[type_name].append(str(file_path))
 
             # Extract method calls and property access
             for line_num, line in enumerate(lines, 1):
                 # Skip comments
-                if line.strip().startswith('#'):
+                if line.strip().startswith("#"):
                     continue
 
                 # Find patterns like obj.method() or obj.property
-                for match in re.finditer(self.patterns['method_call'], line):
+                for match in re.finditer(self.patterns["method_call"], line):
                     obj, method = match.groups()
                     self.calls[f"{obj}.{method}()"].append((str(file_path), line_num, line.strip()))
 
                 # Find property access (excluding method calls already found)
-                for match in re.finditer(self.patterns['property_access'], line):
+                for match in re.finditer(self.patterns["property_access"], line):
                     obj, prop = match.groups()
                     key = f"{obj}.{prop}"
                     # Only add if not already a method call
@@ -78,36 +79,36 @@ class LCMCallAnalyzer:
     def categorize_calls(self):
         """Categorize calls by LCM type."""
         categories = {
-            'ServiceLocator': [],
-            'TsStringUtils': [],
-            'Factory': [],
-            'Repository': [],
-            'MultiString': [],
-            'ITsString': [],
-            'Collections': [],
-            'OwnedObjects': [],
-            'Other': []
+            "ServiceLocator": [],
+            "TsStringUtils": [],
+            "Factory": [],
+            "Repository": [],
+            "MultiString": [],
+            "ITsString": [],
+            "Collections": [],
+            "OwnedObjects": [],
+            "Other": [],
         }
 
         for call, locations in sorted(self.calls.items()):
-            if 'ServiceLocator' in call:
-                categories['ServiceLocator'].append((call, locations))
-            elif 'TsStringUtils' in call:
-                categories['TsStringUtils'].append((call, locations))
-            elif 'Factory' in call or '.Create(' in call:
-                categories['Factory'].append((call, locations))
-            elif 'Repository' in call:
-                categories['Repository'].append((call, locations))
-            elif 'CopyAlternatives' in call:
-                categories['MultiString'].append((call, locations))
-            elif 'StringRepresentation' in call or '.Text' in call:
-                categories['ITsString'].append((call, locations))
-            elif 'OS.' in call or '.Add(' in call or '.Insert(' in call:
-                categories['Collections'].append((call, locations))
-            elif 'OA' in call or 'CopyObject' in call:
-                categories['OwnedObjects'].append((call, locations))
+            if "ServiceLocator" in call:
+                categories["ServiceLocator"].append((call, locations))
+            elif "TsStringUtils" in call:
+                categories["TsStringUtils"].append((call, locations))
+            elif "Factory" in call or ".Create(" in call:
+                categories["Factory"].append((call, locations))
+            elif "Repository" in call:
+                categories["Repository"].append((call, locations))
+            elif "CopyAlternatives" in call:
+                categories["MultiString"].append((call, locations))
+            elif "StringRepresentation" in call or ".Text" in call:
+                categories["ITsString"].append((call, locations))
+            elif "OS." in call or ".Add(" in call or ".Insert(" in call:
+                categories["Collections"].append((call, locations))
+            elif "OA" in call or "CopyObject" in call:
+                categories["OwnedObjects"].append((call, locations))
             else:
-                categories['Other'].append((call, locations))
+                categories["Other"].append((call, locations))
 
         return categories
 
@@ -138,7 +139,7 @@ class LCMCallAnalyzer:
                 print(f"\n  [OK] {call}")
                 print(f"    Used in {len(locations)} location(s):")
                 for file_path, line_num, code in locations[:2]:  # Show first 2
-                    short_path = str(file_path).replace('d:\\Github\\flexlibs2\\', '')
+                    short_path = str(file_path).replace("d:\\Github\\flexlibs2\\", "")
                     print(f"      - {short_path}:{line_num}")
                     print(f"        {code[:70]}")
                 if len(locations) > 2:
@@ -153,29 +154,13 @@ class LCMCallAnalyzer:
         print("=" * 80)
 
         known_methods = {
-            'ServiceLocator': {
-                'GetService': 'Get factory services',
-                'GetInstance': 'Get singleton services'
-            },
-            'TsStringUtils': {
-                'MakeString': 'Create ITsString with text and writing system'
-            },
-            'Factory': {
-                'Create': 'Create new objects'
-            },
-            'Repository': {
-                'CopyObject': 'Deep copy objects'
-            },
-            'MultiString': {
-                'CopyAlternatives': 'Copy writing system alternatives'
-            },
-            'Collections': {
-                'Add': 'Add object to collection',
-                'Insert': 'Insert object at position'
-            },
-            'OwnedObjects': {
-                'CopyObject': 'Deep copy owned objects'
-            }
+            "ServiceLocator": {"GetService": "Get factory services", "GetInstance": "Get singleton services"},
+            "TsStringUtils": {"MakeString": "Create ITsString with text and writing system"},
+            "Factory": {"Create": "Create new objects"},
+            "Repository": {"CopyObject": "Deep copy objects"},
+            "MultiString": {"CopyAlternatives": "Copy writing system alternatives"},
+            "Collections": {"Add": "Add object to collection", "Insert": "Insert object at position"},
+            "OwnedObjects": {"CopyObject": "Deep copy owned objects"},
         }
 
         print("\nKNOWN AND VERIFIED LCM METHODS:\n")
@@ -218,19 +203,12 @@ def main():
     print("=" * 80)
 
     calls_dict = {
-        call: [
-            {
-                'file': loc[0],
-                'line': loc[1],
-                'code': loc[2]
-            }
-            for loc in locations
-        ]
+        call: [{"file": loc[0], "line": loc[1], "code": loc[2]} for loc in locations]
         for call, locations in analyzer.calls.items()
     }
 
     json_file = Path("lcm_calls_analysis.json")
-    with open(json_file, 'w', encoding='utf-8') as f:
+    with open(json_file, "w", encoding="utf-8") as f:
         json.dump(calls_dict, f, indent=2)
 
     print(f"\n[DONE] Detailed analysis exported to: {json_file}")

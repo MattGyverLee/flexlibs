@@ -23,7 +23,7 @@ import sys
 import os
 
 # Add parent directory to path to import flexlibs2
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from flexlibs2 import FLExProject
 
@@ -32,9 +32,9 @@ def demo_scripture_books(project):
     """
     Demonstrate Scripture book operations.
     """
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("SCRIPTURE BOOK OPERATIONS")
-    print("="*70)
+    print("=" * 70)
 
     # List all existing books
     print("\n1. Listing all Scripture books:")
@@ -85,9 +85,9 @@ def demo_scripture_sections(project):
     """
     Demonstrate Scripture section operations.
     """
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("SCRIPTURE SECTION OPERATIONS")
-    print("="*70)
+    print("=" * 70)
 
     # Get first book
     books = list(project.ScrBooks.GetAll())
@@ -123,9 +123,7 @@ def demo_scripture_sections(project):
         print(f"\n3. Creating a new section in {book_title}:")
         try:
             new_section = project.ScrSections.Create(
-                book,
-                "Demo Section Heading",
-                "This is the first paragraph of demo content."
+                book, "Demo Section Heading", "This is the first paragraph of demo content."
             )
             heading = project.ScrSections.GetHeading(new_section)
             print(f"   Created section: {heading}")
@@ -137,9 +135,9 @@ def demo_scripture_paragraphs(project):
     """
     Demonstrate Scripture paragraph operations.
     """
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("SCRIPTURE PARAGRAPH OPERATIONS")
-    print("="*70)
+    print("=" * 70)
 
     # Get first book and section
     books = list(project.ScrBooks.GetAll())
@@ -181,11 +179,7 @@ def demo_scripture_paragraphs(project):
     if project.writeEnabled and section:
         print(f"\n3. Creating a new paragraph:")
         try:
-            new_para = project.ScrTxtParas.Create(
-                section,
-                "This is a demo paragraph created by flexlibs2.",
-                "Normal"
-            )
+            new_para = project.ScrTxtParas.Create(section, "This is a demo paragraph created by flexlibs2.", "Normal")
             text = project.ScrTxtParas.GetText(new_para)
             print(f"   Created: {text}")
         except Exception as e:
@@ -196,9 +190,9 @@ def demo_scripture_drafts(project):
     """
     Demonstrate Scripture draft operations.
     """
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("SCRIPTURE DRAFT OPERATIONS")
-    print("="*70)
+    print("=" * 70)
 
     # List all drafts
     print("\n1. Listing all Scripture drafts:")
@@ -216,11 +210,9 @@ def demo_scripture_drafts(project):
         print("\n2. Creating a new draft:")
         try:
             from datetime import datetime
+
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-            new_draft = project.ScrDrafts.Create(
-                f"Demo Draft - {timestamp}",
-                "saved_version"
-            )
+            new_draft = project.ScrDrafts.Create(f"Demo Draft - {timestamp}", "saved_version")
             desc = project.ScrDrafts.GetDescription(new_draft)
             print(f"   Created: {desc}")
         except Exception as e:
@@ -239,9 +231,9 @@ def demo_scripture_notes(project):
     """
     Demonstrate Scripture note operations.
     """
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("SCRIPTURE NOTE OPERATIONS")
-    print("="*70)
+    print("=" * 70)
 
     # Get first book
     books = list(project.ScrBooks.GetAll())
@@ -277,10 +269,7 @@ def demo_scripture_notes(project):
                 print(f"\n2. Creating a new note:")
                 try:
                     new_note = project.ScrNotes.Create(
-                        book,
-                        para,
-                        "Demo note: Check this translation for accuracy.",
-                        "translator_note"
+                        book, para, "Demo note: Check this translation for accuracy.", "translator_note"
                     )
                     text = project.ScrNotes.GetText(new_note)
                     print(f"   Created: {text}")
@@ -298,9 +287,9 @@ def demo_scripture_annotations(project):
     """
     Demonstrate Scripture annotations operations.
     """
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("SCRIPTURE ANNOTATIONS OPERATIONS")
-    print("="*70)
+    print("=" * 70)
 
     # Get first book
     books = list(project.ScrBooks.GetAll())
@@ -334,14 +323,14 @@ def main():
     """
     Main demo function.
     """
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("FLEXLIBS SCRIPTURE OPERATIONS DEMO")
-    print("="*70)
+    print("=" * 70)
 
     # Get project name from command line
     if len(sys.argv) < 2:
-        print("\nUsage: python demo_scripture_operations.py \"Project Name\"")
-        print("\nExample: python demo_scripture_operations.py \"Sena 3\"")
+        print('\nUsage: python demo_scripture_operations.py "Project Name"')
+        print('\nExample: python demo_scripture_operations.py "Sena 3"')
         sys.exit(1)
 
     project_name = sys.argv[1]
@@ -362,7 +351,7 @@ def main():
         print("Project opened successfully.")
 
         # Check if Scripture is enabled
-        if not hasattr(project.lp, 'TranslatedScriptureOA') or not project.lp.TranslatedScriptureOA:
+        if not hasattr(project.lp, "TranslatedScriptureOA") or not project.lp.TranslatedScriptureOA:
             print("\nWARNING: This project does not have Scripture enabled.")
             print("Scripture operations require Scripture to be enabled in the project.")
             project.CloseProject()
@@ -377,7 +366,7 @@ def main():
         demo_scripture_annotations(project)
 
         # Close the project
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("Closing project...")
         project.CloseProject()
         print("Project closed successfully.")
@@ -385,14 +374,15 @@ def main():
     except Exception as e:
         print(f"\nError: {e}")
         import traceback
+
         traceback.print_exc()
         if project and project.project:
             project.CloseProject()
         sys.exit(1)
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("DEMO COMPLETE")
-    print("="*70)
+    print("=" * 70)
     print("\nSummary:")
     print("  - Scripture books: CRUD operations for Bible books (Genesis, Matthew, etc.)")
     print("  - Scripture sections: Managing sections with headings and content")

@@ -12,6 +12,7 @@ Version: 2.3.0
 
 from flexlibs2 import FLExProject, FLExInitialize, FLExCleanup
 
+
 def demo_anthropology_crud():
     """
     Demonstrate full CRUD operations for anthropology.
@@ -44,16 +45,16 @@ def demo_anthropology_crud():
 
     try:
         # ==================== READ: Initial state ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("STEP 1: READ - Get existing anthropologys")
-        print("="*70)
+        print("=" * 70)
 
         print("\nGetting all anthropologys...")
         initial_count = 0
         for obj in project.Anthropology.GetAll():
             # Display first few objects
             try:
-                name = project.Anthropology.GetName(obj) if hasattr(project.Anthropology, 'GetName') else str(obj)
+                name = project.Anthropology.GetName(obj) if hasattr(project.Anthropology, "GetName") else str(obj)
                 print(f"  - {name}")
             except:
                 print(f"  - [Object {initial_count + 1}]")
@@ -64,16 +65,16 @@ def demo_anthropology_crud():
         print(f"\nTotal anthropologys (showing first 5): {initial_count}")
 
         # ==================== CREATE ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("STEP 2: CREATE - Create new test anthropology")
-        print("="*70)
+        print("=" * 70)
 
         # Check if test object already exists
         try:
-            if hasattr(project.Anthropology, 'Exists') and project.Anthropology.Exists(test_name):
+            if hasattr(project.Anthropology, "Exists") and project.Anthropology.Exists(test_name):
                 print(f"\nTest anthropology '{test_name}' already exists")
                 print("Deleting existing one first...")
-                existing = project.Anthropology.Find(test_name) if hasattr(project.Anthropology, 'Find') else None
+                existing = project.Anthropology.Find(test_name) if hasattr(project.Anthropology, "Find") else None
                 if existing:
                     project.Anthropology.Delete(existing)
                     print("  Deleted existing test anthropology")
@@ -90,7 +91,7 @@ def demo_anthropology_crud():
             try:
                 # Try without parameters if that fails
                 test_obj = project.Anthropology.Create()
-                if hasattr(project.Anthropology, 'SetName'):
+                if hasattr(project.Anthropology, "SetName"):
                     project.Anthropology.SetName(test_obj, test_name)
             except Exception as e:
                 print(f"  Note: Create method may require specific parameters: {e}")
@@ -99,7 +100,7 @@ def demo_anthropology_crud():
         if test_obj:
             print(f"  SUCCESS: Anthropology created!")
             try:
-                if hasattr(project.Anthropology, 'GetName'):
+                if hasattr(project.Anthropology, "GetName"):
                     print(f"  Name: {project.Anthropology.GetName(test_obj)}")
             except:
                 pass
@@ -109,24 +110,24 @@ def demo_anthropology_crud():
             return
 
         # ==================== READ: Verify creation ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("STEP 3: READ - Verify anthropology was created")
-        print("="*70)
+        print("=" * 70)
 
         # Test Exists
-        if hasattr(project.Anthropology, 'Exists'):
+        if hasattr(project.Anthropology, "Exists"):
             print(f"\nChecking if '{test_name}' exists...")
             exists = project.Anthropology.Exists(test_name)
             print(f"  Exists: {exists}")
 
         # Test Find
-        if hasattr(project.Anthropology, 'Find'):
+        if hasattr(project.Anthropology, "Find"):
             print(f"\nFinding anthropology by name...")
             found_obj = project.Anthropology.Find(test_name)
             if found_obj:
                 print(f"  FOUND: anthropology")
                 try:
-                    if hasattr(project.Anthropology, 'GetName'):
+                    if hasattr(project.Anthropology, "GetName"):
                         print(f"  Name: {project.Anthropology.GetName(found_obj)}")
                 except:
                     pass
@@ -141,21 +142,27 @@ def demo_anthropology_crud():
         print(f"  Difference:   +{current_count - initial_count}")
 
         # ==================== UPDATE ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("STEP 4: UPDATE - Modify anthropology properties")
-        print("="*70)
+        print("=" * 70)
 
         if test_obj:
             updated = False
 
             # Try common update methods
-            if hasattr(project.Anthropology, 'SetName'):
+            if hasattr(project.Anthropology, "SetName"):
                 try:
                     new_name = "crud_test_anthropology_modified"
                     print(f"\nUpdating name to: '{new_name}'")
-                    old_name = project.Anthropology.GetName(test_obj) if hasattr(project.Anthropology, 'GetName') else test_name
+                    old_name = (
+                        project.Anthropology.GetName(test_obj)
+                        if hasattr(project.Anthropology, "GetName")
+                        else test_name
+                    )
                     project.Anthropology.SetName(test_obj, new_name)
-                    updated_name = project.Anthropology.GetName(test_obj) if hasattr(project.Anthropology, 'GetName') else new_name
+                    updated_name = (
+                        project.Anthropology.GetName(test_obj) if hasattr(project.Anthropology, "GetName") else new_name
+                    )
                     print(f"  Old name: {old_name}")
                     print(f"  New name: {updated_name}")
                     test_name = new_name  # Update for cleanup
@@ -165,7 +172,7 @@ def demo_anthropology_crud():
 
             # Try other Set methods
             for method_name in dir(project.Anthropology):
-                if method_name.startswith('Set') and method_name != 'SetName' and not updated:
+                if method_name.startswith("Set") and method_name != "SetName" and not updated:
                     print(f"\nFound update method: {method_name}")
                     print("  (Method available but not tested in this demo)")
                     break
@@ -176,17 +183,17 @@ def demo_anthropology_crud():
                 print("\n  Note: No standard update methods found or tested")
 
         # ==================== READ: Verify updates ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("STEP 5: READ - Verify updates persisted")
-        print("="*70)
+        print("=" * 70)
 
-        if hasattr(project.Anthropology, 'Find'):
+        if hasattr(project.Anthropology, "Find"):
             print(f"\nFinding anthropology after update...")
             updated_obj = project.Anthropology.Find(test_name)
             if updated_obj:
                 print(f"  FOUND: anthropology")
                 try:
-                    if hasattr(project.Anthropology, 'GetName'):
+                    if hasattr(project.Anthropology, "GetName"):
                         print(f"  Name: {project.Anthropology.GetName(updated_obj)}")
                 except:
                     pass
@@ -194,14 +201,16 @@ def demo_anthropology_crud():
                 print("  NOT FOUND - Update may not have persisted")
 
         # ==================== DELETE ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("STEP 6: DELETE - Remove test anthropology")
-        print("="*70)
+        print("=" * 70)
 
         if test_obj:
             print(f"\nDeleting test anthropology...")
             try:
-                obj_name = project.Anthropology.GetName(test_obj) if hasattr(project.Anthropology, 'GetName') else test_name
+                obj_name = (
+                    project.Anthropology.GetName(test_obj) if hasattr(project.Anthropology, "GetName") else test_name
+                )
             except:
                 obj_name = test_name
 
@@ -210,7 +219,7 @@ def demo_anthropology_crud():
 
             # Verify deletion
             print("\nVerifying deletion...")
-            if hasattr(project.Anthropology, 'Exists'):
+            if hasattr(project.Anthropology, "Exists"):
                 still_exists = project.Anthropology.Exists(test_name)
                 print(f"  Still exists: {still_exists}")
 
@@ -225,9 +234,9 @@ def demo_anthropology_crud():
             print(f"  Back to initial:    {final_count == initial_count}")
 
         # ==================== SUMMARY ====================
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("CRUD TEST SUMMARY")
-        print("="*70)
+        print("=" * 70)
         print("\nOperations tested:")
         print("  [CREATE] Create new anthropology")
         print("  [READ]   GetAll, Find, Exists, Get methods")
@@ -238,18 +247,19 @@ def demo_anthropology_crud():
     except Exception as e:
         print(f"\n\nERROR during CRUD test: {e}")
         import traceback
+
         traceback.print_exc()
 
     finally:
         # Cleanup: Ensure test object is removed
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("CLEANUP")
-        print("="*70)
+        print("=" * 70)
 
         try:
             for name in ["crud_test_anthropology", "crud_test_anthropology_modified"]:
-                if hasattr(project.Anthropology, 'Exists') and project.Anthropology.Exists(name):
-                    obj = project.Anthropology.Find(name) if hasattr(project.Anthropology, 'Find') else None
+                if hasattr(project.Anthropology, "Exists") and project.Anthropology.Exists(name):
+                    obj = project.Anthropology.Find(name) if hasattr(project.Anthropology, "Find") else None
                     if obj:
                         project.Anthropology.Delete(obj)
                         print(f"  Cleaned up: {name}")
@@ -260,13 +270,14 @@ def demo_anthropology_crud():
         project.CloseProject()
         FLExCleanup()
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("DEMO COMPLETE")
-    print("="*70)
+    print("=" * 70)
 
 
 if __name__ == "__main__":
-    print("""
+    print(
+        """
 Anthropology Operations - Full CRUD Demo
 =====================================================
 
@@ -296,10 +307,11 @@ Requirements:
 
 WARNING: This demo modifies the database!
          Test anthropology is created and deleted during the demo.
-    """)
+    """
+    )
 
     response = input("\nRun CRUD demo? (y/N): ")
-    if response.lower() == 'y':
+    if response.lower() == "y":
         demo_anthropology_crud()
     else:
         print("\nDemo skipped.")

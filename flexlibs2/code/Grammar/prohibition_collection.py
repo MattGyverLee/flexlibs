@@ -299,4 +299,3 @@ class ProhibitionCollection(SmartCollection):
     def __repr__(self):
         """Technical representation."""
         return f"ProhibitionCollection({len(self._items)} items)"
-

@@ -29,6 +29,7 @@ from ..FLExProject import (
 )
 from ..BaseOperations import BaseOperations, OperationsMethod
 
+
 class PossibilityListOperations(BaseOperations):
     """
     This class provides generic operations for managing possibility lists
@@ -223,9 +224,7 @@ class PossibilityListOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the new list using the factory
-        factory = self.project.project.ServiceLocator.GetInstance(
-            ICmPossibilityListFactory
-        )
+        factory = self.project.project.ServiceLocator.GetInstance(ICmPossibilityListFactory)
         new_list = factory.Create()
 
         # Set name
@@ -461,11 +460,7 @@ class PossibilityListOperations(BaseOperations):
         if not flat:
             return list(poss_list.PossibilitiesOS)
         else:
-            return list(self.project.UnpackNestedPossibilityList(
-                poss_list.PossibilitiesOS,
-                ICmPossibility,
-                flat
-            ))
+            return list(self.project.UnpackNestedPossibilityList(poss_list.PossibilitiesOS, ICmPossibility, flat))
 
     @OperationsMethod
     def CreateItem(self, list_or_hvo, name, wsHandle=None, parent=None):
@@ -523,9 +518,7 @@ class PossibilityListOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the new possibility using the factory
-        factory = self.project.project.ServiceLocator.GetService(
-            ICmPossibilityFactory
-        )
+        factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
         new_item = factory.Create()
 
         # Add to parent or top-level list (must be done before setting properties)
@@ -534,9 +527,7 @@ class PossibilityListOperations(BaseOperations):
             # Verify parent belongs to the same list
             parent_list = self.__GetListOwner(parent_obj)
             if parent_list.Guid != poss_list.Guid:
-                raise FP_ParameterError(
-                    "Parent item does not belong to the specified list"
-                )
+                raise FP_ParameterError("Parent item does not belong to the specified list")
             parent_obj.SubPossibilitiesOS.Add(new_item)
         else:
             poss_list.PossibilitiesOS.Add(new_item)
@@ -682,11 +673,11 @@ class PossibilityListOperations(BaseOperations):
         duplicate.Name.CopyAlternatives(source.Name)
         duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)
         # Description is also a MultiString but needs special handling
-        if hasattr(source, 'Description') and hasattr(duplicate, 'Description'):
+        if hasattr(source, "Description") and hasattr(duplicate, "Description"):
             duplicate.Description.CopyAlternatives(source.Description)
 
         # Deep copy: duplicate owned subitems recursively
-        if deep and hasattr(source, 'SubPossibilitiesOS') and source.SubPossibilitiesOS.Count > 0:
+        if deep and hasattr(source, "SubPossibilitiesOS") and source.SubPossibilitiesOS.Count > 0:
             for sub_item in source.SubPossibilitiesOS:
                 # Recursively duplicate each subitem
                 sub_factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
@@ -696,7 +687,7 @@ class PossibilityListOperations(BaseOperations):
                 # Copy sub-item properties
                 sub_dup.Name.CopyAlternatives(sub_item.Name)
                 sub_dup.Abbreviation.CopyAlternatives(sub_item.Abbreviation)
-                if hasattr(sub_item, 'Description'):
+                if hasattr(sub_item, "Description"):
                     sub_dup.Description.CopyAlternatives(sub_item.Description)
 
                 # Recursively copy deeper levels if they exist
@@ -734,11 +725,11 @@ class PossibilityListOperations(BaseOperations):
         props = {}
 
         # MultiString properties
-        props['Name'] = ITsString(poss_item.Name.get_String(wsHandle)).Text or ""
-        props['Abbreviation'] = ITsString(poss_item.Abbreviation.get_String(wsHandle)).Text or ""
+        props["Name"] = ITsString(poss_item.Name.get_String(wsHandle)).Text or ""
+        props["Abbreviation"] = ITsString(poss_item.Abbreviation.get_String(wsHandle)).Text or ""
 
-        if hasattr(poss_item, 'Description'):
-            props['Description'] = ITsString(poss_item.Description.get_String(wsHandle)).Text or ""
+        if hasattr(poss_item, "Description"):
+            props["Description"] = ITsString(poss_item.Description.get_String(wsHandle)).Text or ""
 
         return props
 
@@ -769,7 +760,7 @@ class PossibilityListOperations(BaseOperations):
             ops2 = self
 
         is_different = False
-        differences = {'properties': {}}
+        differences = {"properties": {}}
 
         # Get syncable properties from both items
         props1 = ops1.GetSyncableProperties(item1)
@@ -782,11 +773,7 @@ class PossibilityListOperations(BaseOperations):
 
             if val1 != val2:
                 is_different = True
-                differences['properties'][key] = {
-                    'source': val1,
-                    'target': val2,
-                    'type': 'modified'
-                }
+                differences["properties"][key] = {"source": val1, "target": val2, "type": "modified"}
 
         return is_different, differences
 
@@ -806,7 +793,7 @@ class PossibilityListOperations(BaseOperations):
             # Copy properties
             sub_dup.Name.CopyAlternatives(sub_item.Name)
             sub_dup.Abbreviation.CopyAlternatives(sub_item.Abbreviation)
-            if hasattr(sub_item, 'Description'):
+            if hasattr(sub_item, "Description"):
                 sub_dup.Description.CopyAlternatives(sub_item.Description)
 
             # Continue recursion if there are deeper levels
@@ -1173,8 +1160,8 @@ class PossibilityListOperations(BaseOperations):
         owner = item.Owner
 
         # Check if owner is a possibility (subitem) or a list (top-level)
-        if owner and hasattr(owner, 'ClassName'):
-            if owner.ClassName == 'CmPossibility':
+        if owner and hasattr(owner, "ClassName"):
+            if owner.ClassName == "CmPossibility":
                 return ICmPossibility(owner)
 
         return None
@@ -1233,15 +1220,11 @@ class PossibilityListOperations(BaseOperations):
 
             # Verify both items are in the same list
             if item_list.Guid != new_parent_list.Guid:
-                raise FP_ParameterError(
-                    "Cannot move item to a different list"
-                )
+                raise FP_ParameterError("Cannot move item to a different list")
 
             # Verify not moving to own descendant
             if self.__IsDescendant(new_parent, item):
-                raise FP_ParameterError(
-                    "Cannot move item to its own descendant"
-                )
+                raise FP_ParameterError("Cannot move item to its own descendant")
         else:
             new_parent = None
 
@@ -1473,9 +1456,7 @@ class PossibilityListOperations(BaseOperations):
         if isinstance(list_or_hvo, int):
             obj = self.project.Object(list_or_hvo)
             if not isinstance(obj, ICmPossibilityList):
-                raise FP_ParameterError(
-                    "HVO does not refer to a possibility list"
-                )
+                raise FP_ParameterError("HVO does not refer to a possibility list")
             return obj
         return list_or_hvo
 
@@ -1495,9 +1476,7 @@ class PossibilityListOperations(BaseOperations):
         if isinstance(item_or_hvo, int):
             obj = self.project.Object(item_or_hvo)
             if not isinstance(obj, ICmPossibility):
-                raise FP_ParameterError(
-                    "HVO does not refer to a possibility item"
-                )
+                raise FP_ParameterError("HVO does not refer to a possibility item")
             return obj
         return item_or_hvo
 
@@ -1513,10 +1492,7 @@ class PossibilityListOperations(BaseOperations):
         """
         if wsHandle is None:
             return self.project.project.DefaultAnalWs
-        return self.project._FLExProject__WSHandle(
-            wsHandle,
-            self.project.project.DefaultAnalWs
-        )
+        return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultAnalWs)
 
     def __GetListOwner(self, item):
         """
@@ -1534,7 +1510,7 @@ class PossibilityListOperations(BaseOperations):
             owner = current.Owner
             if isinstance(owner, ICmPossibilityList):
                 return owner
-            elif hasattr(owner, 'ClassName') and owner.ClassName == 'CmPossibility':
+            elif hasattr(owner, "ClassName") and owner.ClassName == "CmPossibility":
                 current = ICmPossibility(owner)
             else:
                 break

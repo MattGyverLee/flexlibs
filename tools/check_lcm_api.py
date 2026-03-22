@@ -37,10 +37,7 @@ def check_imports(test_imports, description):
         else:
             print(f"   ✗ {name:30s} MISSING")
             # Try to find similar names
-            similar = [
-                x for x in dir(LCModel)
-                if name[1:5] in x or name[-10:] in x
-            ][:5]
+            similar = [x for x in dir(LCModel) if name[1:5] in x or name[-10:] in x][:5]
             if similar:
                 print(f"      Similar names: {', '.join(similar)}")
 
@@ -73,6 +70,7 @@ def main():
 
     # Import the initialization code
     from flexlibs2.code import FLExGlobals
+
     FLExGlobals.InitialiseFWGlobals()
 
     print(f"FieldWorks Code Dir: {FLExGlobals.FWCodeDir}")
@@ -81,6 +79,7 @@ def main():
 
     # Now check what's in LCModel
     import clr
+
     clr.AddReference("SIL.LCModel")
 
     print("Checking for problematic imports...")
@@ -88,30 +87,30 @@ def main():
 
     # Test imports from MorphRuleOperations.py
     morph_rule_imports = [
-        'IMoMorphRule',
-        'IMoAffixProcessFactory',
-        'IMoStratumFactory',
+        "IMoMorphRule",
+        "IMoAffixProcessFactory",
+        "IMoStratumFactory",
     ]
     check_imports(morph_rule_imports, "1. MorphRuleOperations.py imports")
 
     # Test imports from InflectionFeatureOperations.py
     inflection_imports = [
-        'IMoInflClass',
-        'IMoInflClassFactory',
-        'IFsFeatStruc',
-        'IFsFeatStrucFactory',
-        'IFsFeatureDefn',  # This is wrong
-        'IFsFeatDefn',     # This might be correct
-        'IFsComplexFeature',
-        'IFsComplexFeatureFactory',
+        "IMoInflClass",
+        "IMoInflClassFactory",
+        "IFsFeatStruc",
+        "IFsFeatStrucFactory",
+        "IFsFeatureDefn",  # This is wrong
+        "IFsFeatDefn",  # This might be correct
+        "IFsComplexFeature",
+        "IFsComplexFeatureFactory",
     ]
     check_imports(inflection_imports, "2. InflectionFeatureOperations.py imports")
 
     # Show all IMo* interfaces
-    show_interfaces('IMo', "3. All IMo* interfaces available")
+    show_interfaces("IMo", "3. All IMo* interfaces available")
 
     # Show all IFs* interfaces
-    show_interfaces('IFs', "4. All IFs* interfaces available")
+    show_interfaces("IFs", "4. All IFs* interfaces available")
 
 
 if __name__ == "__main__":

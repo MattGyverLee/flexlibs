@@ -46,6 +46,7 @@ from test_helpers import (
 
 # ========== TEXTSWORDS - DISCOURSEOPERATIONS ==========
 
+
 @pytest.mark.validation
 @pytest.mark.phase2
 class TestDiscourseOperations(
@@ -119,6 +120,7 @@ class TestDiscourseOperations(
 
 # ========== TEXTSWORDS - PARAGRAPHOPERATIONS ==========
 
+
 @pytest.mark.validation
 @pytest.mark.phase2
 class TestParagraphOperations(
@@ -190,6 +192,7 @@ class TestParagraphOperations(
 
 
 # ========== TEXTSWORDS - SEGMENTOPERATIONS ==========
+
 
 @pytest.mark.validation
 @pytest.mark.phase2
@@ -289,6 +292,7 @@ class TestSegmentOperations(
 
 # ========== TEXTSWORDS - TEXTOPERATIONS ==========
 
+
 @pytest.mark.validation
 @pytest.mark.phase2
 class TestTextOperations(
@@ -360,6 +364,7 @@ class TestTextOperations(
 
 
 # ========== TEXTSWORDS - WFIANALYSISOPERATIONS ==========
+
 
 @pytest.mark.validation
 @pytest.mark.phase2
@@ -438,6 +443,7 @@ class TestWfiAnalysisOperations(
 
 
 # ========== TEXTSWORDS - WFIGLOSSOPERATIONS ==========
+
 
 @pytest.mark.validation
 @pytest.mark.phase2
@@ -518,6 +524,7 @@ class TestWfiGlossOperations(
 
 # ========== TEXTSWORDS - WFIMORPHBUNDLEOPERATIONS ==========
 
+
 @pytest.mark.validation
 @pytest.mark.phase2
 class TestWfiMorphBundleOperations(
@@ -596,6 +603,7 @@ class TestWfiMorphBundleOperations(
 
 # ========== TEXTSWORDS - WORDFORMOPERATIONS ==========
 
+
 @pytest.mark.validation
 @pytest.mark.phase2
 class TestWordformOperations(
@@ -649,6 +657,7 @@ class TestWordformOperations(
 
 
 # ========== GRAMMAR - GRAMCATOPERATIONS ==========
+
 
 @pytest.mark.validation
 @pytest.mark.phase2
@@ -722,6 +731,7 @@ class TestGramCatOperations(
 
 
 # ========== GRAMMAR - POSOPERATIONS ==========
+
 
 @pytest.mark.validation
 @pytest.mark.phase2
@@ -825,6 +835,7 @@ class TestPOSOperations(
 
 
 # ========== GRAMMAR - MORPHRULEOPERATIONS ==========
+
 
 @pytest.mark.validation
 @pytest.mark.phase2

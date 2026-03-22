@@ -96,6 +96,7 @@ class BaseValidationTest:
             Mock FLExProject
         """
         from conftest import MockFLExProject
+
         return MockFLExProject(write_enabled=write_enabled)
 
     def create_operations(self, write_enabled=True, operations_class=None):
@@ -142,45 +143,29 @@ class BaseValidationTest:
                             type_names = " or ".join(t.__name__ for t in expected_type)
                         else:
                             type_names = expected_type.__name__
-                        raise TypeError(
-                            f"{param_name} must be {type_names}, "
-                            f"got {type(obj).__name__}"
-                        )
+                        raise TypeError(f"{param_name} must be {type_names}, " f"got {type(obj).__name__}")
 
                 def _ValidateStringNotEmpty(self, text, param_name="text"):
                     if not isinstance(text, str):
-                        raise TypeError(
-                            f"{param_name} must be a string, got {type(text).__name__}"
-                        )
+                        raise TypeError(f"{param_name} must be a string, got {type(text).__name__}")
                     if len(text.strip()) == 0:
-                        raise Exception(
-                            f"{param_name} cannot be empty or contain only whitespace"
-                        )
+                        raise Exception(f"{param_name} cannot be empty or contain only whitespace")
 
                 def _ValidateIndexBounds(self, index, max_count, param_name="index"):
                     if not isinstance(index, int):
-                        raise TypeError(
-                            f"{param_name} must be an integer, got {type(index).__name__}"
-                        )
+                        raise TypeError(f"{param_name} must be an integer, got {type(index).__name__}")
                     if index < 0:
-                        raise ValueError(
-                            f"{param_name} cannot be negative, got {index}"
-                        )
+                        raise ValueError(f"{param_name} cannot be negative, got {index}")
                     if index >= max_count:
                         raise IndexError(
-                            f"{param_name} out of bounds: {index} >= {max_count} "
-                            f"(valid range: 0-{max_count - 1})"
+                            f"{param_name} out of bounds: {index} >= {max_count} " f"(valid range: 0-{max_count - 1})"
                         )
 
                 def _ValidateOwner(self, obj, expected_owner, param_name="object"):
                     if not hasattr(obj, "Owner"):
-                        raise AttributeError(
-                            f"{param_name} does not have Owner property"
-                        )
+                        raise AttributeError(f"{param_name} does not have Owner property")
                     if obj.Owner != expected_owner:
-                        raise ValueError(
-                            f"{param_name} owner does not match expected owner."
-                        )
+                        raise ValueError(f"{param_name} owner does not match expected owner.")
 
                 def _NormalizeMultiString(self, value):
                     if value is None:
@@ -214,9 +199,7 @@ class BaseValidationTest:
             func(*args, **kwargs)
 
         error_msg = str(exc_info.value).lower()
-        assert "read-only" in error_msg, (
-            f"Expected read-only error, got: {exc_info.value}"
-        )
+        assert "read-only" in error_msg, f"Expected read-only error, got: {exc_info.value}"
 
     def assert_param_error(self, func, *args, **kwargs):
         """
@@ -233,9 +216,7 @@ class BaseValidationTest:
             func(*args, **kwargs)
 
         error_msg = str(exc_info.value)
-        assert "cannot be None" in error_msg, (
-            f"Expected 'cannot be None' error, got: {exc_info.value}"
-        )
+        assert "cannot be None" in error_msg, f"Expected 'cannot be None' error, got: {exc_info.value}"
 
     def assert_empty_error(self, func, *args, **kwargs):
         """
@@ -252,9 +233,7 @@ class BaseValidationTest:
             func(*args, **kwargs)
 
         error_msg = str(exc_info.value)
-        assert "cannot be empty" in error_msg, (
-            f"Expected 'cannot be empty' error, got: {exc_info.value}"
-        )
+        assert "cannot be empty" in error_msg, f"Expected 'cannot be empty' error, got: {exc_info.value}"
 
     def assert_type_error(self, func, *args, **kwargs):
         """
@@ -293,9 +272,7 @@ class BaseValidationTest:
             func(*args, **kwargs)
 
         error_msg = str(exc_info.value)
-        assert "out of bounds" in error_msg, (
-            f"Expected 'out of bounds' error, got: {exc_info.value}"
-        )
+        assert "out of bounds" in error_msg, f"Expected 'out of bounds' error, got: {exc_info.value}"
         return error_msg
 
     def assert_value_error(self, func, *args, **kwargs):
@@ -413,6 +390,7 @@ class BaseValidationTest:
 
 
 # ========== COMMON TEST PATTERNS ==========
+
 
 class WriteEnabledTestsMixin:
     """Mixin with write-enabled test patterns."""

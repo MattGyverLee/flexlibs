@@ -40,6 +40,7 @@ def pytest_configure(config):
 # ========== SESSION-SCOPED FIXTURE FOR FIELDWORKS INITIALIZATION ==========
 # Using autouse=True ensures this runs before any tests, regardless of scope
 
+
 @pytest.fixture(scope="session", autouse=True)
 def initialize_flex_for_tests():
     """
@@ -96,12 +97,14 @@ def initialize_flex_for_tests():
         # Step 4: Initialize FLEx using FLExInitialize()
         print("[INFO] Running FLExInitialize()...")
         from flexlibs2.code.FLExInit import FLExInitialize
+
         FLExInitialize()
         print("[OK] FLExInitialize() complete")
 
         # Step 5: Import flexlibs2 package
         print("[INFO] Importing flexlibs2 package...")
         import flexlibs2
+
         print("[OK] flexlibs2 imported successfully")
 
         # Step 6: Manually import and add operations to flexlibs2 namespace
@@ -109,56 +112,56 @@ def initialize_flex_for_tests():
         print("[INFO] Loading operations modules...")
         operations_modules = [
             # Grammar
-            ('flexlibs2.code.Grammar.POSOperations', 'POSOperations'),
-            ('flexlibs2.code.Grammar.PhonemeOperations', 'PhonemeOperations'),
-            ('flexlibs2.code.Grammar.NaturalClassOperations', 'NaturalClassOperations'),
-            ('flexlibs2.code.Grammar.EnvironmentOperations', 'EnvironmentOperations'),
-            ('flexlibs2.code.Grammar.PhonologicalRuleOperations', 'PhonologicalRuleOperations'),
-            ('flexlibs2.code.Grammar.MorphRuleOperations', 'MorphRuleOperations'),
-            ('flexlibs2.code.Grammar.GramCatOperations', 'GramCatOperations'),
-            ('flexlibs2.code.Grammar.InflectionFeatureOperations', 'InflectionFeatureOperations'),
+            ("flexlibs2.code.Grammar.POSOperations", "POSOperations"),
+            ("flexlibs2.code.Grammar.PhonemeOperations", "PhonemeOperations"),
+            ("flexlibs2.code.Grammar.NaturalClassOperations", "NaturalClassOperations"),
+            ("flexlibs2.code.Grammar.EnvironmentOperations", "EnvironmentOperations"),
+            ("flexlibs2.code.Grammar.PhonologicalRuleOperations", "PhonologicalRuleOperations"),
+            ("flexlibs2.code.Grammar.MorphRuleOperations", "MorphRuleOperations"),
+            ("flexlibs2.code.Grammar.GramCatOperations", "GramCatOperations"),
+            ("flexlibs2.code.Grammar.InflectionFeatureOperations", "InflectionFeatureOperations"),
             # Lexicon
-            ('flexlibs2.code.Lexicon.LexEntryOperations', 'LexEntryOperations'),
-            ('flexlibs2.code.Lexicon.LexSenseOperations', 'LexSenseOperations'),
-            ('flexlibs2.code.Lexicon.ExampleOperations', 'ExampleOperations'),
-            ('flexlibs2.code.Lexicon.LexReferenceOperations', 'LexReferenceOperations'),
-            ('flexlibs2.code.Lexicon.VariantOperations', 'VariantOperations'),
-            ('flexlibs2.code.Lexicon.PronunciationOperations', 'PronunciationOperations'),
-            ('flexlibs2.code.Lexicon.SemanticDomainOperations', 'SemanticDomainOperations'),
-            ('flexlibs2.code.Lexicon.ReversalOperations', 'ReversalOperations'),
-            ('flexlibs2.code.Lexicon.EtymologyOperations', 'EtymologyOperations'),
-            ('flexlibs2.code.Lexicon.AllomorphOperations', 'AllomorphOperations'),
+            ("flexlibs2.code.Lexicon.LexEntryOperations", "LexEntryOperations"),
+            ("flexlibs2.code.Lexicon.LexSenseOperations", "LexSenseOperations"),
+            ("flexlibs2.code.Lexicon.ExampleOperations", "ExampleOperations"),
+            ("flexlibs2.code.Lexicon.LexReferenceOperations", "LexReferenceOperations"),
+            ("flexlibs2.code.Lexicon.VariantOperations", "VariantOperations"),
+            ("flexlibs2.code.Lexicon.PronunciationOperations", "PronunciationOperations"),
+            ("flexlibs2.code.Lexicon.SemanticDomainOperations", "SemanticDomainOperations"),
+            ("flexlibs2.code.Lexicon.ReversalOperations", "ReversalOperations"),
+            ("flexlibs2.code.Lexicon.EtymologyOperations", "EtymologyOperations"),
+            ("flexlibs2.code.Lexicon.AllomorphOperations", "AllomorphOperations"),
             # TextsWords
-            ('flexlibs2.code.TextsWords.TextOperations', 'TextOperations'),
-            ('flexlibs2.code.TextsWords.WordformOperations', 'WordformOperations'),
-            ('flexlibs2.code.TextsWords.WfiAnalysisOperations', 'WfiAnalysisOperations'),
-            ('flexlibs2.code.TextsWords.ParagraphOperations', 'ParagraphOperations'),
-            ('flexlibs2.code.TextsWords.SegmentOperations', 'SegmentOperations'),
-            ('flexlibs2.code.TextsWords.WfiGlossOperations', 'WfiGlossOperations'),
-            ('flexlibs2.code.TextsWords.WfiMorphBundleOperations', 'WfiMorphBundleOperations'),
-            ('flexlibs2.code.TextsWords.DiscourseOperations', 'DiscourseOperations'),
+            ("flexlibs2.code.TextsWords.TextOperations", "TextOperations"),
+            ("flexlibs2.code.TextsWords.WordformOperations", "WordformOperations"),
+            ("flexlibs2.code.TextsWords.WfiAnalysisOperations", "WfiAnalysisOperations"),
+            ("flexlibs2.code.TextsWords.ParagraphOperations", "ParagraphOperations"),
+            ("flexlibs2.code.TextsWords.SegmentOperations", "SegmentOperations"),
+            ("flexlibs2.code.TextsWords.WfiGlossOperations", "WfiGlossOperations"),
+            ("flexlibs2.code.TextsWords.WfiMorphBundleOperations", "WfiMorphBundleOperations"),
+            ("flexlibs2.code.TextsWords.DiscourseOperations", "DiscourseOperations"),
             # Notebook
-            ('flexlibs2.code.Notebook.NoteOperations', 'NoteOperations'),
-            ('flexlibs2.code.Notebook.PersonOperations', 'PersonOperations'),
-            ('flexlibs2.code.Notebook.LocationOperations', 'LocationOperations'),
-            ('flexlibs2.code.Notebook.AnthropologyOperations', 'AnthropologyOperations'),
-            ('flexlibs2.code.Notebook.DataNotebookOperations', 'DataNotebookOperations'),
+            ("flexlibs2.code.Notebook.NoteOperations", "NoteOperations"),
+            ("flexlibs2.code.Notebook.PersonOperations", "PersonOperations"),
+            ("flexlibs2.code.Notebook.LocationOperations", "LocationOperations"),
+            ("flexlibs2.code.Notebook.AnthropologyOperations", "AnthropologyOperations"),
+            ("flexlibs2.code.Notebook.DataNotebookOperations", "DataNotebookOperations"),
             # Lists
-            ('flexlibs2.code.Lists.PublicationOperations', 'PublicationOperations'),
-            ('flexlibs2.code.Lists.AgentOperations', 'AgentOperations'),
-            ('flexlibs2.code.Lists.ConfidenceOperations', 'ConfidenceOperations'),
-            ('flexlibs2.code.Lists.OverlayOperations', 'OverlayOperations'),
-            ('flexlibs2.code.Lists.TranslationTypeOperations', 'TranslationTypeOperations'),
-            ('flexlibs2.code.Lists.PossibilityListOperations', 'PossibilityListOperations'),
+            ("flexlibs2.code.Lists.PublicationOperations", "PublicationOperations"),
+            ("flexlibs2.code.Lists.AgentOperations", "AgentOperations"),
+            ("flexlibs2.code.Lists.ConfidenceOperations", "ConfidenceOperations"),
+            ("flexlibs2.code.Lists.OverlayOperations", "OverlayOperations"),
+            ("flexlibs2.code.Lists.TranslationTypeOperations", "TranslationTypeOperations"),
+            ("flexlibs2.code.Lists.PossibilityListOperations", "PossibilityListOperations"),
             # System
-            ('flexlibs2.code.System.WritingSystemOperations', 'WritingSystemOperations'),
-            ('flexlibs2.code.System.ProjectSettingsOperations', 'ProjectSettingsOperations'),
-            ('flexlibs2.code.System.AnnotationDefOperations', 'AnnotationDefOperations'),
-            ('flexlibs2.code.System.CheckOperations', 'CheckOperations'),
-            ('flexlibs2.code.System.CustomFieldOperations', 'CustomFieldOperations'),
+            ("flexlibs2.code.System.WritingSystemOperations", "WritingSystemOperations"),
+            ("flexlibs2.code.System.ProjectSettingsOperations", "ProjectSettingsOperations"),
+            ("flexlibs2.code.System.AnnotationDefOperations", "AnnotationDefOperations"),
+            ("flexlibs2.code.System.CheckOperations", "CheckOperations"),
+            ("flexlibs2.code.System.CustomFieldOperations", "CustomFieldOperations"),
             # Shared
-            ('flexlibs2.code.Shared.MediaOperations', 'MediaOperations'),
-            ('flexlibs2.code.Shared.FilterOperations', 'FilterOperations'),
+            ("flexlibs2.code.Shared.MediaOperations", "MediaOperations"),
+            ("flexlibs2.code.Shared.FilterOperations", "FilterOperations"),
         ]
 
         loaded_count = 0
@@ -178,12 +181,13 @@ def initialize_flex_for_tests():
         print(f"[OK] Loaded {loaded_count}/{len(operations_modules)} operations classes")
 
         # Verify
-        ops_found = [x for x in dir(flexlibs2) if 'Operations' in x]
+        ops_found = [x for x in dir(flexlibs2) if "Operations" in x]
         print(f"[INFO] flexlibs2 now has {len(ops_found)} operations available")
 
     except Exception as e:
         print(f"[ERROR] FLEx initialization failed: {e}")
         import traceback
+
         traceback.print_exc()
         raise  # Re-raise so pytest knows initialization failed
 
@@ -195,41 +199,23 @@ def initialize_flex_for_tests():
 
 # ========== PYTEST CONFIGURATION ==========
 
+
 def pytest_configure(config):
     """Register custom markers for test categorization."""
-    config.addinivalue_line(
-        "markers", "validation: mark test as validation test"
-    )
-    config.addinivalue_line(
-        "markers", "phase2: mark test as Phase 2 (TextsWords, Grammar basics)"
-    )
-    config.addinivalue_line(
-        "markers", "phase3: mark test as Phase 3 (Lexicon, more Grammar)"
-    )
-    config.addinivalue_line(
-        "markers", "phase4: mark test as Phase 4 (all other categories)"
-    )
-    config.addinivalue_line(
-        "markers", "write_enabled: mark test for write-enabled functionality"
-    )
-    config.addinivalue_line(
-        "markers", "read_only: mark test for read-only project behavior"
-    )
-    config.addinivalue_line(
-        "markers", "parameter_validation: mark test for parameter validation"
-    )
-    config.addinivalue_line(
-        "markers", "type_checking: mark test for type validation"
-    )
-    config.addinivalue_line(
-        "markers", "bounds_checking: mark test for bounds validation"
-    )
-    config.addinivalue_line(
-        "markers", "string_validation: mark test for string validation"
-    )
+    config.addinivalue_line("markers", "validation: mark test as validation test")
+    config.addinivalue_line("markers", "phase2: mark test as Phase 2 (TextsWords, Grammar basics)")
+    config.addinivalue_line("markers", "phase3: mark test as Phase 3 (Lexicon, more Grammar)")
+    config.addinivalue_line("markers", "phase4: mark test as Phase 4 (all other categories)")
+    config.addinivalue_line("markers", "write_enabled: mark test for write-enabled functionality")
+    config.addinivalue_line("markers", "read_only: mark test for read-only project behavior")
+    config.addinivalue_line("markers", "parameter_validation: mark test for parameter validation")
+    config.addinivalue_line("markers", "type_checking: mark test for type validation")
+    config.addinivalue_line("markers", "bounds_checking: mark test for bounds validation")
+    config.addinivalue_line("markers", "string_validation: mark test for string validation")
 
 
 # ========== MOCK PROJECT FIXTURE ==========
+
 
 class MockFLExProject:
     """
@@ -295,6 +281,7 @@ def mock_project():
 
 # ========== MOCK OBJECT FIXTURES ==========
 
+
 @pytest.fixture
 def mock_lex_entry():
     """Fixture: Mock ILexEntry object."""
@@ -346,6 +333,7 @@ def mock_allomorph():
 
 # ========== MOCK OPERATIONS FIXTURES ==========
 
+
 @pytest.fixture
 def mock_operations_class(mock_project_write_enabled):
     """
@@ -353,6 +341,7 @@ def mock_operations_class(mock_project_write_enabled):
 
     Simulates any operation class inheriting from BaseOperations.
     """
+
     class MockOperations:
         """Mock operations class with all validation methods."""
 
@@ -387,46 +376,32 @@ def mock_operations_class(mock_project_write_enabled):
                     type_names = " or ".join(t.__name__ for t in expected_type)
                 else:
                     type_names = expected_type.__name__
-                raise TypeError(
-                    f"{param_name} must be {type_names}, "
-                    f"got {type(obj).__name__}"
-                )
+                raise TypeError(f"{param_name} must be {type_names}, " f"got {type(obj).__name__}")
 
         def _ValidateStringNotEmpty(self, text, param_name="text"):
             """Validate string is not None and not empty."""
             if not isinstance(text, str):
-                raise TypeError(
-                    f"{param_name} must be a string, got {type(text).__name__}"
-                )
+                raise TypeError(f"{param_name} must be a string, got {type(text).__name__}")
             if text is None:
                 raise Exception(f"{param_name} cannot be None")
             if len(text.strip()) == 0:
-                raise Exception(
-                    f"{param_name} cannot be empty or contain only whitespace"
-                )
+                raise Exception(f"{param_name} cannot be empty or contain only whitespace")
 
         def _ValidateIndexBounds(self, index, max_count, param_name="index"):
             """Validate index is within bounds [0, max_count-1]."""
             if not isinstance(index, int):
-                raise TypeError(
-                    f"{param_name} must be an integer, got {type(index).__name__}"
-                )
+                raise TypeError(f"{param_name} must be an integer, got {type(index).__name__}")
             if index < 0:
-                raise ValueError(
-                    f"{param_name} cannot be negative, got {index}"
-                )
+                raise ValueError(f"{param_name} cannot be negative, got {index}")
             if index >= max_count:
                 raise IndexError(
-                    f"{param_name} out of bounds: {index} >= {max_count} "
-                    f"(valid range: 0-{max_count - 1})"
+                    f"{param_name} out of bounds: {index} >= {max_count} " f"(valid range: 0-{max_count - 1})"
                 )
 
         def _ValidateOwner(self, obj, expected_owner, param_name="object"):
             """Validate object has expected owner."""
             if not hasattr(obj, "Owner"):
-                raise AttributeError(
-                    f"{param_name} does not have Owner property"
-                )
+                raise AttributeError(f"{param_name} does not have Owner property")
             if obj.Owner != expected_owner:
                 raise ValueError(
                     f"{param_name} owner does not match expected owner. "
@@ -445,6 +420,7 @@ def mock_operations_class(mock_project_write_enabled):
 
 
 # ========== ASSERTION HELPERS ==========
+
 
 class ValidationAssertions:
     """Helper class with assertion methods for validation errors."""
@@ -546,6 +522,7 @@ def assert_validation():
 
 # ========== DATA GENERATORS ==========
 
+
 class TestDataFactory:
     """Factory for generating test data."""
 
@@ -627,6 +604,7 @@ def test_data():
 
 
 # ========== TEMPORARY DIRECTORY FIXTURE ==========
+
 
 @pytest.fixture
 def temp_test_dir(tmp_path):

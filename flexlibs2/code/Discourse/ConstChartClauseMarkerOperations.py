@@ -27,6 +27,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+
 class ConstChartClauseMarkerOperations(BaseOperations):
     """
     This class provides operations for managing clause markers in constituent
@@ -117,19 +118,17 @@ class ConstChartClauseMarkerOperations(BaseOperations):
             raise FP_ParameterError("word_group must be an IConstChartWordGroup object")
 
         # Create the new clause marker using the factory
-        factory = self.project.project.ServiceLocator.GetService(
-            IConstChartClauseMarkerFactory
-        )
+        factory = self.project.project.ServiceLocator.GetService(IConstChartClauseMarkerFactory)
         new_marker = factory.Create()
 
         # Add to row's clause markers collection
         # Note: In FLEx, clause markers may be stored in different collections
         # depending on the chart structure. This assumes a ClauseMarkersOS collection.
-        if hasattr(row, 'ClauseMarkersOS'):
+        if hasattr(row, "ClauseMarkersOS"):
             row.ClauseMarkersOS.Add(new_marker)
 
         # Set the word group reference
-        if hasattr(new_marker, 'WordGroupRA'):
+        if hasattr(new_marker, "WordGroupRA"):
             new_marker.WordGroupRA = word_group
 
         return new_marker
@@ -207,7 +206,7 @@ class ConstChartClauseMarkerOperations(BaseOperations):
 
         row = self.__ResolveRow(row_or_hvo)
 
-        if hasattr(row, 'ClauseMarkersOS'):
+        if hasattr(row, "ClauseMarkersOS"):
             if index < 0 or index >= row.ClauseMarkersOS.Count:
                 return None
             return row.ClauseMarkersOS[index]
@@ -248,7 +247,7 @@ class ConstChartClauseMarkerOperations(BaseOperations):
 
         row = self.__ResolveRow(row_or_hvo)
 
-        if hasattr(row, 'ClauseMarkersOS'):
+        if hasattr(row, "ClauseMarkersOS"):
             return list(row.ClauseMarkersOS)
 
         return []
@@ -287,7 +286,7 @@ class ConstChartClauseMarkerOperations(BaseOperations):
 
         marker = self.__ResolveObject(marker_or_hvo)
 
-        return marker.WordGroupRA if hasattr(marker, 'WordGroupRA') else None
+        return marker.WordGroupRA if hasattr(marker, "WordGroupRA") else None
 
     @wrap_enumerable
     @OperationsMethod
@@ -324,7 +323,7 @@ class ConstChartClauseMarkerOperations(BaseOperations):
 
         marker = self.__ResolveObject(marker_or_hvo)
 
-        if hasattr(marker, 'DependentClausesRS'):
+        if hasattr(marker, "DependentClausesRS"):
             return list(marker.DependentClausesRS)
 
         return []
@@ -372,14 +371,12 @@ class ConstChartClauseMarkerOperations(BaseOperations):
         self._ValidateParam(clause_marker, "clause_marker")
 
         if not isinstance(clause_marker, IConstChartClauseMarker):
-            raise FP_ParameterError(
-                "clause_marker must be an IConstChartClauseMarker object"
-            )
+            raise FP_ParameterError("clause_marker must be an IConstChartClauseMarker object")
 
         marker = self.__ResolveObject(marker_or_hvo)
 
         # Add to dependent clauses collection
-        if hasattr(marker, 'DependentClausesRS'):
+        if hasattr(marker, "DependentClausesRS"):
             if clause_marker not in marker.DependentClausesRS:
                 marker.DependentClausesRS.Add(clause_marker)
 
@@ -441,7 +438,7 @@ class ConstChartClauseMarkerOperations(BaseOperations):
             - Required for BaseOperations reordering methods
             - Returns the ClauseMarkersOS collection from the row
         """
-        if hasattr(parent, 'ClauseMarkersOS'):
+        if hasattr(parent, "ClauseMarkersOS"):
             return parent.ClauseMarkersOS
         raise NotImplementedError(
             "Row does not have a ClauseMarkersOS collection. "

@@ -9,9 +9,11 @@
 #
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 import clr
+
 clr.AddReference("System")
 import System
 
@@ -29,6 +31,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
+
 
 class OverlayOperations(BaseOperations):
     """
@@ -210,17 +213,17 @@ class OverlayOperations(BaseOperations):
 
         # Access overlays from the chart
         # In FLEx, overlays may be stored in different properties depending on chart type
-        if hasattr(chart_obj, 'TemplateRA'):
+        if hasattr(chart_obj, "TemplateRA"):
             template = chart_obj.TemplateRA
-            if template and hasattr(template, 'PossItemsRC'):
+            if template and hasattr(template, "PossItemsRC"):
                 for overlay in template.PossItemsRC:
                     yield overlay
 
         # Alternative: Check if chart has direct overlay collection
-        if hasattr(chart_obj, 'RowsOS'):
+        if hasattr(chart_obj, "RowsOS"):
             # Some overlays may be accessed through rows
             for row in chart_obj.RowsOS:
-                if hasattr(row, 'ClauseType'):
+                if hasattr(row, "ClauseType"):
                     clause_type = row.ClauseType
                     if clause_type:
                         yield clause_type
@@ -287,9 +290,9 @@ class OverlayOperations(BaseOperations):
         overlay = factory.Create()
 
         # Add to the chart's template column possibilities (must be done before setting properties)
-        if hasattr(chart_obj, 'TemplateRA'):
+        if hasattr(chart_obj, "TemplateRA"):
             template = chart_obj.TemplateRA
-            if template and hasattr(template, 'PossItemsRC'):
+            if template and hasattr(template, "PossItemsRC"):
                 template.PossItemsRC.Add(overlay)
             else:
                 # If no template exists, we may need to create one
@@ -349,9 +352,9 @@ class OverlayOperations(BaseOperations):
 
         # Remove from the owning collection
         owner = overlay_obj.Owner
-        if owner and hasattr(owner, 'PossItemsRC'):
+        if owner and hasattr(owner, "PossItemsRC"):
             owner.PossItemsRC.Remove(overlay_obj)
-        elif owner and hasattr(owner, 'PossibilitiesOS'):
+        elif owner and hasattr(owner, "PossibilitiesOS"):
             owner.PossibilitiesOS.Remove(overlay_obj)
         else:
             raise FP_ParameterError("Overlay has no valid owner or cannot be removed")
@@ -417,13 +420,13 @@ class OverlayOperations(BaseOperations):
         duplicate = factory.Create()
 
         # ADD TO PARENT FIRST before copying properties (CRITICAL)
-        if hasattr(owner, 'PossItemsRC'):
+        if hasattr(owner, "PossItemsRC"):
             if insert_after:
                 source_index = owner.PossItemsRC.IndexOf(source)
                 owner.PossItemsRC.Insert(source_index + 1, duplicate)
             else:
                 owner.PossItemsRC.Add(duplicate)
-        elif hasattr(owner, 'PossibilitiesOS'):
+        elif hasattr(owner, "PossibilitiesOS"):
             if insert_after:
                 source_index = owner.PossibilitiesOS.IndexOf(source)
                 owner.PossibilitiesOS.Insert(source_index + 1, duplicate)
@@ -433,21 +436,21 @@ class OverlayOperations(BaseOperations):
             raise FP_ParameterError("Owner has no valid collection for overlay")
 
         # Copy MultiString properties using CopyAlternatives
-        if hasattr(source, 'Name'):
+        if hasattr(source, "Name"):
             duplicate.Name.CopyAlternatives(source.Name)
-        if hasattr(source, 'Description'):
+        if hasattr(source, "Description"):
             duplicate.Description.CopyAlternatives(source.Description)
-        if hasattr(source, 'Abbreviation'):
+        if hasattr(source, "Abbreviation"):
             duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)
 
         # Copy visibility and display order properties
-        if hasattr(source, 'Hidden') and hasattr(duplicate, 'Hidden'):
+        if hasattr(source, "Hidden") and hasattr(duplicate, "Hidden"):
             duplicate.Hidden = source.Hidden
-        if hasattr(source, 'SortSpec') and hasattr(duplicate, 'SortSpec'):
+        if hasattr(source, "SortSpec") and hasattr(duplicate, "SortSpec"):
             duplicate.SortSpec = source.SortSpec
 
         # Deep copy: recursively duplicate owned sub-possibilities
-        if deep and hasattr(source, 'SubPossibilitiesOS') and source.SubPossibilitiesOS.Count > 0:
+        if deep and hasattr(source, "SubPossibilitiesOS") and source.SubPossibilitiesOS.Count > 0:
             for sub_item in source.SubPossibilitiesOS:
                 self._DuplicateSubItemInto(sub_item, duplicate, deep=True)
 
@@ -461,17 +464,17 @@ class OverlayOperations(BaseOperations):
 
         # Copy all properties (Name, Description, Abbreviation, Hidden, SortSpec)
         sub_dup.Name.CopyAlternatives(source_item.Name)
-        if hasattr(source_item, 'Description'):
+        if hasattr(source_item, "Description"):
             sub_dup.Description.CopyAlternatives(source_item.Description)
-        if hasattr(source_item, 'Abbreviation'):
+        if hasattr(source_item, "Abbreviation"):
             sub_dup.Abbreviation.CopyAlternatives(source_item.Abbreviation)
-        if hasattr(source_item, 'Hidden'):
+        if hasattr(source_item, "Hidden"):
             sub_dup.Hidden = source_item.Hidden
-        if hasattr(source_item, 'SortSpec'):
+        if hasattr(source_item, "SortSpec"):
             sub_dup.SortSpec = source_item.SortSpec
 
         # Recurse into nested sub-items
-        if deep and hasattr(source_item, 'SubPossibilitiesOS') and source_item.SubPossibilitiesOS.Count > 0:
+        if deep and hasattr(source_item, "SubPossibilitiesOS") and source_item.SubPossibilitiesOS.Count > 0:
             for nested_item in source_item.SubPossibilitiesOS:
                 self._DuplicateSubItemInto(nested_item, sub_dup, deep=True)
 
@@ -504,18 +507,18 @@ class OverlayOperations(BaseOperations):
         props = {}
 
         # MultiString properties
-        if hasattr(overlay, 'Name'):
-            props['Name'] = ITsString(overlay.Name.get_String(wsHandle)).Text or ""
-        if hasattr(overlay, 'Description'):
-            props['Description'] = ITsString(overlay.Description.get_String(wsHandle)).Text or ""
-        if hasattr(overlay, 'Abbreviation'):
-            props['Abbreviation'] = ITsString(overlay.Abbreviation.get_String(wsHandle)).Text or ""
+        if hasattr(overlay, "Name"):
+            props["Name"] = ITsString(overlay.Name.get_String(wsHandle)).Text or ""
+        if hasattr(overlay, "Description"):
+            props["Description"] = ITsString(overlay.Description.get_String(wsHandle)).Text or ""
+        if hasattr(overlay, "Abbreviation"):
+            props["Abbreviation"] = ITsString(overlay.Abbreviation.get_String(wsHandle)).Text or ""
 
         # Atomic properties
-        if hasattr(overlay, 'Hidden'):
-            props['Hidden'] = bool(overlay.Hidden)
-        if hasattr(overlay, 'SortSpec'):
-            props['SortSpec'] = int(overlay.SortSpec) if overlay.SortSpec else 0
+        if hasattr(overlay, "Hidden"):
+            props["Hidden"] = bool(overlay.Hidden)
+        if hasattr(overlay, "SortSpec"):
+            props["SortSpec"] = int(overlay.SortSpec) if overlay.SortSpec else 0
 
         return props
 
@@ -546,7 +549,7 @@ class OverlayOperations(BaseOperations):
             ops2 = self
 
         is_different = False
-        differences = {'properties': {}}
+        differences = {"properties": {}}
 
         # Get syncable properties from both items
         props1 = ops1.GetSyncableProperties(item1)
@@ -559,11 +562,7 @@ class OverlayOperations(BaseOperations):
 
             if val1 != val2:
                 is_different = True
-                differences['properties'][key] = {
-                    'source': val1,
-                    'target': val2,
-                    'type': 'modified'
-                }
+                differences["properties"][key] = {"source": val1, "target": val2, "type": "modified"}
 
         return is_different, differences
 
@@ -617,7 +616,7 @@ class OverlayOperations(BaseOperations):
         wsHandle = self.__WSHandle(None)
 
         for overlay in self.GetAll(chart_or_hvo):
-            if hasattr(overlay, 'Name'):
+            if hasattr(overlay, "Name"):
                 overlay_name = ITsString(overlay.Name.get_String(wsHandle)).Text
                 if overlay_name == name:
                     return overlay
@@ -662,7 +661,7 @@ class OverlayOperations(BaseOperations):
         overlay_obj = self.__GetOverlayObject(overlay_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
 
-        if hasattr(overlay_obj, 'Name'):
+        if hasattr(overlay_obj, "Name"):
             name_str = ITsString(overlay_obj.Name.get_String(wsHandle)).Text
             return name_str or ""
         return ""
@@ -709,7 +708,7 @@ class OverlayOperations(BaseOperations):
         overlay_obj = self.__GetOverlayObject(overlay_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
 
-        if hasattr(overlay_obj, 'Name'):
+        if hasattr(overlay_obj, "Name"):
             name_str = TsStringUtils.MakeString(name, wsHandle)
             overlay_obj.Name.set_String(wsHandle, name_str)
         else:
@@ -754,7 +753,7 @@ class OverlayOperations(BaseOperations):
         overlay_obj = self.__GetOverlayObject(overlay_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
 
-        if hasattr(overlay_obj, 'Description'):
+        if hasattr(overlay_obj, "Description"):
             desc_str = ITsString(overlay_obj.Description.get_String(wsHandle)).Text
             return desc_str or ""
         return ""
@@ -800,7 +799,7 @@ class OverlayOperations(BaseOperations):
         overlay_obj = self.__GetOverlayObject(overlay_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
 
-        if hasattr(overlay_obj, 'Description'):
+        if hasattr(overlay_obj, "Description"):
             desc_str = TsStringUtils.MakeString(description, wsHandle)
             overlay_obj.Description.set_String(wsHandle, desc_str)
         else:
@@ -852,7 +851,7 @@ class OverlayOperations(BaseOperations):
 
         # Check visibility property
         # In FLEx, this might be stored in different ways
-        if hasattr(overlay_obj, 'Hidden'):
+        if hasattr(overlay_obj, "Hidden"):
             return not overlay_obj.Hidden
 
         # Default to visible if no visibility property exists
@@ -906,7 +905,7 @@ class OverlayOperations(BaseOperations):
         overlay_obj = self.__GetOverlayObject(overlay_or_hvo)
 
         # Set visibility property
-        if hasattr(overlay_obj, 'Hidden'):
+        if hasattr(overlay_obj, "Hidden"):
             overlay_obj.Hidden = not visible
         else:
             # If no visibility property, we can't set it
@@ -956,12 +955,12 @@ class OverlayOperations(BaseOperations):
 
         # Get display order
         # This might be stored in different ways depending on the implementation
-        if hasattr(overlay_obj, 'SortSpec'):
+        if hasattr(overlay_obj, "SortSpec"):
             return overlay_obj.SortSpec
 
         # If part of an owning sequence, get position in sequence
         owner = overlay_obj.Owner
-        if owner and hasattr(owner, 'PossItemsRC'):
+        if owner and hasattr(owner, "PossItemsRC"):
             try:
                 return owner.PossItemsRC.ToList().IndexOf(overlay_obj)
             except (IndexError, System.ArgumentException, System.InvalidOperationException) as e:
@@ -1018,12 +1017,12 @@ class OverlayOperations(BaseOperations):
         overlay_obj = self.__GetOverlayObject(overlay_or_hvo)
 
         # Set display order
-        if hasattr(overlay_obj, 'SortSpec'):
+        if hasattr(overlay_obj, "SortSpec"):
             overlay_obj.SortSpec = order
         else:
             # If part of an owning sequence, reorder within sequence
             owner = overlay_obj.Owner
-            if owner and hasattr(owner, 'PossItemsRC'):
+            if owner and hasattr(owner, "PossItemsRC"):
                 collection = owner.PossItemsRC
                 try:
                     # Remove and re-insert at new position
@@ -1081,10 +1080,10 @@ class OverlayOperations(BaseOperations):
 
         # Get elements from the overlay
         # This depends on how elements are stored
-        if hasattr(overlay_obj, 'CellsOS'):
+        if hasattr(overlay_obj, "CellsOS"):
             elements.extend(list(overlay_obj.CellsOS))
 
-        if hasattr(overlay_obj, 'MarkersRS'):
+        if hasattr(overlay_obj, "MarkersRS"):
             elements.extend(list(overlay_obj.MarkersRS))
 
         return elements
@@ -1134,14 +1133,14 @@ class OverlayOperations(BaseOperations):
 
         # Add element to overlay's collection
         # The specific collection depends on element type
-        if hasattr(overlay_obj, 'CellsOS'):
+        if hasattr(overlay_obj, "CellsOS"):
             try:
                 overlay_obj.CellsOS.Add(element)
                 return
             except (AttributeError, System.ArgumentException, System.InvalidOperationException):
                 pass
 
-        if hasattr(overlay_obj, 'MarkersRS'):
+        if hasattr(overlay_obj, "MarkersRS"):
             try:
                 overlay_obj.MarkersRS.Add(element)
                 return
@@ -1193,14 +1192,14 @@ class OverlayOperations(BaseOperations):
         overlay_obj = self.__GetOverlayObject(overlay_or_hvo)
 
         # Remove element from overlay's collection
-        if hasattr(overlay_obj, 'CellsOS'):
+        if hasattr(overlay_obj, "CellsOS"):
             try:
                 overlay_obj.CellsOS.Remove(element)
                 return
             except (AttributeError, ValueError, System.InvalidOperationException) as e:
                 logger.debug(f"Failed to remove element from CellsOS: {type(e).__name__}: {e}")
 
-        if hasattr(overlay_obj, 'MarkersRS'):
+        if hasattr(overlay_obj, "MarkersRS"):
             try:
                 overlay_obj.MarkersRS.Remove(element)
                 return
@@ -1254,7 +1253,7 @@ class OverlayOperations(BaseOperations):
         owner = overlay_obj.Owner
         if owner:
             # Check if owner is the template
-            if hasattr(owner, 'Owner'):
+            if hasattr(owner, "Owner"):
                 chart_owner = owner.Owner
                 if chart_owner:
                     try:
@@ -1305,10 +1304,10 @@ class OverlayOperations(BaseOperations):
         items = []
 
         # Get possibility items
-        if hasattr(overlay_obj, 'SubPossibilitiesOS'):
+        if hasattr(overlay_obj, "SubPossibilitiesOS"):
             items.extend(list(overlay_obj.SubPossibilitiesOS))
 
-        if hasattr(overlay_obj, 'PossItemsRS'):
+        if hasattr(overlay_obj, "PossItemsRS"):
             items.extend(list(overlay_obj.PossItemsRS))
 
         return items
@@ -1432,7 +1431,7 @@ class OverlayOperations(BaseOperations):
         """
         overlay_obj = self.__GetOverlayObject(overlay_or_hvo)
 
-        if hasattr(overlay_obj, 'Guid'):
+        if hasattr(overlay_obj, "Guid"):
             return overlay_obj.Guid
         else:
             raise FP_ParameterError("Overlay object does not have a GUID")

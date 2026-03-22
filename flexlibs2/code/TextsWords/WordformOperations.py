@@ -12,9 +12,11 @@
 #
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 import clr
+
 clr.AddReference("System")
 
 from SIL.LCModel import (
@@ -36,13 +38,17 @@ from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
 # --- Spelling Status Enum ---
 
+
 class SpellingStatusStates:
     """Spelling status values for wordforms."""
+
     UNDECIDED = 0
     INCORRECT = 1
     CORRECT = 2
 
+
 # --- WordformOperations Class ---
+
 
 class WordformOperations(BaseOperations):
     """
@@ -439,9 +445,7 @@ class WordformOperations(BaseOperations):
         """
         self._EnsureWriteEnabled()
 
-        if status not in (SpellingStatusStates.UNDECIDED,
-                         SpellingStatusStates.INCORRECT,
-                         SpellingStatusStates.CORRECT):
+        if status not in (SpellingStatusStates.UNDECIDED, SpellingStatusStates.INCORRECT, SpellingStatusStates.CORRECT):
             raise FP_ParameterError(f"Invalid spelling status: {status}. Must be 0, 1, or 2.")
 
         # Resolve to wordform object
@@ -641,9 +645,7 @@ class WordformOperations(BaseOperations):
         See Also:
             GetAllUnapproved, GetSpellingStatus, SpellingStatusStates
         """
-        if status not in (SpellingStatusStates.UNDECIDED,
-                         SpellingStatusStates.INCORRECT,
-                         SpellingStatusStates.CORRECT):
+        if status not in (SpellingStatusStates.UNDECIDED, SpellingStatusStates.INCORRECT, SpellingStatusStates.CORRECT):
             raise FP_ParameterError(f"Invalid spelling status: {status}. Must be 0, 1, or 2.")
 
         for wf in self.GetAll():
@@ -811,7 +813,7 @@ class WordformOperations(BaseOperations):
         duplicate.SpellingStatus = source.SpellingStatus
 
         # Deep copy: duplicate analyses
-        if deep and hasattr(source, 'AnalysesOC') and source.AnalysesOC.Count > 0:
+        if deep and hasattr(source, "AnalysesOC") and source.AnalysesOC.Count > 0:
             # Get factories (retrieve once, reuse for all objects)
             analysis_factory = self.project.project.ServiceLocator.GetService(IWfiAnalysisFactory)
             gloss_factory = self.project.project.ServiceLocator.GetService(IWfiGlossFactory)
@@ -826,14 +828,14 @@ class WordformOperations(BaseOperations):
                 duplicate.AnalysesOC.Add(new_analysis)
 
                 # Copy Reference Atomic (RA) properties
-                if hasattr(source_analysis, 'CategoryRA') and source_analysis.CategoryRA:
+                if hasattr(source_analysis, "CategoryRA") and source_analysis.CategoryRA:
                     new_analysis.CategoryRA = source_analysis.CategoryRA
 
                 # Note: We intentionally do NOT copy EvaluationsRC (approval status)
                 # New duplicate analysis should start as unapproved
 
                 # Deep copy glosses (MeaningsOC - owned collection)
-                if hasattr(source_analysis, 'MeaningsOC'):
+                if hasattr(source_analysis, "MeaningsOC"):
                     for gloss in source_analysis.MeaningsOC:
                         new_gloss = gloss_factory.Create()
                         new_analysis.MeaningsOC.Add(new_gloss)
@@ -841,7 +843,7 @@ class WordformOperations(BaseOperations):
                         new_gloss.Form.CopyAlternatives(gloss.Form)
 
                 # Deep copy morph bundles (MorphBundlesOS - owned sequence)
-                if hasattr(source_analysis, 'MorphBundlesOS'):
+                if hasattr(source_analysis, "MorphBundlesOS"):
                     for bundle in source_analysis.MorphBundlesOS:
                         new_bundle = bundle_factory.Create()
                         new_analysis.MorphBundlesOS.Add(new_bundle)
@@ -851,13 +853,13 @@ class WordformOperations(BaseOperations):
                         new_bundle.Gloss.CopyAlternatives(bundle.Gloss)
 
                         # Copy Reference Atomic (RA) properties
-                        if hasattr(bundle, 'SenseRA') and bundle.SenseRA:
+                        if hasattr(bundle, "SenseRA") and bundle.SenseRA:
                             new_bundle.SenseRA = bundle.SenseRA
-                        if hasattr(bundle, 'MsaRA') and bundle.MsaRA:
+                        if hasattr(bundle, "MsaRA") and bundle.MsaRA:
                             new_bundle.MsaRA = bundle.MsaRA
-                        if hasattr(bundle, 'MorphRA') and bundle.MorphRA:
+                        if hasattr(bundle, "MorphRA") and bundle.MorphRA:
                             new_bundle.MorphRA = bundle.MorphRA
-                        if hasattr(bundle, 'InflClassRA') and bundle.InflClassRA:
+                        if hasattr(bundle, "InflClassRA") and bundle.InflClassRA:
                             new_bundle.InflClassRA = bundle.InflClassRA
 
             logger.info(f"Deep copied {source.AnalysesOC.Count} analyses with nested structures")
@@ -895,12 +897,12 @@ class WordformOperations(BaseOperations):
         props = {}
 
         # MultiString property - Form
-        if hasattr(item, 'Form') and item.Form:
-            props['Form'] = self.project.GetMultiStringDict(item.Form)
+        if hasattr(item, "Form") and item.Form:
+            props["Form"] = self.project.GetMultiStringDict(item.Form)
 
         # Integer property - SpellingStatus
-        if hasattr(item, 'SpellingStatus'):
-            props['SpellingStatus'] = int(item.SpellingStatus)
+        if hasattr(item, "SpellingStatus"):
+            props["SpellingStatus"] = int(item.SpellingStatus)
 
         return props
 

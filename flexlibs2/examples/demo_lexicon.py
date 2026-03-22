@@ -14,7 +14,7 @@ import sys
 from flexlibs2 import FLExInitialize, FLExCleanup
 from flexlibs2 import FLExProject, FP_ProjectError
 
-#============ Configurables ===============
+# ============ Configurables ===============
 
 # Project to use
 TEST_PROJECT = "__flexlibs_testing"
@@ -28,12 +28,13 @@ WriteTests = False
 
 # Custom field name
 CUSTOM_FIELD = r"SenseFlags"
-      
-#--------------------------------------------------------------------
+
+
+# --------------------------------------------------------------------
 def reportLexicalEntries(project):
 
     ftflagsFlid = project.LexiconGetSenseCustomFieldNamed(CUSTOM_FIELD)
-    
+
     print("Opened project %s." % project.ProjectName())
 
     print("Listing up to %d lexical entries:" % LexiconMaxEntries)
@@ -45,7 +46,7 @@ def reportLexicalEntries(project):
     for e in list(project.LexiconAllEntries())[:LexiconMaxEntries]:
         print(r"\lx", project.LexiconGetLexemeForm(e))
         print(r"\lc", project.LexiconGetCitationForm(e))
-        for sense in e.SensesOS :
+        for sense in e.SensesOS:
             print(r"\ge", project.LexiconGetSenseGloss(sense))
             print(r"\pos", project.LexiconGetSensePOS(sense))
             print(r"\def", project.LexiconGetSenseDefinition(sense))
@@ -71,25 +72,22 @@ def reportLexicalEntries(project):
                 if WriteTests and not ex:
                     # CHANGES the project
                     print("Setting example")
-                    project.LexiconSetExample(example,
-                                             "You should have an example sentence"
-                                             )
+                    project.LexiconSetExample(example, "You should have an example sentence")
 
         print()
 
 
-#--------------------------------------------------------------------
+# --------------------------------------------------------------------
 
 
 if __name__ == "__main__":
 
     FLExInitialize()
-    
+
     project = FLExProject()
 
     try:
-        project.OpenProject(projectName = TEST_PROJECT,
-                            writeEnabled = WriteTests)
+        project.OpenProject(projectName=TEST_PROJECT, writeEnabled=WriteTests)
     except FP_ProjectError as e:
         print("OpenProject failed!")
         print(e.message)
@@ -97,10 +95,8 @@ if __name__ == "__main__":
         sys.exit(1)
 
     reportLexicalEntries(project)
-    
+
     # Clean-up
     project.CloseProject()
-    
+
     FLExCleanup()
-    
-    

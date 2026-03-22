@@ -22,6 +22,7 @@ import os
 # MOCK LCM OBJECTS
 # =============================================================================
 
+
 class MockLCMObject:
     """
     Mock base LCM object with common properties.
@@ -43,6 +44,7 @@ class MockLCMObject:
     def _generate_guid():
         """Generate a mock GUID."""
         import uuid
+
         return uuid.uuid4()
 
 
@@ -65,7 +67,7 @@ class MockMultiString:
 
     def get_String(self, ws_hvo):
         """Get text for a writing system HVO."""
-        return Mock(Text=self._texts.get(ws_hvo, ''))
+        return Mock(Text=self._texts.get(ws_hvo, ""))
 
     def set_String(self, ws_hvo, text):
         """Set text for a writing system HVO."""
@@ -127,6 +129,7 @@ class MockOwningSequence:
 # =============================================================================
 # MOCK FLEXPROJECT FACTORY
 # =============================================================================
+
 
 @pytest.fixture
 def mock_flex_project():
@@ -227,8 +230,8 @@ def mock_pos():
     pos = MockLCMObject(hvo=3000)
 
     # Add POS-specific properties
-    pos.Name = MockMultiString({'en': 'Noun'})
-    pos.Abbreviation = MockMultiString({'en': 'N'})
+    pos.Name = MockMultiString({"en": "Noun"})
+    pos.Abbreviation = MockMultiString({"en": "N"})
     pos.SubPossibilitiesOS = MockOwningSequence()
 
     return pos
@@ -273,6 +276,7 @@ def mock_wordform():
 # COMMON TEST ASSERTIONS
 # =============================================================================
 
+
 def assert_has_reordering_methods(ops_instance):
     """
     Assert that an operations instance has all 7 reordering methods.
@@ -283,16 +287,11 @@ def assert_has_reordering_methods(ops_instance):
     Raises:
         AssertionError: If any reordering method is missing
     """
-    reordering_methods = [
-        'Sort', 'MoveUp', 'MoveDown', 'MoveToIndex',
-        'MoveBefore', 'MoveAfter', 'Swap'
-    ]
+    reordering_methods = ["Sort", "MoveUp", "MoveDown", "MoveToIndex", "MoveBefore", "MoveAfter", "Swap"]
 
     for method_name in reordering_methods:
-        assert hasattr(ops_instance, method_name), \
-            f"Operations class missing reordering method: {method_name}"
-        assert callable(getattr(ops_instance, method_name)), \
-            f"Reordering method {method_name} is not callable"
+        assert hasattr(ops_instance, method_name), f"Operations class missing reordering method: {method_name}"
+        assert callable(getattr(ops_instance, method_name)), f"Reordering method {method_name} is not callable"
 
 
 def assert_has_crud_methods(ops_instance, has_create=True, has_delete=True):
@@ -308,21 +307,19 @@ def assert_has_crud_methods(ops_instance, has_create=True, has_delete=True):
         AssertionError: If expected methods are missing
     """
     # GetAll should be present on most operations
-    if hasattr(ops_instance, 'GetAll'):
+    if hasattr(ops_instance, "GetAll"):
         assert callable(ops_instance.GetAll)
 
     # Find should be present on most operations
-    if hasattr(ops_instance, 'Find'):
+    if hasattr(ops_instance, "Find"):
         assert callable(ops_instance.Find)
 
     if has_create:
-        assert hasattr(ops_instance, 'Create'), \
-            "Operations class should have Create method"
+        assert hasattr(ops_instance, "Create"), "Operations class should have Create method"
         assert callable(ops_instance.Create)
 
     if has_delete:
-        assert hasattr(ops_instance, 'Delete'), \
-            "Operations class should have Delete method"
+        assert hasattr(ops_instance, "Delete"), "Operations class should have Delete method"
         assert callable(ops_instance.Delete)
 
 
@@ -337,13 +334,14 @@ def assert_inherits_base_operations(ops_class):
         AssertionError: If class doesn't inherit from BaseOperations
     """
     from flexlibs2.code.BaseOperations import BaseOperations
-    assert issubclass(ops_class, BaseOperations), \
-        f"{ops_class.__name__} does not inherit from BaseOperations"
+
+    assert issubclass(ops_class, BaseOperations), f"{ops_class.__name__} does not inherit from BaseOperations"
 
 
 # =============================================================================
 # TEST DATA GENERATORS
 # =============================================================================
+
 
 def generate_test_entries(count=5):
     """
@@ -361,7 +359,7 @@ def generate_test_entries(count=5):
         entry.SensesOS = MockOwningSequence()
         entry.AlternateFormsOS = MockOwningSequence()
         entry.LexemeFormOA = None
-        entry.CitationForm = MockMultiString({'en': f'entry{i}'})
+        entry.CitationForm = MockMultiString({"en": f"entry{i}"})
         entries.append(entry)
     return entries
 
@@ -380,8 +378,8 @@ def generate_test_senses(entry, count=3):
     senses = []
     for i in range(count):
         sense = MockLCMObject(hvo=2000 + i, owner=entry)
-        sense.Gloss = MockMultiString({'en': f'meaning{i}'})
-        sense.Definition = MockMultiString({'en': f'definition{i}'})
+        sense.Gloss = MockMultiString({"en": f"meaning{i}"})
+        sense.Definition = MockMultiString({"en": f"definition{i}"})
         sense.ExamplesOS = MockOwningSequence()
         entry.SensesOS.Append(sense)
         senses.append(sense)
@@ -392,6 +390,7 @@ def generate_test_senses(entry, count=3):
 # MODULE-LEVEL UTILITIES
 # =============================================================================
 
+
 def skip_without_flex():
     """
     Decorator to skip tests that require a real FLEx connection.
@@ -400,6 +399,7 @@ def skip_without_flex():
     """
     try:
         from flexlibs2 import FLExInitialize
+
         return lambda func: func
     except ImportError:
         return pytest.mark.skip(reason="FLEx not available")
@@ -415,16 +415,17 @@ def requires_flex_project(project_name="Sena 3"):
     Returns:
         Decorator function
     """
+
     def decorator(func):
         try:
             from flexlibs2 import FLExProject, AllProjectNames
+
             if project_name not in AllProjectNames():
-                return pytest.mark.skip(
-                    reason=f"FLEx project '{project_name}' not available"
-                )(func)
+                return pytest.mark.skip(reason=f"FLEx project '{project_name}' not available")(func)
             return func
         except ImportError:
             return pytest.mark.skip(reason="FLEx not available")(func)
+
     return decorator
 
 
@@ -434,28 +435,24 @@ def requires_flex_project(project_name="Sena 3"):
 
 __all__ = [
     # Mock classes
-    'MockLCMObject',
-    'MockMultiString',
-    'MockOwningSequence',
-
+    "MockLCMObject",
+    "MockMultiString",
+    "MockOwningSequence",
     # Fixtures
-    'mock_flex_project',
-    'mock_lex_entry',
-    'mock_lex_sense',
-    'mock_pos',
-    'mock_text',
-    'mock_wordform',
-
+    "mock_flex_project",
+    "mock_lex_entry",
+    "mock_lex_sense",
+    "mock_pos",
+    "mock_text",
+    "mock_wordform",
     # Assertions
-    'assert_has_reordering_methods',
-    'assert_has_crud_methods',
-    'assert_inherits_base_operations',
-
+    "assert_has_reordering_methods",
+    "assert_has_crud_methods",
+    "assert_inherits_base_operations",
     # Data generators
-    'generate_test_entries',
-    'generate_test_senses',
-
+    "generate_test_entries",
+    "generate_test_senses",
     # Decorators
-    'skip_without_flex',
-    'requires_flex_project',
+    "skip_without_flex",
+    "requires_flex_project",
 ]

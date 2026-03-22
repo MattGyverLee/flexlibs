@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 class SyncMode(Enum):
     """Sync operation mode"""
+
     READONLY = "readonly"  # Diff only, no writes
     WRITE = "write"  # Execute sync operations
 
@@ -56,12 +57,7 @@ class SyncEngine:
         ... )
     """
 
-    def __init__(
-        self,
-        source_project: Any,
-        target_project: Any,
-        mode: Optional[SyncMode] = None
-    ):
+    def __init__(self, source_project: Any, target_project: Any, mode: Optional[SyncMode] = None):
         """
         Initialize SyncEngine.
 
@@ -81,7 +77,7 @@ class SyncEngine:
 
         # Auto-detect mode from target project if not specified
         if mode is None:
-            if hasattr(target_project, 'writeEnabled'):
+            if hasattr(target_project, "writeEnabled"):
                 self.mode = SyncMode.WRITE if target_project.writeEnabled else SyncMode.READONLY
             else:
                 # Default to readonly for safety
@@ -110,7 +106,7 @@ class SyncEngine:
 
     def _get_project_name(self, project: Any) -> str:
         """Get project name for logging."""
-        if hasattr(project, 'ProjectName'):
+        if hasattr(project, "ProjectName"):
             return project.ProjectName()
         return "unknown"
 
@@ -145,24 +141,17 @@ class SyncEngine:
         self._conflict_resolvers[name] = resolver
         logger.debug(f"Registered conflict resolver: {name}")
 
-    def _resolve_strategy(
-        self,
-        match_strategy: Union[str, MatchStrategy]
-    ) -> MatchStrategy:
+    def _resolve_strategy(self, match_strategy: Union[str, MatchStrategy]) -> MatchStrategy:
         """Resolve match strategy from name or instance."""
         if isinstance(match_strategy, str):
             if match_strategy not in self._match_strategies:
                 raise ValueError(
-                    f"Unknown match strategy: {match_strategy}. "
-                    f"Available: {list(self._match_strategies.keys())}"
+                    f"Unknown match strategy: {match_strategy}. " f"Available: {list(self._match_strategies.keys())}"
                 )
             return self._match_strategies[match_strategy]
         return match_strategy
 
-    def _resolve_resolver(
-        self,
-        conflict_resolver: Union[str, ConflictResolver]
-    ) -> ConflictResolver:
+    def _resolve_resolver(self, conflict_resolver: Union[str, ConflictResolver]) -> ConflictResolver:
         """Resolve conflict resolver from name or instance."""
         if isinstance(conflict_resolver, str):
             if conflict_resolver not in self._conflict_resolvers:
@@ -178,7 +167,7 @@ class SyncEngine:
         object_type: str,
         match_strategy: Union[str, MatchStrategy, None] = None,
         filter_fn: Optional[Callable] = None,
-        progress_callback: Optional[Callable[[str], None]] = None
+        progress_callback: Optional[Callable[[str], None]] = None,
     ) -> DiffResult:
         """
         Compare objects between source and target projects (readonly).
@@ -226,7 +215,7 @@ class SyncEngine:
             target_project=self.target_project,
             match_strategy=match_strategy,
             filter_fn=filter_fn,
-            progress_callback=progress_callback
+            progress_callback=progress_callback,
         )
 
         logger.info(
@@ -246,8 +235,8 @@ class SyncEngine:
         include_dependencies: bool = False,
         filter_fn: Optional[Callable] = None,
         progress_callback: Optional[Callable[[str], None]] = None,
-        dry_run: bool = False
-    ) -> 'SyncResult':
+        dry_run: bool = False,
+    ) -> "SyncResult":
         """
         Synchronize objects from source to target project (write mode).
 
@@ -282,15 +271,10 @@ class SyncEngine:
         """
         # Check if write operations are allowed
         if self.mode == SyncMode.READONLY:
-            raise RuntimeError(
-                "Cannot sync in readonly mode. "
-                "Open target project with writeEnabled=True"
-            )
+            raise RuntimeError("Cannot sync in readonly mode. " "Open target project with writeEnabled=True")
 
-        if hasattr(self.target_project, 'writeEnabled') and not self.target_project.writeEnabled:
-            raise RuntimeError(
-                "Target project not opened with writeEnabled=True"
-            )
+        if hasattr(self.target_project, "writeEnabled") and not self.target_project.writeEnabled:
+            raise RuntimeError("Target project not opened with writeEnabled=True")
 
         # Phase 2: Full sync implementation
         from .merge_ops import MergeOperations, SyncChange, SyncError
@@ -322,7 +306,7 @@ class SyncEngine:
                 object_type=object_type,
                 match_strategy=match_strategy,
                 filter_fn=filter_fn,
-                progress_callback=None  # Don't duplicate progress
+                progress_callback=None,  # Don't duplicate progress
             )
 
             # Get operations classes
@@ -350,26 +334,20 @@ class SyncEngine:
                         # For now, we skip objects that need parents (Phase 3 dependency handling)
                         if not dry_run:
                             created_obj = merger.create_object(
-                                target_ops=target_ops,
-                                source_obj=source_obj,
-                                source_ops=source_ops
+                                target_ops=target_ops, source_obj=source_obj, source_ops=source_ops
                             )
 
-                            result.add_change(SyncChange(
-                                operation='create',
-                                object_type=object_type,
-                                object_guid=change.source_guid
-                            ))
+                            result.add_change(
+                                SyncChange(operation="create", object_type=object_type, object_guid=change.source_guid)
+                            )
                         else:
                             result.skip()
 
                     except Exception as e:
                         logger.error(f"Failed to create object {change.source_guid}: {e}")
-                        result.add_error(SyncError(
-                            operation='create',
-                            object_guid=change.source_guid,
-                            error_message=str(e)
-                        ))
+                        result.add_error(
+                            SyncError(operation="create", object_guid=change.source_guid, error_message=str(e))
+                        )
 
             # Step 3: Update modified objects
             if diff.num_modified > 0:
@@ -388,10 +366,7 @@ class SyncEngine:
 
                         # Apply conflict resolution
                         resolved_obj = conflict_resolver.resolve(
-                            source_obj,
-                            target_obj,
-                            self.source_project,
-                            self.target_project
+                            source_obj, target_obj, self.source_project, self.target_project
                         )
 
                         # If source wins, update target from source
@@ -400,16 +375,18 @@ class SyncEngine:
                                 target_obj=target_obj,
                                 source_obj=source_obj,
                                 source_ops=source_ops,
-                                target_ops=target_ops
+                                target_ops=target_ops,
                             )
 
                             if changed:
-                                result.add_change(SyncChange(
-                                    operation='update',
-                                    object_type=object_type,
-                                    object_guid=change.target_guid,
-                                    details=change.details
-                                ))
+                                result.add_change(
+                                    SyncChange(
+                                        operation="update",
+                                        object_type=object_type,
+                                        object_guid=change.target_guid,
+                                        details=change.details,
+                                    )
+                                )
                             else:
                                 result.skip()
                         else:
@@ -418,11 +395,9 @@ class SyncEngine:
 
                     except Exception as e:
                         logger.error(f"Failed to update object {change.target_guid}: {e}")
-                        result.add_error(SyncError(
-                            operation='update',
-                            object_guid=change.target_guid,
-                            error_message=str(e)
-                        ))
+                        result.add_error(
+                            SyncError(operation="update", object_guid=change.target_guid, error_message=str(e))
+                        )
 
             # Step 4: Delete removed objects (optional, controlled by user)
             # For safety, we skip deletes by default unless explicitly requested
@@ -444,11 +419,7 @@ class SyncEngine:
 
         except Exception as e:
             logger.error(f"Sync failed: {e}")
-            result.add_error(SyncError(
-                operation='sync',
-                object_guid=None,
-                error_message=f"Sync operation failed: {e}"
-            ))
+            result.add_error(SyncError(operation="sync", object_guid=None, error_message=f"Sync operation failed: {e}"))
             return result
 
     def _get_operations(self, project: Any, object_type: str) -> Any:
@@ -489,9 +460,7 @@ class SyncEngine:
         return getattr(project, ops_name)
 
     def compare_possibility_list(
-        self,
-        list_type: str,
-        match_strategy: Union[str, MatchStrategy, None] = None
+        self, list_type: str, match_strategy: Union[str, MatchStrategy, None] = None
     ) -> DiffResult:
         """
         Compare possibility lists (POS, MorphTypes, etc.) between projects.
@@ -507,15 +476,9 @@ class SyncEngine:
             This is a specialized comparison for hierarchical possibility lists.
             Full implementation in Phase 4.
         """
-        raise NotImplementedError(
-            "Possibility list comparison not yet implemented (Phase 4)"
-        )
+        raise NotImplementedError("Possibility list comparison not yet implemented (Phase 4)")
 
-    def validate_dependencies(
-        self,
-        object_type: str,
-        auto_create_missing: bool = False
-    ) -> 'DependencyValidation':
+    def validate_dependencies(self, object_type: str, auto_create_missing: bool = False) -> "DependencyValidation":
         """
         Validate that all dependencies exist in target project.
 
@@ -529,11 +492,9 @@ class SyncEngine:
         Note:
             Full implementation in Phase 3 (Dependency Safety).
         """
-        raise NotImplementedError(
-            "Dependency validation not yet implemented (Phase 3)"
-        )
+        raise NotImplementedError("Dependency validation not yet implemented (Phase 3)")
 
-    def create_snapshot(self, project: Any) -> 'Snapshot':
+    def create_snapshot(self, project: Any) -> "Snapshot":
         """
         Create a snapshot for rollback.
 
@@ -546,9 +507,7 @@ class SyncEngine:
         Note:
             Full implementation in Phase 4 (Undo/Rollback).
         """
-        raise NotImplementedError(
-            "Snapshot creation not yet implemented (Phase 4)"
-        )
+        raise NotImplementedError("Snapshot creation not yet implemented (Phase 4)")
 
 
 class SyncResult:
@@ -580,6 +539,7 @@ class SyncResult:
         self.num_errors = 0
 
         from .merge_ops import SyncChange, SyncError
+
         self.changes: List[SyncChange] = []
         self.errors: List[SyncError] = []
 
@@ -593,19 +553,19 @@ class SyncResult:
         """Whether sync completed without errors."""
         return self.num_errors == 0
 
-    def add_change(self, change: 'SyncChange') -> None:
+    def add_change(self, change: "SyncChange") -> None:
         """Record a change made during sync."""
         self.changes.append(change)
 
         # Update counters
-        if change.operation == 'create':
+        if change.operation == "create":
             self.num_created += 1
-        elif change.operation == 'update':
+        elif change.operation == "update":
             self.num_updated += 1
-        elif change.operation == 'delete':
+        elif change.operation == "delete":
             self.num_deleted += 1
 
-    def add_error(self, error: 'SyncError') -> None:
+    def add_error(self, error: "SyncError") -> None:
         """Record an error during sync."""
         self.errors.append(error)
         self.num_errors += 1
@@ -645,7 +605,7 @@ class SyncResult:
         Example:
             >>> result.export_log("allomorph_sync.log")
         """
-        with open(filename, 'w', encoding='utf-8') as f:
+        with open(filename, "w", encoding="utf-8") as f:
             f.write(f"Sync Log: {self.object_type}\n")
             f.write(f"Date: {import_datetime()}\n")
             f.write("=" * 60 + "\n\n")
@@ -672,9 +632,11 @@ class SyncResult:
 
         logger.info(f"Exported sync log to {filename}")
 
+
 def import_datetime():
     """Helper to get current datetime."""
     from datetime import datetime
+
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
@@ -684,6 +646,7 @@ class DependencyValidation:
 
     Phase 3 implementation placeholder.
     """
+
     pass
 
 
@@ -693,4 +656,5 @@ class Snapshot:
 
     Phase 4 implementation placeholder.
     """
+
     pass

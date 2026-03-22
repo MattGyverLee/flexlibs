@@ -379,3 +379,7 @@ When implementing a collection for filtering and display:
 - `docs/API_ISSUES_CATEGORIZED.md` - Known API issues and workarounds
 - `docs/EXCEPTION_HANDLING.md` - Error handling patterns
 - `README.rst` - User-facing documentation
+
+## Don'ts:
+- This is a Windows system; don't use emojis in console messages.
+- Call Python with `python` instead of `python3`.

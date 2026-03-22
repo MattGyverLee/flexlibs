@@ -14,7 +14,7 @@ import sys
 from flexlibs2 import FLExInitialize, FLExCleanup
 from flexlibs2 import FLExProject, FP_ProjectError
 
-#============ Configurables ===============
+# ============ Configurables ===============
 
 # Project to use
 TEST_PROJECT = r"__flexlibs_testing"
@@ -25,9 +25,9 @@ def demo_writing_system_operations(project):
     Demonstrate various writing system operations.
     """
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("WRITING SYSTEM OPERATIONS DEMO")
-    print("="*70)
+    print("=" * 70)
 
     # --- Getting Writing Systems ---
     print("\n1. Getting All Writing Systems")
@@ -108,9 +108,9 @@ def demo_writing_system_operations(project):
         direction = "Right-to-Left" if rtl else "Left-to-Right"
         print(f"  {name} ({tag}): {direction}")
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("Demo complete!")
-    print("="*70 + "\n")
+    print("=" * 70 + "\n")
 
 
 def demo_writing_system_modifications(project):
@@ -119,9 +119,9 @@ def demo_writing_system_modifications(project):
     This is commented out by default to avoid modifying the test project.
     """
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("WRITING SYSTEM MODIFICATIONS (WRITE MODE)")
-    print("="*70)
+    print("=" * 70)
     print("\nNOTE: These operations require writeEnabled=True")
     print("Uncomment in main() to test modifications.\n")
 
@@ -146,7 +146,7 @@ def demo_writing_system_modifications(project):
     #     project.WritingSystems.Delete("qaa-x-test")
 
     print("  (Modification examples are commented out)")
-    print("\n" + "="*70 + "\n")
+    print("\n" + "=" * 70 + "\n")
 
 
 # -------------------------------------------------------------------
@@ -158,8 +158,7 @@ if __name__ == "__main__":
 
     try:
         # Open project in read-only mode for demo
-        project.OpenProject(projectName=TEST_PROJECT,
-                           writeEnabled=False)
+        project.OpenProject(projectName=TEST_PROJECT, writeEnabled=False)
     except FP_ProjectError as e:
         print("OpenProject failed!")
         print(e.message)

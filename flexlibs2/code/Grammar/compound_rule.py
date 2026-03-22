@@ -118,6 +118,7 @@ class CompoundRule(LCMObjectWrapper):
         """
         try:
             from SIL.LCModel.Core.KernelInterfaces import ITsString
+
             name_multistring = self._obj.Name
             if name_multistring:
                 # Get from default analysis writing system
@@ -146,7 +147,7 @@ class CompoundRule(LCMObjectWrapper):
             - Use head_dependency for generic access
         """
         try:
-            if hasattr(self._concrete, 'LeftHeadDep'):
+            if hasattr(self._concrete, "LeftHeadDep"):
                 return self._concrete.LeftHeadDep
             return None
         except Exception:
@@ -170,7 +171,7 @@ class CompoundRule(LCMObjectWrapper):
             - Use head_dependency for generic access
         """
         try:
-            if hasattr(self._concrete, 'RightHeadDep'):
+            if hasattr(self._concrete, "RightHeadDep"):
                 return self._concrete.RightHeadDep
             return None
         except Exception:
@@ -218,7 +219,7 @@ class CompoundRule(LCMObjectWrapper):
             - Use contexts property for generic access
         """
         try:
-            if hasattr(self._concrete, 'LeftContextOA'):
+            if hasattr(self._concrete, "LeftContextOA"):
                 return self._concrete.LeftContextOA
             return None
         except Exception:
@@ -242,7 +243,7 @@ class CompoundRule(LCMObjectWrapper):
             - Use contexts property for generic access
         """
         try:
-            if hasattr(self._concrete, 'RightContextOA'):
+            if hasattr(self._concrete, "RightContextOA"):
                 return self._concrete.RightContextOA
             return None
         except Exception:
@@ -290,7 +291,7 @@ class CompoundRule(LCMObjectWrapper):
             - Mutually exclusive with is_exo_compound
         """
         try:
-            return self.class_type == 'MoEndoCompound'
+            return self.class_type == "MoEndoCompound"
         except Exception:
             return False
 
@@ -312,7 +313,7 @@ class CompoundRule(LCMObjectWrapper):
             - Mutually exclusive with is_endo_compound
         """
         try:
-            return self.class_type == 'MoExoCompound'
+            return self.class_type == "MoExoCompound"
         except Exception:
             return False
 
@@ -342,7 +343,7 @@ class CompoundRule(LCMObjectWrapper):
             - Only useful if you need to call methods or access properties
               that aren't exposed through the wrapper
         """
-        if self.class_type == 'MoEndoCompound':
+        if self.class_type == "MoEndoCompound":
             return self._concrete
         return None
 
@@ -367,7 +368,7 @@ class CompoundRule(LCMObjectWrapper):
             - For users who know C# interfaces and want advanced control
             - Most users should use properties like is_exo_compound instead
         """
-        if self.class_type == 'MoExoCompound':
+        if self.class_type == "MoExoCompound":
             return self._concrete
         return None
 

@@ -28,6 +28,7 @@ import unittest
 from unittest.mock import Mock
 from datetime import datetime
 
+
 # DateTime mock for testing
 class DateTime:
     def __init__(self, year, month, day, hour=0, minute=0, second=0):
@@ -36,6 +37,7 @@ class DateTime:
     def AddDays(self, days):
         result = DateTime(self.dt.year, self.dt.month, self.dt.day)
         import datetime as dt_module
+
         result.dt = self.dt + dt_module.timedelta(days=days)
         return result
 
@@ -72,6 +74,7 @@ class DateTime:
     def __repr__(self):
         return f"{self.dt.year}-{self.dt.month:02d}-{self.dt.day:02d}"
 
+
 from flexlibs2.code.Notebook.annotation_collection import AnnotationCollection
 
 
@@ -87,15 +90,15 @@ class MockAnnotation:
 
     @property
     def is_scripture(self):
-        return 'scripture' in self.annotation_type.lower() or 'scr' in self.annotation_type.lower()
+        return "scripture" in self.annotation_type.lower() or "scr" in self.annotation_type.lower()
 
     @property
     def is_translator(self):
-        return 'translator' in self.annotation_type.lower()
+        return "translator" in self.annotation_type.lower()
 
     @property
     def is_consultant(self):
-        return 'consultant' in self.annotation_type.lower()
+        return "consultant" in self.annotation_type.lower()
 
     @property
     def is_todo(self):
@@ -103,7 +106,7 @@ class MockAnnotation:
 
     @property
     def is_question(self):
-        return 'question' in self.annotation_type.lower() or 'query' in self.annotation_type.lower()
+        return "question" in self.annotation_type.lower() or "query" in self.annotation_type.lower()
 
 
 class TestAnnotationCollection(unittest.TestCase):
@@ -185,21 +188,9 @@ class TestAnnotationCollection(unittest.TestCase):
 
     def test_filter_chaining(self):
         """Test chaining multiple filters."""
-        anno1 = MockAnnotation(
-            annotation_type="To Do",
-            author="John",
-            date=self.date_1
-        )
-        anno2 = MockAnnotation(
-            annotation_type="To Do",
-            author="Jane",
-            date=self.date_2
-        )
-        anno3 = MockAnnotation(
-            annotation_type="Question",
-            author="John",
-            date=self.date_3
-        )
+        anno1 = MockAnnotation(annotation_type="To Do", author="John", date=self.date_1)
+        anno2 = MockAnnotation(annotation_type="To Do", author="Jane", date=self.date_2)
+        anno3 = MockAnnotation(annotation_type="Question", author="John", date=self.date_3)
         collection = AnnotationCollection([anno1, anno2, anno3])
 
         result = collection.by_type("To Do").by_author("John")
@@ -212,9 +203,7 @@ class TestAnnotationCollection(unittest.TestCase):
         anno3 = MockAnnotation(annotation_type="To Do", author="Jane")
         collection = AnnotationCollection([anno1, anno2, anno3])
 
-        result = collection.filter(where=lambda a: (
-            a.annotation_type == "To Do" or a.author == "Jane"
-        ))
+        result = collection.filter(where=lambda a: (a.annotation_type == "To Do" or a.author == "Jane"))
         self.assertEqual(len(result), 3)
 
     def test_scripture_filter(self):
@@ -378,29 +367,13 @@ class TestAnnotationCollection(unittest.TestCase):
 
     def test_multiple_filters_and(self):
         """Test multiple criteria in single filter (AND logic)."""
-        anno1 = MockAnnotation(
-            annotation_type="To Do",
-            author="John",
-            content="Check this"
-        )
-        anno2 = MockAnnotation(
-            annotation_type="To Do",
-            author="Jane",
-            content="Check that"
-        )
-        anno3 = MockAnnotation(
-            annotation_type="Question",
-            author="John",
-            content="Why?"
-        )
+        anno1 = MockAnnotation(annotation_type="To Do", author="John", content="Check this")
+        anno2 = MockAnnotation(annotation_type="To Do", author="Jane", content="Check that")
+        anno3 = MockAnnotation(annotation_type="Question", author="John", content="Why?")
         collection = AnnotationCollection([anno1, anno2, anno3])
 
         # Should match only anno1: To Do AND John AND has "Check"
-        result = collection.filter(
-            annotation_type="To Do",
-            author="John",
-            content_contains="Check"
-        )
+        result = collection.filter(annotation_type="To Do", author="John", content_contains="Check")
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0], anno1)
 
@@ -443,5 +416,5 @@ class TestAnnotationCollection(unittest.TestCase):
         self.assertIn("Question: 2 (40%)", str_repr)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

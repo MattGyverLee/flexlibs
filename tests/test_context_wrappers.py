@@ -46,11 +46,11 @@ class MockPhonologicalContext:
 
     @property
     def is_simple_context_seg(self):
-        return self.class_type == 'PhSimpleContextSeg'
+        return self.class_type == "PhSimpleContextSeg"
 
     @property
     def is_simple_context_nc(self):
-        return self.class_type == 'PhSimpleContextNC'
+        return self.class_type == "PhSimpleContextNC"
 
     @property
     def is_simple_context(self):
@@ -58,11 +58,11 @@ class MockPhonologicalContext:
 
     @property
     def is_complex_context_seg(self):
-        return self.class_type == 'PhComplexContextSeg'
+        return self.class_type == "PhComplexContextSeg"
 
     @property
     def is_complex_context_nc(self):
-        return self.class_type == 'PhComplexContextNC'
+        return self.class_type == "PhComplexContextNC"
 
     @property
     def is_complex_context(self):
@@ -70,7 +70,7 @@ class MockPhonologicalContext:
 
     @property
     def is_boundary_context(self):
-        return self.class_type == 'PhBoundaryContext'
+        return self.class_type == "PhBoundaryContext"
 
     @property
     def segment(self):
@@ -124,7 +124,7 @@ class TestContextCollection:
         """Test creating ContextCollection with items."""
         from flexlibs2.code.System.context_collection import ContextCollection
 
-        context = MockPhonologicalContext('PhSimpleContextSeg')
+        context = MockPhonologicalContext("PhSimpleContextSeg")
         collection = ContextCollection([context])
         assert len(collection) == 1
 
@@ -132,7 +132,7 @@ class TestContextCollection:
         """Test iterating over ContextCollection."""
         from flexlibs2.code.System.context_collection import ContextCollection
 
-        contexts = [MockPhonologicalContext('PhSimpleContextSeg') for _ in range(3)]
+        contexts = [MockPhonologicalContext("PhSimpleContextSeg") for _ in range(3)]
         collection = ContextCollection(contexts)
 
         count = 0
@@ -144,7 +144,7 @@ class TestContextCollection:
         """Test indexing ContextCollection."""
         from flexlibs2.code.System.context_collection import ContextCollection
 
-        contexts = [MockPhonologicalContext('PhSimpleContextSeg') for _ in range(3)]
+        contexts = [MockPhonologicalContext("PhSimpleContextSeg") for _ in range(3)]
         collection = ContextCollection(contexts)
 
         assert collection[0] is contexts[0]
@@ -154,7 +154,7 @@ class TestContextCollection:
         """Test slicing ContextCollection."""
         from flexlibs2.code.System.context_collection import ContextCollection
 
-        contexts = [MockPhonologicalContext('PhSimpleContextSeg') for _ in range(5)]
+        contexts = [MockPhonologicalContext("PhSimpleContextSeg") for _ in range(5)]
         collection = ContextCollection(contexts)
 
         sliced = collection[1:3]
@@ -166,17 +166,17 @@ class TestContextCollection:
         from flexlibs2.code.System.context_collection import ContextCollection
 
         contexts = [
-            MockPhonologicalContext('PhSimpleContextSeg'),
-            MockPhonologicalContext('PhSimpleContextSeg'),
-            MockPhonologicalContext('PhBoundaryContext'),
+            MockPhonologicalContext("PhSimpleContextSeg"),
+            MockPhonologicalContext("PhSimpleContextSeg"),
+            MockPhonologicalContext("PhBoundaryContext"),
         ]
         collection = ContextCollection(contexts)
 
         str_repr = str(collection)
-        assert 'ContextCollection' in str_repr
-        assert '3 total' in str_repr
-        assert 'PhSimpleContextSeg: 2' in str_repr
-        assert 'PhBoundaryContext: 1' in str_repr
+        assert "ContextCollection" in str_repr
+        assert "3 total" in str_repr
+        assert "PhSimpleContextSeg: 2" in str_repr
+        assert "PhBoundaryContext: 1" in str_repr
 
     def test_collection_str_empty(self):
         """Test __str__ on empty collection."""
@@ -184,20 +184,20 @@ class TestContextCollection:
 
         collection = ContextCollection()
         str_repr = str(collection)
-        assert 'empty' in str_repr
+        assert "empty" in str_repr
 
     def test_by_type_filter(self):
         """Test filtering by concrete type."""
         from flexlibs2.code.System.context_collection import ContextCollection
 
         contexts = [
-            MockPhonologicalContext('PhSimpleContextSeg'),
-            MockPhonologicalContext('PhBoundaryContext'),
-            MockPhonologicalContext('PhSimpleContextSeg'),
+            MockPhonologicalContext("PhSimpleContextSeg"),
+            MockPhonologicalContext("PhBoundaryContext"),
+            MockPhonologicalContext("PhSimpleContextSeg"),
         ]
         collection = ContextCollection(contexts)
 
-        seg_only = collection.by_type('PhSimpleContextSeg')
+        seg_only = collection.by_type("PhSimpleContextSeg")
         assert len(seg_only) == 2
         assert isinstance(seg_only, ContextCollection)
 
@@ -206,9 +206,9 @@ class TestContextCollection:
         from flexlibs2.code.System.context_collection import ContextCollection
 
         contexts = [
-            MockPhonologicalContext('PhSimpleContextSeg'),
-            MockPhonologicalContext('PhSimpleContextSeg'),
-            MockPhonologicalContext('PhBoundaryContext'),
+            MockPhonologicalContext("PhSimpleContextSeg"),
+            MockPhonologicalContext("PhSimpleContextSeg"),
+            MockPhonologicalContext("PhBoundaryContext"),
         ]
         collection = ContextCollection(contexts)
 
@@ -221,9 +221,9 @@ class TestContextCollection:
         from flexlibs2.code.System.context_collection import ContextCollection
 
         contexts = [
-            MockPhonologicalContext('PhSimpleContextSeg'),
-            MockPhonologicalContext('PhBoundaryContext'),
-            MockPhonologicalContext('PhSimpleContextNC'),
+            MockPhonologicalContext("PhSimpleContextSeg"),
+            MockPhonologicalContext("PhBoundaryContext"),
+            MockPhonologicalContext("PhSimpleContextNC"),
         ]
         collection = ContextCollection(contexts)
 
@@ -237,9 +237,9 @@ class TestContextCollection:
         from flexlibs2.code.System.context_collection import ContextCollection
 
         contexts = [
-            MockPhonologicalContext('PhSimpleContextSeg'),
-            MockPhonologicalContext('PhSimpleContextNC'),
-            MockPhonologicalContext('PhSimpleContextSeg'),
+            MockPhonologicalContext("PhSimpleContextSeg"),
+            MockPhonologicalContext("PhSimpleContextNC"),
+            MockPhonologicalContext("PhSimpleContextSeg"),
         ]
         collection = ContextCollection(contexts)
 
@@ -253,9 +253,9 @@ class TestContextCollection:
         from flexlibs2.code.System.context_collection import ContextCollection
 
         contexts = [
-            MockPhonologicalContext('PhSimpleContextSeg'),
-            MockPhonologicalContext('PhSimpleContextNC'),
-            MockPhonologicalContext('PhSimpleContextNC'),
+            MockPhonologicalContext("PhSimpleContextSeg"),
+            MockPhonologicalContext("PhSimpleContextNC"),
+            MockPhonologicalContext("PhSimpleContextNC"),
         ]
         collection = ContextCollection(contexts)
 
@@ -269,9 +269,9 @@ class TestContextCollection:
         from flexlibs2.code.System.context_collection import ContextCollection
 
         contexts = [
-            MockPhonologicalContext('PhComplexContextSeg'),
-            MockPhonologicalContext('PhBoundaryContext'),
-            MockPhonologicalContext('PhComplexContextNC'),
+            MockPhonologicalContext("PhComplexContextSeg"),
+            MockPhonologicalContext("PhBoundaryContext"),
+            MockPhonologicalContext("PhComplexContextNC"),
         ]
         collection = ContextCollection(contexts)
 
@@ -285,9 +285,9 @@ class TestContextCollection:
         from flexlibs2.code.System.context_collection import ContextCollection
 
         contexts = [
-            MockPhonologicalContext('PhComplexContextSeg'),
-            MockPhonologicalContext('PhComplexContextNC'),
-            MockPhonologicalContext('PhComplexContextSeg'),
+            MockPhonologicalContext("PhComplexContextSeg"),
+            MockPhonologicalContext("PhComplexContextNC"),
+            MockPhonologicalContext("PhComplexContextSeg"),
         ]
         collection = ContextCollection(contexts)
 
@@ -299,9 +299,9 @@ class TestContextCollection:
         from flexlibs2.code.System.context_collection import ContextCollection
 
         contexts = [
-            MockPhonologicalContext('PhComplexContextSeg'),
-            MockPhonologicalContext('PhComplexContextNC'),
-            MockPhonologicalContext('PhComplexContextNC'),
+            MockPhonologicalContext("PhComplexContextSeg"),
+            MockPhonologicalContext("PhComplexContextNC"),
+            MockPhonologicalContext("PhComplexContextNC"),
         ]
         collection = ContextCollection(contexts)
 
@@ -313,9 +313,9 @@ class TestContextCollection:
         from flexlibs2.code.System.context_collection import ContextCollection
 
         contexts = [
-            MockPhonologicalContext('PhSimpleContextSeg'),
-            MockPhonologicalContext('PhBoundaryContext'),
-            MockPhonologicalContext('PhBoundaryContext'),
+            MockPhonologicalContext("PhSimpleContextSeg"),
+            MockPhonologicalContext("PhBoundaryContext"),
+            MockPhonologicalContext("PhBoundaryContext"),
         ]
         collection = ContextCollection(contexts)
 
@@ -329,35 +329,35 @@ class TestContextCollection:
         from flexlibs2.code.System.context_collection import ContextCollection
 
         contexts = [
-            MockPhonologicalContext('PhSimpleContextSeg', 'word_initial'),
-            MockPhonologicalContext('PhSimpleContextSeg', 'word_final'),
-            MockPhonologicalContext('PhBoundaryContext', 'word_boundary'),
+            MockPhonologicalContext("PhSimpleContextSeg", "word_initial"),
+            MockPhonologicalContext("PhSimpleContextSeg", "word_final"),
+            MockPhonologicalContext("PhBoundaryContext", "word_boundary"),
         ]
         collection = ContextCollection(contexts)
 
         # Chain: get simple contexts, then filter by name
-        simple_word = collection.simple_contexts().filter(name_contains='word')
+        simple_word = collection.simple_contexts().filter(name_contains="word")
         assert len(simple_word) == 2
         assert simple_word[0].is_simple_context
-        assert simple_word[0].context_name == 'word_initial'
+        assert simple_word[0].context_name == "word_initial"
 
     def test_repr(self):
         """Test string representation of collection."""
         from flexlibs2.code.System.context_collection import ContextCollection
 
-        contexts = [MockPhonologicalContext('PhSimpleContextSeg') for _ in range(5)]
+        contexts = [MockPhonologicalContext("PhSimpleContextSeg") for _ in range(5)]
         collection = ContextCollection(contexts)
 
         repr_str = repr(collection)
-        assert 'ContextCollection' in repr_str
-        assert '5' in repr_str
+        assert "ContextCollection" in repr_str
+        assert "5" in repr_str
 
     def test_append(self):
         """Test appending to collection."""
         from flexlibs2.code.System.context_collection import ContextCollection
 
         collection = ContextCollection()
-        context = MockPhonologicalContext('PhSimpleContextSeg')
+        context = MockPhonologicalContext("PhSimpleContextSeg")
         collection.append(context)
 
         assert len(collection) == 1
@@ -368,7 +368,7 @@ class TestContextCollection:
         from flexlibs2.code.System.context_collection import ContextCollection
 
         collection = ContextCollection()
-        contexts = [MockPhonologicalContext('PhSimpleContextSeg') for _ in range(3)]
+        contexts = [MockPhonologicalContext("PhSimpleContextSeg") for _ in range(3)]
         collection.extend(contexts)
 
         assert len(collection) == 3
@@ -377,7 +377,7 @@ class TestContextCollection:
         """Test clearing collection."""
         from flexlibs2.code.System.context_collection import ContextCollection
 
-        contexts = [MockPhonologicalContext('PhSimpleContextSeg') for _ in range(3)]
+        contexts = [MockPhonologicalContext("PhSimpleContextSeg") for _ in range(3)]
         collection = ContextCollection(contexts)
 
         collection.clear()
@@ -388,13 +388,13 @@ class TestContextCollection:
         from flexlibs2.code.System.context_collection import ContextCollection
 
         contexts = [
-            MockPhonologicalContext('PhSimpleContextSeg', 'word_initial'),
-            MockPhonologicalContext('PhSimpleContextSeg', 'syllable_final'),
-            MockPhonologicalContext('PhBoundaryContext', 'word_boundary'),
+            MockPhonologicalContext("PhSimpleContextSeg", "word_initial"),
+            MockPhonologicalContext("PhSimpleContextSeg", "syllable_final"),
+            MockPhonologicalContext("PhBoundaryContext", "word_boundary"),
         ]
         collection = ContextCollection(contexts)
 
-        word_contexts = collection.filter(name_contains='word')
+        word_contexts = collection.filter(name_contains="word")
         assert len(word_contexts) == 2
 
     def test_filter_multiple_context_types(self):
@@ -402,11 +402,11 @@ class TestContextCollection:
         from flexlibs2.code.System.context_collection import ContextCollection
 
         contexts = [
-            MockPhonologicalContext('PhSimpleContextSeg', 'voiceless'),
-            MockPhonologicalContext('PhSimpleContextNC', 'obstruents'),
-            MockPhonologicalContext('PhComplexContextSeg', 'complex1'),
-            MockPhonologicalContext('PhComplexContextNC', 'complex2'),
-            MockPhonologicalContext('PhBoundaryContext', 'word_boundary'),
+            MockPhonologicalContext("PhSimpleContextSeg", "voiceless"),
+            MockPhonologicalContext("PhSimpleContextNC", "obstruents"),
+            MockPhonologicalContext("PhComplexContextSeg", "complex1"),
+            MockPhonologicalContext("PhComplexContextNC", "complex2"),
+            MockPhonologicalContext("PhBoundaryContext", "word_boundary"),
         ]
         collection = ContextCollection(contexts)
 
@@ -420,22 +420,22 @@ class TestContextCollection:
         from flexlibs2.code.System.context_collection import ContextCollection
 
         contexts = [
-            MockPhonologicalContext('PhSimpleContextSeg'),
-            MockPhonologicalContext('PhSimpleContextSeg'),
-            MockPhonologicalContext('PhSimpleContextNC'),
-            MockPhonologicalContext('PhComplexContextSeg'),
-            MockPhonologicalContext('PhComplexContextNC'),
-            MockPhonologicalContext('PhBoundaryContext'),
+            MockPhonologicalContext("PhSimpleContextSeg"),
+            MockPhonologicalContext("PhSimpleContextSeg"),
+            MockPhonologicalContext("PhSimpleContextNC"),
+            MockPhonologicalContext("PhComplexContextSeg"),
+            MockPhonologicalContext("PhComplexContextNC"),
+            MockPhonologicalContext("PhBoundaryContext"),
         ]
         collection = ContextCollection(contexts)
 
         str_repr = str(collection)
-        assert 'PhSimpleContextSeg: 2' in str_repr
-        assert 'PhSimpleContextNC: 1' in str_repr
-        assert 'PhComplexContextSeg: 1' in str_repr
-        assert 'PhComplexContextNC: 1' in str_repr
-        assert 'PhBoundaryContext: 1' in str_repr
+        assert "PhSimpleContextSeg: 2" in str_repr
+        assert "PhSimpleContextNC: 1" in str_repr
+        assert "PhComplexContextSeg: 1" in str_repr
+        assert "PhComplexContextNC: 1" in str_repr
+        assert "PhBoundaryContext: 1" in str_repr
 
 
-if __name__ == '__main__':
-    pytest.main([__file__, '-v'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

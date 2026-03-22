@@ -52,40 +52,40 @@ class MockPhonologicalRule:
 
     @property
     def has_output_specs(self):
-        return self.class_type == 'PhRegularRule'
+        return self.class_type == "PhRegularRule"
 
     @property
     def output_specs(self):
-        return [] if self.class_type != 'PhRegularRule' else [Mock()]
+        return [] if self.class_type != "PhRegularRule" else [Mock()]
 
     @property
     def has_metathesis_parts(self):
-        return self.class_type == 'PhMetathesisRule'
+        return self.class_type == "PhMetathesisRule"
 
     @property
     def metathesis_parts(self):
-        if self.class_type != 'PhMetathesisRule':
+        if self.class_type != "PhMetathesisRule":
             return [], []
         return [Mock()], [Mock()]
 
     @property
     def has_redup_parts(self):
-        return self.class_type == 'PhReduplicationRule'
+        return self.class_type == "PhReduplicationRule"
 
     @property
     def redup_parts(self):
-        if self.class_type != 'PhReduplicationRule':
+        if self.class_type != "PhReduplicationRule":
             return [], []
         return [Mock()], [Mock()]
 
     def as_regular_rule(self):
-        return Mock() if self.class_type == 'PhRegularRule' else None
+        return Mock() if self.class_type == "PhRegularRule" else None
 
     def as_metathesis_rule(self):
-        return Mock() if self.class_type == 'PhMetathesisRule' else None
+        return Mock() if self.class_type == "PhMetathesisRule" else None
 
     def as_reduplication_rule(self):
-        return Mock() if self.class_type == 'PhReduplicationRule' else None
+        return Mock() if self.class_type == "PhReduplicationRule" else None
 
     @property
     def concrete(self):
@@ -106,7 +106,7 @@ class TestRuleCollection:
         """Test creating RuleCollection with items."""
         from flexlibs2.code.Grammar.rule_collection import RuleCollection
 
-        rule = MockPhonologicalRule('PhRegularRule')
+        rule = MockPhonologicalRule("PhRegularRule")
         collection = RuleCollection([rule])
         assert len(collection) == 1
 
@@ -114,7 +114,7 @@ class TestRuleCollection:
         """Test iterating over RuleCollection."""
         from flexlibs2.code.Grammar.rule_collection import RuleCollection
 
-        rules = [MockPhonologicalRule('PhRegularRule') for _ in range(3)]
+        rules = [MockPhonologicalRule("PhRegularRule") for _ in range(3)]
         collection = RuleCollection(rules)
 
         count = 0
@@ -126,7 +126,7 @@ class TestRuleCollection:
         """Test indexing RuleCollection."""
         from flexlibs2.code.Grammar.rule_collection import RuleCollection
 
-        rules = [MockPhonologicalRule('PhRegularRule') for _ in range(3)]
+        rules = [MockPhonologicalRule("PhRegularRule") for _ in range(3)]
         collection = RuleCollection(rules)
 
         assert collection[0] is rules[0]
@@ -136,7 +136,7 @@ class TestRuleCollection:
         """Test slicing RuleCollection."""
         from flexlibs2.code.Grammar.rule_collection import RuleCollection
 
-        rules = [MockPhonologicalRule('PhRegularRule') for _ in range(5)]
+        rules = [MockPhonologicalRule("PhRegularRule") for _ in range(5)]
         collection = RuleCollection(rules)
 
         sliced = collection[1:3]
@@ -148,17 +148,17 @@ class TestRuleCollection:
         from flexlibs2.code.Grammar.rule_collection import RuleCollection
 
         rules = [
-            MockPhonologicalRule('PhRegularRule'),
-            MockPhonologicalRule('PhRegularRule'),
-            MockPhonologicalRule('PhMetathesisRule'),
+            MockPhonologicalRule("PhRegularRule"),
+            MockPhonologicalRule("PhRegularRule"),
+            MockPhonologicalRule("PhMetathesisRule"),
         ]
         collection = RuleCollection(rules)
 
         str_repr = str(collection)
-        assert 'RuleCollection' in str_repr
-        assert '3 total' in str_repr
-        assert 'PhRegularRule: 2' in str_repr
-        assert 'PhMetathesisRule: 1' in str_repr
+        assert "RuleCollection" in str_repr
+        assert "3 total" in str_repr
+        assert "PhRegularRule: 2" in str_repr
+        assert "PhMetathesisRule: 1" in str_repr
 
     def test_collection_str_empty(self):
         """Test __str__ on empty collection."""
@@ -166,20 +166,20 @@ class TestRuleCollection:
 
         collection = RuleCollection()
         str_repr = str(collection)
-        assert 'empty' in str_repr
+        assert "empty" in str_repr
 
     def test_by_type_filter(self):
         """Test filtering by concrete type."""
         from flexlibs2.code.Grammar.rule_collection import RuleCollection
 
         rules = [
-            MockPhonologicalRule('PhRegularRule'),
-            MockPhonologicalRule('PhMetathesisRule'),
-            MockPhonologicalRule('PhRegularRule'),
+            MockPhonologicalRule("PhRegularRule"),
+            MockPhonologicalRule("PhMetathesisRule"),
+            MockPhonologicalRule("PhRegularRule"),
         ]
         collection = RuleCollection(rules)
 
-        regular_only = collection.by_type('PhRegularRule')
+        regular_only = collection.by_type("PhRegularRule")
         assert len(regular_only) == 2
         assert isinstance(regular_only, RuleCollection)
 
@@ -188,9 +188,9 @@ class TestRuleCollection:
         from flexlibs2.code.Grammar.rule_collection import RuleCollection
 
         rules = [
-            MockPhonologicalRule('PhRegularRule', direction=0),
-            MockPhonologicalRule('PhRegularRule', direction=1),
-            MockPhonologicalRule('PhRegularRule', direction=0),
+            MockPhonologicalRule("PhRegularRule", direction=0),
+            MockPhonologicalRule("PhRegularRule", direction=1),
+            MockPhonologicalRule("PhRegularRule", direction=0),
         ]
         collection = RuleCollection(rules)
 
@@ -202,14 +202,14 @@ class TestRuleCollection:
         from flexlibs2.code.Grammar.rule_collection import RuleCollection
 
         rules = [
-            MockPhonologicalRule('PhRegularRule'),
-            MockPhonologicalRule('PhRegularRule'),
-            MockPhonologicalRule('PhMetathesisRule'),
+            MockPhonologicalRule("PhRegularRule"),
+            MockPhonologicalRule("PhRegularRule"),
+            MockPhonologicalRule("PhMetathesisRule"),
         ]
         collection = RuleCollection(rules)
 
         # Filter where class_type is PhRegularRule
-        regular = collection.where(lambda r: r.class_type == 'PhRegularRule')
+        regular = collection.where(lambda r: r.class_type == "PhRegularRule")
         assert len(regular) == 2
 
     def test_regular_rules_convenience_filter(self):
@@ -217,83 +217,83 @@ class TestRuleCollection:
         from flexlibs2.code.Grammar.rule_collection import RuleCollection
 
         rules = [
-            MockPhonologicalRule('PhRegularRule'),
-            MockPhonologicalRule('PhMetathesisRule'),
-            MockPhonologicalRule('PhRegularRule'),
+            MockPhonologicalRule("PhRegularRule"),
+            MockPhonologicalRule("PhMetathesisRule"),
+            MockPhonologicalRule("PhRegularRule"),
         ]
         collection = RuleCollection(rules)
 
         regular = collection.regular_rules()
         assert len(regular) == 2
         for rule in regular:
-            assert rule.class_type == 'PhRegularRule'
+            assert rule.class_type == "PhRegularRule"
 
     def test_metathesis_rules_convenience_filter(self):
         """Test metathesis_rules() convenience method."""
         from flexlibs2.code.Grammar.rule_collection import RuleCollection
 
         rules = [
-            MockPhonologicalRule('PhRegularRule'),
-            MockPhonologicalRule('PhMetathesisRule'),
-            MockPhonologicalRule('PhMetathesisRule'),
+            MockPhonologicalRule("PhRegularRule"),
+            MockPhonologicalRule("PhMetathesisRule"),
+            MockPhonologicalRule("PhMetathesisRule"),
         ]
         collection = RuleCollection(rules)
 
         metathesis = collection.metathesis_rules()
         assert len(metathesis) == 2
         for rule in metathesis:
-            assert rule.class_type == 'PhMetathesisRule'
+            assert rule.class_type == "PhMetathesisRule"
 
     def test_redup_rules_convenience_filter(self):
         """Test redup_rules() convenience method."""
         from flexlibs2.code.Grammar.rule_collection import RuleCollection
 
         rules = [
-            MockPhonologicalRule('PhRegularRule'),
-            MockPhonologicalRule('PhReduplicationRule'),
-            MockPhonologicalRule('PhReduplicationRule'),
+            MockPhonologicalRule("PhRegularRule"),
+            MockPhonologicalRule("PhReduplicationRule"),
+            MockPhonologicalRule("PhReduplicationRule"),
         ]
         collection = RuleCollection(rules)
 
         redup = collection.redup_rules()
         assert len(redup) == 2
         for rule in redup:
-            assert rule.class_type == 'PhReduplicationRule'
+            assert rule.class_type == "PhReduplicationRule"
 
     def test_filter_chaining(self):
         """Test chaining multiple filters."""
         from flexlibs2.code.Grammar.rule_collection import RuleCollection
 
         rules = [
-            MockPhonologicalRule('PhRegularRule', direction=0),
-            MockPhonologicalRule('PhRegularRule', direction=1),
-            MockPhonologicalRule('PhMetathesisRule', direction=0),
+            MockPhonologicalRule("PhRegularRule", direction=0),
+            MockPhonologicalRule("PhRegularRule", direction=1),
+            MockPhonologicalRule("PhMetathesisRule", direction=0),
         ]
         collection = RuleCollection(rules)
 
         # Chain: get regular rules, then filter by direction
         regular_ltr = collection.regular_rules().filter(direction=0)
         assert len(regular_ltr) == 1
-        assert regular_ltr[0].class_type == 'PhRegularRule'
+        assert regular_ltr[0].class_type == "PhRegularRule"
         assert regular_ltr[0].direction == 0
 
     def test_repr(self):
         """Test string representation of collection."""
         from flexlibs2.code.Grammar.rule_collection import RuleCollection
 
-        rules = [MockPhonologicalRule('PhRegularRule') for _ in range(5)]
+        rules = [MockPhonologicalRule("PhRegularRule") for _ in range(5)]
         collection = RuleCollection(rules)
 
         repr_str = repr(collection)
-        assert 'RuleCollection' in repr_str
-        assert '5' in repr_str
+        assert "RuleCollection" in repr_str
+        assert "5" in repr_str
 
     def test_append(self):
         """Test appending to collection."""
         from flexlibs2.code.Grammar.rule_collection import RuleCollection
 
         collection = RuleCollection()
-        rule = MockPhonologicalRule('PhRegularRule')
+        rule = MockPhonologicalRule("PhRegularRule")
         collection.append(rule)
 
         assert len(collection) == 1
@@ -304,7 +304,7 @@ class TestRuleCollection:
         from flexlibs2.code.Grammar.rule_collection import RuleCollection
 
         collection = RuleCollection()
-        rules = [MockPhonologicalRule('PhRegularRule') for _ in range(3)]
+        rules = [MockPhonologicalRule("PhRegularRule") for _ in range(3)]
         collection.extend(rules)
 
         assert len(collection) == 3
@@ -313,7 +313,7 @@ class TestRuleCollection:
         """Test clearing collection."""
         from flexlibs2.code.Grammar.rule_collection import RuleCollection
 
-        rules = [MockPhonologicalRule('PhRegularRule') for _ in range(3)]
+        rules = [MockPhonologicalRule("PhRegularRule") for _ in range(3)]
         collection = RuleCollection(rules)
 
         collection.clear()
@@ -324,13 +324,13 @@ class TestRuleCollection:
         from flexlibs2.code.Grammar.rule_collection import RuleCollection
 
         rules = [
-            MockPhonologicalRule('PhRegularRule', name='Voicing Assimilation'),
-            MockPhonologicalRule('PhRegularRule', name='Final Devoicing'),
-            MockPhonologicalRule('PhMetathesisRule', name='Voicing Metathesis'),
+            MockPhonologicalRule("PhRegularRule", name="Voicing Assimilation"),
+            MockPhonologicalRule("PhRegularRule", name="Final Devoicing"),
+            MockPhonologicalRule("PhMetathesisRule", name="Voicing Metathesis"),
         ]
         collection = RuleCollection(rules)
 
-        voicing_rules = collection.filter(name_contains='Voicing')
+        voicing_rules = collection.filter(name_contains="Voicing")
         assert len(voicing_rules) == 2
 
     def test_filter_multiple_criteria(self):
@@ -338,18 +338,18 @@ class TestRuleCollection:
         from flexlibs2.code.Grammar.rule_collection import RuleCollection
 
         rules = [
-            MockPhonologicalRule('PhRegularRule', name='Voicing', direction=0),
-            MockPhonologicalRule('PhRegularRule', name='Devoicing', direction=1),
-            MockPhonologicalRule('PhRegularRule', name='Voicing', direction=1),
+            MockPhonologicalRule("PhRegularRule", name="Voicing", direction=0),
+            MockPhonologicalRule("PhRegularRule", name="Devoicing", direction=1),
+            MockPhonologicalRule("PhRegularRule", name="Voicing", direction=1),
         ]
         collection = RuleCollection(rules)
 
         # Filter: name contains 'Voicing' AND direction is 0
-        voicing_ltr = collection.filter(name_contains='Voicing', direction=0)
+        voicing_ltr = collection.filter(name_contains="Voicing", direction=0)
         assert len(voicing_ltr) == 1
-        assert voicing_ltr[0].name == 'Voicing'
+        assert voicing_ltr[0].name == "Voicing"
         assert voicing_ltr[0].direction == 0
 
 
-if __name__ == '__main__':
-    pytest.main([__file__, '-v'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

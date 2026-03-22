@@ -11,6 +11,7 @@
 import re
 
 import clr
+
 clr.AddReference("System")
 import System
 
@@ -27,6 +28,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
+
 
 class SegmentOperations(BaseOperations):
     """
@@ -445,7 +447,7 @@ class SegmentOperations(BaseOperations):
         segment_obj = self.__GetSegmentObject(segment_or_hvo)
 
         # Get notes from the NotesOS collection if it exists
-        if hasattr(segment_obj, 'NotesOS'):
+        if hasattr(segment_obj, "NotesOS"):
             notes = list(segment_obj.NotesOS)
             return notes
         return []
@@ -543,7 +545,7 @@ class SegmentOperations(BaseOperations):
 
         # Get the owner (paragraph) and remove from collection
         owner = segment_obj.Owner
-        if owner and hasattr(owner, 'SegmentsOS'):
+        if owner and hasattr(owner, "SegmentsOS"):
             owner.SegmentsOS.Remove(segment_obj)
 
     @OperationsMethod
@@ -604,7 +606,7 @@ class SegmentOperations(BaseOperations):
 
         # Get the owner (paragraph)
         owner = segment_obj.Owner
-        if not owner or not hasattr(owner, 'SegmentsOS'):
+        if not owner or not hasattr(owner, "SegmentsOS"):
             raise FP_ParameterError("Segment has no valid owner paragraph")
 
         # Create the new segment (factory + add to parent)
@@ -621,7 +623,7 @@ class SegmentOperations(BaseOperations):
             new_segment.LiteralTranslation.CopyAlternatives(segment_obj.LiteralTranslation)
 
         # Copy boolean properties
-        if hasattr(segment_obj, 'IsLabel'):
+        if hasattr(segment_obj, "IsLabel"):
             new_segment.IsLabel = segment_obj.IsLabel
 
         # Handle insert_after positioning
@@ -638,9 +640,12 @@ class SegmentOperations(BaseOperations):
             except ValueError:
                 # Segment not found in list - log warning and leave at end
                 import logging
+
                 logger = logging.getLogger(__name__)
-                logger.warning(f"Could not find original segment in paragraph SegmentsOS. "
-                             f"Duplicate will be appended to end instead of inserted after original.")
+                logger.warning(
+                    f"Could not find original segment in paragraph SegmentsOS. "
+                    f"Duplicate will be appended to end instead of inserted after original."
+                )
 
         return new_segment
 
@@ -675,25 +680,25 @@ class SegmentOperations(BaseOperations):
         props = {}
 
         # MultiString properties
-        if hasattr(item, 'BaselineText') and item.BaselineText:
-            props['BaselineText'] = self.project.GetMultiStringDict(item.BaselineText)
+        if hasattr(item, "BaselineText") and item.BaselineText:
+            props["BaselineText"] = self.project.GetMultiStringDict(item.BaselineText)
 
-        if hasattr(item, 'FreeTranslation') and item.FreeTranslation:
-            props['FreeTranslation'] = self.project.GetMultiStringDict(item.FreeTranslation)
+        if hasattr(item, "FreeTranslation") and item.FreeTranslation:
+            props["FreeTranslation"] = self.project.GetMultiStringDict(item.FreeTranslation)
 
-        if hasattr(item, 'LiteralTranslation') and item.LiteralTranslation:
-            props['LiteralTranslation'] = self.project.GetMultiStringDict(item.LiteralTranslation)
+        if hasattr(item, "LiteralTranslation") and item.LiteralTranslation:
+            props["LiteralTranslation"] = self.project.GetMultiStringDict(item.LiteralTranslation)
 
         # Boolean property
-        if hasattr(item, 'IsLabel'):
-            props['IsLabel'] = bool(item.IsLabel)
+        if hasattr(item, "IsLabel"):
+            props["IsLabel"] = bool(item.IsLabel)
 
         # Integer properties
-        if hasattr(item, 'BeginOffset'):
-            props['BeginOffset'] = int(item.BeginOffset)
+        if hasattr(item, "BeginOffset"):
+            props["BeginOffset"] = int(item.BeginOffset)
 
-        if hasattr(item, 'EndOffset'):
-            props['EndOffset'] = int(item.EndOffset)
+        if hasattr(item, "EndOffset"):
+            props["EndOffset"] = int(item.EndOffset)
 
         return props
 
@@ -833,7 +838,7 @@ class SegmentOperations(BaseOperations):
         segment_obj = self.__GetSegmentObject(segment_or_hvo)
         owner = segment_obj.Owner
 
-        if not owner or not hasattr(owner, 'SegmentsOS'):
+        if not owner or not hasattr(owner, "SegmentsOS"):
             raise FP_ParameterError("Segment has no valid owner paragraph")
 
         # Get baseline text and writing system
@@ -920,6 +925,7 @@ class SegmentOperations(BaseOperations):
 
         # Validate merge compatibility (same class, same concrete type)
         from ..lcm_casting import validate_merge_compatibility
+
         is_compatible, error_msg = validate_merge_compatibility(segment1, segment2)
         if not is_compatible:
             raise FP_ParameterError(error_msg)
@@ -929,7 +935,7 @@ class SegmentOperations(BaseOperations):
             raise FP_ParameterError("Segments must be in the same paragraph")
 
         owner = segment1.Owner
-        if not owner or not hasattr(owner, 'SegmentsOS'):
+        if not owner or not hasattr(owner, "SegmentsOS"):
             raise FP_ParameterError("Segments have no valid owner paragraph")
 
         # Get indices and check adjacency
@@ -1003,7 +1009,7 @@ class SegmentOperations(BaseOperations):
 
         segment_obj = self.__GetSegmentObject(segment_or_hvo)
 
-        if hasattr(segment_obj, 'BeginOffset'):
+        if hasattr(segment_obj, "BeginOffset"):
             return segment_obj.BeginOffset
         return 0
 
@@ -1042,7 +1048,7 @@ class SegmentOperations(BaseOperations):
 
         segment_obj = self.__GetSegmentObject(segment_or_hvo)
 
-        if hasattr(segment_obj, 'EndOffset'):
+        if hasattr(segment_obj, "EndOffset"):
             return segment_obj.EndOffset
         return 0
 
@@ -1089,10 +1095,10 @@ class SegmentOperations(BaseOperations):
 
         segment_obj = self.__GetSegmentObject(segment_or_hvo)
 
-        if hasattr(segment_obj, 'BeginOffset'):
+        if hasattr(segment_obj, "BeginOffset"):
             segment_obj.BeginOffset = begin_offset
 
-        if hasattr(segment_obj, 'EndOffset'):
+        if hasattr(segment_obj, "EndOffset"):
             segment_obj.EndOffset = end_offset
 
     @OperationsMethod
@@ -1129,7 +1135,7 @@ class SegmentOperations(BaseOperations):
 
         segment_obj = self.__GetSegmentObject(segment_or_hvo)
 
-        if hasattr(segment_obj, 'IsLabel'):
+        if hasattr(segment_obj, "IsLabel"):
             return segment_obj.IsLabel
         return False
 
@@ -1167,7 +1173,7 @@ class SegmentOperations(BaseOperations):
 
         segment_obj = self.__GetSegmentObject(segment_or_hvo)
 
-        if hasattr(segment_obj, 'IsLabel'):
+        if hasattr(segment_obj, "IsLabel"):
             segment_obj.IsLabel = bool(is_label)
 
     @OperationsMethod
@@ -1217,18 +1223,13 @@ class SegmentOperations(BaseOperations):
 
         if not segments_list:
             warnings.append("Paragraph has no segments")
-            return {
-                'valid': True,
-                'errors': errors,
-                'warnings': warnings,
-                'segment_count': 0
-            }
+            return {"valid": True, "errors": errors, "warnings": warnings, "segment_count": 0}
 
         # Check each segment
         prev_end = -1
         for i, segment in enumerate(segments_list):
             # Check if segment has required attributes
-            if not hasattr(segment, 'BeginOffset') or not hasattr(segment, 'EndOffset'):
+            if not hasattr(segment, "BeginOffset") or not hasattr(segment, "EndOffset"):
                 warnings.append(f"Segment {i} missing offset attributes")
                 continue
 
@@ -1258,12 +1259,7 @@ class SegmentOperations(BaseOperations):
 
         valid = len(errors) == 0
 
-        return {
-            'valid': valid,
-            'errors': errors,
-            'warnings': warnings,
-            'segment_count': len(segments_list)
-        }
+        return {"valid": valid, "errors": errors, "warnings": warnings, "segment_count": len(segments_list)}
 
     @OperationsMethod
     def RebuildSegments(self, paragraph_or_hvo):
@@ -1308,20 +1304,20 @@ class SegmentOperations(BaseOperations):
 
         # Get paragraph baseline text
         ws = self.__WSHandleVern(None)
-        if hasattr(para_obj, 'Contents') and para_obj.Contents:
+        if hasattr(para_obj, "Contents") and para_obj.Contents:
             para_text = ITsString(para_obj.Contents).Text or ""
         else:
             para_text = ""
 
         # Clear existing segments
-        if hasattr(para_obj, 'SegmentsOS'):
+        if hasattr(para_obj, "SegmentsOS"):
             para_obj.SegmentsOS.Clear()
 
         if not para_text.strip():
             return 0
 
         # Simple sentence splitting (split on . ! ? followed by space or end)
-        sentence_pattern = r'([^.!?]+[.!?]+(?:\s+|$))'
+        sentence_pattern = r"([^.!?]+[.!?]+(?:\s+|$))"
         sentences = re.findall(sentence_pattern, para_text)
 
         # If no sentences found, treat whole text as one segment
@@ -1345,7 +1341,7 @@ class SegmentOperations(BaseOperations):
             segment.BaselineText.set_String(ws, mkstr)
 
             # Set offsets
-            if hasattr(segment, 'BeginOffset') and hasattr(segment, 'EndOffset'):
+            if hasattr(segment, "BeginOffset") and hasattr(segment, "EndOffset"):
                 segment.BeginOffset = offset
                 segment.EndOffset = offset + len(sentence_text)
 

@@ -24,6 +24,7 @@ from ..FLExProject import (
 )
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
+
 class WritingSystemOperations(BaseOperations):
     """
     This class provides operations for managing writing systems in a
@@ -375,9 +376,9 @@ class WritingSystemOperations(BaseOperations):
             raise FP_WritingSystemError(str(ws))
 
         # Get default font name
-        if hasattr(ws_obj, 'DefaultFontName') and ws_obj.DefaultFontName:
+        if hasattr(ws_obj, "DefaultFontName") and ws_obj.DefaultFontName:
             return ws_obj.DefaultFontName
-        elif hasattr(ws_obj, 'DefaultFont') and ws_obj.DefaultFont:
+        elif hasattr(ws_obj, "DefaultFont") and ws_obj.DefaultFont:
             return ws_obj.DefaultFont
         else:
             return ""
@@ -423,9 +424,9 @@ class WritingSystemOperations(BaseOperations):
             raise FP_WritingSystemError(str(ws))
 
         # Set default font name
-        if hasattr(ws_obj, 'DefaultFontName'):
+        if hasattr(ws_obj, "DefaultFontName"):
             ws_obj.DefaultFontName = font_name
-        elif hasattr(ws_obj, 'DefaultFont'):
+        elif hasattr(ws_obj, "DefaultFont"):
             ws_obj.DefaultFont = font_name
 
     @OperationsMethod
@@ -457,7 +458,7 @@ class WritingSystemOperations(BaseOperations):
             raise FP_WritingSystemError(str(ws))
 
         # Get default font size
-        if hasattr(ws_obj, 'DefaultFontSize') and ws_obj.DefaultFontSize:
+        if hasattr(ws_obj, "DefaultFontSize") and ws_obj.DefaultFontSize:
             return float(ws_obj.DefaultFontSize)
         else:
             return 12.0  # Default size
@@ -507,7 +508,7 @@ class WritingSystemOperations(BaseOperations):
             raise FP_WritingSystemError(str(ws))
 
         # Set default font size
-        if hasattr(ws_obj, 'DefaultFontSize'):
+        if hasattr(ws_obj, "DefaultFontSize"):
             ws_obj.DefaultFontSize = float(size)
 
     @OperationsMethod
@@ -549,9 +550,9 @@ class WritingSystemOperations(BaseOperations):
             raise FP_WritingSystemError(str(ws))
 
         # Get RTL setting
-        if hasattr(ws_obj, 'RightToLeftScript'):
+        if hasattr(ws_obj, "RightToLeftScript"):
             return bool(ws_obj.RightToLeftScript)
-        elif hasattr(ws_obj, 'RightToLeft'):
+        elif hasattr(ws_obj, "RightToLeft"):
             return bool(ws_obj.RightToLeft)
         else:
             return False  # Default to LTR
@@ -595,9 +596,9 @@ class WritingSystemOperations(BaseOperations):
             raise FP_WritingSystemError(str(ws))
 
         # Set RTL setting
-        if hasattr(ws_obj, 'RightToLeftScript'):
+        if hasattr(ws_obj, "RightToLeftScript"):
             ws_obj.RightToLeftScript = bool(is_rtl)
-        elif hasattr(ws_obj, 'RightToLeft'):
+        elif hasattr(ws_obj, "RightToLeft"):
             ws_obj.RightToLeft = bool(is_rtl)
 
     # --- Default Settings ---
@@ -641,9 +642,7 @@ class WritingSystemOperations(BaseOperations):
         # Verify it's a vernacular WS
         vern_tags = self._GetAllVernacularWSTags()
         if ws_obj.Id not in vern_tags:
-            raise FP_ParameterError(
-                f"Writing system '{ws_obj.Id}' is not a vernacular writing system"
-            )
+            raise FP_ParameterError(f"Writing system '{ws_obj.Id}' is not a vernacular writing system")
 
         # Set as default
         self.project.lp.DefaultVernacularWritingSystem = ws_obj
@@ -687,9 +686,7 @@ class WritingSystemOperations(BaseOperations):
         # Verify it's an analysis WS
         anal_tags = self._GetAllAnalysisWSTags()
         if ws_obj.Id not in anal_tags:
-            raise FP_ParameterError(
-                f"Writing system '{ws_obj.Id}' is not an analysis writing system"
-            )
+            raise FP_ParameterError(f"Writing system '{ws_obj.Id}' is not an analysis writing system")
 
         # Set as default
         self.project.lp.DefaultAnalysisWritingSystem = ws_obj
@@ -897,9 +894,7 @@ class WritingSystemOperations(BaseOperations):
         from SIL.LCModel.Core.KernelInterfaces import IMultiUnicode, IMultiString
 
         if not isinstance(string_obj, (IMultiUnicode, IMultiString)):
-            raise FP_ParameterError(
-                "GetBestString: string_obj must be IMultiUnicode or IMultiString"
-            )
+            raise FP_ParameterError("GetBestString: string_obj must be IMultiUnicode or IMultiString")
 
         # Get the best alternative (analysis preferred, then vernacular)
         s = string_obj.BestAnalysisVernacularAlternative.Text
@@ -1009,9 +1004,7 @@ class WritingSystemOperations(BaseOperations):
         See Also:
             Create, Delete, GetAll
         """
-        raise NotImplementedError(
-            "Writing systems cannot be duplicated. Use Create() to create a new writing system."
-        )
+        raise NotImplementedError("Writing systems cannot be duplicated. Use Create() to create a new writing system.")
 
     # ========== SYNC INTEGRATION METHODS ==========
 

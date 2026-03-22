@@ -41,12 +41,14 @@ from tests.operations import (
 # UNIT TESTS - Using Mocks
 # =============================================================================
 
+
 class TestPOSOperationsImport:
     """Test that POSOperations can be imported and instantiated."""
 
     def test_import_pos_operations(self):
         """Test importing POSOperations class."""
         from flexlibs2.code.Grammar.POSOperations import POSOperations
+
         assert POSOperations is not None
 
     def test_instantiate_with_mock_project(self, mock_flex_project):
@@ -80,7 +82,7 @@ class TestPOSOperationsInheritance:
         from flexlibs2.code.Grammar.POSOperations import POSOperations
 
         ops = POSOperations(mock_flex_project)
-        assert hasattr(ops, '_GetSequence')
+        assert hasattr(ops, "_GetSequence")
 
         # Test with mock POS that has subcategories
         mock_parent_pos = MockLCMObject()
@@ -99,7 +101,7 @@ class TestPOSOperationsCRUDMethods:
         from flexlibs2.code.Grammar.POSOperations import POSOperations
 
         ops = POSOperations(mock_flex_project)
-        assert hasattr(ops, 'GetAll')
+        assert hasattr(ops, "GetAll")
         assert callable(ops.GetAll)
 
     def test_has_create_method(self, mock_flex_project):
@@ -107,7 +109,7 @@ class TestPOSOperationsCRUDMethods:
         from flexlibs2.code.Grammar.POSOperations import POSOperations
 
         ops = POSOperations(mock_flex_project)
-        assert hasattr(ops, 'Create')
+        assert hasattr(ops, "Create")
         assert callable(ops.Create)
 
     def test_has_delete_method(self, mock_flex_project):
@@ -115,7 +117,7 @@ class TestPOSOperationsCRUDMethods:
         from flexlibs2.code.Grammar.POSOperations import POSOperations
 
         ops = POSOperations(mock_flex_project)
-        assert hasattr(ops, 'Delete')
+        assert hasattr(ops, "Delete")
         assert callable(ops.Delete)
 
     def test_has_find_method(self, mock_flex_project):
@@ -123,7 +125,7 @@ class TestPOSOperationsCRUDMethods:
         from flexlibs2.code.Grammar.POSOperations import POSOperations
 
         ops = POSOperations(mock_flex_project)
-        assert hasattr(ops, 'Find')
+        assert hasattr(ops, "Find")
         assert callable(ops.Find)
 
 
@@ -135,7 +137,7 @@ class TestPOSOperationsPropertyGetters:
         from flexlibs2.code.Grammar.POSOperations import POSOperations
 
         ops = POSOperations(mock_flex_project)
-        assert hasattr(ops, 'GetName')
+        assert hasattr(ops, "GetName")
         assert callable(ops.GetName)
 
     def test_has_getabbreviation_method(self, mock_flex_project):
@@ -143,7 +145,7 @@ class TestPOSOperationsPropertyGetters:
         from flexlibs2.code.Grammar.POSOperations import POSOperations
 
         ops = POSOperations(mock_flex_project)
-        assert hasattr(ops, 'GetAbbreviation')
+        assert hasattr(ops, "GetAbbreviation")
         assert callable(ops.GetAbbreviation)
 
 
@@ -155,7 +157,7 @@ class TestPOSOperationsPropertySetters:
         from flexlibs2.code.Grammar.POSOperations import POSOperations
 
         ops = POSOperations(mock_flex_project)
-        assert hasattr(ops, 'SetName')
+        assert hasattr(ops, "SetName")
         assert callable(ops.SetName)
 
     def test_has_setabbreviation_method(self, mock_flex_project):
@@ -163,7 +165,7 @@ class TestPOSOperationsPropertySetters:
         from flexlibs2.code.Grammar.POSOperations import POSOperations
 
         ops = POSOperations(mock_flex_project)
-        assert hasattr(ops, 'SetAbbreviation')
+        assert hasattr(ops, "SetAbbreviation")
         assert callable(ops.SetAbbreviation)
 
 
@@ -176,7 +178,7 @@ class TestPOSOperationsHierarchy:
 
         ops = POSOperations(mock_flex_project)
         # Check for GetSubcategories or similar hierarchy method
-        assert hasattr(ops, 'GetSubcategories') or hasattr(ops, '_GetSequence')
+        assert hasattr(ops, "GetSubcategories") or hasattr(ops, "_GetSequence")
 
 
 class TestPOSOperationsReordering:
@@ -191,22 +193,23 @@ class TestPOSOperationsReordering:
         parent_pos.SubPossibilitiesOS = MockOwningSequence()
 
         # Add subcategories
-        for i, name in enumerate(['Verb', 'Noun', 'Adjective']):
+        for i, name in enumerate(["Verb", "Noun", "Adjective"]):
             sub_pos = MockLCMObject(hvo=3000 + i)
-            sub_pos.Name = MockMultiString({'en': name})
-            sub_pos.Abbreviation = MockMultiString({'en': name[0]})
+            sub_pos.Name = MockMultiString({"en": name})
+            sub_pos.Abbreviation = MockMultiString({"en": name[0]})
             parent_pos.SubPossibilitiesOS.Append(sub_pos)
 
         ops = POSOperations(mock_flex_project)
 
         # Sort method exists
-        assert hasattr(ops, 'Sort')
+        assert hasattr(ops, "Sort")
         assert callable(ops.Sort)
 
 
 # =============================================================================
 # INTEGRATION TESTS - Require Real FLEx Project
 # =============================================================================
+
 
 @pytest.mark.integration
 class TestPOSOperationsIntegration:
@@ -261,12 +264,11 @@ class TestPOSOperationsIntegration:
 # PYTEST CONFIGURATION
 # =============================================================================
 
+
 def pytest_configure(config):
     """Register custom markers."""
-    config.addinivalue_line(
-        "markers", "integration: mark test as integration test (requires real FLEx)"
-    )
+    config.addinivalue_line("markers", "integration: mark test as integration test (requires real FLEx)")
 
 
-if __name__ == '__main__':
-    pytest.main([__file__, '-v', '--tb=short', '-m', 'not integration'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v", "--tb=short", "-m", "not integration"])

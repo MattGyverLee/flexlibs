@@ -31,6 +31,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+
 class ScrSectionOperations(BaseOperations):
     """
     This class provides operations for managing Scripture sections in a
@@ -130,7 +131,7 @@ class ScrSectionOperations(BaseOperations):
             book.SectionsOS.Count,  # Append to end
             heading or "",
             content or "",
-            True  # Is intro section = False (main content)
+            True,  # Is intro section = False (main content)
         )
 
         return new_section
@@ -357,6 +358,7 @@ class ScrSectionOperations(BaseOperations):
         # Ensure heading has at least one paragraph
         if section.HeadingOA.ParagraphsOS.Count == 0:
             from SIL.LCModel import IStTxtParaFactory
+
             para_factory = self.project.project.ServiceLocator.GetService(IStTxtParaFactory)
             para = para_factory.Create()
             section.HeadingOA.ParagraphsOS.Add(para)
@@ -446,9 +448,7 @@ class ScrSectionOperations(BaseOperations):
         target_book = self.__ResolveBook(target_book_or_hvo)
 
         if index < 0 or index > target_book.SectionsOS.Count:
-            raise FP_ParameterError(
-                f"Index {index} out of range (0-{target_book.SectionsOS.Count})"
-            )
+            raise FP_ParameterError(f"Index {index} out of range (0-{target_book.SectionsOS.Count})")
 
         # Get current owner
         current_book = section.Owner
@@ -520,7 +520,4 @@ class ScrSectionOperations(BaseOperations):
         """
         if wsHandle is None:
             return self.project.project.DefaultVernWs
-        return self.project._FLExProject__WSHandle(
-            wsHandle,
-            self.project.project.DefaultVernWs
-        )
+        return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultVernWs)

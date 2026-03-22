@@ -48,7 +48,7 @@ Usage::
 """
 
 # Suffixes in order of preference (most common first)
-SUFFIXES = ('OS', 'OC', 'OA', 'RS', 'RC', 'RA')
+SUFFIXES = ("OS", "OC", "OA", "RS", "RC", "RA")
 
 
 class PythonicWrapper:
@@ -65,7 +65,7 @@ class PythonicWrapper:
             text = wrapped.Gloss      # Returns Gloss directly if it exists
     """
 
-    __slots__ = ('_obj', '_cache')
+    __slots__ = ("_obj", "_cache")
 
     def __init__(self, obj):
         """
@@ -74,8 +74,8 @@ class PythonicWrapper:
         Args:
             obj: The LibLCM object to wrap (ILexEntry, ILexSense, etc.)
         """
-        object.__setattr__(self, '_obj', obj)
-        object.__setattr__(self, '_cache', {})
+        object.__setattr__(self, "_obj", obj)
+        object.__setattr__(self, "_cache", {})
 
     def __getattr__(self, name):
         """
@@ -88,11 +88,11 @@ class PythonicWrapper:
         4. Raise AttributeError if nothing found
         """
         # Check cache first
-        cache = object.__getattribute__(self, '_cache')
+        cache = object.__getattribute__(self, "_cache")
         if name in cache:
-            return getattr(object.__getattribute__(self, '_obj'), cache[name])
+            return getattr(object.__getattribute__(self, "_obj"), cache[name])
 
-        obj = object.__getattribute__(self, '_obj')
+        obj = object.__getattribute__(self, "_obj")
 
         # Try exact name first
         if hasattr(obj, name):
@@ -116,12 +116,12 @@ class PythonicWrapper:
         """
         Set attribute, trying suffixed variants if base name not found.
         """
-        if name in ('_obj', '_cache'):
+        if name in ("_obj", "_cache"):
             object.__setattr__(self, name, value)
             return
 
-        obj = object.__getattribute__(self, '_obj')
-        cache = object.__getattribute__(self, '_cache')
+        obj = object.__getattribute__(self, "_obj")
+        cache = object.__getattribute__(self, "_cache")
 
         # Check cache first
         if name in cache:
@@ -146,53 +146,53 @@ class PythonicWrapper:
         setattr(obj, name, value)
 
     def __repr__(self):
-        obj = object.__getattribute__(self, '_obj')
+        obj = object.__getattribute__(self, "_obj")
         return f"PythonicWrapper({type(obj).__name__})"
 
     def __str__(self):
-        obj = object.__getattribute__(self, '_obj')
+        obj = object.__getattribute__(self, "_obj")
         return str(obj)
 
     def __eq__(self, other):
-        obj = object.__getattribute__(self, '_obj')
+        obj = object.__getattribute__(self, "_obj")
         if isinstance(other, PythonicWrapper):
-            return obj == object.__getattribute__(other, '_obj')
+            return obj == object.__getattribute__(other, "_obj")
         return obj == other
 
     def __hash__(self):
-        obj = object.__getattribute__(self, '_obj')
+        obj = object.__getattribute__(self, "_obj")
         return hash(obj)
 
     def __iter__(self):
         """Allow iteration if wrapped object is iterable."""
-        obj = object.__getattribute__(self, '_obj')
+        obj = object.__getattribute__(self, "_obj")
         return iter(obj)
 
     def __len__(self):
         """Return length if wrapped object has Count or __len__."""
-        obj = object.__getattribute__(self, '_obj')
-        if hasattr(obj, 'Count'):
+        obj = object.__getattribute__(self, "_obj")
+        if hasattr(obj, "Count"):
             return obj.Count
         return len(obj)
 
     def __getitem__(self, key):
         """Allow indexing if wrapped object supports it."""
-        obj = object.__getattribute__(self, '_obj')
+        obj = object.__getattribute__(self, "_obj")
         return obj[key]
 
     def __contains__(self, item):
         """Support 'in' operator."""
-        obj = object.__getattribute__(self, '_obj')
+        obj = object.__getattribute__(self, "_obj")
         if isinstance(item, PythonicWrapper):
-            item = object.__getattribute__(item, '_obj')
-        if hasattr(obj, 'Contains'):
+            item = object.__getattribute__(item, "_obj")
+        if hasattr(obj, "Contains"):
             return obj.Contains(item)
         return item in obj
 
     @property
     def _unwrap(self):
         """Get the underlying LCM object."""
-        return object.__getattribute__(self, '_obj')
+        return object.__getattribute__(self, "_obj")
 
 
 def wrap(obj):
@@ -233,7 +233,7 @@ def unwrap(obj):
         raw = unwrap(wrapped_entry)
     """
     if isinstance(obj, PythonicWrapper):
-        return object.__getattribute__(obj, '_obj')
+        return object.__getattribute__(obj, "_obj")
     return obj
 
 

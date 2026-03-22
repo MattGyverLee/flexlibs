@@ -11,6 +11,7 @@
 #
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -65,10 +66,12 @@ class _FLExUndoableOperation:
         """
         if not self._project.writeEnabled:
             from .FLExProject import FP_ReadOnlyError
+
             raise FP_ReadOnlyError()
 
         if not self._project._undoable:
             from .FLExProject import FP_TransactionError
+
             raise FP_TransactionError(
                 "Project must be opened with undoable=True to use UndoableOperation. "
                 f"Current project was opened with undoable=False."
@@ -113,4 +116,5 @@ class _UndoRedoNotSupportedError(Exception):
     """
     Internal error when Undo/Redo APIs are not available.
     """
+
     pass

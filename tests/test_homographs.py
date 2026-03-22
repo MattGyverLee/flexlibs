@@ -37,12 +37,14 @@ from core.exceptions import ObjectNotFoundError, InvalidParameterError
 
 class FP_ParameterError(InvalidParameterError):
     """FLEx parameter error - invalid parameter passed to operation."""
+
     pass
 
 
 # =============================================================================
 # FIXTURES FOR TEST DATA
 # =============================================================================
+
 
 @pytest.fixture
 def mock_lexeme_form():
@@ -114,6 +116,7 @@ def mock_project_with_entries():
 # TESTS FOR SINGLE ENTRY HOMOGRAPH NUMBERS
 # =============================================================================
 
+
 class TestSingleEntryHomographNumbers:
     """Test homograph number for entries with unique forms."""
 
@@ -151,6 +154,7 @@ class TestSingleEntryHomographNumbers:
 # =============================================================================
 # TESTS FOR MULTIPLE ENTRY HOMOGRAPH NUMBERING
 # =============================================================================
+
 
 class TestMultipleEntryHomographNumbering:
     """Test homograph numbering for entries with same forms."""
@@ -242,6 +246,7 @@ class TestMultipleEntryHomographNumbering:
 # TESTS FOR HOMOGRAPH RENUMBERING AFTER MERGE
 # =============================================================================
 
+
 class TestHomographRenumberingAfterMerge:
     """Test that homograph numbers are updated during merge operations."""
 
@@ -331,6 +336,7 @@ class TestHomographRenumberingAfterMerge:
 # TESTS FOR HOMOGRAPH NUMBER SPECIAL CASES
 # =============================================================================
 
+
 class TestHomographNumberSpecialCases:
     """Test special cases in homograph numbering."""
 
@@ -412,6 +418,7 @@ class TestHomographNumberSpecialCases:
 # TESTS FOR HEADWORD WITH HOMOGRAPH NUMBERS
 # =============================================================================
 
+
 class TestHeadwordWithHomographNumbers:
     """Test headword display when homograph numbers are included."""
 
@@ -465,6 +472,7 @@ class TestHeadwordWithHomographNumbers:
 # TESTS FOR HOMOGRAPH LOOKUP AND RETRIEVAL
 # =============================================================================
 
+
 class TestHomographLookupAndRetrieval:
     """Test looking up entries by form and homograph number."""
 
@@ -480,10 +488,7 @@ class TestHomographLookupAndRetrieval:
         target_form = "run"
         target_number = 2
 
-        matching = [
-            e for e in entries
-            if e.LexemeFormOA.Text == target_form and e.HomographNumber == target_number
-        ]
+        matching = [e for e in entries if e.LexemeFormOA.Text == target_form and e.HomographNumber == target_number]
 
         assert len(matching) == 1
         assert matching[0].Hvo == 101
@@ -514,10 +519,7 @@ class TestHomographLookupAndRetrieval:
 
         # Get all "run" entries
         target_form = "run"
-        run_entries = [
-            e for e in entries
-            if e.LexemeFormOA.Text == target_form
-        ]
+        run_entries = [e for e in entries if e.LexemeFormOA.Text == target_form]
 
         assert len(run_entries) == 3
         numbers = sorted([e.HomographNumber for e in run_entries])
@@ -548,6 +550,7 @@ class TestHomographLookupAndRetrieval:
 # =============================================================================
 # INTEGRATION TESTS
 # =============================================================================
+
 
 class TestHomographRenumberingIntegration:
     """Integration tests for homograph renumbering."""

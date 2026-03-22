@@ -24,6 +24,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+
 class GramCatOperations(BaseOperations):
     """
     This class provides operations for managing Grammatical Categories in a
@@ -403,7 +404,7 @@ class GramCatOperations(BaseOperations):
 
         # Check if this category has a parent
         # The Owner property returns the owning object
-        if hasattr(cat, 'Owner') and cat.Owner:
+        if hasattr(cat, "Owner") and cat.Owner:
             # Check if the owner is also a possibility (not the feature system itself)
             try:
                 owner = ICmPossibility(cat.Owner)
@@ -592,7 +593,7 @@ class GramCatOperations(BaseOperations):
         props = {}
 
         # MultiString properties
-        for prop_name in ['Name', 'Abbreviation', 'Description']:
+        for prop_name in ["Name", "Abbreviation", "Description"]:
             prop_obj = getattr(cat, prop_name)
             ws_values = {}
             for ws_id, ws_handle in all_ws.items():

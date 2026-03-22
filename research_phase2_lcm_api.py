@@ -18,6 +18,7 @@ import os
 # Ensure flexlibs2 is importable
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+
 def research_lcm_apis():
     """
     Research script to discover which LCM undo/redo APIs are available.
@@ -44,6 +45,7 @@ def research_lcm_apis():
         # Try to open any available project
         try:
             from flexlibs2 import AllProjectNames
+
             projects = AllProjectNames()
             if not projects:
                 print("[ERROR] No FieldWorks projects found")
@@ -66,8 +68,8 @@ def research_lcm_apis():
         print("-" * 60)
 
         project_raw = project.project
-        has_begin_undo_task_project = hasattr(project_raw, 'BeginUndoTask')
-        has_begin_undo_task_mca = hasattr(project_raw.MainCacheAccessor, 'BeginUndoTask')
+        has_begin_undo_task_project = hasattr(project_raw, "BeginUndoTask")
+        has_begin_undo_task_mca = hasattr(project_raw.MainCacheAccessor, "BeginUndoTask")
 
         print(f"project.project.BeginUndoTask: {has_begin_undo_task_project}")
         print(f"project.MainCacheAccessor.BeginUndoTask: {has_begin_undo_task_mca}")
@@ -84,13 +86,13 @@ def research_lcm_apis():
         print("[QUESTION 2] Does UndoStack.Mark exist?")
         print("-" * 60)
 
-        has_undo_stack = hasattr(project_raw, 'UndoStack')
+        has_undo_stack = hasattr(project_raw, "UndoStack")
         print(f"project.project.UndoStack exists: {has_undo_stack}")
 
         if has_undo_stack:
             undo_stack = project_raw.UndoStack
-            has_mark = hasattr(undo_stack, 'Mark')
-            has_rollback = hasattr(undo_stack, 'RollbackToMark')
+            has_mark = hasattr(undo_stack, "Mark")
+            has_rollback = hasattr(undo_stack, "RollbackToMark")
             print(f"UndoStack.Mark: {has_mark}")
             print(f"UndoStack.RollbackToMark: {has_rollback}")
 
@@ -107,9 +109,9 @@ def research_lcm_apis():
         print("-" * 60)
 
         undo_methods = [
-            m for m in dir(project_raw)
-            if any(x in m.lower() for x in ['undo', 'redo', 'mark', 'task'])
-            and not m.startswith('_')
+            m
+            for m in dir(project_raw)
+            if any(x in m.lower() for x in ["undo", "redo", "mark", "task"]) and not m.startswith("_")
         ]
 
         if undo_methods:
@@ -126,9 +128,9 @@ def research_lcm_apis():
 
         mca = project_raw.MainCacheAccessor
         mca_methods = [
-            m for m in dir(mca)
-            if any(x in m.lower() for x in ['undo', 'redo', 'mark', 'task'])
-            and not m.startswith('_')
+            m
+            for m in dir(mca)
+            if any(x in m.lower() for x in ["undo", "redo", "mark", "task"]) and not m.startswith("_")
         ]
 
         if mca_methods:
@@ -159,10 +161,10 @@ def research_lcm_apis():
                 print("[OK] BeginUndoTask called successfully")
 
                 # Try to end it
-                if has_begin_undo_task_project and hasattr(project_raw, 'EndUndoTask'):
+                if has_begin_undo_task_project and hasattr(project_raw, "EndUndoTask"):
                     project_raw.EndUndoTask()
                     print("[OK] EndUndoTask called successfully")
-                elif has_begin_undo_task_mca and hasattr(mca, 'EndUndoTask'):
+                elif has_begin_undo_task_mca and hasattr(mca, "EndUndoTask"):
                     mca.EndUndoTask()
                     print("[OK] EndUndoTask called successfully")
                 else:
@@ -195,6 +197,7 @@ def research_lcm_apis():
     except Exception as e:
         print(f"\n[FATAL ERROR] {e}")
         import traceback
+
         traceback.print_exc()
         return False
     finally:
@@ -215,5 +218,6 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n[FATAL] {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)

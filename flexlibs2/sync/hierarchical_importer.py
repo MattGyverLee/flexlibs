@@ -41,10 +41,8 @@ class HierarchicalImporter:
         self.target_project = target_project
 
         # Check write access
-        if hasattr(target_project, 'writeEnabled') and not target_project.writeEnabled:
-            raise RuntimeError(
-                "Target project must be opened with writeEnabled=True for import operations"
-            )
+        if hasattr(target_project, "writeEnabled") and not target_project.writeEnabled:
+            raise RuntimeError("Target project must be opened with writeEnabled=True for import operations")
 
         # Initialize components
         self.resolver = DependencyResolver(source_project, target_project)
@@ -58,7 +56,7 @@ class HierarchicalImporter:
         config: Optional[DependencyConfig] = None,
         validate_references: bool = True,
         progress_callback: Optional[Callable[[str], None]] = None,
-        dry_run: bool = False
+        dry_run: bool = False,
     ) -> SyncResult:
         """
         Import objects with full dependency trees.
@@ -98,11 +96,13 @@ class HierarchicalImporter:
                 obj = self._get_operations(self.source_project, object_type).Object(guid)
                 if obj is None:
                     logger.warning(f"Object {guid} not found in source project")
-                    result.add_error(SyncError(
-                        operation='resolve',
-                        object_guid=guid,
-                        error_message=f"{object_type} not found in source project"
-                    ))
+                    result.add_error(
+                        SyncError(
+                            operation="resolve",
+                            object_guid=guid,
+                            error_message=f"{object_type} not found in source project",
+                        )
+                    )
                     continue
 
                 # Resolve dependencies
@@ -152,7 +152,7 @@ class HierarchicalImporter:
                 import_order=import_order,
                 result=result,
                 progress_callback=progress_callback,
-                dry_run=dry_run
+                dry_run=dry_run,
             )
 
             if progress_callback:
@@ -169,11 +169,7 @@ class HierarchicalImporter:
             raise
         except Exception as e:
             logger.error(f"Import failed: {e}")
-            result.add_error(SyncError(
-                operation='import',
-                object_guid=None,
-                error_message=str(e)
-            ))
+            result.add_error(SyncError(operation="import", object_guid=None, error_message=str(e)))
 
         return result
 
@@ -184,7 +180,7 @@ class HierarchicalImporter:
         include_referring_objects: Optional[List[str]] = None,
         validate_references: bool = True,
         progress_callback: Optional[Callable[[str], None]] = None,
-        dry_run: bool = False
+        dry_run: bool = False,
     ) -> SyncResult:
         """
         Import object and all objects that refer to it.
@@ -214,11 +210,13 @@ class HierarchicalImporter:
             obj = ops.Object(guid)
 
             if obj is None:
-                result.add_error(SyncError(
-                    operation='resolve',
-                    object_guid=guid,
-                    error_message=f"{object_type} not found in source project"
-                ))
+                result.add_error(
+                    SyncError(
+                        operation="resolve",
+                        object_guid=guid,
+                        error_message=f"{object_type} not found in source project",
+                    )
+                )
                 return result
 
             # Start with importing the main object
@@ -255,7 +253,7 @@ class HierarchicalImporter:
                 import_order=import_order,
                 result=result,
                 progress_callback=progress_callback,
-                dry_run=dry_run
+                dry_run=dry_run,
             )
 
             if progress_callback:
@@ -266,11 +264,7 @@ class HierarchicalImporter:
 
         except Exception as e:
             logger.error(f"Import failed: {e}")
-            result.add_error(SyncError(
-                operation='import',
-                object_guid=None,
-                error_message=str(e)
-            ))
+            result.add_error(SyncError(operation="import", object_guid=None, error_message=str(e)))
 
         return result
 
@@ -280,7 +274,7 @@ class HierarchicalImporter:
         import_order: List[tuple],
         result: SyncResult,
         progress_callback: Optional[Callable[[str], None]],
-        dry_run: bool
+        dry_run: bool,
     ) -> int:
         """Import objects in dependency order."""
         imported_count = 0
@@ -313,41 +307,27 @@ class HierarchicalImporter:
                     source_ops = self._get_operations(self.source_project, obj_type)
 
                     created_obj = self.merger.create_object(
-                        target_ops=target_ops,
-                        source_obj=node.obj,
-                        source_ops=source_ops
+                        target_ops=target_ops, source_obj=node.obj, source_ops=source_ops
                     )
 
                     if created_obj:
                         from .merge_ops import SyncChange
-                        result.add_change(SyncChange(
-                            operation='create',
-                            object_type=obj_type,
-                            object_guid=guid
-                        ))
+
+                        result.add_change(SyncChange(operation="create", object_type=obj_type, object_guid=guid))
                         imported_count += 1
                     else:
-                        result.add_error(SyncError(
-                            operation='create',
-                            object_guid=guid,
-                            error_message="create_object returned None"
-                        ))
+                        result.add_error(
+                            SyncError(operation="create", object_guid=guid, error_message="create_object returned None")
+                        )
 
                 except Exception as e:
                     logger.error(f"Failed to import {guid}: {e}")
-                    result.add_error(SyncError(
-                        operation='create',
-                        object_guid=guid,
-                        error_message=str(e)
-                    ))
+                    result.add_error(SyncError(operation="create", object_guid=guid, error_message=str(e)))
 
         return imported_count
 
     def _validate_all(
-        self,
-        graph: DependencyGraph,
-        import_order: List[tuple],
-        progress_callback: Optional[Callable[[str], None]]
+        self, graph: DependencyGraph, import_order: List[tuple], progress_callback: Optional[Callable[[str], None]]
     ) -> List[ValidationResult]:
         """Validate all objects in import order."""
         validation_issues = []
@@ -358,11 +338,7 @@ class HierarchicalImporter:
                 continue
 
             # Validate
-            validation = self.validator.validate_before_create(
-                node.obj,
-                self.source_project,
-                obj_type
-            )
+            validation = self.validator.validate_before_create(node.obj, self.source_project, obj_type)
 
             if validation.has_critical:
                 validation_issues.append(validation)

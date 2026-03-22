@@ -15,7 +15,7 @@ from flexlibs2 import FLExInitialize, FLExCleanup
 from flexlibs2 import FLExProject, FP_ProjectError
 
 
-#============ Configurables ===============
+# ============ Configurables ===============
 
 # Project to use
 TEST_PROJECT = r"__flexlibs_testing"
@@ -23,10 +23,10 @@ TEST_PROJECT = r"__flexlibs_testing"
 
 def reportBasicInfo(project):
     # Global things in the Language Project
-    
+
     print("Information on project %s:" % project.ProjectName())
 
-    #============ General Settings =======
+    # ============ General Settings =======
     print("Last modified:", project.GetDateLastModified())
 
     posList = project.GetPartsOfSpeech()
@@ -35,14 +35,12 @@ def reportBasicInfo(project):
         print("\t", i)
     print()
 
-
-    #============ Writing Systems ============
+    # ============ Writing Systems ============
 
     # The names of WS associated with this DB. Sorted and with no duplicates.
 
     wsList = project.GetWritingSystems()
-    print("There are %i writing Systems in this project: (Language Tag, Handle)"
-          % len(wsList))
+    print("There are %i writing Systems in this project: (Language Tag, Handle)" % len(wsList))
     print()
     for x in wsList:
         name, langTag, handle, isVern = x
@@ -56,7 +54,7 @@ def reportBasicInfo(project):
     print("\tDefault analysis WS   = %s; %s" % project.GetDefaultAnalysisWS())
     print()
 
-    #============= Lexicon ================
+    # ============= Lexicon ================
     print("Custom Fields:")
     print("\tEntry level:")
     for cf in project.LexiconGetEntryCustomFields():
@@ -70,30 +68,28 @@ def reportBasicInfo(project):
     print()
 
     print("The lexicon contains %d entries" % project.LexiconNumberOfEntries())
-    
+
     print("The text corpus contains %d texts" % project.TextsNumberOfTexts())
 
-# -------------------------------------------------------------------    
+
+# -------------------------------------------------------------------
 if __name__ == "__main__":
 
     FLExInitialize()
-    
+
     project = FLExProject()
 
     try:
-        project.OpenProject(projectName = TEST_PROJECT,
-                            writeEnabled = False)
+        project.OpenProject(projectName=TEST_PROJECT, writeEnabled=False)
     except FP_ProjectError as e:
         print("OpenProject failed!")
         print(e.message)
         FLExCleanup()
         sys.exit(1)
-        
+
     reportBasicInfo(project)
-    
+
     # Clean-up
     project.CloseProject()
-    
+
     FLExCleanup()
-    
-    
