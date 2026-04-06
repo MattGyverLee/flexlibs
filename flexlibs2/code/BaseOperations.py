@@ -178,18 +178,26 @@ class OperationsMethod:
 
         When called on an instance (POSOperations(project).GetAll()):
             - Returns a bound method as normal
+
+        Defensive casting: Unwraps nested OperationsMethod objects to prevent
+        'OperationsMethod' object is not callable errors from bad decorator order.
         """
+        # Defensive casting: unwrap if self.func is a nested OperationsMethod
+        func = self.func
+        while isinstance(func, OperationsMethod):
+            func = func.func
+
         if obj is None:
             # Called on class: POSOperations.GetAll(project)
             def class_method(project, *args, **kwargs):
                 """Automatically instantiate and call the method."""
                 instance = objtype(project)
-                return self.func(instance, *args, **kwargs)
+                return func(instance, *args, **kwargs)
 
             return class_method
         else:
             # Called on instance: POSOperations(project).GetAll()
-            return self.func.__get__(obj, objtype)
+            return func.__get__(obj, objtype)
 
 
 class BaseOperations:
