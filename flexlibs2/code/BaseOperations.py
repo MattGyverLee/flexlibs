@@ -117,12 +117,16 @@ class EnumerableWrapper:
         return f"EnumerableWrapper({self._enumerable})"
 
 
-def wrap_enumerable(func):
+class wrap_enumerable:
     """
-    Decorator to automatically wrap IEnumerable return values.
+    Descriptor to automatically wrap IEnumerable return values.
 
     Wraps methods that return C# IEnumerable collections to make them
     Pythonic with .Count property and indexing support.
+
+    Must be a descriptor to properly delegate to OperationsMethod's __get__,
+    ensuring the descriptor protocol works correctly when stacked decorators
+    are used.
 
     Usage::
 
@@ -138,15 +142,52 @@ def wrap_enumerable(func):
             first = items[0]         # Works!
     """
 
-    def wrapper(*args, **kwargs):
-        result = func(*args, **kwargs)
+    def __init__(self, func):
+        """Store the inner function/method."""
+        self.func = func
+        self.__doc__ = getattr(func, '__doc__', '')
+        self.__name__ = getattr(func, '__name__', 'wrapped')
+
+    def __get__(self, obj, objtype=None):
+        """
+        Descriptor protocol: delegate to inner descriptor if present.
+
+        If the wrapped function is a descriptor (like OperationsMethod),
+        call its __get__ to get the proper bound method, then wrap the
+        result to handle IEnumerable returns.
+        """
+        # If the inner function is a descriptor, get its bound method
+        if hasattr(self.func, '__get__'):
+            inner_method = self.func.__get__(obj, objtype)
+        else:
+            # Not a descriptor, just bind normally
+            if obj is None:
+                inner_method = self.func
+            else:
+                inner_method = self.func.__get__(obj, objtype)
+
+        # Return a wrapper that will wrap the result
+        def wrapped_method(*args, **kwargs):
+            result = inner_method(*args, **kwargs)
+            # Only wrap if it looks like an IEnumerable (has GetEnumerator)
+            if result is not None and hasattr(result, "GetEnumerator"):
+                return EnumerableWrapper(result)
+            return result
+
+        return wrapped_method
+
+    def __call__(self, *args, **kwargs):
+        """
+        Direct call support (when decorator is applied to a function, not a method).
+        
+        This is called when the wrapped method is invoked without going through
+        the descriptor protocol (rare, but needed for some edge cases).
+        """
+        result = self.func(*args, **kwargs)
         # Only wrap if it looks like an IEnumerable (has GetEnumerator)
         if result is not None and hasattr(result, "GetEnumerator"):
             return EnumerableWrapper(result)
         return result
-
-    return wrapper
-
 
 class OperationsMethod:
     """
