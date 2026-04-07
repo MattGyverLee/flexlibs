@@ -77,8 +77,8 @@ class ReversalIndexOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
-    @OperationsMethod
     @wrap_enumerable
+    @OperationsMethod
     def GetAll(self):
         """
         Get all reversal indexes in the project.

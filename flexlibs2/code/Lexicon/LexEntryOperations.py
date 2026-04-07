@@ -95,8 +95,8 @@ class LexEntryOperations(BaseOperations):
 
     # --- Core CRUD Operations ---
 
-    @OperationsMethod
     @wrap_enumerable
+    @OperationsMethod
     def GetAll(self):
         """
         Get all lexical entries in the project.
@@ -2370,8 +2370,8 @@ class LexEntryOperations(BaseOperations):
             logger.warning("MinimalLexReferences not available, returning empty list")
             return []
 
-    @OperationsMethod
     @wrap_enumerable
+    @OperationsMethod
     def GetAllSenses(self, entry_or_hvo):
         """
         Get all senses owned by this entry, including subsenses recursively.

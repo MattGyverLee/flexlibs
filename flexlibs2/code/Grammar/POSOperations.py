@@ -79,8 +79,8 @@ class POSOperations(BaseOperations):
         """
         return parent.SubPossibilitiesOS
 
-    @OperationsMethod
     @wrap_enumerable
+    @OperationsMethod
     def GetAll(self):
         """
         Get all parts of speech in the project.
@@ -463,8 +463,8 @@ class POSOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(abbr, wsHandle)
         pos.Abbreviation.set_String(wsHandle, mkstr)
 
-    @OperationsMethod
     @wrap_enumerable
+    @OperationsMethod
     def GetSubcategories(self, pos_or_hvo):
         """
         Get all subcategories of a part of speech.
@@ -644,8 +644,8 @@ class POSOperations(BaseOperations):
 
         return pos.CatalogSourceId or ""
 
-    @OperationsMethod
     @wrap_enumerable
+    @OperationsMethod
     def GetInflectionClasses(self, pos_or_hvo):
         """
         Get all inflection classes associated with a part of speech.
@@ -685,8 +685,8 @@ class POSOperations(BaseOperations):
         # IPartOfSpeech has InflectionClassesOC
         return list(pos.InflectionClassesOC)
 
-    @OperationsMethod
     @wrap_enumerable
+    @OperationsMethod
     def GetAffixSlots(self, pos_or_hvo):
         """
         Get all affix slots associated with a part of speech.
