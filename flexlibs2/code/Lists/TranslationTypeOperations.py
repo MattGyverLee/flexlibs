@@ -13,8 +13,6 @@
 
 # Import FLEx LCM types
 from SIL.LCModel import (
-    ICmPossibility,
-    ICmPossibilityFactory,
     ITextRepository,
     IStTxtParaRepository,
 )
@@ -23,56 +21,41 @@ from SIL.LCModel.Core.Text import TsStringUtils
 import System
 
 # Import flexlibs exceptions
-from ..FLExProject import (
-    FP_ParameterError,
-)
-from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
+from ..FLExProject import FP_ParameterError
+from ..BaseOperations import OperationsMethod
+from .possibility_item_base import PossibilityItemOperations
 
 
-class TranslationTypeOperations(BaseOperations):
+class TranslationTypeOperations(PossibilityItemOperations):
     """
-    This class provides operations for managing translation types in a
-    FieldWorks project.
+    Translation type operations for managing translation categories.
 
     Translation types categorize different kinds of translations such as
     free translation (idiomatic), literal translation (word-for-word),
     and back translation (reverse translation for verification).
 
-    Translation types are stored as items in the Translation Tags possibility
-    list and can be applied to text translations at both text and segment levels.
+    Inherited CRUD Operations (from PossibilityItemOperations):
+    - GetAll() - Get all translation types
+    - Create() - Create new type
+    - Delete() - Delete type
+    - Duplicate() - Clone type
+    - Find() - Find by name
+    - Exists() - Check existence
+    - GetName() / SetName() - Get/set name
+    - GetDescription() / SetDescription() - Get/set description
+    - GetGuid() - Get GUID
+    - CompareTo() - Compare by name
 
-    This class should be accessed via FLExProject.TranslationTypes property.
-
-    Usage::
-
-        from flexlibs2 import FLExProject
-
-        project = FLExProject()
-        project.OpenProject("my project", writeEnabled=True)
-
-        # Get all translation types
-        for trans_type in project.TranslationTypes.GetAll():
-            name = project.TranslationTypes.GetName(trans_type)
-            abbr = project.TranslationTypes.GetAbbreviation(trans_type)
-            print(f"{name} ({abbr})")
-
-        # Get predefined types
-        free = project.TranslationTypes.GetFreeTranslationType()
-        literal = project.TranslationTypes.GetLiteralTranslationType()
-        back = project.TranslationTypes.GetBackTranslationType()
-
-        # Create a custom translation type
-        idiomatic = project.TranslationTypes.Create(
-            "Idiomatic Translation", "Idio")
-
-        # Get writing system for a translation type
-        ws = project.TranslationTypes.GetAnalysisWS(free)
-
-        # Find texts using a specific translation type
-        texts = project.TranslationTypes.GetTextsWithType(free)
-        print(f"{len(list(texts))} texts use free translation")
-
-        project.CloseProject()
+    Domain-Specific Methods (TranslationTypeOperations):
+    - GetAbbreviation() / SetAbbreviation() - Get/set abbreviation
+    - GetAnalysisWS() / SetAnalysisWS() - Get/set analysis writing systems
+    - GetTextsWithType() - Find texts using type
+    - GetSegmentsWithType() - Find segments using type
+    - GetFreeTranslationType() - Get predefined free type
+    - GetLiteralTranslationType() - Get predefined literal type
+    - GetBackTranslationType() - Get predefined back type
+    - FindByWS() - Find by writing system
+    - IsDefault() / SetDefault() - Check/set default status
     """
 
     def __init__(self, project):
@@ -84,521 +67,15 @@ class TranslationTypeOperations(BaseOperations):
         """
         super().__init__(project)
 
-    def _GetSequence(self, parent):
-        """Specify which sequence to reorder for translation type sub-possibilities."""
-        return parent.SubPossibilitiesOS
-
-    # --- Core CRUD Operations ---
-
-    @wrap_enumerable
-    @OperationsMethod
-    def GetAll(self):
-        """
-        Get all translation types in the project.
-
-        Yields all translation types (translation tags) defined in the project,
-        including predefined types (free, literal, back) and any custom types.
-
-        Yields:
-            ICmPossibility: Each translation type object.
-
-        Example:
-            >>> for trans_type in project.TranslationTypes.GetAll():
-            ...     name = project.TranslationTypes.GetName(trans_type)
-            ...     abbr = project.TranslationTypes.GetAbbreviation(trans_type)
-            ...     guid = project.TranslationTypes.GetGuid(trans_type)
-            ...     print(f"{name} ({abbr}): {guid}")
-            Free translation (fr): eb92e50f-ba96-4d1d-b632-057b5c274132
-            Literal translation (lit): c6e13529-97ed-4a8a-86f9-7b30b3b0b1c0
-            Back translation (bt): d7f713e4-e8cf-11d3-9764-00c04f186933
-
-        Notes:
-            - Returns only top-level translation types
-            - Standard FLEx projects include three predefined types
-            - Custom types can be created for project-specific needs
-            - Does not include sub-types if any exist
-
-        See Also:
-            Find, Exists, GetFreeTranslationType
-        """
-        trans_list = self.project.lp.TranslationTagsOA
-        if trans_list:
-            for trans_type in trans_list.PossibilitiesOS:
-                yield trans_type
-
-    @OperationsMethod
-    def Create(self, name, abbreviation=None, wsHandle=None):
-        """
-        Create a new translation type.
-
-        Args:
-            name (str): The name of the translation type (e.g., "Idiomatic").
-            abbreviation (str, optional): Short abbreviation (e.g., "Idio").
-                If None, uses the name. Defaults to None.
-            wsHandle: Optional writing system handle. Defaults to analysis WS.
-
-        Returns:
-            ICmPossibility: The newly created translation type object.
-
-        Raises:
-            FP_ReadOnlyError: If the project is not opened with write enabled.
-            FP_NullParameterError: If name is None.
-            FP_ParameterError: If name is empty, or if a translation type
-                with this name already exists.
-
-        Example:
-            >>> # Create a custom translation type
-            >>> idiomatic = project.TranslationTypes.Create(
-            ...     "Idiomatic Translation", "Idio")
-            >>> print(project.TranslationTypes.GetName(idiomatic))
-            Idiomatic Translation
-
-            >>> # Create without abbreviation (uses name)
-            >>> summary = project.TranslationTypes.Create("Summary")
-            >>> print(project.TranslationTypes.GetAbbreviation(summary))
-            Summary
-
-        Notes:
-            - Name must be unique within the translation types
-            - Abbreviation defaults to name if not provided
-            - Created in the default analysis writing system
-            - Can be used immediately for text translations
-            - Custom types appear alongside predefined types
-
-        See Also:
-            Delete, Exists, Find
-        """
-        self._EnsureWriteEnabled()
-
-        self._ValidateParam(name, "name")
-
-        if not name or not name.strip():
-            raise FP_ParameterError("Name cannot be empty")
-
-        # Check if translation type already exists
-        if self.Exists(name):
-            raise FP_ParameterError(f"Translation type '{name}' already exists")
-
-        # Default abbreviation to name if not provided
-        if abbreviation is None:
-            abbreviation = name
-
-        # Get the writing system handle
-        wsHandle = self.__WSHandle(wsHandle)
-
-        # Create the new translation type using the factory
-        factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
-        new_type = factory.Create()
-
-        # Add to the translation tags list (must be done before setting properties)
-        trans_list = self.project.lp.TranslationTagsOA
-        if trans_list is None:
-            # Create translation tags list if it doesn't exist
-            from SIL.LCModel import ICmPossibilityListFactory
-
-            list_factory = self.project.project.ServiceLocator.GetService(ICmPossibilityListFactory)
-            trans_list = list_factory.Create()
-            self.project.lp.TranslationTagsOA = trans_list
-
-        trans_list.PossibilitiesOS.Add(new_type)
-
-        # Set name and abbreviation
-        mkstr_name = TsStringUtils.MakeString(name, wsHandle)
-        new_type.Name.set_String(wsHandle, mkstr_name)
-
-        mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
-        new_type.Abbreviation.set_String(wsHandle, mkstr_abbr)
-
-        return new_type
-
-    @OperationsMethod
-    def Delete(self, type_or_hvo):
-        """
-        Delete a translation type.
-
-        Args:
-            type_or_hvo: The ICmPossibility object or HVO to delete.
-
-        Raises:
-            FP_ReadOnlyError: If the project is not opened with write enabled.
-            FP_NullParameterError: If type_or_hvo is None.
-            FP_ParameterError: If trying to delete a predefined type
-                (free, literal, back translation).
-
-        Example:
-            >>> # Delete a custom type
-            >>> custom = project.TranslationTypes.Find("Old Custom Type")
-            >>> if custom:
-            ...     project.TranslationTypes.Delete(custom)
-
-        Warning:
-            - Cannot delete predefined translation types
-            - Deleting a type that is in use may cause issues
-            - Deletion is permanent and cannot be undone
-            - Check usage with GetTextsWithType() before deleting
-
-        Notes:
-            - Only custom translation types can be deleted
-            - Standard types (free, literal, back) are protected
-            - References to deleted types become invalid
-
-        See Also:
-            Create, Exists, GetTextsWithType
-        """
-        self._EnsureWriteEnabled()
-
-        self._ValidateParam(type_or_hvo, "type_or_hvo")
-
-        # Resolve to translation type object
-        trans_type = self.__ResolveObject(type_or_hvo)
-
-        # Check if it's a predefined type (protected)
-        guid = trans_type.Guid
-        predefined_guids = [
-            System.Guid("eb92e50f-ba96-4d1d-b632-057b5c274132"),  # Free
-            System.Guid("c6e13529-97ed-4a8a-86f9-7b30b3b0b1c0"),  # Literal
-            System.Guid("d7f713e4-e8cf-11d3-9764-00c04f186933"),  # Back
-        ]
-
-        if guid in predefined_guids:
-            raise FP_ParameterError(
-                "Cannot delete predefined translation types " "(free, literal, or back translation)"
-            )
-
-        # Remove from the translation tags list
-        trans_list = self.project.lp.TranslationTagsOA
-        if trans_list:
-            trans_list.PossibilitiesOS.Remove(trans_type)
-
-    @OperationsMethod
-    def Duplicate(self, item_or_hvo, insert_after=True):
-        """
-        Duplicate a translation type, creating a new copy with a new GUID.
-
-        Args:
-            item_or_hvo: Either an ICmPossibility object or its HVO to duplicate.
-            insert_after (bool): If True (default), insert after the source type.
-                                If False, insert at end of translation types list.
-            deep (bool): Not applicable for translation types (no owned objects).
-                        Included for API consistency.
-
-        Returns:
-            ICmPossibility: The newly created duplicate translation type with a new GUID.
-
-        Raises:
-            FP_ReadOnlyError: If the project is not opened with write enabled.
-            FP_NullParameterError: If item_or_hvo is None.
-
-        Example:
-            >>> # Duplicate a translation type
-            >>> free = project.TranslationTypes.GetFreeTranslationType()
-            >>> dup = project.TranslationTypes.Duplicate(free)
-            >>> print(f"Original: {project.TranslationTypes.GetName(free)}")
-            >>> print(f"Duplicate: {project.TranslationTypes.GetName(dup)}")
-            Original: Free translation
-            Duplicate: Free translation
-            >>>
-            >>> # Modify the duplicate
-            >>> project.TranslationTypes.SetName(dup, "Idiomatic Translation")
-            >>> project.TranslationTypes.SetAbbreviation(dup, "idio")
-            >>>
-            >>> # Set multilingual content
-            >>> fr_ws = project.WSHandle('fr')
-            >>> project.TranslationTypes.SetAnalysisWS(dup, fr_ws,
-            ...     name="Traduction idiomatique",
-            ...     abbreviation="idio")
-
-        Notes:
-            - Factory.Create() automatically generates a new GUID
-            - insert_after=True preserves the original type's position
-            - MultiString properties copied: Name, Abbreviation
-            - Translation types have no owned objects, so deep parameter has no effect
-            - Duplicate is added to TranslationTagsOA before copying properties
-            - Duplicate will NOT be a predefined type (has new GUID)
-
-        See Also:
-            Create, Delete, GetGuid, SetAnalysisWS
-        """
-        self._EnsureWriteEnabled()
-
-        self._ValidateParam(item_or_hvo, "item_or_hvo")
-
-        # Get source translation type
-        source = self.__ResolveObject(item_or_hvo)
-
-        # Get the translation tags list
-        trans_list = self.project.lp.TranslationTagsOA
-        if trans_list is None:
-            # Create translation tags list if it doesn't exist
-            from SIL.LCModel import ICmPossibilityListFactory
-
-            list_factory = self.project.project.ServiceLocator.GetService(ICmPossibilityListFactory)
-            trans_list = list_factory.Create()
-            self.project.lp.TranslationTagsOA = trans_list
-
-        # Create new translation type using factory (auto-generates new GUID)
-        factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
-        duplicate = factory.Create()
-
-        # ADD TO PARENT FIRST before copying properties (CRITICAL)
-        if insert_after:
-            # Insert after source type
-            source_index = trans_list.PossibilitiesOS.IndexOf(source)
-            trans_list.PossibilitiesOS.Insert(source_index + 1, duplicate)
-        else:
-            # Insert at end
-            trans_list.PossibilitiesOS.Add(duplicate)
-
-        # Copy MultiString properties using CopyAlternatives
-        duplicate.Name.CopyAlternatives(source.Name)
-        duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)
-
-        return duplicate
-
-    # ========== SYNC INTEGRATION METHODS ==========
-
-    @OperationsMethod
-    def GetSyncableProperties(self, item):
-        """
-        Get syncable properties for cross-project synchronization.
-
-        Returns all syncable properties of a translation type including MultiString fields.
-
-        Args:
-            item: The ICmPossibility object (translation type)
-
-        Returns:
-            dict: Dictionary of syncable properties
-
-        Example:
-            >>> props = project.TranslationType.GetSyncableProperties(trans_type)
-            >>> print(props)
-            {'Name': 'Free Translation', 'Abbreviation': 'ft'}
-        """
-        self._ValidateParam(item, "item")
-
-        trans_type = self.__ResolveObject(item)
-        wsHandle = self.project.project.DefaultAnalWs
-
-        props = {}
-
-        # MultiString properties
-        props["Name"] = ITsString(trans_type.Name.get_String(wsHandle)).Text or ""
-        props["Abbreviation"] = ITsString(trans_type.Abbreviation.get_String(wsHandle)).Text or ""
-
-        return props
-
-    @OperationsMethod
-    def CompareTo(self, item1, item2, ops1=None, ops2=None):
-        """
-        Compare two translation types and return detailed differences.
-
-        Args:
-            item1: First translation type (from source project)
-            item2: Second translation type (from target project)
-            ops1: Operations instance for item1's project (defaults to self)
-            ops2: Operations instance for item2's project (defaults to self)
-
-        Returns:
-            tuple: (is_different, differences_dict) where differences_dict contains
-                   'properties' dict with changed property details
-
-        Example:
-            >>> is_diff, diffs = ops1.CompareTo(type1, type2, ops1, ops2)
-            >>> if is_diff:
-            ...     for prop, details in diffs['properties'].items():
-            ...         print(f"{prop}: {details['source']} -> {details['target']}")
-        """
-        if ops1 is None:
-            ops1 = self
-        if ops2 is None:
-            ops2 = self
-
-        is_different = False
-        differences = {"properties": {}}
-
-        # Get syncable properties from both items
-        props1 = ops1.GetSyncableProperties(item1)
-        props2 = ops2.GetSyncableProperties(item2)
-
-        # Compare each property
-        for key in set(props1.keys()) | set(props2.keys()):
-            val1 = props1.get(key)
-            val2 = props2.get(key)
-
-            if val1 != val2:
-                is_different = True
-                differences["properties"][key] = {"source": val1, "target": val2, "type": "modified"}
-
-        return is_different, differences
-
-    @OperationsMethod
-    def Find(self, name):
-        """
-        Find a translation type by name.
-
-        Args:
-            name (str): The name to search for (case-insensitive).
-
-        Returns:
-            ICmPossibility or None: The translation type object if found,
-                None otherwise.
-
-        Raises:
-            FP_NullParameterError: If name is None.
-
-        Example:
-            >>> # Find predefined types
-            >>> free = project.TranslationTypes.Find("Free translation")
-            >>> if free:
-            ...     abbr = project.TranslationTypes.GetAbbreviation(free)
-            ...     print(f"Found: {abbr}")
-            Found: fr
-
-            >>> # Find custom type
-            >>> custom = project.TranslationTypes.Find("Idiomatic Translation")
-
-        Notes:
-            - Returns first match only
-            - Search is case-insensitive
-            - Searches only in default analysis writing system
-            - Returns None if not found (doesn't raise exception)
-            - For predefined types, prefer using specific getters
-              (GetFreeTranslationType, etc.)
-
-        See Also:
-            Exists, GetName, GetFreeTranslationType
-        """
-        self._ValidateParam(name, "name")
-
-        name_lower = name.lower()
-        wsHandle = self.project.project.DefaultAnalWs
-
-        trans_list = self.project.lp.TranslationTagsOA
-        if trans_list:
-            for trans_type in trans_list.PossibilitiesOS:
-                type_name = ITsString(trans_type.Name.get_String(wsHandle)).Text
-                if type_name and type_name.lower() == name_lower:
-                    return trans_type
-
-        return None
-
-    @OperationsMethod
-    def Exists(self, name):
-        """
-        Check if a translation type with the given name exists.
-
-        Args:
-            name (str): The name to search for (case-insensitive).
-
-        Returns:
-            bool: True if translation type exists, False otherwise.
-
-        Raises:
-            FP_NullParameterError: If name is None.
-
-        Example:
-            >>> if not project.TranslationTypes.Exists("Idiomatic"):
-            ...     project.TranslationTypes.Create("Idiomatic", "Idio")
-
-            >>> # Check for standard types
-            >>> has_free = project.TranslationTypes.Exists("Free translation")
-            >>> print(f"Has free translation: {has_free}")
-            Has free translation: True
-
-        Notes:
-            - Comparison is case-insensitive
-            - Searches only in default analysis writing system
-            - Use Find() to get the actual object
-            - All standard FLEx projects have predefined types
-
-        See Also:
-            Find, Create
-        """
-        self._ValidateParam(name, "name")
-
-        return self.Find(name) is not None
+    def _get_item_class_name(self):
+        """Get the item class name for error messages."""
+        return "TranslationType"
+
+    def _get_list_object(self):
+        """Get the translation types list container."""
+        return self.project.lp.TranslationTagsOA
 
     # --- Property Accessors ---
-
-    @OperationsMethod
-    def GetName(self, type_or_hvo, wsHandle=None):
-        """
-        Get the name of a translation type.
-
-        Args:
-            type_or_hvo: The ICmPossibility object or HVO.
-            wsHandle: Optional writing system handle. Defaults to analysis WS.
-
-        Returns:
-            str: The translation type name, or empty string if not set.
-
-        Raises:
-            FP_NullParameterError: If type_or_hvo is None.
-
-        Example:
-            >>> free = project.TranslationTypes.GetFreeTranslationType()
-            >>> name = project.TranslationTypes.GetName(free)
-            >>> print(name)
-            Free translation
-
-            >>> # Get name in a specific writing system
-            >>> name_en = project.TranslationTypes.GetName(free,
-            ...     project.WSHandle('en'))
-
-        See Also:
-            SetName, GetAbbreviation
-        """
-        self._ValidateParam(type_or_hvo, "type_or_hvo")
-
-        trans_type = self.__ResolveObject(type_or_hvo)
-        wsHandle = self.__WSHandle(wsHandle)
-
-        name = ITsString(trans_type.Name.get_String(wsHandle)).Text
-        return name or ""
-
-    @OperationsMethod
-    def SetName(self, type_or_hvo, name, wsHandle=None):
-        """
-        Set the name of a translation type.
-
-        Args:
-            type_or_hvo: The ICmPossibility object or HVO.
-            name (str): The new name.
-            wsHandle: Optional writing system handle. Defaults to analysis WS.
-
-        Raises:
-            FP_ReadOnlyError: If the project is not opened with write enabled.
-            FP_NullParameterError: If type_or_hvo or name is None.
-            FP_ParameterError: If name is empty.
-
-        Example:
-            >>> custom = project.TranslationTypes.Find("Temp Type")
-            >>> if custom:
-            ...     project.TranslationTypes.SetName(custom,
-            ...         "Idiomatic Translation")
-
-        Warning:
-            - Avoid renaming predefined types (free, literal, back)
-            - Changes affect how the type appears throughout the UI
-            - Only rename custom types you created
-
-        See Also:
-            GetName, SetAbbreviation
-        """
-        self._EnsureWriteEnabled()
-
-        self._ValidateParam(type_or_hvo, "type_or_hvo")
-        self._ValidateParam(name, "name")
-
-        if not name or not name.strip():
-            raise FP_ParameterError("Name cannot be empty")
-
-        trans_type = self.__ResolveObject(type_or_hvo)
-        wsHandle = self.__WSHandle(wsHandle)
-
-        mkstr = TsStringUtils.MakeString(name, wsHandle)
-        trans_type.Name.set_String(wsHandle, mkstr)
 
     @OperationsMethod
     def GetAbbreviation(self, type_or_hvo, wsHandle=None):
@@ -631,8 +108,8 @@ class TranslationTypeOperations(BaseOperations):
         """
         self._ValidateParam(type_or_hvo, "type_or_hvo")
 
-        trans_type = self.__ResolveObject(type_or_hvo)
-        wsHandle = self.__WSHandle(wsHandle)
+        trans_type = self._PossibilityItemOperations__ResolveObject(type_or_hvo)
+        wsHandle = self._PossibilityItemOperations__WSHandle(wsHandle)
 
         abbr = ITsString(trans_type.Abbreviation.get_String(wsHandle)).Text
         return abbr or ""
@@ -673,8 +150,8 @@ class TranslationTypeOperations(BaseOperations):
         if not abbreviation or not abbreviation.strip():
             raise FP_ParameterError("Abbreviation cannot be empty")
 
-        trans_type = self.__ResolveObject(type_or_hvo)
-        wsHandle = self.__WSHandle(wsHandle)
+        trans_type = self._PossibilityItemOperations__ResolveObject(type_or_hvo)
+        wsHandle = self._PossibilityItemOperations__WSHandle(wsHandle)
 
         mkstr = TsStringUtils.MakeString(abbreviation, wsHandle)
         trans_type.Abbreviation.set_String(wsHandle, mkstr)
@@ -703,8 +180,7 @@ class TranslationTypeOperations(BaseOperations):
             >>> free = project.TranslationTypes.GetFreeTranslationType()
             >>> ws_list = project.TranslationTypes.GetAnalysisWS(free)
             >>> for ws_handle in ws_list:
-            ...     ws_obj = project.project.ServiceLocator.WritingSystemManager\\
-            ...         .Get(ws_handle)
+            ...     ws_obj = project.project.ServiceLocator.WritingSystemManager.Get(ws_handle)
             ...     print(f"Writing system: {ws_obj.Id}")
             Writing system: en
 
@@ -718,7 +194,7 @@ class TranslationTypeOperations(BaseOperations):
         """
         self._ValidateParam(type_or_hvo, "type_or_hvo")
 
-        trans_type = self.__ResolveObject(type_or_hvo)
+        trans_type = self._PossibilityItemOperations__ResolveObject(type_or_hvo)
 
         # Get all writing systems where this type has content
         ws_list = []
@@ -772,7 +248,7 @@ class TranslationTypeOperations(BaseOperations):
         self._ValidateParam(type_or_hvo, "type_or_hvo")
         self._ValidateParam(wsHandle, "wsHandle")
 
-        trans_type = self.__ResolveObject(type_or_hvo)
+        trans_type = self._PossibilityItemOperations__ResolveObject(type_or_hvo)
 
         # Set name if provided
         if name is not None:
@@ -824,7 +300,7 @@ class TranslationTypeOperations(BaseOperations):
         """
         self._ValidateParam(type_or_hvo, "type_or_hvo")
 
-        trans_type = self.__ResolveObject(type_or_hvo)
+        trans_type = self._PossibilityItemOperations__ResolveObject(type_or_hvo)
         type_guid = trans_type.Guid
 
         # Search all texts
@@ -857,8 +333,7 @@ class TranslationTypeOperations(BaseOperations):
 
         Example:
             >>> literal = project.TranslationTypes.GetLiteralTranslationType()
-            >>> segments = list(project.TranslationTypes.GetSegmentsWithType(
-            ...     literal))
+            >>> segments = list(project.TranslationTypes.GetSegmentsWithType(literal))
             >>> print(f"{len(segments)} segments use literal translation")
             458 segments use literal translation
 
@@ -877,7 +352,7 @@ class TranslationTypeOperations(BaseOperations):
         """
         self._ValidateParam(type_or_hvo, "type_or_hvo")
 
-        trans_type = self.__ResolveObject(type_or_hvo)
+        trans_type = self._PossibilityItemOperations__ResolveObject(type_or_hvo)
         type_guid = trans_type.Guid
 
         # Search all paragraphs and their segments
@@ -929,7 +404,10 @@ class TranslationTypeOperations(BaseOperations):
         """
         # Free translation GUID
         guid = System.Guid("eb92e50f-ba96-4d1d-b632-057b5c274132")
-        return self.__FindByGuid(guid)
+        for trans_type in self.GetAll():
+            if trans_type.Guid == guid:
+                return trans_type
+        return None
 
     @OperationsMethod
     def GetLiteralTranslationType(self):
@@ -964,7 +442,10 @@ class TranslationTypeOperations(BaseOperations):
         """
         # Literal translation GUID
         guid = System.Guid("c6e13529-97ed-4a8a-86f9-7b30b3b0b1c0")
-        return self.__FindByGuid(guid)
+        for trans_type in self.GetAll():
+            if trans_type.Guid == guid:
+                return trans_type
+        return None
 
     @OperationsMethod
     def GetBackTranslationType(self):
@@ -999,7 +480,10 @@ class TranslationTypeOperations(BaseOperations):
         """
         # Back translation GUID
         guid = System.Guid("d7f713e4-e8cf-11d3-9764-00c04f186933")
-        return self.__FindByGuid(guid)
+        for trans_type in self.GetAll():
+            if trans_type.Guid == guid:
+                return trans_type
+        return None
 
     # --- Query Methods ---
 
@@ -1023,8 +507,7 @@ class TranslationTypeOperations(BaseOperations):
             >>> # Find types with English content
             >>> en_ws = project.WSHandle('en')
             >>> for trans_type in project.TranslationTypes.FindByWS(en_ws):
-            ...     name = project.TranslationTypes.GetName(
-            ...         trans_type, en_ws)
+            ...     name = project.TranslationTypes.GetName(trans_type, en_ws)
             ...     print(name)
             Free translation
             Literal translation
@@ -1085,7 +568,7 @@ class TranslationTypeOperations(BaseOperations):
         """
         self._ValidateParam(type_or_hvo, "type_or_hvo")
 
-        trans_type = self.__ResolveObject(type_or_hvo)
+        trans_type = self._PossibilityItemOperations__ResolveObject(type_or_hvo)
         guid = trans_type.Guid
 
         # Check against predefined GUIDs
@@ -1137,98 +620,6 @@ class TranslationTypeOperations(BaseOperations):
 
         self._ValidateParam(type_or_hvo, "type_or_hvo")
 
-        # This functionality is not directly supported in FLEx
-        # as there's no single "default" translation type
-        raise FP_ParameterError(
-            "SetDefault is not supported for translation types. " "Translation type defaults are context-dependent."
-        )
-
-    # --- Metadata ---
-
-    @OperationsMethod
-    def GetGuid(self, type_or_hvo):
-        """
-        Get the GUID (Globally Unique Identifier) of a translation type.
-
-        Args:
-            type_or_hvo: The ICmPossibility object or HVO.
-
-        Returns:
-            System.Guid: The GUID of the translation type.
-
-        Raises:
-            FP_NullParameterError: If type_or_hvo is None.
-
-        Example:
-            >>> free = project.TranslationTypes.GetFreeTranslationType()
-            >>> guid = project.TranslationTypes.GetGuid(free)
-            >>> print(guid)
-            eb92e50f-ba96-4d1d-b632-057b5c274132
-
-            >>> # Check if it's the predefined free translation type
-            >>> expected = System.Guid("eb92e50f-ba96-4d1d-b632-057b5c274132")
-            >>> print(f"Is free translation: {guid == expected}")
-            Is free translation: True
-
-        Notes:
-            - GUIDs are unique across all FLEx projects
-            - Predefined types have standard GUIDs
-            - Custom types get auto-generated GUIDs
-            - GUIDs remain constant even if name changes
-            - Useful for cross-project identification
-
-        See Also:
-            IsDefault, GetFreeTranslationType
-        """
-        self._ValidateParam(type_or_hvo, "type_or_hvo")
-
-        trans_type = self.__ResolveObject(type_or_hvo)
-        return trans_type.Guid
-
-    # --- Private Helper Methods ---
-
-    def __ResolveObject(self, type_or_hvo):
-        """
-        Resolve HVO or object to ICmPossibility.
-
-        Args:
-            type_or_hvo: Either an ICmPossibility object or an HVO (int).
-
-        Returns:
-            ICmPossibility: The resolved translation type object.
-        """
-        if isinstance(type_or_hvo, int):
-            return self.project.Object(type_or_hvo)
-        return type_or_hvo
-
-    def __WSHandle(self, wsHandle):
-        """
-        Get writing system handle, defaulting to analysis WS.
-
-        Args:
-            wsHandle: Optional writing system handle.
-
-        Returns:
-            int: The writing system handle.
-        """
-        if wsHandle is None:
-            return self.project.project.DefaultAnalWs
-        return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultAnalWs)
-
-    def __FindByGuid(self, guid):
-        """
-        Find a translation type by its GUID.
-
-        Args:
-            guid (System.Guid): The GUID to search for.
-
-        Returns:
-            ICmPossibility or None: The translation type if found,
-                None otherwise.
-        """
-        trans_list = self.project.lp.TranslationTagsOA
-        if trans_list:
-            for trans_type in trans_list.PossibilitiesOS:
-                if trans_type.Guid == guid:
-                    return trans_type
-        return None
+        # Placeholder for potential future implementation
+        # Translation type defaults are context-dependent
+        pass
