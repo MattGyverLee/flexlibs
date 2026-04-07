@@ -20,6 +20,19 @@ from . import FLExLCM
 from subprocess import Popen, DETACHED_PROCESS
 from .FLExGlobals import FWExecutable
 
+from .exceptions import (
+    FP_ProjectError,
+    FP_FileNotFoundError,
+    FP_FileLockedError,
+    FP_MigrationRequired,
+    FP_RuntimeError,
+    FP_ReadOnlyError,
+    FP_WritingSystemError,
+    FP_NullParameterError,
+    FP_ParameterError,
+    FP_TransactionError,
+)
+
 import logging
 import clr
 
@@ -78,84 +91,6 @@ from SIL.FieldWorks.Common.FwUtils import (
     StartupException,
     FwAppArgs,
 )
-
-# --- Exceptions ------------------------------------------------------
-
-
-class FP_ProjectError(Exception):
-    """Exception raised for any problems opening the project.
-
-    Attributes:
-        - message -- explanation of the error
-    """
-
-    def __init__(self, message):
-        self.message = message
-
-
-class FP_FileNotFoundError(FP_ProjectError):
-    def __init__(self, projectName, e):
-        # Normally this will be a mispelled/wrong project name...
-        if projectName in str(e):
-            FP_ProjectError.__init__(self, "Project file not found: %s" % projectName)
-        # ...however, it could be an internal FLEx error.
-        else:
-            FP_ProjectError.__init__(self, "File not found error: %s" % e)
-
-
-class FP_FileLockedError(FP_ProjectError):
-    def __init__(self):
-        FP_ProjectError.__init__(
-            self,
-            "This project is in use by another program. To allow shared access to this project, turn on the sharing option in the Sharing tab of the Fieldworks Project Properties dialog.",
-        )
-
-
-class FP_MigrationRequired(FP_ProjectError):
-    def __init__(self):
-        FP_ProjectError.__init__(
-            self, "This project needs to be opened in FieldWorks in order for it to be migrated to the latest format."
-        )
-
-
-# -----------------------------------------------------
-
-
-class FP_RuntimeError(Exception):
-    """Exception raised for any problems running the module.
-
-    Attributes:
-        - message -- explanation of the error
-    """
-
-    def __init__(self, message):
-        self.message = message
-
-
-class FP_ReadOnlyError(FP_RuntimeError):
-    def __init__(self):
-        FP_RuntimeError.__init__(self, "Trying to write to the project database without changes enabled.")
-
-
-class FP_WritingSystemError(FP_RuntimeError):
-    def __init__(self, writingSystemName):
-        FP_RuntimeError.__init__(self, "Invalid Writing System for this project: %s" % writingSystemName)
-
-
-class FP_NullParameterError(FP_RuntimeError):
-    def __init__(self):
-        FP_RuntimeError.__init__(self, "Null parameter.")
-
-
-class FP_ParameterError(FP_RuntimeError):
-    def __init__(self, msg):
-        FP_RuntimeError.__init__(self, msg)
-
-
-class FP_TransactionError(FP_RuntimeError):
-    def __init__(self, message):
-        FP_RuntimeError.__init__(self, message)
-
 
 # -----------------------------------------------------------
 
@@ -650,7 +585,7 @@ class FLExProject(object):
             >>> if verb:
             ...     project.POS.SetAbbreviation(verb, "V")
         """
-        if not hasattr(self, "_pos_ops"):
+        if "_pos_ops" not in self.__dict__:
             from .Grammar.POSOperations import POSOperations
 
             self._pos_ops = POSOperations(self)
@@ -677,7 +612,7 @@ class FLExProject(object):
             >>> # Set citation form
             >>> project.LexEntry.SetCitationForm(entry, "run")
         """
-        if not hasattr(self, "_lexentry_ops"):
+        if "_lexentry_ops" not in self.__dict__:
             from .Lexicon.LexEntryOperations import LexEntryOperations
 
             self._lexentry_ops = LexEntryOperations(self)
@@ -702,7 +637,7 @@ class FLExProject(object):
             >>> # Update text name
             >>> project.Texts.SetName(text, "Genesis Chapter 1")
         """
-        if not hasattr(self, "_text_ops"):
+        if "_text_ops" not in self.__dict__:
             from .TextsWords.TextOperations import TextOperations
 
             self._text_ops = TextOperations(self)
@@ -729,7 +664,7 @@ class FLExProject(object):
             >>> if wf.AnalysesOC.Count > 0:
             ...     project.Wordforms.SetApprovedAnalysis(wf, wf.AnalysesOC[0])
         """
-        if not hasattr(self, "_wordform_ops"):
+        if "_wordform_ops" not in self.__dict__:
             from .Wordform.WfiWordformOperations import WfiWordformOperations
 
             self._wordform_ops = WfiWordformOperations(self)
@@ -758,7 +693,7 @@ class FLExProject(object):
             >>> # Get morph bundles
             >>> bundles = project.WfiAnalyses.GetMorphBundles(analysis)
         """
-        if not hasattr(self, "_wfianalysis_ops"):
+        if "_wfianalysis_ops" not in self.__dict__:
             from .Wordform.WfiAnalysisOperations import WfiAnalysisOperations
 
             self._wfianalysis_ops = WfiAnalysisOperations(self)
@@ -786,7 +721,7 @@ class FLExProject(object):
             >>> # Get style
             >>> style = project.Paragraphs.GetStyleName(para)
         """
-        if not hasattr(self, "_paragraph_ops"):
+        if "_paragraph_ops" not in self.__dict__:
             from .TextsWords.ParagraphOperations import ParagraphOperations
 
             self._paragraph_ops = ParagraphOperations(self)
@@ -813,7 +748,7 @@ class FLExProject(object):
             >>> project.Segments.SetFreeTranslation(segment, "In the beginning...")
             >>> project.Segments.SetLiteralTranslation(segment, "In-the beginning...")
         """
-        if not hasattr(self, "_segment_ops"):
+        if "_segment_ops" not in self.__dict__:
             from .TextsWords.SegmentOperations import SegmentOperations
 
             self._segment_ops = SegmentOperations(self)
@@ -845,7 +780,7 @@ class FLExProject(object):
             >>> if project.Phonemes.IsConsonant(phoneme):
             ...     print("Consonant phoneme")
         """
-        if not hasattr(self, "_phoneme_ops"):
+        if "_phoneme_ops" not in self.__dict__:
             from .Grammar.PhonemeOperations import PhonemeOperations
 
             self._phoneme_ops = PhonemeOperations(self)
@@ -872,7 +807,7 @@ class FLExProject(object):
             >>> phoneme_b = project.Phonemes.Find("/b/")
             >>> project.NaturalClasses.AddPhoneme(nc, phoneme_b)
         """
-        if not hasattr(self, "_naturalclass_ops"):
+        if "_naturalclass_ops" not in self.__dict__:
             from .Grammar.NaturalClassOperations import NaturalClassOperations
 
             self._naturalclass_ops = NaturalClassOperations(self)
@@ -897,7 +832,7 @@ class FLExProject(object):
             >>> # Create a new environment
             >>> env = project.Environments.Create("Between vowels", "V_V")
         """
-        if not hasattr(self, "_environment_ops"):
+        if "_environment_ops" not in self.__dict__:
             from .Grammar.EnvironmentOperations import EnvironmentOperations
 
             self._environment_ops = EnvironmentOperations(self)
@@ -922,7 +857,7 @@ class FLExProject(object):
             >>> # Create a new allomorph
             >>> allo = project.Allomorphs.Create(entry, "-ed")
         """
-        if not hasattr(self, "_allomorph_ops"):
+        if "_allomorph_ops" not in self.__dict__:
             from .Lexicon.AllomorphOperations import AllomorphOperations
 
             self._allomorph_ops = AllomorphOperations(self)
@@ -946,7 +881,7 @@ class FLExProject(object):
             >>> # Create a compound rule
             >>> rule = project.MorphRules.CreateCompoundRule("Noun-Noun Compound")
         """
-        if not hasattr(self, "_morphrule_ops"):
+        if "_morphrule_ops" not in self.__dict__:
             from .Grammar.MorphRuleOperations import MorphRuleOperations
 
             self._morphrule_ops = MorphRuleOperations(self)
@@ -972,7 +907,7 @@ class FLExProject(object):
             ...     name = project.InflectionFeatures.GetFeatureName(feat)
             ...     print(f"Feature: {name}")
         """
-        if not hasattr(self, "_inflectionfeature_ops"):
+        if "_inflectionfeature_ops" not in self.__dict__:
             from .Grammar.InflectionFeatureOperations import InflectionFeatureOperations
 
             self._inflectionfeature_ops = InflectionFeatureOperations(self)
@@ -996,7 +931,7 @@ class FLExProject(object):
             >>> # Create a new category
             >>> gc = project.GramCat.Create("Transitive")
         """
-        if not hasattr(self, "_gramcat_ops"):
+        if "_gramcat_ops" not in self.__dict__:
             from .Grammar.GramCatOperations import GramCatOperations
 
             self._gramcat_ops = GramCatOperations(self)
@@ -1026,7 +961,7 @@ class FLExProject(object):
             >>> project.PhonRules.SetLeftContext(rule, vowels)
             >>> project.PhonRules.SetRightContext(rule, vowels)
         """
-        if not hasattr(self, "_phonrule_ops"):
+        if "_phonrule_ops" not in self.__dict__:
             from .Grammar.PhonologicalRuleOperations import PhonologicalRuleOperations
 
             self._phonrule_ops = PhonologicalRuleOperations(self)
@@ -1057,7 +992,7 @@ class FLExProject(object):
             >>> if domains:
             ...     project.Senses.AddSemanticDomain(sense, domains[0])
         """
-        if not hasattr(self, "_sense_ops"):
+        if "_sense_ops" not in self.__dict__:
             from .Lexicon.LexSenseOperations import LexSenseOperations
 
             self._sense_ops = LexSenseOperations(self)
@@ -1087,7 +1022,7 @@ class FLExProject(object):
             >>> project.Examples.SetTranslation(example, "Le chat a dormi.")
             >>> project.Examples.SetReference(example, "Corpus A:123")
         """
-        if not hasattr(self, "_example_ops"):
+        if "_example_ops" not in self.__dict__:
             from .Lexicon.ExampleOperations import ExampleOperations
 
             self._example_ops = ExampleOperations(self)
@@ -1125,7 +1060,7 @@ class FLExProject(object):
             ...     targets = project.LexReferences.GetTargets(ref)
             ...     print(f"Related to {len(targets)} items")
         """
-        if not hasattr(self, "_lexref_ops"):
+        if "_lexref_ops" not in self.__dict__:
             from .Lexicon.LexReferenceOperations import LexReferenceOperations
 
             self._lexref_ops = LexReferenceOperations(self)
@@ -1162,7 +1097,7 @@ class FLExProject(object):
             ...         if senses:
             ...             project.Reversal.AddSense(entry, senses[0])
         """
-        if not hasattr(self, "_reversal_ops"):
+        if "_reversal_ops" not in self.__dict__:
             from .Lexicon.ReversalOperations import ReversalOperations
 
             self._reversal_ops = ReversalOperations(self)
@@ -1189,7 +1124,7 @@ class FLExProject(object):
             ...     form = project.ReversalEntries.GetForm(entry)
             ...     print(f"Reversal: {form}")
         """
-        if not hasattr(self, "_reversalindex_ops"):
+        if "_reversalindex_ops" not in self.__dict__:
             from .Reversal.ReversalIndexOperations import ReversalIndexOperations
 
             self._reversalindex_ops = ReversalIndexOperations(self)
@@ -1216,7 +1151,7 @@ class FLExProject(object):
             ...     sense = lex_entry.SensesOS[0]
             ...     project.ReversalEntries.AddSense(entry, sense)
         """
-        if not hasattr(self, "_reversalentry_ops"):
+        if "_reversalentry_ops" not in self.__dict__:
             from .Reversal.ReversalIndexEntryOperations import ReversalIndexEntryOperations
 
             self._reversalentry_ops = ReversalIndexEntryOperations(self)
@@ -1247,7 +1182,7 @@ class FLExProject(object):
             >>> # Create a custom domain
             >>> custom = project.SemanticDomains.Create("Technology", "900")
         """
-        if not hasattr(self, "_semantic_domain_ops"):
+        if "_semantic_domain_ops" not in self.__dict__:
             from .Lexicon.SemanticDomainOperations import SemanticDomainOperations
 
             self._semantic_domain_ops = SemanticDomainOperations(self)
@@ -1277,7 +1212,7 @@ class FLExProject(object):
             >>> media = project.Pronunciations.GetMediaFiles(pron)
             >>> print(f"Audio files: {len(media)}")
         """
-        if not hasattr(self, "_pronunciation_ops"):
+        if "_pronunciation_ops" not in self.__dict__:
             from .Lexicon.PronunciationOperations import PronunciationOperations
 
             self._pronunciation_ops = PronunciationOperations(self)
@@ -1315,7 +1250,7 @@ class FLExProject(object):
             >>> variant_ref = project.Variants.Create(went_entry, "went", irregular_type)
             >>> project.Variants.AddComponentLexeme(variant_ref, go_entry)
         """
-        if not hasattr(self, "_variant_ops"):
+        if "_variant_ops" not in self.__dict__:
             from .Lexicon.VariantOperations import VariantOperations
 
             self._variant_ops = VariantOperations(self)
@@ -1345,7 +1280,7 @@ class FLExProject(object):
             ...     gloss = project.Etymology.GetGloss(etym)
             ...     print(f"{source}: {form} ({gloss})")
         """
-        if not hasattr(self, "_etymology_ops"):
+        if "_etymology_ops" not in self.__dict__:
             from .Lexicon.EtymologyOperations import EtymologyOperations
 
             self._etymology_ops = EtymologyOperations(self)
@@ -1388,7 +1323,7 @@ class FLExProject(object):
             ...     # Move items in hierarchy
             ...     project.PossibilityLists.MoveItem(folktale, None)  # Move to top
         """
-        if not hasattr(self, "_possibilitylist_ops"):
+        if "_possibilitylist_ops" not in self.__dict__:
             from .Lists.PossibilityListOperations import PossibilityListOperations
 
             self._possibilitylist_ops = PossibilityListOperations(self)
@@ -1422,7 +1357,7 @@ class FLExProject(object):
             >>> regions = project.CustomFields.GetListValues(sense, "Regions")
             >>> project.CustomFields.AddListValue(sense, "Regions", "North")
         """
-        if not hasattr(self, "_customfield_ops"):
+        if "_customfield_ops" not in self.__dict__:
             from .System.CustomFieldOperations import CustomFieldOperations
 
             self._customfield_ops = CustomFieldOperations(self)
@@ -1452,7 +1387,7 @@ class FLExProject(object):
             >>> if project.WritingSystems.Exists("ar"):
             ...     project.WritingSystems.SetRightToLeft("ar", True)
         """
-        if not hasattr(self, "_writingsystem_ops"):
+        if "_writingsystem_ops" not in self.__dict__:
             from .System.WritingSystemOperations import WritingSystemOperations
 
             self._writingsystem_ops = WritingSystemOperations(self)
@@ -1479,7 +1414,7 @@ class FLExProject(object):
             ...         form = project.WfiGlosses.GetForm(g, "en")
             ...         print(f"Gloss: {form}")
         """
-        if not hasattr(self, "_wfigloss_ops"):
+        if "_wfigloss_ops" not in self.__dict__:
             from .Wordform.WfiGlossOperations import WfiGlossOperations
 
             self._wfigloss_ops = WfiGlossOperations(self)
@@ -1507,7 +1442,7 @@ class FLExProject(object):
             >>> # Set morpheme type
             >>> project.WfiMorphBundles.SetMorphemeType(stem, "stem")
         """
-        if not hasattr(self, "_wfimorphbundle_ops"):
+        if "_wfimorphbundle_ops" not in self.__dict__:
             from .Wordform.WfiMorphBundleOperations import WfiMorphBundleOperations
 
             self._wfimorphbundle_ops = WfiMorphBundleOperations(self)
@@ -1537,7 +1472,7 @@ class FLExProject(object):
             >>> orphans = project.Media.GetOrphanedMedia()
             >>> print(f"Found {len(orphans)} orphaned files")
         """
-        if not hasattr(self, "_media_ops"):
+        if "_media_ops" not in self.__dict__:
             from .Shared.MediaOperations import MediaOperations
 
             self._media_ops = MediaOperations(self)
@@ -1565,7 +1500,7 @@ class FLExProject(object):
             ...     replies = project.Notes.GetReplies(n)
             ...     print(f"Note: {content} ({len(replies)} replies)")
         """
-        if not hasattr(self, "_note_ops"):
+        if "_note_ops" not in self.__dict__:
             from .Notebook.NoteOperations import NoteOperations
 
             self._note_ops = NoteOperations(self)
@@ -1597,7 +1532,7 @@ class FLExProject(object):
             >>> # Export filter
             >>> json_str = project.Filters.ExportFilter(filter_obj)
         """
-        if not hasattr(self, "_filter_ops"):
+        if "_filter_ops" not in self.__dict__:
             from .Shared.FilterOperations import FilterOperations
 
             self._filter_ops = FilterOperations(self)
@@ -1626,7 +1561,7 @@ class FLExProject(object):
             ...     rows = project.Discourse.GetRows(c)
             ...     print(f"Chart: {name} ({len(rows)} rows)")
         """
-        if not hasattr(self, "_discourse_ops"):
+        if "_discourse_ops" not in self.__dict__:
             from .TextsWords.DiscourseOperations import DiscourseOperations
 
             self._discourse_ops = DiscourseOperations(self)
@@ -1659,7 +1594,7 @@ class FLExProject(object):
             ...     email = project.Person.GetEmail(person)
             ...     print(f"{name}: {email}")
         """
-        if not hasattr(self, "_person_ops"):
+        if "_person_ops" not in self.__dict__:
             from .Notebook.PersonOperations import PersonOperations
 
             self._person_ops = PersonOperations(self)
@@ -1690,7 +1625,7 @@ class FLExProject(object):
             ...     coords = project.Location.GetCoordinates(loc)
             ...     print(f"{name}: {coords}")
         """
-        if not hasattr(self, "_location_ops"):
+        if "_location_ops" not in self.__dict__:
             from .Notebook.LocationOperations import LocationOperations
 
             self._location_ops = LocationOperations(self)
@@ -1726,7 +1661,7 @@ class FLExProject(object):
             ...     code = project.Anthropology.GetAnthroCode(item)
             ...     print(f"{code}: {name}")
         """
-        if not hasattr(self, "_anthropology_ops"):
+        if "_anthropology_ops" not in self.__dict__:
             from .Notebook.AnthropologyOperations import AnthropologyOperations
 
             self._anthropology_ops = AnthropologyOperations(self)
@@ -1753,7 +1688,7 @@ class FLExProject(object):
             >>> project.ProjectSettings.SetDefaultFont("en", "Charis SIL")
             >>> project.ProjectSettings.SetDefaultFontSize("en", 14)
         """
-        if not hasattr(self, "_projectsettings_ops"):
+        if "_projectsettings_ops" not in self.__dict__:
             from .System.ProjectSettingsOperations import ProjectSettingsOperations
 
             self._projectsettings_ops = ProjectSettingsOperations(self)
@@ -1780,7 +1715,7 @@ class FLExProject(object):
             ...     is_default = project.Publications.GetIsDefault(p)
             ...     print(f"{name} (default: {is_default})")
         """
-        if not hasattr(self, "_publication_ops"):
+        if "_publication_ops" not in self.__dict__:
             from .Lists.PublicationOperations import PublicationOperations
 
             self._publication_ops = PublicationOperations(self)
@@ -1811,7 +1746,7 @@ class FLExProject(object):
             ...         version = project.Agents.GetVersion(a)
             ...         print(f"Parser: {name} v{version}")
         """
-        if not hasattr(self, "_agent_ops"):
+        if "_agent_ops" not in self.__dict__:
             from .Lists.AgentOperations import AgentOperations
 
             self._agent_ops = AgentOperations(self)
@@ -1837,7 +1772,7 @@ class FLExProject(object):
             >>> project.Confidence.SetDescription(verified,
             ...     "Confirmed by native speaker", "en")
         """
-        if not hasattr(self, "_confidence_ops"):
+        if "_confidence_ops" not in self.__dict__:
             from .Lists.ConfidenceOperations import ConfidenceOperations
 
             self._confidence_ops = ConfidenceOperations(self)
@@ -1865,7 +1800,7 @@ class FLExProject(object):
             ...     name = project.Overlays.GetName(o)
             ...     print(f"Overlay: {name}")
         """
-        if not hasattr(self, "_overlay_ops"):
+        if "_overlay_ops" not in self.__dict__:
             from .Lists.OverlayOperations import OverlayOperations
 
             self._overlay_ops = OverlayOperations(self)
@@ -1893,7 +1828,7 @@ class FLExProject(object):
             ...     abbr = project.TranslationTypes.GetAbbreviation(t)
             ...     print(f"{name} ({abbr})")
         """
-        if not hasattr(self, "_translationtype_ops"):
+        if "_translationtype_ops" not in self.__dict__:
             from .Lists.TranslationTypeOperations import TranslationTypeOperations
 
             self._translationtype_ops = TranslationTypeOperations(self)
@@ -1919,7 +1854,7 @@ class FLExProject(object):
             >>> note_type = project.AnnotationDefs.Create("Field Note", "en")
             >>> project.AnnotationDefs.SetUserCanCreate(note_type, True)
         """
-        if not hasattr(self, "_annotationdef_ops"):
+        if "_annotationdef_ops" not in self.__dict__:
             from .System.AnnotationDefOperations import AnnotationDefOperations
 
             self._annotationdef_ops = AnnotationDefOperations(self)
@@ -1950,7 +1885,7 @@ class FLExProject(object):
             ...     status = project.Checks.GetCheckStatus(c)
             ...     print(f"{name}: {status}")
         """
-        if not hasattr(self, "_check_ops"):
+        if "_check_ops" not in self.__dict__:
             from .System.CheckOperations import CheckOperations
 
             self._check_ops = CheckOperations(self)
@@ -1985,7 +1920,7 @@ class FLExProject(object):
             ...     date = project.DataNotebook.GetDateOfEvent(rec)
             ...     print(f"{title} ({date})")
         """
-        if not hasattr(self, "_datanotebook_ops"):
+        if "_datanotebook_ops" not in self.__dict__:
             from .Notebook.DataNotebookOperations import DataNotebookOperations
 
             self._datanotebook_ops = DataNotebookOperations(self)
@@ -2012,7 +1947,7 @@ class FLExProject(object):
             ...     rows = project.ConstCharts.GetRows(chart)
             ...     print(f"Chart: {name} ({len(rows)} rows)")
         """
-        if not hasattr(self, "_constchart_ops"):
+        if "_constchart_ops" not in self.__dict__:
             from .Discourse.ConstChartOperations import ConstChartOperations
 
             self._constchart_ops = ConstChartOperations(self)
@@ -2041,7 +1976,7 @@ class FLExProject(object):
             ...     label = project.ConstChartRows.GetLabel(row)
             ...     print(f"Row: {label}")
         """
-        if not hasattr(self, "_constchartrow_ops"):
+        if "_constchartrow_ops" not in self.__dict__:
             from .Discourse.ConstChartRowOperations import ConstChartRowOperations
 
             self._constchartrow_ops = ConstChartRowOperations(self)
@@ -2070,7 +2005,7 @@ class FLExProject(object):
             ...     begin = project.ConstChartWordGroups.GetBeginSegment(wg)
             ...     print(f"Word group starts at segment {begin.Hvo}")
         """
-        if not hasattr(self, "_constchartwordgroup_ops"):
+        if "_constchartwordgroup_ops" not in self.__dict__:
             from .Discourse.ConstChartWordGroupOperations import ConstChartWordGroupOperations
 
             self._constchartwordgroup_ops = ConstChartWordGroupOperations(self)
@@ -2100,7 +2035,7 @@ class FLExProject(object):
             ...     wg = project.ConstChartMovedText.GetWordGroup(marker)
             ...     print(f"Moved text in word group {wg.Hvo}")
         """
-        if not hasattr(self, "_constchartmovedtext_ops"):
+        if "_constchartmovedtext_ops" not in self.__dict__:
             from .Discourse.ConstChartMovedTextOperations import ConstChartMovedTextOperations
 
             self._constchartmovedtext_ops = ConstChartMovedTextOperations(self)
@@ -2128,7 +2063,7 @@ class FLExProject(object):
             ...     desc = project.ConstChartTags.GetDescription(tag)
             ...     print(f"Tag: {name} - {desc}")
         """
-        if not hasattr(self, "_constcharttag_ops"):
+        if "_constcharttag_ops" not in self.__dict__:
             from .Discourse.ConstChartTagOperations import ConstChartTagOperations
 
             self._constcharttag_ops = ConstChartTagOperations(self)
@@ -2159,7 +2094,7 @@ class FLExProject(object):
             ...     wg = project.ConstChartClauseMarkers.GetWordGroup(marker)
             ...     print(f"Clause marker for word group {wg.Hvo}")
         """
-        if not hasattr(self, "_constchartclausemarker_ops"):
+        if "_constchartclausemarker_ops" not in self.__dict__:
             from .Discourse.ConstChartClauseMarkerOperations import ConstChartClauseMarkerOperations
 
             self._constchartclausemarker_ops = ConstChartClauseMarkerOperations(self)

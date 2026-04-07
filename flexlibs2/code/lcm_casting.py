@@ -12,6 +12,7 @@
 
 """
 LCM Object Casting Utilities for pythonnet.
+import logging
 
 This module provides utilities for casting LCM objects from their base interface
 types to their concrete derived interfaces. This is necessary because pythonnet
@@ -444,8 +445,8 @@ def clone_properties(source_obj, dest_obj, project=None):
                         dest_collection = getattr(dest, attr_name)
                         try:
                             dest_collection.Clear()
-                        except:
-                            pass
+                        except Exception as e:
+                            logging.debug(f"Failed to clear collection: {e}")
 
                         # Add cloned items
                         for item in attr_value:
@@ -457,18 +458,18 @@ def clone_properties(source_obj, dest_obj, project=None):
                                         cloned_item = factory.Create()
                                         dest_collection.Add(cloned_item)
                                         clone_properties(item, cloned_item, project)
-                            except:
+                            except Exception as e:
                                 # If we can't clone an item, just skip it
-                                pass
+                                logging.debug(f"Failed to clone item: {e}")
                     else:
                         # Simple property or reference - copy directly
                         setattr(dest, attr_name, attr_value)
-                except:
+                except Exception as e:
                     # If we can't set a property, skip it silently
-                    pass
-        except:
+                    logging.debug(f"Failed to set property {attr_name}: {e}")
+        except Exception as e:
             # If we can't read a property, skip it
-            pass
+            logging.debug(f"Failed to read property: {e}")
 
 
 def _get_factory_for_class(class_name: str, project: object) -> "Optional[object]":
@@ -506,8 +507,8 @@ def _get_factory_for_class(class_name: str, project: object) -> "Optional[object
         factory_type = factory_map.get(class_name)
         if factory_type:
             return project.ServiceLocator.GetService(factory_type)
-    except:
-        pass
+    except Exception as e:
+        logging.debug(f"Failed to get factory for class {class_name}: {e}")
 
     return None
 
