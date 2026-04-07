@@ -24,11 +24,13 @@ from System import DateTime
 # Import flexlibs exceptions
 from ..FLExProject import (
     FP_ParameterError,
+    FP_NullParameterError,
 )
-from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
+from ..BaseOperations import OperationsMethod, wrap_enumerable
+from .possibility_item_base import PossibilityItemOperations
 
 
-class PublicationOperations(BaseOperations):
+class PublicationOperations(PossibilityItemOperations):
     """
     This class provides operations for managing publications and publishing
     workflows in a FieldWorks project.
@@ -37,6 +39,36 @@ class PublicationOperations(BaseOperations):
     They specify page layouts, formatting options, divisions (e.g., main entries,
     minor entries), header/footer settings, and default publication types. These
     are used when exporting dictionaries or texts to various formats.
+
+    Inherited CRUD Operations (from PossibilityItemOperations):
+    - GetAll() - Get all publications (NOTE: override handles flat parameter)
+    - Create() - Create a new publication
+    - Delete() - Delete a publication
+    - Duplicate() - Clone a publication
+    - Find() - Find by name
+    - Exists() - Check existence
+    - GetName() / SetName() - Get/set name
+    - GetDescription() / SetDescription() - Get/set description
+    - GetGuid() - Get GUID
+    - CompareTo() - Compare by name
+
+    Domain-Specific Methods (PublicationOperations):
+    - GetPageLayout() - Get page layout description
+    - SetPageLayout() - Set page layout description
+    - GetIsDefault() - Check if default publication
+    - SetIsDefault() - Set default publication
+    - GetPageHeight() - Get page height
+    - SetPageHeight() - Set page height
+    - GetPageWidth() - Get page width
+    - SetPageWidth() - Set page width
+    - GetDivisions() - Get publication divisions
+    - AddDivision() - Add a division
+    - GetHeaderFooter() - Get header/footer configuration
+    - GetIsLandscape() - Check landscape orientation
+    - GetSubPublications() - Get sub-publications
+    - GetParent() - Get parent publication
+    - GetDateCreated() - Get creation date
+    - GetDateModified() - Get modification date
 
     This class should be accessed via FLExProject.Publications property.
 
@@ -54,7 +86,7 @@ class PublicationOperations(BaseOperations):
             print(f"{name} (Default: {is_default})")
 
         # Create a new publication
-        pub = project.Publications.Create("Web Dictionary", "en")
+        pub = project.Publications.Create("Web Dictionary")
 
         # Set page layout and formatting
         project.Publications.SetPageWidth(pub, 8.5)
@@ -84,9 +116,13 @@ class PublicationOperations(BaseOperations):
         """
         super().__init__(project)
 
-    def _GetSequence(self, parent):
-        """Specify which sequence to reorder for publication sub-possibilities."""
-        return parent.SubPossibilitiesOS
+    def _get_item_class_name(self):
+        """Get the item class name for error messages."""
+        return "Publication"
+
+    def _get_list_object(self):
+        """Get the publications list container."""
+        return self.project.lexDB.PublicationTypesOA
 
     # --- Core CRUD Operations ---
 
@@ -98,667 +134,52 @@ class PublicationOperations(BaseOperations):
 
         Args:
             flat (bool): If True, returns a flat list of all publications including
-                sub-publications. If False, returns only top-level publications.
-                Defaults to True.
+                        sub-publications. If False, returns only top-level publications.
 
         Returns:
             list: List of ICmPossibility objects representing publications.
 
         Example:
-            >>> # Get all publications
-            >>> for pub in project.Publications.GetAll():
+            >>> # Get all publications including variants
+            >>> for pub in project.Publications.GetAll(flat=True):
             ...     name = project.Publications.GetName(pub)
-            ...     desc = project.Publications.GetDescription(pub)
-            ...     is_default = project.Publications.GetIsDefault(pub)
-            ...     default_str = " [DEFAULT]" if is_default else ""
-            ...     print(f"{name}{default_str}: {desc}")
-            Main Dictionary [DEFAULT]: Primary publication for dictionary
-            Root-based Dictionary: Dictionary organized by roots
-            Thematic Dictionary: Dictionary organized by semantic domains
+            ...     print(name)
+            Main Dictionary
+            Main Dictionary - Web Variant
+            Root-based Dictionary
 
             >>> # Get only top-level publications
-            >>> top_pubs = project.Publications.GetAll(flat=False)
-            >>> for pub in top_pubs:
+            >>> for pub in project.Publications.GetAll(flat=False):
             ...     name = project.Publications.GetName(pub)
-            ...     subs = project.Publications.GetSubPublications(pub)
-            ...     print(f"{name} ({len(subs)} variants)")
+            ...     print(name)
+            Main Dictionary
+            Root-based Dictionary
 
         Notes:
+            - flat=True includes sub-publications (default)
+            - flat=False returns only top-level publications
             - Returns empty list if no publications exist
-            - Publications are ordered by creation order
-            - Each publication can have page layout and formatting settings
-            - Default publication is used when no specific publication is selected
-            - Publications are stored as ICmPossibility objects
+            - Useful for building publication lists for export
 
         See Also:
-            Find, Create, Exists
+            Find, GetSubPublications
         """
-        pub_list = self.project.lexDB.PublicationTypesOA
-        if not pub_list:
+        list_obj = self._get_list_object()
+        if not list_obj:
             return []
 
-        return list(self.project.UnpackNestedPossibilityList(pub_list.PossibilitiesOS, ICmPossibility, flat))
-
-    @OperationsMethod
-    def Create(self, name, wsHandle=None):
-        """
-        Create a new publication.
-
-        Args:
-            name (str): The name of the publication (e.g., "Main Dictionary").
-            wsHandle: Optional writing system handle. Defaults to analysis WS.
-
-        Returns:
-            ICmPossibility: The newly created publication object.
-
-        Raises:
-            FP_ReadOnlyError: If the project is not opened with write enabled.
-            FP_NullParameterError: If name is None.
-            FP_ParameterError: If name is empty or publication already exists.
-
-        Example:
-            >>> # Create a simple publication
-            >>> pub = project.Publications.Create("Web Dictionary")
-            >>> print(project.Publications.GetName(pub))
-            Web Dictionary
-
-            >>> # Create with specific writing system
-            >>> pub = project.Publications.Create("Diccionario Web",
-            ...                                    project.WSHandle('es'))
-
-            >>> # Create and configure
-            >>> pub = project.Publications.Create("Print Dictionary")
-            >>> project.Publications.SetPageWidth(pub, 8.5)
-            >>> project.Publications.SetPageHeight(pub, 11.0)
-            >>> project.Publications.SetDescription(pub,
-            ...     "Standard letter-size print layout")
-
-        Notes:
-            - Name should be descriptive of the publication purpose
-            - Name must be unique within the project
-            - Publication is created but not set as default
-            - Use Set* methods to configure page layout and formatting
-            - GUID is auto-generated
-            - DateCreated is set automatically
-
-        See Also:
-            Delete, Find, Exists, SetIsDefault
-        """
-        self._EnsureWriteEnabled()
-
-        self._ValidateParam(name, "name")
-
-        if not name or not name.strip():
-            raise FP_ParameterError("Name cannot be empty")
-
-        # Check if publication already exists
-        if self.Exists(name):
-            raise FP_ParameterError(f"Publication '{name}' already exists")
-
-        wsHandle = self.__WSHandle(wsHandle)
-
-        # Get the publication types list
-        pub_list = self.project.lexDB.PublicationTypesOA
-        if not pub_list:
-            raise FP_ParameterError("Publication types list not found in project")
-
-        # Create the new publication using the factory
-        factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
-        new_pub = factory.Create()
-
-        # Add to publications list (must be done before setting properties)
-        pub_list.PossibilitiesOS.Add(new_pub)
-
-        # Set name
-        mkstr_name = TsStringUtils.MakeString(name, wsHandle)
-        new_pub.Name.set_String(wsHandle, mkstr_name)
-
-        # Set creation date
-        new_pub.DateCreated = DateTime.Now
-
-        return new_pub
-
-    @OperationsMethod
-    def Delete(self, publication_or_hvo):
-        """
-        Delete a publication from the project.
-
-        Args:
-            publication_or_hvo: Either an ICmPossibility publication object or its HVO.
-
-        Raises:
-            FP_ReadOnlyError: If the project is not opened with write enabled.
-            FP_NullParameterError: If publication_or_hvo is None.
-            FP_ParameterError: If trying to delete the default publication.
-
-        Example:
-            >>> # Delete a publication
-            >>> pub = project.Publications.Find("Old Publication")
-            >>> if pub and not project.Publications.GetIsDefault(pub):
-            ...     project.Publications.Delete(pub)
-
-            >>> # Delete by HVO
-            >>> project.Publications.Delete(12345)
-
-        Warning:
-            - This is a destructive operation
-            - Deletion is permanent and cannot be undone
-            - Cannot delete the default publication
-            - Any references to this publication will be removed
-            - Lexical entries using this publication may lose formatting info
-
-        Notes:
-            - Check if publication is default before deleting
-            - Set a different default before deleting current default
-            - Sub-publications are deleted recursively
-            - Use with caution on shared projects
-
-        See Also:
-            Create, GetIsDefault, SetIsDefault
-        """
-        self._EnsureWriteEnabled()
-
-        self._ValidateParam(publication_or_hvo, "publication_or_hvo")
-
-        publication = self.__ResolveObject(publication_or_hvo)
-
-        # Check if this is the default publication
-        if self.GetIsDefault(publication):
-            raise FP_ParameterError("Cannot delete the default publication. " "Set a different default first.")
-
-        # Get the parent or top-level list
-        parent = self.GetParent(publication)
-
-        if parent:
-            # Remove from parent's sub-publications
-            parent.SubPossibilitiesOS.Remove(publication)
+        if flat:
+            # Return flat list including sub-possibilities
+            all_pubs = []
+            for pub in list_obj.PossibilitiesOS:
+                all_pubs.append(pub)
+                # Add sub-publications recursively
+                if hasattr(pub, "SubPossibilitiesOS"):
+                    all_pubs.extend(list(pub.SubPossibilitiesOS))
+            return all_pubs
         else:
-            # Remove from top-level list
-            pub_list = self.project.lexDB.PublicationTypesOA
-            if pub_list:
-                pub_list.PossibilitiesOS.Remove(publication)
-
-    @OperationsMethod
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
-        """
-        Duplicate a publication, creating a new copy with a new GUID.
-
-        Args:
-            item_or_hvo: Either an ICmPossibility publication object or its HVO to duplicate.
-            insert_after (bool): If True (default), insert after the source publication.
-                                If False, insert at end of publications list.
-            deep (bool): If True (default), also duplicate owned divisions/sub-publications.
-                        If False, only copy simple properties.
-
-        Returns:
-            ICmPossibility: The newly created duplicate publication with a new GUID.
-
-        Raises:
-            FP_ReadOnlyError: If the project is not opened with write enabled.
-            FP_NullParameterError: If item_or_hvo is None.
-
-        Example:
-            >>> # Duplicate a publication
-            >>> main_pub = project.Publications.Find("Main Dictionary")
-            >>> dup = project.Publications.Duplicate(main_pub)
-            >>> print(f"Original: {project.Publications.GetName(main_pub)}")
-            >>> print(f"Duplicate: {project.Publications.GetName(dup)}")
-            Original: Main Dictionary
-            Duplicate: Main Dictionary
-            >>>
-            >>> # Modify the duplicate
-            >>> project.Publications.SetName(dup, "Web Dictionary")
-            >>> project.Publications.SetPageWidth(dup, 10.0)
-            >>> project.Publications.SetPageHeight(dup, 12.0)
-            >>>
-            >>> # Deep duplicate (includes all divisions)
-            >>> deep_dup = project.Publications.Duplicate(main_pub, deep=True)
-            >>> divisions = project.Publications.GetDivisions(deep_dup)
-            >>> print(f"Duplicate has {len(divisions)} divisions")
-
-        Notes:
-            - Factory.Create() automatically generates a new GUID
-            - insert_after=True preserves the original publication's position
-            - MultiString properties copied: Name, Description, Abbreviation
-            - Numeric properties copied: PageWidth (SortKey), PageHeight (SortKey2)
-            - Date properties copied: DateCreated, DateModified
-            - If deep=True, also copies divisions (SubPossibilitiesOS)
-            - Duplicate is added to publication list before copying properties
-            - Duplicate is NOT set as default (even if source is default)
-
-        See Also:
-            Create, Delete, GetGuid, GetDivisions
-        """
-        self._EnsureWriteEnabled()
-
-        self._ValidateParam(item_or_hvo, "item_or_hvo")
-
-        # Get source publication
-        source = self.__ResolveObject(item_or_hvo)
-
-        # Get the parent or top-level list
-        parent = self.GetParent(source)
-
-        # Get the publication types list
-        pub_list = self.project.lexDB.PublicationTypesOA
-        if not pub_list:
-            raise FP_ParameterError("Publication types list not found in project")
-
-        # Create new publication using factory (auto-generates new GUID)
-        factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
-        duplicate = factory.Create()
-
-        # ADD TO PARENT FIRST before copying properties (CRITICAL)
-        if parent:
-            # Insert into parent's sub-publications
-            if insert_after:
-                source_index = parent.SubPossibilitiesOS.IndexOf(source)
-                parent.SubPossibilitiesOS.Insert(source_index + 1, duplicate)
-            else:
-                parent.SubPossibilitiesOS.Add(duplicate)
-        else:
-            # Insert into top-level list (but NOT as default, so never at position 0)
-            if insert_after:
-                source_index = pub_list.PossibilitiesOS.IndexOf(source)
-                # If source is default (index 0), insert after it (index 1)
-                # Otherwise insert after source
-                pub_list.PossibilitiesOS.Insert(source_index + 1, duplicate)
-            else:
-                pub_list.PossibilitiesOS.Add(duplicate)
-
-        # Copy MultiString properties using CopyAlternatives
-        duplicate.Name.CopyAlternatives(source.Name)
-        if hasattr(source, "Description"):
-            duplicate.Description.CopyAlternatives(source.Description)
-        if hasattr(source, "Abbreviation"):
-            duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)
-
-        # Copy numeric properties for page dimensions
-        if hasattr(source, "SortKey") and hasattr(duplicate, "SortKey"):
-            duplicate.SortKey = source.SortKey  # PageWidth
-        if hasattr(source, "SortKey2") and hasattr(duplicate, "SortKey2"):
-            duplicate.SortKey2 = source.SortKey2  # PageHeight
-
-        # Note: DateCreated/DateModified are NOT copied from source.
-        # The duplicate gets current timestamps automatically from the framework.
-
-        # Deep copy: duplicate owned divisions (SubPossibilitiesOS)
-        if deep and hasattr(source, "SubPossibilitiesOS") and source.SubPossibilitiesOS.Count > 0:
-            for division in source.SubPossibilitiesOS:
-                self._DuplicateDivisionInto(division, duplicate, deep=True)
-
-    def _DuplicateDivisionInto(self, source_div, parent_dup, deep=True):
-        """Duplicate a division into the specified parent's SubPossibilitiesOS."""
-        div_factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
-        div_dup = div_factory.Create()
-        parent_dup.SubPossibilitiesOS.Add(div_dup)
-
-        # Copy division properties
-        div_dup.Name.CopyAlternatives(source_div.Name)
-        if hasattr(source_div, "Description"):
-            div_dup.Description.CopyAlternatives(source_div.Description)
-        if hasattr(source_div, "Abbreviation"):
-            div_dup.Abbreviation.CopyAlternatives(source_div.Abbreviation)
-
-        # Recurse into nested sub-divisions
-        if deep and hasattr(source_div, "SubPossibilitiesOS") and source_div.SubPossibilitiesOS.Count > 0:
-            for nested_div in source_div.SubPossibilitiesOS:
-                self._DuplicateDivisionInto(nested_div, div_dup, deep=True)
-
-        return duplicate
-
-    # ========== SYNC INTEGRATION METHODS ==========
-
-    @OperationsMethod
-    def GetSyncableProperties(self, item):
-        """
-        Get syncable properties for cross-project synchronization.
-
-        Returns all syncable properties of a publication including MultiString fields.
-
-        Args:
-            item: The ICmPossibility object (publication)
-
-        Returns:
-            dict: Dictionary of syncable properties
-
-        Example:
-            >>> props = project.Publication.GetSyncableProperties(pub)
-            >>> print(props)
-            {'Name': 'Dictionary', 'Description': '...', 'Abbreviation': 'Dict'}
-        """
-        self._ValidateParam(item, "item")
-
-        pub = self.__ResolveObject(item)
-        wsHandle = self.project.project.DefaultAnalWs
-
-        props = {}
-
-        # MultiString properties
-        props["Name"] = ITsString(pub.Name.get_String(wsHandle)).Text or ""
-        if hasattr(pub, "Description"):
-            props["Description"] = ITsString(pub.Description.get_String(wsHandle)).Text or ""
-        if hasattr(pub, "Abbreviation"):
-            props["Abbreviation"] = ITsString(pub.Abbreviation.get_String(wsHandle)).Text or ""
-
-        return props
-
-    @OperationsMethod
-    def CompareTo(self, item1, item2, ops1=None, ops2=None):
-        """
-        Compare two publications and return detailed differences.
-
-        Args:
-            item1: First publication (from source project)
-            item2: Second publication (from target project)
-            ops1: Operations instance for item1's project (defaults to self)
-            ops2: Operations instance for item2's project (defaults to self)
-
-        Returns:
-            tuple: (is_different, differences_dict) where differences_dict contains
-                   'properties' dict with changed property details
-
-        Example:
-            >>> is_diff, diffs = ops1.CompareTo(pub1, pub2, ops1, ops2)
-            >>> if is_diff:
-            ...     for prop, details in diffs['properties'].items():
-            ...         print(f"{prop}: {details['source']} -> {details['target']}")
-        """
-        if ops1 is None:
-            ops1 = self
-        if ops2 is None:
-            ops2 = self
-
-        is_different = False
-        differences = {"properties": {}}
-
-        # Get syncable properties from both items
-        props1 = ops1.GetSyncableProperties(item1)
-        props2 = ops2.GetSyncableProperties(item2)
-
-        # Compare each property
-        for key in set(props1.keys()) | set(props2.keys()):
-            val1 = props1.get(key)
-            val2 = props2.get(key)
-
-            if val1 != val2:
-                is_different = True
-                differences["properties"][key] = {"source": val1, "target": val2, "type": "modified"}
-
-        return is_different, differences
-
-    @OperationsMethod
-    def Find(self, name):
-        """
-        Find a publication by its name.
-
-        Args:
-            name (str): The publication name to search for (case-sensitive).
-
-        Returns:
-            ICmPossibility or None: The publication object if found, None otherwise.
-
-        Raises:
-            FP_NullParameterError: If name is None.
-
-        Example:
-            >>> # Find by name
-            >>> pub = project.Publications.Find("Main Dictionary")
-            >>> if pub:
-            ...     width = project.Publications.GetPageWidth(pub)
-            ...     height = project.Publications.GetPageHeight(pub)
-            ...     print(f"Page size: {width}\" x {height}\"")
-            Page size: 8.5" x 11.0"
-
-            >>> # Check if publication exists before using
-            >>> pub = project.Publications.Find("Web Dictionary")
-            >>> if pub:
-            ...     project.Publications.SetPageWidth(pub, 10)
-            ... else:
-            ...     pub = project.Publications.Create("Web Dictionary")
-
-        Notes:
-            - Search is case-sensitive
-            - Searches in default analysis writing system
-            - Returns first match only
-            - Returns None if not found (doesn't raise exception)
-            - Searches both top-level and nested publications
-
-        See Also:
-            Exists, GetAll, GetName
-        """
-        self._ValidateParam(name, "name")
-
-        if not name or not name.strip():
-            return None
-
-        name_search = name.strip()
-        wsHandle = self.project.project.DefaultAnalWs
-
-        # Search through all publications
-        for pub in self.GetAll(flat=True):
-            pub_name = ITsString(pub.Name.get_String(wsHandle)).Text
-            if pub_name and pub_name == name_search:
-                return pub
-
-        return None
-
-    @OperationsMethod
-    def Exists(self, name):
-        """
-        Check if a publication with the given name exists.
-
-        Args:
-            name (str): The publication name to check.
-
-        Returns:
-            bool: True if publication exists, False otherwise.
-
-        Example:
-            >>> if project.Publications.Exists("Main Dictionary"):
-            ...     print("Main Dictionary publication exists")
-            Main Dictionary publication exists
-
-            >>> if not project.Publications.Exists("New Publication"):
-            ...     pub = project.Publications.Create("New Publication")
-
-        Notes:
-            - Search is case-sensitive
-            - Returns False for empty or whitespace-only names
-            - More efficient than Find() when you only need existence check
-            - Use Find() if you need the actual publication object
-
-        See Also:
-            Find, Create
-        """
-        if not name or (isinstance(name, str) and not name.strip()):
-            return False
-
-        return self.Find(name) is not None
-
-    # --- Name and Description Operations ---
-
-    @OperationsMethod
-    def GetName(self, publication_or_hvo, wsHandle=None):
-        """
-        Get the name of a publication.
-
-        Args:
-            publication_or_hvo: Either an ICmPossibility publication object or its HVO.
-            wsHandle: Optional writing system handle. Defaults to analysis WS.
-
-        Returns:
-            str: The publication name, or empty string if not set.
-
-        Raises:
-            FP_NullParameterError: If publication_or_hvo is None.
-
-        Example:
-            >>> pub = project.Publications.Find("Main Dictionary")
-            >>> name = project.Publications.GetName(pub)
-            >>> print(name)
-            Main Dictionary
-
-            >>> # Get name in specific writing system
-            >>> name_es = project.Publications.GetName(pub,
-            ...                                        project.WSHandle('es'))
-
-        Notes:
-            - Returns empty string if name not set in specified writing system
-            - Names can be set in multiple writing systems
-            - Default writing system is the default analysis WS
-
-        See Also:
-            SetName, GetDescription
-        """
-        self._ValidateParam(publication_or_hvo, "publication_or_hvo")
-
-        publication = self.__ResolveObject(publication_or_hvo)
-        wsHandle = self.__WSHandle(wsHandle)
-
-        name = ITsString(publication.Name.get_String(wsHandle)).Text
-        return name or ""
-
-    @OperationsMethod
-    def SetName(self, publication_or_hvo, name, wsHandle=None):
-        """
-        Set the name of a publication.
-
-        Args:
-            publication_or_hvo: Either an ICmPossibility publication object or its HVO.
-            name (str): The new name.
-            wsHandle: Optional writing system handle. Defaults to analysis WS.
-
-        Raises:
-            FP_ReadOnlyError: If the project is not opened with write enabled.
-            FP_NullParameterError: If publication_or_hvo or name is None.
-            FP_ParameterError: If name is empty.
-
-        Example:
-            >>> pub = project.Publications.Find("Old Name")
-            >>> project.Publications.SetName(pub, "New Name")
-            >>> print(project.Publications.GetName(pub))
-            New Name
-
-            >>> # Set name in multiple writing systems
-            >>> project.Publications.SetName(pub, "Dictionary", "en")
-            >>> project.Publications.SetName(pub, "Diccionario", "es")
-
-        Notes:
-            - Empty string is not allowed
-            - Name is stored in the specified writing system
-            - Does not affect other writing systems
-            - Use different writing systems for multilingual names
-
-        See Also:
-            GetName, SetDescription
-        """
-        self._EnsureWriteEnabled()
-
-        self._ValidateParam(publication_or_hvo, "publication_or_hvo")
-        self._ValidateParam(name, "name")
-
-        if not name or not name.strip():
-            raise FP_ParameterError("Name cannot be empty")
-
-        publication = self.__ResolveObject(publication_or_hvo)
-        wsHandle = self.__WSHandle(wsHandle)
-
-        mkstr = TsStringUtils.MakeString(name, wsHandle)
-        publication.Name.set_String(wsHandle, mkstr)
-
-        # Update modification date
-        publication.DateModified = DateTime.Now
-
-    @OperationsMethod
-    def GetDescription(self, publication_or_hvo, wsHandle=None):
-        """
-        Get the description of a publication.
-
-        Args:
-            publication_or_hvo: Either an ICmPossibility publication object or its HVO.
-            wsHandle: Optional writing system handle. Defaults to analysis WS.
-
-        Returns:
-            str: The publication description, or empty string if not set.
-
-        Raises:
-            FP_NullParameterError: If publication_or_hvo is None.
-
-        Example:
-            >>> pub = project.Publications.Find("Main Dictionary")
-            >>> desc = project.Publications.GetDescription(pub)
-            >>> print(desc)
-            Primary publication format for comprehensive dictionary.
-            Letter-size pages, two-column layout.
-
-        Notes:
-            - Returns empty string if description not set
-            - Description can be lengthy (multiple paragraphs)
-            - Useful for documenting publication purpose and settings
-            - Can be multilingual (different description per writing system)
-
-        See Also:
-            SetDescription, GetName
-        """
-        self._ValidateParam(publication_or_hvo, "publication_or_hvo")
-
-        publication = self.__ResolveObject(publication_or_hvo)
-        wsHandle = self.__WSHandle(wsHandle)
-
-        if hasattr(publication, "Description"):
-            desc = ITsString(publication.Description.get_String(wsHandle)).Text
-            return desc or ""
-
-        return ""
-
-    @OperationsMethod
-    def SetDescription(self, publication_or_hvo, description, wsHandle=None):
-        """
-        Set the description of a publication.
-
-        Args:
-            publication_or_hvo: Either an ICmPossibility publication object or its HVO.
-            description (str): The new description text.
-            wsHandle: Optional writing system handle. Defaults to analysis WS.
-
-        Raises:
-            FP_ReadOnlyError: If the project is not opened with write enabled.
-            FP_NullParameterError: If publication_or_hvo or description is None.
-
-        Example:
-            >>> pub = project.Publications.Find("Main Dictionary")
-            >>> desc = ("Primary publication format.\\n"
-            ...         "Letter-size pages, two-column layout.\\n"
-            ...         "Includes main entries and subentries.")
-            >>> project.Publications.SetDescription(pub, desc)
-
-            >>> # Clear description
-            >>> project.Publications.SetDescription(pub, "")
-
-        Notes:
-            - Empty string is allowed (clears the description)
-            - Description is stored in the specified writing system
-            - Use newlines for formatting if needed
-            - Good place for publication settings documentation
-
-        See Also:
-            GetDescription, SetName
-        """
-        self._EnsureWriteEnabled()
-
-        self._ValidateParam(publication_or_hvo, "publication_or_hvo")
-        self._ValidateParam(description, "description")
-
-        publication = self.__ResolveObject(publication_or_hvo)
-        wsHandle = self.__WSHandle(wsHandle)
-
-        if hasattr(publication, "Description"):
-            mkstr = TsStringUtils.MakeString(description, wsHandle)
-            publication.Description.set_String(wsHandle, mkstr)
-
-            # Update modification date
-            publication.DateModified = DateTime.Now
+            # Return only top-level publications
+            return list(list_obj.PossibilitiesOS)
 
     # --- Publishing Properties ---
 
@@ -794,8 +215,8 @@ class PublicationOperations(BaseOperations):
         """
         self._ValidateParam(publication_or_hvo, "publication_or_hvo")
 
-        publication = self.__ResolveObject(publication_or_hvo)
-        wsHandle = self.__WSHandle(wsHandle)
+        publication = self._PossibilityItemOperations__ResolveObject(publication_or_hvo)
+        wsHandle = self._PossibilityItemOperations__WSHandle(wsHandle)
 
         # Use Abbreviation field for page layout description
         if hasattr(publication, "Abbreviation"):
@@ -840,8 +261,8 @@ class PublicationOperations(BaseOperations):
         self._ValidateParam(publication_or_hvo, "publication_or_hvo")
         self._ValidateParam(layout, "layout")
 
-        publication = self.__ResolveObject(publication_or_hvo)
-        wsHandle = self.__WSHandle(wsHandle)
+        publication = self._PossibilityItemOperations__ResolveObject(publication_or_hvo)
+        wsHandle = self._PossibilityItemOperations__WSHandle(wsHandle)
 
         if hasattr(publication, "Abbreviation"):
             mkstr = TsStringUtils.MakeString(layout, wsHandle)
@@ -892,7 +313,7 @@ class PublicationOperations(BaseOperations):
         """
         self._ValidateParam(publication_or_hvo, "publication_or_hvo")
 
-        publication = self.__ResolveObject(publication_or_hvo)
+        publication = self._PossibilityItemOperations__ResolveObject(publication_or_hvo)
 
         # Check if this publication is the default
         # Default is typically the first publication or marked by IsDefault property
@@ -939,7 +360,7 @@ class PublicationOperations(BaseOperations):
         self._ValidateParam(publication_or_hvo, "publication_or_hvo")
         self._ValidateParam(is_default, "is_default")
 
-        publication = self.__ResolveObject(publication_or_hvo)
+        publication = self._PossibilityItemOperations__ResolveObject(publication_or_hvo)
 
         pub_list = self.project.lexDB.PublicationTypesOA
         if not pub_list:
@@ -1000,7 +421,7 @@ class PublicationOperations(BaseOperations):
         """
         self._ValidateParam(publication_or_hvo, "publication_or_hvo")
 
-        publication = self.__ResolveObject(publication_or_hvo)
+        publication = self._PossibilityItemOperations__ResolveObject(publication_or_hvo)
 
         # Store in SortKey2 field (encoded as integer, divide by 1000 for inches)
         if hasattr(publication, "SortKey2") and publication.SortKey2 != 0:
@@ -1055,7 +476,7 @@ class PublicationOperations(BaseOperations):
         if h <= 0:
             raise FP_ParameterError("Height must be positive")
 
-        publication = self.__ResolveObject(publication_or_hvo)
+        publication = self._PossibilityItemOperations__ResolveObject(publication_or_hvo)
 
         # Store in SortKey2 field (multiply by 1000 to store as integer)
         if hasattr(publication, "SortKey2"):
@@ -1095,7 +516,7 @@ class PublicationOperations(BaseOperations):
         Notes:
             - Returns None if page width is not set
             - Width is in inches (standard US measurement)
-            - Common sizes: 8.5 (Letter), 8.27 (A4), 8.5 (Legal)
+            - Common sizes: 8.5 (Letter/Legal), 8.27 (A4)
             - Use with GetPageHeight() to get full page dimensions
 
         See Also:
@@ -1103,7 +524,7 @@ class PublicationOperations(BaseOperations):
         """
         self._ValidateParam(publication_or_hvo, "publication_or_hvo")
 
-        publication = self.__ResolveObject(publication_or_hvo)
+        publication = self._PossibilityItemOperations__ResolveObject(publication_or_hvo)
 
         # Store in SortKey field (encoded as integer, divide by 1000 for inches)
         if hasattr(publication, "SortKey") and publication.SortKey != 0:
@@ -1158,7 +579,7 @@ class PublicationOperations(BaseOperations):
         if w <= 0:
             raise FP_ParameterError("Width must be positive")
 
-        publication = self.__ResolveObject(publication_or_hvo)
+        publication = self._PossibilityItemOperations__ResolveObject(publication_or_hvo)
 
         # Store in SortKey field (multiply by 1000 to store as integer)
         if hasattr(publication, "SortKey"):
@@ -1204,7 +625,7 @@ class PublicationOperations(BaseOperations):
         """
         self._ValidateParam(publication_or_hvo, "publication_or_hvo")
 
-        publication = self.__ResolveObject(publication_or_hvo)
+        publication = self._PossibilityItemOperations__ResolveObject(publication_or_hvo)
 
         # Divisions are stored as sub-possibilities
         if hasattr(publication, "SubPossibilitiesOS"):
@@ -1258,8 +679,8 @@ class PublicationOperations(BaseOperations):
         if not division_name or not division_name.strip():
             raise FP_ParameterError("Division name cannot be empty")
 
-        publication = self.__ResolveObject(publication_or_hvo)
-        wsHandle = self.__WSHandle(wsHandle)
+        publication = self._PossibilityItemOperations__ResolveObject(publication_or_hvo)
+        wsHandle = self._PossibilityItemOperations__WSHandle(wsHandle)
 
         # Create the new division using the factory
         factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
@@ -1311,8 +732,8 @@ class PublicationOperations(BaseOperations):
         """
         self._ValidateParam(publication_or_hvo, "publication_or_hvo")
 
-        publication = self.__ResolveObject(publication_or_hvo)
-        wsHandle = self.__WSHandle(wsHandle)
+        publication = self._PossibilityItemOperations__ResolveObject(publication_or_hvo)
+        wsHandle = self._PossibilityItemOperations__WSHandle(wsHandle)
 
         # Use Comment field for header/footer information
         if hasattr(publication, "Comment"):
@@ -1365,7 +786,7 @@ class PublicationOperations(BaseOperations):
         """
         self._ValidateParam(publication_or_hvo, "publication_or_hvo")
 
-        publication = self.__ResolveObject(publication_or_hvo)
+        publication = self._PossibilityItemOperations__ResolveObject(publication_or_hvo)
 
         # Check for IsLandscape property
         if hasattr(publication, "IsLandscape"):
@@ -1406,7 +827,7 @@ class PublicationOperations(BaseOperations):
         """
         self._ValidateParam(publication_or_hvo, "publication_or_hvo")
 
-        publication = self.__ResolveObject(publication_or_hvo)
+        publication = self._PossibilityItemOperations__ResolveObject(publication_or_hvo)
 
         if hasattr(publication, "SubPossibilitiesOS"):
             return list(publication.SubPossibilitiesOS)
@@ -1444,7 +865,7 @@ class PublicationOperations(BaseOperations):
         """
         self._ValidateParam(publication_or_hvo, "publication_or_hvo")
 
-        publication = self.__ResolveObject(publication_or_hvo)
+        publication = self._PossibilityItemOperations__ResolveObject(publication_or_hvo)
         owner = publication.Owner
 
         # Check if owner is a publication (sub-publication) or the list (top-level)
@@ -1455,45 +876,6 @@ class PublicationOperations(BaseOperations):
         return None
 
     # --- Metadata Operations ---
-
-    @OperationsMethod
-    def GetGuid(self, publication_or_hvo):
-        """
-        Get the GUID (Globally Unique Identifier) of a publication.
-
-        Args:
-            publication_or_hvo: Either an ICmPossibility publication object or its HVO.
-
-        Returns:
-            System.Guid: The publication's GUID.
-
-        Raises:
-            FP_NullParameterError: If publication_or_hvo is None.
-
-        Example:
-            >>> pub = project.Publications.Find("Main Dictionary")
-            >>> guid = project.Publications.GetGuid(pub)
-            >>> print(guid)
-            a1b2c3d4-e5f6-7890-abcd-ef1234567890
-
-            >>> # Use GUID to retrieve publication later
-            >>> pub2 = project.Object(guid)
-            >>> print(project.Publications.GetName(pub2))
-            Main Dictionary
-
-        Notes:
-            - GUIDs are unique across all FLEx projects
-            - GUIDs are persistent (don't change)
-            - Useful for linking publications across projects
-            - Can be used with FLExProject.Object() to retrieve publication
-
-        See Also:
-            FLExProject.Object
-        """
-        self._ValidateParam(publication_or_hvo, "publication_or_hvo")
-
-        publication = self.__ResolveObject(publication_or_hvo)
-        return publication.Guid
 
     @OperationsMethod
     def GetDateCreated(self, publication_or_hvo):
@@ -1532,7 +914,7 @@ class PublicationOperations(BaseOperations):
         """
         self._ValidateParam(publication_or_hvo, "publication_or_hvo")
 
-        publication = self.__ResolveObject(publication_or_hvo)
+        publication = self._PossibilityItemOperations__ResolveObject(publication_or_hvo)
 
         if hasattr(publication, "DateCreated"):
             return publication.DateCreated
@@ -1579,45 +961,9 @@ class PublicationOperations(BaseOperations):
         """
         self._ValidateParam(publication_or_hvo, "publication_or_hvo")
 
-        publication = self.__ResolveObject(publication_or_hvo)
+        publication = self._PossibilityItemOperations__ResolveObject(publication_or_hvo)
 
         if hasattr(publication, "DateModified"):
             return publication.DateModified
 
         return None
-
-    # --- Private Helper Methods ---
-
-    def __ResolveObject(self, publication_or_hvo):
-        """
-        Resolve HVO or object to ICmPossibility.
-
-        Args:
-            publication_or_hvo: Either an ICmPossibility object or an HVO (int).
-
-        Returns:
-            ICmPossibility: The resolved publication object.
-
-        Raises:
-            FP_ParameterError: If HVO doesn't refer to a publication.
-        """
-        if isinstance(publication_or_hvo, int):
-            obj = self.project.Object(publication_or_hvo)
-            if not isinstance(obj, ICmPossibility):
-                raise FP_ParameterError("HVO does not refer to a publication")
-            return obj
-        return publication_or_hvo
-
-    def __WSHandle(self, wsHandle):
-        """
-        Get writing system handle, defaulting to analysis WS.
-
-        Args:
-            wsHandle: Optional writing system handle.
-
-        Returns:
-            int: The writing system handle.
-        """
-        if wsHandle is None:
-            return self.project.project.DefaultAnalWs
-        return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultAnalWs)
