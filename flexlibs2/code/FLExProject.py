@@ -1067,47 +1067,6 @@ class FLExProject(object):
         return self._lexref_ops
 
     @property
-    def Reversal(self):
-        """
-        Access to reversal entry operations.
-
-        Returns:
-            ReversalOperations: Instance providing reversal entry management methods
-
-        DEPRECATED: Use project.ReversalIndexes and project.ReversalEntries instead.
-        The bundled API will be removed in flexlibs2 v3.0.
-        See docs/REVERSAL_API_MIGRATION.md for migration guide.
-
-        Example:
-            >>> project = FLExProject()
-            >>> project.OpenProject("MyProject", writeEnabled=True)
-            >>> # Get all reversal indexes
-            >>> for index in project.Reversal.GetAllIndexes():
-            ...     ws = index.WritingSystem
-            ...     print(f"Reversal index: {ws}")
-            >>> # Get English reversal index
-            >>> en_index = project.Reversal.GetIndex("en")
-            >>> if en_index:
-            ...     # Get all entries
-            ...     for entry in project.Reversal.GetAll(en_index):
-            ...         form = project.Reversal.GetForm(entry)
-            ...         print(f"Reversal: {form}")
-            ...     # Create a new reversal entry
-            ...     entry = project.Reversal.Create(en_index, "run", "en")
-            ...     # Link to a sense
-            ...     lexentry = project.LexEntry.Find("run")
-            ...     if lexentry:
-            ...         senses = project.LexEntry.GetSenses(lexentry)
-            ...         if senses:
-            ...             project.Reversal.AddSense(entry, senses[0])
-        """
-        if "_reversal_ops" not in self.__dict__:
-            from .Lexicon.ReversalOperations import ReversalOperations
-
-            self._reversal_ops = ReversalOperations(self)
-        return self._reversal_ops
-
-    @property
     def ReversalIndexes(self):
         """
         Access to reversal index operations (Work Stream 3).
@@ -3992,55 +3951,6 @@ class FLExProject(object):
            This method delegates to :meth:`PublicationOperations.Find`.
         """
         return self.Publications.Find(publicationName)
-
-    # --- Reversal Indices ---
-
-    def ReversalIndex(self, languageTag):
-        """
-        Returns the reversal index for `languageTag` (eg 'en').
-        Returns `None` if there is no reversal index for
-        that writing system.
-
-        .. note::
-           This method delegates to :meth:`ReversalOperations.GetIndex`.
-        """
-        return self.Reversal.GetIndex(languageTag)
-
-    def ReversalEntries(self, languageTag):
-        """
-        Returns an iterator for the reversal entries for `languageTag` (eg 'en').
-        Returns `None` if there is no reversal index for that writing system.
-
-        .. note::
-           This method delegates to :meth:`ReversalOperations.GetIndex` and
-           :meth:`ReversalOperations.GetAll`.
-        """
-        ri = self.Reversal.GetIndex(languageTag)
-        if ri:
-            return iter(self.Reversal.GetAll(ri))
-        else:
-            return None
-
-    def ReversalGetForm(self, entry, languageTagOrHandle=None):
-        """
-        Returns the citation form for the reversal entry in the default
-        vernacular WS or other WS as specified by `languageTagOrHandle`.
-
-        .. note::
-           This method delegates to :meth:`ReversalOperations.GetForm`.
-        """
-        return self.Reversal.GetForm(entry, languageTagOrHandle)
-
-    def ReversalSetForm(self, entry, form, languageTagOrHandle=None):
-        """
-        Sets the default analysis reversal form for the given reversal entry:
-            - `form` is the new reversal form string.
-            - `languageTagOrHandle` specifies a non-default writing system.
-
-        .. note::
-           This method delegates to :meth:`ReversalOperations.SetForm`.
-        """
-        return self.Reversal.SetForm(entry, form, languageTagOrHandle)
 
     # --- Texts ---
 

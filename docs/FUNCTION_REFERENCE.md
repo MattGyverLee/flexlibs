@@ -234,61 +234,10 @@ This document lists ALL functions in flexlibs v2.0.0, organized by the 14 implem
 
 ## Phase 3: Reversal Index Operations
 
-### ReversalOperations
-
-#### `project.Reversal.GetAllIndexes()`
-**Replaces:** `ILexDb.ReversalIndexesOC` list conversion
-
-#### `project.Reversal.GetIndex(ws)`
-**Replaces:** Iteration through `ILexDb.ReversalIndexesOC` with writing system matching
-
-#### `project.Reversal.FindIndex(ws)`
-**Replaces:** Alias for `GetIndex()` - same LibLCM calls
-
-#### `project.Reversal.GetAll(reversal_index)`
-**Replaces:** `IReversalIndex.EntriesOC` list conversion
-
-#### `project.Reversal.Create(reversal_index, form, ws=None)`
-**Replaces:** `IReversalIndexEntryFactory.Create()`, `TsStringUtils.MakeString()`, `IReversalIndexEntry.ReversalForm.set_String()`, `IReversalIndex.EntriesOC.Add()`
-
-#### `project.Reversal.Delete(reversal_entry)`
-**Replaces:** `IReversalIndex.EntriesOC.Remove()`
-
-#### `project.Reversal.Find(reversal_index, form, ws=None)`
-**Replaces:** Iteration through `IReversalIndex.EntriesOC` with form matching
-
-#### `project.Reversal.Exists(reversal_index, form, ws=None)`
-**Replaces:** Search through `IReversalIndex.EntriesOC` existence check
-
-#### `project.Reversal.GetForm(reversal_entry, ws=None)`
-**Replaces:** `IReversalIndexEntry.ReversalForm.get_String()`, `ITsString.Text`
-
-#### `project.Reversal.SetForm(reversal_entry, text, ws=None)`
-**Replaces:** `TsStringUtils.MakeString()`, `IReversalIndexEntry.ReversalForm.set_String()`
-
-#### `project.Reversal.GetSenses(reversal_entry)`
-**Replaces:** `IReversalIndexEntry.SensesRS` list conversion
-
-#### `project.Reversal.AddSense(reversal_entry, sense)`
-**Replaces:** `IReversalIndexEntry.SensesRS.Add()`
-
-#### `project.Reversal.RemoveSense(reversal_entry, sense)`
-**Replaces:** `IReversalIndexEntry.SensesRS.Remove()`
-
-#### `project.Reversal.GetSenseCount(reversal_entry)`
-**Replaces:** `IReversalIndexEntry.SensesRS.Count`
-
-#### `project.Reversal.GetSubentries(reversal_entry)`
-**Replaces:** `IReversalIndexEntry.SubentriesOS` list conversion
-
-#### `project.Reversal.CreateSubentry(parent_entry, form, ws=None)`
-**Replaces:** `IReversalIndexEntryFactory.Create()`, `IReversalIndexEntry.SubentriesOS.Add()`
-
-#### `project.Reversal.GetParentEntry(reversal_entry)`
-**Replaces:** `IReversalIndexEntry.Owner` property access with type checking
-
-#### `project.Reversal.GetPartsOfSpeech(reversal_entry)`
-**Replaces:** `IReversalIndexEntry.PartsOfSpeechRC` list conversion
+> **REMOVED in v3.0**: The bundled `project.Reversal` API has been removed.
+> Use the modular APIs instead:
+> - `project.ReversalIndexes` - for index-level operations
+> - `project.ReversalEntries` - for entry-level operations
 
 ---
 
