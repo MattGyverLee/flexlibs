@@ -694,7 +694,18 @@ class ReversalOperations(BaseOperations):
 
         See Also:
             AddSense, RemoveSense, GetSenseCount
+
+        DEPRECATED: Use project.ReversalEntries.GetSenses() instead.
+        This method will be removed in flexlibs2 v3.0.
+        See docs/REVERSAL_API_MIGRATION.md for migration guide.
         """
+        import warnings
+        warnings.warn(
+            "ReversalOperations.GetSenses() is deprecated. "
+            "Use project.ReversalEntries.GetSenses() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         self._ValidateParam(reversal_entry, "reversal_entry")
 
         return list(reversal_entry.SensesRS)
@@ -737,7 +748,18 @@ class ReversalOperations(BaseOperations):
 
         See Also:
             RemoveSense, GetSenses, GetSenseCount
+
+        DEPRECATED: Use project.ReversalEntries.AddSense() instead.
+        This method will be removed in flexlibs2 v3.0.
+        See docs/REVERSAL_API_MIGRATION.md for migration guide.
         """
+        import warnings
+        warnings.warn(
+            "ReversalOperations.AddSense() is deprecated. "
+            "Use project.ReversalEntries.AddSense() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         self._EnsureWriteEnabled()
 
         self._ValidateParam(reversal_entry, "reversal_entry")
@@ -780,7 +802,18 @@ class ReversalOperations(BaseOperations):
 
         See Also:
             AddSense, GetSenses, GetSenseCount
+
+        DEPRECATED: Use project.ReversalEntries.RemoveSense() instead.
+        This method will be removed in flexlibs2 v3.0.
+        See docs/REVERSAL_API_MIGRATION.md for migration guide.
         """
+        import warnings
+        warnings.warn(
+            "ReversalOperations.RemoveSense() is deprecated. "
+            "Use project.ReversalEntries.RemoveSense() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         self._EnsureWriteEnabled()
 
         self._ValidateParam(reversal_entry, "reversal_entry")
