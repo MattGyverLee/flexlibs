@@ -665,7 +665,7 @@ class FLExProject(object):
             ...     project.Wordforms.SetApprovedAnalysis(wf, wf.AnalysesOC[0])
         """
         if "_wordform_ops" not in self.__dict__:
-            from .Wordform.WfiWordformOperations import WfiWordformOperations
+            from .TextsWords.WordformOperations import WordformOperations as WfiWordformOperations
 
             self._wordform_ops = WfiWordformOperations(self)
         return self._wordform_ops
@@ -694,7 +694,7 @@ class FLExProject(object):
             >>> bundles = project.WfiAnalyses.GetMorphBundles(analysis)
         """
         if "_wfianalysis_ops" not in self.__dict__:
-            from .Wordform.WfiAnalysisOperations import WfiAnalysisOperations
+            from .TextsWords.WfiAnalysisOperations import WfiAnalysisOperations
 
             self._wfianalysis_ops = WfiAnalysisOperations(self)
         return self._wfianalysis_ops
@@ -1415,7 +1415,7 @@ class FLExProject(object):
             ...         print(f"Gloss: {form}")
         """
         if "_wfigloss_ops" not in self.__dict__:
-            from .Wordform.WfiGlossOperations import WfiGlossOperations
+            from .TextsWords.WfiGlossOperations import WfiGlossOperations
 
             self._wfigloss_ops = WfiGlossOperations(self)
         return self._wfigloss_ops
@@ -1443,7 +1443,7 @@ class FLExProject(object):
             >>> project.WfiMorphBundles.SetMorphemeType(stem, "stem")
         """
         if "_wfimorphbundle_ops" not in self.__dict__:
-            from .Wordform.WfiMorphBundleOperations import WfiMorphBundleOperations
+            from .TextsWords.WfiMorphBundleOperations import WfiMorphBundleOperations
 
             self._wfimorphbundle_ops = WfiMorphBundleOperations(self)
         return self._wfimorphbundle_ops
