@@ -18,12 +18,9 @@ from .exceptions import (
     FP_NullParameterError,
     FP_ParameterError,
 )
+from .Shared.lcm_constants import OWNING_SEQUENCE_SUFFIX
 
 # --- Constants ---------------------------------------------------------------
-
-# Suffix used to identify owning sequence properties in LCM
-# LCM convention: owning sequences end with "OS" (e.g., "EntryRefsOS", "MorphsOS")
-OWNING_SEQUENCE_SUFFIX = "OS"
 
 
 class EnumerableWrapper:

@@ -41,7 +41,7 @@ class _FLExTransaction:
         This class is internal. Obtain instances via FLExProject.Transaction().
     """
 
-    def __init__(self, project, label, mark_fn, rollback_fn):
+    def __init__(self, project, label: str, mark_fn, rollback_fn) -> None:
         """
         Initialize transaction.
 
@@ -58,7 +58,7 @@ class _FLExTransaction:
         self._mark = None
         self._committed = False
 
-    def __enter__(self):
+    def __enter__(self) -> "_FLExTransaction":
         """
         Enter the transaction context.
 
@@ -81,7 +81,7 @@ class _FLExTransaction:
 
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
         """
         Exit the transaction context.
 

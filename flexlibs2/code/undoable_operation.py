@@ -41,7 +41,7 @@ class _FLExUndoableOperation:
         Requires the project to be opened with undoable=True.
     """
 
-    def __init__(self, project, label, begin_undo_fn, end_undo_fn):
+    def __init__(self, project, label: str, begin_undo_fn, end_undo_fn) -> None:
         """
         Initialize undoable operation.
 
@@ -57,7 +57,7 @@ class _FLExUndoableOperation:
         self._end_undo_fn = end_undo_fn
         self._started = False
 
-    def __enter__(self):
+    def __enter__(self) -> "_FLExUndoableOperation":
         """
         Start the undoable operation.
 
@@ -65,11 +65,13 @@ class _FLExUndoableOperation:
         If the project is not in undoable mode, raises FP_TransactionError.
         """
         if not self._project.writeEnabled:
+            # Lazy import to prevent circular dependency: FLExProject imports undoable_operation at module level
             from .FLExProject import FP_ReadOnlyError
 
             raise FP_ReadOnlyError()
 
         if not self._project._undoable:
+            # Lazy import to prevent circular dependency: FLExProject imports undoable_operation at module level
             from .FLExProject import FP_TransactionError
 
             raise FP_TransactionError(
@@ -87,7 +89,7 @@ class _FLExUndoableOperation:
 
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
         """
         End the undoable operation.
 

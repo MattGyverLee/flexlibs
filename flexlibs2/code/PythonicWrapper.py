@@ -47,8 +47,7 @@ Usage::
         print(p(sense).Gloss)
 """
 
-# Suffixes in order of preference (most common first)
-SUFFIXES = ("OS", "OC", "OA", "RS", "RC", "RA")
+from .Shared.lcm_constants import SUFFIXES
 
 
 class PythonicWrapper:

@@ -32,7 +32,7 @@ clr.AddReference("SIL.LCModel.Core")
 
 # Classes needed for loading the Cache
 from SIL.LCModel import LcmCache, LcmSettings, LcmFileHelper
-from SIL.LCModel.Core.Cellar import CellarPropertyType
+from SIL.LCModel.Core.Cellar import CellarPropertyType as _LCMCellarPropertyType
 
 from SIL.FieldWorks import ProjectId
 from SIL.FieldWorks.Common.Controls import ProgressDialogWithTask
@@ -42,12 +42,15 @@ from SIL.FieldWorks.Common.FwUtils import FwUtils
 from SIL.FieldWorks.FdoUi import FwLcmUI
 from SIL.FieldWorks.FwCoreDlgs import ChooseLangProjectDialog
 
+# Import Python mirror of CellarPropertyType constants
+from .Shared.lcm_constants import CellarPropertyType
+
 # --- Globals --------------------------------------------------------
 
 CellarStringTypes = {
-    CellarPropertyType.String,
+    _LCMCellarPropertyType.String,
 }
-CellarMultiStringTypes = {CellarPropertyType.MultiUnicode, CellarPropertyType.MultiString}
+CellarMultiStringTypes = {_LCMCellarPropertyType.MultiUnicode, _LCMCellarPropertyType.MultiString}
 CellarAllStringTypes = CellarStringTypes | CellarMultiStringTypes
 # -----------------------------------------------------------
 
