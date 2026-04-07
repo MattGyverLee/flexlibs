@@ -1074,6 +1074,10 @@ class FLExProject(object):
         Returns:
             ReversalOperations: Instance providing reversal entry management methods
 
+        DEPRECATED: Use project.ReversalIndexes and project.ReversalEntries instead.
+        The bundled API will be removed in flexlibs2 v3.0.
+        See docs/REVERSAL_API_MIGRATION.md for migration guide.
+
         Example:
             >>> project = FLExProject()
             >>> project.OpenProject("MyProject", writeEnabled=True)

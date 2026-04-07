@@ -114,7 +114,18 @@ class ReversalOperations(BaseOperations):
 
         See Also:
             GetIndex, FindIndex
+
+        DEPRECATED: Use project.ReversalIndexes.GetAll() instead.
+        This method will be removed in flexlibs2 v3.0.
+        See docs/REVERSAL_API_MIGRATION.md for migration guide.
         """
+        import warnings
+        warnings.warn(
+            "ReversalOperations.GetAllIndexes() is deprecated. "
+            "Use project.ReversalIndexes.GetAll() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         return list(self.project.lexDB.ReversalIndexesOC)
 
     @OperationsMethod
@@ -150,7 +161,18 @@ class ReversalOperations(BaseOperations):
 
         See Also:
             GetAllIndexes, FindIndex
+
+        DEPRECATED: Use project.ReversalIndexes.Find(name) instead.
+        This method will be removed in flexlibs2 v3.0.
+        See docs/REVERSAL_API_MIGRATION.md for migration guide.
         """
+        import warnings
+        warnings.warn(
+            "ReversalOperations.GetIndex() is deprecated. "
+            "Use project.ReversalIndexes.Find(name) instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         self._ValidateParam(ws, "ws")
 
         ws_normalized = self.__NormalizeLangTag(ws)
@@ -186,7 +208,18 @@ class ReversalOperations(BaseOperations):
 
         See Also:
             GetIndex, GetAllIndexes
+
+        DEPRECATED: Use project.ReversalIndexes.FindByWritingSystem(name) instead.
+        This method will be removed in flexlibs2 v3.0.
+        See docs/REVERSAL_API_MIGRATION.md for migration guide.
         """
+        import warnings
+        warnings.warn(
+            "ReversalOperations.FindIndex() is deprecated. "
+            "Use project.ReversalIndexes.FindByWritingSystem(name) instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         return self.GetIndex(ws)
 
     # --- Entry CRUD Operations ---
@@ -225,7 +258,18 @@ class ReversalOperations(BaseOperations):
 
         See Also:
             Create, Find, GetForm
+
+        DEPRECATED: Use project.ReversalEntries.GetAll() instead.
+        This method will be removed in flexlibs2 v3.0.
+        See docs/REVERSAL_API_MIGRATION.md for migration guide.
         """
+        import warnings
+        warnings.warn(
+            "ReversalOperations.GetAll() is deprecated. "
+            "Use project.ReversalEntries.GetAll() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         self._ValidateParam(reversal_index, "reversal_index")
 
         return list(reversal_index.EntriesOC)
@@ -269,7 +313,18 @@ class ReversalOperations(BaseOperations):
 
         See Also:
             Delete, Exists, Find, AddSense
+
+        DEPRECATED: Use project.ReversalEntries.Create() instead.
+        This method will be removed in flexlibs2 v3.0.
+        See docs/REVERSAL_API_MIGRATION.md for migration guide.
         """
+        import warnings
+        warnings.warn(
+            "ReversalOperations.Create() is deprecated. "
+            "Use project.ReversalEntries.Create() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         self._EnsureWriteEnabled()
 
         self._ValidateParam(reversal_index, "reversal_index")
@@ -328,7 +383,18 @@ class ReversalOperations(BaseOperations):
 
         See Also:
             Create, RemoveSense
+
+        DEPRECATED: Use project.ReversalEntries.Delete() instead.
+        This method will be removed in flexlibs2 v3.0.
+        See docs/REVERSAL_API_MIGRATION.md for migration guide.
         """
+        import warnings
+        warnings.warn(
+            "ReversalOperations.Delete() is deprecated. "
+            "Use project.ReversalEntries.Delete() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         self._EnsureWriteEnabled()
 
         self._ValidateParam(reversal_entry, "reversal_entry")
@@ -374,7 +440,18 @@ class ReversalOperations(BaseOperations):
 
         See Also:
             Exists, GetAll, Create
+
+        DEPRECATED: Use project.ReversalEntries.Find() instead.
+        This method will be removed in flexlibs2 v3.0.
+        See docs/REVERSAL_API_MIGRATION.md for migration guide.
         """
+        import warnings
+        warnings.warn(
+            "ReversalOperations.Find() is deprecated. "
+            "Use project.ReversalEntries.Find() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         self._ValidateParam(reversal_index, "reversal_index")
         self._ValidateParam(form, "form")
 
@@ -427,7 +504,18 @@ class ReversalOperations(BaseOperations):
 
         See Also:
             Find, Create
+
+        DEPRECATED: Use project.ReversalEntries.Exists() instead.
+        This method will be removed in flexlibs2 v3.0.
+        See docs/REVERSAL_API_MIGRATION.md for migration guide.
         """
+        import warnings
+        warnings.warn(
+            "ReversalOperations.Exists() is deprecated. "
+            "Use project.ReversalEntries.Exists() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         self._ValidateParam(reversal_index, "reversal_index")
         self._ValidateParam(form, "form")
 
@@ -474,7 +562,18 @@ class ReversalOperations(BaseOperations):
 
         See Also:
             SetForm, Find
+
+        DEPRECATED: Use project.ReversalEntries.GetForm() instead.
+        This method will be removed in flexlibs2 v3.0.
+        See docs/REVERSAL_API_MIGRATION.md for migration guide.
         """
+        import warnings
+        warnings.warn(
+            "ReversalOperations.GetForm() is deprecated. "
+            "Use project.ReversalEntries.GetForm() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         self._ValidateParam(reversal_entry, "reversal_entry")
 
         # Use reversal index's writing system if not specified
@@ -523,7 +622,18 @@ class ReversalOperations(BaseOperations):
 
         See Also:
             GetForm, Create
+
+        DEPRECATED: Use project.ReversalEntries.SetForm() instead.
+        This method will be removed in flexlibs2 v3.0.
+        See docs/REVERSAL_API_MIGRATION.md for migration guide.
         """
+        import warnings
+        warnings.warn(
+            "ReversalOperations.SetForm() is deprecated. "
+            "Use project.ReversalEntries.SetForm() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         self._EnsureWriteEnabled()
 
         self._ValidateParam(reversal_entry, "reversal_entry")
@@ -756,7 +866,18 @@ class ReversalOperations(BaseOperations):
 
         See Also:
             CreateSubentry, GetParentEntry
+
+        DEPRECATED: Use project.ReversalEntries.GetSubentries() instead.
+        This method will be removed in flexlibs2 v3.0.
+        See docs/REVERSAL_API_MIGRATION.md for migration guide.
         """
+        import warnings
+        warnings.warn(
+            "ReversalOperations.GetSubentries() is deprecated. "
+            "Use project.ReversalEntries.GetSubentries() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         self._ValidateParam(reversal_entry, "reversal_entry")
 
         return list(reversal_entry.SubentriesOS)
@@ -804,7 +925,18 @@ class ReversalOperations(BaseOperations):
 
         See Also:
             GetSubentries, GetParentEntry, Create
+
+        DEPRECATED: Use project.ReversalEntries.CreateSubentry() instead.
+        This method will be removed in flexlibs2 v3.0.
+        See docs/REVERSAL_API_MIGRATION.md for migration guide.
         """
+        import warnings
+        warnings.warn(
+            "ReversalOperations.CreateSubentry() is deprecated. "
+            "Use project.ReversalEntries.CreateSubentry() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         self._EnsureWriteEnabled()
 
         self._ValidateParam(parent_entry, "parent_entry")
@@ -871,7 +1003,18 @@ class ReversalOperations(BaseOperations):
 
         See Also:
             GetSubentries, CreateSubentry
+
+        DEPRECATED: Use project.ReversalEntries.GetParentEntry() instead.
+        This method will be removed in flexlibs2 v3.0.
+        See docs/REVERSAL_API_MIGRATION.md for migration guide.
         """
+        import warnings
+        warnings.warn(
+            "ReversalOperations.GetParentEntry() is deprecated. "
+            "Use project.ReversalEntries.GetParentEntry() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         self._ValidateParam(reversal_entry, "reversal_entry")
 
         # Check if this entry has an owner
@@ -920,7 +1063,18 @@ class ReversalOperations(BaseOperations):
 
         See Also:
             GetSenses, GetForm
+
+        DEPRECATED: Use project.ReversalEntries.GetPartsOfSpeech() instead.
+        This method will be removed in flexlibs2 v3.0.
+        See docs/REVERSAL_API_MIGRATION.md for migration guide.
         """
+        import warnings
+        warnings.warn(
+            "ReversalOperations.GetPartsOfSpeech() is deprecated. "
+            "Use project.ReversalEntries.GetPartsOfSpeech() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         self._ValidateParam(reversal_entry, "reversal_entry")
 
         return list(reversal_entry.PartsOfSpeechRC)
@@ -971,7 +1125,18 @@ class ReversalOperations(BaseOperations):
 
         See Also:
             Create, Delete, CreateSubentry
+
+        DEPRECATED: Use project.ReversalEntries.Duplicate() instead.
+        This method will be removed in flexlibs2 v3.0.
+        See docs/REVERSAL_API_MIGRATION.md for migration guide.
         """
+        import warnings
+        warnings.warn(
+            "ReversalOperations.Duplicate() is deprecated. "
+            "Use project.ReversalEntries.Duplicate() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         self._EnsureWriteEnabled()
 
         self._ValidateParam(item_or_hvo, "item_or_hvo")
@@ -1039,7 +1204,18 @@ class ReversalOperations(BaseOperations):
 
         Returns:
             dict: Dictionary mapping property names to their values.
+
+        DEPRECATED: Use project.ReversalEntries.GetSyncableProperties() instead.
+        This method will be removed in flexlibs2 v3.0.
+        See docs/REVERSAL_API_MIGRATION.md for migration guide.
         """
+        import warnings
+        warnings.warn(
+            "ReversalOperations.GetSyncableProperties() is deprecated. "
+            "Use project.ReversalEntries.GetSyncableProperties() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         props = {}
 
         # MultiString properties
@@ -1072,7 +1248,18 @@ class ReversalOperations(BaseOperations):
 
         Returns:
             tuple: (is_different, differences_dict)
+
+        DEPRECATED: Use project.ReversalEntries.CompareTo() instead.
+        This method will be removed in flexlibs2 v3.0.
+        See docs/REVERSAL_API_MIGRATION.md for migration guide.
         """
+        import warnings
+        warnings.warn(
+            "ReversalOperations.CompareTo() is deprecated. "
+            "Use project.ReversalEntries.CompareTo() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         ops1 = ops1 or self
         ops2 = ops2 or self
 
