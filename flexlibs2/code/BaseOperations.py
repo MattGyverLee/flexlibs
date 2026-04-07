@@ -127,8 +127,8 @@ def wrap_enumerable(func):
     Usage::
 
         class MyOperations(BaseOperations):
-            @OperationsMethod
             @wrap_enumerable
+            @OperationsMethod
             def GetAll(self):
                 return self.project.GetAllItems()
 
