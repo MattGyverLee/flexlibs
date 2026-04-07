@@ -11,6 +11,20 @@
 #   Copyright 2025
 #
 
+# --- Imports ------------------------------------------------------------------
+
+from .exceptions import (
+    FP_ReadOnlyError,
+    FP_NullParameterError,
+    FP_ParameterError,
+)
+
+# --- Constants ---------------------------------------------------------------
+
+# Suffix used to identify owning sequence properties in LCM
+# LCM convention: owning sequences end with "OS" (e.g., "EntryRefsOS", "MorphsOS")
+OWNING_SEQUENCE_SUFFIX = "OS"
+
 
 class EnumerableWrapper:
     """
@@ -1283,7 +1297,7 @@ class BaseOperations:
         # Iterate through all properties ending in 'OS' (Owning Sequence)
         parent_type = parent.GetType()
         for prop_info in parent_type.GetProperties():
-            if prop_info.Name.endswith("OS"):
+            if prop_info.Name.endswith(OWNING_SEQUENCE_SUFFIX):
                 try:
                     sequence = prop_info.GetValue(parent, None)
                     if sequence is None or not hasattr(sequence, "Count"):
@@ -1346,11 +1360,7 @@ class BaseOperations:
             - No side effects
         """
         if not self.project.writeEnabled:
-            raise Exception(
-                "Project is read-only or not open. "
-                "Cannot perform modifications. "
-                "Open the project with writeEnabled=True."
-            )
+            raise FP_ReadOnlyError()
 
     def _ValidateParam(self, param: any, param_name: str = "parameter") -> None:
         """
@@ -1394,7 +1404,7 @@ class BaseOperations:
             - Exception message includes parameter name
         """
         if param is None:
-            raise Exception(f"{param_name} cannot be None")
+            raise FP_NullParameterError()
 
     def _ValidateParamNotEmpty(self, param: any, param_name: str = "parameter") -> None:
         """
@@ -1443,9 +1453,9 @@ class BaseOperations:
             - No side effects
         """
         if param is None:
-            raise Exception(f"{param_name} cannot be None")
+            raise FP_NullParameterError()
         if len(param) == 0:
-            raise Exception(f"{param_name} cannot be empty")
+            raise FP_ParameterError(f"{param_name} cannot be empty")
 
     def _ValidateInstanceOf(self, obj: any, expected_type: type, param_name: str = "object") -> None:
         """
@@ -1551,9 +1561,9 @@ class BaseOperations:
         if not isinstance(text, str):
             raise TypeError(f"{param_name} must be a string, got {type(text).__name__}")
         if text is None:
-            raise Exception(f"{param_name} cannot be None")
+            raise FP_NullParameterError()
         if len(text.strip()) == 0:
-            raise Exception(f"{param_name} cannot be empty or contain only whitespace")
+            raise FP_ParameterError(f"{param_name} cannot be empty or contain only whitespace")
 
     def _ValidateIndexBounds(self, index: int, max_count: int, param_name: str = "index") -> None:
         """
