@@ -103,10 +103,6 @@ from .code.Lexicon.SemanticDomainOperations import (
     SemanticDomainOperations,
 )
 
-from .code.Lexicon.ReversalOperations import (
-    ReversalOperations,
-)
-
 from .code.Lexicon.EtymologyOperations import (
     EtymologyOperations,
 )
