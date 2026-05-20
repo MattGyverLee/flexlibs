@@ -259,6 +259,50 @@ class FLExProject(object):
             except Exception:
                 raise
 
+    @property
+    def Cache(self):
+        """
+        The underlying LcmCache. For advanced users dropping to raw LCM.
+
+        Provides discoverable access to the LcmCache instance that backs this
+        project. Most users should prefer the operation classes (e.g.
+        `project.Phonemes`, `project.LexEntry`), but this escape hatch is
+        available for cases where raw LCM access is required.
+
+        Returns:
+            LcmCache: The underlying SIL.LCModel cache instance.
+
+        Example:
+            >>> project = FLExProject()
+            >>> project.OpenProject("MyProject")
+            >>> cache = project.Cache
+            >>> # Use cache.ServiceLocator, cache.MainCacheAccessor, etc.
+        """
+        return self.project
+
+    def GetService(self, interface_type):
+        """
+        Get an LCM service or factory by interface type.
+
+        Discoverable wrapper around
+        `self.project.ServiceLocator.GetService(interface_type)`.
+        Use this to obtain factories and services when no higher-level
+        operation class exposes the functionality you need.
+
+        Args:
+            interface_type: The .NET interface type to resolve
+                (e.g. `IPhPhonemeFactory`).
+
+        Returns:
+            The service or factory instance registered for `interface_type`.
+
+        Example:
+            >>> from SIL.LCModel import IPhPhonemeFactory
+            >>> factory = project.GetService(IPhPhonemeFactory)
+            >>> phoneme = factory.Create()
+        """
+        return self.project.ServiceLocator.GetService(interface_type)
+
     def Transaction(self, label="transaction"):
         """
         Return a context manager for a safe rollback transaction.
@@ -2275,6 +2319,46 @@ class FLExProject(object):
         """
         ws = self.WritingSystems.GetDefaultAnalysis()
         return (self.WritingSystems.GetLanguageTag(ws), self.WritingSystems.GetDisplayName(ws))
+
+    def GetDefaultVernacularWSHandle(self):
+        """
+        Returns the default vernacular writing system as a handle (int)
+        suitable for `TsStringUtils.MakeString(text, ws)` and other
+        multistring accessors.
+
+        Sibling to `GetDefaultVernacularWS()`, which returns a
+        (Language-tag, Name) tuple. Use this method when you need the
+        raw handle for LCM calls; use the tuple-returning method for
+        display.
+
+        Returns:
+            int: The handle of the default vernacular writing system.
+
+        Example:
+            >>> ws = project.GetDefaultVernacularWSHandle()
+            >>> tss = TsStringUtils.MakeString("hello", ws)
+        """
+        return self.WritingSystems.GetDefaultVernacular().Handle
+
+    def GetDefaultAnalysisWSHandle(self):
+        """
+        Returns the default analysis writing system as a handle (int)
+        suitable for `TsStringUtils.MakeString(text, ws)` and other
+        multistring accessors.
+
+        Sibling to `GetDefaultAnalysisWS()`, which returns a
+        (Language-tag, Name) tuple. Use this method when you need the
+        raw handle for LCM calls; use the tuple-returning method for
+        display.
+
+        Returns:
+            int: The handle of the default analysis writing system.
+
+        Example:
+            >>> ws = project.GetDefaultAnalysisWSHandle()
+            >>> tss = TsStringUtils.MakeString("gloss", ws)
+        """
+        return self.WritingSystems.GetDefaultAnalysis().Handle
 
     # --- Media and LinkedFiles support ---
 
