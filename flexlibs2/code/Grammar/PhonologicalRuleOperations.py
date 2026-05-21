@@ -918,13 +918,19 @@ class PhonologicalRuleOperations(BaseOperations):
         Resolve HVO or object to IPhPhonRule.
 
         Args:
-            rule_or_hvo: Either an IPhPhonRule object or an HVO (int).
+            rule_or_hvo: Either an IPhPhonRule object, a PhonologicalRule
+                         wrapper, or an HVO (int).
 
         Returns:
             IPhPhonRule: The resolved rule object.
         """
         if isinstance(rule_or_hvo, int):
             return self.project.Object(rule_or_hvo)
+        # Unwrap PhonologicalRule wrappers (from GetAll()) so collection
+        # operations see the raw IPhSegmentRule. Duck-typed for any
+        # LCMObjectWrapper subclass without importing the class.
+        if hasattr(rule_or_hvo, "_obj") and hasattr(rule_or_hvo, "_concrete"):
+            return rule_or_hvo._obj
         return rule_or_hvo
 
     # ========== SYNC INTEGRATION METHODS ==========

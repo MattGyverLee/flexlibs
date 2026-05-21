@@ -187,5 +187,167 @@ class TestPhonologicalRuleAddOutputSegmentRegression:
                     pass
 
 
+class TestPhonRulesFindDeleteRegression:
+    """
+    Regression coverage for issue #5: PhonologicalRule wrapper / PhonRules
+    operations. Two bugs were fixed:
+
+    Bug 1 — PhonologicalRule.name always returned "":
+        wrapper used self._obj.OwnerOfClass.project.DefaultAnalWs which
+        raised AttributeError (no .project on OwnerOfClass). A bare
+        `except` swallowed the error and returned "". Cascading effect:
+        PhonRules.Find always returned None because it compared against
+        wrapper.name.
+        Fix: use self._obj.Cache.DefaultAnalWs.
+
+    Bug 2 — PhonRules.Delete(wrapper) raised TypeError:
+        __ResolveObject did not unwrap PhonologicalRule wrappers, so
+        ICollection.Contains was handed a Python object instead of an
+        IPhSegmentRule and threw TypeError. Fix: __ResolveObject now
+        duck-types on _obj/_concrete and returns the raw LCM object.
+
+    Cleanup pattern: unique rule names per test + try/finally Delete on
+    the raw LCM rule (looked up by iterating PhonRulesOS and matching on
+    GetName, which doesn't depend on the wrapper.name code path). This
+    mirrors how TestPhonologicalRuleAddOutputSegmentRegression handles
+    cleanup since the writable_project fixture is not transactional.
+    """
+
+    _RULE_NAMES = (
+        "Phase4RegressionRule_NameNotEmpty",
+        "Phase4RegressionRule_FindAfterCreate",
+        "Phase4RegressionRule_DeleteWrapper",
+    )
+
+    def _cleanup_rule_by_name(self, project, rule_name):
+        """
+        Find the raw LCM rule by name (using GetName, NOT wrapper.name —
+        wrapper.name is the very thing under test here) and Delete it.
+        Safe to call even if the rule doesn't exist.
+        """
+        phon_data = project.lp.PhonologicalDataOA
+        if not phon_data or not hasattr(phon_data, "PhonRulesOS"):
+            return
+        targets = []
+        for raw_rule in list(phon_data.PhonRulesOS):
+            try:
+                if project.PhonRules.GetName(raw_rule) == rule_name:
+                    targets.append(raw_rule)
+            except Exception:
+                pass
+        for raw_rule in targets:
+            try:
+                project.PhonRules.Delete(raw_rule)
+            except Exception:
+                pass
+
+    def test_wrapper_name_returns_actual_rule_name_not_empty(self, writable_project):
+        """
+        Issue #5 Bug 1 reproducer: wrapper.name was always returning ""
+        due to a swallowed AttributeError on OwnerOfClass.project. After
+        the fix (Cache.DefaultAnalWs), the wrapper should expose the
+        actual rule name.
+        """
+        rule_name = self._RULE_NAMES[0]
+        self._cleanup_rule_by_name(writable_project, rule_name)
+        try:
+            writable_project.PhonRules.Create(rule_name)
+            # Find the wrapped version via GetAll(). Identify it WITHOUT
+            # relying on wrapper.name (since that's under test) — use
+            # GetName on the underlying raw object.
+            wrappers = list(writable_project.PhonRules.GetAll())
+            wrapped = None
+            for w in wrappers:
+                try:
+                    if writable_project.PhonRules.GetName(w._obj) == rule_name:
+                        wrapped = w
+                        break
+                except Exception:
+                    continue
+            assert wrapped is not None, (
+                "Could not locate created rule via GetAll()"
+            )
+            assert wrapped.name == rule_name, (
+                f"wrapper.name returned {wrapped.name!r}, "
+                f"expected {rule_name!r}"
+            )
+        finally:
+            self._cleanup_rule_by_name(writable_project, rule_name)
+
+    def test_find_returns_rule_after_create(self, writable_project):
+        """
+        Issue #5 Bug 1 cascading consequence: Find iterates GetAll() and
+        compares against wrapper.name. If wrapper.name returned "", Find
+        always returned None. After the fix, Find must locate a freshly
+        created rule.
+        """
+        rule_name = self._RULE_NAMES[1]
+        self._cleanup_rule_by_name(writable_project, rule_name)
+        try:
+            writable_project.PhonRules.Create(rule_name)
+            found = writable_project.PhonRules.Find(rule_name)
+            assert found is not None, (
+                "Find returned None for a rule that was just created — "
+                "wrapper.name regression is back"
+            )
+            assert found.name == rule_name
+        finally:
+            self._cleanup_rule_by_name(writable_project, rule_name)
+
+    def test_delete_accepts_wrapper_from_getall(self, writable_project):
+        """
+        Issue #5 Bug 2 reproducer: Delete(wrapper) used to TypeError on
+        ICollection.Contains because __ResolveObject did not unwrap the
+        PhonologicalRule wrapper. After the fix, passing a wrapper
+        straight from GetAll() must work and the rule must be gone
+        afterwards.
+        """
+        rule_name = self._RULE_NAMES[2]
+        self._cleanup_rule_by_name(writable_project, rule_name)
+        rule_created = False
+        try:
+            writable_project.PhonRules.Create(rule_name)
+            rule_created = True
+
+            # Locate the wrapper via GetAll() without using wrapper.name
+            # (defensive — even if Bug 1 ever resurfaces, this test is
+            # specifically about Bug 2 and shouldn't be tangled with it).
+            wrappers = list(writable_project.PhonRules.GetAll())
+            target = None
+            for w in wrappers:
+                try:
+                    if writable_project.PhonRules.GetName(w._obj) == rule_name:
+                        target = w
+                        break
+                except Exception:
+                    continue
+            assert target is not None, (
+                "Could not find the created rule's wrapper in GetAll()"
+            )
+
+            # This call previously raised TypeError on ICollection.Contains.
+            writable_project.PhonRules.Delete(target)
+            rule_created = False  # successful delete — no further cleanup
+
+            # Confirm the rule was actually removed.
+            phon_data = writable_project.lp.PhonologicalDataOA
+            remaining_names = []
+            if phon_data and hasattr(phon_data, "PhonRulesOS"):
+                for raw_rule in phon_data.PhonRulesOS:
+                    try:
+                        remaining_names.append(
+                            writable_project.PhonRules.GetName(raw_rule)
+                        )
+                    except Exception:
+                        pass
+            assert rule_name not in remaining_names, (
+                f"Delete(wrapper) returned without error but rule "
+                f"{rule_name!r} is still present"
+            )
+        finally:
+            if rule_created:
+                self._cleanup_rule_by_name(writable_project, rule_name)
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

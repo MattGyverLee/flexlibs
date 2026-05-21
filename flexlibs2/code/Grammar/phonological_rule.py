@@ -127,18 +127,14 @@ class PhonologicalRule(LCMObjectWrapper):
 
             print(f"Rule: {wrapped.name}")
         """
-        try:
-            from SIL.LCModel.Core.KernelInterfaces import ITsString
+        from SIL.LCModel.Core.KernelInterfaces import ITsString
 
-            name_multistring = self._obj.Name
-            if name_multistring:
-                # Get from default analysis writing system
-                default_ws = self._obj.OwnerOfClass.project.DefaultAnalWs
-                name_text = ITsString(name_multistring.get_String(default_ws)).Text
-                return name_text or ""
+        name_multistring = self._obj.Name
+        if not name_multistring:
             return ""
-        except Exception:
-            return ""
+        default_ws = self._obj.Cache.DefaultAnalWs
+        name_text = ITsString(name_multistring.get_String(default_ws)).Text
+        return name_text or ""
 
     @property
     def direction(self) -> int:
