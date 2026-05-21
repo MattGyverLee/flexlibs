@@ -314,7 +314,7 @@ def parse_etic_gloss_list(path):
 # --- Tree navigation ---------------------------------------------------------
 
 
-_KNOWN_CATALOG_PREFIXES = ("GOLD", "PHON")
+_KNOWN_CATALOG_PREFIXES = ("GOLD", "PHON", "INFL")
 
 
 def _strip_catalog_prefix(source_id):

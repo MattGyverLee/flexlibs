@@ -5,10 +5,18 @@
 #          Inflection class and feature operations for FieldWorks Language
 #          Explorer projects via SIL Language and Culture Model (LCM) API.
 #
+#          Manages inflection classes (IMoInflClass) under MorphologicalDataOA
+#          and the morphosyntactic feature system (MsFeatureSystemOA), which
+#          owns IFsClosedFeature definitions and their IFsSymFeatVal value
+#          children. The MGA EticGlossList.xml catalog is the canonical
+#          source for the standard set of inflection (morphosyntactic)
+#          features and their values; ImportCatalog / CreateFromCatalog /
+#          FixGuidsAgainstCatalog populate the project from it.
+#
 #   Platform: Python.NET
 #             FieldWorks Version 9+
 #
-#   Copyright 2025
+#   Copyright 2025-2026
 #
 
 # Import BaseOperations parent class
@@ -23,20 +31,47 @@ from SIL.LCModel import (
     IFsFeatDefn,  # Fixed: was IFsFeatureDefn
     IFsComplexFeature,
     IFsComplexFeatureFactory,
+    IFsClosedFeature,
+    IFsClosedFeatureFactory,
+    IFsSymFeatVal,
+    IFsSymFeatValFactory,
 )
 from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
+
+# .NET Guid for value-child creation (mixin handles the parent feature)
+import System
 
 # Import flexlibs exceptions
 from ..FLExProject import (
     FP_ParameterError,
 )
 
+# Import LCM casting utilities for pythonnet interface casting
+from ..lcm_casting import cast_to_concrete
+
 # Import string utilities
 from ..Shared.string_utils import normalize_match_key
 
+# Catalog (eticGlossList) parsing helpers
+from ..Shared.catalog import parse_etic_gloss_list
+from ..Shared.catalog_backed import CatalogBackedMixin
 
-class InflectionFeatureOperations(BaseOperations):
+
+# Canonical relative subdir for the MGA inflection-feature catalog under
+# FWCodeDir. Kept as module constants so verification / tests can reference
+# them.
+INFL_FEATS_CATALOG_FILENAME = "EticGlossList.xml"
+INFL_FEATS_CATALOG_SUBDIR = "Language Explorer/MGA/GlossLists"
+
+# Optional prefix the wrapper accepts on CatalogSourceId values. Bare ids
+# ("fDeg", "vPositive") are what FieldWorks itself writes (the catalog
+# shares the eticGlossList shape with PhonFeats); "INFL:" is accepted as
+# a user-facing convenience and is stripped before lookup.
+CATALOG_PREFIX = "INFL"
+
+
+class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
     """
     This class provides operations for managing inflection classes, feature
     structures, and features in a FieldWorks project.
@@ -69,6 +104,25 @@ class InflectionFeatureOperations(BaseOperations):
 
         project.CloseProject()
     """
+
+    # --- CatalogBackedMixin configuration ------------------------------
+    # The MGA inflection-feature catalog ships with FW under
+    # Language Explorer/MGA/GlossLists/EticGlossList.xml and is parsed by
+    # parse_etic_gloss_list (shared with PhonFeats since both catalogs use
+    # the eticGlossList shape). FW writes BARE entry ids (no "INFL:"
+    # prefix) to CatalogSourceId; the mixin honours that with
+    # CATALOG_PREFIX_WRITE = None. Features are flat (each top-level
+    # feature entry owns IFsSymFeatVal value children handled by
+    # _handle_entry_children), so the recursive-entries flag is off.
+    # The catalog also contains type="fsType"/"complex" items; the
+    # parser silently skips them, so Phase 6a only imports closed
+    # (symbolic) features. Complex-feature import is deferred.
+    CATALOG_FILE = INFL_FEATS_CATALOG_FILENAME
+    CATALOG_SUBDIR = INFL_FEATS_CATALOG_SUBDIR
+    CATALOG_PARSER = staticmethod(parse_etic_gloss_list)
+    CATALOG_PREFIX_WRITE = None
+    DOMAIN_LABEL = "inflection feature"
+    _supports_recursive_entries = False
 
     def __init__(self, project):
         """
@@ -776,6 +830,202 @@ class InflectionFeatureOperations(BaseOperations):
             return list(feature_system.TypesOC)
 
         return []
+
+    # ========================================================================
+    # CATALOG (eticGlossList) IMPORT METHODS
+    # ========================================================================
+    #
+    # The public API (ImportCatalog / CreateFromCatalog /
+    # FixGuidsAgainstCatalog) and the catalog-walking helpers live on
+    # CatalogBackedMixin (extracted in Phase 5c). The hooks below tell
+    # the mixin how to talk to the InflFeats-specific LCM types
+    # (IFsClosedFeature + its IFsSymFeatVal value children) under
+    # MsFeatureSystemOA.
+    #
+    # Phase 2 ownership-ordering lesson applies: the mixin attaches via
+    # the 2-arg factory overload (feature placed into FeaturesOC at
+    # creation) THEN sets the multistring properties; never sets
+    # properties on a free-floating feature.
+    #
+    # Phase 6a MVP scope: closed features only (type="feature" + nested
+    # type="value"). The catalog also has type="fsType" and type="complex"
+    # items; parse_etic_gloss_list silently skips them at parse time, so
+    # they never reach these hooks. fsType/complex import is deferred.
+
+    # --- CatalogBackedMixin hooks --------------------------------------
+
+    def _get_root_list(self):
+        """Return the top-level owner (MsFeatureSystemOA)."""
+        return self.project.lp.MsFeatureSystemOA
+
+    def _get_factory(self):
+        """Resolve the IFsClosedFeature factory for the mixin's Path B."""
+        return self.project.project.ServiceLocator.GetService(
+            IFsClosedFeatureFactory
+        )
+
+    def _factory_create_attached(self, guid, parent_obj):
+        """
+        Path A: try the 2-arg factory overload. For inflection features,
+        parent_obj is always None (features are flat, owned directly by
+        MsFeatureSystemOA.FeaturesOC), so we always pass the feature
+        system as the second arg.
+
+        Pythonnet may not expose the 2-arg overload on the interface
+        variable; returning None lets the mixin fall back to Path B.
+        """
+        factory = self._get_factory()
+        feature_system = self._get_root_list()
+        try:
+            return factory.Create(guid, feature_system)
+        except Exception:
+            return None
+
+    def _path_b_attach(self, new_obj, parent_obj):
+        """
+        Path B fallback: attach a free-floating feature to
+        MsFeatureSystemOA.FeaturesOC. parent_obj is ignored (always None
+        for top-level features).
+        """
+        self._get_root_list().FeaturesOC.Add(new_obj)
+
+    def _cast_to_domain(self, raw):
+        """Return the IFsClosedFeature view of a raw LCM feature object."""
+        return IFsClosedFeature(raw)
+
+    def _set_localized(self, obj, term, abbrev, def_, missing_ws_seen, warnings):
+        """Per-WS multistring writes for Name/Abbreviation/Description."""
+        self._set_multistring(obj.Name, term, missing_ws_seen, warnings)
+        self._set_multistring(obj.Abbreviation, abbrev, missing_ws_seen, warnings)
+        if hasattr(obj, "Description"):
+            self._set_multistring(obj.Description, def_, missing_ws_seen, warnings)
+
+    def _walk_existing(self):
+        """
+        Yield each IFsClosedFeature in MsFeatureSystemOA. Features are
+        flat (no hierarchy among themselves), so this is a single-level
+        walk. Value children are NOT included here -- value idempotency
+        is checked per-feature in _handle_entry_children.
+
+        FeaturesOC may also contain IFsComplexFeature items (FW's stock
+        projects ship complex morphosyntactic features pre-installed).
+        Those are not catalog candidates here, so we filter by
+        ClassName and yield only the closed features.
+        """
+        feature_system = self.project.lp.MsFeatureSystemOA
+        if feature_system is None:
+            return
+        for raw in feature_system.FeaturesOC:
+            if raw.ClassName == "FsClosedFeature":
+                yield IFsClosedFeature(raw)
+            # else: complex/other feature types live alongside but
+            # aren't part of this catalog domain; skip silently.
+
+    def _handle_entry_children(self, entry, created_feature, missing_ws_seen, warnings, result):
+        """
+        Create IFsSymFeatVal items for each value child of `entry` under
+        `created_feature.ValuesOC`. Idempotency is checked per-feature
+        against the existing value GUIDs on the feature.
+
+        ``result`` is a CatalogImportResult when called from
+        ImportCatalog, or None when called from CreateFromCatalog /
+        FixGuidsAgainstCatalog (we still create missing values; we just
+        don't accumulate counts).
+        """
+        existing_value_guids = {
+            str(v.Guid).lower() for v in created_feature.ValuesOC
+        }
+        for value_entry in entry.children:
+            v_guid = value_entry.guid.lower() if value_entry.guid else ""
+            if v_guid and v_guid in existing_value_guids:
+                if result is not None:
+                    result.skipped_count += 1
+                continue
+            self._CreateValueFromEntry(
+                value_entry, created_feature, missing_ws_seen, warnings
+            )
+            if result is not None:
+                result.created_count += 1
+                if v_guid:
+                    result.created_guids.append(v_guid)
+            if v_guid:
+                # Track within this pass so a duplicate entry (e.g.
+                # badly-formed catalog) won't re-create.
+                existing_value_guids.add(v_guid)
+
+    # --- Value-child creation ------------------------------------------
+    #
+    # The mixin handles feature-level creation. Value (IFsSymFeatVal)
+    # creation stays local because IFsSymFeatVal doesn't fit the same
+    # _create_from_entry contract (no CatalogSourceId field; different
+    # parent shape). Mirrors the PhonFeats implementation.
+
+    def _CreateValueFromEntry(
+        self, value_entry, parent_feature, missing_ws_seen, warnings
+    ):
+        """
+        Internal: instantiate one IFsSymFeatVal under `parent_feature`
+        from a value-typed CatalogEntry. Applies the canonical GUID and
+        per-WS strings.
+
+        Applies the Phase 2 ownership-ordering rule: attach first (via
+        the 2-arg factory overload, or fall back to Create+Add), then
+        mutate properties.
+        """
+        factory = self.project.project.ServiceLocator.GetService(
+            IFsSymFeatValFactory
+        )
+        guid = System.Guid(value_entry.guid)
+
+        new_val = None
+        # Path A: 2-arg factory overload if pythonnet exposes it.
+        try:
+            new_val = factory.Create(guid, parent_feature)
+        except Exception:
+            new_val = None
+
+        if new_val is None:
+            # Path B: implementation-side Create(Guid) followed by Add().
+            concrete_factory = (
+                cast_to_concrete(factory)
+                if hasattr(factory, "ClassName")
+                else factory
+            )
+            try:
+                new_val = concrete_factory.Create(guid)
+            except Exception as e:
+                # No safe fallback: parameterless Create() would generate
+                # a random GUID. Match the mixin's Path-A+B-failure
+                # discipline (Phase 5a).
+                raise FP_ParameterError(
+                    f"Could not create feature value '{value_entry.id}' "
+                    f"with canonical GUID {value_entry.guid} via either "
+                    f"Create(Guid, parent) or Create(Guid) factory "
+                    f"overloads."
+                ) from e
+            parent_feature.ValuesOC.Add(new_val)
+
+        new_val = IFsSymFeatVal(new_val)
+
+        # Per-WS strings (abbreviation is the short value marker; term is
+        # the value name).
+        self._set_multistring(
+            new_val.Name, value_entry.term, missing_ws_seen, warnings
+        )
+        self._set_multistring(
+            new_val.Abbreviation, value_entry.abbrev, missing_ws_seen, warnings
+        )
+        if hasattr(new_val, "Description"):
+            self._set_multistring(
+                new_val.Description, value_entry.def_, missing_ws_seen, warnings
+            )
+
+        # IFsSymFeatVal does not have a CatalogSourceId field in stock
+        # LCM, so we don't try to set one. Value-level catalog provenance
+        # is recoverable indirectly via the parent feature's
+        # CatalogSourceId and the value's canonical GUID.
+
+        return new_val
 
     # ========================================================================
     # PRIVATE HELPER METHODS
