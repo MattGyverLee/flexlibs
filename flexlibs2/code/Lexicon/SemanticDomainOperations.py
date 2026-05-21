@@ -1083,6 +1083,110 @@ class SemanticDomainOperations(BaseOperations):
 
         return duplicate
 
+    # ========== CATALOG IMPORT METHODS ==========
+    #
+    # Unlike POS / PhonFeatures / InflectionFeatures (which use the etic
+    # CatalogEntry parser via CatalogBackedMixin), the semantic-domain
+    # catalog ships as LCM-native XML at:
+    #
+    #     <FWCodeDir>/Templates/SemDom.xml
+    #
+    # i.e. <LangProject><SemanticDomainList><CmPossibilityList>... with
+    # <CmSemanticDomain guid="..."> items. That shape is what
+    # SIL.LCModel.Application.ApplicationServices.XmlList.ImportList
+    # consumes natively, so we delegate to it directly rather than
+    # reimplementing the parser. Items whose canonical GUIDs already
+    # exist in the project are reused; new ones are created; localized
+    # Name/Abbreviation/Description, OcmCodes, LouwNidaCodes, Questions,
+    # and nested SubPossibilities all come from the catalog.
+
+    @OperationsMethod
+    def ImportCatalog(self, progress=None, force=False):
+        """
+        Import the full SemDom semantic-domain catalog into this project.
+
+        Loads SIL's standard semantic-domain hierarchy (~1700 domains)
+        from ``<FWCodeDir>/Templates/SemDom.xml`` via LCM's native
+        ``XmlList.ImportList``. The catalog supplies localized Name /
+        Abbreviation / Description, OcmCodes, LouwNidaCodes, Questions
+        and the full nested SubPossibilities hierarchy.
+
+        **Idempotency guard**: LCM's underlying ``XmlList.ImportList``
+        APPENDS items into ``SemanticDomainListOA.PossibilitiesOS``
+        without checking for canonical-GUID duplicates -- each call
+        adds another full set of top-level domains. To prevent
+        accidental duplication, this method refuses by default when
+        the list is already non-empty. Pass ``force=True`` to import
+        anyway (e.g. to layer a second-language localization on top of
+        an existing import). The caller then takes responsibility for
+        any resulting duplicates.
+
+        **Recovery from past duplication**: If a project already has
+        duplicate top-level domains from prior unguarded imports, this
+        method does NOT clean them up automatically -- that would be
+        destructive. Recovery requires either manual cleanup via the
+        FieldWorks GUI, or deliberate ``bulk_delete``-style code the
+        caller writes to remove duplicate GUID groups.
+
+        Note: single-domain import via ``CreateFromCatalog(source_id)``
+        is not yet supported for this catalog. The SemDom catalog is
+        hierarchical and large (~2.7 MB); the typical workflow is a
+        full import, after which existing operations (``Find``,
+        ``FindByName``, ``GetAll``) work normally. File a request if
+        you need single-item import.
+
+        Args:
+            progress: Optional ``SIL.LCModel.Utils.IProgress`` instance
+                      to report import progress. Pass ``None`` (the
+                      default) for silent import.
+            force: If True, skip the non-empty list check and import
+                   anyway. Default False (refuse if list is non-empty).
+
+        Returns:
+            int: Number of top-level domains in
+                 ``LangProject.SemanticDomainListOA.PossibilitiesOS``
+                 after import. Useful as a sanity check for callers.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not write-enabled.
+            FP_FileNotFoundError: If SemDom.xml cannot be located under
+                                  the FieldWorks install.
+            FP_ParameterError: If ``SemanticDomainListOA`` already has
+                               domains and ``force`` is False.
+        """
+        self._EnsureWriteEnabled()
+
+        from SIL.LCModel.Application.ApplicationServices import XmlList
+        from ..Shared.catalog import find_catalog_file
+        from ..exceptions import FP_FileNotFoundError
+
+        existing = self.project.lp.SemanticDomainListOA.PossibilitiesOS.Count
+        if existing > 0 and not force:
+            raise FP_ParameterError(
+                f"SemanticDomainListOA already has {existing} top-level "
+                f"domain(s). XmlList.ImportList APPENDS without GUID-based "
+                f"deduplication, so calling ImportCatalog here would create "
+                f"duplicates. Pass force=True if you intend to layer "
+                f"additional domains on top, or clear the list first."
+            )
+
+        try:
+            catalog_path = find_catalog_file("SemDom.xml", subdir="Templates")
+        except FileNotFoundError as e:
+            raise FP_FileNotFoundError("SemDom.xml", e)
+
+        importer = XmlList()
+        # fieldName "SemanticDomainList" -> LangProject.SemanticDomainListOA.
+        # progress=None is accepted (IProgress is a reference interface).
+        importer.ImportList(
+            self.project.lp,
+            "SemanticDomainList",
+            catalog_path,
+            progress,
+        )
+
+        return self.project.lp.SemanticDomainListOA.PossibilitiesOS.Count
+
     # ========== SYNC INTEGRATION METHODS ==========
 
     @OperationsMethod
