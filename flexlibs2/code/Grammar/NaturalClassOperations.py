@@ -19,6 +19,8 @@ from SIL.LCModel import (
     IPhNaturalClass,
     IPhNCSegments,
     IPhNCSegmentsFactory,
+    IPhNCFeatures,
+    IPhNCFeaturesFactory,
     IPhPhoneme,
 )
 from SIL.LCModel.Core.KernelInterfaces import ITsString
@@ -122,6 +124,30 @@ class NaturalClassOperations(BaseOperations):
             return self.project.Object(phoneme_or_hvo)
         return phoneme_or_hvo
 
+    def __SetNameAndAbbreviation(self, nc, name, abbreviation):
+        """
+        Internal helper to set Name and Abbreviation on a natural class.
+
+        Writes to the default analysis writing system. The natural class must
+        already be owned (attached to PhonologicalDataOA.NaturalClassesOS)
+        before calling this -- LCM MultiString setters can NPE on free-floating
+        objects.
+
+        Args:
+            nc: The IPhNaturalClass object (segment- or feature-based).
+            name (str): Name to write (caller is responsible for validation).
+            abbreviation (str or None): Abbreviation to write. If None, no
+                abbreviation alternative is set.
+        """
+        wsHandle = self.project.project.DefaultAnalWs
+
+        mkstr_name = TsStringUtils.MakeString(name, wsHandle)
+        nc.Name.set_String(wsHandle, mkstr_name)
+
+        if abbreviation:
+            mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
+            nc.Abbreviation.set_String(wsHandle, mkstr_abbr)
+
     @wrap_enumerable
     @OperationsMethod
     def GetAll(self):
@@ -203,9 +229,6 @@ class NaturalClassOperations(BaseOperations):
         if not name or not name.strip():
             raise FP_ParameterError("Name cannot be empty")
 
-        # Get the writing system handle
-        wsHandle = self.project.project.DefaultAnalWs
-
         # Create the new natural class using the factory
         factory = self.project.project.ServiceLocator.GetService(IPhNCSegmentsFactory)
         nc = factory.Create()
@@ -214,14 +237,8 @@ class NaturalClassOperations(BaseOperations):
         phon_data = self.project.lp.PhonologicalDataOA
         phon_data.NaturalClassesOS.Add(nc)
 
-        # Set name
-        mkstr_name = TsStringUtils.MakeString(name, wsHandle)
-        nc.Name.set_String(wsHandle, mkstr_name)
-
-        # Set abbreviation if provided
-        if abbreviation:
-            mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
-            nc.Abbreviation.set_String(wsHandle, mkstr_abbr)
+        # Set Name + Abbreviation (default analysis WS)
+        self.__SetNameAndAbbreviation(nc, name, abbreviation)
 
         return nc
 
@@ -640,6 +657,263 @@ class NaturalClassOperations(BaseOperations):
 
         # Remove the phoneme
         nc.SegmentsRC.Remove(phoneme)
+
+    # ========== FEATURE-BASED NATURAL CLASSES ==========
+
+    @OperationsMethod
+    def CreateFeatureBased(self, name, abbreviation=None, specs=None):
+        """
+        Create a feature-based natural class (IPhNCFeatures).
+
+        Feature-based natural classes define membership by phonological
+        feature constraints (e.g. [+syllabic, +back]) rather than by an
+        explicit list of phonemes. Any phoneme whose features satisfy the
+        constraint is treated as a member; adding a phoneme that matches
+        the constraints brings it into the class automatically.
+
+        Use this for generative phonology where you want natural classes
+        like "back vowels" or "voiced obstruents" expressed as feature
+        bundles. Use ``Create`` instead for segment-based classes that
+        enumerate their phonemes.
+
+        Note: LCM natural-class objects are immutable in their concrete
+        type after creation -- there is no in-place switch between
+        segment-based and feature-based. To "convert" between types,
+        Delete the old class and Create a new one.
+
+        Args:
+            name (str): The name of the natural class (analysis WS).
+            abbreviation (str, optional): Short abbreviation. If None,
+                no abbreviation alternative is written.
+            specs (list[tuple], optional): A list of ``(feature, value)``
+                tuples used to populate the natural class's feature
+                struct. Each side may be an LCM object (IFsClosedFeature,
+                IFsSymFeatVal), a wrapper, or an HVO. If provided, the
+                resulting NC has a populated ``FeaturesOA``. If omitted,
+                ``FeaturesOA`` remains unset and the caller can use
+                ``SetFeatures`` later.
+
+        Returns:
+            IPhNCFeatures: The newly created feature-based natural class.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If name is None.
+            FP_ParameterError: If name is empty or specs is malformed.
+
+        Example:
+            >>> # Build "back vowels" as [+back]
+            >>> back = project.PhonFeatures.Find("back")
+            >>> back_plus = project.PhonFeatures.GetValues(back)[0]
+            >>> nc = project.NaturalClasses.CreateFeatureBased(
+            ...     "Back vowels", "Vb", specs=[(back, back_plus)]
+            ... )
+            >>> project.NaturalClasses.GetType(nc)
+            'features'
+
+            >>> # Create empty, populate later
+            >>> nc = project.NaturalClasses.CreateFeatureBased("High vowels", "Vh")
+            >>> high = project.PhonFeatures.Find("high")
+            >>> high_plus = project.PhonFeatures.GetValues(high)[0]
+            >>> project.NaturalClasses.SetFeatures(nc, [(high, high_plus)])
+
+        See Also:
+            Create, GetType, GetFeatures, SetFeatures
+        """
+        self._EnsureWriteEnabled()
+
+        self._ValidateParam(name, "name")
+
+        if not name or not name.strip():
+            raise FP_ParameterError("Name cannot be empty")
+
+        # Create the new feature-based natural class using its factory
+        factory = self.project.project.ServiceLocator.GetService(
+            IPhNCFeaturesFactory
+        )
+        nc = factory.Create()
+
+        # Add to the natural classes collection (must be done before
+        # setting properties -- LCM property setters can NPE on
+        # free-floating objects)
+        phon_data = self.project.lp.PhonologicalDataOA
+        phon_data.NaturalClassesOS.Add(nc)
+
+        # Set Name + Abbreviation (default analysis WS)
+        self.__SetNameAndAbbreviation(nc, name, abbreviation)
+
+        # Populate FeaturesOA via the Phase 5b primitive, which attaches the
+        # struct to nc.FeaturesOA BEFORE populating FeatureSpecsOC (Phase 2
+        # ownership rule).
+        if specs:
+            self.project.PhonFeatures.MakeFeatStruc(specs, owner=nc)
+
+        return nc
+
+    @OperationsMethod
+    def GetType(self, nc_or_hvo):
+        """
+        Return the concrete type of a natural class as a short string.
+
+        Args:
+            nc_or_hvo: The IPhNaturalClass object or HVO.
+
+        Returns:
+            str: ``"segments"`` for IPhNCSegments (enumerated phoneme
+            members), ``"features"`` for IPhNCFeatures (feature-based
+            membership), or the LCM ClassName as a defensive fallback
+            for unknown subtypes.
+
+        Raises:
+            FP_NullParameterError: If nc_or_hvo is None.
+
+        Example:
+            >>> stops = project.NaturalClasses.Create("Stops", "P")
+            >>> project.NaturalClasses.GetType(stops)
+            'segments'
+            >>> vb = project.NaturalClasses.CreateFeatureBased("Back vowels", "Vb")
+            >>> project.NaturalClasses.GetType(vb)
+            'features'
+
+        Notes:
+            Use this to decide which mutators are valid for a given
+            natural class. ``GetPhonemes``/``AddPhoneme``/``RemovePhoneme``
+            require segments-type; ``GetFeatures``/``SetFeatures`` require
+            features-type.
+
+        See Also:
+            Create, CreateFeatureBased, GetPhonemes, GetFeatures
+        """
+        self._ValidateParam(nc_or_hvo, "nc_or_hvo")
+
+        nc = self.__GetNaturalClassObject(nc_or_hvo)
+
+        # Prefer concrete-type detection via the owning/reference property.
+        # IPhNCFeatures has FeaturesOA; IPhNCSegments has SegmentsRC.
+        if hasattr(nc, "FeaturesOA"):
+            return "features"
+        if hasattr(nc, "SegmentsRC"):
+            return "segments"
+        # Defensive fallback for unknown subtypes
+        return nc.ClassName
+
+    @OperationsMethod
+    def GetFeatures(self, nc_or_hvo):
+        """
+        Get the feature struct holding a feature-based natural class's
+        constraints.
+
+        Args:
+            nc_or_hvo: The IPhNaturalClass object or HVO. Must be a
+                feature-based natural class (IPhNCFeatures).
+
+        Returns:
+            IFsFeatStruc or None: The owned feature structure (with its
+            ``FeatureSpecsOC`` of IFsClosedValue specs), or ``None`` if
+            ``FeaturesOA`` is unset (e.g. a feature-based class created
+            with no initial specs that hasn't yet called ``SetFeatures``).
+
+        Raises:
+            FP_NullParameterError: If nc_or_hvo is None.
+            FP_ParameterError: If the natural class is not feature-based
+                (i.e. it is a segment-based IPhNCSegments).
+
+        Example:
+            >>> back = project.PhonFeatures.Find("back")
+            >>> back_plus = project.PhonFeatures.GetValues(back)[0]
+            >>> nc = project.NaturalClasses.CreateFeatureBased(
+            ...     "Back vowels", "Vb", specs=[(back, back_plus)]
+            ... )
+            >>> fs = project.NaturalClasses.GetFeatures(nc)
+            >>> for spec in fs.FeatureSpecsOC:
+            ...     print(spec)
+
+        See Also:
+            SetFeatures, GetType, CreateFeatureBased
+        """
+        self._ValidateParam(nc_or_hvo, "nc_or_hvo")
+
+        nc = self.__GetNaturalClassObject(nc_or_hvo)
+
+        if not hasattr(nc, "FeaturesOA"):
+            name_text = ITsString(
+                nc.Name.get_String(self.project.project.DefaultAnalWs)
+            ).Text or "(unnamed)"
+            raise FP_ParameterError(
+                f"Natural class '{name_text}' is not feature-based "
+                f"(class={nc.ClassName}); GetFeatures only works on "
+                f"IPhNCFeatures."
+            )
+
+        return nc.FeaturesOA
+
+    @OperationsMethod
+    def SetFeatures(self, nc_or_hvo, specs):
+        """
+        Replace a feature-based natural class's constraints with a new
+        feature struct built from ``specs``.
+
+        Any existing ``FeaturesOA`` is discarded -- assigning to an
+        atomic-owning property in LCM disowns and deletes the previous
+        owned object, so callers do not need to release it manually.
+
+        Args:
+            nc_or_hvo: The IPhNaturalClass object or HVO. Must be a
+                feature-based natural class (IPhNCFeatures).
+            specs (list[tuple]): A list of ``(feature, value)`` tuples
+                describing the new constraints. Same shape as
+                ``PhonFeatures.MakeFeatStruc`` accepts; each side may be
+                an LCM object, a wrapper, or an HVO.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If nc_or_hvo or specs is None.
+            FP_ParameterError: If the natural class is not feature-based
+                or if specs is malformed.
+
+        Example:
+            >>> nc = project.NaturalClasses.CreateFeatureBased("Back vowels", "Vb")
+            >>> back = project.PhonFeatures.Find("back")
+            >>> back_plus = project.PhonFeatures.GetValues(back)[0]
+            >>> project.NaturalClasses.SetFeatures(nc, [(back, back_plus)])
+
+            >>> # Replace constraints (previous FeaturesOA is discarded)
+            >>> high = project.PhonFeatures.Find("high")
+            >>> high_plus = project.PhonFeatures.GetValues(high)[0]
+            >>> project.NaturalClasses.SetFeatures(
+            ...     nc, [(back, back_plus), (high, high_plus)]
+            ... )
+
+        Notes:
+            ``MakeFeatStruc`` attaches the new struct to ``nc.FeaturesOA``
+            and populates ``FeatureSpecsOC`` atomically, following the
+            Phase 2 ownership rule. The LCM owning-atomic assignment
+            inside that helper discards the previous ``FeaturesOA``.
+
+        See Also:
+            GetFeatures, CreateFeatureBased, GetType
+        """
+        self._EnsureWriteEnabled()
+
+        self._ValidateParam(nc_or_hvo, "nc_or_hvo")
+        self._ValidateParam(specs, "specs")
+
+        nc = self.__GetNaturalClassObject(nc_or_hvo)
+
+        if not hasattr(nc, "FeaturesOA"):
+            name_text = ITsString(
+                nc.Name.get_String(self.project.project.DefaultAnalWs)
+            ).Text or "(unnamed)"
+            raise FP_ParameterError(
+                f"Natural class '{name_text}' is not feature-based "
+                f"(class={nc.ClassName}); SetFeatures only works on "
+                f"IPhNCFeatures."
+            )
+
+        # MakeFeatStruc attaches the new struct to nc.FeaturesOA BEFORE
+        # populating FeatureSpecsOC. LCM owning-atomic assignment inside
+        # MakeFeatStruc discards the previous FeaturesOA.
+        self.project.PhonFeatures.MakeFeatStruc(specs, owner=nc)
 
     # ========== SYNC INTEGRATION METHODS ==========
 

@@ -1,0 +1,466 @@
+#
+#   test_natural_classes.py
+#
+#   Class: TestNaturalClassFeatureBased
+#          Phase 5d live-LCM integration tests for the feature-based
+#          natural-class API added to NaturalClassOperations:
+#          CreateFeatureBased, GetType, GetFeatures, SetFeatures.
+#
+#          Mirrors the writable-project fixture pattern used by
+#          tests/operations/test_phon_features.py. Created natural
+#          classes and any ad-hoc phonological features are removed
+#          in finally blocks so re-running the suite never leaves
+#          test artefacts behind.
+#
+#   Platform: Python.NET
+#             FieldWorks Version 9+
+#
+#   Copyright 2026
+#
+
+import sys
+
+import pytest
+
+
+# ---------------------------------------------------------------------------
+# Live-LCM project fixture (mirrors test_phon_features.py)
+# ---------------------------------------------------------------------------
+
+_CANDIDATE_PROJECTS = ("Sena 3", "Test", "SampleLexicon", "SampleLexicon3")
+
+
+def _try_open_writable_project():
+    """Open one of the standard test projects in write mode, or None."""
+    try:
+        from flexlibs2.code.FLExProject import FLExProject
+    except Exception:
+        return None
+
+    project = FLExProject()
+    for name in _CANDIDATE_PROJECTS:
+        try:
+            project.OpenProject(name, writeEnabled=True)
+            return project
+        except Exception:
+            continue
+    return None
+
+
+@pytest.fixture(scope="module")
+def writable_project():
+    """
+    Module-scoped write-enabled FLExProject fixture. Skips dependent
+    tests if SIL.LCModel isn't loaded or no candidate project can be
+    opened in write mode.
+    """
+    if "SIL.LCModel" not in sys.modules:
+        pytest.skip("Requires SIL.LCModel (FieldWorks installed)")
+
+    project = _try_open_writable_project()
+    if project is None:
+        pytest.skip(
+            "No writable FieldWorks project available "
+            f"(tried: {', '.join(_CANDIDATE_PROJECTS)})"
+        )
+
+    yield project
+
+    try:
+        project.CloseProject()
+    except Exception:
+        pass
+
+
+# ---------------------------------------------------------------------------
+# Canonical catalog GUIDs (fPAConsonantal feature + +/- values)
+# ---------------------------------------------------------------------------
+
+CONSONANTAL_FEATURE_GUID = "b4ddf8e5-1ff8-43fc-9723-04f1ee0471fc"
+CONSONANTAL_POSITIVE_VALUE_GUID = "ec5800b4-52a8-4859-a976-f3005c53bd5f"
+CONSONANTAL_NEGATIVE_VALUE_GUID = "81c50b82-83ff-4f73-8e27-6ff9217b810a"
+
+
+# ---------------------------------------------------------------------------
+# Cleanup helpers
+# ---------------------------------------------------------------------------
+
+
+def _find_feature_by_guid(project, guid_str):
+    """
+    Walk PhFeatureSystemOA.FeaturesOC and return the IFsClosedFeature whose
+    GUID matches `guid_str` (case-insensitive), or None.
+    """
+    from SIL.LCModel import IFsClosedFeature
+
+    target = guid_str.lower()
+    fs = project.lp.PhFeatureSystemOA
+    if fs is None:
+        return None
+    for raw in fs.FeaturesOC:
+        feat = IFsClosedFeature(raw)
+        if str(feat.Guid).lower() == target:
+            return feat
+    return None
+
+
+def _delete_feature_by_guid(project, guid_str):
+    """Best-effort cleanup: remove a feature from PhFeatureSystemOA.FeaturesOC."""
+    if not guid_str:
+        return
+    try:
+        feat = _find_feature_by_guid(project, guid_str)
+        if feat is None:
+            return
+        fs = project.lp.PhFeatureSystemOA
+        if fs is not None:
+            fs.FeaturesOC.Remove(feat)
+    except Exception:
+        pass
+
+
+def _delete_nc(project, nc):
+    """Best-effort: remove a natural class regardless of subtype."""
+    if nc is None:
+        return
+    try:
+        project.NaturalClasses.Delete(nc)
+    except Exception:
+        pass
+
+
+def _get_consonantal_positive(project, feat):
+    """Locate the +consonantal IFsSymFeatVal under the given feature."""
+    from SIL.LCModel import IFsSymFeatVal
+
+    for raw in feat.ValuesOC:
+        v = IFsSymFeatVal(raw)
+        if str(v.Guid).lower() == CONSONANTAL_POSITIVE_VALUE_GUID:
+            return v
+    return None
+
+
+def _get_consonantal_negative(project, feat):
+    """Locate the -consonantal IFsSymFeatVal under the given feature."""
+    from SIL.LCModel import IFsSymFeatVal
+
+    for raw in feat.ValuesOC:
+        v = IFsSymFeatVal(raw)
+        if str(v.Guid).lower() == CONSONANTAL_NEGATIVE_VALUE_GUID:
+            return v
+    return None
+
+
+# ---------------------------------------------------------------------------
+# Tests
+# ---------------------------------------------------------------------------
+
+
+class TestNaturalClassFeatureBased:
+    """
+    Phase 5d coverage for feature-based natural class operations:
+    CreateFeatureBased, GetType, GetFeatures, SetFeatures.
+    """
+
+    # --- CreateFeatureBased ----------------------------------------------
+
+    def test_create_feature_based_no_specs_returns_nc_with_no_features(
+        self, writable_project
+    ):
+        """
+        CreateFeatureBased(name, abbr) with no specs must return an
+        IPhNCFeatures whose FeaturesOA is None (no struct attached
+        yet) so the caller can later populate via SetFeatures.
+        """
+        nc = None
+        try:
+            nc = writable_project.NaturalClasses.CreateFeatureBased(
+                "test", "t"
+            )
+            assert nc is not None, "CreateFeatureBased returned None"
+
+            # Concrete LCM ClassName must be IPhNCFeatures.
+            assert nc.ClassName == "PhNCFeatures", (
+                f"Expected ClassName 'PhNCFeatures', got {nc.ClassName!r}"
+            )
+            # No specs provided => FeaturesOA must remain None.
+            assert nc.FeaturesOA is None, (
+                "CreateFeatureBased(specs=None) should leave FeaturesOA "
+                "unset; got a non-None struct."
+            )
+        finally:
+            _delete_nc(writable_project, nc)
+
+    def test_create_feature_based_with_specs_populates_featuresoa(
+        self, writable_project
+    ):
+        """
+        CreateFeatureBased(name, abbr, specs=[(feat, val)]) must attach a
+        populated IFsFeatStruc to FeaturesOA whose FeatureSpecsOC has one
+        entry. We use the canonical fPAConsonantal catalog feature + its
+        positive value to avoid touching project-defined features.
+        """
+        from SIL.LCModel import IFsFeatStruc
+
+        pre_existing = (
+            _find_feature_by_guid(
+                writable_project, CONSONANTAL_FEATURE_GUID
+            )
+            is not None
+        )
+        created_feat_guid = None
+        nc = None
+        try:
+            feat = writable_project.PhonFeatures.CreateFromCatalog(
+                "fPAConsonantal"
+            )
+            if not pre_existing:
+                created_feat_guid = CONSONANTAL_FEATURE_GUID
+
+            plus = _get_consonantal_positive(writable_project, feat)
+            assert plus is not None, (
+                "Could not locate +consonantal value under fPAConsonantal"
+            )
+
+            nc = writable_project.NaturalClasses.CreateFeatureBased(
+                "voiced", "v", specs=[(feat, plus)]
+            )
+            assert nc is not None
+            assert nc.FeaturesOA is not None, (
+                "CreateFeatureBased(specs=[...]) did not attach FeaturesOA"
+            )
+            fs = IFsFeatStruc(nc.FeaturesOA)
+            assert fs.FeatureSpecsOC.Count == 1, (
+                f"Expected FeatureSpecsOC.Count == 1, "
+                f"got {fs.FeatureSpecsOC.Count}"
+            )
+        finally:
+            _delete_nc(writable_project, nc)
+            if created_feat_guid is not None:
+                _delete_feature_by_guid(writable_project, created_feat_guid)
+
+    # --- GetType ---------------------------------------------------------
+
+    def test_get_type_returns_features_for_feature_based(
+        self, writable_project
+    ):
+        """GetType on an IPhNCFeatures must return 'features'."""
+        nc = None
+        try:
+            nc = writable_project.NaturalClasses.CreateFeatureBased(
+                "test_feat_type", "tft"
+            )
+            assert (
+                writable_project.NaturalClasses.GetType(nc) == "features"
+            ), "GetType did not return 'features' for IPhNCFeatures"
+        finally:
+            _delete_nc(writable_project, nc)
+
+    def test_get_type_returns_segments_for_segment_based(
+        self, writable_project
+    ):
+        """GetType on an IPhNCSegments (Create) must return 'segments'."""
+        nc = None
+        try:
+            nc = writable_project.NaturalClasses.Create(
+                "test_seg_type", "tst"
+            )
+            assert (
+                writable_project.NaturalClasses.GetType(nc) == "segments"
+            ), "GetType did not return 'segments' for IPhNCSegments"
+        finally:
+            _delete_nc(writable_project, nc)
+
+    # --- GetFeatures -----------------------------------------------------
+
+    def test_get_features_raises_on_segment_nc(self, writable_project):
+        """
+        GetFeatures must raise FP_ParameterError when called on a
+        segment-based natural class (IPhNCSegments has no FeaturesOA).
+        """
+        from flexlibs2.code.FLExProject import FP_ParameterError
+
+        nc = None
+        try:
+            nc = writable_project.NaturalClasses.Create(
+                "test_seg_getf", "tsg"
+            )
+            with pytest.raises(FP_ParameterError):
+                writable_project.NaturalClasses.GetFeatures(nc)
+        finally:
+            _delete_nc(writable_project, nc)
+
+    def test_get_features_returns_none_when_unset(self, writable_project):
+        """
+        GetFeatures on a feature-based NC with no struct attached must
+        return None (the underlying FeaturesOA).
+        """
+        nc = None
+        try:
+            nc = writable_project.NaturalClasses.CreateFeatureBased(
+                "test_no_specs", "tns"
+            )
+            result = writable_project.NaturalClasses.GetFeatures(nc)
+            assert result is None, (
+                f"GetFeatures on unset feature-based NC should return "
+                f"None; got {result!r}"
+            )
+        finally:
+            _delete_nc(writable_project, nc)
+
+    def test_get_features_returns_featstruc_when_set(
+        self, writable_project
+    ):
+        """
+        GetFeatures on a populated feature-based NC must return an
+        IFsFeatStruc whose FeatureSpecsOC matches what we passed in.
+        """
+        from SIL.LCModel import IFsFeatStruc
+
+        pre_existing = (
+            _find_feature_by_guid(
+                writable_project, CONSONANTAL_FEATURE_GUID
+            )
+            is not None
+        )
+        created_feat_guid = None
+        nc = None
+        try:
+            feat = writable_project.PhonFeatures.CreateFromCatalog(
+                "fPAConsonantal"
+            )
+            if not pre_existing:
+                created_feat_guid = CONSONANTAL_FEATURE_GUID
+
+            plus = _get_consonantal_positive(writable_project, feat)
+            assert plus is not None
+
+            nc = writable_project.NaturalClasses.CreateFeatureBased(
+                "test_getf_set", "tgs", specs=[(feat, plus)]
+            )
+
+            fs = writable_project.NaturalClasses.GetFeatures(nc)
+            assert fs is not None, (
+                "GetFeatures returned None for a feature-based NC "
+                "created with specs."
+            )
+            fs_cast = IFsFeatStruc(fs)
+            assert fs_cast.FeatureSpecsOC.Count == 1, (
+                f"Expected FeatureSpecsOC.Count == 1, "
+                f"got {fs_cast.FeatureSpecsOC.Count}"
+            )
+        finally:
+            _delete_nc(writable_project, nc)
+            if created_feat_guid is not None:
+                _delete_feature_by_guid(writable_project, created_feat_guid)
+
+    # --- SetFeatures -----------------------------------------------------
+
+    def test_set_features_replaces_existing(self, writable_project):
+        """
+        SetFeatures with new specs must replace any existing FeaturesOA.
+        After replacement, FeatureSpecsOC reflects the new specs only.
+        We create with one spec (+consonantal), then SetFeatures with a
+        different spec (-consonantal) and verify the count is still 1
+        and the new spec's value GUID is the one we just set.
+        """
+        from SIL.LCModel import IFsFeatStruc, IFsClosedValue
+
+        pre_existing = (
+            _find_feature_by_guid(
+                writable_project, CONSONANTAL_FEATURE_GUID
+            )
+            is not None
+        )
+        created_feat_guid = None
+        nc = None
+        try:
+            feat = writable_project.PhonFeatures.CreateFromCatalog(
+                "fPAConsonantal"
+            )
+            if not pre_existing:
+                created_feat_guid = CONSONANTAL_FEATURE_GUID
+
+            plus = _get_consonantal_positive(writable_project, feat)
+            minus = _get_consonantal_negative(writable_project, feat)
+            assert plus is not None and minus is not None
+
+            # Create with +consonantal.
+            nc = writable_project.NaturalClasses.CreateFeatureBased(
+                "test_setf_replace", "tsr", specs=[(feat, plus)]
+            )
+            initial_fs = IFsFeatStruc(nc.FeaturesOA)
+            assert initial_fs.FeatureSpecsOC.Count == 1
+
+            # Replace with -consonantal.
+            writable_project.NaturalClasses.SetFeatures(
+                nc, [(feat, minus)]
+            )
+
+            replaced = writable_project.NaturalClasses.GetFeatures(nc)
+            assert replaced is not None, (
+                "After SetFeatures, FeaturesOA is None"
+            )
+            replaced_fs = IFsFeatStruc(replaced)
+            assert replaced_fs.FeatureSpecsOC.Count == 1, (
+                f"Expected FeatureSpecsOC.Count == 1 after replacement, "
+                f"got {replaced_fs.FeatureSpecsOC.Count}"
+            )
+
+            # Confirm the spec now references the -consonantal value.
+            value_guids = set()
+            for spec in replaced_fs.FeatureSpecsOC:
+                cv = IFsClosedValue(spec)
+                if cv.ValueRA is not None:
+                    value_guids.add(str(cv.ValueRA.Guid).lower())
+            assert CONSONANTAL_NEGATIVE_VALUE_GUID in value_guids, (
+                f"Replacement spec does not reference -consonantal value; "
+                f"got {sorted(value_guids)}"
+            )
+            assert CONSONANTAL_POSITIVE_VALUE_GUID not in value_guids, (
+                "Original +consonantal spec was not discarded on replacement"
+            )
+        finally:
+            _delete_nc(writable_project, nc)
+            if created_feat_guid is not None:
+                _delete_feature_by_guid(writable_project, created_feat_guid)
+
+    def test_set_features_raises_on_segment_nc(self, writable_project):
+        """
+        SetFeatures must raise FP_ParameterError when called on a
+        segment-based natural class (no FeaturesOA available).
+        """
+        from flexlibs2.code.FLExProject import FP_ParameterError
+
+        pre_existing = (
+            _find_feature_by_guid(
+                writable_project, CONSONANTAL_FEATURE_GUID
+            )
+            is not None
+        )
+        created_feat_guid = None
+        nc = None
+        try:
+            feat = writable_project.PhonFeatures.CreateFromCatalog(
+                "fPAConsonantal"
+            )
+            if not pre_existing:
+                created_feat_guid = CONSONANTAL_FEATURE_GUID
+            plus = _get_consonantal_positive(writable_project, feat)
+            assert plus is not None
+
+            nc = writable_project.NaturalClasses.Create(
+                "test_seg_setf", "tss"
+            )
+            with pytest.raises(FP_ParameterError):
+                writable_project.NaturalClasses.SetFeatures(
+                    nc, [(feat, plus)]
+                )
+        finally:
+            _delete_nc(writable_project, nc)
+            if created_feat_guid is not None:
+                _delete_feature_by_guid(writable_project, created_feat_guid)
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])
