@@ -37,7 +37,7 @@ from SIL.LCModel import (
 from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
 
-# .NET Guid for catalog-driven creation
+# .NET Guid for value-child creation (mixin handles the parent feature)
 import System
 
 # Import flexlibs exceptions
@@ -52,12 +52,8 @@ from ..lcm_casting import cast_to_concrete
 from ..Shared.string_utils import normalize_match_key
 
 # Catalog (eticGlossList) parsing helpers
-from ..Shared.catalog import (
-    CatalogImportResult,
-    find_catalog_entry,
-    find_catalog_file,
-    parse_etic_gloss_list,
-)
+from ..Shared.catalog import parse_etic_gloss_list
+from ..Shared.catalog_backed import CatalogBackedMixin
 
 
 # Canonical relative subdir for the PhonFeats catalog under FWCodeDir.
@@ -71,7 +67,7 @@ PHON_FEATS_CATALOG_SUBDIR = "Language Explorer/MGA/GlossLists"
 CATALOG_PREFIX = "PHON"
 
 
-class PhonFeatureOperations(BaseOperations):
+class PhonFeatureOperations(BaseOperations, CatalogBackedMixin):
     """
     This class provides operations for managing phonological features and
     feature values in a FieldWorks project.
@@ -111,6 +107,21 @@ class PhonFeatureOperations(BaseOperations):
 
         project.CloseProject()
     """
+
+    # --- CatalogBackedMixin configuration ------------------------------
+    # The PhonFeats catalog ships with FW under
+    # Language Explorer/MGA/GlossLists/PhonFeatsEticGlossList.xml and is
+    # parsed by parse_etic_gloss_list. Unlike POS, FW writes BARE entry
+    # ids (no "PHON:" prefix) to CatalogSourceId; the mixin honours that
+    # with CATALOG_PREFIX_WRITE = None. Features are flat (each top-level
+    # entry owns IFsSymFeatVal value children handled by
+    # _handle_entry_children), so the recursive-entries flag is off.
+    CATALOG_FILE = PHON_FEATS_CATALOG_FILENAME
+    CATALOG_SUBDIR = PHON_FEATS_CATALOG_SUBDIR
+    CATALOG_PARSER = staticmethod(parse_etic_gloss_list)
+    CATALOG_PREFIX_WRITE = None
+    DOMAIN_LABEL = "feature"
+    _supports_recursive_entries = False
 
     def __init__(self, project):
         """
@@ -606,371 +617,117 @@ class PhonFeatureOperations(BaseOperations):
     # CATALOG (eticGlossList) IMPORT METHODS
     # ========================================================================
     #
-    # Parallel of POSOperations' catalog import (Phase 5a). The structural
-    # shape is the same -- catalog -> per-entry attach with canonical GUID
-    # -> overlay localized strings -- but it operates on IFsClosedFeature /
-    # IFsSymFeatVal in PhFeatureSystemOA instead of IPartOfSpeech in
-    # PartsOfSpeechOA.
+    # The public API (ImportCatalog / CreateFromCatalog /
+    # FixGuidsAgainstCatalog) and the catalog-walking helpers live on
+    # CatalogBackedMixin (extracted in Phase 5c). The hooks below tell
+    # the mixin how to talk to the PhonFeats-specific LCM types
+    # (IFsClosedFeature + its IFsSymFeatVal value children).
     #
-    # Mixin extraction deferred to Phase 5c+ per the Original Author's
-    # Option B decision (#11). Helpers here are marked with TODOs.
+    # Phase 2 ownership-ordering lesson applies: the mixin attaches via
+    # the 2-arg factory overload (feature placed into FeaturesOC at
+    # creation) THEN sets the multistring properties; never sets
+    # properties on a free-floating feature.
 
-    @OperationsMethod
-    def ImportCatalog(self, progress=None):
-        """
-        Import the MGA PhonFeatsEticGlossList catalog into this project.
+    # --- CatalogBackedMixin hooks --------------------------------------
 
-        Each ``type="feature"`` entry becomes an IFsClosedFeature under
-        ``PhFeatureSystemOA.FeaturesOC`` with the canonical GUID. Each
-        of its ``type="value"`` children becomes an IFsSymFeatVal under
-        the feature's ``ValuesOC``. ``type="group"`` entries are
-        organizational only and are skipped (their child features are
-        still imported).
+    def _get_root_list(self):
+        """Return the top-level owner (PhFeatureSystemOA)."""
+        return self.project.lp.PhFeatureSystemOA
 
-        Idempotent: any entry whose canonical GUID already exists in
-        the project is skipped. Re-running never duplicates.
-
-        Args:
-            progress: Optional callable accepting (count, total, name)
-                      for progress reporting. May be None.
-
-        Returns:
-            CatalogImportResult: Created/skipped counts (across both
-            features and their values), list of created GUIDs, and any
-            human-readable warnings raised during import.
-
-        Raises:
-            FP_ReadOnlyError: If the project is not opened with write enabled.
-            FileNotFoundError: If the catalog is not found under FWCodeDir.
-        """
-        self._EnsureWriteEnabled()
-
-        path = find_catalog_file(
-            PHON_FEATS_CATALOG_FILENAME,
-            subdir=PHON_FEATS_CATALOG_SUBDIR,
+    def _get_factory(self):
+        """Resolve the IFsClosedFeature factory for the mixin's Path B."""
+        return self.project.project.ServiceLocator.GetService(
+            IFsClosedFeatureFactory
         )
-        feature_entries = parse_etic_gloss_list(path)
 
+    def _factory_create_attached(self, guid, parent_obj):
+        """
+        Path A: try the 2-arg factory overload. For features, parent_obj
+        is always None (features are flat, owned directly by
+        PhFeatureSystemOA.FeaturesOC), so we always pass the feature
+        system as the second arg.
+
+        Pythonnet may not expose the 2-arg overload on the interface
+        variable; returning None lets the mixin fall back to Path B.
+        """
+        factory = self._get_factory()
+        feature_system = self._get_root_list()
+        try:
+            return factory.Create(guid, feature_system)
+        except Exception:
+            return None
+
+    def _path_b_attach(self, new_obj, parent_obj):
+        """
+        Path B fallback: attach a free-floating feature to
+        PhFeatureSystemOA.FeaturesOC. parent_obj is ignored (always None
+        for top-level features).
+        """
+        self._get_root_list().FeaturesOC.Add(new_obj)
+
+    def _cast_to_domain(self, raw):
+        """Return the IFsClosedFeature view of a raw LCM feature object."""
+        return IFsClosedFeature(raw)
+
+    def _set_localized(self, obj, term, abbrev, def_, missing_ws_seen, warnings):
+        """Per-WS multistring writes for Name/Abbreviation/Description."""
+        self._set_multistring(obj.Name, term, missing_ws_seen, warnings)
+        self._set_multistring(obj.Abbreviation, abbrev, missing_ws_seen, warnings)
+        if hasattr(obj, "Description"):
+            self._set_multistring(obj.Description, def_, missing_ws_seen, warnings)
+
+    def _walk_existing(self):
+        """
+        Yield each IFsClosedFeature in PhFeatureSystemOA. Features are
+        flat (no hierarchy among themselves), so this is a single-level
+        walk. Value children are NOT included here -- value idempotency
+        is checked per-feature in _handle_entry_children.
+        """
         feature_system = self.project.lp.PhFeatureSystemOA
         if feature_system is None:
-            raise FP_ParameterError(
-                "Project has no PhFeatureSystemOA; cannot import catalog."
-            )
+            return
+        for raw in feature_system.FeaturesOC:
+            yield IFsClosedFeature(raw)
 
-        existing_guids = self._GetAllFeatureGuids()
-
-        result = CatalogImportResult()
-        missing_ws_seen = set()
-
-        # Total items for progress = features + sum(values).
-        total = sum(1 + len(e.children) for e in feature_entries)
-
-        for entry in feature_entries:
-            guid_str = entry.guid.lower() if entry.guid else ""
-            existing = existing_guids.get(guid_str)
-            if existing is not None:
-                result.skipped_count += 1
-                feature = existing
-            else:
-                feature = self._CreateFeatureFromEntry(
-                    entry, feature_system, missing_ws_seen, result.warnings
-                )
-                result.created_count += 1
-                result.created_guids.append(guid_str)
-                existing_guids[guid_str] = feature
-
-            if progress:
-                try:
-                    progress(
-                        result.created_count + result.skipped_count,
-                        total,
-                        entry.id,
-                    )
-                except Exception:
-                    pass
-
-            # Now do each value child of this feature. Value idempotency
-            # is checked per-feature: _GetAllFeatureGuids returns only
-            # feature GUIDs, so re-imports must consult feature.ValuesOC
-            # directly (parallels CreateFromCatalog ~line 767-769).
-            existing_value_guids = {
-                str(v.Guid).lower() for v in feature.ValuesOC
-            }
-            for value_entry in entry.children:
-                v_guid = value_entry.guid.lower() if value_entry.guid else ""
-                if v_guid and v_guid in existing_value_guids:
-                    result.skipped_count += 1
-                else:
-                    self._CreateValueFromEntry(
-                        value_entry, feature, missing_ws_seen, result.warnings
-                    )
-                    result.created_count += 1
-                    if v_guid:
-                        result.created_guids.append(v_guid)
-                        # Track within this import pass so a duplicate
-                        # entry (e.g. badly-formed catalog) won't re-create.
-                        existing_value_guids.add(v_guid)
-
-                if progress:
-                    try:
-                        progress(
-                            result.created_count + result.skipped_count,
-                            total,
-                            value_entry.id,
-                        )
-                    except Exception:
-                        pass
-
-        return result
-
-    @OperationsMethod
-    def CreateFromCatalog(self, source_id):
+    def _handle_entry_children(self, entry, created_feature, missing_ws_seen, warnings, result):
         """
-        Create a single phonological feature (with its value children)
-        from the MGA catalog.
+        Create IFsSymFeatVal items for each value child of `entry` under
+        `created_feature.ValuesOC`. Idempotency is checked per-feature
+        against the existing value GUIDs on the feature.
 
-        Args:
-            source_id (str): Catalog feature id, with or without the
-                ``PHON:`` prefix. e.g. ``"PHON:fPAConsonantal"`` or
-                ``"fPAConsonantal"``.
-
-        Returns:
-            IFsClosedFeature: The created (or pre-existing) feature.
-
-        Raises:
-            FP_ReadOnlyError: If the project is not opened with write enabled.
-            FP_ParameterError: If ``source_id`` is not present in the catalog.
-            FileNotFoundError: If the catalog is not found under FWCodeDir.
-
-        Notes:
-            - Idempotent on the feature: if the canonical GUID already
-              exists, that feature is returned unchanged.
-            - Value children are created idempotently too: any value
-              whose canonical GUID is already present is left alone.
+        ``result`` is a CatalogImportResult when called from
+        ImportCatalog, or None when called from CreateFromCatalog /
+        FixGuidsAgainstCatalog (we still create missing values; we just
+        don't accumulate counts).
         """
-        self._EnsureWriteEnabled()
-        self._ValidateParam(source_id, "source_id")
-
-        path = find_catalog_file(
-            PHON_FEATS_CATALOG_FILENAME,
-            subdir=PHON_FEATS_CATALOG_SUBDIR,
-        )
-        feature_entries = parse_etic_gloss_list(path)
-        entry = find_catalog_entry(feature_entries, source_id)
-        if entry is None:
-            raise FP_ParameterError(
-                f"Catalog id '{source_id}' not found in "
-                f"{PHON_FEATS_CATALOG_FILENAME}"
-            )
-
-        feature_system = self.project.lp.PhFeatureSystemOA
-        if feature_system is None:
-            raise FP_ParameterError(
-                "Project has no PhFeatureSystemOA; cannot import catalog."
-            )
-
-        existing_guids = self._GetAllFeatureGuids()
-
-        warnings = []
-        missing_ws_seen = set()
-
-        guid_str = entry.guid.lower() if entry.guid else ""
-        feature = existing_guids.get(guid_str)
-        if feature is None:
-            feature = self._CreateFeatureFromEntry(
-                entry, feature_system, missing_ws_seen, warnings
-            )
-
-        # Create any value children not already present.
         existing_value_guids = {
-            str(v.Guid).lower() for v in feature.ValuesOC
+            str(v.Guid).lower() for v in created_feature.ValuesOC
         }
         for value_entry in entry.children:
             v_guid = value_entry.guid.lower() if value_entry.guid else ""
             if v_guid and v_guid in existing_value_guids:
+                if result is not None:
+                    result.skipped_count += 1
                 continue
             self._CreateValueFromEntry(
-                value_entry, feature, missing_ws_seen, warnings
+                value_entry, created_feature, missing_ws_seen, warnings
             )
+            if result is not None:
+                result.created_count += 1
+                if v_guid:
+                    result.created_guids.append(v_guid)
+            if v_guid:
+                # Track within this pass so a duplicate entry (e.g.
+                # badly-formed catalog) won't re-create.
+                existing_value_guids.add(v_guid)
 
-        return feature
-
-    @OperationsMethod
-    def FixGuidsAgainstCatalog(self):
-        """
-        Scan phonological features in this project; for any whose
-        CatalogSourceId matches a PhonFeatsEticGlossList entry but
-        whose GUID differs from the catalog's canonical GUID, create
-        a replacement with the correct GUID, transfer references via
-        MergeObject, and remove the old feature.
-
-        Returns:
-            list[tuple]: One (old_name, old_guid, new_guid) tuple per
-            feature repaired. Empty list if everything is already
-            canonical.
-
-        Raises:
-            FP_ReadOnlyError: If the project is not opened with write enabled.
-
-        Notes:
-            - Values (IFsSymFeatVal) do not reliably expose a
-              CatalogSourceId field; their GUIDs are repaired indirectly
-              when their parent feature is replaced (the catalog's
-              value GUIDs are re-applied via _CreateValueFromEntry).
-            - A warning is logged for any value-level GUID drift that
-              cannot be repaired in this pass.
-        """
-        self._EnsureWriteEnabled()
-
-        path = find_catalog_file(
-            PHON_FEATS_CATALOG_FILENAME,
-            subdir=PHON_FEATS_CATALOG_SUBDIR,
-        )
-        feature_entries = parse_etic_gloss_list(path)
-
-        feature_system = self.project.lp.PhFeatureSystemOA
-        if feature_system is None:
-            return []
-
-        fixed = []
-        # Collect candidates first so we don't iterate + mutate the same
-        # collection during MergeObject.
-        candidates = []
-        for raw in feature_system.FeaturesOC:
-            feat = IFsClosedFeature(raw)
-            cat_id = feat.CatalogSourceId or ""
-            if not cat_id:
-                continue
-            entry = find_catalog_entry(feature_entries, cat_id)
-            if entry is None:
-                continue
-            current_guid = str(feat.Guid).lower()
-            canonical_guid = entry.guid.lower()
-            if current_guid == canonical_guid:
-                continue
-            candidates.append((feat, entry))
-
-        for old_feat, entry in candidates:
-            wsHandle = self.project.project.DefaultAnalWs
-            old_name = (
-                ITsString(old_feat.Name.get_String(wsHandle)).Text
-                or "(unnamed)"
-            )
-            old_guid = str(old_feat.Guid).lower()
-
-            warnings = []
-            missing_ws = set()
-            new_feat = self._CreateFeatureFromEntry(
-                entry, feature_system, missing_ws, warnings
-            )
-            # Recreate value children with canonical GUIDs.
-            existing_value_guids = {
-                str(v.Guid).lower() for v in new_feat.ValuesOC
-            }
-            for value_entry in entry.children:
-                v_guid = value_entry.guid.lower() if value_entry.guid else ""
-                if v_guid and v_guid in existing_value_guids:
-                    continue
-                self._CreateValueFromEntry(
-                    value_entry, new_feat, missing_ws, warnings
-                )
-
-            # Transfer references (e.g. IFsClosedValue.FeatureRA pointers)
-            # from old_feat to new_feat and delete old_feat.
-            try:
-                old_feat.MergeObject(new_feat, True)
-            except Exception as e:
-                raise FP_ParameterError(
-                    f"Failed to merge feature '{old_name}' into "
-                    f"canonical-GUID replacement (entry '{entry.id}'): {e}"
-                ) from e
-
-            fixed.append((old_name, old_guid, entry.guid.lower()))
-
-        return fixed
-
-    # --- Catalog helper methods (internal) ---
+    # --- Value-child creation ------------------------------------------
     #
-    # TODO(mixin): unify with POSOperations._CreatePosFromEntry when third
-    # catalog-backed domain lands (see Phase 5c+ planning per #11).
-    def _CreateFeatureFromEntry(
-        self, entry, feature_system, missing_ws_seen, warnings
-    ):
-        """
-        Internal: instantiate one IFsClosedFeature from a CatalogEntry,
-        attach to PhFeatureSystemOA.FeaturesOC with the canonical GUID,
-        then set per-WS Name / Abbreviation / Description and the
-        CatalogSourceId.
+    # The mixin handles feature-level creation. Value (IFsSymFeatVal)
+    # creation stays local because IFsSymFeatVal doesn't fit the same
+    # _create_from_entry contract (no CatalogSourceId field; different
+    # parent shape). Keeping it here keeps the mixin simpler.
 
-        Applies the Phase 2 ownership-ordering rule: attach first
-        (via the 2-arg factory overload, or fall back to Create+Add),
-        then mutate properties.
-        """
-        factory = self.project.project.ServiceLocator.GetService(
-            IFsClosedFeatureFactory
-        )
-        guid = System.Guid(entry.guid)
-
-        new_feat = None
-        # Path A: explicit 2-arg interface overload (creates+attaches in one step).
-        # Pythonnet may or may not expose this; fall back if it doesn't.
-        try:
-            new_feat = factory.Create(guid, feature_system)
-        except Exception:
-            new_feat = None
-
-        if new_feat is None:
-            # Path B: implementation-side Create(Guid) followed by Add() to
-            # the owning collection. cast_to_concrete defends against
-            # interface-only views that hide Create(Guid).
-            concrete_factory = (
-                cast_to_concrete(factory)
-                if hasattr(factory, "ClassName")
-                else factory
-            )
-            try:
-                new_feat = concrete_factory.Create(guid)
-            except Exception as e:
-                # No safe fallback: parameterless Create() would generate a
-                # random GUID, defeating the point of CreateFromCatalog.
-                raise FP_ParameterError(
-                    f"Could not create phonological feature '{entry.id}' "
-                    f"with canonical GUID {entry.guid} via either "
-                    f"Create(Guid, FeatureSystem) or Create(Guid) factory "
-                    f"overloads. The canonical GUID cannot be applied in "
-                    f"this LCM version; a manual factory.Create() workaround "
-                    f"would produce a random GUID and is not acceptable here."
-                ) from e
-
-            feature_system.FeaturesOC.Add(new_feat)
-
-        new_feat = IFsClosedFeature(new_feat)
-
-        # Set per-writing-system multistring properties. Skip any WS the
-        # project doesn't have a handle for; record one warning per tag.
-        self._SetFsMultiString(
-            new_feat.Name, entry.term, missing_ws_seen, warnings
-        )
-        self._SetFsMultiString(
-            new_feat.Abbreviation, entry.abbrev, missing_ws_seen, warnings
-        )
-        if hasattr(new_feat, "Description"):
-            self._SetFsMultiString(
-                new_feat.Description, entry.def_, missing_ws_seen, warnings
-            )
-
-        # CatalogSourceId: write the BARE id (matches FW's own convention).
-        # CreateFromCatalog accepts both bare and PHON:-prefixed forms.
-        # Note: bare entry.id (not "PHON:"-prefixed) matches FW's storage
-        # convention for phonological features. Differs from POSOperations
-        # which writes "GOLD:<id>". When extracting CatalogBackedMixin,
-        # make the prefix policy configurable.
-        new_feat.CatalogSourceId = entry.id
-
-        return new_feat
-
-    # TODO(mixin): unify with POSOperations equivalent for value-shaped
-    # children when the third catalog-backed domain lands (#11).
     def _CreateValueFromEntry(
         self, value_entry, parent_feature, missing_ws_seen, warnings
     ):
@@ -978,6 +735,10 @@ class PhonFeatureOperations(BaseOperations):
         Internal: instantiate one IFsSymFeatVal under `parent_feature`
         from a value-typed CatalogEntry. Applies the canonical GUID and
         per-WS strings.
+
+        Applies the Phase 2 ownership-ordering rule: attach first (via
+        the 2-arg factory overload, or fall back to Create+Add), then
+        mutate properties.
         """
         factory = self.project.project.ServiceLocator.GetService(
             IFsSymFeatValFactory
@@ -1001,6 +762,9 @@ class PhonFeatureOperations(BaseOperations):
             try:
                 new_val = concrete_factory.Create(guid)
             except Exception as e:
+                # No safe fallback: parameterless Create() would generate
+                # a random GUID. Match the mixin's Path-A+B-failure
+                # discipline (Phase 5a).
                 raise FP_ParameterError(
                     f"Could not create feature value '{value_entry.id}' "
                     f"with canonical GUID {value_entry.guid} via either "
@@ -1011,63 +775,25 @@ class PhonFeatureOperations(BaseOperations):
 
         new_val = IFsSymFeatVal(new_val)
 
-        # Per-WS strings (abbreviation is the +/- marker, term is positive/negative).
-        self._SetFsMultiString(
+        # Per-WS strings (abbreviation is the +/- marker; term is the
+        # positive/negative name).
+        self._set_multistring(
             new_val.Name, value_entry.term, missing_ws_seen, warnings
         )
-        self._SetFsMultiString(
+        self._set_multistring(
             new_val.Abbreviation, value_entry.abbrev, missing_ws_seen, warnings
         )
         if hasattr(new_val, "Description"):
-            self._SetFsMultiString(
+            self._set_multistring(
                 new_val.Description, value_entry.def_, missing_ws_seen, warnings
             )
 
-        # IFsSymFeatVal does not have a CatalogSourceId field in stock LCM,
-        # so we don't try to set one. Value-level catalog provenance is
-        # recoverable indirectly via the parent feature's CatalogSourceId
-        # and the value's canonical GUID.
+        # IFsSymFeatVal does not have a CatalogSourceId field in stock
+        # LCM, so we don't try to set one. Value-level catalog provenance
+        # is recoverable indirectly via the parent feature's
+        # CatalogSourceId and the value's canonical GUID.
 
         return new_val
-
-    # TODO(mixin): identical body to POSOperations._SetPosMultiString;
-    # unify when third catalog-backed domain lands (#11).
-    def _SetFsMultiString(self, multistring, ws_to_text, missing_ws_seen, warnings):
-        """
-        Apply a {ws_tag: text} dict to an LCM multistring, mapping ws_tag
-        to handle via project.WSHandle(). Missing handles are skipped;
-        a warning is recorded once per missing tag.
-        """
-        for ws_tag, text in ws_to_text.items():
-            handle = self.project.WSHandle(ws_tag)
-            if handle is None:
-                if ws_tag not in missing_ws_seen:
-                    missing_ws_seen.add(ws_tag)
-                    warnings.append(
-                        f"Skipping catalog WS '{ws_tag}': "
-                        "no matching writing system in project."
-                    )
-                continue
-            tss = TsStringUtils.MakeString(text, handle)
-            multistring.set_String(handle, tss)
-
-    # TODO(mixin): parallel to POSOperations._GetAllPosGuids; unify when
-    # the third catalog-backed domain lands (#11).
-    def _GetAllFeatureGuids(self):
-        """
-        Build a dict mapping lowercased GUID string -> IFsClosedFeature for
-        every closed feature in this project's PhFeatureSystemOA. Value
-        GUIDs are NOT included here -- value idempotency is checked
-        per-feature in ImportCatalog / CreateFromCatalog.
-        """
-        guids = {}
-        feature_system = self.project.lp.PhFeatureSystemOA
-        if feature_system is None:
-            return guids
-        for raw in feature_system.FeaturesOC:
-            feat = IFsClosedFeature(raw)
-            guids[str(feat.Guid).lower()] = feat
-        return guids
 
     # ========================================================================
     # PRIVATE HELPER METHODS

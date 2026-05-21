@@ -828,6 +828,120 @@ class PhonemeOperations(BaseOperations):
         phoneme.CodesOS.Remove(code)
 
     @OperationsMethod
+    def FindCode(self, phoneme_or_hvo, representation, wsHandle=None):
+        """
+        Find a code (allophonic representation) on a phoneme by its
+        rendered representation string.
+
+        Args:
+            phoneme_or_hvo: The IPhPhoneme object or HVO.
+            representation (str): The code representation to look up,
+                e.g. ``"[tʰ]"``. Compared via NFD-normalised match
+                (no casefold; IPA distinctions are case-sensitive).
+            wsHandle: Optional writing system handle. Defaults to
+                vernacular WS.
+
+        Returns:
+            IPhCode or None: The matching code object, or None if no
+            code on this phoneme renders to ``representation``.
+
+        Raises:
+            FP_NullParameterError: If phoneme_or_hvo or representation
+                is None.
+
+        Example:
+            >>> phoneme = project.Phonemes.Find("/t/")
+            >>> aspirated = project.Phonemes.FindCode(phoneme, "[tʰ]")
+            >>> if aspirated is not None:
+            ...     # safe to ReplaceCode or RemoveCode it
+            ...     pass
+
+        Notes:
+            - Match is case-sensitive (IPA is case-sensitive) but
+              NFD-normalised so combining-diacritic encoding doesn't
+              cause false negatives.
+            - Returns the first match; codes don't have to be unique by
+              representation but typically are.
+
+        See Also:
+            AddCode, RemoveCode, ReplaceCode, GetCodes
+        """
+        self._ValidateParam(phoneme_or_hvo, "phoneme_or_hvo")
+        self._ValidateParam(representation, "representation")
+
+        phoneme = self.__GetPhonemeObject(phoneme_or_hvo)
+        ws = self.__WSHandle(wsHandle)
+
+        target = normalize_match_key(representation, casefold=False)
+        for code in phoneme.CodesOS:
+            code_repr = ITsString(code.Representation.get_String(ws)).Text
+            if code_repr is None:
+                continue
+            if normalize_match_key(code_repr, casefold=False) == target:
+                return code
+        return None
+
+    @OperationsMethod
+    def ReplaceCode(self, phoneme_or_hvo, old_code_or_repr, new_representation, wsHandle=None):
+        """
+        Replace one code's representation on a phoneme.
+
+        Args:
+            phoneme_or_hvo: The IPhPhoneme object or HVO.
+            old_code_or_repr: Either an IPhCode object on this phoneme,
+                an HVO, or a string representation to look up via
+                FindCode().
+            new_representation (str): The replacement representation,
+                e.g. ``"[dʰ]"``.
+            wsHandle: Optional writing system handle. Defaults to
+                vernacular WS.
+
+        Returns:
+            IPhCode: The newly created code carrying ``new_representation``.
+
+        Raises:
+            FP_ReadOnlyError: If project is not opened with writeEnabled=True.
+            FP_NullParameterError: If any required parameter is None.
+            FP_ParameterError: If ``old_code_or_repr`` is a string and
+                no matching code is found on the phoneme.
+
+        Example:
+            >>> phoneme = project.Phonemes.Find("/t/")
+            >>> # Fix an encoding typo: replace "[ts]" with the proper
+            >>> # affricate "[t͡s]".
+            >>> project.Phonemes.ReplaceCode(phoneme, "[ts]", "[t͡s]")
+
+        Notes:
+            - Implementation is RemoveCode + AddCode: any references to
+              the original IPhCode object are dropped. If you need to
+              preserve references, mutate the Representation multistring
+              directly instead.
+            - Returns the new IPhCode (not the old one).
+
+        See Also:
+            AddCode, RemoveCode, FindCode, GetCodes
+        """
+        self._EnsureWriteEnabled()
+
+        self._ValidateParam(phoneme_or_hvo, "phoneme_or_hvo")
+        self._ValidateParam(old_code_or_repr, "old_code_or_repr")
+        self._ValidateParam(new_representation, "new_representation")
+
+        phoneme = self.__GetPhonemeObject(phoneme_or_hvo)
+
+        if isinstance(old_code_or_repr, str):
+            target = self.FindCode(phoneme, old_code_or_repr, wsHandle)
+            if target is None:
+                raise FP_ParameterError(
+                    f"No code matching '{old_code_or_repr}' found on phoneme"
+                )
+        else:
+            target = old_code_or_repr
+
+        self.RemoveCode(phoneme, target)
+        return self.AddCode(phoneme, new_representation, wsHandle)
+
+    @OperationsMethod
     def GetBasicIPASymbol(self, phoneme_or_hvo, wsHandle=None):
         """
         Get the basic IPA symbol for a phoneme.
@@ -862,6 +976,12 @@ class PhonemeOperations(BaseOperations):
             - May differ from representation which can include slashes
             - Used for cross-linguistic phoneme identification
             - May be empty if not set
+            - ``BasicIPASymbol``'s LCM type varies: in some builds it is
+              IMultiString (per-WS), in others a scalar ITsString. This
+              getter tries the multistring ``get_String`` accessor first
+              and falls back to reading the property directly as an
+              ITsString (matching the defensive write pattern in
+              SetBasicIPASymbol).
             - BasicIPASymbol property may not be available in all FLEx versions
 
         See Also:
@@ -870,12 +990,75 @@ class PhonemeOperations(BaseOperations):
         self._ValidateParam(phoneme_or_hvo, "phoneme_or_hvo")
 
         phoneme = self.__GetPhonemeObject(phoneme_or_hvo)
-        wsHandle = self.__WSHandle(wsHandle)
+        ws = self.__WSHandle(wsHandle)
 
-        if hasattr(phoneme, "BasicIPASymbol") and phoneme.BasicIPASymbol:
-            ipa_str = ITsString(phoneme.BasicIPASymbol.get_String(wsHandle)).Text
-            return ipa_str or ""
-        return ""
+        if not hasattr(phoneme, "BasicIPASymbol") or not phoneme.BasicIPASymbol:
+            return ""
+
+        target = phoneme.BasicIPASymbol
+        if hasattr(target, "get_String"):
+            # MultiString shape: per-WS read. Matches the write pattern
+            # in SetBasicIPASymbol (which calls .set_String(ws, tss)).
+            tss = target.get_String(ws)
+        else:
+            # Scalar ITsString shape: the property value IS the ITsString.
+            tss = target
+        ipa_str = ITsString(tss).Text
+        return ipa_str or ""
+
+    @OperationsMethod
+    def SetBasicIPASymbol(self, phoneme_or_hvo, ipa, wsHandle=None):
+        """
+        Set the basic IPA symbol for a phoneme.
+
+        Args:
+            phoneme_or_hvo: The IPhPhoneme object or HVO.
+            ipa (str): The IPA symbol to set, e.g. ``"p"``, ``"tʃ"``.
+            wsHandle: Optional writing system handle. Defaults to
+                vernacular WS.
+
+        Raises:
+            FP_ReadOnlyError: If project is not opened with writeEnabled=True.
+            FP_NullParameterError: If phoneme_or_hvo or ipa is None.
+
+        Example:
+            >>> phoneme = project.Phonemes.Find("/p/")
+            >>> project.Phonemes.SetBasicIPASymbol(phoneme, "p")
+            >>> assert project.Phonemes.GetBasicIPASymbol(phoneme) == "p"
+
+        Notes:
+            - ``BasicIPASymbol`` is typed as IMultiUnicode / IMultiString
+              in the LCM builds we ship against (matches the multistring
+              read pattern in GetBasicIPASymbol). Older issue tracking
+              describes it as ITsString-only, so this setter tries the
+              standard multistring write first and falls back to a
+              scalar set_BasicIPASymbol if the multistring API is not
+              present.
+            - Empty / whitespace-only strings are permitted: FW itself
+              treats unset IPA as "" and round-trips correctly.
+
+        See Also:
+            GetBasicIPASymbol
+        """
+        self._EnsureWriteEnabled()
+
+        self._ValidateParam(phoneme_or_hvo, "phoneme_or_hvo")
+        self._ValidateParam(ipa, "ipa")
+
+        phoneme = self.__GetPhonemeObject(phoneme_or_hvo)
+        ws = self.__WSHandle(wsHandle)
+
+        tss = TsStringUtils.MakeString(ipa, ws)
+        target = phoneme.BasicIPASymbol
+        if hasattr(target, "set_String"):
+            # MultiString shape: per-WS write. This matches the read
+            # pattern in GetBasicIPASymbol (which calls .get_String(ws)).
+            target.set_String(ws, tss)
+        else:
+            # Scalar ITsString shape: assign via the property setter on
+            # the interface view. Cast to IPhPhoneme to surface the
+            # explicit-interface setter if pythonnet hid it on the base.
+            IPhPhoneme(phoneme).set_BasicIPASymbol(tss)
 
     @OperationsMethod
     def IsVowel(self, phoneme_or_hvo):

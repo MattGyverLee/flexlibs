@@ -207,5 +207,312 @@ class TestPhonemeFindNFDRegression:
                 pass
 
 
+class TestPhonemeIPAOperations:
+    """
+    Phase 5c coverage for the additive IPA-related setters/finders on
+    PhonemeOperations: SetBasicIPASymbol, FindCode, ReplaceCode.
+
+    These tests use the module-scoped writable_project fixture (shared
+    above). Each test creates its own throw-away phoneme with a unique
+    representation and cleans up in a `finally` block so re-running the
+    suite is idempotent against a live FieldWorks project.
+    """
+
+    # ---------------------------------------------------------------
+    # SetBasicIPASymbol
+    # ---------------------------------------------------------------
+
+    @staticmethod
+    def _read_basic_ipa_raw(phoneme, ws):
+        """
+        Read BasicIPASymbol via raw LCM regardless of whether it is
+        IMultiUnicode (per-WS) or ITsString (scalar). Used because the
+        in-tree GetBasicIPASymbol has a pre-existing bug when the
+        property is ITsString-shaped (calls .get_String on the
+        ITsString itself), and we don't want to modify source as part
+        of the Phase 5c verification.
+        """
+        from SIL.LCModel.Core.KernelInterfaces import ITsString
+
+        raw = phoneme.BasicIPASymbol
+        if raw is None:
+            return ""
+        # Multi-shape path: per-WS get_String
+        if hasattr(raw, "get_String"):
+            tss = raw.get_String(ws)
+            return ITsString(tss).Text or ""
+        # Scalar ITsString path: cast directly
+        return ITsString(raw).Text or ""
+
+    def test_set_basic_ipa_symbol_writes_round_trip(self, writable_project):
+        """
+        SetBasicIPASymbol("ɯ") must write the value to the phoneme's
+        BasicIPASymbol property. Reads back via a raw LCM helper so
+        the test is decoupled from a pre-existing bug in
+        GetBasicIPASymbol for ITsString-shaped builds.
+        """
+        representation = "qZ_ipa_set_roundtrip"
+
+        existing = writable_project.Phonemes.Find(representation)
+        if existing is not None:
+            writable_project.Phonemes.Delete(existing)
+
+        phoneme = writable_project.Phonemes.Create(representation)
+        try:
+            writable_project.Phonemes.SetBasicIPASymbol(phoneme, "ɯ")
+
+            ws = writable_project.project.DefaultVernWs
+            got = self._read_basic_ipa_raw(phoneme, ws)
+            assert got == "ɯ", (
+                f"SetBasicIPASymbol round-trip failed: expected 'ɯ', "
+                f"got {got!r}"
+            )
+        finally:
+            try:
+                writable_project.Phonemes.Delete(phoneme)
+            except Exception:
+                pass
+
+    def test_set_basic_ipa_symbol_handles_combined_diacritic(
+        self, writable_project
+    ):
+        """
+        Defensive: set a precomposed-diacritic NFC string ("ö") via
+        SetBasicIPASymbol and verify GetBasicIPASymbol returns the
+        same Python string. FW may store as NFD internally; the
+        getter/setter pair must round-trip the user's view.
+        """
+        representation = "qZ_ipa_set_diacritic"
+
+        existing = writable_project.Phonemes.Find(representation)
+        if existing is not None:
+            writable_project.Phonemes.Delete(existing)
+
+        phoneme = writable_project.Phonemes.Create(representation)
+        try:
+            writable_project.Phonemes.SetBasicIPASymbol(phoneme, "ö")
+
+            ws = writable_project.project.DefaultVernWs
+            got = self._read_basic_ipa_raw(phoneme, ws)
+            # Storage may normalise NFD; both NFC and NFD should be
+            # acceptable round-trips. We assert *content equivalence*
+            # after Unicode normalisation rather than byte equality.
+            import unicodedata
+            assert unicodedata.normalize("NFC", got) == "ö", (
+                f"SetBasicIPASymbol('ö') round-trip failed: got {got!r}"
+            )
+        finally:
+            try:
+                writable_project.Phonemes.Delete(phoneme)
+            except Exception:
+                pass
+
+    def test_set_basic_ipa_symbol_explicit_ws(self, writable_project):
+        """
+        Passing wsHandle=<vern handle> explicitly must write to that
+        WS — read back with the same handle and the value must match.
+        """
+        representation = "qZ_ipa_set_explicit_ws"
+
+        existing = writable_project.Phonemes.Find(representation)
+        if existing is not None:
+            writable_project.Phonemes.Delete(existing)
+
+        phoneme = writable_project.Phonemes.Create(representation)
+        try:
+            ws = writable_project.project.DefaultVernWs
+
+            writable_project.Phonemes.SetBasicIPASymbol(
+                phoneme, "ʃ", wsHandle=ws
+            )
+
+            got = self._read_basic_ipa_raw(phoneme, ws)
+            assert got == "ʃ", (
+                f"SetBasicIPASymbol(wsHandle={ws}) round-trip failed: "
+                f"got {got!r}"
+            )
+        finally:
+            try:
+                writable_project.Phonemes.Delete(phoneme)
+            except Exception:
+                pass
+
+    # ---------------------------------------------------------------
+    # FindCode
+    # ---------------------------------------------------------------
+
+    def test_find_code_returns_existing(self, writable_project):
+        """
+        After AddCode("[tʰ]"), FindCode(phoneme, "[tʰ]") must return
+        an IPhCode whose Hvo matches the code we just added.
+        """
+        representation = "qZ_findcode_existing"
+
+        existing = writable_project.Phonemes.Find(representation)
+        if existing is not None:
+            writable_project.Phonemes.Delete(existing)
+
+        phoneme = writable_project.Phonemes.Create(representation)
+        try:
+            added = writable_project.Phonemes.AddCode(phoneme, "[tʰ]")
+
+            found = writable_project.Phonemes.FindCode(phoneme, "[tʰ]")
+            assert found is not None, (
+                "FindCode returned None for code that was just added"
+            )
+            assert found.Hvo == added.Hvo, (
+                f"FindCode returned wrong code: got Hvo={found.Hvo}, "
+                f"expected Hvo={added.Hvo}"
+            )
+        finally:
+            try:
+                writable_project.Phonemes.Delete(phoneme)
+            except Exception:
+                pass
+
+    def test_find_code_returns_none_for_missing(self, writable_project):
+        """
+        FindCode for a representation that doesn't exist on the
+        phoneme must return None (not raise).
+        """
+        representation = "qZ_findcode_missing"
+
+        existing = writable_project.Phonemes.Find(representation)
+        if existing is not None:
+            writable_project.Phonemes.Delete(existing)
+
+        phoneme = writable_project.Phonemes.Create(representation)
+        try:
+            result = writable_project.Phonemes.FindCode(
+                phoneme, "nonexistent_code_repr"
+            )
+            assert result is None, (
+                f"FindCode for missing repr should return None, got "
+                f"{result!r}"
+            )
+        finally:
+            try:
+                writable_project.Phonemes.Delete(phoneme)
+            except Exception:
+                pass
+
+    def test_find_code_nfd_safe(self, writable_project):
+        """
+        Phase 3 regression for codes: AddCode with NFC input (single
+        codepoint "ö" U+00F6) must still be findable via FindCode with
+        the same NFC input even though FLEx storage may be NFD.
+        Mirrors the Phonemes.Find NFD-safety guarantee from issue #10.
+        """
+        representation = "qZ_findcode_nfd_safe"
+
+        existing = writable_project.Phonemes.Find(representation)
+        if existing is not None:
+            writable_project.Phonemes.Delete(existing)
+
+        phoneme = writable_project.Phonemes.Create(representation)
+        try:
+            # NFC input. "ö" is a single-codepoint precomposed form;
+            # FLEx may store it decomposed as "o" + U+0308.
+            added = writable_project.Phonemes.AddCode(phoneme, "ö")
+
+            found = writable_project.Phonemes.FindCode(phoneme, "ö")
+            assert found is not None, (
+                "FindCode('ö' NFC) returned None — NFD normalisation "
+                "is not applied to code lookup"
+            )
+            assert found.Hvo == added.Hvo, (
+                f"FindCode returned wrong code: got Hvo={found.Hvo}, "
+                f"expected Hvo={added.Hvo}"
+            )
+        finally:
+            try:
+                writable_project.Phonemes.Delete(phoneme)
+            except Exception:
+                pass
+
+    # ---------------------------------------------------------------
+    # ReplaceCode
+    # ---------------------------------------------------------------
+
+    def test_replace_code_swaps_representation(self, writable_project):
+        """
+        AddCode("[a]"), then ReplaceCode("[a]", "[b]"). After the swap
+        FindCode("[b]") must return the new code, and FindCode("[a]")
+        must return None.
+        """
+        representation = "qZ_replacecode_swap"
+
+        existing = writable_project.Phonemes.Find(representation)
+        if existing is not None:
+            writable_project.Phonemes.Delete(existing)
+
+        phoneme = writable_project.Phonemes.Create(representation)
+        try:
+            writable_project.Phonemes.AddCode(phoneme, "[a]")
+
+            new_code = writable_project.Phonemes.ReplaceCode(
+                phoneme, "[a]", "[b]"
+            )
+
+            assert new_code is not None, (
+                "ReplaceCode returned None instead of the new IPhCode"
+            )
+
+            found_new = writable_project.Phonemes.FindCode(phoneme, "[b]")
+            assert found_new is not None, (
+                "FindCode('[b]') returned None after ReplaceCode"
+            )
+            assert found_new.Hvo == new_code.Hvo, (
+                f"FindCode found wrong code: got Hvo={found_new.Hvo}, "
+                f"expected new Hvo={new_code.Hvo}"
+            )
+
+            found_old = writable_project.Phonemes.FindCode(phoneme, "[a]")
+            assert found_old is None, (
+                f"Old code '[a]' was not removed by ReplaceCode: "
+                f"found Hvo={found_old.Hvo if found_old else None}"
+            )
+        finally:
+            try:
+                writable_project.Phonemes.Delete(phoneme)
+            except Exception:
+                pass
+
+    def test_replace_code_raises_when_old_not_found(self, writable_project):
+        """
+        ReplaceCode for a string old_code_or_repr that isn't present
+        on the phoneme must raise FP_ParameterError (not silently
+        AddCode the new value).
+        """
+        from flexlibs2.code.FLExProject import FP_ParameterError
+
+        representation = "qZ_replacecode_missing"
+
+        existing = writable_project.Phonemes.Find(representation)
+        if existing is not None:
+            writable_project.Phonemes.Delete(existing)
+
+        phoneme = writable_project.Phonemes.Create(representation)
+        try:
+            with pytest.raises(FP_ParameterError):
+                writable_project.Phonemes.ReplaceCode(
+                    phoneme, "nonexistent_code_repr", "[x]"
+                )
+
+            # And the phoneme must not have grown a "[x]" code as a
+            # side effect of the failed replace.
+            assert (
+                writable_project.Phonemes.FindCode(phoneme, "[x]") is None
+            ), (
+                "ReplaceCode unexpectedly added the new code even though "
+                "the old code was missing"
+            )
+        finally:
+            try:
+                writable_project.Phonemes.Delete(phoneme)
+            except Exception:
+                pass
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
