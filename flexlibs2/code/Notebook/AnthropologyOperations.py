@@ -1789,6 +1789,112 @@ class AnthropologyOperations(BaseOperations):
             for nested_item in source_item.SubPossibilitiesOS:
                 self._DuplicateSubitemInto(nested_item, dup_item, deep=True)
 
+    # ========== CATALOG IMPORT METHODS ==========
+    #
+    # Unlike POS / PhonFeatures / InflectionFeatures (which use the etic
+    # CatalogEntry parser via CatalogBackedMixin), the anthropology
+    # catalog ships as LCM-native XML at:
+    #
+    #     <FWCodeDir>/Templates/OCM.xml
+    #
+    # i.e. <LangProject><AnthroList><CmPossibilityList>... with
+    # <CmAnthroItem guid="..."> items. That shape is what
+    # SIL.LCModel.Application.ApplicationServices.XmlList.ImportList
+    # consumes natively, so we delegate to it directly rather than
+    # reimplementing the parser. Items whose canonical GUIDs already
+    # exist in the project are reused; new ones are created; localized
+    # Name/Abbreviation/Description and nested SubPossibilities all come
+    # from the catalog.
+    #
+    # Note: OCM-Frame.xml is a sibling catalog (also in Templates/) and
+    # is NOT wrapped by this method -- this phase covers OCM.xml only.
+
+    @OperationsMethod
+    def ImportCatalog(self, progress=None, force=False):
+        """
+        Import the full OCM anthropology catalog into this project.
+
+        Loads SIL's standard Outline of Cultural Materials (OCM) hierarchy
+        from ``<FWCodeDir>/Templates/OCM.xml`` via LCM's native
+        ``XmlList.ImportList``. The catalog supplies localized Name /
+        Abbreviation / Description and the full nested SubPossibilities
+        hierarchy of anthropology items.
+
+        **Idempotency guard**: LCM's underlying ``XmlList.ImportList``
+        APPENDS items into ``AnthroListOA.PossibilitiesOS`` without
+        checking for canonical-GUID duplicates -- each call adds another
+        full set of top-level anthropology items. To prevent accidental
+        duplication, this method refuses by default when the list is
+        already non-empty. Pass ``force=True`` to import anyway (e.g. to
+        layer a second-language localization on top of an existing
+        import). The caller then takes responsibility for any resulting
+        duplicates.
+
+        **Recovery from past duplication**: If a project already has
+        duplicate top-level anthropology items from prior unguarded
+        imports, this method does NOT clean them up automatically --
+        that would be destructive. Recovery requires either manual
+        cleanup via the FieldWorks GUI, or deliberate ``bulk_delete``-
+        style code the caller writes to remove duplicate GUID groups.
+
+        Note: single-item import via ``CreateFromCatalog(source_id)``
+        is not yet supported for this catalog. The OCM catalog is
+        hierarchical; the typical workflow is a full import, after which
+        existing operations (``Find``, ``FindByCode``, ``GetAll``) work
+        normally. File a request if you need single-item import.
+
+        Args:
+            progress: Optional ``SIL.LCModel.Utils.IProgress`` instance
+                      to report import progress. Pass ``None`` (the
+                      default) for silent import.
+            force: If True, skip the non-empty list check and import
+                   anyway. Default False (refuse if list is non-empty).
+
+        Returns:
+            int: Number of top-level anthropology items in
+                 ``LangProject.AnthroListOA.PossibilitiesOS`` after
+                 import. Useful as a sanity check for callers.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not write-enabled.
+            FP_FileNotFoundError: If OCM.xml cannot be located under
+                                  the FieldWorks install.
+            FP_ParameterError: If ``AnthroListOA`` already has anthro
+                               items and ``force`` is False.
+        """
+        self._EnsureWriteEnabled()
+
+        from SIL.LCModel.Application.ApplicationServices import XmlList
+        from ..Shared.catalog import find_catalog_file
+        from ..exceptions import FP_FileNotFoundError
+
+        existing = self.project.lp.AnthroListOA.PossibilitiesOS.Count
+        if existing > 0 and not force:
+            raise FP_ParameterError(
+                f"AnthroListOA already has {existing} top-level "
+                f"anthropology item(s). XmlList.ImportList APPENDS without "
+                f"GUID-based deduplication, so calling ImportCatalog here "
+                f"would create duplicates. Pass force=True if you intend "
+                f"to layer additional items on top, or clear the list first."
+            )
+
+        try:
+            catalog_path = find_catalog_file("OCM.xml", subdir="Templates")
+        except FileNotFoundError as e:
+            raise FP_FileNotFoundError("OCM.xml", e)
+
+        importer = XmlList()
+        # fieldName "AnthroList" -> LangProject.AnthroListOA.
+        # progress=None is accepted (IProgress is a reference interface).
+        importer.ImportList(
+            self.project.lp,
+            "AnthroList",
+            catalog_path,
+            progress,
+        )
+
+        return self.project.lp.AnthroListOA.PossibilitiesOS.Count
+
     # ========== SYNC INTEGRATION METHODS ==========
 
     @OperationsMethod
