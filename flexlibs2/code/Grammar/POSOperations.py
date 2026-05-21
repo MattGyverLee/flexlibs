@@ -19,16 +19,27 @@ from SIL.LCModel import IPartOfSpeechFactory, IPartOfSpeech, ILexEntryRepository
 from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
 
+# .NET Guid for catalog-driven creation
+import System
+
 # Import flexlibs exceptions
 from ..FLExProject import (
     FP_ParameterError,
 )
 
 # Import LCM casting utilities for pythonnet interface casting
-from ..lcm_casting import get_pos_from_msa
+from ..lcm_casting import cast_to_concrete, get_pos_from_msa
 
 # Import string utilities
 from ..Shared.string_utils import normalize_text, normalize_match_key
+
+# Catalog (GOLDEtic) parsing helpers
+from ..Shared.catalog import (
+    CatalogImportResult,
+    find_catalog_entry,
+    find_catalog_file,
+    parse_etic_catalog,
+)
 
 
 class POSOperations(BaseOperations):
@@ -167,6 +178,21 @@ class POSOperations(BaseOperations):
             raise FP_ParameterError("Name cannot be empty")
         if not abbreviation or not abbreviation.strip():
             raise FP_ParameterError("Abbreviation cannot be empty")
+
+        # If the caller supplied a "GOLD:..." catalog id, defer to the
+        # catalog path so the POS gets the canonical GUID and any extra
+        # WS data the catalog provides. We then overlay the user's
+        # name/abbreviation on top so explicit args still win.
+        if catalogSourceId and catalogSourceId.upper().startswith("GOLD:"):
+            wsHandle = self.project.project.DefaultAnalWs
+            new_pos = self.CreateFromCatalog(catalogSourceId)
+            # Overlay user-supplied name and abbreviation in the
+            # analysis WS (catalog values stay in other WSes).
+            mkstr_name = TsStringUtils.MakeString(name, wsHandle)
+            new_pos.Name.set_String(wsHandle, mkstr_name)
+            mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
+            new_pos.Abbreviation.set_String(wsHandle, mkstr_abbr)
+            return new_pos
 
         # Check if POS already exists
         if self.Exists(name):
@@ -918,6 +944,350 @@ class POSOperations(BaseOperations):
                 self.__DuplicateSubcategory(nested_sub, sub_duplicate)
 
         return sub_duplicate
+
+    # ========== CATALOG (GOLDEtic) IMPORT METHODS ==========
+    #
+    # These methods populate IPartOfSpeech from the FW GOLDEtic.xml catalog
+    # (Templates/GOLDEtic.xml). The canonical FW pipeline lives in
+    # SIL.FieldWorks.LexText.Controls.MasterCategory; we reimplement here so
+    # we don't have to pull in the GUI-side LexTextControls.dll dependency.
+    #
+    # Phase 2 ownership-ordering lesson applies: attach via the 2-arg factory
+    # overload (POS placed into its owning list at creation) THEN set the
+    # multistring properties; never set properties on a free-floating POS.
+
+    @OperationsMethod
+    def ImportCatalog(self, progress=None):
+        """
+        Import the GOLDEtic POS catalog into this project, populating
+        PartsOfSpeechOA with canonical GUIDs, abbreviations, terms, and
+        definitions from `<FWCodeDir>/Templates/GOLDEtic.xml`.
+
+        Idempotent: any catalog entry whose canonical GUID already exists
+        in the project (anywhere in the POS list, top-level or nested) is
+        skipped. Re-running the import never duplicates entries.
+
+        Args:
+            progress: Optional callable accepting (count, total, name)
+                      for progress reporting. May be None.
+
+        Returns:
+            CatalogImportResult: Created/skipped counts, list of created
+            GUIDs, and any human-readable warnings raised during import.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FileNotFoundError: If GOLDEtic.xml is not found under FWCodeDir.
+
+        Notes:
+            - Only catalog writing systems the project has handles for are
+              copied; others are silently skipped and a single warning is
+              recorded per missing WS tag.
+            - Top-level catalog entries become top-level POSs; nested
+              entries become SubPossibilitiesOS of their parent POS.
+            - The CatalogSourceId is set to "GOLD:<id>" so future syncs
+              and FixGuidsAgainstCatalog() can identify them.
+        """
+        self._EnsureWriteEnabled()
+
+        path = find_catalog_file("GOLDEtic.xml")
+        entries = parse_etic_catalog(path)
+
+        # Index existing POSs by GUID (string form) for idempotency.
+        existing_guids = self._GetAllPosGuids()
+
+        result = CatalogImportResult()
+        missing_ws_seen = set()
+        pos_list = self.project.lp.PartsOfSpeechOA
+
+        # Flat list for progress totals (count nested children too).
+        total = self._FlattenedCatalogCount(entries)
+
+        def _import_one(entry, parent_pos):
+            """Create one catalog entry (and its children) into the project."""
+            guid_str = entry.guid.lower() if entry.guid else ""
+            existing = existing_guids.get(guid_str)
+            if existing is not None:
+                result.skipped_count += 1
+                pos = existing
+            else:
+                pos = self._CreatePosFromEntry(entry, parent_pos, pos_list, missing_ws_seen, result.warnings)
+                result.created_count += 1
+                result.created_guids.append(guid_str)
+                existing_guids[guid_str] = pos
+
+            if progress:
+                try:
+                    progress(result.created_count + result.skipped_count, total, entry.id)
+                except Exception:
+                    pass  # Progress callbacks must never break the import.
+
+            # Recurse into children: parent for them is the POS we just
+            # created (or the existing one we matched).
+            for child in entry.children:
+                _import_one(child, pos)
+
+        for top in entries:
+            _import_one(top, None)
+
+        return result
+
+    @OperationsMethod
+    def CreateFromCatalog(self, source_id, parent=None):
+        """
+        Create a single POS from the GOLDEtic catalog using the canonical
+        GUID and all localized data available for the writing systems this
+        project has.
+
+        Idempotent: if a POS with the catalog's canonical GUID already
+        exists in the project, that existing POS is returned unchanged.
+
+        Args:
+            source_id (str): Catalog id, with or without "GOLD:" prefix.
+                             e.g. "GOLD:Adjective" or "Adjective".
+            parent:   Optional IPartOfSpeech to graft the new POS under.
+                      If None (default), the POS is created at the top
+                      level of PartsOfSpeechOA.
+
+        Returns:
+            IPartOfSpeech: The created (or pre-existing) POS.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_ParameterError: If source_id is not present in the catalog.
+            FileNotFoundError: If GOLDEtic.xml is not found under FWCodeDir.
+        """
+        self._EnsureWriteEnabled()
+        self._ValidateParam(source_id, "source_id")
+
+        path = find_catalog_file("GOLDEtic.xml")
+        entries = parse_etic_catalog(path)
+        entry = find_catalog_entry(entries, source_id)
+        if entry is None:
+            raise FP_ParameterError(
+                f"Catalog id '{source_id}' not found in GOLDEtic.xml"
+            )
+
+        # Idempotency: if the canonical GUID is already present, return it.
+        existing = self._FindPosByGuid(entry.guid)
+        if existing is not None:
+            return existing
+
+        warnings = []
+        missing_ws_seen = set()
+        pos_list = self.project.lp.PartsOfSpeechOA
+        return self._CreatePosFromEntry(entry, parent, pos_list, missing_ws_seen, warnings)
+
+    @OperationsMethod
+    def FixGuidsAgainstCatalog(self):
+        """
+        Scan POSs in this project; for any whose CatalogSourceId matches
+        a GOLDEtic catalog item but whose GUID differs from the catalog's
+        canonical GUID, create a replacement with the correct GUID,
+        transfer references via MergeObject, and remove the old POS.
+
+        This is the recovery path for projects where POSs were created
+        without the canonical GUID (e.g. via the plain Create() path or
+        an older flexlibs version) but the user marked the catalog id.
+
+        Returns:
+            list[tuple]: One (old_name, old_guid, new_guid) tuple per
+            POS that was repaired. Empty list if everything is already
+            canonical.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+        """
+        self._EnsureWriteEnabled()
+
+        path = find_catalog_file("GOLDEtic.xml")
+        entries = parse_etic_catalog(path)
+
+        fixed = []
+        # Collect candidates first; iterating + mutating the same
+        # collection during merge would be unsafe.
+        candidates = []
+        for pos, _parent in self._WalkAllPos():
+            cat_id = pos.CatalogSourceId or ""
+            if not cat_id:
+                continue
+            entry = find_catalog_entry(entries, cat_id)
+            if entry is None:
+                continue
+            current_guid = str(pos.Guid).lower()
+            canonical_guid = entry.guid.lower()
+            if current_guid == canonical_guid:
+                continue
+            candidates.append((pos, entry))
+
+        for old_pos, entry in candidates:
+            wsHandle = self.project.project.DefaultAnalWs
+            old_name = ITsString(old_pos.Name.get_String(wsHandle)).Text or "(unnamed)"
+            old_guid = str(old_pos.Guid).lower()
+
+            # Determine the same owner the old POS had so the replacement
+            # lives in the same hierarchical position.
+            owner = old_pos.Owner
+            try:
+                parent_pos = IPartOfSpeech(owner)
+            except Exception:
+                parent_pos = None  # owner is the PartsOfSpeechOA list itself
+
+            warnings = []
+            missing_ws = set()
+            pos_list = self.project.lp.PartsOfSpeechOA
+            new_pos = self._CreatePosFromEntry(entry, parent_pos, pos_list, missing_ws, warnings)
+
+            # Transfer references from old_pos to new_pos. IPartOfSpeech
+            # inherits MergeObject from CmObject; this moves incoming
+            # references (MSAs, etc.) and then deletes old_pos.
+            try:
+                old_pos.MergeObject(new_pos, True)
+            except Exception as e:
+                # MergeObject failure indicates a genuine LCM error
+                # (transaction conflict, reference inconsistency, etc.).
+                # Silently removing old_pos would orphan incoming references;
+                # re-raise so the caller sees the real problem.
+                raise FP_ParameterError(
+                    f"Failed to merge POS '{old_name}' into canonical-GUID "
+                    f"replacement (entry '{entry.id}'): {e}"
+                ) from e
+
+            fixed.append((old_name, old_guid, entry.guid.lower()))
+
+        return fixed
+
+    # --- Catalog helper methods (internal) ---
+
+    def _CreatePosFromEntry(self, entry, parent_pos, pos_list, missing_ws_seen, warnings):
+        """
+        Internal: instantiate one IPartOfSpeech from a CatalogEntry,
+        attach to the correct owner with the canonical GUID, then set
+        per-WS Name/Abbreviation/Description.
+
+        Applies the Phase 2 ownership-ordering rule: attach first
+        (via the 2-arg factory overload, or fall back to Create+Add),
+        then mutate properties.
+        """
+        factory = self.project.project.ServiceLocator.GetService(IPartOfSpeechFactory)
+        guid = System.Guid(entry.guid)
+
+        new_pos = None
+        # Path A: explicit 2-arg interface overload (creates+attaches in one step).
+        # Per issue #14, pythonnet may not expose the 2-arg overload on the
+        # interface variable -- it's an explicit interface impl. Try, fall back.
+        try:
+            if parent_pos is not None:
+                new_pos = factory.Create(guid, parent_pos)
+            else:
+                new_pos = factory.Create(guid, pos_list)
+        except Exception:
+            new_pos = None
+
+        if new_pos is None:
+            # Path B: implementation-side Create(Guid) followed by Add()
+            # to the owning collection. cast_to_concrete defends against
+            # interface-only views that hide Create(Guid).
+            concrete_factory = cast_to_concrete(factory) if hasattr(factory, "ClassName") else factory
+            try:
+                new_pos = concrete_factory.Create(guid)
+            except Exception as e:
+                # No safe fallback: parameterless Create() would generate a
+                # random GUID, defeating the entire point of CreateFromCatalog.
+                # Fail loudly rather than silently degrade.
+                raise FP_ParameterError(
+                    f"Could not create POS '{entry.id}' with canonical GUID "
+                    f"{entry.guid} via either Create(Guid, list) or Create(Guid) "
+                    f"factory overloads. The catalog's canonical GUID cannot be applied "
+                    f"in this LCM version; a manual factory.Create() workaround would "
+                    f"produce a random GUID and is not acceptable here."
+                ) from e
+
+            # Attach to the chosen owner.
+            if parent_pos is not None:
+                parent_pos.SubPossibilitiesOS.Add(new_pos)
+            else:
+                pos_list.PossibilitiesOS.Add(new_pos)
+
+        # Ensure we expose the IPartOfSpeech view back to callers.
+        new_pos = IPartOfSpeech(new_pos)
+
+        # Set per-writing-system multistring properties. Skip any WS the
+        # project doesn't have a handle for; record one warning per tag.
+        self._SetPosMultiString(new_pos.Name, entry.term, missing_ws_seen, warnings)
+        self._SetPosMultiString(new_pos.Abbreviation, entry.abbrev, missing_ws_seen, warnings)
+        self._SetPosMultiString(new_pos.Description, entry.def_, missing_ws_seen, warnings)
+
+        # CatalogSourceId is a scalar string; tag with "GOLD:" prefix so
+        # FixGuidsAgainstCatalog() can find it later.
+        new_pos.CatalogSourceId = f"GOLD:{entry.id}"
+
+        return new_pos
+
+    def _SetPosMultiString(self, multistring, ws_to_text, missing_ws_seen, warnings):
+        """
+        Apply a {ws_tag: text} dict to an LCM multistring, mapping ws_tag
+        to handle via project.WSHandle(). Missing handles are skipped;
+        a warning is recorded once per missing tag.
+        """
+        for ws_tag, text in ws_to_text.items():
+            handle = self.project.WSHandle(ws_tag)
+            if handle is None:
+                if ws_tag not in missing_ws_seen:
+                    missing_ws_seen.add(ws_tag)
+                    warnings.append(
+                        f"Skipping catalog WS '{ws_tag}': "
+                        "no matching writing system in project."
+                    )
+                continue
+            tss = TsStringUtils.MakeString(text, handle)
+            multistring.set_String(handle, tss)
+
+    def _GetAllPosGuids(self):
+        """
+        Build a dict mapping lowercased GUID string -> IPartOfSpeech for
+        every POS in the project (recursive over SubPossibilitiesOS).
+        """
+        guids = {}
+        for pos, _parent in self._WalkAllPos():
+            guids[str(pos.Guid).lower()] = pos
+        return guids
+
+    def _FindPosByGuid(self, guid_str):
+        """Return the POS whose GUID matches `guid_str` (case-insensitive), or None."""
+        target = guid_str.lower() if guid_str else ""
+        if not target:
+            return None
+        for pos, _parent in self._WalkAllPos():
+            if str(pos.Guid).lower() == target:
+                return pos
+        return None
+
+    def _WalkAllPos(self):
+        """
+        Yield (IPartOfSpeech, parent_or_None) for every POS in the
+        project, walking SubPossibilitiesOS recursively. parent is None
+        for top-level POSs.
+        """
+        pos_list = self.project.lp.PartsOfSpeechOA
+        if pos_list is None:
+            return
+
+        def _walk(collection, parent):
+            for raw in collection:
+                pos = IPartOfSpeech(raw)
+                yield pos, parent
+                if pos.SubPossibilitiesOS.Count > 0:
+                    yield from _walk(pos.SubPossibilitiesOS, pos)
+
+        yield from _walk(pos_list.PossibilitiesOS, None)
+
+    def _FlattenedCatalogCount(self, entries):
+        """Total catalog entries across the forest, including nested children."""
+        n = 0
+        for e in entries:
+            n += 1 + self._FlattenedCatalogCount(e.children)
+        return n
 
     # --- Private Helper Methods ---
 
