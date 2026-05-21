@@ -22,11 +22,17 @@ from SIL.LCModel import (
     IPhSegmentRuleFactory,
     IPhSimpleContextNCFactory,
     IPhSimpleContextSegFactory,
+    IPhSimpleContextBdryFactory,
+    IPhFeatureConstraintFactory,
+    IPhFeatureConstraint,
     IPhIterationContextFactory,
     ICmObjectRepository,
 )
 from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
+
+# Import pattern-element dataclasses for the WireRule composer
+from ..Shared.rule_patterns import Seg, NC, Boundary
 
 # Import flexlibs exceptions
 from ..FLExProject import (
@@ -609,6 +615,13 @@ class PhonologicalRuleOperations(BaseOperations):
     @OperationsMethod
     def AddInputSegment(self, rule_or_hvo, phoneme_or_class):
         """
+        [DEPRECATED] Use WireRule for new code.
+
+        This method writes to a single position (StrucDescOS[0]) and has
+        known limitations with multi-element contexts. Phase 2 fixed its
+        orphan-NPE bug. WireRule supersedes it with proper pattern-element
+        semantics (Seg, NC, Boundary) and Greek-variable agreement.
+
         Add an input segment or natural class to the rule.
 
         Args:
@@ -663,6 +676,13 @@ class PhonologicalRuleOperations(BaseOperations):
     @OperationsMethod
     def AddOutputSegment(self, rule_or_hvo, phoneme_or_class):
         """
+        [DEPRECATED] Use WireRule for new code.
+
+        This method writes to a single position (RightHandSidesOS[0].StrucChangeOS)
+        and has known limitations with multi-element changes. Phase 2 fixed its
+        orphan-NPE bug. WireRule supersedes it with proper pattern-element
+        semantics (Seg, NC, Boundary) and Greek-variable agreement.
+
         Add an output segment or natural class to the rule.
 
         Args:
@@ -719,6 +739,15 @@ class PhonologicalRuleOperations(BaseOperations):
     @OperationsMethod
     def SetLeftContext(self, rule_or_hvo, context_item):
         """
+        [DEPRECATED] Use WireRule for new code.
+
+        This method writes to ``StrucDescOS[0].LeftContextOA`` but the
+        ``LeftContextOA``/``RightContextOA`` properties actually live on
+        ``IPhSegRuleRHS`` (the structural-change/environment owner), not
+        on ``IPhSimpleContext``. As a result this method does not produce
+        runnable rules. WireRule supersedes it with the correct ownership
+        path (``rhs.LeftContextOA``) and supports Seg/NC/Boundary elements.
+
         Set the left context (environment before the target) for the rule.
 
         Args:
@@ -771,6 +800,15 @@ class PhonologicalRuleOperations(BaseOperations):
     @OperationsMethod
     def SetRightContext(self, rule_or_hvo, context_item):
         """
+        [DEPRECATED] Use WireRule for new code.
+
+        This method writes to ``StrucDescOS[0].RightContextOA`` but the
+        ``RightContextOA``/``LeftContextOA`` properties actually live on
+        ``IPhSegRuleRHS``, not on ``IPhSimpleContext``. As a result this
+        method does not produce runnable rules. WireRule supersedes it
+        with the correct ownership path (``rhs.RightContextOA``) and
+        supports Seg/NC/Boundary elements.
+
         Set the right context (environment after the target) for the rule.
 
         Args:
@@ -820,6 +858,433 @@ class PhonologicalRuleOperations(BaseOperations):
                     # Attach to owner (must be done before setting properties)
                     input_context.RightContextOA = right_ctx
                     right_ctx.FeatureStructureRA = context_item
+
+    # ========================================================================
+    # ALPHA-FEATURE CONSTRAINTS (Greek-variable agreement)
+    # ========================================================================
+
+    @OperationsMethod
+    def MakeConstraint(self, feature_or_hvo):
+        """
+        Create an alpha-feature constraint variable bound to a feature.
+
+        Args:
+            feature_or_hvo: An IFsFeatDefn object, HVO (int), or wrapper.
+
+        Returns:
+            IPhFeatureConstraint: The newly created feature constraint.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If feature_or_hvo is None.
+
+        Example:
+            >>> # Turkish vowel harmony: same backness as preceding vowel
+            >>> feat_back = project.PhonFeatures.Find("back")
+            >>> alpha_back = project.PhonRules.MakeConstraint(feat_back)
+            >>> # Re-use alpha_back across positions for alpha-variable
+            >>> # identity (the SAME object means the SAME alpha value)
+
+        Notes:
+            - Identity matters: pass the SAME returned object to multiple
+              NC positions to express alpha-sharing (e.g. [aBack]...[aBack]).
+            - Constraints are owned by
+              ``project.lp.PhonologicalDataOA.FeatConstraintsOS``.
+            - The Phase 2 ownership rule is applied: the constraint is
+              attached to its owner BEFORE ``FeatureRA`` is set.
+
+        See Also:
+            DeleteConstraint, GetConstraints, WireRule
+        """
+        self._EnsureWriteEnabled()
+        self._ValidateParam(feature_or_hvo, "feature_or_hvo")
+
+        feature = self.__ResolveFeature(feature_or_hvo)
+
+        # Hardened path: raise on factory failure, no silent fallback.
+        factory = self.project.project.ServiceLocator.GetService(
+            IPhFeatureConstraintFactory
+        )
+        if factory is None:
+            raise FP_ParameterError(
+                "IPhFeatureConstraintFactory service is unavailable; "
+                "cannot create feature constraint."
+            )
+
+        phon_data = self.project.lp.PhonologicalDataOA
+        if not phon_data:
+            raise FP_ParameterError("Project has no phonological data defined")
+
+        constraint = factory.Create()
+        # Phase 2 ownership rule: attach BEFORE setting FeatureRA so the
+        # LCM property setter doesn't NPE on an unowned constraint.
+        phon_data.FeatConstraintsOS.Add(constraint)
+        constraint.FeatureRA = feature
+
+        return constraint
+
+    @OperationsMethod
+    def DeleteConstraint(self, constraint_or_hvo):
+        """
+        Delete a feature constraint from the project.
+
+        Args:
+            constraint_or_hvo: An IPhFeatureConstraint object or HVO.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If constraint_or_hvo is None.
+            FP_ParameterError: If the constraint is not present in
+                ``PhonologicalDataOA.FeatConstraintsOS``.
+
+        Example:
+            >>> alpha = project.PhonRules.MakeConstraint(feat_back)
+            >>> # ... later ...
+            >>> project.PhonRules.DeleteConstraint(alpha)
+
+        Warning:
+            Deletion is permanent. Any positions referencing this
+            constraint (via ``PlusConstrRS`` / ``MinusConstrRS``) will
+            lose the alpha-binding.
+
+        See Also:
+            MakeConstraint, GetConstraints
+        """
+        self._EnsureWriteEnabled()
+        self._ValidateParam(constraint_or_hvo, "constraint_or_hvo")
+
+        constraint = self.__ResolveObject(constraint_or_hvo)
+
+        phon_data = self.project.lp.PhonologicalDataOA
+        if (
+            not phon_data
+            or not hasattr(phon_data, "FeatConstraintsOS")
+            or constraint not in phon_data.FeatConstraintsOS
+        ):
+            raise FP_ParameterError(
+                "constraint is not present in "
+                "PhonologicalDataOA.FeatConstraintsOS"
+            )
+        phon_data.FeatConstraintsOS.Remove(constraint)
+
+    @OperationsMethod
+    def GetConstraints(self):
+        """
+        Get all feature constraints in the project.
+
+        Returns:
+            list[IPhFeatureConstraint]: All constraints in
+            ``PhonologicalDataOA.FeatConstraintsOS``. Returns an empty
+            list if no phonological data is defined.
+
+        Example:
+            >>> for c in project.PhonRules.GetConstraints():
+            ...     feat = c.FeatureRA
+            ...     print(feat.Name.BestAnalysisAlternative.Text)
+
+        See Also:
+            MakeConstraint, DeleteConstraint
+        """
+        phon_data = self.project.lp.PhonologicalDataOA
+        if not phon_data or not hasattr(phon_data, "FeatConstraintsOS"):
+            return []
+        return list(phon_data.FeatConstraintsOS)
+
+    # ========================================================================
+    # HIGH-LEVEL RULE COMPOSER (WireRule)
+    # ========================================================================
+
+    @OperationsMethod
+    def WireRule(self, rule_or_hvo, input_pattern=None, output_change=None,
+                 left_context=None, right_context=None, mode="replace"):
+        """
+        High-level composer for phonological rules using SPE notation.
+
+        Args:
+            rule_or_hvo: The IPhSegmentRule (or HVO) to wire.
+            input_pattern: List of one or more pattern elements (Seg/NC/Boundary)
+                representing the rule's structural description (LHS).
+            output_change: List of pattern elements (Seg/NC/Boundary) representing
+                the structural change (RHS).
+            left_context: List of pattern elements for the left-side context
+                (right-justified to the focus position).
+            right_context: List of pattern elements for the right-side context.
+            mode: ``"replace"`` (default) clears existing slots before wiring;
+                ``"append"`` adds to existing.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If rule_or_hvo is None.
+            FP_ParameterError: If a pattern element is malformed (e.g. a
+                Seg with alpha-feature constraints, a Boundary appearing
+                in the structural change, or multi-element left/right
+                contexts in this MVP).
+
+        Notes:
+            The composer translates pattern elements into LCM simple-context
+            objects and attaches feature constraints to NC positions. The
+            same IPhFeatureConstraint object can appear in multiple
+            positions to express Greek-variable agreement (alpha-back,
+            beta-round, etc.).
+
+            **Ownership-ordering (Phase 2):** every context object is
+            attached to its parent BEFORE its
+            ``FeatureStructureRA`` / ``PlusConstrRS`` / ``MinusConstrRS``
+            properties are populated.
+
+            **LCM property locations:**
+              - ``rule.StrucDescOS``: input pattern (structural description, LHS).
+              - ``rhs.StrucChangeOS``: output change (RHS).
+              - ``rhs.LeftContextOA``: left environment (NOT
+                ``ctx.LeftContextOA`` -- the deprecated SetLeftContext
+                method writes to the wrong owner).
+              - ``rhs.RightContextOA``: right environment.
+
+            **Limitations (MVP):**
+              - Currently single-element per left/right context. Multi-element
+                contexts (PhSequenceContext) are pending follow-up.
+              - Word/morpheme boundaries (Boundary('#'), Boundary('+'),
+                Boundary('.')) are looked up from
+                ``PhonemeSetsOS[0].BoundaryMarkersOC``; new markers are
+                NOT created.
+
+        Example:
+            >>> # Turkish vowel harmony fragment: I -> [+back] / V[+back] _
+            >>> from flexlibs2 import Seg, NC, Boundary
+            >>> feat_back = project.PhonFeatures.Find("back")
+            >>> alpha_back = project.PhonRules.MakeConstraint(feat_back)
+            >>> rule = project.PhonRules.Create("Back harmony")
+            >>> project.PhonRules.WireRule(rule,
+            ...     input_pattern=[NC(archi_I)],
+            ...     output_change=[NC(archi_I, plus=[alpha_back])],
+            ...     left_context=[NC(vowels, plus=[alpha_back])],
+            ...     right_context=None,
+            ... )
+
+        See Also:
+            MakeConstraint, Create, Seg, NC, Boundary
+        """
+        self._EnsureWriteEnabled()
+        self._ValidateParam(rule_or_hvo, "rule_or_hvo")
+
+        if mode not in ("replace", "append"):
+            raise FP_ParameterError(
+                f"mode must be 'replace' or 'append', got {mode!r}"
+            )
+
+        rule = self.__ResolveObject(rule_or_hvo)
+
+        # Ensure the rule has an RHS to write into.
+        if not hasattr(rule, "RightHandSidesOS"):
+            raise FP_ParameterError(
+                "Rule has no RightHandSidesOS; not a structural rule type."
+            )
+        if rule.RightHandSidesOS.Count == 0:
+            rhs_factory = self.project.project.ServiceLocator.GetService(
+                IPhSegRuleRHSFactory
+            )
+            if rhs_factory is None:
+                raise FP_ParameterError(
+                    "IPhSegRuleRHSFactory service is unavailable; "
+                    "cannot create RHS for rule."
+                )
+            rhs = rhs_factory.Create()
+            # Attach BEFORE further property writes (Phase 2 ownership rule).
+            rule.RightHandSidesOS.Add(rhs)
+        rhs = rule.RightHandSidesOS[0]
+
+        # --- Clear existing slots if mode == 'replace' ---
+        if mode == "replace":
+            self.__ClearSequence(rule.StrucDescOS)
+            self.__ClearSequence(rhs.StrucChangeOS)
+            if rhs.LeftContextOA is not None:
+                rhs.LeftContextOA = None
+            if rhs.RightContextOA is not None:
+                rhs.RightContextOA = None
+
+        # --- Wire input pattern -> rule.StrucDescOS ---
+        if input_pattern:
+            for elem in input_pattern:
+                ctx = self.__BuildSimpleContext(elem, slot_name="input_pattern")
+                rule.StrucDescOS.Add(ctx)
+                self.__PopulateSimpleContext(ctx, elem)
+
+        # --- Wire output change -> rhs.StrucChangeOS ---
+        if output_change:
+            for elem in output_change:
+                if isinstance(elem, Boundary):
+                    raise FP_ParameterError(
+                        "Boundary elements cannot appear in the structural "
+                        "change -- only in left/right contexts."
+                    )
+                ctx = self.__BuildSimpleContext(elem, slot_name="output_change")
+                rhs.StrucChangeOS.Add(ctx)
+                self.__PopulateSimpleContext(ctx, elem)
+
+        # --- Wire left context -> rhs.LeftContextOA (single-element MVP) ---
+        if left_context:
+            if len(left_context) > 1:
+                raise FP_ParameterError(
+                    "multi-element contexts not yet supported in WireRule "
+                    "MVP -- pending follow-up #11 work"
+                )
+            elem = left_context[0]
+            ctx = self.__BuildSimpleContext(elem, slot_name="left_context")
+            # OwningAtomic: assignment IS the attach. Do NOT re-fetch via
+            # rhs.LeftContextOA -- pythonnet narrows the proxy to the
+            # IPhPhonContext base interface, losing access to concrete-type
+            # properties like PlusConstrRS / MinusConstrRS. The local `ctx`
+            # already points at the same LCM object with the concrete type.
+            rhs.LeftContextOA = ctx
+            self.__PopulateSimpleContext(ctx, elem)
+
+        # --- Wire right context -> rhs.RightContextOA (single-element MVP) ---
+        if right_context:
+            if len(right_context) > 1:
+                raise FP_ParameterError(
+                    "multi-element contexts not yet supported in WireRule "
+                    "MVP -- pending follow-up #11 work"
+                )
+            elem = right_context[0]
+            ctx = self.__BuildSimpleContext(elem, slot_name="right_context")
+            # See note on LeftContextOA above -- skip the defensive re-fetch.
+            rhs.RightContextOA = ctx
+            self.__PopulateSimpleContext(ctx, elem)
+
+    # ------------------------------------------------------------------
+    # WireRule internals
+    # ------------------------------------------------------------------
+
+    def __ClearSequence(self, seq):
+        """Remove all elements from an owning sequence."""
+        # Walk by index from the end to avoid index drift during removal.
+        while seq.Count > 0:
+            seq.RemoveAt(seq.Count - 1)
+
+    def __BuildSimpleContext(self, elem, slot_name):
+        """Create the appropriate IPhSimpleContext* for a pattern element.
+
+        Returns an unattached context; caller is responsible for attaching
+        it to a parent BEFORE further property writes.
+        """
+        if isinstance(elem, Seg):
+            if isinstance(elem.phoneme, (list, tuple)):
+                raise FP_ParameterError(
+                    f"{slot_name}: Seg.phoneme must be a single phoneme."
+                )
+            factory = self.project.project.ServiceLocator.GetService(
+                IPhSimpleContextSegFactory
+            )
+            if factory is None:
+                raise FP_ParameterError(
+                    "IPhSimpleContextSegFactory service is unavailable."
+                )
+            return factory.Create()
+
+        if isinstance(elem, NC):
+            factory = self.project.project.ServiceLocator.GetService(
+                IPhSimpleContextNCFactory
+            )
+            if factory is None:
+                raise FP_ParameterError(
+                    "IPhSimpleContextNCFactory service is unavailable."
+                )
+            return factory.Create()
+
+        if isinstance(elem, Boundary):
+            factory = self.project.project.ServiceLocator.GetService(
+                IPhSimpleContextBdryFactory
+            )
+            if factory is None:
+                raise FP_ParameterError(
+                    "IPhSimpleContextBdryFactory service is unavailable."
+                )
+            return factory.Create()
+
+        # Reject Seg(...).plus at the API level: the dataclass doesn't
+        # have a `plus` field, so a misuse like Seg(p, plus=[a]) raises
+        # TypeError at construction. The check below catches the rarer
+        # case of a non-Seg-like object slipping through.
+        raise FP_ParameterError(
+            f"{slot_name}: pattern element must be Seg, NC, or Boundary, "
+            f"got {type(elem).__name__}"
+        )
+
+    def __PopulateSimpleContext(self, ctx, elem):
+        """Populate FeatureStructureRA + alpha constraints (Phase 2 order)."""
+        if isinstance(elem, Seg):
+            phoneme = self.__ResolveLcmObject(elem.phoneme)
+            ctx.FeatureStructureRA = phoneme
+            return
+
+        if isinstance(elem, NC):
+            nc = self.__ResolveLcmObject(elem.natural_class)
+            ctx.FeatureStructureRA = nc
+            # Attach alpha-variable constraints (identity = sharing).
+            for c in elem.plus:
+                resolved = self.__ResolveLcmObject(c)
+                ctx.PlusConstrRS.Add(resolved)
+            for c in elem.minus:
+                resolved = self.__ResolveLcmObject(c)
+                ctx.MinusConstrRS.Add(resolved)
+            return
+
+        if isinstance(elem, Boundary):
+            marker = self.__ResolveBoundary(elem.marker)
+            ctx.FeatureStructureRA = marker
+            return
+
+        raise FP_ParameterError(
+            f"Cannot populate context from element of type {type(elem).__name__}"
+        )
+
+    def __ResolveBoundary(self, marker_name):
+        """Look up an IPhBdryMarker by name from PhonemeSetsOS[0]."""
+        phon_data = self.project.lp.PhonologicalDataOA
+        if not phon_data:
+            raise FP_ParameterError(
+                "Project has no phonological data; can't resolve boundary markers"
+            )
+        if phon_data.PhonemeSetsOS.Count == 0:
+            raise FP_ParameterError(
+                "Project has no phoneme sets; can't resolve boundary markers"
+            )
+        bdry_markers = phon_data.PhonemeSetsOS[0].BoundaryMarkersOC
+        available = []
+        for bm in bdry_markers:
+            name = ITsString(bm.Name.BestAnalysisAlternative).Text or ""
+            available.append(name)
+            if name == marker_name:
+                return bm
+        raise FP_ParameterError(
+            f"Boundary marker {marker_name!r} not found in "
+            f"PhonemeSetsOS[0].BoundaryMarkersOC. Available: {available}"
+        )
+
+    def __ResolveFeature(self, feature_or_hvo):
+        """Resolve a feature argument (object/HVO/wrapper) to its LCM object."""
+        if isinstance(feature_or_hvo, int):
+            return self.project.Object(feature_or_hvo)
+        if hasattr(feature_or_hvo, "_obj") and hasattr(feature_or_hvo, "_concrete"):
+            return feature_or_hvo._obj
+        if hasattr(feature_or_hvo, "_obj") and not hasattr(feature_or_hvo, "Hvo"):
+            return feature_or_hvo._obj
+        return feature_or_hvo
+
+    def __ResolveLcmObject(self, obj_or_hvo):
+        """Resolve an HVO or wrapper to its underlying LCM object.
+
+        Identity-preserving for plain LCM objects (important for
+        IPhFeatureConstraint sharing: the same constraint object must
+        round-trip unchanged so alpha-variable identity holds).
+        """
+        if isinstance(obj_or_hvo, int):
+            return self.project.Object(obj_or_hvo)
+        if hasattr(obj_or_hvo, "_obj") and hasattr(obj_or_hvo, "_concrete"):
+            return obj_or_hvo._obj
+        if hasattr(obj_or_hvo, "_obj") and not hasattr(obj_or_hvo, "Hvo"):
+            return obj_or_hvo._obj
+        return obj_or_hvo
 
     @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True, deep=True):

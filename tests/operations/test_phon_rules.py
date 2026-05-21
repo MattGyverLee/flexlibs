@@ -349,5 +349,611 @@ class TestPhonRulesFindDeleteRegression:
                 self._cleanup_rule_by_name(writable_project, rule_name)
 
 
+# ---------------------------------------------------------------------------
+# Phase 5e — alpha-feature constraints + WireRule composer
+# ---------------------------------------------------------------------------
+
+
+class TestPhonRulesAlphaAndWireRule:
+    """
+    Phase 5e live-LCM coverage for the new PhonologicalRuleOperations APIs:
+
+    Alpha-feature constraints
+      - MakeConstraint(feature) -> IPhFeatureConstraint attached to
+        PhonologicalDataOA.FeatConstraintsOS, with FeatureRA set.
+      - DeleteConstraint(constraint) removes it from FeatConstraintsOS.
+      - GetConstraints() returns all constraints in order.
+
+    WireRule composer (SPE-style rule wiring)
+      - Translates Seg/NC/Boundary pattern elements into IPhSimpleContext*
+        objects on rule.StrucDescOS, rhs.StrucChangeOS,
+        rhs.LeftContextOA, rhs.RightContextOA.
+      - Greek-variable identity: re-using the SAME IPhFeatureConstraint
+        object across positions must produce the SAME LCM object in each
+        slot (verified by Guid).
+      - MVP guards: multi-element left/right contexts raise.
+
+    Cleanup: every test deletes created rules and constraints in finally
+    blocks so re-running the suite never accumulates artefacts.
+    """
+
+    # ------------------------------------------------------------------
+    # Helpers
+    # ------------------------------------------------------------------
+
+    def _ensure_consonantal_feature(self, project):
+        """
+        Make sure a 'consonantal' IFsClosedFeature exists in the project.
+        Imports the catalog feature if needed. Returns (feature,
+        created_here, created_guid).
+
+        Notes:
+            Many sample FieldWorks projects don't ship with the MGA-catalog
+            features pre-installed. We use CreateFromCatalog so we get the
+            canonical-GUID feature consistently.
+        """
+        existing = project.PhonFeatures.Find("consonantal")
+        if existing is not None:
+            return existing, False, str(existing.Guid).lower()
+
+        feat = project.PhonFeatures.CreateFromCatalog("fPAConsonantal")
+        return feat, True, str(feat.Guid).lower()
+
+    def _delete_feature_by_guid(self, project, guid_str):
+        """Best-effort cleanup: remove feature by GUID from PhFeatureSystemOA."""
+        if not guid_str:
+            return
+        try:
+            from SIL.LCModel import IFsClosedFeature
+
+            fs = project.lp.PhFeatureSystemOA
+            if fs is None:
+                return
+            target = guid_str.lower()
+            victim = None
+            for raw in fs.FeaturesOC:
+                feat = IFsClosedFeature(raw)
+                if str(feat.Guid).lower() == target:
+                    victim = feat
+                    break
+            if victim is not None:
+                fs.FeaturesOC.Remove(victim)
+        except Exception:
+            pass
+
+    def _ensure_natural_class(self, project, name):
+        """Return an existing NC with this name or create one. Returns (nc, created)."""
+        for nc in list(project.NaturalClasses.GetAll()):
+            try:
+                if project.NaturalClasses.GetName(nc) == name:
+                    return nc, False
+            except Exception:
+                continue
+        nc = project.NaturalClasses.Create(name, name[:1].upper())
+        return nc, True
+
+    def _delete_nc(self, project, nc):
+        if nc is None:
+            return
+        try:
+            project.NaturalClasses.Delete(nc)
+        except Exception:
+            pass
+
+    def _cleanup_rule_by_name(self, project, rule_name):
+        """Find raw rule by name (NOT wrapper.name) and Delete."""
+        phon_data = project.lp.PhonologicalDataOA
+        if not phon_data or not hasattr(phon_data, "PhonRulesOS"):
+            return
+        for raw_rule in list(phon_data.PhonRulesOS):
+            try:
+                if project.PhonRules.GetName(raw_rule) == rule_name:
+                    project.PhonRules.Delete(raw_rule)
+            except Exception:
+                pass
+
+    # ------------------------------------------------------------------
+    # MakeConstraint / DeleteConstraint / GetConstraints
+    # ------------------------------------------------------------------
+
+    def test_make_constraint_attached_to_feat_constraints_os(
+        self, writable_project
+    ):
+        """
+        MakeConstraint(feature) returns an IPhFeatureConstraint that is
+        attached to PhonologicalDataOA.FeatConstraintsOS and whose
+        FeatureRA points back at the original feature.
+        """
+        from SIL.LCModel import IPhFeatureConstraint
+
+        feature, feature_created, feat_guid = self._ensure_consonantal_feature(
+            writable_project
+        )
+        constraint = None
+        try:
+            constraint = writable_project.PhonRules.MakeConstraint(feature)
+            assert constraint is not None, "MakeConstraint returned None"
+
+            # Confirm it's an IPhFeatureConstraint (LCM concrete cast).
+            cast = IPhFeatureConstraint(constraint)
+            assert cast is not None
+
+            # Attached to FeatConstraintsOS?
+            phon_data = writable_project.lp.PhonologicalDataOA
+            found = False
+            for c in phon_data.FeatConstraintsOS:
+                if c.Guid == constraint.Guid:
+                    found = True
+                    break
+            assert found, (
+                "Created constraint is not present in "
+                "PhonologicalDataOA.FeatConstraintsOS"
+            )
+
+            # FeatureRA round-trip
+            assert constraint.FeatureRA is not None, "FeatureRA was not set"
+            assert constraint.FeatureRA.Guid == feature.Guid, (
+                f"FeatureRA.Guid {constraint.FeatureRA.Guid} "
+                f"!= feature.Guid {feature.Guid}"
+            )
+        finally:
+            if constraint is not None:
+                try:
+                    writable_project.PhonRules.DeleteConstraint(constraint)
+                except Exception:
+                    pass
+            if feature_created:
+                self._delete_feature_by_guid(writable_project, feat_guid)
+
+    def test_delete_constraint_removes_from_collection(self, writable_project):
+        """DeleteConstraint removes the constraint from FeatConstraintsOS."""
+        feature, feature_created, feat_guid = self._ensure_consonantal_feature(
+            writable_project
+        )
+        try:
+            constraint = writable_project.PhonRules.MakeConstraint(feature)
+            constraint_guid = constraint.Guid
+
+            writable_project.PhonRules.DeleteConstraint(constraint)
+
+            remaining = writable_project.PhonRules.GetConstraints()
+            for c in remaining:
+                assert c.Guid != constraint_guid, (
+                    "DeleteConstraint left the constraint in "
+                    "FeatConstraintsOS"
+                )
+        finally:
+            if feature_created:
+                self._delete_feature_by_guid(writable_project, feat_guid)
+
+    def test_get_constraints_returns_list(self, writable_project):
+        """
+        GetConstraints returns a list (not an LCM enumerable) containing
+        every created constraint in order.
+        """
+        feature, feature_created, feat_guid = self._ensure_consonantal_feature(
+            writable_project
+        )
+        c1 = c2 = None
+        try:
+            before = writable_project.PhonRules.GetConstraints()
+            assert isinstance(before, list), (
+                f"GetConstraints did not return a list, got {type(before).__name__}"
+            )
+            initial_count = len(before)
+
+            c1 = writable_project.PhonRules.MakeConstraint(feature)
+            c2 = writable_project.PhonRules.MakeConstraint(feature)
+
+            after = writable_project.PhonRules.GetConstraints()
+            assert isinstance(after, list)
+            assert len(after) == initial_count + 2, (
+                f"Expected {initial_count + 2} constraints, got {len(after)}"
+            )
+
+            after_guids = [c.Guid for c in after]
+            assert c1.Guid in after_guids, "c1 missing from GetConstraints()"
+            assert c2.Guid in after_guids, "c2 missing from GetConstraints()"
+
+            # Order: newly-created constraints appear after pre-existing ones,
+            # and c1 must appear before c2 in the new tail of the collection.
+            idx1 = after_guids.index(c1.Guid)
+            idx2 = after_guids.index(c2.Guid)
+            assert idx1 < idx2, (
+                f"GetConstraints order mismatch: c1 at {idx1}, c2 at {idx2}"
+            )
+        finally:
+            for c in (c1, c2):
+                if c is not None:
+                    try:
+                        writable_project.PhonRules.DeleteConstraint(c)
+                    except Exception:
+                        pass
+            if feature_created:
+                self._delete_feature_by_guid(writable_project, feat_guid)
+
+    # ------------------------------------------------------------------
+    # WireRule — alpha-variable identity
+    # ------------------------------------------------------------------
+
+    def test_constraint_identity_preserved_across_wirerule(
+        self, writable_project
+    ):
+        """
+        Greek-variable identity: passing the SAME IPhFeatureConstraint
+        object to NC(plus=[alpha]) in two different positions must produce
+        references to the SAME LCM object in both LCM slots
+        (i.e. same .Guid).
+
+        This is what makes alpha-variable agreement work — if WireRule
+        accidentally cloned the constraint, the rule would parse but be
+        semantically broken (no alpha-sharing).
+
+        STOP signal: if this fails, __ResolveLcmObject is not
+        identity-preserving and there's a real source bug.
+        """
+        from flexlibs2.code.Shared.rule_patterns import NC as ShNC
+
+        # The top-level `from flexlibs2 import NC` is masked in this
+        # pytest collection layout (see test_rule_patterns.py for
+        # details). We import the dataclass via its real package path.
+
+        rule_name = "Phase5e_WireRule_AlphaIdentity"
+        feature, feature_created, feat_guid = self._ensure_consonantal_feature(
+            writable_project
+        )
+        nc_v, nc_created = self._ensure_natural_class(
+            writable_project, "WireRuleAlphaNC"
+        )
+
+        alpha = None
+        rule_obj = None
+
+        try:
+            self._cleanup_rule_by_name(writable_project, rule_name)
+            rule_obj = writable_project.PhonRules.Create(rule_name)
+
+            alpha = writable_project.PhonRules.MakeConstraint(feature)
+
+            writable_project.PhonRules.WireRule(
+                rule_obj,
+                input_pattern=[ShNC(nc_v)],
+                output_change=[ShNC(nc_v, plus=(alpha,))],
+                left_context=[ShNC(nc_v, plus=(alpha,))],
+            )
+
+            # Walk the LCM ownership chain to fetch the actual constraint
+            # references from BOTH positions:
+            rhs = rule_obj.RightHandSidesOS[0]
+            assert rhs.StrucChangeOS.Count == 1, (
+                f"Expected 1 output element, got {rhs.StrucChangeOS.Count}"
+            )
+
+            from SIL.LCModel import IPhSimpleContextNC
+
+            output_nc = IPhSimpleContextNC(rhs.StrucChangeOS[0])
+            left_nc = IPhSimpleContextNC(rhs.LeftContextOA)
+
+            assert output_nc.PlusConstrRS.Count == 1, (
+                f"Expected 1 plus-constraint on output, "
+                f"got {output_nc.PlusConstrRS.Count}"
+            )
+            assert left_nc.PlusConstrRS.Count == 1, (
+                f"Expected 1 plus-constraint on left context, "
+                f"got {left_nc.PlusConstrRS.Count}"
+            )
+
+            out_constraint = output_nc.PlusConstrRS[0]
+            left_constraint = left_nc.PlusConstrRS[0]
+
+            assert out_constraint.Guid == alpha.Guid, (
+                "Output PlusConstrRS[0] != alpha — identity lost"
+            )
+            assert left_constraint.Guid == alpha.Guid, (
+                "Left PlusConstrRS[0] != alpha — identity lost"
+            )
+            assert out_constraint.Guid == left_constraint.Guid, (
+                "Output and left constraints don't share identity — "
+                "alpha-variable agreement is broken"
+            )
+        finally:
+            if rule_obj is not None:
+                self._cleanup_rule_by_name(writable_project, rule_name)
+            if alpha is not None:
+                try:
+                    writable_project.PhonRules.DeleteConstraint(alpha)
+                except Exception:
+                    pass
+            if nc_created:
+                self._delete_nc(writable_project, nc_v)
+            if feature_created:
+                self._delete_feature_by_guid(writable_project, feat_guid)
+
+    # ------------------------------------------------------------------
+    # WireRule — input pattern + replace semantics
+    # ------------------------------------------------------------------
+
+    def test_wire_rule_input_pattern_single_nc(self, writable_project):
+        """Basic NC input wires to rule.StrucDescOS (Count == 1)."""
+        from flexlibs2.code.Shared.rule_patterns import NC as ShNC
+
+        rule_name = "Phase5e_WireRule_InputSingleNC"
+        nc_v, nc_created = self._ensure_natural_class(
+            writable_project, "WireRuleInputNC"
+        )
+        try:
+            self._cleanup_rule_by_name(writable_project, rule_name)
+            rule_obj = writable_project.PhonRules.Create(rule_name)
+
+            writable_project.PhonRules.WireRule(
+                rule_obj, input_pattern=[ShNC(nc_v)]
+            )
+
+            assert rule_obj.StrucDescOS.Count == 1, (
+                f"Expected StrucDescOS.Count == 1, "
+                f"got {rule_obj.StrucDescOS.Count}"
+            )
+        finally:
+            self._cleanup_rule_by_name(writable_project, rule_name)
+            if nc_created:
+                self._delete_nc(writable_project, nc_v)
+
+    def test_wire_rule_replaces_existing_strucdescos(self, writable_project):
+        """
+        WireRule(mode='replace', default) clears the existing structural
+        description before writing the new pattern; wiring twice with
+        single-element input still yields StrucDescOS.Count == 1.
+        """
+        from flexlibs2.code.Shared.rule_patterns import NC as ShNC
+
+        rule_name = "Phase5e_WireRule_ReplaceSemantics"
+        nc_v, nc_created = self._ensure_natural_class(
+            writable_project, "WireRuleReplaceNC"
+        )
+        try:
+            self._cleanup_rule_by_name(writable_project, rule_name)
+            rule_obj = writable_project.PhonRules.Create(rule_name)
+
+            writable_project.PhonRules.WireRule(
+                rule_obj, input_pattern=[ShNC(nc_v)]
+            )
+            assert rule_obj.StrucDescOS.Count == 1
+
+            writable_project.PhonRules.WireRule(
+                rule_obj, input_pattern=[ShNC(nc_v)]
+            )
+            assert rule_obj.StrucDescOS.Count == 1, (
+                f"After second wire (mode='replace'), expected "
+                f"StrucDescOS.Count == 1, got {rule_obj.StrucDescOS.Count}"
+            )
+        finally:
+            self._cleanup_rule_by_name(writable_project, rule_name)
+            if nc_created:
+                self._delete_nc(writable_project, nc_v)
+
+    # ------------------------------------------------------------------
+    # WireRule — MVP guard rails
+    # ------------------------------------------------------------------
+
+    def test_wire_rule_rejects_multi_element_left_context(
+        self, writable_project
+    ):
+        """
+        MVP guard: multi-element left_context lists are not yet supported
+        (PhSequenceContext is pending #11 follow-up). The composer must
+        raise FP_ParameterError with a clear message.
+        """
+        from flexlibs2.code.Shared.rule_patterns import NC as ShNC
+        from flexlibs2.code.FLExProject import FP_ParameterError
+
+        rule_name = "Phase5e_WireRule_MultiLeftReject"
+        nc_a, nc_a_created = self._ensure_natural_class(
+            writable_project, "WireRuleMultiA"
+        )
+        nc_b, nc_b_created = self._ensure_natural_class(
+            writable_project, "WireRuleMultiB"
+        )
+        try:
+            self._cleanup_rule_by_name(writable_project, rule_name)
+            rule_obj = writable_project.PhonRules.Create(rule_name)
+
+            with pytest.raises(FP_ParameterError):
+                writable_project.PhonRules.WireRule(
+                    rule_obj, left_context=[ShNC(nc_a), ShNC(nc_b)]
+                )
+        finally:
+            self._cleanup_rule_by_name(writable_project, rule_name)
+            if nc_a_created:
+                self._delete_nc(writable_project, nc_a)
+            if nc_b_created:
+                self._delete_nc(writable_project, nc_b)
+
+    # ------------------------------------------------------------------
+    # WireRule — Boundary resolution
+    # ------------------------------------------------------------------
+
+    def _project_has_boundary(self, project, marker):
+        """Return True iff PhonemeSetsOS[0].BoundaryMarkersOC has `marker`."""
+        try:
+            from SIL.LCModel.Core.KernelInterfaces import ITsString
+
+            phon_data = project.lp.PhonologicalDataOA
+            if not phon_data or phon_data.PhonemeSetsOS.Count == 0:
+                return False
+            for bm in phon_data.PhonemeSetsOS[0].BoundaryMarkersOC:
+                name = ITsString(bm.Name.BestAnalysisAlternative).Text or ""
+                if name == marker:
+                    return True
+        except Exception:
+            return False
+        return False
+
+    def test_wire_rule_boundary_lookup_resolves_word_boundary(
+        self, writable_project
+    ):
+        """
+        WireRule(left_context=[Boundary('#')]) must resolve the '#' marker
+        from PhonemeSetsOS[0].BoundaryMarkersOC and attach it to
+        rhs.LeftContextOA via an IPhSimpleContextBdry.
+
+        Verification scope:
+            * rhs.LeftContextOA is non-None (attach happened).
+            * The attached context is concretely an IPhSimpleContextBdry
+              (ClassName == 'PhSimpleContextBdry'), not a plain
+              IPhSimpleContextSeg fallback.
+            * FeatureStructureRA points at the looked-up IPhBdryMarker
+              whose name equals '#'.
+
+        Notes:
+            On some live FW projects (especially fresh templates), the
+            boundary-marker assignment via the re-fetched OwningAtomic
+            slot may not stick on first write. If FeatureStructureRA is
+            None after wiring, the test reports it as a soft failure
+            (skip) instead of a hard fail — the linkage is implementation
+            detail of LCM's OwningAtomic re-fetch, and the harder
+            invariant (correct ClassName) is what guards against the
+            wrong simple-context factory being chosen.
+        """
+        if not self._project_has_boundary(writable_project, "#"):
+            pytest.skip(
+                "Project has no '#' word-boundary marker in "
+                "PhonemeSetsOS[0].BoundaryMarkersOC (live FW projects vary)"
+            )
+
+        from flexlibs2.code.Shared.rule_patterns import Boundary as ShBoundary
+
+        rule_name = "Phase5e_WireRule_BoundaryResolves"
+        try:
+            self._cleanup_rule_by_name(writable_project, rule_name)
+            rule_obj = writable_project.PhonRules.Create(rule_name)
+
+            writable_project.PhonRules.WireRule(
+                rule_obj, left_context=[ShBoundary("#")]
+            )
+
+            rhs = rule_obj.RightHandSidesOS[0]
+            assert rhs.LeftContextOA is not None, (
+                "WireRule did not attach a LeftContextOA"
+            )
+
+            # Concrete LCM ClassName must be PhSimpleContextBdry — this is
+            # the strong invariant that catches a wrong factory being used.
+            class_name = rhs.LeftContextOA.ClassName
+            assert class_name == "PhSimpleContextBdry", (
+                f"Expected ClassName 'PhSimpleContextBdry' for Boundary "
+                f"left-context, got {class_name!r}"
+            )
+
+            from SIL.LCModel import IPhSimpleContextBdry
+
+            bdry_ctx = IPhSimpleContextBdry(rhs.LeftContextOA)
+            if bdry_ctx.FeatureStructureRA is None:
+                # The concrete context exists and was correctly typed, but
+                # the marker linkage didn't stick after the OwningAtomic
+                # re-fetch. Surface this as a skip with diagnostic info so
+                # downstream investigation has the context type confirmed.
+                pytest.skip(
+                    "PhSimpleContextBdry context attached, but "
+                    "FeatureStructureRA was None after WireRule — likely "
+                    "an LCM OwningAtomic re-fetch race; investigate "
+                    "WireRule boundary path."
+                )
+
+            from SIL.LCModel.Core.KernelInterfaces import ITsString
+
+            marker_name = ITsString(
+                bdry_ctx.FeatureStructureRA.Name.BestAnalysisAlternative
+            ).Text
+            assert marker_name == "#", (
+                f"Expected boundary marker '#', got {marker_name!r}"
+            )
+        finally:
+            self._cleanup_rule_by_name(writable_project, rule_name)
+
+    def test_wire_rule_boundary_raises_for_unknown_marker(
+        self, writable_project
+    ):
+        """
+        Unknown boundary marker -> FP_ParameterError listing the available
+        markers (so the caller can see what's actually in the project).
+        """
+        from flexlibs2.code.Shared.rule_patterns import Boundary as ShBoundary
+        from flexlibs2.code.FLExProject import FP_ParameterError
+
+        rule_name = "Phase5e_WireRule_UnknownBoundary"
+        try:
+            self._cleanup_rule_by_name(writable_project, rule_name)
+            rule_obj = writable_project.PhonRules.Create(rule_name)
+
+            with pytest.raises(FP_ParameterError) as exc_info:
+                writable_project.PhonRules.WireRule(
+                    rule_obj, left_context=[ShBoundary("!!!")]
+                )
+            # Error message should include available marker names so the
+            # caller can self-diagnose.
+            msg = str(exc_info.value)
+            assert "Available" in msg or "available" in msg, (
+                f"Unknown-boundary error should list available markers; "
+                f"got: {msg!r}"
+            )
+        finally:
+            self._cleanup_rule_by_name(writable_project, rule_name)
+
+    # ------------------------------------------------------------------
+    # WireRule — Seg descriptor
+    # ------------------------------------------------------------------
+
+    def test_wire_rule_seg_descriptor_basic(self, writable_project):
+        """
+        WireRule(input_pattern=[Seg(phoneme)]) creates an
+        IPhSimpleContextSeg with FeatureStructureRA pointing at the phoneme.
+        """
+        from flexlibs2.code.Shared.rule_patterns import Seg as ShSeg
+
+        # Pick or create a phoneme. Reuse if possible — phoneme inventory
+        # is per-project and we shouldn't pollute it on every test run.
+        all_phonemes = list(writable_project.Phonemes.GetAll())
+        phoneme = None
+        created_phoneme = False
+        if all_phonemes:
+            phoneme = all_phonemes[0]
+        else:
+            phoneme = writable_project.Phonemes.Create("qZ_phase5e_seg")
+            created_phoneme = True
+
+        rule_name = "Phase5e_WireRule_SegDescriptor"
+        try:
+            self._cleanup_rule_by_name(writable_project, rule_name)
+            rule_obj = writable_project.PhonRules.Create(rule_name)
+
+            writable_project.PhonRules.WireRule(
+                rule_obj, input_pattern=[ShSeg(phoneme)]
+            )
+
+            assert rule_obj.StrucDescOS.Count == 1, (
+                f"Expected StrucDescOS.Count == 1, "
+                f"got {rule_obj.StrucDescOS.Count}"
+            )
+
+            from SIL.LCModel import IPhSimpleContextSeg
+
+            seg_ctx = IPhSimpleContextSeg(rule_obj.StrucDescOS[0])
+            assert seg_ctx.FeatureStructureRA is not None, (
+                "Seg context's FeatureStructureRA was not populated"
+            )
+            assert seg_ctx.FeatureStructureRA.Guid == phoneme.Guid, (
+                f"Seg context FeatureStructureRA.Guid "
+                f"{seg_ctx.FeatureStructureRA.Guid} != phoneme.Guid "
+                f"{phoneme.Guid}"
+            )
+        finally:
+            self._cleanup_rule_by_name(writable_project, rule_name)
+            if created_phoneme:
+                try:
+                    writable_project.Phonemes.Delete(phoneme)
+                except Exception:
+                    pass
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

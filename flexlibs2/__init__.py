@@ -160,6 +160,12 @@ from .code.Shared.string_utils import (
     FLEX_NULL_MARKER,
 )
 
+from .code.Shared.rule_patterns import (
+    Seg,
+    NC,
+    Boundary,
+)
+
 from .code.TextsWords.DiscourseOperations import (
     DiscourseOperations,
 )
