@@ -864,17 +864,17 @@ class SegmentOperations(BaseOperations):
 
         # Create first segment
         first_segment = factory.Create()
+        # Attach to owner (must be done before setting properties)
+        owner.SegmentsOS.Insert(segment_index, first_segment)
         mkstr1 = TsStringUtils.MakeString(first_text, ws)
         first_segment.BaselineText.set_String(ws, mkstr1)
 
         # Create second segment
         second_segment = factory.Create()
+        # Attach to owner (must be done before setting properties)
+        owner.SegmentsOS.Insert(segment_index + 1, second_segment)
         mkstr2 = TsStringUtils.MakeString(second_text, ws)
         second_segment.BaselineText.set_String(ws, mkstr2)
-
-        # Insert new segments at the original position
-        owner.SegmentsOS.Insert(segment_index, first_segment)
-        owner.SegmentsOS.Insert(segment_index + 1, second_segment)
 
         # Remove the original segment
         owner.SegmentsOS.Remove(segment_obj)
@@ -962,11 +962,12 @@ class SegmentOperations(BaseOperations):
         # Create merged segment
         factory = self.project.project.ServiceLocator.GetService(ISegmentFactory)
         merged_segment = factory.Create()
+
+        # Insert at first position (must be done before setting properties)
+        owner.SegmentsOS.Insert(index1, merged_segment)
+
         mkstr = TsStringUtils.MakeString(merged_text, ws)
         merged_segment.BaselineText.set_String(ws, mkstr)
-
-        # Insert at first position
-        owner.SegmentsOS.Insert(index1, merged_segment)
 
         # Remove original segments
         owner.SegmentsOS.Remove(segment1)

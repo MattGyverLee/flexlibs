@@ -185,12 +185,12 @@ class PhonemeOperations(BaseOperations):
         factory = self.project.project.ServiceLocator.GetService(IPhPhonemeFactory)
         new_phoneme = factory.Create()
 
+        # Add to the phoneme set (must be done before setting properties)
+        phoneme_set.PhonemesOC.Add(new_phoneme)
+
         # Set representation
         mkstr = TsStringUtils.MakeString(representation, wsHandle)
         new_phoneme.Name.set_String(wsHandle, mkstr)
-
-        # Add to the phoneme set
-        phoneme_set.PhonemesOC.Add(new_phoneme)
 
         return new_phoneme
 

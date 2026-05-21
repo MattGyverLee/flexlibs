@@ -493,6 +493,48 @@ docs/
 
 ---
 
+## LCM Ownership Ordering
+
+**The rule:** Factory-created LCM objects must be attached to an owning relation **before** any property setter is called on them.
+
+**Why:** `CmObject.get_Services()` returns null until the object enters the ownership graph. Property setters route through `get_Services()` to look up writing systems, validators, and undo handlers, so a setter on an orphan object NPEs deep inside LCM with a message that does not point at the real cause.
+
+### The four ownership relations (and the RA trap)
+
+LCM property suffixes encode ownership:
+
+- `...OS` (Owning Sequence) - `parent.XxxOS.Add(child)` or `parent.XxxOS.Insert(i, child)`
+- `...OC` (Owning Collection) - `parent.XxxOC.Add(child)`
+- `...OA` (Owning Atomic) - `parent.XxxOA = child`
+- `...RA` (Reference Atomic) - **NOT owning.** Setting `obj.SomethingRA = target` records a reference *from* `obj` *to* `target`; it does not confer ownership *on* `obj`. The orphan stays an orphan.
+
+Common pitfall: an MSA attached only via `sense.MorphoSyntaxAnalysisRA = msa` is still orphaned. Ownership of an MSA lives on the LexEntry via `entry.MorphoSyntaxAnalysesOC.Add(msa)`.
+
+### Code shape
+
+```python
+# Right: attach first, then set properties
+msa = msaFactory.Create()
+entry.MorphoSyntaxAnalysesOC.Add(msa)   # must be done before setting properties
+msa.PartOfSpeechRA = pos                # safe now
+sense.MorphoSyntaxAnalysisRA = msa      # reference link, separate concern
+```
+
+```python
+# Wrong: setter on orphan -> NPE in CmObject.get_Services()
+msa = msaFactory.Create()
+msa.PartOfSpeechRA = pos                # NPE: msa has no Services yet
+entry.MorphoSyntaxAnalysesOC.Add(msa)
+```
+
+### Audit hint
+
+Grep for `factory.Create()` (or `Factory.Create()`) followed by a property assignment with no intervening `OS.Add(`, `OC.Add(`, `OA =`, or `OS.Insert(` line. Carry forward the convention comment `# must be done before setting properties` on the attach line - the codebase uses it as a marker, and consistency helps future audits.
+
+**Historical reference:** This pattern was hardened across nine outlier sites in Phase 2 of `plans/flexlibs-issues-2026-05.md`, closing MattGyverLee/flexlibs#4, #6, #7, and #8 (closed 2026-05).
+
+---
+
 ## See Also
 
 - **ARCHITECTURE_WRAPPERS.md** - Comprehensive wrapper classes guide

@@ -31,6 +31,7 @@ from SIL.LCModel import (
     ICmPictureFactory,
     ICmTranslationFactory,
     IReversalIndexEntry,
+    LexEntryTags,
 )
 from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
@@ -1019,6 +1020,11 @@ class LexSenseOperations(BaseOperations):
 
                 factory = self.project.project.ServiceLocator.GetService(IMoStemMsaFactory)
                 new_msa = factory.Create()
+                # MSAs are owned by the LexEntry's MorphoSyntaxAnalysesOC, not by
+                # the sense. OwnerOfClass walks up the ownership chain (skipping
+                # parent senses for subsenses) to find the enclosing LexEntry.
+                entry = ILexEntry(sense.OwnerOfClass(LexEntryTags.kClassId))
+                entry.MorphoSyntaxAnalysesOC.Add(new_msa)
                 new_msa.PartOfSpeechRA = pos_obj
                 sense.MorphoSyntaxAnalysisRA = new_msa
         else:
@@ -1027,6 +1033,11 @@ class LexSenseOperations(BaseOperations):
 
             factory = self.project.project.ServiceLocator.GetService(IMoStemMsaFactory)
             msa = factory.Create()
+            # MSAs are owned by the LexEntry's MorphoSyntaxAnalysesOC, not by
+            # the sense. OwnerOfClass walks up the ownership chain (skipping
+            # parent senses for subsenses) to find the enclosing LexEntry.
+            entry = ILexEntry(sense.OwnerOfClass(LexEntryTags.kClassId))
+            entry.MorphoSyntaxAnalysesOC.Add(msa)
             msa.PartOfSpeechRA = pos_obj
             sense.MorphoSyntaxAnalysisRA = msa
 

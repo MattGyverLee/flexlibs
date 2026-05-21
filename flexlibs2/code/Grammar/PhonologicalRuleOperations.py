@@ -711,8 +711,9 @@ class PhonologicalRuleOperations(BaseOperations):
                 # Add to structural change specification
                 seg_factory = self.project.project.ServiceLocator.GetService(IPhSimpleContextSegFactory)
                 output_seg = seg_factory.Create()
-                output_seg.FeatureStructureRA = phoneme_or_class
+                # Attach to owner (must be done before setting properties)
                 rhs.StrucChangeOS.Add(output_seg)
+                output_seg.FeatureStructureRA = phoneme_or_class
 
     @OperationsMethod
     def SetLeftContext(self, rule_or_hvo, context_item):
@@ -762,8 +763,9 @@ class PhonologicalRuleOperations(BaseOperations):
                     # Create context specification
                     ctx_factory = self.project.project.ServiceLocator.GetService(IPhSimpleContextSegFactory)
                     left_ctx = ctx_factory.Create()
-                    left_ctx.FeatureStructureRA = context_item
+                    # Attach to owner (must be done before setting properties)
                     input_context.LeftContextOA = left_ctx
+                    left_ctx.FeatureStructureRA = context_item
 
     @OperationsMethod
     def SetRightContext(self, rule_or_hvo, context_item):
@@ -814,8 +816,9 @@ class PhonologicalRuleOperations(BaseOperations):
                     # Create context specification
                     ctx_factory = self.project.project.ServiceLocator.GetService(IPhSimpleContextSegFactory)
                     right_ctx = ctx_factory.Create()
-                    right_ctx.FeatureStructureRA = context_item
+                    # Attach to owner (must be done before setting properties)
                     input_context.RightContextOA = right_ctx
+                    right_ctx.FeatureStructureRA = context_item
 
     @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True, deep=True):

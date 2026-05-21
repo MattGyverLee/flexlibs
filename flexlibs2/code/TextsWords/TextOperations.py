@@ -854,11 +854,11 @@ class TextOperations(BaseOperations):
         media_factory = self.project.project.ServiceLocator.GetService(ICmMediaFactory)
         media = media_factory.Create()
 
+        # Add to text's media collection (must be done before setting properties)
+        text_obj.MediaFilesOA.MediaFilesOC.Add(media)
+
         # Link the ICmFile to ICmMedia
         media.MediaFileRA = cm_file
-
-        # Add to text's media collection
-        text_obj.MediaFilesOA.MediaFilesOC.Add(media)
 
         return media
 

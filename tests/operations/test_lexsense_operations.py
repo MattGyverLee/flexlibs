@@ -325,5 +325,126 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "integration: mark test as integration test (requires real FLEx)")
 
 
+# =============================================================================
+# PHASE 2 REGRESSION TESTS - Issue #7
+# =============================================================================
+#
+# Issue #7 (orphan-NPE in LexSenseOperations.SetPartOfSpeech): when a sense
+# had no existing MSA, the code did
+#       new_msa = factory.Create()
+#       new_msa.PartOfSpeechRA = pos_obj      # NPE here — MSA was orphan
+#       sense.MorphoSyntaxAnalysisRA = new_msa
+# LCM forbids property writes on unowned objects. The Phase 2 fix attaches
+# the MSA to entry.MorphoSyntaxAnalysesOC FIRST, then sets its properties.
+#
+# These tests require a live FLEx project — see writable_project fixture.
+
+_CANDIDATE_PROJECTS = ("Sena 3", "Test", "SampleLexicon", "SampleLexicon3")
+
+
+def _try_open_writable_project():
+    """Open a candidate FLEx project in write-enabled mode, or None."""
+    try:
+        from flexlibs2.code.FLExProject import FLExProject
+    except Exception:
+        return None
+
+    project = FLExProject()
+    for name in _CANDIDATE_PROJECTS:
+        try:
+            project.OpenProject(name, writeEnabled=True)
+            return project
+        except Exception:
+            continue
+    return None
+
+
+@pytest.fixture(scope="module")
+def writable_project():
+    """
+    Module-scoped fixture providing a write-enabled FLExProject.
+
+    Skips dependent tests if SIL.LCModel isn't loaded or no candidate
+    FieldWorks project can be opened. Matches the Phase 1 fixture style
+    from tests/test_flexproject_discoverability.py.
+    """
+    if "SIL.LCModel" not in sys.modules:
+        pytest.skip("Requires SIL.LCModel (FieldWorks installed)")
+
+    project = _try_open_writable_project()
+    if project is None:
+        pytest.skip(
+            "No writable FieldWorks project available "
+            f"(tried: {', '.join(_CANDIDATE_PROJECTS)})"
+        )
+
+    yield project
+
+    try:
+        project.CloseProject()
+    except Exception:
+        pass
+
+
+class TestLexSenseSetPartOfSpeechRegression:
+    """
+    Regression coverage for issue #7: LexSenseOperations.SetPartOfSpeech()
+    must attach a freshly created MSA to entry.MorphoSyntaxAnalysesOC before
+    assigning PartOfSpeechRA on it. Previously the MSA was an orphan when
+    PartOfSpeechRA was set, which raised a NullReferenceException.
+    """
+
+    def test_set_part_of_speech_on_new_sense(self, writable_project):
+        """
+        Issue #7 reproducer: a new entry's blank sense has no MSA, so
+        SetPartOfSpeech() must create a new IMoStemMsa, attach it to the
+        entry, set PartOfSpeechRA, and link sense.MorphoSyntaxAnalysisRA —
+        all without an orphan NPE.
+        """
+        # Use a unique lexeme form so the test is idempotent and doesn't
+        # collide with whatever is already in the sample project.
+        lexeme = "phase2regrentry"
+
+        # Pre-clean: if a previous run left this entry behind, delete it.
+        existing = writable_project.LexEntry.Find(lexeme)
+        if existing is not None:
+            writable_project.LexEntry.Delete(existing)
+
+        # Find or fall back to creating a target POS. Most sample projects
+        # ship with "Noun" preloaded; we don't insist on a particular name.
+        pos = writable_project.POS.Find("Noun")
+        if pos is None:
+            # Pick any existing POS so we don't introduce taxonomy noise.
+            all_pos = list(writable_project.POS.GetAll())
+            if not all_pos:
+                pytest.skip("Project has no Parts of Speech to assign")
+            pos = all_pos[0]
+        pos_name = writable_project.POS.GetName(pos)
+
+        # Create blank entry (auto-creates one blank sense with no MSA).
+        entry = writable_project.LexEntry.Create(lexeme)
+        try:
+            senses = list(writable_project.Senses.GetAll(entry))
+            assert senses, "LexEntry.Create did not create a blank sense"
+            sense = senses[0]
+
+            # Act: this is the call that previously NPE'd.
+            writable_project.Senses.SetPartOfSpeech(sense, pos)
+
+            # Assert: GetPartOfSpeech now returns a non-empty abbreviation
+            # for this sense (proves the MSA was attached and linked).
+            result = writable_project.Senses.GetPartOfSpeech(sense)
+            assert result, (
+                "GetPartOfSpeech returned empty/None after SetPartOfSpeech "
+                f"— expected POS abbreviation for '{pos_name}'"
+            )
+        finally:
+            # Cleanup: delete the entry (also drops its sense + MSA).
+            try:
+                writable_project.LexEntry.Delete(entry)
+            except Exception:
+                pass
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short", "-m", "not integration"])
