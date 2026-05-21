@@ -13,6 +13,7 @@
 
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
+from ..Shared.string_utils import normalize_match_key
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -224,13 +225,13 @@ class SemanticDomainOperations(BaseOperations):
         if not name or not name.strip():
             return None
 
-        name_lower = name.strip().lower()
+        target = normalize_match_key(name.strip(), casefold=True)
         wsHandle = self.project.project.DefaultAnalWs
 
         # Search through all domains
         for domain in self.GetAll(flat=True):
             domain_name = ITsString(domain.Name.get_String(wsHandle)).Text
-            if domain_name and domain_name.lower() == name_lower:
+            if normalize_match_key(domain_name, casefold=True) == target:
                 return domain
 
         return None

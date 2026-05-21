@@ -33,6 +33,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
+from ..Shared.string_utils import normalize_match_key
 
 
 class TextOperations(BaseOperations):
@@ -441,9 +442,10 @@ class TextOperations(BaseOperations):
         name = name.strip()
 
         # Check all texts for matching name
+        target = normalize_match_key(name, casefold=False)
         for text in self.project.ObjectsIn(ITextRepository):
             text_name = ITsString(text.Name.BestAnalysisAlternative).Text
-            if text_name == name:
+            if normalize_match_key(text_name, casefold=False) == target:
                 return True
 
         return False

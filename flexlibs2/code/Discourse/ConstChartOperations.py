@@ -13,6 +13,7 @@
 
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
+from ..Shared.string_utils import normalize_match_key
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -259,9 +260,10 @@ class ConstChartOperations(BaseOperations):
         wsHandle = self.__WSHandleAnalysis()
 
         # Search through all charts
+        target = normalize_match_key(name, casefold=False)
         for chart in self.GetAll():
             chart_name = ITsString(chart.Name.get_String(wsHandle)).Text
-            if chart_name == name:
+            if normalize_match_key(chart_name, casefold=False) == target:
                 return chart
 
         return None

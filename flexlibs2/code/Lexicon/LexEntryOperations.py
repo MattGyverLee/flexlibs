@@ -46,7 +46,7 @@ from ..FLExProject import (
 )
 
 # Import string utilities
-from ..Shared.string_utils import normalize_text, best_analysis_text, best_vernacular_text
+from ..Shared.string_utils import normalize_text, normalize_match_key, best_analysis_text, best_vernacular_text
 
 
 class LexEntryOperations(BaseOperations):
@@ -670,10 +670,11 @@ class LexEntryOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
 
         # Search through all entries
+        target = normalize_match_key(lexeme_form, casefold=False)
         for entry in self.GetAll():
             if entry.LexemeFormOA:
                 form = ITsString(entry.LexemeFormOA.Form.get_String(wsHandle)).Text
-                if form == lexeme_form:
+                if normalize_match_key(form, casefold=False) == target:
                     return entry
 
         return None
@@ -2954,7 +2955,7 @@ class LexEntryOperations(BaseOperations):
         Returns:
             IMoMorphType or None: The morph type object if found, None otherwise
         """
-        name_lower = name.lower()
+        target = normalize_match_key(name, casefold=True)
         wsHandle = self.project.project.DefaultAnalWs
 
         morph_types = self.project.lp.LexDbOA.MorphTypesOA
@@ -2965,7 +2966,7 @@ class LexEntryOperations(BaseOperations):
         def search_morph_types(possibilities):
             for mt in possibilities:
                 mt_name = best_analysis_text(mt.Name)
-                if mt_name and mt_name.lower() == name_lower:
+                if mt_name and normalize_match_key(mt_name, casefold=True) == target:
                     return mt
                 # Search subcategories
                 if mt.SubPossibilitiesOS.Count > 0:

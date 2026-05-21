@@ -32,6 +32,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
+from ..Shared.string_utils import normalize_match_key
 
 
 class LocationOperations(BaseOperations):
@@ -321,13 +322,13 @@ class LocationOperations(BaseOperations):
         if not name or not name.strip():
             return None
 
-        name_lower = name.strip().lower()
+        target = normalize_match_key(name.strip(), casefold=True)
         wsHandle = self.project.project.DefaultAnalWs
 
         # Search through all locations
         for location in self.GetAll(flat=True):
             location_name = ITsString(location.Name.get_String(wsHandle)).Text
-            if location_name and location_name.lower() == name_lower:
+            if normalize_match_key(location_name, casefold=True) == target:
                 return location
 
         return None

@@ -3543,7 +3543,7 @@ class FLExProject(object):
             Returns first match if multiple senses have same gloss.
         """
         if languageTagOrHandle is None:
-            languageTagOrHandle = self.GetDefaultAnalysisWS()[0]
+            languageTagOrHandle = self.GetDefaultAnalysisWSHandle()
 
         for sense in self.Senses.GetAll(entry):
             gloss = self.Senses.GetGloss(sense, languageTagOrHandle)

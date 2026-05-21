@@ -29,6 +29,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
+from ..Shared.string_utils import normalize_match_key
 
 
 class PersonOperations(BaseOperations):
@@ -307,9 +308,10 @@ class PersonOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
 
         # Search through all people
+        target = normalize_match_key(name, casefold=False)
         for person in self.GetAll():
             person_name = ITsString(person.Name.get_String(wsHandle)).Text
-            if person_name == name:
+            if normalize_match_key(person_name, casefold=False) == target:
                 return person
 
         return None

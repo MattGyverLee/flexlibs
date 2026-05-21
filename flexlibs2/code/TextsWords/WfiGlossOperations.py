@@ -28,6 +28,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
+from ..Shared.string_utils import normalize_match_key
 
 # --- WfiGlossOperations Class ---
 
@@ -787,9 +788,10 @@ class WfiGlossOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
 
         # Search through all glosses
+        target = normalize_match_key(form, casefold=False)
         for gloss in self.GetAll(analysis):
             gloss_form = ITsString(gloss.Form.get_String(wsHandle)).Text
-            if gloss_form == form:
+            if normalize_match_key(gloss_form, casefold=False) == target:
                 return gloss
 
         return None

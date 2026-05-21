@@ -39,7 +39,7 @@ from ..FLExProject import (
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
 # Import string utilities
-from ..Shared.string_utils import normalize_text
+from ..Shared.string_utils import normalize_text, normalize_match_key
 
 
 class DataNotebookOperations(BaseOperations):
@@ -479,9 +479,10 @@ class DataNotebookOperations(BaseOperations):
 
         wsHandle = self.__WSHandle(wsHandle)
 
+        target = normalize_match_key(title, casefold=False)
         for record in self.GetAll():
             record_title = ITsString(record.Title.get_String(wsHandle)).Text
-            if record_title == title:
+            if normalize_match_key(record_title, casefold=False) == target:
                 return record
 
         return None

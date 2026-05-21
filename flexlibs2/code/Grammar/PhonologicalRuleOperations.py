@@ -13,6 +13,7 @@
 
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
+from ..Shared.string_utils import normalize_match_key
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -314,9 +315,9 @@ class PhonologicalRuleOperations(BaseOperations):
         """
         self._ValidateParam(name, "name")
 
-        name_lower = name.lower()
+        target = normalize_match_key(name, casefold=True)
         for wrapped_rule in self.GetAll():
-            if wrapped_rule.name.lower() == name_lower:
+            if normalize_match_key(wrapped_rule.name, casefold=True) == target:
                 return wrapped_rule
 
         return None

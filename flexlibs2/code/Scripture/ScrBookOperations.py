@@ -30,6 +30,9 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+# Import string utilities
+from ..Shared.string_utils import normalize_match_key
+
 
 class ScrBookOperations(BaseOperations):
     """
@@ -313,12 +316,12 @@ class ScrBookOperations(BaseOperations):
             return None
 
         wsHandle = self.project.project.DefaultVernWs
-        name_lower = name.lower()
+        target = normalize_match_key(name, casefold=True)
 
         # Search through all books
         for book in scripture.ScriptureBooksOS:
             book_title = ITsString(book.Title.get_String(wsHandle)).Text
-            if book_title and book_title.lower() == name_lower:
+            if book_title and normalize_match_key(book_title, casefold=True) == target:
                 return book
 
         return None

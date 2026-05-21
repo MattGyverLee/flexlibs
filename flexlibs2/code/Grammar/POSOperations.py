@@ -28,7 +28,7 @@ from ..FLExProject import (
 from ..lcm_casting import get_pos_from_msa
 
 # Import string utilities
-from ..Shared.string_utils import normalize_text
+from ..Shared.string_utils import normalize_text, normalize_match_key
 
 
 class POSOperations(BaseOperations):
@@ -114,8 +114,10 @@ class POSOperations(BaseOperations):
         """
         pos_list = self.project.lp.PartsOfSpeechOA
         if pos_list:
+            # PossibilitiesOS is typed ICmPossibility in C#; cast to
+            # IPartOfSpeech so callers can access POS-specific properties.
             for pos in pos_list.PossibilitiesOS:
-                yield pos
+                yield IPartOfSpeech(pos)
 
     @OperationsMethod
     def Create(self, name, abbreviation, catalogSourceId=None):
@@ -297,14 +299,14 @@ class POSOperations(BaseOperations):
         """
         self._ValidateParam(name, "name")
 
-        name_lower = name.lower()
+        target = normalize_match_key(name, casefold=True)
         wsHandle = self.project.project.DefaultAnalWs
 
         # Search recursively through POS hierarchy
         def search_pos_list(pos_collection):
             for pos in pos_collection:
-                pos_name = normalize_text(ITsString(pos.Name.get_String(wsHandle)).Text)
-                if pos_name and pos_name.lower() == name_lower:
+                pos_name = ITsString(pos.Name.get_String(wsHandle)).Text
+                if normalize_match_key(pos_name, casefold=True) == target:
                     return pos
                 # Search subcategories
                 if pos.SubPossibilitiesOS.Count > 0:
@@ -315,7 +317,11 @@ class POSOperations(BaseOperations):
 
         pos_list = self.project.lp.PartsOfSpeechOA
         if pos_list:
-            return search_pos_list(pos_list.PossibilitiesOS)
+            found = search_pos_list(pos_list.PossibilitiesOS)
+            # search_pos_list walks Possibilities/SubPossibilities collections
+            # which are typed ICmPossibility; cast the result so callers can
+            # access IPartOfSpeech-specific properties.
+            return IPartOfSpeech(found) if found is not None else None
 
         return None
 
@@ -501,7 +507,10 @@ class POSOperations(BaseOperations):
 
         pos = self.__ResolveObject(pos_or_hvo)
 
-        return list(pos.SubPossibilitiesOS)
+        # SubPossibilitiesOS is typed ICmPossibility in C#; cast each child to
+        # IPartOfSpeech so callers can access POS-specific properties without
+        # needing to import from SIL.LCModel themselves.
+        return [IPartOfSpeech(p) for p in pos.SubPossibilitiesOS]
 
     @OperationsMethod
     def AddSubcategory(self, pos_or_hvo, name, abbreviation):

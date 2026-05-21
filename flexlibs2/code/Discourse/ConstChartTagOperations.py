@@ -13,6 +13,7 @@
 
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
+from ..Shared.string_utils import normalize_match_key
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -220,9 +221,10 @@ class ConstChartTagOperations(BaseOperations):
 
         # Search through chart tags
         if hasattr(chart, "TagsOC"):
+            target = normalize_match_key(name, casefold=False)
             for tag in chart.TagsOC:
                 tag_name = ITsString(tag.Name.get_String(wsHandle)).Text
-                if tag_name == name:
+                if normalize_match_key(tag_name, casefold=False) == target:
                     return tag
 
         return None

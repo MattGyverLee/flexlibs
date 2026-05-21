@@ -37,6 +37,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
+from ..Shared.string_utils import normalize_match_key
 
 
 class AnthropologyOperations(BaseOperations):
@@ -544,9 +545,10 @@ class AnthropologyOperations(BaseOperations):
         wsHandle = self.project.project.DefaultAnalWs
 
         # Search through all items
+        target = normalize_match_key(name, casefold=False)
         for item in self.GetAll(flat=True):
             item_name = ITsString(item.Name.get_String(wsHandle)).Text
-            if item_name == name:
+            if normalize_match_key(item_name, casefold=False) == target:
                 return item
 
         return None

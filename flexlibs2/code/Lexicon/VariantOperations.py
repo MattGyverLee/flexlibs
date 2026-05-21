@@ -31,6 +31,9 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+# Import string utilities
+from ..Shared.string_utils import normalize_match_key
+
 
 class VariantOperations(BaseOperations):
     """
@@ -187,12 +190,12 @@ class VariantOperations(BaseOperations):
         if not name or not name.strip():
             return None
 
-        name_lower = name.lower()
+        target = normalize_match_key(name, casefold=True)
         wsHandle = self.project.project.DefaultAnalWs
 
         for vtype in self.GetAllTypes():
             type_name = ITsString(vtype.Name.get_String(wsHandle)).Text
-            if type_name and type_name.lower() == name_lower:
+            if type_name and normalize_match_key(type_name, casefold=True) == target:
                 return vtype
 
         return None

@@ -13,6 +13,7 @@
 
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
+from ..Shared.string_utils import normalize_match_key
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -251,9 +252,10 @@ class ReversalIndexOperations(BaseOperations):
         wsHandle = self.project.project.DefaultAnalWs
 
         # Search through all reversal indexes
+        target = normalize_match_key(name, casefold=False)
         for idx in self.GetAll():
             idx_name = ITsString(idx.Name.get_String(wsHandle)).Text
-            if idx_name == name:
+            if normalize_match_key(idx_name, casefold=False) == target:
                 return idx
 
         return None

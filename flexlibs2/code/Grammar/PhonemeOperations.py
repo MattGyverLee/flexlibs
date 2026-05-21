@@ -33,7 +33,7 @@ from ..FLExProject import (
 )
 
 # Import string utilities
-from ..Shared.string_utils import normalize_text
+from ..Shared.string_utils import normalize_text, normalize_match_key
 
 
 class PhonemeOperations(BaseOperations):
@@ -424,9 +424,10 @@ class PhonemeOperations(BaseOperations):
             return None
 
         phoneme_set = phon_data.PhonemeSetsOS[0]
+        target = normalize_match_key(representation, casefold=False)
         for phoneme in phoneme_set.PhonemesOC:
-            phoneme_repr = normalize_text(ITsString(phoneme.Name.get_String(wsHandle)).Text)
-            if phoneme_repr == representation:
+            phoneme_repr = ITsString(phoneme.Name.get_String(wsHandle)).Text
+            if normalize_match_key(phoneme_repr, casefold=False) == target:
                 return phoneme
 
         return None

@@ -13,6 +13,7 @@
 
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
+from ..Shared.string_utils import normalize_match_key
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -283,9 +284,10 @@ class ReversalIndexEntryOperations(BaseOperations):
             wsHandle = self.project.WSHandle(ws_str)
 
         # Search through all entries
+        target = normalize_match_key(form, casefold=False)
         for entry in self.GetAll(index):
             entry_form = ITsString(entry.ReversalForm.get_String(wsHandle)).Text
-            if entry_form == form:
+            if normalize_match_key(entry_form, casefold=False) == target:
                 return entry
 
         return None

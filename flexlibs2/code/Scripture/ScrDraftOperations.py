@@ -13,6 +13,7 @@
 
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
+from ..Shared.string_utils import normalize_match_key
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -261,12 +262,12 @@ class ScrDraftOperations(BaseOperations):
             return None
 
         wsHandle = self.project.project.DefaultAnalWs
-        desc_lower = description.lower()
+        target = normalize_match_key(description, casefold=True)
 
         # Search through all drafts
         for draft in scripture.ArchivedDraftsOC:
             draft_desc = ITsString(draft.Description.get_String(wsHandle)).Text
-            if draft_desc and desc_lower in draft_desc.lower():
+            if target and target in normalize_match_key(draft_desc, casefold=True):
                 return draft
 
         return None

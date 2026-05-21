@@ -142,5 +142,70 @@ class TestPhonemeOperationsCreateRegression:
                 pass
 
 
+class TestPhonemeFindNFDRegression:
+    """
+    Regression coverage for issue #9/#10: Find()/Exists() must succeed
+    when the user supplies an NFC-encoded query against a phoneme whose
+    Representation FLEx stored in NFD. Without the Phase 3
+    `normalize_match_key()` helper, Find('ö') silently returned None
+    even though Create('ö') had just produced the phoneme.
+
+    Uses the writable_project fixture above (module-scoped). The
+    fixture does NOT roll back changes — the test creates a phoneme
+    with a unique representation, runs Find against it, then deletes
+    it in a finally block so re-runs are idempotent.
+    """
+
+    def test_find_finds_nfc_input_for_nfd_stored_diacritic(
+        self, writable_project
+    ):
+        """
+        Reproducer from MattGyverLee/flexlibs#10:
+            phoneme = project.Phonemes.Create('ö')   # NFC input
+            found   = project.Phonemes.Find('ö')     # NFC query
+        Before Phase 3 the Find() call returned None because FLEx
+        stores the Representation in NFD and the lookup compared raw
+        bytes.
+
+        We use 'ö' (NFC, single codepoint U+00F6) as the round-trip
+        sentinel — the canonical case from the issue report.
+        """
+        representation = "ö"  # NFC: precomposed o-with-diaeresis
+
+        # Pre-clean: if a previous run left this phoneme behind, remove
+        # it so the regression test starts from a known state. Use the
+        # post-fix Find so cleanup itself doesn't depend on the bug.
+        existing = writable_project.Phonemes.Find(representation)
+        if existing is not None:
+            writable_project.Phonemes.Delete(existing)
+
+        # Act
+        phoneme = writable_project.Phonemes.Create(representation)
+
+        try:
+            assert phoneme is not None, (
+                "Create('ö') returned None — Phase 2 fix regression?"
+            )
+
+            # Issue #10 core assertion: Find must locate the just-created
+            # phoneme even though Python's 'ö' is NFC and FLEx storage
+            # is NFD.
+            found = writable_project.Phonemes.Find(representation)
+
+            assert found is not None, (
+                "Find('ö') returned None — NFD normalization helper is "
+                "not being applied to Phonemes.Find (issue #10)"
+            )
+            assert found.Hvo == phoneme.Hvo, (
+                "Find('ö') returned the wrong phoneme — "
+                f"got Hvo={found.Hvo}, expected Hvo={phoneme.Hvo}"
+            )
+        finally:
+            try:
+                writable_project.Phonemes.Delete(phoneme)
+            except Exception:
+                pass
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

@@ -32,6 +32,9 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+# Import string utilities
+from ..Shared.string_utils import normalize_match_key
+
 
 class InflectionFeatureOperations(BaseOperations):
     """
@@ -167,9 +170,10 @@ class InflectionFeatureOperations(BaseOperations):
             raise FP_ParameterError("Name cannot be empty")
 
         # Check if class already exists
+        target = normalize_match_key(name, casefold=True)
         for existing_ic in self.InflectionClassGetAll():
             existing_name = self.InflectionClassGetName(existing_ic)
-            if existing_name and existing_name.lower() == name.lower():
+            if existing_name and normalize_match_key(existing_name, casefold=True) == target:
                 raise FP_ParameterError(f"Inflection class '{name}' already exists")
 
         # Get the writing system handle
@@ -497,9 +501,10 @@ class InflectionFeatureOperations(BaseOperations):
 
         # Check if feature already exists
         wsHandle = self.project.project.DefaultAnalWs
+        target = normalize_match_key(name, casefold=True)
         for existing_feature in self.FeatureGetAll():
             existing_name = ITsString(existing_feature.Name.get_String(wsHandle)).Text
-            if existing_name and existing_name.lower() == name.lower():
+            if existing_name and normalize_match_key(existing_name, casefold=True) == target:
                 raise FP_ParameterError(f"Feature '{name}' already exists")
 
         # Create the new feature using the factory

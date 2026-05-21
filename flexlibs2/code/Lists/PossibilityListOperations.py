@@ -28,6 +28,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations, OperationsMethod
+from ..Shared.string_utils import normalize_match_key
 
 
 class PossibilityListOperations(BaseOperations):
@@ -320,13 +321,13 @@ class PossibilityListOperations(BaseOperations):
         if not name or not name.strip():
             return None
 
-        name_lower = name.strip().lower()
+        target = normalize_match_key(name.strip(), casefold=True)
         wsHandle = self.project.project.DefaultAnalWs
 
         # Search through all lists
         for poss_list in self.GetAllLists():
             list_name = ITsString(poss_list.Name.get_String(wsHandle)).Text
-            if list_name and list_name.lower() == name_lower:
+            if list_name and normalize_match_key(list_name, casefold=True) == target:
                 return poss_list
 
         return None
@@ -844,13 +845,13 @@ class PossibilityListOperations(BaseOperations):
         if not name or not name.strip():
             return None
 
-        name_lower = name.strip().lower()
+        target = normalize_match_key(name.strip(), casefold=True)
         wsHandle = self.project.project.DefaultAnalWs
 
         # Search through all items (flat)
         for item in self.GetItems(list_or_hvo, flat=True):
             item_name = ITsString(item.Name.get_String(wsHandle)).Text
-            if item_name and item_name.lower() == name_lower:
+            if item_name and normalize_match_key(item_name, casefold=True) == target:
                 return item
 
         return None

@@ -27,6 +27,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
+from ..Shared.string_utils import normalize_match_key
 
 
 class AnnotationDefOperations(BaseOperations):
@@ -328,9 +329,10 @@ class AnnotationDefOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
 
         # Search through all annotation definitions
+        target = normalize_match_key(name, casefold=False)
         for anno_def in self.GetAll():
             def_name = ITsString(anno_def.Name.get_String(wsHandle)).Text
-            if def_name == name:
+            if normalize_match_key(def_name, casefold=False) == target:
                 return anno_def
 
         return None

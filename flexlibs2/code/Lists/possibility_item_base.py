@@ -19,6 +19,7 @@ from SIL.LCModel.Core.Text import TsStringUtils
 # Import flexlibs exceptions
 from ..FLExProject import FP_ParameterError, FP_NullParameterError
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
+from ..Shared.string_utils import normalize_match_key
 
 
 class PossibilityItemOperations(BaseOperations):
@@ -283,12 +284,12 @@ class PossibilityItemOperations(BaseOperations):
         if not name or not name.strip():
             return None
 
-        name_lower = name.strip().lower()
+        target = normalize_match_key(name.strip(), casefold=True)
         wsHandle = self.project.project.DefaultAnalWs
 
         for item in self.GetAll():
             item_name = ITsString(item.Name.get_String(wsHandle)).Text
-            if item_name and item_name.lower() == name_lower:
+            if normalize_match_key(item_name, casefold=True) == target:
                 return item
 
         return None

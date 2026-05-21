@@ -9,6 +9,8 @@
 #   values to empty strings, matching the behavior of FlexLibs stable.
 #
 
+import unicodedata
+
 # FLEx's null marker for empty multilingual string fields
 FLEX_NULL_MARKER = "***"
 
@@ -42,6 +44,42 @@ def normalize_text(text):
         return ""
     if text == FLEX_NULL_MARKER:
         return ""
+    return text
+
+
+def normalize_match_key(text, casefold=True):
+    """
+    Produce a key suitable for matching a Python-side string against an
+    FLEx-stored multilingual string value.
+
+    FLEx stores all IMultiString/IMultiUnicode values in NFD; Python source
+    is typically NFC. Without normalization, any string containing combined
+    diacritics will silently fail to match. Apply this to BOTH sides of any
+    Find/Exists comparison.
+
+    Args:
+        text: Input string (may be None, '', or '***').
+        casefold: If True (default), apply str.casefold() after NFD
+                  normalization. Pass False for case-sensitive Find methods.
+                  Use casefold (not lower) for correct handling of Turkish
+                  dotted/dotless I, German ess-zett, etc.
+
+    Returns:
+        Normalized string. Empty string for None/empty/'***' inputs.
+
+    Example:
+        >>> needle = normalize_match_key("oo", casefold=False)
+        >>> haystack = normalize_match_key(ITsString(p.Name.get_String(ws)).Text,
+        ...                                casefold=False)
+        >>> needle == haystack  # True even when Python NFC differs from LCM NFD
+        True
+    """
+    text = normalize_text(text)
+    if not text:
+        return ""
+    text = unicodedata.normalize("NFD", text)
+    if casefold:
+        text = text.casefold()
     return text
 
 

@@ -35,6 +35,7 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
+from ..Shared.string_utils import normalize_match_key
 
 # --- Spelling Status Enum ---
 
@@ -279,9 +280,10 @@ class WordformOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
 
         # Search through all wordforms
+        target = normalize_match_key(form, casefold=False)
         for wf in self.GetAll():
             wf_form = ITsString(wf.Form.get_String(wsHandle)).Text
-            if wf_form == form:
+            if normalize_match_key(wf_form, casefold=False) == target:
                 return wf
 
         return None

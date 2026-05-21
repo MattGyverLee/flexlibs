@@ -40,7 +40,7 @@ from ..FLExProject import (
 from ..BaseOperations import BaseOperations, OperationsMethod
 
 # Import string utilities
-from ..Shared.string_utils import normalize_text
+from ..Shared.string_utils import normalize_text, normalize_match_key
 
 
 class CheckOperations(BaseOperations):
@@ -334,13 +334,13 @@ class CheckOperations(BaseOperations):
         name = name.strip() if isinstance(name, str) else ""
         self._ValidateParam(name, "name")
 
-        name_lower = name.lower()
+        target = normalize_match_key(name, casefold=True)
         wsHandle = self.project.project.DefaultAnalWs
 
         # Search through all check types
         for check_type in self.GetAllCheckTypes():
             check_name = ITsString(check_type.Name.get_String(wsHandle)).Text
-            if check_name and check_name.lower() == name_lower:
+            if check_name and normalize_match_key(check_name, casefold=True) == target:
                 return check_type
 
         return None
