@@ -4,8 +4,8 @@
 #   Module: Catalog file discovery and XML parsing helpers for FieldWorks
 #           catalog XML formats.
 #
-#           Phase 5a MVP: only supports the GOLDEtic shape used by the
-#           FW Templates/GOLDEtic.xml POS catalog:
+#           Phase 5a: GOLDEtic shape used by the FW Templates/GOLDEtic.xml
+#           POS catalog:
 #
 #               <eticPOSList>
 #                 <item type="category" id="Adjective" guid="...">
@@ -17,9 +17,27 @@
 #                 ...
 #               </eticPOSList>
 #
+#           Phase 5b: eticGlossList shape used by the FW MGA gloss-list
+#           catalogs (e.g. Language Explorer/MGA/GlossLists/
+#           PhonFeatsEticGlossList.xml):
+#
+#               <eticGlossList>
+#                 <item type="group" id="gPAPhonFeatures" guid="...">
+#                   ...
+#                   <item type="feature" id="fPAConsonantal" guid="...">
+#                     <abbrev ws="en">cons</abbrev>
+#                     <term ws="en">consonantal</term>
+#                     <item type="value" id="vPAConsonantalPositive" ...>
+#                       <abbrev ws="en">+</abbrev>
+#                       <term ws="en">positive</term>
+#                     </item>
+#                     ...
+#                   </item>
+#                 </item>
+#               </eticGlossList>
+#
 #           Other FW catalog shapes (LocalizedLists, semantic-domain catalogs,
-#           inflection-feature catalogs) will be added in later phases; until
-#           then keep this module narrowly scoped to GOLDEtic.
+#           etc.) will be added in later phases.
 #
 #   Platform: Python (stdlib only; no FieldWorks/.NET dependency)
 #             FieldWorks Version 9+
@@ -90,9 +108,9 @@ class CatalogImportResult:
 # --- File discovery ----------------------------------------------------------
 
 
-def find_catalog_file(filename):
+def find_catalog_file(filename, subdir="Templates"):
     """
-    Locate a catalog XML file under the FieldWorks Templates directory.
+    Locate a catalog XML file under the FieldWorks install.
 
     Uses FLExGlobals.FWCodeDir (resolved during FLEx init from the
     Windows registry) so it works against whatever FW install the
@@ -100,6 +118,11 @@ def find_catalog_file(filename):
 
     Args:
         filename (str): The catalog filename, e.g. "GOLDEtic.xml".
+        subdir (str):   Relative subdirectory under FWCodeDir; default
+                        "Templates" (used for GOLDEtic.xml). For MGA
+                        gloss lists, pass "Language Explorer/MGA/GlossLists".
+                        Forward slashes are converted to OS-native
+                        separators by os.path.join.
 
     Returns:
         str: Absolute path to the catalog file.
@@ -115,7 +138,9 @@ def find_catalog_file(filename):
             "import flexlibs2 (or call FLExGlobals.InitialiseFWGlobals()) first."
         )
 
-    path = os.path.join(FLExGlobals.FWCodeDir, "Templates", filename)
+    # Normalize slashes in subdir so callers can pass "a/b/c" portably.
+    subdir_parts = [p for p in subdir.replace("\\", "/").split("/") if p]
+    path = os.path.join(FLExGlobals.FWCodeDir, *subdir_parts, filename)
     if not os.path.isfile(path):
         raise FileNotFoundError(
             "Catalog file not found at expected location: {}".format(path)
@@ -192,19 +217,117 @@ def parse_etic_catalog(path):
     return entries
 
 
+# --- eticGlossList parsing (Phase 5b) ---------------------------------------
+
+
+def _parse_gloss_item(elem, expected_type):
+    """
+    Parse one <item> element from an eticGlossList catalog as a
+    CatalogEntry. Only the abbrev/term/def localised strings and any
+    nested <item> children matching `expected_type` are captured.
+
+    `expected_type` is the type attribute value to recurse into for
+    children: for a "feature" element, child items are "value"s; for
+    a "value" element there are no expected children (pass None).
+    """
+    entry = CatalogEntry(
+        id=elem.get("id") or "",
+        guid=elem.get("guid") or "",
+    )
+
+    for child in elem:
+        tag = child.tag
+        if tag == "abbrev":
+            ws = child.get("ws") or ""
+            if ws and child.text:
+                entry.abbrev[ws] = child.text
+        elif tag == "term":
+            ws = child.get("ws") or ""
+            if ws and child.text:
+                entry.term[ws] = child.text
+        elif tag == "def":
+            ws = child.get("ws") or ""
+            if ws and child.text:
+                entry.def_[ws] = child.text
+        elif tag == "item" and expected_type and child.get("type") == expected_type:
+            # Value items have no further children we care about.
+            entry.children.append(_parse_gloss_item(child, None))
+        # Silently ignore <citation>, <fs> (FW UI's encoded feature structure
+        # for values), <source>, and any other extraneous markup - they
+        # aren't part of the Phase 5b import contract.
+
+    return entry
+
+
+def parse_etic_gloss_list(path):
+    """
+    Parse a PhonFeatsEticGlossList-shaped catalog (root <eticGlossList>)
+    into a flat list of feature CatalogEntry objects.
+
+    Items have type="group" | "feature" | "value":
+        - "group" entries are organizational only (not representable in
+          LCM). They are skipped at every level, but the parser recurses
+          INTO them so any features they contain still get returned.
+        - "feature" entries become CatalogEntry items in the returned
+          list. Each feature's value children are attached to its
+          `.children` list.
+        - "value" entries become CatalogEntry children of their parent
+          feature entry.
+
+    Args:
+        path (str): Absolute path to e.g. PhonFeatsEticGlossList.xml.
+
+    Returns:
+        list[CatalogEntry]: Flat list of feature entries with their
+        value entries attached as `.children`. Group structure is
+        flattened away.
+
+    Raises:
+        ValueError: If the root element is not <eticGlossList>.
+    """
+    tree = ET.parse(path)
+    root = tree.getroot()
+
+    if root.tag != "eticGlossList":
+        raise ValueError(
+            "Expected root <eticGlossList>, got <{}>; this parser only "
+            "handles the eticGlossList shape.".format(root.tag)
+        )
+
+    features = []
+
+    def _walk(items):
+        for item in items:
+            t = item.get("type")
+            if t == "feature":
+                features.append(_parse_gloss_item(item, "value"))
+            elif t == "group":
+                # Groups are organizational only; descend into their
+                # children but don't emit a CatalogEntry for the group.
+                _walk(item.findall("item"))
+            # Any other top-level type is silently ignored.
+
+    _walk(root.findall("item"))
+    return features
+
+
 # --- Tree navigation ---------------------------------------------------------
+
+
+_KNOWN_CATALOG_PREFIXES = ("GOLD", "PHON")
 
 
 def _strip_catalog_prefix(source_id):
     """
-    Accept either a bare id ("Adjective") or a prefixed catalog
-    source id ("GOLD:Adjective") and return the bare id. Case-sensitive
-    on the id portion; the prefix match is case-insensitive.
+    Accept either a bare id ("Adjective", "fPAConsonantal") or a prefixed
+    catalog source id ("GOLD:Adjective", "PHON:fPAConsonantal") and return
+    the bare id. Case-sensitive on the id portion; the prefix match is
+    case-insensitive. Unknown prefixes are passed through unchanged.
     """
     if not source_id:
         return ""
     head, sep, tail = source_id.partition(":")
-    if sep and head.upper() == "GOLD":
+    if sep and head.upper() in _KNOWN_CATALOG_PREFIXES:
         return tail
     return source_id
 
@@ -212,12 +335,15 @@ def _strip_catalog_prefix(source_id):
 def find_catalog_entry(entries, source_id):
     """
     Walk a list of CatalogEntry trees (depth-first) and return the
-    entry whose id matches `source_id`. The "GOLD:" prefix is stripped
-    before comparison so both "GOLD:Adjective" and "Adjective" work.
+    entry whose id matches `source_id`. Known catalog prefixes
+    ("GOLD:", "PHON:") are stripped before comparison so both
+    "GOLD:Adjective" and "Adjective" work.
 
     Args:
-        entries (list[CatalogEntry]): Result of parse_etic_catalog().
-        source_id (str): Catalog source id with or without "GOLD:" prefix.
+        entries (list[CatalogEntry]): Result of parse_etic_catalog() or
+                                       parse_etic_gloss_list().
+        source_id (str): Catalog source id, with or without a known
+                         prefix.
 
     Returns:
         CatalogEntry or None: The matching entry, or None if no match.

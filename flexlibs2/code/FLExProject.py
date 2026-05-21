@@ -1012,6 +1012,34 @@ class FLExProject(object):
         return self._phonrule_ops
 
     @property
+    def PhonFeatures(self):
+        """
+        Access to phonological feature operations.
+
+        Returns:
+            PhonFeatureOperations: Instance providing phonological feature
+            and feature-value management methods, including catalog import
+            from the MGA PhonFeatsEticGlossList.
+
+        Example:
+            >>> project = FLExProject()
+            >>> project.OpenProject("MyProject", writeEnabled=True)
+            >>> # Bulk-import the standard MGA feature set
+            >>> result = project.PhonFeatures.ImportCatalog()
+            >>> print(f"Created {result.created_count} entries")
+            >>> # Create a specific feature
+            >>> cons = project.PhonFeatures.CreateFromCatalog("fPAConsonantal")
+            >>> # Inspect its +/- values
+            >>> for v in project.PhonFeatures.GetValues(cons):
+            ...     print(project.PhonFeatures.GetAbbreviation(v))
+        """
+        if "_phonfeature_ops" not in self.__dict__:
+            from .Grammar.PhonFeatureOperations import PhonFeatureOperations
+
+            self._phonfeature_ops = PhonFeatureOperations(self)
+        return self._phonfeature_ops
+
+    @property
     def Senses(self):
         """
         Access to lexical sense operations.
