@@ -1268,10 +1268,6 @@ class PhonologicalRuleOperations(BaseOperations):
                 )
             return factory.Create()
 
-        # Reject Seg(...).plus at the API level: the dataclass doesn't
-        # have a `plus` field, so a misuse like Seg(p, plus=[a]) raises
-        # TypeError at construction. The check below catches the rarer
-        # case of a non-Seg-like object slipping through.
         raise FP_ParameterError(
             f"{slot_name}: pattern element must be Seg, NC, or Boundary, "
             f"got {type(elem).__name__}"
@@ -1282,6 +1278,25 @@ class PhonologicalRuleOperations(BaseOperations):
         if isinstance(elem, Seg):
             phoneme = self.__ResolveLcmObject(elem.phoneme)
             ctx.FeatureStructureRA = phoneme
+            # Seg-with-constraints: LCM's IPhSimpleContextSeg has no
+            # PlusConstrRS / MinusConstrRS -- only IPhSimpleContextNC does.
+            # Honoring alpha-feature constraints on a single phoneme
+            # requires representing it as a singleton natural class.
+            # Rather than silently dropping the constraints (which would
+            # produce a rule that looks right but doesn't fire), refuse
+            # with a clear pointer to the NC pattern.
+            if elem.plus or elem.minus:
+                raise FP_ParameterError(
+                    "Seg pattern elements with alpha-feature constraints "
+                    "(plus= or minus=) are not directly representable in "
+                    "LCM: IPhSimpleContextSeg has no constraint slots. "
+                    "Workaround: create a singleton IPhNaturalClass "
+                    "containing just this phoneme and use NC(class, "
+                    "plus=[...], minus=[...]) instead. The class can be "
+                    "reused across rules that target the same single "
+                    "phoneme. See issue #23 for the linguistic context "
+                    "(e.g. Bantu N-place assimilation)."
+                )
             return
 
         if isinstance(elem, NC):
