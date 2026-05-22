@@ -35,6 +35,8 @@ from SIL.LCModel import (
     IFsClosedFeatureFactory,
     IFsSymFeatVal,
     IFsSymFeatValFactory,
+    IFsClosedValue,
+    IFsClosedValueFactory,
 )
 from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
@@ -508,6 +510,291 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
         if feature_system:
             for feature in feature_system.FeaturesOC:
                 yield feature
+
+    @OperationsMethod
+    def Find(self, name, wsHandle=None):
+        """
+        Find an inflection feature by name.
+
+        Args:
+            name (str): The name to search for. Compared via NFD-normalised
+                        casefold match against each feature's Name in the
+                        chosen WS.
+            wsHandle: Optional writing system handle. Defaults to analysis WS.
+
+        Returns:
+            IFsFeatDefn or None: First match, or None.
+
+        Notes:
+            - Mirrors PhonFeatureOperations.Find. Searches both closed and
+              complex features in MsFeatureSystemOA.FeaturesOC.
+            - Does NOT search value names; values are looked up via
+              ``FeatureGetValues(feature)``.
+        """
+        self._ValidateParam(name, "name")
+        target = normalize_match_key(name, casefold=True)
+        if not target:
+            return None
+        wsHandle = self.__WSHandle(wsHandle)
+
+        feature_system = self.project.lp.MsFeatureSystemOA
+        if feature_system is None:
+            return None
+
+        for raw in feature_system.FeaturesOC:
+            feat = IFsFeatDefn(raw)
+            feat_name = ITsString(feat.Name.get_String(wsHandle)).Text
+            if feat_name and normalize_match_key(feat_name, casefold=True) == target:
+                return feat
+        return None
+
+    @OperationsMethod
+    def Exists(self, name, wsHandle=None):
+        """
+        Check whether an inflection feature with the given name exists.
+
+        Args:
+            name (str): Name to look up.
+            wsHandle: Optional writing system handle. Defaults to analysis WS.
+
+        Returns:
+            bool: True if the feature exists, False otherwise.
+        """
+        self._ValidateParam(name, "name")
+        return self.Find(name, wsHandle=wsHandle) is not None
+
+    @OperationsMethod
+    def Create(self, name, abbreviation, type="closed", catalogSourceId=None):
+        """
+        Create a new inflection feature (IFsClosedFeature or IFsComplexFeature).
+
+        Mirrors PhonFeatureOperations.Create so the API surface is symmetric
+        across the two feature systems. The legacy FeatureCreate(name, type)
+        method is preserved as a back-compat shim.
+
+        Args:
+            name (str): Feature name (e.g. "person", "number").
+            abbreviation (str): Short abbreviation (e.g. "pers", "num").
+            type (str): "closed" (default) for IFsClosedFeature, "complex"
+                for IFsComplexFeature.
+            catalogSourceId (str, optional): Optional catalog id. If it starts
+                with the ``INFL:`` prefix (case-insensitive), the feature is
+                created from the MGA EticGlossList.xml catalog (canonical
+                GUID + localized strings + value children), then the
+                user-supplied name/abbreviation overlay the analysis WS.
+                Otherwise the value is written verbatim to ``CatalogSourceId``.
+
+        Returns:
+            IFsFeatDefn: The newly created feature.
+
+        Raises:
+            FP_ReadOnlyError, FP_NullParameterError, FP_ParameterError:
+                Per BaseOperations validation rules.
+        """
+        self._EnsureWriteEnabled()
+        self._ValidateParam(name, "name")
+        self._ValidateParam(abbreviation, "abbreviation")
+
+        if not name or not name.strip():
+            raise FP_ParameterError("Name cannot be empty")
+        if not abbreviation or not abbreviation.strip():
+            raise FP_ParameterError("Abbreviation cannot be empty")
+
+        # Catalog-driven creation: defer to CreateFromCatalog (inherited from
+        # CatalogBackedMixin) for the canonical GUID + values, then overlay.
+        if catalogSourceId and catalogSourceId.upper().startswith(CATALOG_PREFIX + ":"):
+            wsHandle = self.project.project.DefaultAnalWs
+            new_feat = self.CreateFromCatalog(catalogSourceId)
+            mkstr_name = TsStringUtils.MakeString(name, wsHandle)
+            new_feat.Name.set_String(wsHandle, mkstr_name)
+            mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
+            new_feat.Abbreviation.set_String(wsHandle, mkstr_abbr)
+            return new_feat
+
+        # Uniqueness by name.
+        if self.Exists(name):
+            raise FP_ParameterError(f"Inflection feature '{name}' already exists")
+
+        wsHandle = self.project.project.DefaultAnalWs
+
+        feature_system = self.project.lp.MsFeatureSystemOA
+        if feature_system is None:
+            raise FP_ParameterError(
+                "Project has no MsFeatureSystemOA; cannot create "
+                "inflection features."
+            )
+
+        # Phase 2 ownership-ordering rule: attach to the owning collection
+        # FIRST, then mutate properties.
+        type_normalized = (type or "closed").strip().lower()
+        if type_normalized == "complex":
+            factory = self.project.project.ServiceLocator.GetService(
+                IFsComplexFeatureFactory
+            )
+            new_feat = factory.Create()
+            feature_system.FeaturesOC.Add(new_feat)
+            new_feat = IFsComplexFeature(new_feat)
+        else:
+            factory = self.project.project.ServiceLocator.GetService(
+                IFsClosedFeatureFactory
+            )
+            new_feat = factory.Create()
+            feature_system.FeaturesOC.Add(new_feat)
+            new_feat = IFsClosedFeature(new_feat)
+
+        # Set name + abbreviation in default analysis WS.
+        mkstr_name = TsStringUtils.MakeString(name, wsHandle)
+        new_feat.Name.set_String(wsHandle, mkstr_name)
+        mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
+        new_feat.Abbreviation.set_String(wsHandle, mkstr_abbr)
+
+        # Verbatim CatalogSourceId for non-INFL: prefixes (and bare ids).
+        if catalogSourceId:
+            new_feat.CatalogSourceId = catalogSourceId
+
+        return new_feat
+
+    @OperationsMethod
+    def CreateValue(self, feature_or_hvo, name, abbreviation, value_marker=None):
+        """
+        Create a new symbolic value (IFsSymFeatVal) under a closed inflection
+        feature.
+
+        Args:
+            feature_or_hvo: The IFsClosedFeature or HVO that owns the value.
+            name (str): Value name (e.g. "first", "second", "third" for person).
+            abbreviation (str): Short abbreviation (e.g. "1", "2", "3").
+            value_marker (str, optional): Currently informational only -- the
+                abbreviation itself carries the marker.
+
+        Returns:
+            IFsSymFeatVal: The newly created value.
+
+        Notes:
+            - Applies the Phase 2 ownership-ordering rule: factory.Create()
+              -> feature.ValuesOC.Add() -> set Name + Abbreviation.
+            - Mirrors PhonFeatureOperations.CreateValue.
+        """
+        self._EnsureWriteEnabled()
+        self._ValidateParam(feature_or_hvo, "feature_or_hvo")
+        self._ValidateParam(name, "name")
+        self._ValidateParam(abbreviation, "abbreviation")
+
+        if not name or not name.strip():
+            raise FP_ParameterError("Name cannot be empty")
+        if not abbreviation or not str(abbreviation).strip():
+            raise FP_ParameterError("Abbreviation cannot be empty")
+
+        feature = self.__ResolveFeature(feature_or_hvo)
+        # Cast to IFsClosedFeature so ValuesOC is accessible. IFsComplexFeature
+        # has no ValuesOC -- value creation only makes sense on closed features.
+        try:
+            feature = IFsClosedFeature(feature)
+        except Exception:
+            raise FP_ParameterError(
+                "CreateValue requires an IFsClosedFeature; complex features "
+                "do not have a ValuesOC collection."
+            )
+        wsHandle = self.project.project.DefaultAnalWs
+
+        factory = self.project.project.ServiceLocator.GetService(
+            IFsSymFeatValFactory
+        )
+        new_val = factory.Create()
+        # Ownership-first: attach to feature.ValuesOC before mutating strings.
+        feature.ValuesOC.Add(new_val)
+        new_val = IFsSymFeatVal(new_val)
+
+        mkstr_name = TsStringUtils.MakeString(name, wsHandle)
+        new_val.Name.set_String(wsHandle, mkstr_name)
+        mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
+        new_val.Abbreviation.set_String(wsHandle, mkstr_abbr)
+
+        _ = value_marker  # reserved for future strict-mode check
+        return new_val
+
+    @OperationsMethod
+    def MakeFeatStruc(self, specs, owner=None):
+        """
+        Build an IFsFeatStruc populated with (feature, value) pairs.
+
+        Mirrors PhonFeatureOperations.MakeFeatStruc; produces inflection
+        feature structures suitable for attaching to MSAs and inflection
+        templates.
+
+        Args:
+            specs (list[tuple]): A list of ``(feature, value)`` tuples.
+                Each side may be an IFsClosedFeature / IFsSymFeatVal
+                object, a wrapper, or an HVO. Items are added to the
+                struct's ``FeatureSpecsOC`` in the order provided.
+
+            owner: LCM object that should own the struct via its
+                ``FeaturesOA`` atomic-owning property. If provided, the
+                struct is attached BEFORE its FeatureSpecsOC is populated
+                (Phase 2 ownership rule -- LCM property setters will NPE
+                on free-floating structs).
+
+        Returns:
+            IFsFeatStruc: The populated feature structure.
+
+        Raises:
+            FP_ParameterError: If a spec tuple is malformed, if an
+                owner is supplied but has no FeaturesOA property, or
+                if ``owner`` is None while ``specs`` is non-empty.
+        """
+        self._EnsureWriteEnabled()
+        self._ValidateParam(specs, "specs")
+
+        if owner is None and specs:
+            raise FP_ParameterError(
+                "MakeFeatStruc requires an owner when specs is non-empty. "
+                "LCM property setters NPE on unowned IFsFeatStruc objects; "
+                "pass owner=msa / owner=template / owner=context so this "
+                "method attaches first."
+            )
+
+        # Normalize and validate specs up front, before any LCM mutation.
+        normalized = []
+        for i, pair in enumerate(specs):
+            if not isinstance(pair, (list, tuple)) or len(pair) != 2:
+                raise FP_ParameterError(
+                    f"specs[{i}] must be a (feature, value) tuple"
+                )
+            feat_in, val_in = pair
+            feat = self.__ResolveFeature(feat_in) if not isinstance(feat_in, int) else self.project.Object(feat_in)
+            val = val_in if not isinstance(val_in, int) else self.project.Object(val_in)
+            normalized.append((feat, val))
+
+        # Create the unowned struct.
+        factory = self.project.project.ServiceLocator.GetService(
+            IFsFeatStrucFactory
+        )
+        struct = factory.Create()
+
+        # Attach to owner FIRST if supplied.
+        if owner is not None:
+            if not hasattr(owner, "FeaturesOA"):
+                raise FP_ParameterError(
+                    "owner has no FeaturesOA property; cannot attach FsFeatStruc."
+                )
+            owner.FeaturesOA = struct
+            struct = owner.FeaturesOA  # re-fetch via owning property
+
+        struct = IFsFeatStruc(struct)
+
+        # Populate FeatureSpecsOC. Each spec is an IFsClosedValue with
+        # FeatureRA -> feature and ValueRA -> value.
+        cv_factory = self.project.project.ServiceLocator.GetService(
+            IFsClosedValueFactory
+        )
+        for feat, val in normalized:
+            closed_value = cv_factory.Create()
+            struct.FeatureSpecsOC.Add(closed_value)
+            cv = IFsClosedValue(closed_value)
+            cv.FeatureRA = feat
+            cv.ValueRA = val
+
+        return struct
 
     @OperationsMethod
     def FeatureCreate(self, name, type):

@@ -31,6 +31,9 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+# Import string utilities
+from ..Shared.string_utils import normalize_match_key
+
 
 class NaturalClassOperations(BaseOperations):
     """
@@ -181,6 +184,60 @@ class NaturalClassOperations(BaseOperations):
             natural_classes = list(phon_data.NaturalClassesOS)
             for nc in natural_classes:
                 yield nc
+
+    @OperationsMethod
+    def Find(self, name, wsHandle=None):
+        """
+        Find a natural class by name.
+
+        Args:
+            name (str): The name to search for. Compared via NFD-normalised
+                        casefold match against each natural class's Name in
+                        the chosen WS.
+            wsHandle: Optional writing system handle. Defaults to analysis WS.
+
+        Returns:
+            IPhNaturalClass or None: First match, or None.
+
+        Notes:
+            - Mirrors POSOperations.Find / PhonFeatureOperations.Find.
+            - Searches both IPhNCSegments and IPhNCFeatures variants
+              (both inherit from IPhNaturalClass).
+            - Does NOT search by abbreviation; use a manual GetAbbreviation
+              loop for that.
+
+        Example:
+            >>> vowels = project.NaturalClasses.Find("Vowels")
+            >>> if vowels is not None:
+            ...     print(project.NaturalClasses.GetAbbreviation(vowels))
+            V
+        """
+        self._ValidateParam(name, "name")
+        target = normalize_match_key(name, casefold=True)
+        if not target:
+            return None
+        wsHandle = self.__WSHandle(wsHandle)
+
+        for nc in self.GetAll():
+            nc_name = ITsString(nc.Name.get_String(wsHandle)).Text
+            if nc_name and normalize_match_key(nc_name, casefold=True) == target:
+                return nc
+        return None
+
+    @OperationsMethod
+    def Exists(self, name, wsHandle=None):
+        """
+        Check whether a natural class with the given name exists.
+
+        Args:
+            name (str): Name to look up.
+            wsHandle: Optional writing system handle. Defaults to analysis WS.
+
+        Returns:
+            bool: True if found.
+        """
+        self._ValidateParam(name, "name")
+        return self.Find(name, wsHandle=wsHandle) is not None
 
     @OperationsMethod
     def Create(self, name, abbreviation=None):
