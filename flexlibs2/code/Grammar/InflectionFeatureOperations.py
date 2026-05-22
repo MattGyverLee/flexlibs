@@ -398,7 +398,7 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
         if feature_system:
             # This yields feature definitions which may contain feature structures
             # The actual implementation depends on what the user needs
-            for feature in feature_system.FeaturesOS:
+            for feature in feature_system.FeaturesOC:
                 if hasattr(feature, "FeaturesOS"):
                     for fs in feature.FeaturesOS:
                         yield fs
@@ -506,7 +506,7 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
         """
         feature_system = self.project.lp.MsFeatureSystemOA
         if feature_system:
-            for feature in feature_system.FeaturesOS:
+            for feature in feature_system.FeaturesOC:
                 yield feature
 
     @OperationsMethod
@@ -569,7 +569,7 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
         # Add to the feature system (must be done before setting properties)
         feature_system = self.project.lp.MsFeatureSystemOA
         if feature_system:
-            feature_system.FeaturesOS.Add(new_feature)
+            feature_system.FeaturesOC.Add(new_feature)
 
         # Set name
         mkstr_name = TsStringUtils.MakeString(name, wsHandle)
@@ -618,7 +618,7 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
         # Remove from the feature system
         feature_system = self.project.lp.MsFeatureSystemOA
         if feature_system:
-            feature_system.FeaturesOS.Remove(feature)
+            feature_system.FeaturesOC.Remove(feature)
 
     @OperationsMethod
     def FeatureGetValues(self, feature_or_hvo):
@@ -696,7 +696,8 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
 
         Notes:
             - READ-ONLY property - returns the collection
-            - Access via feature_system.Features
+            - Access via feature_system.FeaturesOC (IFsFeatureSystem owns
+              feature definitions as an owning collection, not sequence)
             - Returns empty list if no features defined
             - Features represent grammatical categories
             - Each feature can have multiple values
@@ -713,8 +714,8 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
             feature_system = feature_system_or_hvo
 
         # Return features collection if it exists
-        if hasattr(feature_system, "FeaturesOS"):
-            return list(feature_system.FeaturesOS)
+        if hasattr(feature_system, "FeaturesOC"):
+            return list(feature_system.FeaturesOC)
 
         return []
 
