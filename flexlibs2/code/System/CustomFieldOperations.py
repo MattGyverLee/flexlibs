@@ -42,6 +42,7 @@ from SIL.LCModel.Core.Text import TsStringUtils
 # Import flexlibs exceptions
 from ..FLExProject import (
     FP_ParameterError,
+    FP_TransactionError,
 )
 
 # Import FLExLCM types
@@ -193,6 +194,9 @@ class CustomFieldOperations(BaseOperations):
             FP_ReadOnlyError: If project is not opened with write enabled
             FP_NullParameterError: If required parameters are None
             FP_ParameterError: If parameters are invalid or field already exists
+            FP_TransactionError: If called while a UnitOfWork is open (always
+                the case in Phase 1 transaction mode). See "Transaction Safety"
+                below and docs/CUSTOM_FIELDS.md.
 
         Example:
             >>> # Create a vernacular multi-string field
@@ -222,6 +226,19 @@ class CustomFieldOperations(BaseOperations):
             - Field creation is permanent and cannot be easily undone
             - Field names must be unique within a class
             - Use FLEx UI for complex field setup (lists, etc.)
+
+        Transaction Safety:
+            Custom field creation is a SCHEMA mutation and cannot run inside
+            an open UnitOfWork. In Phase 1 transaction mode (the default),
+            OpenProject() opens a non-undoable envelope that remains open
+            until CloseProject(), so CreateField() will refuse with
+            FP_TransactionError.
+
+            Bypassing this guard with raw LCM (IFwMetaDataCacheManaged.
+            AddCustomField) creates the field in memory only; subsequent
+            SetValue calls appear to succeed but the schema does NOT persist,
+            producing corrupted records on next FLEx UI open. See
+            docs/CUSTOM_FIELDS.md for the recommended workflow.
 
         Notes:
             - MultiString supports multiple writing systems
@@ -261,21 +278,50 @@ class CustomFieldOperations(BaseOperations):
         if field_type not in valid_types:
             raise FP_ParameterError(f"Invalid field type '{field_type}'. " f"Valid types: {', '.join(valid_types)}")
 
-        # Note: The actual creation of custom fields through the LCM API
-        # is a complex operation that typically requires using the
-        # IFwMetaDataCache.AddCustomField method. However, this is not
-        # commonly exposed in typical LCM usage patterns.
+        # Refuse if an open UnitOfWork would make the schema mutation
+        # unsafe. In Phase 1 mode (the default), OpenProject() opens a
+        # non-undoable envelope at BeginNonUndoableTask that remains open
+        # until CloseProject(), so this check effectively always fires.
         #
-        # For production use, custom fields should be created through
-        # the FLEx UI (Tools > Configure > Custom Fields).
+        # The LCM contract forbids schema mutation inside a data UoW
+        # (AddCustomField + an active task -> InvalidOperationException at
+        # UndoStack.CheckNotProcessingDataChanges). Bypassing the wrapper
+        # with raw IFwMetaDataCacheManaged.AddCustomField creates the field
+        # in memory only; SetValue calls then write data referencing a
+        # ghost field that never persists, producing project corruption on
+        # next FLEx UI open (issue #21).
         #
-        # This method provides the interface pattern for future implementation
-        # or for integration with FLEx's custom field management system.
+        # Until Phase 2 transaction mode lands and a safe schema-mutation
+        # path is characterized, the correct workflow is:
+        #   1. Create custom fields via FLEx UI (Tools > Configure > Custom Fields)
+        #   2. Then run bootstrap scripts that populate values via SetValue
+        # See docs/CUSTOM_FIELDS.md.
+        action_handler = self.project.project.ActionHandlerAccessor
+        if getattr(action_handler, "CurrentDepth", 0) > 0:
+            raise FP_TransactionError(
+                "CreateField cannot run inside an open UnitOfWork. "
+                "Custom field creation is a schema mutation that LCM forbids "
+                "inside an active task (raises InvalidOperationException at "
+                "UndoStack.CheckNotProcessingDataChanges). In Phase 1 transaction "
+                "mode this UoW is opened at OpenProject() and stays open until "
+                "CloseProject(), so schema mutations are not possible via the "
+                "wrapper. "
+                "Fix: create custom fields through the FLEx UI "
+                "(Tools > Configure > Custom Fields) before running bootstrap "
+                "scripts that populate values. "
+                "Do NOT bypass this guard with raw "
+                "IFwMetaDataCacheManaged.AddCustomField: the field is created "
+                "in memory only, SetValue writes data referencing a ghost field, "
+                "and the project corrupts on next FLEx UI open (issue #21). "
+                "See docs/CUSTOM_FIELDS.md."
+            )
 
-        raise NotImplementedError(
-            "Custom field creation must be done through FLEx UI: "
-            "Tools > Configure > Custom Fields. "
-            "Use FindField() to access existing custom fields."
+        # Unreachable in Phase 1 mode; placeholder for Phase 2 work.
+        raise FP_TransactionError(
+            "CreateField is not yet implemented for the no-UoW path. "
+            "Pending Phase 2 transaction mode (see FLExProject.UndoableOperation). "
+            "Until then, create custom fields through the FLEx UI: "
+            "Tools > Configure > Custom Fields. See docs/CUSTOM_FIELDS.md."
         )
 
     @OperationsMethod
