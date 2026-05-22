@@ -311,6 +311,115 @@ def parse_etic_gloss_list(path):
     return features
 
 
+# --- BasicIPAInfo parsing (Phase 6d) ----------------------------------------
+
+
+@dataclass
+class SegmentDefinition:
+    """
+    One <SegmentDefinition> from the BasicIPAInfo.xml catalog.
+
+    BasicIPAInfo.xml ships with FW under Templates/BasicIPAInfo.xml. Unlike
+    GOLDEtic / eticGlossList catalogs, segments have NO per-entry GUIDs:
+    the only stable identifier is ``code_point_id`` (e.g. "u0061"), which
+    the importer uses to dedup within a single pass but cannot use for
+    cross-import idempotency.
+
+    Attributes:
+        code_point_id: Value of the ``unicodeCodePoints`` attribute on the
+                       (first) ``<Representation>`` element, e.g. ``"u0061"``
+                       for the segment "a".
+        representation: The element text of the (first) ``<Representation>``,
+                        e.g. ``"a"``. This is what the importer writes into
+                        ``IPhPhoneme.Name`` and ``BasicIPASymbol``.
+        descriptions:  Map of ``lang`` attribute -> description text,
+                       e.g. ``{"en": "Open front unrounded vowel"}``.
+        feature_pairs: List of ``(feature_id, value_id)`` tuples from the
+                       ``<Features>/<FeatureValuePair>`` children. Both ids
+                       reference PhonFeats catalog entries (e.g.
+                       ``("fPAConsonantal", "vPAConsonantalNegative")``).
+                       Empty list when the segment has ``<Features/>``.
+    """
+
+    code_point_id: str
+    representation: str
+    descriptions: Dict[str, str] = field(default_factory=dict)
+    feature_pairs: List[tuple] = field(default_factory=list)
+
+
+def parse_basic_ipa_info(path):
+    """
+    Parse a BasicIPAInfo.xml-shaped segment catalog (root
+    ``<SegmentDefinitions>``) into a flat list of SegmentDefinition
+    objects.
+
+    Args:
+        path (str): Absolute path to BasicIPAInfo.xml.
+
+    Returns:
+        list[SegmentDefinition]: One entry per ``<SegmentDefinition>``.
+        Order in the returned list matches order in the source file (FW
+        ships the catalog with a meaningful order: tones first, then
+        vowels and consonants).
+
+    Raises:
+        ValueError: If the root element is not ``<SegmentDefinitions>``.
+
+    Notes:
+        - Only the FIRST ``<Representation>`` child is captured. The stock
+          catalog has exactly one per segment; multi-representation
+          segments would need a richer dataclass.
+        - Description ``lang`` tags use the lowercase short form
+          ("en", "es", "fr", ...). The catalog ships English plus partial
+          Spanish; other languages may be sparse.
+        - Segments with empty ``<Features/>`` (the tone entries at the
+          head of the file) end up with ``feature_pairs == []``.
+    """
+    tree = ET.parse(path)
+    root = tree.getroot()
+
+    if root.tag != "SegmentDefinitions":
+        raise ValueError(
+            "Expected root <SegmentDefinitions>, got <{}>; this parser only "
+            "handles the BasicIPAInfo shape.".format(root.tag)
+        )
+
+    result = []
+    for sd in root.findall("SegmentDefinition"):
+        rep_elem = sd.find("Representations/Representation")
+        if rep_elem is None:
+            # Defensive: skip malformed entries silently rather than
+            # aborting an import. The stock catalog is well-formed; this
+            # only matters for user-edited / partial files.
+            continue
+        rep_text = (rep_elem.text or "").strip()
+        code_id = rep_elem.get("unicodeCodePoints") or ""
+
+        descs = {}
+        for d in sd.findall("Descriptions/Description"):
+            lang = d.get("lang") or ""
+            if lang and d.text:
+                descs[lang] = d.text
+
+        pairs = []
+        for fv in sd.findall("Features/FeatureValuePair"):
+            feat_id = fv.get("feature") or ""
+            val_id = fv.get("value") or ""
+            if feat_id and val_id:
+                pairs.append((feat_id, val_id))
+
+        result.append(
+            SegmentDefinition(
+                code_point_id=code_id,
+                representation=rep_text,
+                descriptions=descs,
+                feature_pairs=pairs,
+            )
+        )
+
+    return result
+
+
 # --- Tree navigation ---------------------------------------------------------
 
 

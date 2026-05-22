@@ -493,5 +493,126 @@ class TestCatalog:
         assert value.guid.lower() == "ec5800b4-52a8-4859-a976-f3005c53bd5f"
 
 
+# ---------------------------------------------------------------------------
+# Phase 6d parser fixture
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def basic_ipa_segments():
+    """
+    Parse BasicIPAInfo.xml once per module and share the result across
+    all Phase 6d parser tests. BasicIPAInfo.xml ships under
+    FWCodeDir/Templates/, the same default subdir as GOLDEtic.xml, so
+    _fw_available() is a sufficient gate.
+    """
+    if not _fw_available():
+        pytest.skip(
+            "FieldWorks (with Templates/BasicIPAInfo.xml) not available"
+        )
+
+    from flexlibs2.code.Shared.catalog import (
+        find_catalog_file,
+        parse_basic_ipa_info,
+    )
+
+    return parse_basic_ipa_info(find_catalog_file("BasicIPAInfo.xml"))
+
+
+# ---------------------------------------------------------------------------
+# Phase 6d parse_basic_ipa_info tests (issue #16)
+# ---------------------------------------------------------------------------
+#
+# Pure-Python parser coverage for the new BasicIPAInfo.xml shape:
+# <SegmentDefinitions>/<SegmentDefinition> with nested
+# <Representations>/<Representation unicodeCodePoints="..."> text plus
+# <Descriptions>/<Description lang="..."> and
+# <Features>/<FeatureValuePair feature="..." value="...">. These tests
+# never touch live LCM and so only need a FieldWorks install for the
+# catalog file itself (gated by _fw_available()).
+
+
+def test_parse_basic_ipa_info_returns_segments(basic_ipa_segments):
+    """
+    BasicIPAInfo.xml ships exactly 245 <SegmentDefinition> entries.
+    Confirmed by Programmer's smoke test.
+    """
+    assert len(basic_ipa_segments) == 245, (
+        f"Expected 245 BasicIPA segments, got {len(basic_ipa_segments)}"
+    )
+
+
+def test_basic_ipa_segment_a_has_features(basic_ipa_segments):
+    """
+    The open front unrounded vowel "a" (codepoint u0061) is a fully
+    specified vowel: it carries at least 15 feature-value pairs in the
+    stock catalog (real count is ~20-21). A drop to 0 would signal that
+    parse_basic_ipa_info silently lost the <Features>/<FeatureValuePair>
+    branch; a drop below ~15 would signal a tag-name regression.
+    """
+    candidates = [
+        s for s in basic_ipa_segments
+        if s.representation == "a" or s.code_point_id == "u0061"
+    ]
+    assert candidates, (
+        "Could not find the 'a' segment (representation=='a' or "
+        "code_point_id=='u0061') in parsed BasicIPAInfo."
+    )
+    seg = candidates[0]
+    assert len(seg.feature_pairs) >= 15, (
+        f"Expected the [a] vowel to carry >= 15 feature pairs, got "
+        f"{len(seg.feature_pairs)}. Pairs: {seg.feature_pairs!r}"
+    )
+
+
+def test_basic_ipa_first_segment_is_tone_with_no_features(basic_ipa_segments):
+    """
+    FW ships BasicIPAInfo.xml with tone entries first. The first
+    SegmentDefinition has an empty <Features/> branch, so the parsed
+    segment must have feature_pairs == []. Confirmed by Programmer's
+    smoke test (first segment is a tone with 0 feature pairs).
+    """
+    first = basic_ipa_segments[0]
+    assert first.feature_pairs == [], (
+        f"Expected first segment (tone) to have no feature pairs; "
+        f"got {len(first.feature_pairs)}: {first.feature_pairs!r}"
+    )
+
+
+def test_basic_ipa_segment_has_unicode_codepoints(basic_ipa_segments):
+    """
+    Every <Representation unicodeCodePoints="..."> attribute must round-
+    trip into SegmentDefinition.code_point_id. If even one segment has
+    an empty code_point_id, the importer's in-pass dedup-by-codepoint
+    can't tell duplicates from distinct segments.
+    """
+    empties = [
+        s for s in basic_ipa_segments if not s.code_point_id
+    ]
+    assert not empties, (
+        f"{len(empties)} segment(s) have empty code_point_id; the "
+        f"importer's dedup-by-codepoints relies on this attribute. "
+        f"Sample reps: "
+        f"{[s.representation for s in empties[:5]]!r}"
+    )
+
+
+def test_basic_ipa_description_in_english(basic_ipa_segments):
+    """
+    The stock catalog ships at least one English-language description.
+    A failure here would indicate parse_basic_ipa_info dropped the
+    <Descriptions>/<Description lang='en'> branch, which would in turn
+    leave imported phonemes with empty Description fields.
+    """
+    with_en = [
+        s for s in basic_ipa_segments
+        if s.descriptions.get("en")
+    ]
+    assert with_en, (
+        "No segment carried a non-empty descriptions['en']; the "
+        "Descriptions branch of the parser may have regressed."
+    )
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

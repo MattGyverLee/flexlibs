@@ -21,6 +21,7 @@ from SIL.LCModel import (
     IPhCode,
     IPhCodeFactory,
     IFsFeatStruc,
+    IFsClosedFeature,
     ICmObjectRepository,
 )
 from SIL.LCModel.Core.KernelInterfaces import ITsString
@@ -34,6 +35,23 @@ from ..FLExProject import (
 
 # Import string utilities
 from ..Shared.string_utils import normalize_text, normalize_match_key
+
+# Catalog parsing helpers (Phase 6d)
+from ..Shared.catalog import (
+    CatalogImportResult,
+    find_catalog_file,
+    parse_basic_ipa_info,
+    parse_etic_gloss_list,
+)
+
+
+# Canonical relative subdir for the BasicIPAInfo catalog under FWCodeDir.
+BASIC_IPA_CATALOG_FILENAME = "BasicIPAInfo.xml"
+BASIC_IPA_CATALOG_SUBDIR = "Templates"
+
+# PhonFeats catalog (BasicIPAInfo cross-references its feature/value ids).
+PHON_FEATS_CATALOG_FILENAME = "PhonFeatsEticGlossList.xml"
+PHON_FEATS_CATALOG_SUBDIR = "Language Explorer/MGA/GlossLists"
 
 
 class PhonemeOperations(BaseOperations):
@@ -1358,3 +1376,268 @@ class PhonemeOperations(BaseOperations):
         if wsHandle is None:
             return self.project.project.DefaultVernWs
         return self.project._FLExProject__WSHandle(wsHandle, self.project.project.DefaultVernWs)
+
+    # ========== CATALOG IMPORT METHODS ==========
+    #
+    # BasicIPAInfo.xml ships ~245 IPA segments with Name, BasicIPASymbol,
+    # English description, and a feature-value bundle keyed against
+    # PhonFeatsEticGlossList.xml. Unlike GOLDEtic / eticGlossList catalogs,
+    # segments have NO per-entry GUIDs and IPhPhoneme has no
+    # CatalogSourceId field -- so CatalogBackedMixin's GUID-based
+    # idempotency strategy doesn't fit. We use the Phase 6b/6c
+    # refuse-on-non-empty pattern instead.
+
+    @OperationsMethod
+    def ImportCatalog(self, progress=None, force=False):
+        """
+        Import the BasicIPAInfo segment catalog into this project's
+        phoneme set.
+
+        Populates ~245 IPhPhonemes with representation (Name +
+        BasicIPASymbol), description, and a FeaturesOA feature structure
+        composed of (IFsClosedFeature, IFsSymFeatVal) pairs resolved
+        against PhFeatureSystemOA via the PhonFeats catalog.
+
+        Args:
+            progress: Optional callable accepting ``(count, total, name)``
+                for progress reporting. May be None.
+            force (bool): If True, skip the non-empty-phoneme-set guard.
+                BasicIPAInfo has no per-segment GUIDs and IPhPhoneme has
+                no CatalogSourceId, so re-importing would duplicate
+                existing phonemes; the default (force=False) refuses to
+                run on a non-empty set. Pass True to layer additional
+                segments onto an existing inventory.
+
+        Returns:
+            CatalogImportResult: Created/skipped counts and any warnings.
+            ``created_guids`` contains synthetic ``"BasicIPA:{code_point_id}"``
+            tags (one per created phoneme) -- BasicIPAInfo has no real
+            GUIDs, so the field is repurposed for verification only.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_ParameterError: If the project has no PhonologicalDataOA,
+                no phoneme set, the phoneme set is non-empty and force is
+                False, or PhFeatureSystemOA has not been populated yet
+                (the BasicIPA catalog cross-references PhonFeats feature
+                ids and cannot be resolved against an empty feature
+                system).
+            FileNotFoundError: If BasicIPAInfo.xml or
+                PhonFeatsEticGlossList.xml is not found under FWCodeDir.
+
+        Notes:
+            - Refuse-on-non-empty idempotency (SemDom / Anthropology
+              pattern). If the phoneme set already contains phonemes and
+              ``force=False``, raises FP_ParameterError.
+            - Refuse-with-remediation on missing PhonFeats. If the
+              project's PhFeatureSystemOA is empty, ImportCatalog refuses
+              and tells the caller to run
+              ``project.PhonFeatures.ImportCatalog()`` first. We do NOT
+              auto-import: a silent dependency import would surprise the
+              caller and mask real configuration issues.
+            - Representation goes into both ``IPhPhoneme.Name`` (vernacular
+              WS, defaulting to en-fonipa when the project has it, else
+              the default vernacular WS) and ``BasicIPASymbol`` (same WS,
+              dual-shape MultiString/ITsString aware via SetBasicIPASymbol).
+              Description goes into the default analysis WS.
+            - PhonFeats value resolution is best-effort: missing feature
+              or value ids are recorded as warnings and the offending
+              FeatureValuePair is skipped. The phoneme is still created
+              with whatever pairs DID resolve.
+            - Segments with empty ``<Features/>`` (the seven tone entries
+              at the head of BasicIPAInfo.xml) are created without a
+              FeaturesOA struct -- MakeFeatStruc is only invoked when
+              there is at least one resolved spec.
+
+        Example:
+            >>> project.PhonFeatures.ImportCatalog()    # prerequisite
+            >>> result = project.Phonemes.ImportCatalog()
+            >>> print(f"Created {result.created_count} phonemes; "
+            ...       f"{len(result.warnings)} warnings")
+        """
+        self._EnsureWriteEnabled()
+
+        # --- Resolve phoneme set + non-empty guard --------------------
+        phon_data = self.project.lp.PhonologicalDataOA
+        if not phon_data:
+            raise FP_ParameterError(
+                "Project has no PhonologicalDataOA; cannot import phonemes."
+            )
+        if phon_data.PhonemeSetsOS.Count == 0:
+            raise FP_ParameterError(
+                "Project has no phoneme set; cannot import phonemes."
+            )
+        phoneme_set = phon_data.PhonemeSetsOS[0]
+
+        existing_count = phoneme_set.PhonemesOC.Count
+        if existing_count > 0 and not force:
+            raise FP_ParameterError(
+                f"PhonemeSet already has {existing_count} phoneme(s). "
+                f"BasicIPAInfo.xml has no per-segment GUIDs, so re-importing "
+                f"would duplicate. Pass force=True to layer additional segments."
+            )
+
+        # --- PhonFeats dependency check (refuse-with-remediation) -----
+        feature_system = self.project.lp.PhFeatureSystemOA
+        if feature_system is None or feature_system.FeaturesOC.Count == 0:
+            raise FP_ParameterError(
+                "BasicIPAInfo references PhonFeats features by id (e.g. "
+                "'fPAConsonantal'). Import PhonFeats first: "
+                "project.PhonFeatures.ImportCatalog()"
+            )
+
+        # --- Locate + parse both catalogs ------------------------------
+        basic_path = find_catalog_file(
+            BASIC_IPA_CATALOG_FILENAME, subdir=BASIC_IPA_CATALOG_SUBDIR
+        )
+        segments = parse_basic_ipa_info(basic_path)
+
+        phonfeats_path = find_catalog_file(
+            PHON_FEATS_CATALOG_FILENAME, subdir=PHON_FEATS_CATALOG_SUBDIR
+        )
+        phonfeats_entries = parse_etic_gloss_list(phonfeats_path)
+
+        # --- Build PhonFeats lookups (catalog side + project side) -----
+        # value_id -> (feature_id, value_term_en) from the catalog XML.
+        # Used to map a BasicIPAInfo value id ("vPAConsonantalNegative")
+        # to its parent feature id ("fPAConsonantal") and its analysis-WS
+        # term ("negative"), which is what we have to match against in
+        # the project's IFsClosedFeature.ValuesOC (we can't match by id
+        # because IFsSymFeatVal has no CatalogSourceId field).
+        value_id_to_info = {}
+        for feat_entry in phonfeats_entries:
+            for val_entry in feat_entry.children:
+                term_en = val_entry.term.get("en", "")
+                value_id_to_info[val_entry.id] = (feat_entry.id, term_en)
+
+        # feature_source_id -> IFsClosedFeature already in the project.
+        # PhonFeats writes BARE ids to CatalogSourceId (no "PHON:" prefix).
+        features_by_source_id = {}
+        for raw_feat in feature_system.FeaturesOC:
+            try:
+                cf = IFsClosedFeature(raw_feat)
+            except Exception:
+                continue
+            src_id = cf.CatalogSourceId or ""
+            if src_id:
+                features_by_source_id[src_id] = cf
+
+        # --- Writing systems -------------------------------------------
+        # Name + BasicIPASymbol use a vernacular WS; prefer en-fonipa
+        # when the project has it (matches FW convention for IPA), fall
+        # back to the default vernacular WS otherwise. Description uses
+        # the default analysis WS.
+        fonipa_handle = self.project.WSHandle("en-fonipa")
+        if fonipa_handle is None:
+            vern_ws = self.project.GetDefaultVernacularWSHandle()
+        else:
+            vern_ws = fonipa_handle
+        analysis_ws = self.project.GetDefaultAnalysisWSHandle()
+
+        # --- Import loop -----------------------------------------------
+        result = CatalogImportResult()
+        seen_code_points = set()  # in-pass dedup against malformed catalogs
+
+        total = len(segments)
+
+        for idx, seg in enumerate(segments, start=1):
+            if not seg.representation:
+                result.warnings.append(
+                    f"Segment '{seg.code_point_id}' has empty representation; skipping."
+                )
+                continue
+
+            # In-pass dedup: same unicodeCodePoints appearing twice in
+            # the catalog (shouldn't happen but defensive).
+            if seg.code_point_id and seg.code_point_id in seen_code_points:
+                result.skipped_count += 1
+                continue
+            seen_code_points.add(seg.code_point_id)
+
+            # Resolve (feature, value) specs against the project's
+            # PhFeatureSystemOA. Missing references are warned and
+            # skipped; the phoneme is still created.
+            specs = []
+            for feat_id, val_id in seg.feature_pairs:
+                cat_feat_id, val_term = value_id_to_info.get(val_id, (None, None))
+                if cat_feat_id is None:
+                    result.warnings.append(
+                        f"Segment '{seg.representation}': PhonFeats value "
+                        f"'{val_id}' not found in catalog; skipping pair."
+                    )
+                    continue
+                # The pair's feature attribute and the value's catalog
+                # parent should agree; honour whichever is non-empty.
+                lookup_feat_id = feat_id or cat_feat_id
+                feature_obj = features_by_source_id.get(lookup_feat_id)
+                if feature_obj is None:
+                    result.warnings.append(
+                        f"Segment '{seg.representation}': PhonFeats feature "
+                        f"'{lookup_feat_id}' not imported into project; "
+                        f"skipping value '{val_id}'."
+                    )
+                    continue
+                # Match value by analysis-WS Name (the catalog term).
+                value_obj = None
+                for v in feature_obj.ValuesOC:
+                    v_name = ITsString(v.Name.get_String(analysis_ws)).Text or ""
+                    if v_name == val_term:
+                        value_obj = v
+                        break
+                if value_obj is None:
+                    result.warnings.append(
+                        f"Segment '{seg.representation}': value '{val_term}' "
+                        f"not found on feature '{lookup_feat_id}'.ValuesOC; "
+                        f"skipping pair."
+                    )
+                    continue
+                specs.append((feature_obj, value_obj))
+
+            # Create the phoneme. Create() handles ownership-ordering
+            # (Phase 2): attach to PhonemesOC, then set Name.
+            try:
+                phoneme = self.Create(seg.representation, wsHandle=vern_ws)
+            except FP_ParameterError as e:
+                # Duplicate representation (only possible under force=True
+                # with an overlapping pre-existing inventory) -- skip and
+                # warn.
+                result.warnings.append(
+                    f"Segment '{seg.representation}': {e}; skipping."
+                )
+                continue
+
+            # BasicIPASymbol (dual-shape MultiString/ITsString aware).
+            self.SetBasicIPASymbol(phoneme, seg.representation, wsHandle=vern_ws)
+
+            # Description (English; other langs in the catalog may be sparse).
+            desc_en = seg.descriptions.get("en", "")
+            if desc_en:
+                self.SetDescription(phoneme, desc_en, wsHandle=analysis_ws)
+
+            # FeaturesOA atomic-owning attach. MakeFeatStruc attaches FIRST
+            # (Phase 2) then populates FeatureSpecsOC -- pass owner=phoneme.
+            if specs:
+                try:
+                    self.project.PhonFeatures.MakeFeatStruc(specs, owner=phoneme)
+                except Exception as e:
+                    result.warnings.append(
+                        f"Segment '{seg.representation}': failed to build "
+                        f"FeaturesOA ({e}); phoneme created without features."
+                    )
+
+            # Synthetic catalog tag (BasicIPAInfo has no real GUIDs).
+            synthetic_tag = (
+                f"BasicIPA:{seg.code_point_id}" if seg.code_point_id else
+                f"BasicIPA:{seg.representation}"
+            )
+            result.created_count += 1
+            result.created_guids.append(synthetic_tag)
+
+            if progress:
+                try:
+                    progress(idx, total, seg.representation)
+                except Exception:
+                    # Progress callbacks must never break the import.
+                    pass
+
+        return result
