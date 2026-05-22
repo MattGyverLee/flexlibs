@@ -153,8 +153,10 @@ class TextOperations(BaseOperations):
         text_factory = self.project.project.ServiceLocator.GetService(ITextFactory)
         new_text = text_factory.Create()
 
-        # Add to the texts collection
-        self.project.lp.TextsOC.Add(new_text)
+        # Add to the texts collection. In newer LCM builds ILangProject's
+        # texts accessor is `Texts` (not `TextsOC` -- the latter has been
+        # renamed/removed). See issue #22.
+        self.project.lp.Texts.Add(new_text)
 
         # Set the name
         wsHandle = self.project.project.DefaultAnalWs
@@ -203,8 +205,9 @@ class TextOperations(BaseOperations):
 
         text_obj = self.__GetTextObject(text_or_hvo)
 
-        # Remove from collection
-        self.project.lp.TextsOC.Remove(text_obj)
+        # Remove from collection. See note in Create() about the LCM API
+        # rename from TextsOC to Texts (issue #22).
+        self.project.lp.Texts.Remove(text_obj)
 
     @OperationsMethod
     def Duplicate(self, item_or_hvo, deep=True):
