@@ -1071,6 +1071,38 @@ class FLExProject(object):
         return self._sense_ops
 
     @property
+    def MSA(self):
+        """
+        Access to morphosyntactic-analysis (MSA) creation operations.
+
+        Pairs with the reading wrapper in
+        flexlibs2.code.Lexicon.morphosyntax_analysis and the iteration
+        helper in msa_collection. Handles the four concrete MSA types
+        (stem, derivational affix, inflectional affix, unclassified
+        affix) and auto-attaches the new MSA to the supplied sense via
+        sense.MorphoSyntaxAnalysisRA.
+
+        Returns:
+            MSAOperations: Instance providing MSA creation methods.
+
+        Example:
+            >>> entry = list(project.LexiconAllEntries())[0]
+            >>> sense = entry.SensesOS[0]
+            >>> verb_pos = project.GramCat.Find("Verb")
+            >>> # Stem MSA with POS = Verb
+            >>> project.MSA.CreateStem(sense, verb_pos)
+            >>> # Derivational affix that turns nouns into verbs
+            >>> n_pos = project.GramCat.Find("Noun")
+            >>> v_pos = project.GramCat.Find("Verb")
+            >>> project.MSA.CreateDerivAff(sense, from_pos=n_pos, to_pos=v_pos)
+        """
+        if "_msa_ops" not in self.__dict__:
+            from .Lexicon.MSAOperations import MSAOperations
+
+            self._msa_ops = MSAOperations(self)
+        return self._msa_ops
+
+    @property
     def Examples(self):
         """
         Access to example sentence operations.

@@ -134,6 +134,7 @@ def initialize_flex_for_tests():
             ("flexlibs2.code.Lexicon.ReversalOperations", "ReversalOperations"),
             ("flexlibs2.code.Lexicon.EtymologyOperations", "EtymologyOperations"),
             ("flexlibs2.code.Lexicon.AllomorphOperations", "AllomorphOperations"),
+            ("flexlibs2.code.Lexicon.MSAOperations", "MSAOperations"),
             # TextsWords
             ("flexlibs2.code.TextsWords.TextOperations", "TextOperations"),
             ("flexlibs2.code.TextsWords.WordformOperations", "WordformOperations"),
