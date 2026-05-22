@@ -642,7 +642,7 @@ class WfiAnalysisOperations(BaseOperations):
 
         # Get default human agent for evaluations
         # Import here to avoid circular dependency
-        from .AgentOperations import AgentOperations
+        from ..Lists.AgentOperations import AgentOperations
 
         agent_ops = AgentOperations(self.project)
 
