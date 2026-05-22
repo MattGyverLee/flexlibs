@@ -20,9 +20,12 @@ from SIL.LCModel import (
     IPhRegularRuleFactory,  # Fixed: was IPhPhonRuleFactory
     IPhSegRuleRHSFactory,
     IPhSegmentRuleFactory,
+    IPhSimpleContextNC,
     IPhSimpleContextNCFactory,
     IPhSimpleContextSegFactory,
     IPhSimpleContextBdryFactory,
+    IPhSequenceContext,
+    IPhSequenceContextFactory,
     IPhFeatureConstraintFactory,
     IPhFeatureConstraint,
     IPhIterationContextFactory,
@@ -1016,9 +1019,8 @@ class PhonologicalRuleOperations(BaseOperations):
             FP_ReadOnlyError: If the project is not opened with write enabled.
             FP_NullParameterError: If rule_or_hvo is None.
             FP_ParameterError: If a pattern element is malformed (e.g. a
-                Seg with alpha-feature constraints, a Boundary appearing
-                in the structural change, or multi-element left/right
-                contexts in this MVP).
+                Seg with alpha-feature constraints, or a Boundary appearing
+                in the structural change).
 
         Notes:
             The composer translates pattern elements into LCM simple-context
@@ -1040,13 +1042,21 @@ class PhonologicalRuleOperations(BaseOperations):
                 method writes to the wrong owner).
               - ``rhs.RightContextOA``: right environment.
 
-            **Limitations (MVP):**
-              - Currently single-element per left/right context. Multi-element
-                contexts (PhSequenceContext) are pending follow-up.
-              - Word/morpheme boundaries (Boundary('#'), Boundary('+'),
-                Boundary('.')) are looked up from
-                ``PhonemeSetsOS[0].BoundaryMarkersOC``; new markers are
-                NOT created.
+            **Multi-element contexts:**
+              Left/right contexts of arbitrary length are supported. When
+              ``len(left_context) > 1`` or ``len(right_context) > 1``, the
+              wrapper creates each member as an IPhSimpleContext* attached
+              to ``PhonologicalDataOA.ContextsOS`` (the project-level owner
+              pool), then assembles an IPhSequenceContext whose MembersRS
+              references them. This supports rules like Bantu glide
+              formation ``i -> y / _ + V`` and place-assimilation
+              ``N -> [alpha_place] / _ + C[alpha_place]``.
+
+            **Boundary markers:**
+              Word/morpheme boundaries (Boundary('#'), Boundary('+'),
+              Boundary('.')) are looked up from
+              ``PhonemeSetsOS[0].BoundaryMarkersOC``; new markers are NOT
+              created.
 
         Example:
             >>> # Turkish vowel harmony fragment: I -> [+back] / V[+back] _
@@ -1121,35 +1131,21 @@ class PhonologicalRuleOperations(BaseOperations):
                 rhs.StrucChangeOS.Add(ctx)
                 self.__PopulateSimpleContext(ctx, elem)
 
-        # --- Wire left context -> rhs.LeftContextOA (single-element MVP) ---
+        # --- Wire left context -> rhs.LeftContextOA ---
         if left_context:
-            if len(left_context) > 1:
-                raise FP_ParameterError(
-                    "multi-element contexts not yet supported in WireRule "
-                    "MVP -- pending follow-up #11 work"
-                )
-            elem = left_context[0]
-            ctx = self.__BuildSimpleContext(elem, slot_name="left_context")
+            ctx = self.__WireContext(left_context, slot_name="left_context")
             # OwningAtomic: assignment IS the attach. Do NOT re-fetch via
             # rhs.LeftContextOA -- pythonnet narrows the proxy to the
             # IPhPhonContext base interface, losing access to concrete-type
             # properties like PlusConstrRS / MinusConstrRS. The local `ctx`
             # already points at the same LCM object with the concrete type.
             rhs.LeftContextOA = ctx
-            self.__PopulateSimpleContext(ctx, elem)
 
-        # --- Wire right context -> rhs.RightContextOA (single-element MVP) ---
+        # --- Wire right context -> rhs.RightContextOA ---
         if right_context:
-            if len(right_context) > 1:
-                raise FP_ParameterError(
-                    "multi-element contexts not yet supported in WireRule "
-                    "MVP -- pending follow-up #11 work"
-                )
-            elem = right_context[0]
-            ctx = self.__BuildSimpleContext(elem, slot_name="right_context")
+            ctx = self.__WireContext(right_context, slot_name="right_context")
             # See note on LeftContextOA above -- skip the defensive re-fetch.
             rhs.RightContextOA = ctx
-            self.__PopulateSimpleContext(ctx, elem)
 
     # ------------------------------------------------------------------
     # WireRule internals
@@ -1160,6 +1156,77 @@ class PhonologicalRuleOperations(BaseOperations):
         # Walk by index from the end to avoid index drift during removal.
         while seq.Count > 0:
             seq.RemoveAt(seq.Count - 1)
+
+    def __WireContext(self, elements, slot_name):
+        """
+        Build the appropriate context object for a left/right context list.
+
+        Single-element fast path: returns an unattached IPhSimpleContext*
+        (caller assigns to rhs.LeftContextOA / RightContextOA, which is the
+        attach).
+
+        Multi-element path: creates each member context, attaches it to
+        PhonologicalDataOA.ContextsOS (the project-level owner pool),
+        populates it, then creates an IPhSequenceContext and adds the
+        members via MembersRS (reference-only list). Returns the sequence;
+        caller's assignment to rhs.LeftContextOA / RightContextOA attaches
+        the sequence to the rule.
+
+        Ownership-ordering trap: each member context must be Add()-ed to
+        ContextsOS BEFORE its FeatureStructureRA / constraint properties
+        are populated. LCM's reference-list validity check runs through
+        the context's Owner, which is unset until the Add() happens. See
+        the worked-out diagnosis in issue #23.
+        """
+        if not elements:
+            return None
+
+        if len(elements) == 1:
+            elem = elements[0]
+            ctx = self.__BuildSimpleContext(elem, slot_name=slot_name)
+            # Single-element path: caller's OwningAtomic assignment will
+            # attach this context to the RHS. Populate before that handoff.
+            self.__PopulateSimpleContext(ctx, elem)
+            return ctx
+
+        # Multi-element path. Members live in PhPhonData.ContextsOS; the
+        # sequence references them via MembersRS (reference-only).
+        phon_data = self.project.lp.PhonologicalDataOA
+        if phon_data is None:
+            raise FP_ParameterError(
+                f"{slot_name}: project has no PhonologicalDataOA; cannot "
+                f"create a multi-element context."
+            )
+        contexts_pool = phon_data.ContextsOS
+
+        # Build and own each member context first.
+        members = []
+        for i, elem in enumerate(elements):
+            member_slot = f"{slot_name}[{i}]"
+            member = self.__BuildSimpleContext(elem, slot_name=member_slot)
+            # Phase 2 ownership-ordering: Add to the owner pool BEFORE
+            # populating so the validity-check via Owner passes.
+            contexts_pool.Add(member)
+            self.__PopulateSimpleContext(member, elem)
+            members.append(member)
+
+        # Create the sequence container. The sequence itself is unowned
+        # until the caller assigns it to rhs.LeftContextOA / RightContextOA;
+        # MembersRS is a reference list, so no ownership concerns for the
+        # member references.
+        seq_factory = self.project.project.ServiceLocator.GetService(
+            IPhSequenceContextFactory
+        )
+        if seq_factory is None:
+            raise FP_ParameterError(
+                "IPhSequenceContextFactory service is unavailable."
+            )
+        seq = seq_factory.Create()
+        seq_typed = IPhSequenceContext(seq)
+        for member in members:
+            seq_typed.MembersRS.Add(member)
+
+        return seq
 
     def __BuildSimpleContext(self, elem, slot_name):
         """Create the appropriate IPhSimpleContext* for a pattern element.
@@ -1250,12 +1317,13 @@ class PhonologicalRuleOperations(BaseOperations):
                 "Project has no phoneme sets; can't resolve boundary markers"
             )
         bdry_markers = phon_data.PhonemeSetsOS[0].BoundaryMarkersOC
-        available = []
         for bm in bdry_markers:
-            name = ITsString(bm.Name.BestAnalysisAlternative).Text or ""
-            available.append(name)
-            if name == marker_name:
+            if (ITsString(bm.Name.BestAnalysisAlternative).Text or "") == marker_name:
                 return bm
+        available = [
+            ITsString(bm.Name.BestAnalysisAlternative).Text or ""
+            for bm in bdry_markers
+        ]
         raise FP_ParameterError(
             f"Boundary marker {marker_name!r} not found in "
             f"PhonemeSetsOS[0].BoundaryMarkersOC. Available: {available}"
