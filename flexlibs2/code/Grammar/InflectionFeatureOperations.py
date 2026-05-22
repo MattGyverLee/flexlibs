@@ -714,6 +714,75 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
         return new_val
 
     @OperationsMethod
+    def CreateClosedFeatureWithValues(
+        self, name, abbreviation, values, catalogSourceId=None
+    ):
+        """
+        One-shot convenience: create a closed feature plus its symbolic
+        values in a single call.
+
+        Wraps Create(...) and CreateValue(...) so the very common pattern
+        of "define a gender feature with masculine/feminine/neuter values"
+        doesn't require interleaving wrapper calls.
+
+        Args:
+            name (str): Feature name (e.g. "gender").
+            abbreviation (str): Feature abbreviation (e.g. "gen").
+            values (sequence): Iterable of ``(value_name, value_abbreviation)``
+                tuples. Order is preserved.
+            catalogSourceId (str, optional): Optional catalog id forwarded
+                to Create(). When the "INFL:" prefix is used, value
+                children are populated from the catalog and these
+                ``values`` overlay/append to them.
+
+        Returns:
+            tuple[IFsClosedFeature, list[IFsSymFeatVal]]: The new feature
+            and the list of newly created value objects (in the order
+            they were declared in ``values``).
+
+        Raises:
+            FP_ParameterError: If values is not iterable or contains
+                malformed tuples.
+
+        Example:
+            >>> feature, vals = project.Features.CreateClosedFeatureWithValues(
+            ...     name="gender", abbreviation="gen",
+            ...     values=[("masculine", "m"), ("feminine", "f"), ("neuter", "n")],
+            ... )
+        """
+        self._EnsureWriteEnabled()
+        self._ValidateParam(values, "values")
+
+        # Validate the value tuples up front so a malformed list doesn't
+        # leave a half-populated feature behind.
+        normalized = []
+        for i, pair in enumerate(values):
+            if not isinstance(pair, (list, tuple)) or len(pair) != 2:
+                raise FP_ParameterError(
+                    f"values[{i}] must be a (name, abbreviation) tuple"
+                )
+            vname, vabbr = pair
+            if not vname or not str(vname).strip():
+                raise FP_ParameterError(f"values[{i}] name cannot be empty")
+            if not vabbr or not str(vabbr).strip():
+                raise FP_ParameterError(
+                    f"values[{i}] abbreviation cannot be empty"
+                )
+            normalized.append((str(vname), str(vabbr)))
+
+        feature = self.Create(
+            name=name,
+            abbreviation=abbreviation,
+            type="closed",
+            catalogSourceId=catalogSourceId,
+        )
+        created_values = []
+        for vname, vabbr in normalized:
+            created_values.append(self.CreateValue(feature, vname, vabbr))
+
+        return feature, created_values
+
+    @OperationsMethod
     def MakeFeatStruc(self, specs, owner=None):
         """
         Build an IFsFeatStruc populated with (feature, value) pairs.

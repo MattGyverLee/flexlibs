@@ -958,6 +958,36 @@ class FLExProject(object):
         return self._inflectionfeature_ops
 
     @property
+    def Features(self):
+        """
+        Discoverability alias for InflectionFeatures.
+
+        Inflection features (closed features with symbolic values like
+        +/- gender, person 1/2/3, etc.) are owned by
+        ``LangProject.MsFeatureSystemOA``. The full CRUD surface --
+        ``Create``, ``CreateValue``, ``Find``, ``Exists``, ``MakeFeatStruc``,
+        ``CreateClosedFeatureWithValues``, plus catalog import from MGA
+        EticGlossList -- lives on ``project.InflectionFeatures``. This
+        alias exists so callers thinking in FLEx UI terminology (the
+        "Features" tab) can find the wrapper from either spelling.
+
+        For phonological features (PhFeatureSystemOA, owned by phonemes
+        and natural classes) see ``project.PhonFeatures``.
+
+        Example:
+            >>> # Equivalent calls:
+            >>> project.Features.Create("gender", "gen")
+            >>> project.InflectionFeatures.Create("gender", "gen")
+            >>>
+            >>> # One-shot for the very common case:
+            >>> feature, values = project.Features.CreateClosedFeatureWithValues(
+            ...     name="gender", abbreviation="gen",
+            ...     values=[("masculine", "m"), ("feminine", "f"), ("neuter", "n")],
+            ... )
+        """
+        return self.InflectionFeatures
+
+    @property
     def GramCat(self):
         """
         Access to grammatical category operations.
