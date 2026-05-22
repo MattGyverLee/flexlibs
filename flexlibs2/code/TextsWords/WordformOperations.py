@@ -534,7 +534,10 @@ class WordformOperations(BaseOperations):
         else:
             wordform = wordform_or_hvo
 
-        return wordform.OccurrencesInTexts.Count
+        # OccurrencesInTexts is IEnumerable[ISegment] (no .Count). The sibling
+        # GetOccurrences method already materializes via list() -- match it
+        # by counting via the iterator. See issue #16.
+        return sum(1 for _ in wordform.OccurrencesInTexts)
 
     @OperationsMethod
     def GetOccurrences(self, wordform_or_hvo):
