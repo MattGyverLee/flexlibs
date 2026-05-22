@@ -641,8 +641,9 @@ class WfiAnalysisOperations(BaseOperations):
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
         # Get default human agent for evaluations
-        # Import here to avoid circular dependency
-        from .AgentOperations import AgentOperations
+        # Import here to avoid circular dependency. AgentOperations lives in
+        # the Lists/ subpackage, not TextsWords/ (issue #24).
+        from ..Lists.AgentOperations import AgentOperations
 
         agent_ops = AgentOperations(self.project)
 
