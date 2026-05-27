@@ -1,9 +1,14 @@
 # Sena 3 Real-World Status
 
-No live test runs have been recorded yet.
+Last run: 2026-05-27T21:01:16Z
 
-Run the live suite to populate this ledger:
+Legend: `[PASS]` verified - `[FAIL]` regressed - `[SKIP]` skipped this run - `[----]` untested
 
-    pytest -m requires_live_project
+| Operations class   | Read    | Add     | Reorder | Modify  | Delete  | Last verified |
+|--------------------|---------|---------|---------|---------|---------|---------------|
+| LocationOperations | [PASS]  | [PASS]  | [PASS]  | [PASS]  | [SKIP]  | 2026-05-27    |
+| PersonOperations   | [PASS]  | [FAIL]  | [SKIP]  | [FAIL]  | [FAIL]  | 2026-05-27    |
 
-See `tests/LIVE_TESTING.md` for the full workflow.
+## Uncategorized live tests
+
+None. All recorded live tests carry `live_phase` metadata.
