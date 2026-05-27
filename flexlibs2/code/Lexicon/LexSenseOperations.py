@@ -385,7 +385,10 @@ class LexSenseOperations(BaseOperations):
         duplicate.Restrictions.CopyAlternatives(source.Restrictions)
         duplicate.SemanticsNote.CopyAlternatives(source.SemanticsNote)
         duplicate.SocioLinguisticsNote.CopyAlternatives(source.SocioLinguisticsNote)
-        duplicate.Source.CopyAlternatives(source.Source)
+        # Source is ITsString (single-string), not IMultiString -- it has
+        # no CopyAlternatives method. Reference-share the immutable
+        # ITsString instance instead. (issue #31)
+        duplicate.Source = source.Source
 
         # Copy Reference Atomic (RA) properties
         duplicate.MorphoSyntaxAnalysisRA = source.MorphoSyntaxAnalysisRA
