@@ -360,9 +360,18 @@ class FLExProject(object):
             result = sl.GetInstance(interface_type)
             if result is not None:
                 return result
-        except (AttributeError, TypeError):
-            # Pythonnet couldn't resolve the overload on this build;
-            # fall through to the reflection-based path.
+        except Exception:
+            # Pythonnet couldn't resolve the overload on this build.
+            # Broad catch is intentional: Path 2 (reflection) is the
+            # recovery path and we want it to engage on any Path-1
+            # failure. Pythonnet 2.x surfaced overload-binding failures
+            # as AttributeError / TypeError; pythonnet 3.x can surface
+            # them as Python.Runtime.PythonException or
+            # System.MissingMethodException. Listing exception types
+            # makes this brittle across pythonnet versions; catching
+            # any failure and falling through is correct here because
+            # Path 2's MethodInfo lookup performs its own diagnostic
+            # if the service surface is genuinely unusable. (issue #123)
             pass
 
         # Path 2: reflection over the parameterless generic
