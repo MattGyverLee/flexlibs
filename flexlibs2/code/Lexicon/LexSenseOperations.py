@@ -2720,48 +2720,70 @@ class LexSenseOperations(BaseOperations):
         """Get the source of a sense."""
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
-        return self._NormalizeMultiString(sense.Source)
+        return self.__ReadTsString(sense.Source)
 
     @OperationsMethod
-    def SetSource(self, sense_or_hvo, text):
+    def SetSource(self, sense_or_hvo, text, wsHandle=None):
         """Set the source of a sense."""
         self._EnsureWriteEnabled()
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         self._ValidateParam(text, "text")
         sense = self.__GetSenseObject(sense_or_hvo)
-        sense.Source = text
+        sense.Source = self.__MakeTsString(text, wsHandle)
 
     @OperationsMethod
     def GetScientificName(self, sense_or_hvo):
         """Get the scientific name of a sense."""
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
-        return self._NormalizeMultiString(sense.ScientificName)
+        return self.__ReadTsString(sense.ScientificName)
 
     @OperationsMethod
-    def SetScientificName(self, sense_or_hvo, text):
+    def SetScientificName(self, sense_or_hvo, text, wsHandle=None):
         """Set the scientific name of a sense."""
         self._EnsureWriteEnabled()
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         self._ValidateParam(text, "text")
         sense = self.__GetSenseObject(sense_or_hvo)
-        sense.ScientificName = text
+        sense.ScientificName = self.__MakeTsString(text, wsHandle)
 
     @OperationsMethod
     def GetImportResidue(self, sense_or_hvo):
         """Get the import residue of a sense."""
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
-        return self._NormalizeMultiString(sense.ImportResidue)
+        return self.__ReadTsString(sense.ImportResidue)
 
     @OperationsMethod
-    def SetImportResidue(self, sense_or_hvo, text):
+    def SetImportResidue(self, sense_or_hvo, text, wsHandle=None):
         """Set the import residue of a sense."""
         self._EnsureWriteEnabled()
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         self._ValidateParam(text, "text")
         sense = self.__GetSenseObject(sense_or_hvo)
-        sense.ImportResidue = text
+        sense.ImportResidue = self.__MakeTsString(text, wsHandle)
+
+    # --- Single-string (ITsString) helpers --------------------------------
+    #
+    # ILexSense.Source / .ScientificName / .ImportResidue are ITsString
+    # (single-string), not IMultiString/IMultiUnicode. Pythonnet does
+    # not coerce a Python str to ITsString on property assignment -- the
+    # previous setters did `sense.Source = text` and raised TypeError.
+    # Similarly, the getters used `_NormalizeMultiString(sense.Source)`
+    # which is a string-normalisation helper that doesn't understand
+    # ITsString. These helpers do the conversion centrally so the
+    # three (Get/Set) pairs above stay one-line delegates. (issue #36)
+
+    def __MakeTsString(self, text, wsHandle):
+        """Build an ITsString in the chosen WS (default: analysis)."""
+        ws = self.__WSHandleAnalysis(wsHandle)
+        return TsStringUtils.MakeString(text, ws)
+
+    def __ReadTsString(self, tss):
+        """Extract a normalised str from an ITsString (or None)."""
+        if tss is None:
+            return ""
+        return self._NormalizeMultiString(ITsString(tss).Text or "")
 
     # --- Reference Collection Properties ---
 
