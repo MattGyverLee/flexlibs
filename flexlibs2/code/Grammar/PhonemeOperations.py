@@ -776,8 +776,25 @@ class PhonemeOperations(BaseOperations):
 
         phoneme = self.__GetPhonemeObject(phoneme_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
+        mkstr = TsStringUtils.MakeString(representation, wsHandle)
 
-        # Create the new code using the factory
+        # The IPhPhoneme factory autocreates one IPhCode whose
+        # Representation is the FLEX null marker ('***'). The first
+        # AddCode call must reuse that placeholder code rather than
+        # append a parallel one, otherwise every wrapper-created
+        # phoneme ends up carrying a junk '***' allophone that breaks
+        # HermitCrab parser loading. (issue #17)
+        existing_codes = list(phoneme.CodesOS)
+        if len(existing_codes) == 1:
+            existing = existing_codes[0]
+            existing_repr = normalize_text(
+                ITsString(existing.Representation.get_String(wsHandle)).Text
+            )
+            if not existing_repr:
+                existing.Representation.set_String(wsHandle, mkstr)
+                return existing
+
+        # Normal path: create + append a new IPhCode.
         factory = self.project.project.ServiceLocator.GetService(IPhCodeFactory)
         code = factory.Create()
 
@@ -785,7 +802,6 @@ class PhonemeOperations(BaseOperations):
         phoneme.CodesOS.Add(code)
 
         # Set representation
-        mkstr = TsStringUtils.MakeString(representation, wsHandle)
         code.Representation.set_String(wsHandle, mkstr)
 
         return code
