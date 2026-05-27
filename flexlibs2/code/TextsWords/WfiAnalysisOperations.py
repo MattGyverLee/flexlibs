@@ -569,17 +569,25 @@ class WfiAnalysisOperations(BaseOperations):
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
-        # Check human approval first (takes precedence)
-        if hasattr(analysis, "GetAgentOpinion"):
-            # Human approval status
-            # Note: In FLEx, approval is stored via agent opinions
-            # This is a simplified implementation
-            pass
-
-        # For now, return based on evaluations count as proxy
-        # A real implementation would check the opinion objects
-        if analysis.EvaluationsRC.Count > 0:
-            return ApprovalStatusTypes.APPROVED
+        # Human evaluations take precedence over parser evaluations.
+        # Within the human evaluations, a single approve outweighs
+        # disapproves -- matches FLEx UI semantics where one human
+        # approval makes the analysis "approved" status.
+        #
+        # ICmAgentEvaluation exposes two flags: Human (true = human
+        # analyst, false = parser) and Approves (true = approves,
+        # false = disapproves). The previous implementation treated
+        # any non-empty EvaluationsRC as APPROVED, which silently
+        # mis-reported DISAPPROVED analyses. (issue #38)
+        found_human_disapprove = False
+        for evaluation in analysis.EvaluationsRC:
+            if not getattr(evaluation, "Human", False):
+                continue
+            if getattr(evaluation, "Approves", False):
+                return ApprovalStatusTypes.APPROVED
+            found_human_disapprove = True
+        if found_human_disapprove:
+            return ApprovalStatusTypes.DISAPPROVED
 
         return ApprovalStatusTypes.UNAPPROVED
 

@@ -134,23 +134,20 @@ class TestWfiAnalysisSetApprovalStatus:
     status transitions to confirm the new path doesn't raise.
     """
 
-    def test_set_approval_status_does_not_raise(self, writable_project):
+    def test_set_and_get_approval_status_round_trip(self, writable_project):
         """
-        Issue #26 part 2: SetApprovalStatus previously trampled on the
-        Phase 2 ownership-ordering rule by setting evaluation.Agent on
-        an unowned ICmAgentEvaluation and adding it to a REFERENCE
-        collection (EvaluationsRC). After the fix, SetApprovalStatus
-        delegates to ICmAgent.SetEvaluation(target, Opinions) which
-        handles ownership internally.
+        Issue #26 part 2 + issue #38: SetApprovalStatus previously
+        trampled on the Phase 2 ownership-ordering rule by setting
+        evaluation.Agent on an unowned ICmAgentEvaluation and adding
+        it to a REFERENCE collection (EvaluationsRC). After the #26
+        fix, SetApprovalStatus delegates to
+        ICmAgent.SetEvaluation(target, Opinions) which handles
+        ownership internally.
 
-        We verify only the no-raise contract for each of the three
-        status values. The reverse direction (GetApprovalStatus
-        reading the new state correctly) is a separate concern:
-        GetApprovalStatus has a pre-existing bug that treats every
-        non-empty EvaluationsRC as APPROVED regardless of whether
-        the evaluation is an approve or disapprove. Filing that is
-        out of scope here -- this test pins the SetApprovalStatus
-        side of the contract.
+        After the #38 fix, GetApprovalStatus discriminates between
+        approve and disapprove human evaluations rather than returning
+        APPROVED for any non-empty EvaluationsRC. The full round-trip
+        is now testable.
         """
         from flexlibs2.code.TextsWords.WfiAnalysisOperations import (
             ApprovalStatusTypes,
@@ -180,9 +177,9 @@ class TestWfiAnalysisSetApprovalStatus:
 
         analysis = writable_project.WfiAnalyses.Create(candidate_wf)
         try:
-            # Each transition must complete without raising. Before the
-            # fix, each call would NPE on the unowned-evaluation
-            # property setter.
+            # Full round-trip across all three statuses. The re-apply
+            # at the end exercises the "transition between two
+            # already-set states" path.
             for status in (
                 ApprovalStatusTypes.APPROVED,
                 ApprovalStatusTypes.DISAPPROVED,
@@ -191,6 +188,13 @@ class TestWfiAnalysisSetApprovalStatus:
             ):
                 writable_project.WfiAnalyses.SetApprovalStatus(
                     analysis, status
+                )
+                got = writable_project.WfiAnalyses.GetApprovalStatus(
+                    analysis
+                )
+                assert got == status, (
+                    f"After SetApprovalStatus({status!r}): "
+                    f"GetApprovalStatus returned {got!r}"
                 )
         finally:
             try:

@@ -229,7 +229,13 @@ class AgentOperations(PossibilityItemOperations):
 
         agent = self._PossibilityItemOperations__ResolveObject(agent_or_hvo)
 
-        return agent.Human is not None
+        # ICmAgent.Human is a Boolean property -- always non-None for a
+        # valid agent -- so the previous `agent.Human is not None`
+        # check returned True for every agent (parsers included),
+        # silently merging the two types and causing
+        # WfiAnalyses.SetApprovalStatus to pick parsers as "human" by
+        # mistake. (surfaced while writing the #38 regression test)
+        return bool(agent.Human)
 
     @OperationsMethod
     def IsParser(self, agent_or_hvo):
@@ -269,7 +275,8 @@ class AgentOperations(PossibilityItemOperations):
 
         agent = self._PossibilityItemOperations__ResolveObject(agent_or_hvo)
 
-        return agent.Human is None
+        # See IsHuman: ICmAgent.Human is a Boolean, never None.
+        return not bool(agent.Human)
 
     # --- Human (Person) Link ---
 
