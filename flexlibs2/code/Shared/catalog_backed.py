@@ -10,6 +10,9 @@
 #           Extracted in Phase 5c from the duplicated bodies of
 #           POSOperations (Phase 5a) and PhonFeatureOperations (Phase 5b).
 #
+#           See docs/CATALOG_CONVENTIONS.md for an overview of the prefix
+#           policy used by each catalog when writing CatalogSourceId.
+#
 #           Behaviour is identical to the original per-class implementations:
 #               * Idempotent ImportCatalog (skip any entry whose canonical
 #                 GUID is already present in the project).

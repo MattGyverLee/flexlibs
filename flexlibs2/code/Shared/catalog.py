@@ -39,6 +39,9 @@
 #           Other FW catalog shapes (LocalizedLists, semantic-domain catalogs,
 #           etc.) will be added in later phases.
 #
+#           See docs/CATALOG_CONVENTIONS.md for the prefix policy each
+#           catalog uses when writing CatalogSourceId.
+#
 #   Platform: Python (stdlib only; no FieldWorks/.NET dependency)
 #             FieldWorks Version 9+
 #
