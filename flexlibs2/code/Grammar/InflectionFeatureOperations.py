@@ -797,29 +797,36 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
                 object, a wrapper, or an HVO. Items are added to the
                 struct's ``FeatureSpecsOC`` in the order provided.
 
-            owner: LCM object that should own the struct via its
-                ``FeaturesOA`` atomic-owning property. If provided, the
-                struct is attached BEFORE its FeatureSpecsOC is populated
-                (Phase 2 ownership rule -- LCM property setters will NPE
-                on free-floating structs).
+            owner: LCM object that owns the struct via its
+                ``FeaturesOA`` atomic-owning property. **Required.**
+                The struct is attached BEFORE its FeatureSpecsOC is
+                populated (Phase 2 ownership rule -- LCM property
+                accessors NPE on free-floating IFsFeatStruc objects).
+
+                ``owner=None`` is rejected unconditionally (issue #28,
+                matching PhonFeatureOperations.MakeFeatStruc).
+                Inflection-feature structs typically attach to MSAs,
+                inflection templates, or syntactic contexts.
 
         Returns:
-            IFsFeatStruc: The populated feature structure.
+            IFsFeatStruc: The populated feature structure, attached to
+            ``owner.FeaturesOA``.
 
         Raises:
-            FP_ParameterError: If a spec tuple is malformed, if an
-                owner is supplied but has no FeaturesOA property, or
-                if ``owner`` is None while ``specs`` is non-empty.
+            FP_ParameterError: If ``owner`` is None, if a spec tuple
+                is malformed, or if ``owner`` has no FeaturesOA
+                property.
         """
         self._EnsureWriteEnabled()
         self._ValidateParam(specs, "specs")
 
-        if owner is None and specs:
+        if owner is None:
             raise FP_ParameterError(
-                "MakeFeatStruc requires an owner when specs is non-empty. "
-                "LCM property setters NPE on unowned IFsFeatStruc objects; "
-                "pass owner=msa / owner=template / owner=context so this "
-                "method attaches first."
+                "MakeFeatStruc requires an owner. LCM property "
+                "accessors NPE on free-floating IFsFeatStruc objects, "
+                "so the previous unowned-empty mode produced an "
+                "unusable struct (issue #28). Pass owner=msa / "
+                "owner=template / owner=context."
             )
 
         # Normalize and validate specs up front, before any LCM mutation.
@@ -834,22 +841,21 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
             val = val_in if not isinstance(val_in, int) else self.project.Object(val_in)
             normalized.append((feat, val))
 
-        # Create the unowned struct.
+        # Attach owner FIRST so subsequent FeatureSpecsOC mutations
+        # don't trip the Phase 2 NPE pattern.
+        if not hasattr(owner, "FeaturesOA"):
+            raise FP_ParameterError(
+                "owner has no FeaturesOA property; cannot attach FsFeatStruc."
+            )
+
         factory = self.project.project.ServiceLocator.GetService(
             IFsFeatStrucFactory
         )
         struct = factory.Create()
-
-        # Attach to owner FIRST if supplied.
-        if owner is not None:
-            if not hasattr(owner, "FeaturesOA"):
-                raise FP_ParameterError(
-                    "owner has no FeaturesOA property; cannot attach FsFeatStruc."
-                )
-            owner.FeaturesOA = struct
-            struct = owner.FeaturesOA  # re-fetch via owning property
-
-        struct = IFsFeatStruc(struct)
+        owner.FeaturesOA = struct
+        # Re-fetch via the owning property to hold the LCM view of the
+        # now-owned struct.
+        struct = IFsFeatStruc(owner.FeaturesOA)
 
         # Populate FeatureSpecsOC. Each spec is an IFsClosedValue with
         # FeatureRA -> feature and ValueRA -> value.

@@ -371,31 +371,27 @@ class TestPhonFeatureOperations:
 
     # --- MakeFeatStruc ----------------------------------------------------
 
-    def test_make_featstruc_unowned_empty_specs(self, writable_project):
+    def test_make_featstruc_rejects_owner_none(self, writable_project):
         """
-        MakeFeatStruc(specs=[], owner=None) is the legitimate unowned-empty
-        mode: LCM permits creation of an orphan IFsFeatStruc only when no
-        property writes follow. The method must return an IFsFeatStruc
-        (or pythonnet-castable equivalent) without raising. Note we
-        intentionally do NOT touch property accessors on the returned
-        unowned struct — Phase 2 ownership rule: FsFeatStruc property
-        getters/setters NPE on a free-floating struct. The caller is
-        responsible for attaching the struct to an owner before any
-        further interaction.
+        MakeFeatStruc(specs=[], owner=None) must raise FP_ParameterError
+        (issue #28). The previous behaviour returned an unowned struct
+        whose property accessors NPE'd inside CmObject.get_Services(),
+        making the returned object unusable. The tightened contract
+        rejects the case outright — explicit failures over silent
+        partial functionality.
         """
-        from SIL.LCModel import IFsFeatStruc
+        from flexlibs2.code.FLExProject import FP_ParameterError
 
-        struct = writable_project.PhonFeatures.MakeFeatStruc([])
-        assert struct is not None, (
-            "MakeFeatStruc(specs=[], owner=None) returned None"
-        )
-        # The cast must succeed: the returned object is (or can be
-        # adapted to) IFsFeatStruc. We do not access any property
-        # post-cast because LCM NPEs on unowned-struct property access.
-        casted = IFsFeatStruc(struct)
-        assert casted is not None, (
-            "Returned object could not be cast to IFsFeatStruc"
-        )
+        with pytest.raises(FP_ParameterError):
+            writable_project.PhonFeatures.MakeFeatStruc([])
+
+        # Non-empty specs with owner=None must still raise (this case
+        # was already rejected; verifying it still is after the contract
+        # tightening).
+        with pytest.raises(FP_ParameterError):
+            writable_project.PhonFeatures.MakeFeatStruc(
+                [(object(), object())]
+            )
 
     def test_make_featstruc_unowned_requires_empty_specs(
         self, writable_project

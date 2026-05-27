@@ -528,42 +528,38 @@ class PhonFeatureOperations(BaseOperations, CatalogBackedMixin):
                 object, a wrapper, or an HVO. Items are added to the
                 struct's ``FeatureSpecsOC`` in the order provided.
 
-            owner: LCM object that should own the struct via its
-                ``FeaturesOA`` atomic-owning property. If provided, the
-                struct is attached to ``owner.FeaturesOA`` BEFORE its
-                FeatureSpecsOC is populated -- mandatory because
-                FsFeatStruc property setters will NPE on a free-floating
-                struct (Phase 2 ownership rule). Phonemes and natural
-                classes both use ``FeaturesOA``.
+            owner: LCM object that owns the struct via its
+                ``FeaturesOA`` atomic-owning property. **Required.**
+                The struct is attached to ``owner.FeaturesOA`` BEFORE
+                its FeatureSpecsOC is populated, because LCM property
+                setters and getters both NPE on free-floating
+                IFsFeatStruc objects (Phase 2 ownership rule).
+                Phonemes and natural classes both use ``FeaturesOA``.
 
-                When ``owner`` is None, this method returns an empty
-                struct and ``specs`` must be empty; the caller is then
-                responsible for attaching it to an owner before
-                populating. When ``owner`` is provided, the struct is
-                attached and populated atomically. Passing
-                ``owner=None`` together with a non-empty ``specs`` is
-                rejected because LCM would NPE on the first
-                FeatureSpecsOC mutation.
+                ``owner=None`` is rejected unconditionally (issue #28).
+                The previous unowned-empty mode returned a struct
+                whose property accessors NPE'd inside
+                ``CmObject.get_Services()``; that footgun is now gone.
 
         Returns:
-            IFsFeatStruc: The populated feature structure (or empty
-            struct, when ``owner=None`` and ``specs`` is empty).
+            IFsFeatStruc: The populated feature structure, attached to
+            ``owner.FeaturesOA``.
 
         Raises:
-            FP_ParameterError: If a spec tuple is malformed, if an
-                owner is supplied but has no FeaturesOA property, or
-                if ``owner`` is None while ``specs`` is non-empty.
+            FP_ParameterError: If ``owner`` is None, if a spec tuple
+                is malformed, or if ``owner`` has no FeaturesOA
+                property.
         """
         self._EnsureWriteEnabled()
         self._ValidateParam(specs, "specs")
 
-        if owner is None and specs:
+        if owner is None:
             raise FP_ParameterError(
-                "MakeFeatStruc requires an owner when specs is non-empty. "
-                "LCM property setters NPE on unowned IFsFeatStruc objects; "
-                "either attach the struct to an owner before populating, "
-                "or pass owner=phoneme / owner=natural_class / owner=context "
-                "so this method attaches first."
+                "MakeFeatStruc requires an owner. LCM property "
+                "accessors NPE on free-floating IFsFeatStruc objects, "
+                "so the previous unowned-empty mode produced an "
+                "unusable struct (issue #28). Pass owner=phoneme / "
+                "owner=natural_class / owner=context."
             )
 
         # Normalize and validate specs up front, before any LCM mutation.
@@ -578,26 +574,24 @@ class PhonFeatureOperations(BaseOperations, CatalogBackedMixin):
             val = self.__Unwrap(self.__ResolveObject(val_in))
             normalized.append((feat, val))
 
-        # Create the unowned struct.
+        # Create the struct and attach it to its owner BEFORE any
+        # FeatureSpecsOC mutation. Skipping the attach (or doing it
+        # after) trips the Phase 2 NPE pattern -- LCM property setters
+        # on free-floating structs raise NullReferenceException.
+        owner_unwrapped = self.__Unwrap(owner)
+        if not hasattr(owner_unwrapped, "FeaturesOA"):
+            raise FP_ParameterError(
+                "owner has no FeaturesOA property; cannot attach FsFeatStruc."
+            )
+
         factory = self.project.project.ServiceLocator.GetService(
             IFsFeatStrucFactory
         )
         struct = factory.Create()
-
-        # Attach to owner FIRST if supplied, so subsequent FeatureSpecsOC
-        # mutations don't trip the Phase 2 NPE pattern.
-        if owner is not None:
-            owner_unwrapped = self.__Unwrap(owner)
-            if not hasattr(owner_unwrapped, "FeaturesOA"):
-                raise FP_ParameterError(
-                    "owner has no FeaturesOA property; cannot attach FsFeatStruc."
-                )
-            owner_unwrapped.FeaturesOA = struct
-            # Re-fetch via the owning property to ensure we hold the LCM
-            # view of the now-owned struct.
-            struct = owner_unwrapped.FeaturesOA
-
-        struct = IFsFeatStruc(struct)
+        owner_unwrapped.FeaturesOA = struct
+        # Re-fetch via the owning property to hold the LCM view of the
+        # now-owned struct.
+        struct = IFsFeatStruc(owner_unwrapped.FeaturesOA)
 
         # Populate FeatureSpecsOC. Each spec is an IFsClosedValue with
         # FeatureRA -> feature and ValueRA -> value.
