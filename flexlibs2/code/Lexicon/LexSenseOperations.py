@@ -305,13 +305,24 @@ class LexSenseOperations(BaseOperations):
             ...     shallow_dup = project.Senses.Duplicate(senses[0], deep=False)
 
         Notes:
-            - Factory.Create() automatically generates a new GUID
-            - insert_after=True preserves the original sense's position/priority
-            - Simple properties copied: Gloss, Definition, etc.
-            - Reference properties copied: MSA, Status, SenseType, SemanticDomainsRC
-            - Owned objects (deep=True): ExamplesOS, SensesOS (subsenses), PicturesOS
-            - ImportResidue and LiftResidue are not copied (import-specific data)
-            - ReferringReversalIndexEntries are not copied (back-references)
+            - Factory.Create() automatically generates a new GUID.
+            - insert_after=True preserves the original sense's position/priority.
+            - MultiString fields copied: Gloss, Definition, Bibliography,
+              DiscourseNote, EncyclopedicInfo, GeneralNote, GrammarNote,
+              PhonologyNote, Restrictions, SemanticsNote, SocioLinguisticsNote.
+            - Single-string ITsString fields copied: Source, ScientificName,
+              ImportResidue (all three belong to the sense per LCM and round-trip
+              through GetSyncableProperties; copying them here keeps Duplicate
+              and sync in agreement -- issue #93).
+            - Reference Atomic properties copied: MorphoSyntaxAnalysisRA,
+              StatusRA, SenseTypeRA.
+            - Reference Collection properties copied: SemanticDomainsRC,
+              AnthroCodesRC, DomainTypesRC, UsageTypesRC.
+            - Owned objects (deep=True only): ExamplesOS, SensesOS (subsenses),
+              PicturesOS.
+            - LiftResidue is not copied (round-trip metadata from the LIFT
+              import path, not user content).
+            - ReferringReversalIndexEntries are not copied (back-references).
 
         See Also:
             Create, Delete, GetGuid
@@ -386,10 +397,13 @@ class LexSenseOperations(BaseOperations):
         duplicate.Restrictions.CopyAlternatives(source.Restrictions)
         duplicate.SemanticsNote.CopyAlternatives(source.SemanticsNote)
         duplicate.SocioLinguisticsNote.CopyAlternatives(source.SocioLinguisticsNote)
-        # Source is ITsString (single-string), not IMultiString -- it has
-        # no CopyAlternatives method. Reference-share the immutable
-        # ITsString instance instead. (issue #31)
+        # Source / ScientificName / ImportResidue are ITsString
+        # (single-string), not IMultiString -- they have no
+        # CopyAlternatives. Reference-share the immutable ITsString
+        # instance instead. (issues #31, #93)
         duplicate.Source = source.Source
+        duplicate.ScientificName = source.ScientificName
+        duplicate.ImportResidue = source.ImportResidue
 
         # Copy Reference Atomic (RA) properties
         duplicate.MorphoSyntaxAnalysisRA = source.MorphoSyntaxAnalysisRA
@@ -608,10 +622,23 @@ class LexSenseOperations(BaseOperations):
         else:
             props["StatusRA"] = None
 
-        # Atomic properties
-        # ImportResidue - import residue from LIFT files
+        # Atomic single-string (ITsString) properties on ILexSense.
+        # Source / ScientificName / ImportResidue all live on the sense
+        # (taxonomic name, bibliographic source, LIFT import carry-over),
+        # are surfaced via Get/Set accessors elsewhere on this class, and
+        # are copied by _copy_sense_content; the sync surface mirrors
+        # those round-trip contracts. Read via _ReadTsString so the
+        # values come out as plain Python strings (or "" for unset),
+        # consistent with the Source block above at the SocioLinguistics
+        # section. (issue #93)
+        if hasattr(item, "ScientificName"):
+            props["ScientificName"] = self._ReadTsString(item.ScientificName)
+        else:
+            props["ScientificName"] = ""
         if hasattr(item, "ImportResidue"):
-            props["ImportResidue"] = item.ImportResidue
+            props["ImportResidue"] = self._ReadTsString(item.ImportResidue)
+        else:
+            props["ImportResidue"] = ""
 
         return props
 
