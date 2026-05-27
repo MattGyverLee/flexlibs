@@ -303,6 +303,98 @@ class FLExProject(object):
         """
         return self.project.ServiceLocator.GetService(interface_type)
 
+    def GetFactory(self, interface_type):
+        """
+        Resolve an LCM factory or service by interface type.
+
+        Discoverable entry point for factory lookup that works around a
+        pythonnet limitation: the generic
+        `ILcmServiceLocator.GetInstance<T>()` method is not reachable
+        via pythonnet's subscript syntax (`GetInstance[T]()`), which
+        raises `AttributeError` on some pythonnet builds.
+
+        Two resolution paths are tried in order:
+
+          1. Direct overload-resolved call:
+             `ServiceLocator.GetInstance(interface_type)`. Pythonnet
+             normally binds this to the non-generic `GetInstance(Type)`
+             overload. This is the pattern used throughout flexlibs2.
+          2. Reflection: locate the parameterless `GetInstance<T>()`
+             generic method, bind `T` to `interface_type`, and invoke.
+             The resolved MethodInfo is cached on the FLExProject
+             instance to avoid rescanning reflection on every call.
+
+        Prefer this method when you need a factory and either:
+          - `GetService` returned None for a registered interface, or
+          - you want the explicit "this is a factory" semantic.
+
+        Args:
+            interface_type: A pythonnet interface type (e.g.
+                `IMoInflAffMsaFactory`).
+
+        Returns:
+            The factory or service instance registered for
+            `interface_type`.
+
+        Raises:
+            FP_NullParameterError: if `interface_type` is None.
+            FP_ParameterError: if neither resolution path produces an
+                instance.
+
+        Example:
+            >>> from SIL.LCModel import IMoInflAffMsaFactory
+            >>> factory = project.GetFactory(IMoInflAffMsaFactory)
+            >>> msa = factory.Create()
+        """
+        if interface_type is None:
+            raise FP_NullParameterError()
+
+        sl = self.project.ServiceLocator
+
+        # Path 1: direct overload-resolved call. Matches the existing
+        # ServiceLocator.GetInstance(InterfaceType) pattern used
+        # throughout flexlibs2 (e.g. FLExProject.py:3804, :4062). Works
+        # on standard pythonnet builds where the Type-taking overload
+        # of GetInstance binds cleanly.
+        try:
+            result = sl.GetInstance(interface_type)
+            if result is not None:
+                return result
+        except (AttributeError, TypeError):
+            # Pythonnet couldn't resolve the overload on this build;
+            # fall through to the reflection-based path.
+            pass
+
+        # Path 2: reflection over the parameterless generic
+        # GetInstance<T>(). The open MethodInfo is cached on the
+        # instance because GetType().GetMethods() scans the full
+        # ServiceLocator surface; once is enough.
+        method_def = getattr(self, "_get_instance_generic_method", None)
+        if method_def is None:
+            method_def = next(
+                (
+                    m for m in sl.GetType().GetMethods()
+                    if m.Name == "GetInstance"
+                    and m.IsGenericMethodDefinition
+                    and m.GetParameters().Length == 0
+                ),
+                None,
+            )
+            if method_def is None:
+                raise FP_ParameterError(
+                    "ILcmServiceLocator exposes no resolvable "
+                    f"GetInstance overload for {interface_type}"
+                )
+            self._get_instance_generic_method = method_def
+
+        bound = method_def.MakeGenericMethod(clr.GetClrType(interface_type))
+        result = bound.Invoke(sl, None)
+        if result is None:
+            raise FP_ParameterError(
+                f"No factory or service registered for {interface_type}"
+            )
+        return result
+
     def Transaction(self, label="transaction"):
         """
         Return a context manager for a safe rollback transaction.

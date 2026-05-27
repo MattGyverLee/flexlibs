@@ -281,5 +281,128 @@ class TestFLExProjectDiscoverability:
             assert name, f"{method_name}() returned empty display name"
 
 
+class TestGetFactory:
+    """
+    Coverage for `FLExProject.GetFactory(interface_type)` — issue #34.
+
+    GetFactory wraps the pythonnet reflection dance for the LCM
+    ServiceLocator's generic `GetInstance<T>()` method. It's the
+    discoverable entry point for factory dispatch and must work for
+    both well-known factories (IPhPhonemeFactory) and the factories
+    whose subscript-generic invocation originally surfaced the bug
+    (IFsClosedFeatureFactory / IMoInflAffMsaFactory).
+    """
+
+    # ----- Static introspection (no LCM required) --------------------
+
+    def test_get_factory_is_callable_method(self):
+        """
+        GetFactory must be exposed as a callable method (not a property)
+        taking a single positional `interface_type` argument besides self.
+        """
+        from flexlibs2.code.FLExProject import FLExProject
+
+        assert "GetFactory" in dir(FLExProject), (
+            "GetFactory not visible via dir(FLExProject)"
+        )
+
+        descriptor = inspect.getattr_static(FLExProject, "GetFactory")
+        assert callable(descriptor), "GetFactory must be callable"
+        assert not isinstance(descriptor, property), (
+            "GetFactory must be a method, not a property"
+        )
+
+        params = [
+            p for p in inspect.signature(descriptor).parameters.values()
+            if p.name != "self"
+        ]
+        assert len(params) == 1, (
+            "GetFactory should take one parameter besides self, "
+            f"got {len(params)}: {[p.name for p in params]}"
+        )
+
+    def test_get_factory_rejects_none(self):
+        """
+        GetFactory(None) must raise FP_NullParameterError without
+        touching the ServiceLocator — input validation is the first
+        thing to fire.
+        """
+        from flexlibs2.code.exceptions import FP_NullParameterError
+        from flexlibs2.code.FLExProject import FLExProject
+
+        # We don't need a live project for this — the guard runs before
+        # any LCM access. Use a sentinel object as `self` to make sure
+        # the test fails loudly if the implementation reorders the
+        # check and touches `self.project`.
+        class _Sentinel:
+            @property
+            def project(self):
+                raise AssertionError(
+                    "GetFactory accessed self.project before validating "
+                    "interface_type — guard order is wrong"
+                )
+
+        with pytest.raises(FP_NullParameterError):
+            FLExProject.GetFactory(_Sentinel(), None)
+
+    # ----- Live-LCM behavior (skipped without a real project) --------
+
+    def test_get_factory_resolves_phoneme_factory(self, live_project):
+        """
+        GetFactory(IPhPhonemeFactory) must return a non-null factory
+        whose Create() produces an IPhPhoneme-like object. This is the
+        canonical "factory dispatch" smoke test.
+        """
+        from SIL.LCModel import IPhPhonemeFactory
+
+        factory = live_project.GetFactory(IPhPhonemeFactory)
+        assert factory is not None, (
+            "GetFactory(IPhPhonemeFactory) returned None"
+        )
+        # Discoverability: a factory must expose Create().
+        assert hasattr(factory, "Create"), (
+            f"Resolved object {factory!r} has no Create() method - "
+            "GetFactory did not return a real factory"
+        )
+
+    def test_get_factory_resolves_closed_feature_factory(self, live_project):
+        """
+        GetFactory(IFsClosedFeatureFactory) — this is the factory whose
+        subscript-generic dispatch (`GetInstance[IFsClosedFeatureFactory]()`)
+        originally surfaced issue #34. It must resolve via GetFactory
+        regardless of which internal path is taken.
+        """
+        from SIL.LCModel import IFsClosedFeatureFactory
+
+        factory = live_project.GetFactory(IFsClosedFeatureFactory)
+        assert factory is not None, (
+            "GetFactory(IFsClosedFeatureFactory) returned None - "
+            "neither GetInstance(Type) nor reflection path resolved it"
+        )
+        assert hasattr(factory, "Create"), (
+            f"Resolved object {factory!r} has no Create() method"
+        )
+
+    def test_get_factory_is_consistent_across_calls(self, live_project):
+        """
+        Repeated calls for the same interface must return a non-null
+        factory each time. ServiceLocator factories are typically
+        singletons, so the MethodInfo cache shouldn't break behavior.
+        Use .NET Equals (not Python `is`) because pythonnet wraps the
+        same CLR object in a fresh Python proxy on each access.
+        """
+        from SIL.LCModel import IPhPhonemeFactory
+
+        first = live_project.GetFactory(IPhPhonemeFactory)
+        second = live_project.GetFactory(IPhPhonemeFactory)
+        assert first is not None and second is not None, (
+            "GetFactory returned None on a repeated call"
+        )
+        assert first.Equals(second), (
+            "ServiceLocator should hand back the same factory singleton; "
+            "GetFactory's MethodInfo cache may be corrupting state"
+        )
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
