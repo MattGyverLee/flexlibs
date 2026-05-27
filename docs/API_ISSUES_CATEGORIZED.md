@@ -77,63 +77,63 @@ Originally, 28 out of 43 demos (65%) showed WARN status. These warnings were **N
 **Example**:
 ```python
 # Both of these now work:
-project.Agent.GetAll()        # Singular access
-project.Agents.GetAll()       # Plural access (alias)
+project.Agents.GetAll()       # Plural access (canonical)
+project.Agent.GetAll()        # Singular access (alias)
 ```
 
 ### Previously Affected Demos (Now Fixed):
 
 1. **lists_agent_operations_demo.py**
    - Error: `'FLExProject' object has no attribute 'Agent'`
-   - Should be: `project.Agent.GetAll()`
+   - Should be: `project.Agents.GetAll()`
 
 2. **lists_overlay_operations_demo.py**
    - Error: `'FLExProject' object has no attribute 'Overlay'`
-   - Should be: `project.Overlay.Create(...)`
+   - Should be: `project.Overlays.Create(...)`
 
 3. **lists_possibilitylist_operations_demo.py**
    - Error: `'FLExProject' object has no attribute 'PossibilityList'`
-   - Should be: `project.PossibilityList.GetAll()`
+   - Should be: `project.PossibilityLists.GetAll()`
 
 4. **lists_publication_operations_demo.py**
    - Error: `'FLExProject' object has no attribute 'Publication'`
-   - Should be: `project.Publication.Create(...)`
+   - Should be: `project.Publications.Create(...)`
 
 5. **lists_translationtype_operations_demo.py**
    - Error: `'FLExProject' object has no attribute 'TranslationType'`
-   - Should be: `project.TranslationType.GetAll()`
+   - Should be: `project.TranslationTypes.GetAll()`
 
 6. **notebook_note_operations_demo.py**
    - Error: `'FLExProject' object has no attribute 'Note'`
-   - Should be: `project.Note.Create(...)`
+   - Should be: `project.Notes.Create(...)`
 
 7. **system_annotationdef_operations_demo.py**
    - Error: `'FLExProject' object has no attribute 'AnnotationDef'`
-   - Should be: `project.AnnotationDef.Create(...)`
+   - Should be: `project.AnnotationDefs.Create(...)`
 
 8. **system_check_operations_demo.py**
    - Error: `'FLExProject' object has no attribute 'Check'`
-   - Should be: `project.Check.Create(...)`
+   - Should be: `project.Checks.Create(...)`
 
 9. **system_customfield_operations_demo.py**
    - Error: `'FLExProject' object has no attribute 'CustomField'`
-   - Should be: `project.CustomField.Create(...)`
+   - Should be: `project.CustomFields.Create(...)`
 
 10. **system_writingsystem_operations_demo.py**
     - Error: `'FLExProject' object has no attribute 'WritingSystem'`
-    - Should be: `project.WritingSystem.GetAll()`
+    - Should be: `project.WritingSystems.GetAll()`
 
 11. **system_projectsettings_operations_demo.py**
     - Error: Multiple missing methods on ProjectSettingsOperations
     - Should be: `project.ProjectSettings.GetProjectName()`
 
 ### Implementation Details:
-Property aliases are implemented using Python's `__getattr__` mechanism in FLExProject, allowing both singular and plural access patterns:
-- `project.Agent` -> AgentOperations
-- `project.Agents` -> AgentOperations (alias)
-- Works for all 11 affected operations classes
+Property aliases are implemented as explicit `@property` methods in FLExProject. The plural form is canonical; the singular form is a backward-compatibility alias:
+- `project.Agents` -> AgentOperations (canonical)
+- `project.Agent` -> AgentOperations (alias, kept for backward compatibility)
+- Same pattern for all 10 affected operations classes (PossibilityLists, WritingSystems, Overlays, Publications, TranslationTypes, Notes, AnnotationDefs, Checks, CustomFields)
 
-This approach provides a flexible API that accommodates different naming preferences while maintaining code consistency underneath.
+New code should use the canonical plural form; the singular aliases remain to avoid breaking existing callers.
 
 ---
 

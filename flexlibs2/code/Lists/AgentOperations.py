@@ -115,14 +115,14 @@ class AgentOperations(PossibilityItemOperations):
             FP_NullParameterError: If agent_or_hvo is None
 
         Example:
-            >>> parser = project.Agent.Find("MyParser")
-            >>> version = project.Agent.GetVersion(parser)
+            >>> parser = project.Agents.Find("MyParser")
+            >>> version = project.Agents.GetVersion(parser)
             >>> print(f"Version: {version}")
             Version: 1.0.0
 
             >>> # Human agents typically don't have versions
-            >>> human = project.Agent.Find("John Smith")
-            >>> version = project.Agent.GetVersion(human)
+            >>> human = project.Agents.Find("John Smith")
+            >>> version = project.Agents.GetVersion(human)
             >>> print(version)
 
         Notes:
@@ -157,16 +157,16 @@ class AgentOperations(PossibilityItemOperations):
             FP_NullParameterError: If agent_or_hvo or version is None
 
         Example:
-            >>> parser = project.Agent.Find("MyParser")
-            >>> project.Agent.SetVersion(parser, "1.0.1")
-            >>> print(project.Agent.GetVersion(parser))
+            >>> parser = project.Agents.Find("MyParser")
+            >>> project.Agents.SetVersion(parser, "1.0.1")
+            >>> print(project.Agents.GetVersion(parser))
             1.0.1
 
             >>> # Update to new version
-            >>> project.Agent.SetVersion(parser, "2.0.0")
+            >>> project.Agents.SetVersion(parser, "2.0.0")
 
             >>> # Clear version
-            >>> project.Agent.SetVersion(parser, "")
+            >>> project.Agents.SetVersion(parser, "")
 
         Notes:
             - Typically used for parser agents
@@ -205,14 +205,14 @@ class AgentOperations(PossibilityItemOperations):
             FP_NullParameterError: If agent_or_hvo is None
 
         Example:
-            >>> for agent in project.Agent.GetAll():
-            ...     name = project.Agent.GetName(agent)
-            ...     if project.Agent.IsHuman(agent):
-            ...         person = project.Agent.GetHuman(agent)
+            >>> for agent in project.Agents.GetAll():
+            ...     name = project.Agents.GetName(agent)
+            ...     if project.Agents.IsHuman(agent):
+            ...         person = project.Agents.GetHuman(agent)
             ...         email = project.Person.GetEmail(person)
             ...         print(f"Human: {name} ({email})")
             ...     else:
-            ...         version = project.Agent.GetVersion(agent)
+            ...         version = project.Agents.GetVersion(agent)
             ...         print(f"Parser: {name} v{version}")
             Human: John Smith (john.smith@example.com)
             Parser: MyParser v1.0.0
@@ -252,15 +252,15 @@ class AgentOperations(PossibilityItemOperations):
             FP_NullParameterError: If agent_or_hvo is None
 
         Example:
-            >>> parser = project.Agent.Find("MyParser")
-            >>> if project.Agent.IsParser(parser):
-            ...     version = project.Agent.GetVersion(parser)
+            >>> parser = project.Agents.Find("MyParser")
+            >>> if project.Agents.IsParser(parser):
+            ...     version = project.Agents.GetVersion(parser)
             ...     print(f"Parser version: {version}")
             Parser version: 1.0.0
 
             >>> # Filter only parsers
-            >>> parsers = [a for a in project.Agent.GetAll()
-            ...            if project.Agent.IsParser(a)]
+            >>> parsers = [a for a in project.Agents.GetAll()
+            ...            if project.Agents.IsParser(a)]
             >>> print(f"Found {len(parsers)} parsers")
 
         Notes:
@@ -295,17 +295,17 @@ class AgentOperations(PossibilityItemOperations):
             FP_NullParameterError: If agent_or_hvo is None
 
         Example:
-            >>> agent = project.Agent.Find("John Smith")
-            >>> if project.Agent.IsHuman(agent):
-            ...     person = project.Agent.GetHuman(agent)
+            >>> agent = project.Agents.Find("John Smith")
+            >>> if project.Agents.IsHuman(agent):
+            ...     person = project.Agents.GetHuman(agent)
             ...     name = project.Person.GetName(person)
             ...     email = project.Person.GetEmail(person)
             ...     print(f"{name}: {email}")
             John Smith: john.smith@example.com
 
             >>> # Parser agents return None
-            >>> parser = project.Agent.Find("MyParser")
-            >>> person = project.Agent.GetHuman(parser)
+            >>> parser = project.Agents.Find("MyParser")
+            >>> person = project.Agents.GetHuman(parser)
             >>> print(person)
             None
 
@@ -339,12 +339,12 @@ class AgentOperations(PossibilityItemOperations):
 
         Example:
             >>> # Convert parser to human agent
-            >>> agent = project.Agent.Find("MyAgent")
+            >>> agent = project.Agents.Find("MyAgent")
             >>> person = project.Person.Find("John Smith")
-            >>> project.Agent.SetHuman(agent, person)
+            >>> project.Agents.SetHuman(agent, person)
 
             >>> # Unlink person (convert to parser)
-            >>> project.Agent.SetHuman(agent, None)
+            >>> project.Agents.SetHuman(agent, None)
 
         Notes:
             - Set to ICmPerson to make human agent
@@ -387,8 +387,8 @@ class AgentOperations(PossibilityItemOperations):
             FP_NullParameterError: If agent_or_hvo is None
 
         Example:
-            >>> agent = project.Agent.Find("MyParser")
-            >>> evaluations = project.Agent.GetEvaluations(agent)
+            >>> agent = project.Agents.Find("MyParser")
+            >>> evaluations = project.Agents.GetEvaluations(agent)
             >>> print(f"Parser created {len(evaluations)} evaluations")
             Parser created 145 evaluations
 
@@ -438,16 +438,16 @@ class AgentOperations(PossibilityItemOperations):
             FP_NullParameterError: If agent_or_hvo is None
 
         Example:
-            >>> agent = project.Agent.Find("MyParser")
-            >>> count = project.Agent.GetEvaluationCount(agent)
+            >>> agent = project.Agents.Find("MyParser")
+            >>> count = project.Agents.GetEvaluationCount(agent)
             >>> print(f"Parser has {count} evaluations")
             Parser has 145 evaluations
 
             >>> # Compare human vs parser evaluations
-            >>> for agent in project.Agent.GetAll():
-            ...     name = project.Agent.GetName(agent)
-            ...     count = project.Agent.GetEvaluationCount(agent)
-            ...     agent_type = "Human" if project.Agent.IsHuman(agent) else "Parser"
+            >>> for agent in project.Agents.GetAll():
+            ...     name = project.Agents.GetName(agent)
+            ...     count = project.Agents.GetEvaluationCount(agent)
+            ...     agent_type = "Human" if project.Agents.IsHuman(agent) else "Parser"
             ...     print(f"{name} ({agent_type}): {count} evaluations")
 
         Notes:
@@ -477,18 +477,18 @@ class AgentOperations(PossibilityItemOperations):
 
         Example:
             >>> # Get all human agents
-            >>> humans = project.Agent.FindByType(True)
+            >>> humans = project.Agents.FindByType(True)
             >>> for agent in humans:
-            ...     name = project.Agent.GetName(agent)
-            ...     person = project.Agent.GetHuman(agent)
+            ...     name = project.Agents.GetName(agent)
+            ...     person = project.Agents.GetHuman(agent)
             ...     email = project.Person.GetEmail(person)
             ...     print(f"{name}: {email}")
 
             >>> # Get all parsers
-            >>> parsers = project.Agent.FindByType(False)
+            >>> parsers = project.Agents.FindByType(False)
             >>> for parser in parsers:
-            ...     name = project.Agent.GetName(parser)
-            ...     version = project.Agent.GetVersion(parser)
+            ...     name = project.Agents.GetName(parser)
+            ...     version = project.Agents.GetVersion(parser)
             ...     print(f"{name} v{version}")
 
         Notes:
@@ -519,13 +519,13 @@ class AgentOperations(PossibilityItemOperations):
             list: List of ICmAgent objects representing human analysts
 
         Example:
-            >>> humans = project.Agent.GetHumanAgents()
+            >>> humans = project.Agents.GetHumanAgents()
             >>> print(f"Found {len(humans)} human agents")
             Found 3 human agents
 
             >>> for agent in humans:
-            ...     name = project.Agent.GetName(agent)
-            ...     person = project.Agent.GetHuman(agent)
+            ...     name = project.Agents.GetName(agent)
+            ...     person = project.Agents.GetHuman(agent)
             ...     email = project.Person.GetEmail(person)
             ...     print(f"Analyst: {name} ({email})")
             Analyst: John Smith (john.smith@example.com)
@@ -552,14 +552,14 @@ class AgentOperations(PossibilityItemOperations):
             list: List of ICmAgent objects representing automated parsers
 
         Example:
-            >>> parsers = project.Agent.GetParserAgents()
+            >>> parsers = project.Agents.GetParserAgents()
             >>> print(f"Found {len(parsers)} parsers")
             Found 2 parsers
 
             >>> for parser in parsers:
-            ...     name = project.Agent.GetName(parser)
-            ...     version = project.Agent.GetVersion(parser)
-            ...     count = project.Agent.GetEvaluationCount(parser)
+            ...     name = project.Agents.GetName(parser)
+            ...     version = project.Agents.GetVersion(parser)
+            ...     count = project.Agents.GetEvaluationCount(parser)
             ...     print(f"{name} v{version}: {count} evaluations")
             MyParser v1.0.0: 145 evaluations
             AutoAnalyzer v2.1.3: 89 evaluations
@@ -592,15 +592,15 @@ class AgentOperations(PossibilityItemOperations):
             FP_NullParameterError: If agent_or_hvo is None
 
         Example:
-            >>> agent = project.Agent.Find("MyParser")
-            >>> created = project.Agent.GetDateCreated(agent)
+            >>> agent = project.Agents.Find("MyParser")
+            >>> created = project.Agents.GetDateCreated(agent)
             >>> print(f"Created: {created}")
             Created: 2025-01-15 14:30:22
 
             >>> # Find oldest agent
-            >>> agents = list(project.Agent.GetAll())
-            >>> oldest = min(agents, key=lambda a: project.Agent.GetDateCreated(a))
-            >>> print(f"Oldest: {project.Agent.GetName(oldest)}")
+            >>> agents = list(project.Agents.GetAll())
+            >>> oldest = min(agents, key=lambda a: project.Agents.GetDateCreated(a))
+            >>> print(f"Oldest: {project.Agents.GetName(oldest)}")
 
         Notes:
             - Returns System.DateTime object (not Python datetime)
@@ -632,17 +632,17 @@ class AgentOperations(PossibilityItemOperations):
             FP_NullParameterError: If agent_or_hvo is None
 
         Example:
-            >>> agent = project.Agent.Find("MyParser")
-            >>> modified = project.Agent.GetDateModified(agent)
+            >>> agent = project.Agents.Find("MyParser")
+            >>> modified = project.Agents.GetDateModified(agent)
             >>> print(f"Last modified: {modified}")
             Last modified: 2025-01-20 09:15:43
 
             >>> # Find recently modified agents
             >>> from datetime import datetime, timedelta
             >>> # Note: System.DateTime, not Python datetime
-            >>> for agent in project.Agent.GetAll():
-            ...     modified = project.Agent.GetDateModified(agent)
-            ...     name = project.Agent.GetName(agent)
+            >>> for agent in project.Agents.GetAll():
+            ...     modified = project.Agents.GetDateModified(agent)
+            ...     name = project.Agents.GetName(agent)
             ...     print(f"{name}: {modified}")
 
         Notes:

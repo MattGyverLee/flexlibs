@@ -724,55 +724,55 @@ Methods for managing person records:
 
 Methods for managing analyst agents:
 
-#### `project.Agent.GetAll()`
+#### `project.Agents.GetAll()`
 **Replaces:** `ICmAgentRepository.AllInstances()` iteration
 
-#### `project.Agent.Create(name, wsHandle=None)`
+#### `project.Agents.Create(name, wsHandle=None)`
 **Replaces:** `ICmAgentFactory.Create()`, `ICmAgent.Name.set_String()`, `ILangProject.AnalyzingAgentsOC.Add()`
 
-#### `project.Agent.Delete(agent_or_hvo)`
+#### `project.Agents.Delete(agent_or_hvo)`
 **Replaces:** `ILangProject.AnalyzingAgentsOC.Remove()`
 
-#### `project.Agent.Find(name, wsHandle=None)`
+#### `project.Agents.Find(name, wsHandle=None)`
 **Replaces:** Agent repository search by name
 
-#### `project.Agent.Exists(name, wsHandle=None)`
+#### `project.Agents.Exists(name, wsHandle=None)`
 **Replaces:** Agent existence check via search
 
-#### `project.Agent.GetName(agent_or_hvo, wsHandle=None)`
+#### `project.Agents.GetName(agent_or_hvo, wsHandle=None)`
 **Replaces:** `ICmAgent.Name.get_String()`, `ITsString.Text`
 
-#### `project.Agent.SetName(agent_or_hvo, name, wsHandle=None)`
+#### `project.Agents.SetName(agent_or_hvo, name, wsHandle=None)`
 **Replaces:** `TsStringUtils.MakeString()`, `ICmAgent.Name.set_String()`
 
-#### `project.Agent.GetVersion(agent_or_hvo, wsHandle=None)`
+#### `project.Agents.GetVersion(agent_or_hvo, wsHandle=None)`
 **Replaces:** `ICmAgent.Version.get_String()`, `ITsString.Text`
 
-#### `project.Agent.SetVersion(agent_or_hvo, version, wsHandle=None)`
+#### `project.Agents.SetVersion(agent_or_hvo, version, wsHandle=None)`
 **Replaces:** `TsStringUtils.MakeString()`, `ICmAgent.Version.set_String()`
 
-#### `project.Agent.IsHuman(agent_or_hvo)`
+#### `project.Agents.IsHuman(agent_or_hvo)`
 **Replaces:** `ICmAgent.Human` property null check
 
-#### `project.Agent.IsParser(agent_or_hvo)`
+#### `project.Agents.IsParser(agent_or_hvo)`
 **Replaces:** `ICmAgent.Human` property null check (inverted logic)
 
-#### `project.Agent.GetHuman(agent_or_hvo)`
+#### `project.Agents.GetHuman(agent_or_hvo)`
 **Replaces:** `ICmAgent.Human` property access (returns `ICmPerson`)
 
-#### `project.Agent.SetHuman(agent_or_hvo, person)`
+#### `project.Agents.SetHuman(agent_or_hvo, person)`
 **Replaces:** `ICmAgent.Human` property assignment
 
-#### `project.Agent.GetApprovals(agent_or_hvo)`
+#### `project.Agents.GetApprovals(agent_or_hvo)`
 **Replaces:** `ICmAgent.ApprovalsOS` list conversion
 
-#### `project.Agent.GetEvaluations(agent_or_hvo)`
+#### `project.Agents.GetEvaluations(agent_or_hvo)`
 **Replaces:** `ICmAgent.EvaluationsRC` list conversion
 
-#### `project.Agent.CreateHumanAgent(name, person, wsHandle=None)`
+#### `project.Agents.CreateHumanAgent(name, person, wsHandle=None)`
 **Replaces:** `Create()` + `SetHuman()` combined operation
 
-#### `project.Agent.CreateParserAgent(name, version, wsHandle=None)`
+#### `project.Agents.CreateParserAgent(name, version, wsHandle=None)`
 **Replaces:** `Create()` + `SetVersion()` combined operation
 
 ---

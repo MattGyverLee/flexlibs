@@ -661,7 +661,7 @@ class WfiAnalysisOperations(BaseOperations):
         if not human_agents:
             raise FP_ParameterError(
                 "No human agents exist in project. Create one first using "
-                "project.Agent.CreateHumanAgent(name, person) before setting approval status."
+                "project.Agents.CreateHumanAgent(name, person) before setting approval status."
             )
 
         # Prefer ILangProject.DefaultUserAgent (the canonical "the user"
