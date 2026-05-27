@@ -23,6 +23,11 @@ import sys
 import pytest
 
 
+# Every test in this module opens a real .fwdata project via the
+# live_project fixture.
+pytestmark = pytest.mark.requires_live_project
+
+
 # ---------------------------------------------------------------------------
 # Helpers for live-LCM tests
 # ---------------------------------------------------------------------------

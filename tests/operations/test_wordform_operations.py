@@ -217,6 +217,7 @@ class TestWordformOperationsValidation:
 
 
 @pytest.mark.integration
+@pytest.mark.requires_live_project
 class TestWordformOperationsIntegration:
     """
     Integration tests that require a real FLEx project.

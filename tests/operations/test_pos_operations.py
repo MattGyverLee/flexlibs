@@ -212,6 +212,7 @@ class TestPOSOperationsReordering:
 
 
 @pytest.mark.integration
+@pytest.mark.requires_live_project
 class TestPOSOperationsIntegration:
     """
     Integration tests that require a real FLEx project.

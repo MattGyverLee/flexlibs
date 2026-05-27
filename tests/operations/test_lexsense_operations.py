@@ -267,6 +267,7 @@ class TestLexSenseOperationsValidation:
 
 
 @pytest.mark.integration
+@pytest.mark.requires_live_project
 class TestLexSenseOperationsIntegration:
     """
     Integration tests that require a real FLEx project.
@@ -386,6 +387,7 @@ def writable_project():
         pass
 
 
+@pytest.mark.requires_live_project
 class TestLexSenseSetPartOfSpeechRegression:
     """
     Regression coverage for issue #7: LexSenseOperations.SetPartOfSpeech()

@@ -28,6 +28,11 @@ import sys
 import pytest
 
 
+# Every test in this module opens a real .fwdata project via the
+# writable_project fixture.
+pytestmark = pytest.mark.requires_live_project
+
+
 # ---------------------------------------------------------------------------
 # Live-LCM project fixture (matches the Phase 1 pattern from
 # tests/test_flexproject_discoverability.py)

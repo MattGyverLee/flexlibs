@@ -20,6 +20,11 @@ import sys
 import pytest
 
 
+# Every test in this module opens a real .fwdata project via the
+# writable_project fixture.
+pytestmark = pytest.mark.requires_live_project
+
+
 _CANDIDATE_PROJECTS = ("Sena 3", "Test", "SampleLexicon", "SampleLexicon3")
 
 

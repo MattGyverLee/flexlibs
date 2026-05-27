@@ -379,6 +379,7 @@ def _first_writable_entry(project):
     return entries[0] if entries else None
 
 
+@pytest.mark.requires_live_project
 class TestOwnerCastLive:
     """
     Behavioural regression tests for the bug class. Each test verifies

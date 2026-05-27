@@ -206,6 +206,11 @@ def initialize_flex_for_tests():
         print(f"[INFO] flexlibs2 now has {len(ops_found)} operations available")
 
     except Exception as e:
+        if os.environ.get("FLEXLIBS_REQUIRE_LIVE") == "1":
+            raise pytest.UsageError(
+                f"FLEXLIBS_REQUIRE_LIVE=1 set but FLEx initialization failed: {e}. "
+                "Refusing to fall back to mock mode."
+            )
         print(f"\n[WARN] FLEx initialization failed: {e}")
         print("[WARN] Continuing in MOCK MODE - tests will use mock objects")
         print("[WARN] This is expected in CI/test environments without FieldWorks GUI")
@@ -232,6 +237,14 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "type_checking: mark test for type validation")
     config.addinivalue_line("markers", "bounds_checking: mark test for bounds validation")
     config.addinivalue_line("markers", "string_validation: mark test for string validation")
+    config.addinivalue_line(
+        "markers",
+        "requires_live_project: test opens a real .fwdata project (Sena 3 / Test / SampleLexicon)",
+    )
+    config.addinivalue_line(
+        "markers",
+        "live_phase(operations_class, phase): tag a live-DB test with which operations class and phase it exercises (phase: read|add|reorder|modify|delete)",
+    )
 
 
 # ========== MOCK PROJECT FIXTURE ==========
@@ -638,3 +651,168 @@ def temp_test_dir(tmp_path):
         Path to temporary directory
     """
     return tmp_path
+
+
+# ========== LIVE-PROJECT LEDGER (real-world test tracking) ==========
+#
+# Two-marker pattern:
+#   - requires_live_project: selector marker. Tag every test that opens a
+#     real .fwdata project so the suite can be run / excluded via
+#     `pytest -m requires_live_project` (or `not requires_live_project`).
+#   - live_phase(operations_class, phase): metadata marker. Records which
+#     operations class and CRUD phase (read|add|reorder|modify|delete)
+#     the test exercises, so pytest_sessionfinish can emit a per-class
+#     status ledger at tests/live_status.json.
+#
+# The ledger is written ONLY when at least one requires_live_project test
+# actually ran (call phase reported). Mock-only runs never overwrite it.
+
+# Module-level recorder populated by pytest_runtest_logreport and consumed
+# by pytest_sessionfinish. Keyed by nodeid -> {"status": ..., "duration": ...}.
+_LIVE_RESULTS = {}
+
+
+def pytest_runtest_logreport(report):
+    """Record the call-phase outcome of every test for the live-project ledger."""
+    if report.when != "call" and not (report.when == "setup" and report.skipped):
+        # Only the call phase is the "real" result. Skips happen at setup
+        # (e.g. fixture pytest.skip()) and we want to capture those too.
+        return
+
+    nodeid = report.nodeid
+    if report.skipped:
+        status = "skip"
+    elif report.passed:
+        status = "pass"
+    elif report.failed:
+        # Failures during setup/teardown become "error", during call "fail".
+        status = "error" if report.when != "call" else "fail"
+    else:
+        return
+
+    existing = _LIVE_RESULTS.get(nodeid)
+    if existing is not None:
+        # Don't overwrite a real call outcome with a teardown skip etc.
+        if existing.get("status") in ("pass", "fail", "error") and status == "skip":
+            return
+    _LIVE_RESULTS[nodeid] = {
+        "status": status,
+        "duration": getattr(report, "duration", 0.0),
+    }
+
+
+def _extract_live_phase(item):
+    """Return (operations_class, phase) from a live_phase marker, or (None, None)."""
+    marker = item.get_closest_marker("live_phase")
+    if marker is None:
+        return None, None
+    args = marker.args
+    kwargs = marker.kwargs
+    if len(args) >= 2:
+        return args[0], args[1]
+    if "operations_class" in kwargs and "phase" in kwargs:
+        return kwargs["operations_class"], kwargs["phase"]
+    if len(args) == 1 and "phase" in kwargs:
+        return args[0], kwargs["phase"]
+    return None, None
+
+
+_LIVE_PHASES = ("read", "add", "reorder", "modify", "delete")
+
+
+def pytest_sessionfinish(session, exitstatus):
+    """
+    Emit tests/live_status.json summarising the run, but only if at least
+    one requires_live_project test actually executed. Pure-mock runs leave
+    the ledger untouched.
+    """
+    import datetime
+    import json
+
+    live_items = [
+        item
+        for item in session.items
+        if item.get_closest_marker("requires_live_project") is not None
+    ]
+    if not live_items:
+        return
+
+    # Filter to items that actually ran (have a recorded outcome).
+    ran_items = [item for item in live_items if item.nodeid in _LIVE_RESULTS]
+    if not ran_items:
+        return
+
+    by_test = {}
+    by_class = {}
+    uncategorized = []
+
+    for item in ran_items:
+        outcome = _LIVE_RESULTS[item.nodeid]
+        ops_class, phase = _extract_live_phase(item)
+
+        by_test[item.nodeid] = {
+            "status": outcome["status"],
+            "operations_class": ops_class,
+            "phase": phase,
+            "duration_seconds": round(float(outcome["duration"]), 3),
+        }
+
+        if ops_class is None or phase is None:
+            uncategorized.append(
+                f"{item.nodeid} -- missing live_phase marker"
+            )
+            continue
+
+        cls_entry = by_class.setdefault(
+            ops_class,
+            {
+                p: {"status": "untested", "tests": [], "last_verified": None}
+                for p in _LIVE_PHASES
+            },
+        )
+        if phase not in cls_entry:
+            # Non-standard phase name; record it anyway.
+            cls_entry[phase] = {"status": "untested", "tests": [], "last_verified": None}
+        cls_entry[phase]["tests"].append(item.nodeid)
+
+    today = datetime.date.today().isoformat()
+    for ops_class, phases in by_class.items():
+        for phase_name, cell in phases.items():
+            tests = cell["tests"]
+            if not tests:
+                continue
+            statuses = [by_test[t]["status"] for t in tests]
+            if any(s == "fail" or s == "error" for s in statuses):
+                cell["status"] = "fail"
+                cell["last_verified"] = None
+            elif all(s == "skip" for s in statuses):
+                cell["status"] = "skip"
+                cell["last_verified"] = None
+            elif all(s == "pass" for s in statuses):
+                cell["status"] = "pass"
+                cell["last_verified"] = today
+            else:
+                # Mixed pass/skip without fail counts as pass for verification.
+                if any(s == "pass" for s in statuses) and not any(
+                    s in ("fail", "error") for s in statuses
+                ):
+                    cell["status"] = "pass"
+                    cell["last_verified"] = today
+                else:
+                    cell["status"] = "untested"
+                    cell["last_verified"] = None
+
+    payload = {
+        "run_timestamp": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "by_test": by_test,
+        "by_class": by_class,
+        "uncategorized_live_tests": uncategorized,
+    }
+
+    out_path = os.path.join(_test_dir, "live_status.json")
+    try:
+        with open(out_path, "w", encoding="utf-8") as fh:
+            json.dump(payload, fh, indent=2, sort_keys=True)
+            fh.write("\n")
+    except OSError as exc:
+        print(f"[WARN] Could not write {out_path}: {exc}")

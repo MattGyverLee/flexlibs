@@ -84,3 +84,7 @@ test_results.txt
 Temp/
 temp/
 tmp/
+
+# Live-test FieldWorks project backups (large, not source-tracked)
+tests/fixtures/*.fwbackup
+tests/fixtures/*.fwdata
