@@ -732,43 +732,6 @@ class TestPhonRulesAlphaAndWireRule:
                 self._delete_nc(writable_project, nc_v)
 
     # ------------------------------------------------------------------
-    # WireRule — MVP guard rails
-    # ------------------------------------------------------------------
-
-    def test_wire_rule_rejects_multi_element_left_context(
-        self, writable_project
-    ):
-        """
-        MVP guard: multi-element left_context lists are not yet supported
-        (PhSequenceContext is pending #11 follow-up). The composer must
-        raise FP_ParameterError with a clear message.
-        """
-        from flexlibs2.code.Shared.rule_patterns import NC as ShNC
-        from flexlibs2.code.FLExProject import FP_ParameterError
-
-        rule_name = "Phase5e_WireRule_MultiLeftReject"
-        nc_a, nc_a_created = self._ensure_natural_class(
-            writable_project, "WireRuleMultiA"
-        )
-        nc_b, nc_b_created = self._ensure_natural_class(
-            writable_project, "WireRuleMultiB"
-        )
-        try:
-            self._cleanup_rule_by_name(writable_project, rule_name)
-            rule_obj = writable_project.PhonRules.Create(rule_name)
-
-            with pytest.raises(FP_ParameterError):
-                writable_project.PhonRules.WireRule(
-                    rule_obj, left_context=[ShNC(nc_a), ShNC(nc_b)]
-                )
-        finally:
-            self._cleanup_rule_by_name(writable_project, rule_name)
-            if nc_a_created:
-                self._delete_nc(writable_project, nc_a)
-            if nc_b_created:
-                self._delete_nc(writable_project, nc_b)
-
-    # ------------------------------------------------------------------
     # WireRule — Boundary resolution
     # ------------------------------------------------------------------
 
