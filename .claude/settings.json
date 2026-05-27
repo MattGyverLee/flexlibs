@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C \"d:/Github/_Projects/_LEX/flexlibs2\" diff flexlibs2/code/FLExProject.py)",
+      "Bash(Select-String -Pattern \"^[+-].*GetService|^[+-].*GetDefaultVernacular|^[+-].*GetDefaultAnalysis|^[+-].*clr\\\\.GetClrType\" -CaseSensitive)",
+      "Bash(grep -rn -A 6 \"[Ff]actory\\\\.Create\\(\\)\" \"D:/Github/_Projects/_LEX/flexlibs2/flexlibs2/code\" --include=\"*.py\")",
+      "Read(//c/tmp/**)",
+      "Bash(grep -c '<item type=\"category\"' \"C:/Program Files/SIL/FieldWorks 9/Templates/GOLDEtic.xml\")",
+      "Read(//c/Program Files/SIL/FieldWorks 9/Templates/**)",
+      "Bash(grep -c '^  <item type=\"category\"' \"C:/Program Files/SIL/FieldWorks 9/Templates/GOLDEtic.xml\")",
+      "PowerShell(gh repo clone MattGyverlee/team D:\\\\Github\\\\_Projects\\\\team 2>&1)",
+      "Bash(git -C \"D:\\\\Github\\\\_Projects\\\\_LEX\\\\flexlibs2\" status --short)",
+      "Bash(git -C \"D:\\\\Github\\\\_Projects\\\\_LEX\\\\flexlibs2\" diff --stat -- flexlibs2/code/FLExProject.py flexlibs2/code/Shared/catalog.py)",
+      "Bash(git stash *)",
+      "Bash(gh repo *)"
+    ]
+  }
+}

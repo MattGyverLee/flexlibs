@@ -28,7 +28,7 @@ from ..FLExProject import (
 from ..lcm_casting import get_pos_from_msa
 
 # Import string utilities
-from ..Shared.string_utils import normalize_text, normalize_match_key
+from ..Shared.string_utils import normalize_match_key
 
 # Catalog (GOLDEtic) parsing helpers
 from ..Shared.catalog import parse_etic_catalog

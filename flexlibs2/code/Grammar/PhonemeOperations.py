@@ -1534,6 +1534,20 @@ class PhonemeOperations(BaseOperations):
             vern_ws = fonipa_handle
         analysis_ws = self.project.GetDefaultAnalysisWSHandle()
 
+        # Precompute (feature_source_id, NFD-normalized term) -> IFsSymFeatVal.
+        # Walking feature_obj.ValuesOC inside the per-segment loop is O(values
+        # × pairs × segments) and does one LCM string fetch per visit; doing
+        # it here is O(total values) once. The NFD normalize via
+        # normalize_match_key makes the lookup safe against any future
+        # catalog change to a non-ASCII term ("négatif" etc.) — Python source
+        # is NFC, LCM stores NFD.
+        values_by_feat_and_term = {}
+        for src_id, cf in features_by_source_id.items():
+            for v in cf.ValuesOC:
+                v_name = ITsString(v.Name.get_String(analysis_ws)).Text or ""
+                key = (src_id, normalize_match_key(v_name, casefold=False))
+                values_by_feat_and_term[key] = v
+
         # --- Import loop -----------------------------------------------
         result = CatalogImportResult()
         seen_code_points = set()  # in-pass dedup against malformed catalogs
@@ -1577,13 +1591,12 @@ class PhonemeOperations(BaseOperations):
                         f"skipping value '{val_id}'."
                     )
                     continue
-                # Match value by analysis-WS Name (the catalog term).
-                value_obj = None
-                for v in feature_obj.ValuesOC:
-                    v_name = ITsString(v.Name.get_String(analysis_ws)).Text or ""
-                    if v_name == val_term:
-                        value_obj = v
-                        break
+                # Match value by NFD-normalized analysis-WS Name. Lookup
+                # is O(1) per pair via the precomputed map; bare equality
+                # is unsafe across NFC/NFD encodings.
+                value_obj = values_by_feat_and_term.get(
+                    (lookup_feat_id, normalize_match_key(val_term, casefold=False))
+                )
                 if value_obj is None:
                     result.warnings.append(
                         f"Segment '{seg.representation}': value '{val_term}' "

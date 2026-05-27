@@ -222,35 +222,8 @@ class TestPhonemeIPAOperations:
     # SetBasicIPASymbol
     # ---------------------------------------------------------------
 
-    @staticmethod
-    def _read_basic_ipa_raw(phoneme, ws):
-        """
-        Read BasicIPASymbol via raw LCM regardless of whether it is
-        IMultiUnicode (per-WS) or ITsString (scalar). Used because the
-        in-tree GetBasicIPASymbol has a pre-existing bug when the
-        property is ITsString-shaped (calls .get_String on the
-        ITsString itself), and we don't want to modify source as part
-        of the Phase 5c verification.
-        """
-        from SIL.LCModel.Core.KernelInterfaces import ITsString
-
-        raw = phoneme.BasicIPASymbol
-        if raw is None:
-            return ""
-        # Multi-shape path: per-WS get_String
-        if hasattr(raw, "get_String"):
-            tss = raw.get_String(ws)
-            return ITsString(tss).Text or ""
-        # Scalar ITsString path: cast directly
-        return ITsString(raw).Text or ""
-
     def test_set_basic_ipa_symbol_writes_round_trip(self, writable_project):
-        """
-        SetBasicIPASymbol("ɯ") must write the value to the phoneme's
-        BasicIPASymbol property. Reads back via a raw LCM helper so
-        the test is decoupled from a pre-existing bug in
-        GetBasicIPASymbol for ITsString-shaped builds.
-        """
+        """SetBasicIPASymbol -> GetBasicIPASymbol round-trips."""
         representation = "qZ_ipa_set_roundtrip"
 
         existing = writable_project.Phonemes.Find(representation)
@@ -262,7 +235,7 @@ class TestPhonemeIPAOperations:
             writable_project.Phonemes.SetBasicIPASymbol(phoneme, "ɯ")
 
             ws = writable_project.project.DefaultVernWs
-            got = self._read_basic_ipa_raw(phoneme, ws)
+            got = writable_project.Phonemes.GetBasicIPASymbol(phoneme, ws)
             assert got == "ɯ", (
                 f"SetBasicIPASymbol round-trip failed: expected 'ɯ', "
                 f"got {got!r}"
@@ -293,7 +266,7 @@ class TestPhonemeIPAOperations:
             writable_project.Phonemes.SetBasicIPASymbol(phoneme, "ö")
 
             ws = writable_project.project.DefaultVernWs
-            got = self._read_basic_ipa_raw(phoneme, ws)
+            got = writable_project.Phonemes.GetBasicIPASymbol(phoneme, ws)
             # Storage may normalise NFD; both NFC and NFD should be
             # acceptable round-trips. We assert *content equivalence*
             # after Unicode normalisation rather than byte equality.
@@ -326,7 +299,7 @@ class TestPhonemeIPAOperations:
                 phoneme, "ʃ", wsHandle=ws
             )
 
-            got = self._read_basic_ipa_raw(phoneme, ws)
+            got = writable_project.Phonemes.GetBasicIPASymbol(phoneme, ws)
             assert got == "ʃ", (
                 f"SetBasicIPASymbol(wsHandle={ws}) round-trip failed: "
                 f"got {got!r}"
