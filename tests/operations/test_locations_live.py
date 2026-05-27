@@ -180,15 +180,25 @@ class TestLocationsPhaseBAdd:
 
 class TestLocationsPhaseCReorder:
     """
-    Phase C: capture original order, perform a swap on the OS list,
-    restore. The PossibilitiesOS ordered sequence has no MoveUp helper
-    on LocationOperations, so the test manipulates the sequence directly
-    -- exercises Insert/Remove/IndexOf semantics.
+    Phase C: capture original order, perform a swap, restore.
+
+    Important LCM semantic: `LcmOwningSequence.Remove(item)` does NOT
+    just unlink the item from the sequence -- it DELETES the owned
+    object outright (orphan deletion). A naive Remove+Insert reorder
+    pattern raises `LcmObjectDeletedException` on the second call.
+
+    The LCM-correct API for in-sequence reordering is:
+        sequence.MoveTo(srcStart, srcEnd, destSeq, destIndex)
+    which moves a slice without deleting the objects. BaseOperations
+    wraps this in MoveUp/MoveDown/MoveToIndex helpers, but those
+    require subclasses to override `_GetSequence(parent)` -- which
+    LocationOperations does not. The test below calls MoveTo directly
+    on the OS list.
     """
 
     @pytest.mark.live_phase("LocationOperations", "reorder")
     def test_swap_two_temp_locations(self, writable_project):
-        """Create two locations, swap their positions, restore."""
+        """Create two locations, swap via MoveTo, restore."""
         name_a = "TEST_loc_phase_c_swap_a"
         name_b = "TEST_loc_phase_c_swap_b"
 
@@ -205,17 +215,24 @@ class TestLocationsPhaseCReorder:
             assert idx_a_initial >= 0
             assert idx_b_initial >= 0
             assert idx_a_initial != idx_b_initial
+            assert idx_a_initial < idx_b_initial  # Create() appends
 
-            # Reorder: move loc_a past loc_b
-            possibilities.Remove(loc_a)
-            idx_b_now = possibilities.IndexOf(loc_b)
-            possibilities.Insert(idx_b_now + 1, loc_a)
+            # Reorder: move loc_a to a position past loc_b. MoveTo's
+            # destIndex semantics are "insert before this index"; when
+            # moving forward in the same sequence, add 1.
+            possibilities.MoveTo(
+                idx_a_initial, idx_a_initial, possibilities, idx_b_initial + 1
+            )
             assert possibilities.IndexOf(loc_a) > possibilities.IndexOf(loc_b)
 
-            # Restore: put loc_a back at original index
-            possibilities.Remove(loc_a)
-            possibilities.Insert(idx_a_initial, loc_a)
+            # Restore: move loc_a back to its original index. Moving
+            # backward, destIndex is used directly.
+            current_idx = possibilities.IndexOf(loc_a)
+            possibilities.MoveTo(
+                current_idx, current_idx, possibilities, idx_a_initial
+            )
             assert possibilities.IndexOf(loc_a) == idx_a_initial
+            assert possibilities.IndexOf(loc_b) == idx_b_initial
         finally:
             for loc in (loc_a, loc_b):
                 try:
