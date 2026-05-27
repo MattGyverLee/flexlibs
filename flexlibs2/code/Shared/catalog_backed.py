@@ -675,7 +675,9 @@ class _LCMNativeCatalogImportMixin:
 
     # ---- Mixin-private helper -----------------------------------------
 
-    def _import_lcm_native_catalog(self, progress=None, force=False):
+    def _import_lcm_native_catalog(
+        self, progress=None, force=False, catalog_file=None
+    ):
         """
         Delegate to LCM's native XmlList.ImportList after the non-empty
         guard. Subclasses' ImportCatalog methods call this verbatim;
@@ -691,6 +693,12 @@ class _LCMNativeCatalogImportMixin:
         Args:
             progress: Optional ``SIL.LCModel.Utils.IProgress`` instance.
             force: If True, skip the non-empty guard.
+            catalog_file: Optional override for ``self.CATALOG_FILE``.
+                Used by sibling-catalog import methods (e.g.
+                ``ImportFrameCatalog`` on AnthropologyOperations, which
+                points at ``OCM-Frame.xml`` instead of the main
+                ``OCM.xml``). When None (default), the subclass's
+                class-level ``CATALOG_FILE`` constant is used.
 
         Returns:
             int: Count of top-level items in the target list after import.
@@ -710,6 +718,8 @@ class _LCMNativeCatalogImportMixin:
 
         self._EnsureWriteEnabled()
 
+        effective_catalog = catalog_file or self.CATALOG_FILE
+
         target_list = getattr(self.project.lp, self.LANG_PROJECT_LIST_ATTR)
         existing = target_list.PossibilitiesOS.Count
         if existing > 0 and not force:
@@ -717,18 +727,18 @@ class _LCMNativeCatalogImportMixin:
                 f"{self.LANG_PROJECT_LIST_ATTR} already has {existing} "
                 f"top-level {self.DOMAIN_ITEM_LABEL_SINGULAR}(s). "
                 f"XmlList.ImportList APPENDS without GUID-based "
-                f"deduplication, so calling ImportCatalog here would "
-                f"create duplicates. Pass force=True if you intend to "
-                f"layer additional {self.DOMAIN_ITEM_LABEL_PLURAL} on "
-                f"top, or clear the list first."
+                f"deduplication, so calling this here would create "
+                f"duplicates. Pass force=True if you intend to layer "
+                f"additional {self.DOMAIN_ITEM_LABEL_PLURAL} on top, "
+                f"or clear the list first."
             )
 
         try:
             catalog_path = find_catalog_file(
-                self.CATALOG_FILE, subdir=self.CATALOG_SUBDIR
+                effective_catalog, subdir=self.CATALOG_SUBDIR
             )
         except FileNotFoundError as e:
-            raise FP_FileNotFoundError(self.CATALOG_FILE, e)
+            raise FP_FileNotFoundError(effective_catalog, e)
 
         importer = XmlList()
         # LCM_FIELD_NAME maps to LangProject.<LANG_PROJECT_LIST_ATTR>.

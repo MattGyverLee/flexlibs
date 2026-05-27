@@ -258,3 +258,65 @@ class TestAnthropologyOCMCatalog:
             f"duplicates / already-populated / force override: "
             f"{exc_info.value!r}"
         )
+
+
+class TestAnthropologyFrameCatalog:
+    """
+    Coverage for AnthropologyOperations.ImportFrameCatalog -- the
+    OCM-Frame sibling catalog wired in to follow up on issue #29 item
+    1. Same XmlList.ImportList plumbing as ImportCatalog, same
+    non-empty-list guard; only the catalog file differs
+    (OCM-Frame.xml vs OCM.xml). We don't trigger a live import here
+    (same Sena-3 pollution rationale as ImportCatalog), but we verify
+    the method exists, its signature, and that the guard fires when
+    the project already has anthropology items.
+    """
+
+    def test_import_frame_catalog_method_exists(self):
+        """
+        ImportFrameCatalog must be on the class and expose force /
+        progress kwargs. Pure static introspection; no LCM required.
+        """
+        from flexlibs2.code.Notebook.AnthropologyOperations import (
+            AnthropologyOperations,
+        )
+
+        assert "ImportFrameCatalog" in AnthropologyOperations.__dict__, (
+            "ImportFrameCatalog not on AnthropologyOperations class "
+            "(only as inherited mixin entry); the wrapper method "
+            "should be defined on the operations class so it appears "
+            "in dir(project.Anthropology) and inspection."
+        )
+
+        descriptor = AnthropologyOperations.__dict__["ImportFrameCatalog"]
+        underlying = getattr(descriptor, "func", descriptor)
+        params = inspect.signature(underlying).parameters
+        assert "force" in params, (
+            f"ImportFrameCatalog missing 'force' kwarg; got: {list(params)}"
+        )
+        assert "progress" in params, (
+            f"ImportFrameCatalog missing 'progress' kwarg; "
+            f"got: {list(params)}"
+        )
+        assert params["force"].default is False, (
+            "ImportFrameCatalog force must default to False (refuse-by-default)"
+        )
+
+    def test_import_frame_catalog_guard_fires_on_non_empty_list(
+        self, writable_project
+    ):
+        """
+        Same guard semantics as ImportCatalog: when AnthroListOA is
+        non-empty, ImportFrameCatalog (without force=True) must raise
+        FP_ParameterError. Skipped when the list is empty (no way to
+        exercise the guard without seeding, which is a pollution risk).
+        """
+        from flexlibs2.code.FLExProject import FP_ParameterError
+
+        if _anthro_count(writable_project) == 0:
+            pytest.skip(
+                "AnthroListOA empty; non-empty guard cannot be exercised."
+            )
+
+        with pytest.raises(FP_ParameterError):
+            writable_project.Anthropology.ImportFrameCatalog()

@@ -1845,6 +1845,48 @@ class AnthropologyOperations(BaseOperations, _LCMNativeCatalogImportMixin):
         # on the class itself (tests introspect via __dict__).
         return self._import_lcm_native_catalog(progress=progress, force=force)
 
+    @OperationsMethod
+    def ImportFrameCatalog(self, progress=None, force=False):
+        """
+        Import the OCM-Frame sibling catalog into this project.
+
+        ``OCM-Frame.xml`` is the framework variant of the OCM
+        anthropology catalog (ships alongside ``OCM.xml`` under
+        ``<FWCodeDir>/Templates/``). It targets the same
+        ``LangProject.AnthroListOA`` list, so the typical usage is
+        ``ImportCatalog()`` first (main OCM) followed by
+        ``ImportFrameCatalog(force=True)`` to layer the framework
+        entries on top.
+
+        Same XmlList.ImportList plumbing, same non-empty-list guard,
+        same caveats around appending without GUID deduplication. See
+        ``ImportCatalog`` for the full contract; only the catalog file
+        differs. (issue #29 item 1)
+
+        Args:
+            progress: Optional ``SIL.LCModel.Utils.IProgress`` instance.
+                Pass ``None`` (default) for silent import.
+            force: If True, skip the non-empty list check. Default
+                False -- which means ``ImportFrameCatalog`` will refuse
+                whenever ``AnthroListOA`` already has items (including
+                the items ``ImportCatalog`` just added). Layered
+                imports therefore need ``force=True`` after the main
+                OCM import.
+
+        Returns:
+            int: Number of top-level items in ``AnthroListOA`` after
+                import.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not write-enabled.
+            FP_FileNotFoundError: If OCM-Frame.xml cannot be located.
+            FP_ParameterError: If ``AnthroListOA`` already has items
+                and ``force`` is False.
+        """
+        return self._import_lcm_native_catalog(
+            progress=progress, force=force, catalog_file="OCM-Frame.xml"
+        )
+
     # ========== SYNC INTEGRATION METHODS ==========
 
     @OperationsMethod
