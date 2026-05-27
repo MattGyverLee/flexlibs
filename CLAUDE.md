@@ -121,6 +121,14 @@ flexlibs2/
 - Import FLEx types from `SIL.LCModel`
 - Use factory and repository interfaces for object creation
 - Handle ITsString properly for multilingual text
+- **Same-name fields can have different LCM types across object types.**
+  For example, `Source` is `ITsString` on `ILexSense` but `IMultiString`
+  on `ILexEtymology` and `ICmBaseAnnotation`. Copying a working pattern
+  from one Operations class to another without checking the field's type
+  on the *target* LCM interface is the root cause of issues #36/#39/#40.
+  See `docs/API_ISSUES_CATEGORIZED.md` "Category 8: Same-name fields
+  with different LCM types" for the current table and the correct access
+  patterns.
 
 ### Write Operations
 - Only perform write operations if `project.WriteEnabled` is True

@@ -408,6 +408,34 @@ ImportError: cannot import name 'IMoMorphRule' from 'SIL.LCModel'
 
 ---
 
+## Category 8: Same-name fields with different LCM types
+### [WARN] Recurring trap - prevention via documentation
+
+**Issue**: Several LCM object types expose fields with identical names but different underlying types. Authors copying a working pattern from one type to another silently ship a type-confusion bug; the LCM model gives no warning at the Python boundary until assignment or read at runtime.
+
+### The `Source` field
+
+| Object type | `Source` field type | Correct access pattern |
+|---|---|---|
+| `ILexSense` | `ITsString` (single string with embedded ws handle) | Read `.Text` directly; write via `TsStringUtils.MakeString(text, ws_handle)` |
+| `ILexEtymology` | `IMultiString` (per-WS) | Iterate ws handles; use `.get_String(ws)` / `.set_String(ws, ts_string)` |
+| `ICmBaseAnnotation` | `IMultiString` (per-WS) | Same as `ILexEtymology` |
+
+Reference: see `LexSenseOperations._ReadTsString` / `_MakeTsString` (ITsString helpers, single source of truth on `BaseOperations`) versus `EtymologyOperations` and `NoteOperations` which iterate ws handles for the IMultiString form.
+
+### Why this matters
+
+- Same field name + different LCM type = silent bug. The `hasattr` / duck-typing patterns common in this codebase mask the mismatch.
+- Has caused issues #36, #39, #40 -- the same shape recurs whenever an author looks at one Operations class to learn how to handle "Source" and applies the pattern to the wrong type.
+
+### Recommended pattern
+
+Before touching a field named `Source` (or any field whose type you have not verified for *this specific LCM type*), check this table. If the type is not listed here, verify via the LCM model documentation or by reading another Operations class that already handles the same type.
+
+Future contributors are welcome to extend this table when they discover additional same-name / different-type collisions.
+
+---
+
 ## Summary Statistics
 
 ### By Status (Updated):
