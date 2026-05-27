@@ -575,12 +575,20 @@ class WfiMorphBundleOperations(BaseOperations):
         """
         Get the morpheme gloss of a bundle.
 
+        Read-only convenience: a morpheme bundle has no free-standing
+        gloss field on IWfiMorphBundle itself. The displayed gloss
+        comes from the bundle's linked lexical sense
+        (``bundle.SenseRA.Gloss``). This method forwards to that path
+        and returns an empty string when no sense is linked.
+
         Args:
             bundle_or_hvo: The IWfiMorphBundle object or HVO.
             wsHandle: Optional writing system handle. Defaults to analysis WS.
 
         Returns:
-            str: The morpheme gloss, or empty string if not set.
+            str: The linked sense's gloss in the chosen WS, or an empty
+            string if the bundle has no linked sense or the sense has no
+            gloss in that WS.
 
         Raises:
             FP_NullParameterError: If bundle_or_hvo is None.
@@ -593,75 +601,61 @@ class WfiMorphBundleOperations(BaseOperations):
             ...     print(gloss)
             run
 
-            >>> # For grammatical morphemes
-            >>> gloss = morphBundleOps.GetGloss(bundles[1])
-            >>> print(gloss)
-            PROG
-
         Notes:
-            - Gloss represents the meaning of the morpheme
-            - For lexical morphemes, typically a translation
-            - For grammatical morphemes, often an abbreviation (PROG, PST, etc.)
-            - Uses analysis writing system by default
-            - May be derived from linked sense if set
+            - Returns "" for unlinked bundles or grammatical morphemes
+              whose gloss is held on the MSA / analysis rather than a
+              lexical sense.
+            - Uses the analysis writing system by default.
 
         See Also:
-            SetGloss, GetForm, GetSense
+            GetForm, GetSense
         """
         self._ValidateParam(bundle_or_hvo, "bundle_or_hvo")
 
         bundle = self.__GetBundleObject(bundle_or_hvo)
         wsHandle = self.__WSHandleAnal(wsHandle)
 
-        gloss = ITsString(bundle.Gloss.get_String(wsHandle)).Text
+        # IWfiMorphBundle has no Gloss field; the displayed gloss comes
+        # from the linked sense's MultiUnicode Gloss. (issue #16)
+        sense = bundle.SenseRA
+        if sense is None:
+            return ""
+
+        gloss = ITsString(sense.Gloss.get_String(wsHandle)).Text
         return gloss or ""
 
     @OperationsMethod
     def SetGloss(self, bundle_or_hvo, text, wsHandle=None):
         """
-        Set the morpheme gloss of a bundle.
+        Setting a gloss on a morpheme bundle is not supported.
 
-        Args:
-            bundle_or_hvo: The IWfiMorphBundle object or HVO.
-            text: The gloss text to set.
-            wsHandle: Optional writing system handle. Defaults to analysis WS.
+        IWfiMorphBundle has no Gloss field of its own; the displayed
+        gloss is derived from the bundle's linked sense
+        (``bundle.SenseRA.Gloss``). Writing to that path would mutate
+        the lexical sense for every wordform/analysis that references
+        it, which is a surprising side effect to attach to a
+        per-bundle setter. This method therefore refuses with a clear
+        redirect rather than performing a hidden write.
+
+        To change the gloss seen on a bundle, locate the linked sense
+        and update its gloss directly:
+
+            sense = morphBundleOps.GetSense(bundle)
+            if sense is not None:
+                project.Senses.SetGloss(sense, text, wsHandle=wsHandle)
 
         Raises:
-            FP_ReadOnlyError: If the project is not opened with write enabled.
-            FP_NullParameterError: If bundle_or_hvo or text is None.
-
-        Example:
-            >>> morphBundleOps = WfiMorphBundleOperations(project)
-            >>> bundles = list(morphBundleOps.GetAll(analysis))
-            >>> if bundles:
-            ...     morphBundleOps.SetGloss(bundles[0], "run")
-            ...     print(morphBundleOps.GetGloss(bundles[0]))
-            run
-
-            >>> # Set grammatical gloss
-            >>> morphBundleOps.SetGloss(bundles[1], "PROG")
-
-        Notes:
-            - Gloss represents the meaning/function of the morpheme
-            - Use natural language for lexical morphemes
-            - Use standard abbreviations for grammatical morphemes
-            - May be overridden by linked sense gloss in some views
-            - Uses analysis writing system by default
-
-        See Also:
-            GetGloss, SetForm, SetSense
+            FP_ParameterError: Always, with a message pointing at the
+                LexSense path.
         """
-        self._EnsureWriteEnabled()
-
-        self._ValidateParam(bundle_or_hvo, "bundle_or_hvo")
-
-        self._ValidateParam(text, "text")
-
-        bundle = self.__GetBundleObject(bundle_or_hvo)
-        wsHandle = self.__WSHandleAnal(wsHandle)
-
-        mkstr = TsStringUtils.MakeString(text, wsHandle)
-        bundle.Gloss.set_String(wsHandle, mkstr)
+        raise FP_ParameterError(
+            "WfiMorphBundleOperations.SetGloss is not supported: "
+            "IWfiMorphBundle has no Gloss field, and writing through "
+            "SenseRA.Gloss would mutate the shared lexical sense. "
+            "Use LexSenseOperations.SetGloss on bundle.SenseRA "
+            "(see GetSense) when you really intend to change the sense's "
+            "gloss for all bundles that reference it."
+        )
 
     # ==================== LEXICAL LINK OPERATIONS ====================
 
