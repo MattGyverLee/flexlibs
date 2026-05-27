@@ -61,20 +61,23 @@ class TestWfiMorphBundleGlossContract:
 
     def test_set_gloss_raises_unconditionally(self):
         """
-        SetGloss must always raise FP_ParameterError with a message
+        SetGloss must always raise NotImplementedError with a message
         pointing the caller at LexSenseOperations.SetGloss. Mutating
         a shared lexical sense from a per-bundle setter would be a
         surprising side effect; explicit refusal is the contract.
+
+        The exception class is NotImplementedError -- a capability
+        refusal -- not FP_ParameterError, since no argument the caller
+        could pass would make this call valid. (issue #109)
         """
         from flexlibs2.code.TextsWords.WfiMorphBundleOperations import (
             WfiMorphBundleOperations,
         )
-        from flexlibs2.code.FLExProject import FP_ParameterError
 
         class _MockSelf:
             project = None
 
-        with pytest.raises(FP_ParameterError) as exc_info:
+        with pytest.raises(NotImplementedError) as exc_info:
             WfiMorphBundleOperations.SetGloss(
                 _MockSelf(), object(), "anything"
             )

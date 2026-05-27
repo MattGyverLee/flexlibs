@@ -644,10 +644,11 @@ class WfiMorphBundleOperations(BaseOperations):
                 project.Senses.SetGloss(sense, text, wsHandle=wsHandle)
 
         Raises:
-            FP_ParameterError: Always, with a message pointing at the
-                LexSense path.
+            NotImplementedError: Always, with a message pointing at the
+                LexSense path. The exception class signals an unsupported
+                operation (capability refusal), not a bad argument.
         """
-        raise FP_ParameterError(
+        raise NotImplementedError(
             "WfiMorphBundleOperations.SetGloss is not supported: "
             "IWfiMorphBundle has no Gloss field, and writing through "
             "SenseRA.Gloss would mutate the shared lexical sense. "
