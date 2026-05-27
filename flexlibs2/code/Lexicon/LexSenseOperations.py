@@ -2998,9 +2998,11 @@ class LexSenseOperations(BaseOperations):
         # Get all complex form back refs
         all_complex_forms = self.GetVisibleComplexFormBackRefs(sense)
 
-        # Filter out subentries (where owner entry is in PrimaryLexemesRS)
+        # Filter out subentries (where owner entry is in PrimaryLexemesRS).
+        # OwnerOfClass takes an Int32 class ID, not a .NET Type -- passing
+        # ILexEntry directly raised ArgumentException at runtime. (issue #26)
         result = []
-        owner_entry = sense.OwnerOfClass(ILexEntry)
+        owner_entry = ILexEntry(sense.OwnerOfClass(LexEntryTags.kClassId))
         if not owner_entry:
             return result
 
