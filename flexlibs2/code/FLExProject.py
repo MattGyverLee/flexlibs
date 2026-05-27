@@ -2868,10 +2868,17 @@ class FLExProject(object):
             >>> audio_path = "LinkedFiles/AudioVisual/hello.wav"
             >>> proj.Allomorph.SetFormAudio(allomorph, audio_path, audio_ws)
 
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with
+                writeEnabled=True.
+
         See also:
             :meth:`IsAudioWritingSystem` - Check if WS is audio type
             :meth:`GetAudioPath` - Get audio file path
         """
+        if not self.writeEnabled:
+            raise FP_ReadOnlyError()
+
         try:
             # Create ITsString with embedded file path
             bldr = self.project.ServiceLocator.GetInstance("TsStrBldr")
