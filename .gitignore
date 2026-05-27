@@ -88,3 +88,7 @@ tmp/
 # Live-test FieldWorks project backups (large, not source-tracked)
 tests/fixtures/*.fwbackup
 tests/fixtures/*.fwdata
+
+# Live-test ledger artifact (regenerated each live run; LIVE_STATUS.md is the
+# committed human-readable view).
+tests/live_status.json
