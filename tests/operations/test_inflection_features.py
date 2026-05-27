@@ -508,5 +508,106 @@ class TestInflectionFeaturesCatalog:
                 _delete_msfeat_by_guid(writable_project, created_guid)
 
 
+def _delete_mstype_by_guid(project, guid_str):
+    """
+    Best-effort delete of an IFsFeatStrucType from
+    MsFeatureSystemOA.TypesOC by GUID. Used by the issue #37 tests
+    to keep MsFeatureSystemOA.TypesOC clean across runs.
+    """
+    feature_system = project.lp.MsFeatureSystemOA
+    if feature_system is None:
+        return
+    target_guid = guid_str.lower()
+    for raw in list(feature_system.TypesOC):
+        if str(raw.Guid).lower() == target_guid:
+            try:
+                feature_system.TypesOC.Remove(raw)
+            except Exception:
+                pass
+            return
+
+
+class TestInflectionFeaturesTypeFindCreate:
+    """
+    Coverage for InflectionFeatureOperations.TypeFind / TypeCreate
+    (closes issue #37 -- deferred from #19's wish list). These wrap
+    IFsFeatStrucType lookup and creation in MsFeatureSystemOA.TypesOC.
+    Used by advanced workflows that group closed features into
+    shared FsFeatStruc shapes (e.g. Bantu tCommonAgr).
+    """
+
+    def test_type_find_returns_none_for_missing(self, writable_project):
+        """TypeFind for a name that doesn't exist returns None, not raise."""
+        result = writable_project.InflectionFeatures.TypeFind(
+            "qZ_definitely_does_not_exist_fsType"
+        )
+        assert result is None, (
+            f"TypeFind for a missing type must return None, got {result!r}"
+        )
+
+    def test_type_create_then_find_round_trip(self, writable_project):
+        """
+        Round-trip: TypeCreate -> TypeFind by the same name -> identity
+        match. Verifies the new IFsFeatStrucType lands in
+        MsFeatureSystemOA.TypesOC and is reachable through TypeFind.
+        """
+        name = "qZ_TypeCreate_RoundTrip"
+
+        # Pre-clean any leftover from a previous run.
+        existing = writable_project.InflectionFeatures.TypeFind(name)
+        if existing is not None:
+            _delete_mstype_by_guid(writable_project, str(existing.Guid))
+
+        new_type = writable_project.InflectionFeatures.TypeCreate(
+            name, "qZTC"
+        )
+        try:
+            assert new_type is not None, "TypeCreate returned None"
+
+            # Find it back.
+            found = writable_project.InflectionFeatures.TypeFind(name)
+            assert found is not None, (
+                f"TypeFind({name!r}) returned None for the just-created "
+                "type; lookup did not find it in MsFeatureSystemOA.TypesOC"
+            )
+            assert found.Hvo == new_type.Hvo, (
+                "TypeFind returned a different type than was created "
+                f"(found Hvo={found.Hvo}, created Hvo={new_type.Hvo})"
+            )
+        finally:
+            _delete_mstype_by_guid(writable_project, str(new_type.Guid))
+
+    def test_type_create_rejects_duplicate(self, writable_project):
+        """
+        TypeCreate must refuse to create a second type with the same
+        name. Prevents callers from silently shadowing existing types.
+        """
+        from flexlibs2.code.FLExProject import FP_ParameterError
+
+        name = "qZ_TypeCreate_DuplicateGuard"
+
+        existing = writable_project.InflectionFeatures.TypeFind(name)
+        if existing is not None:
+            _delete_mstype_by_guid(writable_project, str(existing.Guid))
+
+        first = writable_project.InflectionFeatures.TypeCreate(name, "qZdg")
+        try:
+            with pytest.raises(FP_ParameterError):
+                writable_project.InflectionFeatures.TypeCreate(name, "qZdg2")
+        finally:
+            _delete_mstype_by_guid(writable_project, str(first.Guid))
+
+    def test_type_create_rejects_empty_name(self, writable_project):
+        """Empty name / abbreviation are rejected with FP_ParameterError."""
+        from flexlibs2.code.FLExProject import FP_ParameterError
+
+        with pytest.raises(FP_ParameterError):
+            writable_project.InflectionFeatures.TypeCreate("", "abb")
+        with pytest.raises(FP_ParameterError):
+            writable_project.InflectionFeatures.TypeCreate("name", "")
+        with pytest.raises(FP_ParameterError):
+            writable_project.InflectionFeatures.TypeCreate("   ", "abb")
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

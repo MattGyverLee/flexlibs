@@ -37,6 +37,8 @@ from SIL.LCModel import (
     IFsSymFeatValFactory,
     IFsClosedValue,
     IFsClosedValueFactory,
+    IFsFeatStrucType,
+    IFsFeatStrucTypeFactory,
 )
 from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
@@ -562,6 +564,135 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
         """
         self._ValidateParam(name, "name")
         return self.Find(name, wsHandle=wsHandle) is not None
+
+    @OperationsMethod
+    def TypeFind(self, name, wsHandle=None):
+        """
+        Find an inflection feature-struct type by name.
+
+        IFsFeatStrucType objects live in ``MsFeatureSystemOA.TypesOC``
+        and group related IFsClosedFeatures into FsFeatStruc shapes
+        (e.g. "tCommonAgr" for Bantu agreement features). Used by
+        catalog-aligned advanced workflows where multiple closed
+        features share a structural type.
+
+        Args:
+            name (str): The type's name. Compared via NFD-normalised
+                casefold match against each type's Name in the chosen WS.
+            wsHandle: Optional writing system handle. Defaults to
+                analysis WS.
+
+        Returns:
+            IFsFeatStrucType or None: First match, or None when no
+            type with that name exists or when the feature system is
+            not initialised.
+        """
+        self._ValidateParam(name, "name")
+        target = normalize_match_key(name, casefold=True)
+        if not target:
+            return None
+        wsHandle = self.__WSHandle(wsHandle)
+
+        feature_system = self.project.lp.MsFeatureSystemOA
+        if feature_system is None:
+            return None
+
+        for raw in feature_system.TypesOC:
+            type_obj = IFsFeatStrucType(raw)
+            type_name = ITsString(type_obj.Name.get_String(wsHandle)).Text
+            if type_name and normalize_match_key(type_name, casefold=True) == target:
+                return type_obj
+        return None
+
+    @OperationsMethod
+    def TypeCreate(self, name, abbreviation):
+        """
+        Create a new IFsFeatStrucType under ``MsFeatureSystemOA.TypesOC``.
+
+        Use this to introduce a structural grouping for inflection
+        features that will share a FsFeatStruc shape -- for example,
+        Bantu's "tCommonAgr" type, which groups person, number, and
+        noun-class features.
+
+        The new type is attached to ``MsFeatureSystemOA.TypesOC``
+        BEFORE its Name and Abbreviation multistrings are written
+        (Phase 2 ownership rule), so the property setters never hit
+        an orphan LCM object.
+
+        A fresh random GUID is generated. To create a catalog-aligned
+        type with a canonical GUID, use the bulk ImportCatalog path
+        instead -- the EticGlossList parser handles fsType entries
+        as part of the full feature-system import.
+
+        Args:
+            name (str): The type's display name (analysis WS),
+                e.g. "tCommonAgr". Cannot be empty.
+            abbreviation (str): Short label written to the analysis-WS
+                Abbreviation alternative. Cannot be empty.
+
+        Returns:
+            IFsFeatStrucType: The newly created type.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If name or abbreviation is None.
+            FP_ParameterError: If name or abbreviation is empty, if a
+                type with the same name already exists, or if
+                MsFeatureSystemOA is not initialised on the project.
+
+        Example:
+            >>> infl = project.InflectionFeatures
+            >>> agr_type = infl.TypeCreate("tCommonAgr", "Agr")
+            >>> assert infl.TypeFind("tCommonAgr") is not None
+        """
+        self._EnsureWriteEnabled()
+        self._ValidateParam(name, "name")
+        self._ValidateParam(abbreviation, "abbreviation")
+
+        if not name or not name.strip():
+            raise FP_ParameterError("Type name cannot be empty")
+        if not abbreviation or not abbreviation.strip():
+            raise FP_ParameterError("Type abbreviation cannot be empty")
+
+        existing = self.TypeFind(name)
+        if existing is not None:
+            raise FP_ParameterError(
+                f"Inflection feature-struct type '{name}' already exists"
+            )
+
+        feature_system = self.project.lp.MsFeatureSystemOA
+        if feature_system is None:
+            raise FP_ParameterError(
+                "Project has no MsFeatureSystemOA; cannot create "
+                "feature-struct type. Open the project in FieldWorks "
+                "once to initialise the feature system."
+            )
+
+        # The interface IFsFeatStrucTypeFactory declares a 2-arg
+        # Create(Guid, IFsFeatureSystem) overload, but the concrete
+        # SIL.LCModel.DomainImpl.FsFeatStrucTypeFactory only exposes
+        # Create() and Create(Guid) -- the 2-arg form is an interface
+        # default/extension that pythonnet's overload resolver
+        # cannot bind. Path B is therefore the only viable path:
+        # create the type with an explicit GUID, then attach to
+        # MsFeatureSystemOA.TypesOC BEFORE the multistring writes so
+        # the Phase 2 ownership rule still holds.
+        factory = self.project.project.ServiceLocator.GetService(
+            IFsFeatStrucTypeFactory
+        )
+        new_guid = System.Guid.NewGuid()
+        new_type = factory.Create(new_guid)
+        feature_system.TypesOC.Add(new_type)
+
+        ws_handle = self.__WSHandle(None)
+        new_type.Name.set_String(
+            ws_handle, TsStringUtils.MakeString(name, ws_handle)
+        )
+        new_type.Abbreviation.set_String(
+            ws_handle, TsStringUtils.MakeString(abbreviation, ws_handle)
+        )
+
+        return new_type
 
     @OperationsMethod
     def Create(self, name, abbreviation, type="closed", catalogSourceId=None):
