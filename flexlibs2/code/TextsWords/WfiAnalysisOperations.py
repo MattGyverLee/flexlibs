@@ -25,7 +25,6 @@ from SIL.LCModel import (
     IWfiMorphBundleFactory,
     IPartOfSpeech,
     ICmAgentEvaluation,
-    ICmAgentEvaluationFactory,
     ICmAgent,
 )
 
@@ -657,36 +656,29 @@ class WfiAnalysisOperations(BaseOperations):
                 "project.Agent.CreateHumanAgent(name, person) before setting approval status."
             )
 
-        # Use first available human agent
+        # Use first available human agent.
         agent = human_agents[0]
 
-        # Look for existing evaluation from this agent
-        existing_evaluation = None
-        for evaluation in analysis.EvaluationsRC:
-            if hasattr(evaluation, "Agent") and evaluation.Agent == agent:
-                existing_evaluation = evaluation
-                break
+        # Use LCM's purpose-built ICmAgent.SetEvaluation(target, opinion).
+        # The previous implementation built ICmAgentEvaluation manually
+        # and added it to analysis.EvaluationsRC, but EvaluationsRC is a
+        # reference collection (RC) -- adding to it doesn't confer
+        # ownership on the new evaluation. ICmAgentEvaluation has to be
+        # owned somewhere (it lives under CmAgent.ApprovesOA or in a
+        # parallel disapprovals collection), and the manual code set
+        # evaluation.Agent on a free-floating object before any owner
+        # took it, which trips the Phase 2 NPE pattern. (issue #26)
+        #
+        # SetEvaluation handles ownership, opinion bookkeeping, and the
+        # remove/replace cases internally.
+        from SIL.LCModel import Opinions
 
-        # Handle UNAPPROVED by removing evaluation
-        if status == ApprovalStatusTypes.UNAPPROVED:
-            if existing_evaluation is not None:
-                analysis.EvaluationsRC.Remove(existing_evaluation)
-            return
-
-        # Create new evaluation if needed
-        if existing_evaluation is None:
-            factory = self.project.project.ServiceLocator.GetService(ICmAgentEvaluationFactory)
-            evaluation = factory.Create()
-            evaluation.Agent = agent
-            analysis.EvaluationsRC.Add(evaluation)
-        else:
-            evaluation = existing_evaluation
-
-        # Set approval status via Accepted property
-        # APPROVED = Accepted = True
-        # DISAPPROVED = Accepted = False
-        if hasattr(evaluation, "Accepted"):
-            evaluation.Accepted = status == ApprovalStatusTypes.APPROVED
+        opinion_map = {
+            ApprovalStatusTypes.APPROVED: Opinions.approves,
+            ApprovalStatusTypes.DISAPPROVED: Opinions.disapproves,
+            ApprovalStatusTypes.UNAPPROVED: Opinions.noopinion,
+        }
+        agent.SetEvaluation(analysis, opinion_map[status])
 
     @OperationsMethod
     def IsHumanApproved(self, analysis_or_hvo):

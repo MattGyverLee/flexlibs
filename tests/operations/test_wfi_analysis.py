@@ -119,5 +119,85 @@ class TestWfiAnalysisDelete:
         )
 
 
+class TestWfiAnalysisSetApprovalStatus:
+    """
+    Regression coverage for issue #26 (the WfiAnalysis EvaluationsRC
+    ownership-ordering bug). The previous implementation created an
+    ICmAgentEvaluation, set evaluation.Agent on the unowned object,
+    and added it to analysis.EvaluationsRC -- but EvaluationsRC is a
+    reference collection that does not confer ownership. Property
+    writes on the unowned evaluation would NPE.
+
+    The fix delegates to LCM's purpose-built
+    ICmAgent.SetEvaluation(target, Opinions) which handles ownership
+    and bookkeeping internally. These tests exercise the three valid
+    status transitions to confirm the new path doesn't raise.
+    """
+
+    def test_set_approval_status_does_not_raise(self, writable_project):
+        """
+        Issue #26 part 2: SetApprovalStatus previously trampled on the
+        Phase 2 ownership-ordering rule by setting evaluation.Agent on
+        an unowned ICmAgentEvaluation and adding it to a REFERENCE
+        collection (EvaluationsRC). After the fix, SetApprovalStatus
+        delegates to ICmAgent.SetEvaluation(target, Opinions) which
+        handles ownership internally.
+
+        We verify only the no-raise contract for each of the three
+        status values. The reverse direction (GetApprovalStatus
+        reading the new state correctly) is a separate concern:
+        GetApprovalStatus has a pre-existing bug that treats every
+        non-empty EvaluationsRC as APPROVED regardless of whether
+        the evaluation is an approve or disapprove. Filing that is
+        out of scope here -- this test pins the SetApprovalStatus
+        side of the contract.
+        """
+        from flexlibs2.code.TextsWords.WfiAnalysisOperations import (
+            ApprovalStatusTypes,
+        )
+
+        # Need at least one human agent. Read AnalyzingAgentsOC directly
+        # to stay independent of the AgentOperations wrapper.
+        has_human_agent = False
+        for raw in writable_project.lp.AnalyzingAgentsOC:
+            if getattr(raw, "Human", False):
+                has_human_agent = True
+                break
+        if not has_human_agent:
+            pytest.skip(
+                "Project has no human agents; SetApprovalStatus "
+                "refuses without one. Create via "
+                "AgentOperations.CreateHumanAgent first."
+            )
+
+        # Find a wordform to attach a throw-away analysis to.
+        candidate_wf = None
+        for wf in writable_project.Wordforms.GetAll():
+            candidate_wf = wf
+            break
+        if candidate_wf is None:
+            pytest.skip("Project has no wordforms")
+
+        analysis = writable_project.WfiAnalyses.Create(candidate_wf)
+        try:
+            # Each transition must complete without raising. Before the
+            # fix, each call would NPE on the unowned-evaluation
+            # property setter.
+            for status in (
+                ApprovalStatusTypes.APPROVED,
+                ApprovalStatusTypes.DISAPPROVED,
+                ApprovalStatusTypes.UNAPPROVED,
+                ApprovalStatusTypes.APPROVED,  # re-apply
+            ):
+                writable_project.WfiAnalyses.SetApprovalStatus(
+                    analysis, status
+                )
+        finally:
+            try:
+                writable_project.WfiAnalyses.Delete(analysis)
+            except Exception:
+                pass
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

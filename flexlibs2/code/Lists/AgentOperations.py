@@ -78,6 +78,25 @@ class AgentOperations(PossibilityItemOperations):
         """Get the agents list container."""
         return self.project.lp.AnalyzingAgentsOC
 
+    def GetAll(self):
+        """
+        Iterate over all agents in the project's AnalyzingAgentsOC.
+
+        Overrides the PossibilityItemOperations.GetAll inherited
+        default, which assumes the list-object has PossibilitiesOS.
+        LangProject.AnalyzingAgentsOC is a plain LcmOwningCollection
+        of ICmAgent, not a CmPossibilityList, so PossibilitiesOS
+        doesn't exist on it -- AttributeError every call. Iterate the
+        collection directly.
+
+        Returns:
+            list: List of ICmAgent objects.
+        """
+        agents_oc = self._get_list_object()
+        if agents_oc is None:
+            return []
+        return list(agents_oc)
+
     # --- Version and Type Management ---
 
     @OperationsMethod
