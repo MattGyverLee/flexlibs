@@ -64,3 +64,52 @@ There are two distinct markers:
 **not** carry `live_phase` yet -- they appear under
 "Uncategorized live tests" in `LIVE_STATUS.md` until they are
 backfilled. This is expected for Cycle 1 of the rollout.
+
+## Sena 3 fixture and restoration
+
+The canonical live-test project is **Sena 3**. The golden fixture is
+checked into `tests/fixtures/Sena 3 *.fwbackup` (gitignored, ~15 MB) and
+is the source of truth between sessions. Phases B--D mutate the
+in-place project; the restoration script wipes accumulated churn:
+
+    # Restore Sena 3 from tests/fixtures/ into the FieldWorks projects dir
+    python scripts/restore_sena3.py
+
+    # Check current state without restoring
+    python scripts/restore_sena3.py --check
+
+    # Override target name / projects dir if needed
+    python scripts/restore_sena3.py --target "Sena 3 Test" \
+        --projects-dir "C:\Path\To\Projects"
+
+Run this before every live session for a clean baseline. Re-run after
+any session to discard test-induced timestamp / object churn.
+
+## The five-phase stabilization model
+
+Each operations class earns "stabilized" by passing every phase:
+
+| Phase | Pattern | Risk | Where it runs |
+|-------|---------|------|---------------|
+| A. Read | `writeEnabled=False`, call getters | None | In-place on real Sena 3 |
+| B. Add | Create with `TEST_` prefix, verify, delete in `finally:` | Low | In-place on real Sena 3 |
+| C. Reorder | Capture order, swap, restore | Medium | In-place on real Sena 3 |
+| D. Modify | Capture value, set new, assert, restore captured | Medium | In-place on real Sena 3 |
+| E. Delete | Genuinely destructive | High | **Sandbox copy via `sena3_sandbox` fixture** |
+
+The `sena3_sandbox` fixture (in `tests/conftest.py`) unzips the
+`.fwbackup` into a `tempfile.mkdtemp()` directory, opens the resulting
+`.fwdata` by absolute path, yields the project, and cleans the tempdir
+on teardown. Use it for any test in Phase E.
+
+Phases A--D accept LCM's auto-bump of `DateModified` on any write -- the
+restoration script wipes that churn between sessions. Phase E never
+touches the real project, so churn is irrelevant.
+
+## Canonical template
+
+The canonical end-to-end template is
+`tests/operations/test_locations_live.py`. Replicate its structure
+(one class per phase, `live_phase` markers, `TEST_` prefix, finally
+cleanup, optional `sena3_sandbox` fixture) when adding live coverage
+for new operations classes.

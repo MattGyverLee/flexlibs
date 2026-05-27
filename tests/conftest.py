@@ -816,3 +816,105 @@ def pytest_sessionfinish(session, exitstatus):
             fh.write("\n")
     except OSError as exc:
         print(f"[WARN] Could not write {out_path}: {exc}")
+
+
+# ========== SENA 3 SANDBOX FIXTURE (Phase E: destructive tests) ==========
+#
+# Phase E tests modify a sandbox copy of Sena 3, never the user's real
+# project. Each invocation unzips tests/fixtures/Sena 3*.fwbackup into a
+# fresh tempdir and opens the .fwdata by absolute path. Teardown removes
+# the tempdir.
+#
+# Why a separate fixture: Phases A-D run in-place on the real Sena 3 with
+# self-restoring tests; Phase E is genuinely destructive so it gets its
+# own isolated environment.
+
+
+class _Sena3Sandbox:
+    """Unzip an .fwbackup into a tempdir, yield the .fwdata path, clean up."""
+
+    def __init__(self, fwbackup_path, prefix="sena3_sandbox_"):
+        import pathlib
+
+        self.fwbackup_path = pathlib.Path(fwbackup_path)
+        self.prefix = prefix
+        self.temp_dir = None
+        self.fwdata_path = None
+
+    def __enter__(self):
+        import pathlib
+        import tempfile
+        import zipfile
+
+        self.temp_dir = pathlib.Path(tempfile.mkdtemp(prefix=self.prefix))
+        with zipfile.ZipFile(self.fwbackup_path) as zf:
+            zf.extractall(self.temp_dir)
+        fwdatas = list(self.temp_dir.glob("*.fwdata"))
+        if not fwdatas:
+            raise FileNotFoundError(
+                f"No .fwdata found after unzipping {self.fwbackup_path} "
+                f"to {self.temp_dir}"
+            )
+        self.fwdata_path = fwdatas[0]
+        return self.fwdata_path
+
+    def __exit__(self, exc_type, exc, tb):
+        import shutil
+
+        if self.temp_dir is not None and self.temp_dir.exists():
+            shutil.rmtree(self.temp_dir, ignore_errors=True)
+        return False
+
+
+@pytest.fixture
+def sena3_sandbox():
+    """
+    Yield an open, write-enabled FLExProject restored fresh from the
+    Sena 3 .fwbackup fixture. Teardown closes the project and deletes
+    the temporary directory.
+
+    Skips the dependent test if SIL.LCModel isn't loaded, if no .fwbackup
+    is present in tests/fixtures/, or if OpenProject cannot accept the
+    absolute path.
+
+    Used by Phase E (destructive) tests so the user's real Sena 3
+    project is never mutated.
+    """
+    import pathlib
+
+    if "SIL.LCModel" not in sys.modules:
+        pytest.skip("Requires SIL.LCModel (FieldWorks installed)")
+
+    repo_root = pathlib.Path(__file__).resolve().parent.parent
+    fixtures_dir = repo_root / "tests" / "fixtures"
+    backups = sorted(fixtures_dir.glob("Sena 3*.fwbackup"))
+    if not backups:
+        pytest.skip(
+            f"No Sena 3 .fwbackup found in {fixtures_dir}; run "
+            "scripts/restore_sena3.py prerequisites or place the backup."
+        )
+
+    try:
+        from flexlibs2.code.FLExProject import FLExProject
+    except Exception as exc:
+        pytest.skip(f"Could not import FLExProject: {exc}")
+
+    sandbox = _Sena3Sandbox(backups[-1])
+    fwdata_path = sandbox.__enter__()
+
+    project = FLExProject()
+    try:
+        try:
+            project.OpenProject(str(fwdata_path), writeEnabled=True)
+        except Exception as exc:
+            sandbox.__exit__(None, None, None)
+            pytest.skip(
+                f"OpenProject rejected sandbox path {fwdata_path}: {exc}"
+            )
+        yield project
+    finally:
+        try:
+            project.CloseProject()
+        except Exception:
+            pass
+        sandbox.__exit__(None, None, None)
