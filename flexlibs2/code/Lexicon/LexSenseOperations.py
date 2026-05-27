@@ -2763,12 +2763,6 @@ class LexSenseOperations(BaseOperations):
         sense = self.__GetSenseObject(sense_or_hvo)
         sense.ImportResidue = self.__MakeTsString(text, wsHandle)
 
-    # Single-string ITsString helpers used by Get/Set{Source,ScientificName,
-    # ImportResidue}. These fields don't carry a meaningful tri-state, so
-    # the read helper collapses both "no ITsString" and "ITsString with
-    # None text" to "" rather than letting None leak out -- which would
-    # diverge from how callers typically use these single-string getters.
-
     def __MakeTsString(self, text, wsHandle):
         """Build an ITsString in the chosen WS (default: analysis)."""
         ws = self.__WSHandleAnalysis(wsHandle)
@@ -2776,14 +2770,10 @@ class LexSenseOperations(BaseOperations):
 
     def __ReadTsString(self, tss):
         """
-        Read an ITsString-typed field as str.
-
-        Returns "" when the field is unset, when its .Text is None, or
-        when the underlying text is the FLEX null marker ("***").
-        _NormalizeMultiString preserves None passthrough for the
-        multistring family; single-string fields collapse that None
-        to "" because they have no per-WS dimension where None vs
-        "" would be meaningful.
+        Read an ITsString field as str; collapse unset / None / "***"
+        to "". Single-string fields have no per-WS dimension where
+        None vs "" would be meaningful, so the multistring family's
+        None passthrough is not appropriate here.
         """
         if tss is None:
             return ""

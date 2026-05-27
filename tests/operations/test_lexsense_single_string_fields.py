@@ -1,19 +1,8 @@
 #
 #   test_lexsense_single_string_fields.py
 #
-#   Class: TestLexSenseSingleStringFields
-#          Regression coverage for issue #36: LexSenseOperations
-#          Set{Source,ScientificName,ImportResidue} previously did a
-#          direct `sense.<field> = text` assignment, but those three
-#          fields are ITsString (single-string), not IMultiString.
-#          Pythonnet does not auto-coerce Python str to ITsString on
-#          property assignment, so every call raised TypeError. The
-#          getters had the inverse bug: they ran _NormalizeMultiString
-#          on the raw ITsString instead of on its .Text.
-#
-#          The fix routes both directions through two private helpers
-#          (__MakeTsString / __ReadTsString) so the three (Get/Set)
-#          pairs stay one-line delegates and stay in sync.
+#   Round-trip coverage for the three ILexSense ITsString fields:
+#   Source, ScientificName, ImportResidue.
 #
 #   Platform: Python.NET
 #             FieldWorks Version 9+
