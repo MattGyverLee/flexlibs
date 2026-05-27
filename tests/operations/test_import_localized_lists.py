@@ -166,29 +166,59 @@ class TestImportLocalizedListsForEnabledWS:
             "use ImportLocalizedLists(code) for the single-WS form"
         )
 
-    def test_returns_list_of_applied_codes(self, writable_project):
+    def test_iterates_enabled_ws_and_dispatches(self, writable_project):
         """
-        The return value is a list of language codes the method
-        actually applied a pack for. The list is allowed to be empty
-        (project has no enabled analysis WSes, or no packs ship for
-        the ones enabled) but the type must be list -- callers can
-        report on what landed.
+        Verify the enumerator's iteration + dispatch logic WITHOUT
+        actually mutating the project's possibility lists. We
+        monkey-patch the underlying per-WS importer with a recorder
+        and confirm:
+          - Each enabled analysis WS got its IcuLocale forwarded to
+            ImportLocalizedLists, in iteration order.
+          - The returned list of applied codes matches the recorder.
+          - The method's return is always a list[str].
 
-        Note: this test DOES touch LCM (calls
-        XmlTranslatedLists.ImportTranslatedListsForWs for whichever
-        analysis WSes are enabled in the test project). This is a
-        small price -- the assertion is on the shape of the return,
-        not on the project's list state.
+        This keeps the project's list state untouched while still
+        exercising the loop, the IcuLocale lookup, and the return
+        contract -- the parts of the code that can regress.
         """
-        result = writable_project.ImportLocalizedListsForEnabledWS()
+        recorded_calls = []
+
+        def _recording_stub(self_arg, language_code, progress=None):
+            # Capture what the enumerator dispatched; do NOT touch LCM.
+            # First positional is the FLExProject instance because we
+            # bound this onto the class via descriptor protocol.
+            recorded_calls.append(language_code)
+
+        # Snapshot the real bound method so we can put it back even
+        # if the assertions throw mid-test.
+        flex_project_obj = writable_project
+        real = type(flex_project_obj).ImportLocalizedLists
+
+        type(flex_project_obj).ImportLocalizedLists = _recording_stub
+        try:
+            result = flex_project_obj.ImportLocalizedListsForEnabledWS()
+        finally:
+            type(flex_project_obj).ImportLocalizedLists = real
+
         assert isinstance(result, list), (
             f"Enumerator must return list, got {type(result).__name__}"
         )
-        # Each applied code, if any, must be a string.
+        # Each applied code in the result must be a non-empty string.
         for code in result:
             assert isinstance(code, str) and code, (
                 f"Applied entries must be non-empty strings; got {code!r}"
             )
+        # Result must mirror the dispatch order.
+        assert result == recorded_calls, (
+            "Enumerator's return value did not match the dispatched "
+            f"calls: returned {result!r}, dispatched {recorded_calls!r}"
+        )
+        # Iteration touched at least one enabled analysis WS (Sena 3
+        # and the standard test projects all have English enabled).
+        assert len(recorded_calls) >= 1, (
+            "Enumerator dispatched no calls -- "
+            "CurrentAnalysisWritingSystems iteration may be broken"
+        )
 
 
 if __name__ == "__main__":
