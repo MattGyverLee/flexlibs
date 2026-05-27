@@ -462,6 +462,107 @@ class TestNaturalClassFeatureBased:
                 _delete_feature_by_guid(writable_project, created_feat_guid)
 
 
+class TestNaturalClassDuplicateDispatch:
+    """
+    Regression coverage for issue #27: NaturalClassOperations.Duplicate
+    previously hardcoded IPhNCSegmentsFactory and the SegmentsRC copy
+    loop, silently producing a wrong-type empty clone from a
+    feature-based source. The fix dispatches on the concrete source
+    type and clones FeaturesOA for IPhNCFeatures sources.
+    """
+
+    def test_duplicate_segments_returns_segments_clone(
+        self, writable_project
+    ):
+        """
+        Segment-based source -> segment-based duplicate. Existing
+        membership in SegmentsRC must be preserved (shallow reference
+        copy is fine; the spec is "same phonemes pointed to by both
+        classes").
+        """
+        source = writable_project.NaturalClasses.Create(
+            "qZ_dup_segments_src", "qZs"
+        )
+        duplicate = None
+        try:
+            duplicate = writable_project.NaturalClasses.Duplicate(source)
+            assert duplicate is not None, "Duplicate returned None"
+            assert (
+                writable_project.NaturalClasses.GetType(duplicate)
+                == "segments"
+            ), (
+                "Segment-based source produced a non-segments duplicate: "
+                f"{writable_project.NaturalClasses.GetType(duplicate)!r}"
+            )
+            # Sanity: distinct Hvo from source.
+            assert duplicate.Hvo != source.Hvo, (
+                "Duplicate returned the source object itself"
+            )
+        finally:
+            if duplicate is not None:
+                _delete_nc(writable_project, duplicate)
+            _delete_nc(writable_project, source)
+
+    def test_duplicate_features_returns_features_clone(
+        self, writable_project
+    ):
+        """
+        Feature-based source -> feature-based duplicate with cloned
+        FeaturesOA. Before the fix, this produced an IPhNCSegments
+        with empty SegmentsRC instead -- losing the feature constraints
+        entirely.
+        """
+        pre_existing = (
+            _find_feature_by_guid(writable_project, CONSONANTAL_FEATURE_GUID)
+            is not None
+        )
+        created_feat_guid = None
+        source = None
+        duplicate = None
+        try:
+            feat = writable_project.PhonFeatures.CreateFromCatalog(
+                "fPAConsonantal"
+            )
+            if not pre_existing:
+                created_feat_guid = CONSONANTAL_FEATURE_GUID
+            plus = _get_consonantal_positive(writable_project, feat)
+            assert plus is not None, "Could not find +consonantal value"
+
+            source = writable_project.NaturalClasses.CreateFeatureBased(
+                "qZ_dup_features_src", "qZf", specs=[(feat, plus)]
+            )
+
+            duplicate = writable_project.NaturalClasses.Duplicate(source)
+
+            # Core assertion: duplicate is feature-based, not segments.
+            assert (
+                writable_project.NaturalClasses.GetType(duplicate)
+                == "features"
+            ), (
+                "Feature-based source produced a non-features duplicate: "
+                f"{writable_project.NaturalClasses.GetType(duplicate)!r} "
+                "(this is exactly the issue #27 bug)"
+            )
+
+            # FeaturesOA must be populated with the cloned spec.
+            dup_struct = duplicate.FeaturesOA
+            assert dup_struct is not None, (
+                "Duplicate has no FeaturesOA - spec clone path didn't run"
+            )
+            spec_count = sum(1 for _ in dup_struct.FeatureSpecsOC)
+            assert spec_count == 1, (
+                f"Duplicate FeaturesOA should have 1 spec, "
+                f"got {spec_count}"
+            )
+        finally:
+            if duplicate is not None:
+                _delete_nc(writable_project, duplicate)
+            if source is not None:
+                _delete_nc(writable_project, source)
+            if created_feat_guid is not None:
+                _delete_feature_by_guid(writable_project, created_feat_guid)
+
+
 class TestNaturalClassFindExists:
     """
     Coverage for `NaturalClassOperations.Find()` and `Exists()` — closes

@@ -22,6 +22,7 @@ from SIL.LCModel import (
     IPhNCFeatures,
     IPhNCFeaturesFactory,
     IPhPhoneme,
+    IFsClosedValue,
 )
 from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
@@ -353,7 +354,9 @@ class NaturalClassOperations(BaseOperations):
                         Note: NaturalClass has no owned objects, so deep has no effect.
 
         Returns:
-            IPhNCSegments: The newly created duplicate natural class with a new GUID.
+            IPhNaturalClass: The newly created duplicate. Returns
+            IPhNCSegments for a segment-based source, IPhNCFeatures for
+            a feature-based source.
 
         Raises:
             FP_ReadOnlyError: If the project is not opened with write enabled.
@@ -367,55 +370,83 @@ class NaturalClassOperations(BaseOperations):
             >>> voiced = ncOps.Duplicate(stops)
             >>> ncOps.SetName(voiced, "Voiced Stops")
             >>> ncOps.SetAbbreviation(voiced, "VCD")
-            >>> print(f"Original: {ncOps.GetGuid(stops)}")
-            >>> print(f"Duplicate: {ncOps.GetGuid(voiced)}")
-            Original: 12345678-1234-1234-1234-123456789abc
-            Duplicate: 87654321-4321-4321-4321-cba987654321
+
+            >>> # Feature-based duplication also works:
+            >>> back = project.NaturalClasses.CreateFeatureBased(
+            ...     "Back vowels", "Vb", specs=[(back_feat, plus)]
+            ... )
+            >>> high_back = ncOps.Duplicate(back)
+            >>> ncOps.GetType(high_back)
+            'features'
 
         Notes:
-            - Factory.Create() automatically generates a new GUID
-            - insert_after=True preserves the original class's position
-            - Simple properties copied: Name, Abbreviation, Description
-            - Reference properties copied: SegmentsRC (phoneme members)
-            - NaturalClass has no owned objects, so deep parameter has no effect
-            - Useful for creating similar natural classes (e.g., voiced/voiceless pairs)
-            - Segment references are shallow copied - both classes reference same phonemes
+            - Factory.Create() automatically generates a new GUID.
+            - insert_after=True preserves the original class's position.
+            - Simple properties copied: Name, Abbreviation, Description.
+            - Concrete-type dispatch (issue #27):
+                - Segments-based source -> IPhNCSegmentsFactory; copy
+                  SegmentsRC (phoneme members, shallow copy).
+                - Features-based source -> IPhNCFeaturesFactory; clone
+                  FeaturesOA's (feature, value) specs into a new
+                  IFsFeatStruc via PhonFeatures.MakeFeatStruc.
 
         See Also:
-            Create, Delete, GetGuid, AddPhoneme
+            Create, CreateFeatureBased, GetType, GetGuid, AddPhoneme
         """
         self._EnsureWriteEnabled()
 
         self._ValidateParam(item_or_hvo, "item_or_hvo")
 
-        # Get source natural class
+        # Get source natural class.
         source = self.__GetNaturalClassObject(item_or_hvo)
         phon_data = self.project.lp.PhonologicalDataOA
 
-        # Create new natural class using factory (auto-generates new GUID)
-        factory = self.project.project.ServiceLocator.GetService(IPhNCSegmentsFactory)
+        # Detect concrete NC type using the same discriminator GetType()
+        # uses (issue #27). IPhNCFeatures owns FeaturesOA; IPhNCSegments
+        # references SegmentsRC. Hardcoding IPhNCSegmentsFactory was
+        # silently producing wrong-type clones from feature-based sources.
+        is_features = hasattr(source, "FeaturesOA")
+
+        if is_features:
+            factory = self.project.project.ServiceLocator.GetService(
+                IPhNCFeaturesFactory
+            )
+        else:
+            factory = self.project.project.ServiceLocator.GetService(
+                IPhNCSegmentsFactory
+            )
         duplicate = factory.Create()
 
-        # Determine insertion position
+        # Determine insertion position.
         if insert_after:
-            # Insert after source natural class
             source_index = list(phon_data.NaturalClassesOS).index(source)
             phon_data.NaturalClassesOS.Insert(source_index + 1, duplicate)
         else:
-            # Insert at end
             phon_data.NaturalClassesOS.Add(duplicate)
 
-        # Copy simple MultiString properties
+        # Copy simple MultiString properties.
         duplicate.Name.CopyAlternatives(source.Name)
         duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)
         duplicate.Description.CopyAlternatives(source.Description)
 
-        # Copy Reference Collection (RC) properties - phoneme members
-        if hasattr(source, "SegmentsRC"):
+        # Copy the type-specific membership data.
+        if is_features:
+            # Extract source feature specs and rebuild via MakeFeatStruc.
+            # MakeFeatStruc attaches the new struct to duplicate.FeaturesOA
+            # BEFORE populating FeatureSpecsOC (Phase 2 ownership rule).
+            specs = []
+            source_struct = source.FeaturesOA
+            if source_struct is not None:
+                for raw in source_struct.FeatureSpecsOC:
+                    cv = IFsClosedValue(raw)
+                    specs.append((cv.FeatureRA, cv.ValueRA))
+            if specs:
+                self.project.PhonFeatures.MakeFeatStruc(specs, owner=duplicate)
+        else:
+            # Reference-collection copy of phoneme members (shallow:
+            # both classes reference the same IPhPhoneme objects).
             for phoneme in source.SegmentsRC:
                 duplicate.SegmentsRC.Add(phoneme)
-
-        # Note: NaturalClass has no owned objects (OS collections), so deep has no effect
 
         return duplicate
 
