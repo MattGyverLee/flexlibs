@@ -664,8 +664,28 @@ class WfiAnalysisOperations(BaseOperations):
                 "project.Agent.CreateHumanAgent(name, person) before setting approval status."
             )
 
-        # Use first available human agent.
-        agent = human_agents[0]
+        # Prefer ILangProject.DefaultUserAgent (the canonical "the user"
+        # agent) when it is present and human. AnalyzingAgentsOC has no
+        # deterministic ordering, so falling straight back to
+        # human_agents[0] would non-deterministically pick whichever
+        # human agent the runtime happened to list first -- e.g. a
+        # legacy collaborator instead of the actual current user. Fall
+        # back to human_agents[0] only when DefaultUserAgent is
+        # unavailable or somehow not a human agent. (issue #56)
+        agent = None
+        default_user = getattr(self.project.lp, "DefaultUserAgent", None)
+        if default_user is not None and getattr(default_user, "Human", False):
+            for candidate in human_agents:
+                if getattr(candidate, "Hvo", None) == getattr(default_user, "Hvo", None):
+                    agent = candidate
+                    break
+            if agent is None:
+                # DefaultUserAgent is human but wasn't surfaced by
+                # GetHumanAgents() (shouldn't normally happen). Trust
+                # the LCM-canonical reference anyway.
+                agent = default_user
+        if agent is None:
+            agent = human_agents[0]
 
         # Use LCM's purpose-built ICmAgent.SetEvaluation(target, opinion).
         # The previous implementation built ICmAgentEvaluation manually
@@ -1238,9 +1258,16 @@ class WfiAnalysisOperations(BaseOperations):
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
-        # Get first agent evaluation if available
-        if analysis.EvaluationsRC.Count > 0:
-            return list(analysis.EvaluationsRC)[0]
+        # Return the first PARSER evaluation (Human == False). The
+        # previous implementation returned EvaluationsRC[0], but
+        # EvaluationsRC mixes human and parser evaluations and LCM
+        # ordering is not deterministic -- so that path would
+        # non-deterministically return a human evaluation when one
+        # happened to be listed first. Mirrors the discriminating
+        # iteration pattern used in GetApprovalStatus. (issue #55)
+        for evaluation in analysis.EvaluationsRC:
+            if not getattr(evaluation, "Human", True):
+                return evaluation
 
         return None
 
@@ -1282,12 +1309,13 @@ class WfiAnalysisOperations(BaseOperations):
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
-        # Search for human evaluation in evaluations collection
+        # Return the first HUMAN evaluation (Human == True). The
+        # previous implementation accepted any evaluation that exposed
+        # an .Agent attribute, but every ICmAgentEvaluation has an
+        # Agent -- the check did not actually discriminate. Mirrors
+        # the iteration pattern used in GetApprovalStatus. (issue #55)
         for evaluation in analysis.EvaluationsRC:
-            if hasattr(evaluation, "Agent"):
-                # Check if this is a human agent
-                # This is a simplified check
-                # Full implementation would verify agent type
+            if getattr(evaluation, "Human", False):
                 return evaluation
 
         return None
