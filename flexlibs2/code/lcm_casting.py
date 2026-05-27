@@ -63,6 +63,9 @@ Supported Types:
     - Phonological rule types: PhRegularRule, PhMetathesisRule, PhReduplicationRule
     - Compound rule types: MoEndoCompound, MoExoCompound
     - Morphosyntactic prohibition types: MoAdhocProhibGr, MoAdhocProhibMorph, MoAdhocProhibAllomorph
+    - Owner / container types (used by .Owner casting paths in Lexicon,
+      Notebook, and Discourse operations): LexEntry, LexSense, RnGenericRec,
+      CmPossibility, CmAnthroItem, DsConstChart, Text, StText, StTxtPara
 
 Note:
     The interface cache is lazy-loaded on first use to avoid import issues
@@ -167,6 +170,31 @@ def _ensure_interfaces() -> None:
     except ImportError:
         IMoInflAffixTemplate = None
 
+    # Owner / container interfaces - the typed parents that own the
+    # objects manipulated by Lexicon, Notebook, and Discourse operations.
+    # These are needed because `.Owner` on an owned object returns the
+    # base ICmObject interface, which does not expose typed collection
+    # properties (AlternateFormsOS, EtymologyOS, EntryRefsOS, AnnotationsOC,
+    # SubPossibilitiesOS, RowsOS, ...). cast_to_concrete() routes through
+    # ClassName -> concrete interface so callers can reach those typed
+    # collections without doing the cast themselves.
+    try:
+        from SIL.LCModel import (
+            ILexEntry,
+            ILexSense,
+            IRnGenericRec,
+            ICmPossibility,
+            ICmAnthroItem,
+            IDsConstChart,
+            IText,
+            IStText,
+            IStTxtPara,
+        )
+    except ImportError:
+        ILexEntry = ILexSense = IRnGenericRec = None
+        ICmPossibility = ICmAnthroItem = None
+        IDsConstChart = IText = IStText = IStTxtPara = None
+
     _interface_cache = {
         # MSA types - used for grammatical category assignment
         "MoStemMsa": IMoStemMsa,
@@ -215,6 +243,27 @@ def _ensure_interfaces() -> None:
     # Add affix template type if import succeeded
     if IMoInflAffixTemplate is not None:
         _interface_cache["MoInflAffixTemplate"] = IMoInflAffixTemplate
+
+    # Add owner / container types if imports succeeded. Used by .Owner
+    # casting paths in Lexicon, Notebook, and Discourse operations.
+    if ILexEntry is not None:
+        _interface_cache["LexEntry"] = ILexEntry
+    if ILexSense is not None:
+        _interface_cache["LexSense"] = ILexSense
+    if IRnGenericRec is not None:
+        _interface_cache["RnGenericRec"] = IRnGenericRec
+    if ICmPossibility is not None:
+        _interface_cache["CmPossibility"] = ICmPossibility
+    if ICmAnthroItem is not None:
+        _interface_cache["CmAnthroItem"] = ICmAnthroItem
+    if IDsConstChart is not None:
+        _interface_cache["DsConstChart"] = IDsConstChart
+    if IText is not None:
+        _interface_cache["Text"] = IText
+    if IStText is not None:
+        _interface_cache["StText"] = IStText
+    if IStTxtPara is not None:
+        _interface_cache["StTxtPara"] = IStTxtPara
 
     _interfaces_loaded = True
 

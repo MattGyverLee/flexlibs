@@ -434,14 +434,22 @@ class AnthropologyOperations(BaseOperations, _LCMNativeCatalogImportMixin):
             if anthro_list.PossibilitiesOS.Contains(item):
                 anthro_list.PossibilitiesOS.Remove(item)
             else:
-                # It's a subitem, remove from parent
-                if hasattr(item, "Owner") and item.Owner:
-                    try:
-                        parent = ICmPossibility(item.Owner)
-                        if hasattr(parent, "SubPossibilitiesOS"):
-                            parent.SubPossibilitiesOS.Remove(item)
-                    except Exception:
-                        pass
+                # It's a subitem, remove from parent. item.Owner is
+                # typed as ICmObject; cast to the concrete possibility
+                # so SubPossibilitiesOS is reachable. The previous
+                # implementation wrapped this in a broad `except: pass`
+                # that swallowed real failures (including the no-op
+                # case where the inner cast actually succeeded but
+                # nothing happened because hasattr lied on a base
+                # interface) -- let exceptions propagate so callers
+                # see the failure.
+                parent = self._GetTypedOwner(item)
+                if parent is None:
+                    raise FP_ParameterError(
+                        "Anthropology subitem has no resolvable owner"
+                    )
+                if hasattr(parent, "SubPossibilitiesOS"):
+                    parent.SubPossibilitiesOS.Remove(item)
 
     @OperationsMethod
     def Exists(self, name):

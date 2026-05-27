@@ -269,10 +269,15 @@ class EtymologyOperations(BaseOperations):
 
         etymology = self.__GetEtymologyObject(etymology_or_hvo)
 
-        # Get the owning entry and remove the etymology
-        owner = etymology.Owner
-        if hasattr(owner, "EtymologyOS"):
-            owner.EtymologyOS.Remove(etymology)
+        # Get the owning entry. etymology.Owner is typed as ICmObject
+        # and does not expose EtymologyOS; cast to ILexEntry so the
+        # collection is reachable (the previous hasattr check silently
+        # no-opped because the typed collection lives on the concrete
+        # owner, not on the base interface).
+        owner = self._GetTypedOwner(etymology)
+        if owner is None:
+            raise FP_ParameterError("Etymology has no owning entry")
+        owner.EtymologyOS.Remove(etymology)
 
     @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True):
@@ -324,9 +329,14 @@ class EtymologyOperations(BaseOperations):
 
         self._ValidateParam(item_or_hvo, "item_or_hvo")
 
-        # Get source etymology and parent
+        # Get source etymology and parent. source.Owner is typed as
+        # ICmObject; cast to ILexEntry so EtymologyOS is reachable.
+        # Without this cast the previous `hasattr(parent, "EtymologyOS")`
+        # silently returned False and the duplicate was orphaned.
         source = self.__GetEtymologyObject(item_or_hvo)
-        parent = source.Owner
+        parent = self._GetTypedOwner(source)
+        if parent is None:
+            raise FP_ParameterError("Etymology has no owning entry")
 
         # Create new etymology using factory (auto-generates new GUID)
         factory = self.project.project.ServiceLocator.GetService(ILexEtymologyFactory)
@@ -335,13 +345,11 @@ class EtymologyOperations(BaseOperations):
         # Determine insertion position
         if insert_after:
             # Insert after source etymology
-            if hasattr(parent, "EtymologyOS"):
-                source_index = parent.EtymologyOS.IndexOf(source)
-                parent.EtymologyOS.Insert(source_index + 1, duplicate)
+            source_index = parent.EtymologyOS.IndexOf(source)
+            parent.EtymologyOS.Insert(source_index + 1, duplicate)
         else:
             # Insert at end
-            if hasattr(parent, "EtymologyOS"):
-                parent.EtymologyOS.Add(duplicate)
+            parent.EtymologyOS.Add(duplicate)
 
         # Copy simple MultiString properties (AFTER adding to parent)
         duplicate.Source.CopyAlternatives(source.Source)

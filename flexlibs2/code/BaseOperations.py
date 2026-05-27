@@ -1260,6 +1260,46 @@ class BaseOperations:
             return self.project.Object(obj_or_hvo)
         return obj_or_hvo
 
+    def _GetTypedOwner(self, obj):
+        """
+        Return obj.Owner cast to its concrete LCM interface.
+
+        Owned LCM objects expose `.Owner` as the base ICmObject interface,
+        which does NOT surface typed collection properties (SensesOS,
+        AlternateFormsOS, EtymologyOS, AnnotationsOC, EntryRefsOS,
+        SubPossibilitiesOS, RowsOS, etc.). Operations that need to add to
+        or remove from one of those collections must therefore route the
+        owner through `cast_to_concrete()` first; raw `obj.Owner.XxxOS` raises
+        AttributeError, and `hasattr(obj.Owner, "XxxOS")` returns False even
+        when the concrete owner does expose the collection -- which silently
+        no-ops Delete and orphans Duplicate output.
+
+        This helper centralises that cast so individual operations classes
+        do not each have to import lcm_casting.
+
+        Args:
+            obj: An owned LCM object (must have an .Owner property).
+
+        Returns:
+            The owner cast to its concrete interface (e.g. ILexEntry,
+            ICmAnthroItem, IDsConstChart, IRnGenericRec). Returns the raw
+            owner unchanged if cast_to_concrete() does not recognise its
+            ClassName, or None if obj has no .Owner.
+
+        Notes:
+            - Use the return value to access typed properties like
+              SensesOS, AlternateFormsOS, AnnotationsOC.
+            - Caller still owns existence checks (e.g. whether the owner
+              actually has the expected collection for that path).
+        """
+        if obj is None or not hasattr(obj, "Owner"):
+            return None
+        owner = obj.Owner
+        if owner is None:
+            return None
+        from .lcm_casting import cast_to_concrete
+        return cast_to_concrete(owner)
+
     def _FindCommonSequence(self, item1, item2):
         """
         Find the sequence that contains both items.

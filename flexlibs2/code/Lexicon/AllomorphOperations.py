@@ -324,8 +324,12 @@ class AllomorphOperations(BaseOperations):
 
         allomorph = self.__GetAllomorphObject(allomorph_or_hvo)
 
-        # Get the owning entry
-        owner = allomorph.Owner
+        # Get the owning entry. allomorph.Owner is typed as ICmObject and
+        # does not expose LexemeFormOA / AlternateFormsOS; cast to the
+        # concrete interface so the typed collections are reachable.
+        owner = self._GetTypedOwner(allomorph)
+        if owner is None:
+            raise FP_ParameterError("Allomorph has no owning entry")
 
         # Check if this is the lexeme form or an alternate
         if hasattr(owner, "LexemeFormOA") and owner.LexemeFormOA == allomorph:
@@ -390,9 +394,14 @@ class AllomorphOperations(BaseOperations):
 
         self._ValidateParam(item_or_hvo, "item_or_hvo")
 
-        # Get source allomorph and parent
+        # Get source allomorph and parent. source.Owner is typed as
+        # ICmObject; cast to the concrete owning entry so AlternateFormsOS
+        # and LexemeFormOA are reachable and the duplicate actually gets
+        # attached (raw .Owner.AlternateFormsOS would orphan the dup).
         source = self.__GetAllomorphObject(item_or_hvo)
-        parent = source.Owner
+        parent = self._GetTypedOwner(source)
+        if parent is None:
+            raise FP_ParameterError("Allomorph has no owning entry")
 
         # Determine the factory type based on the source's ClassName
         class_name = source.ClassName

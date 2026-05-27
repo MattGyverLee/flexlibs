@@ -467,12 +467,14 @@ class VariantOperations(BaseOperations):
 
         variant = self.__GetVariantObject(variant_or_hvo)
 
-        # Get the owning entry
-        owner = variant.Owner
-
-        # Remove from entry's EntryRefsOS
-        if hasattr(owner, "EntryRefsOS"):
-            owner.EntryRefsOS.Remove(variant)
+        # Get the owning entry. variant.Owner is typed as ICmObject and
+        # does not expose EntryRefsOS; cast to ILexEntry so the typed
+        # collection is reachable (the previous hasattr check silently
+        # no-opped).
+        owner = self._GetTypedOwner(variant)
+        if owner is None:
+            raise FP_ParameterError("Variant ref has no owning entry")
+        owner.EntryRefsOS.Remove(variant)
 
     @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True):
@@ -521,23 +523,27 @@ class VariantOperations(BaseOperations):
         self._EnsureWriteEnabled()
         self._ValidateParam(item_or_hvo, "item_or_hvo")
 
-        # Get source variant and parent
+        # Get source variant and parent. source.Owner is typed as
+        # ICmObject; cast to ILexEntry so EntryRefsOS is reachable.
+        # Without this cast the previous `hasattr(parent, "EntryRefsOS")`
+        # silently returned False and the duplicate was orphaned.
         source = self.__GetVariantObject(item_or_hvo)
-        parent = source.Owner
+        parent = self._GetTypedOwner(source)
+        if parent is None:
+            raise FP_ParameterError("Variant ref has no owning entry")
 
         # Create new variant reference using factory (auto-generates new GUID)
         factory = self.project.project.ServiceLocator.GetService(ILexEntryRefFactory)
         duplicate = factory.Create()
 
         # Determine insertion position
-        if insert_after and hasattr(parent, "EntryRefsOS"):
+        if insert_after:
             # Insert after source variant
             source_index = parent.EntryRefsOS.IndexOf(source)
             parent.EntryRefsOS.Insert(source_index + 1, duplicate)
         else:
             # Insert at end
-            if hasattr(parent, "EntryRefsOS"):
-                parent.EntryRefsOS.Add(duplicate)
+            parent.EntryRefsOS.Add(duplicate)
 
         # Copy simple properties
         duplicate.RefType = source.RefType

@@ -236,11 +236,17 @@ class NoteOperations(BaseOperations):
 
         self._ValidateParam(note, "note")
 
-        # Remove from owner's collection
-        owner = note.Owner
-        if hasattr(owner, "AnnotationsOC"):
-            if note in owner.AnnotationsOC:
+        # Remove from owner's collection. note.Owner is typed as
+        # ICmObject and does not expose AnnotationsOC / RepliesOS; cast
+        # to the concrete owner so the typed collection is reachable
+        # (the previous hasattr check silently no-opped for notes owned
+        # by IRnGenericRec or by a parent note).
+        owner = self._GetTypedOwner(note)
+        if owner is not None:
+            if hasattr(owner, "AnnotationsOC") and note in owner.AnnotationsOC:
                 owner.AnnotationsOC.Remove(note)
+            elif hasattr(owner, "RepliesOS") and note in owner.RepliesOS:
+                owner.RepliesOS.Remove(note)
 
         # Delete the note object
         if hasattr(note, "Delete"):
@@ -295,9 +301,15 @@ class NoteOperations(BaseOperations):
 
         self._ValidateParam(item_or_hvo, "item_or_hvo")
 
-        # Get source note and parent
+        # Get source note and parent. source.Owner is typed as ICmObject
+        # and does not expose AnnotationsOC / RepliesOS; cast to the
+        # concrete owner so the typed collection is reachable (the
+        # previous hasattr checks silently no-opped, leaving the
+        # duplicate orphaned).
         source = item_or_hvo if not isinstance(item_or_hvo, int) else self.project.Object(item_or_hvo)
-        parent = source.Owner
+        parent = self._GetTypedOwner(source)
+        if parent is None:
+            raise FP_ParameterError("Note has no owning record or parent note")
 
         # Create new note using factory (auto-generates new GUID)
         factory = self.project.project.ServiceLocator.GetService(ICmBaseAnnotationFactory)

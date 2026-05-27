@@ -494,8 +494,13 @@ class ConstChartRowOperations(BaseOperations):
         if index < 0 or index > target_chart.RowsOS.Count:
             raise FP_ParameterError(f"Index {index} out of range [0, {target_chart.RowsOS.Count}]")
 
-        # Get source chart
-        source_chart = row.Owner
+        # Get source chart. row.Owner is typed as ICmObject and does
+        # not expose RowsOS; cast to IDsConstChart so the typed
+        # collection is reachable for both the same-chart reorder path
+        # and the cross-chart Remove/Insert path.
+        source_chart = self._GetTypedOwner(row)
+        if source_chart is None:
+            raise FP_ParameterError("Row has no owning chart")
 
         # If moving within same chart, use reordering
         if source_chart == target_chart:
