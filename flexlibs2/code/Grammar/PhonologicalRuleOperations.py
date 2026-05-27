@@ -18,6 +18,8 @@ from ..Shared.string_utils import normalize_match_key
 # Import FLEx LCM types
 from SIL.LCModel import (
     IPhRegularRuleFactory,  # Fixed: was IPhPhonRuleFactory
+    IPhMetathesisRuleFactory,
+    IPhReduplicationRuleFactory,
     IPhSegRuleRHSFactory,
     IPhSegmentRuleFactory,
     IPhSimpleContextNC,
@@ -1436,7 +1438,9 @@ class PhonologicalRuleOperations(BaseOperations):
             >>> copy = phonRuleOps.Duplicate(rule, deep=False)
 
         Notes:
-            - Uses collection.CreateAndAppendElement() for proper LCM registration
+            - Preserves the source's concrete subtype: a PhMetathesisRule
+              source produces a PhMetathesisRule duplicate, etc. Dispatches
+              on source.ClassName to pick the matching factory. (issue #126)
             - insert_after=True preserves the original rule's position
             - Copies all simple properties: Name, Description, Direction, StratumRA
             - Copies all owned objects when deep=True:
@@ -1454,26 +1458,35 @@ class PhonologicalRuleOperations(BaseOperations):
         # Get source rule
         source = self.__ResolveObject(item_or_hvo)
 
-        # Create new rule using collection's CreateAndAppendElement for proper registration
         phon_data = self.project.lp.PhonologicalDataOA
 
-        # Try to use CreateAndAppendElement (proper LCM registration)
-        if hasattr(phon_data.PhonRulesOS, "CreateAndAppendElement"):
-            duplicate = phon_data.PhonRulesOS.CreateAndAppendElement()
-            # If we need to insert at a specific position, remove and reinsert
-            if insert_after:
-                source_index = phon_data.PhonRulesOS.IndexOf(source)
-                phon_data.PhonRulesOS.Remove(duplicate)
-                phon_data.PhonRulesOS.Insert(source_index + 1, duplicate)
+        # Dispatch on the source's concrete subtype so a metathesis or
+        # reduplication rule duplicate doesn't silently become a regular
+        # rule. PhonRulesOS is polymorphic (PhRegularRule, PhMetathesisRule,
+        # PhReduplicationRule); CreateAndAppendElement and the previous
+        # IPhRegularRuleFactory-only fallback both produced PhRegularRule
+        # regardless of source. Same fix shape as 76204e0 (#27) for
+        # NaturalClassOperations.Duplicate. (issue #126)
+        factory_by_class = {
+            "PhRegularRule": IPhRegularRuleFactory,
+            "PhMetathesisRule": IPhMetathesisRuleFactory,
+            "PhReduplicationRule": IPhReduplicationRuleFactory,
+        }
+        source_class = source.ClassName
+        factory_iface = factory_by_class.get(source_class)
+        if factory_iface is None:
+            raise FP_ParameterError(
+                f"Cannot duplicate rule of class {source_class!r}: "
+                f"unknown concrete rule type. Known types: "
+                f"{sorted(factory_by_class)}."
+            )
+        factory = self.project.project.ServiceLocator.GetService(factory_iface)
+        duplicate = factory.Create()
+        if insert_after:
+            source_index = phon_data.PhonRulesOS.IndexOf(source)
+            phon_data.PhonRulesOS.Insert(source_index + 1, duplicate)
         else:
-            # Fallback to factory.Create() + Add/Insert
-            factory = self.project.project.ServiceLocator.GetService(IPhRegularRuleFactory)
-            duplicate = factory.Create()
-            if insert_after:
-                source_index = phon_data.PhonRulesOS.IndexOf(source)
-                phon_data.PhonRulesOS.Insert(source_index + 1, duplicate)
-            else:
-                phon_data.PhonRulesOS.Add(duplicate)
+            phon_data.PhonRulesOS.Add(duplicate)
 
         # Clone all properties (simple, reference, and owned objects)
         if deep:
