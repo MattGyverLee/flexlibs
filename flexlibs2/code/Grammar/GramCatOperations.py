@@ -80,38 +80,42 @@ class GramCatOperations(BaseOperations):
 
     @wrap_enumerable
     @OperationsMethod
-    def GetAll(self):
+    def GetAll(self, recursive=True):
         """
         Get all grammatical categories in the project.
 
+        Args:
+            recursive (bool): If True (default), yields every category in the
+                hierarchy (depth-first, parents before children). If False,
+                yields only top-level categories and the caller must descend
+                via GetSubcategories.
+
         Yields:
-            ICmPossibility: Each top-level grammatical category object in the
-                project's feature system.
+            ICmPossibility: Each grammatical category.
 
         Example:
             >>> gramCatOps = GramCatOperations(project)
             >>> for cat in gramCatOps.GetAll():
-            ...     name = gramCatOps.GetName(cat)
-            ...     subcats = gramCatOps.GetSubcategories(cat)
-            ...     print(f"{name}: {len(subcats)} subcategories")
-            person: 3 subcategories
-            number: 2 subcategories
-            gender: 3 subcategories
-            tense: 5 subcategories
+            ...     print(gramCatOps.GetName(cat))   # Includes subcategories
 
-        Notes:
-            - Returns only top-level categories
-            - Does not include subcategories
-            - Use GetSubcategories() to navigate the hierarchy
-            - Categories are stored in the feature system
+            >>> # Top-level only
+            >>> for cat in gramCatOps.GetAll(recursive=False):
+            ...     print(gramCatOps.GetName(cat))
 
         See Also:
             GetSubcategories, Create
         """
         feature_system = self.project.lp.MsFeatureSystemOA
-        if feature_system:
-            for cat in feature_system.TypesOC:
+        if not feature_system:
+            return
+
+        def walk(collection):
+            for cat in collection:
                 yield cat
+                if recursive and hasattr(cat, "SubPossibilitiesOS") and cat.SubPossibilitiesOS.Count > 0:
+                    yield from walk(cat.SubPossibilitiesOS)
+
+        yield from walk(feature_system.TypesOC)
 
     @OperationsMethod
     def Create(self, name, parent=None):
@@ -309,12 +313,15 @@ class GramCatOperations(BaseOperations):
 
     @wrap_enumerable
     @OperationsMethod
-    def GetSubcategories(self, cat_or_hvo):
+    def GetSubcategories(self, cat_or_hvo, recursive=True):
         """
-        Get all subcategories of a grammatical category.
+        Get the subcategories of a grammatical category.
 
         Args:
             cat_or_hvo: The ICmPossibility object or HVO.
+            recursive (bool): If True (default), returns every descendant
+                (depth-first, parents before children). If False, returns
+                only direct children.
 
         Returns:
             list: List of ICmPossibility subcategory objects (empty list if none).
@@ -324,26 +331,13 @@ class GramCatOperations(BaseOperations):
 
         Example:
             >>> gramCatOps = GramCatOperations(project)
-            >>> person = gramCatOps.Create("person")
-            >>> first = gramCatOps.Create("1st person", parent=person)
-            >>> second = gramCatOps.Create("2nd person", parent=person)
-            >>> third = gramCatOps.Create("3rd person", parent=person)
-            >>>
-            >>> subcats = gramCatOps.GetSubcategories(person)
-            >>> for subcat in subcats:
+            >>> person = gramCatOps.Find("person")
+            >>> for subcat in gramCatOps.GetSubcategories(person):
+            ...     print(gramCatOps.GetName(subcat))     # All descendants
+
+            >>> # Direct children only
+            >>> for subcat in gramCatOps.GetSubcategories(person, recursive=False):
             ...     print(gramCatOps.GetName(subcat))
-            1st person
-            2nd person
-            3rd person
-
-            >>> # Check if category has subcategories
-            >>> if gramCatOps.GetSubcategories(cat):
-            ...     print("This category has subcategories")
-
-        Notes:
-            - Returns direct children only (not recursive)
-            - Returns empty list if no subcategories
-            - Subcategories form a hierarchy for fine-grained classification
 
         See Also:
             GetAll, GetParent, Create
@@ -352,7 +346,17 @@ class GramCatOperations(BaseOperations):
 
         cat = self.__ResolveObject(cat_or_hvo)
 
-        return list(cat.SubPossibilitiesOS)
+        if not recursive:
+            return list(cat.SubPossibilitiesOS)
+
+        result = []
+        def walk(collection):
+            for child in collection:
+                result.append(child)
+                if hasattr(child, "SubPossibilitiesOS") and child.SubPossibilitiesOS.Count > 0:
+                    walk(child.SubPossibilitiesOS)
+        walk(cat.SubPossibilitiesOS)
+        return result
 
     @OperationsMethod
     def GetParent(self, cat_or_hvo):

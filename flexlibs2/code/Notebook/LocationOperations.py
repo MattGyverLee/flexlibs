@@ -90,45 +90,26 @@ class LocationOperations(BaseOperations):
 
     @wrap_enumerable
     @OperationsMethod
-    def GetAll(self, flat=True):
+    def GetAll(self, recursive=True):
         """
         Get all locations in the project.
 
         Args:
-            flat (bool): If True, returns a flat list of all locations including
-                sublocations. If False, returns only top-level locations (use
-                GetSublocations to navigate hierarchy). Defaults to True.
+            recursive (bool): If True (default), returns every location in
+                the hierarchy (depth-first, parents before children). If
+                False, returns only top-level locations and the caller must
+                descend via GetSublocations.
 
         Returns:
             list: List of ICmLocation objects.
 
         Example:
-            >>> # Get all locations in a flat list
-            >>> for location in project.Location.GetAll(flat=True):
-            ...     name = project.Location.GetName(location)
-            ...     coords = project.Location.GetCoordinates(location)
-            ...     print(f"{name}: {coords}")
-            Colombia: (4.5709, -74.2973)
-            Vaupés Department: (1.2500, -70.5000)
-            Barasana Village: (-1.2345, -70.6789)
-            ...
+            >>> for location in project.Location.GetAll():
+            ...     print(project.Location.GetName(location))   # Includes sublocations
 
-            >>> # Get only top-level locations
-            >>> top_level = project.Location.GetAll(flat=False)
-            >>> for location in top_level:
-            ...     name = project.Location.GetName(location)
-            ...     subs = project.Location.GetSublocations(location)
-            ...     print(f"{name} ({len(subs)} sublocations)")
-            Colombia (5 sublocations)
-            Brazil (3 sublocations)
-            ...
-
-        Notes:
-            - Returns list, not iterator (consistent with similar operations)
-            - Flat list is useful for searching and iteration
-            - Hierarchical list is useful for tree display
-            - Locations are ordered by creation order
-            - Empty list returned if no locations exist
+            >>> # Top-level only
+            >>> for location in project.Location.GetAll(recursive=False):
+            ...     print(project.Location.GetName(location))
 
         See Also:
             Find, Create, GetSublocations
@@ -137,7 +118,8 @@ class LocationOperations(BaseOperations):
         if not location_list:
             return []
 
-        return list(self.project.UnpackNestedPossibilityList(location_list.PossibilitiesOS, ICmLocation, flat))
+        return list(self.project.UnpackNestedPossibilityList(
+            location_list.PossibilitiesOS, ICmLocation, recursive))
 
     @OperationsMethod
     def Create(self, name, wsHandle=None, alias=None):
@@ -326,7 +308,7 @@ class LocationOperations(BaseOperations):
         wsHandle = self.project.project.DefaultAnalWs
 
         # Search through all locations
-        for location in self.GetAll(flat=True):
+        for location in self.GetAll():
             location_name = ITsString(location.Name.get_String(wsHandle)).Text
             if normalize_match_key(location_name, casefold=True) == target:
                 return location
@@ -1036,42 +1018,31 @@ class LocationOperations(BaseOperations):
         location.DateModified = DateTime.Now
 
     @OperationsMethod
-    def GetSublocations(self, location_or_hvo):
+    def GetSublocations(self, location_or_hvo, recursive=True):
         """
-        Get all direct child sublocations of a location.
+        Get the sublocations of a location.
 
         Args:
             location_or_hvo: Either an ICmLocation object or its HVO.
+            recursive (bool): If True (default), returns every descendant
+                location (depth-first, parents before children). If False,
+                returns only direct children.
 
         Returns:
-            list: List of ICmLocation child objects (empty list if none).
+            list: List of ICmLocation objects (empty list if none).
 
         Raises:
             FP_NullParameterError: If location_or_hvo is None.
             FP_ParameterError: If location doesn't exist.
 
         Example:
-            >>> # Get sublocations of a region
             >>> region = project.Location.Find("Vaupés Department")
-            >>> sublocations = project.Location.GetSublocations(region)
-            >>> for subloc in sublocations:
-            ...     name = project.Location.GetName(subloc)
-            ...     coords = project.Location.GetCoordinates(subloc)
-            ...     print(f"{name}: {coords}")
-            Mitú: (1.2534, -70.2342)
-            Carurú: (0.8756, -71.2934)
-            Papurí River Area: (1.1234, -70.5678)
-            ...
+            >>> for subloc in project.Location.GetSublocations(region):
+            ...     print(project.Location.GetName(subloc))   # All descendants
 
-            >>> # Check if location has sublocations
-            >>> if project.Location.GetSublocations(region):
-            ...     print("Region has sublocations")
-
-        Notes:
-            - Returns direct children only (not recursive)
-            - Returns empty list if location has no sublocations
-            - Sublocations are ordered by creation order
-            - For full tree, recursively call GetSublocations on each child
+            >>> # Direct children only
+            >>> for subloc in project.Location.GetSublocations(region, recursive=False):
+            ...     print(project.Location.GetName(subloc))
 
         See Also:
             GetRegion, CreateSublocation, SetRegion
@@ -1080,10 +1051,20 @@ class LocationOperations(BaseOperations):
 
         location = self.__ResolveObject(location_or_hvo)
 
-        if hasattr(location, "SubPossibilitiesOS"):
+        if not hasattr(location, "SubPossibilitiesOS"):
+            return []
+
+        if not recursive:
             return list(location.SubPossibilitiesOS)
 
-        return []
+        result = []
+        def walk(collection):
+            for child in collection:
+                result.append(child)
+                if hasattr(child, "SubPossibilitiesOS") and child.SubPossibilitiesOS.Count > 0:
+                    walk(child.SubPossibilitiesOS)
+        walk(location.SubPossibilitiesOS)
+        return result
 
     @OperationsMethod
     def CreateSublocation(self, parent_location_or_hvo, name, wsHandle=None, alias=None):
@@ -1567,7 +1548,7 @@ class LocationOperations(BaseOperations):
         results = []
 
         # Search through all locations
-        for location in self.GetAll(flat=True):
+        for location in self.GetAll():
             coords = self.GetCoordinates(location)
             if coords:
                 loc_lat, loc_lon = coords

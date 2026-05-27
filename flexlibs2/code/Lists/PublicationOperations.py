@@ -128,38 +128,26 @@ class PublicationOperations(PossibilityItemOperations):
 
     @wrap_enumerable
     @OperationsMethod
-    def GetAll(self, flat=True):
+    def GetAll(self, recursive=True):
         """
         Get all publications in the project.
 
         Args:
-            flat (bool): If True, returns a flat list of all publications including
-                        sub-publications. If False, returns only top-level publications.
+            recursive (bool): If True (default), returns every publication in
+                the hierarchy (depth-first, parents before children). If
+                False, returns only top-level publications and the caller
+                must descend via GetSubPublications.
 
         Returns:
             list: List of ICmPossibility objects representing publications.
 
         Example:
-            >>> # Get all publications including variants
-            >>> for pub in project.Publications.GetAll(flat=True):
-            ...     name = project.Publications.GetName(pub)
-            ...     print(name)
-            Main Dictionary
-            Main Dictionary - Web Variant
-            Root-based Dictionary
+            >>> for pub in project.Publications.GetAll():
+            ...     print(project.Publications.GetName(pub))   # Includes variants at any depth
 
-            >>> # Get only top-level publications
-            >>> for pub in project.Publications.GetAll(flat=False):
-            ...     name = project.Publications.GetName(pub)
-            ...     print(name)
-            Main Dictionary
-            Root-based Dictionary
-
-        Notes:
-            - flat=True includes sub-publications (default)
-            - flat=False returns only top-level publications
-            - Returns empty list if no publications exist
-            - Useful for building publication lists for export
+            >>> # Top-level only
+            >>> for pub in project.Publications.GetAll(recursive=False):
+            ...     print(project.Publications.GetName(pub))
 
         See Also:
             Find, GetSubPublications
@@ -168,18 +156,17 @@ class PublicationOperations(PossibilityItemOperations):
         if not list_obj:
             return []
 
-        if flat:
-            # Return flat list including sub-possibilities
-            all_pubs = []
-            for pub in list_obj.PossibilitiesOS:
-                all_pubs.append(pub)
-                # Add sub-publications recursively
-                if hasattr(pub, "SubPossibilitiesOS"):
-                    all_pubs.extend(list(pub.SubPossibilitiesOS))
-            return all_pubs
-        else:
-            # Return only top-level publications
+        if not recursive:
             return list(list_obj.PossibilitiesOS)
+
+        all_pubs = []
+        def walk(collection):
+            for pub in collection:
+                all_pubs.append(pub)
+                if hasattr(pub, "SubPossibilitiesOS") and pub.SubPossibilitiesOS.Count > 0:
+                    walk(pub.SubPossibilitiesOS)
+        walk(list_obj.PossibilitiesOS)
+        return all_pubs
 
     # --- Publishing Properties ---
 
@@ -797,12 +784,15 @@ class PublicationOperations(PossibilityItemOperations):
     # --- Hierarchical Operations ---
 
     @OperationsMethod
-    def GetSubPublications(self, publication_or_hvo):
+    def GetSubPublications(self, publication_or_hvo, recursive=True):
         """
-        Get all sub-publications of a publication.
+        Get the sub-publications of a publication.
 
         Args:
             publication_or_hvo: Either an ICmPossibility publication object or its HVO.
+            recursive (bool): If True (default), returns every descendant
+                sub-publication (depth-first, parents before children). If
+                False, returns only direct children.
 
         Returns:
             list: List of ICmPossibility sub-publication objects.
@@ -812,15 +802,12 @@ class PublicationOperations(PossibilityItemOperations):
 
         Example:
             >>> pub = project.Publications.Find("Main Dictionary")
-            >>> subs = project.Publications.GetSubPublications(pub)
-            >>> for sub in subs:
-            ...     name = project.Publications.GetName(sub)
-            ...     print(f"Variant: {name}")
+            >>> for sub in project.Publications.GetSubPublications(pub):
+            ...     print(project.Publications.GetName(sub))   # All descendants
 
-        Notes:
-            - Returns empty list if no sub-publications
-            - Sub-publications can represent variants or divisions
-            - Different from GetDivisions() which is content-based
+            >>> # Direct children only
+            >>> for sub in project.Publications.GetSubPublications(pub, recursive=False):
+            ...     print(project.Publications.GetName(sub))
 
         See Also:
             GetParent, GetDivisions
@@ -829,10 +816,20 @@ class PublicationOperations(PossibilityItemOperations):
 
         publication = self._PossibilityItemOperations__ResolveObject(publication_or_hvo)
 
-        if hasattr(publication, "SubPossibilitiesOS"):
+        if not hasattr(publication, "SubPossibilitiesOS"):
+            return []
+
+        if not recursive:
             return list(publication.SubPossibilitiesOS)
 
-        return []
+        result = []
+        def walk(collection):
+            for child in collection:
+                result.append(child)
+                if hasattr(child, "SubPossibilitiesOS") and child.SubPossibilitiesOS.Count > 0:
+                    walk(child.SubPossibilitiesOS)
+        walk(publication.SubPossibilitiesOS)
+        return result
 
     @OperationsMethod
     def GetParent(self, publication_or_hvo):

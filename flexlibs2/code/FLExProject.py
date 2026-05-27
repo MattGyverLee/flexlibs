@@ -1358,7 +1358,7 @@ class FLExProject(object):
             >>> project = FLExProject()
             >>> project.OpenProject("MyProject", writeEnabled=True)
             >>> # Get all semantic domains
-            >>> for domain in project.SemanticDomains.GetAll(flat=True):
+            >>> for domain in project.SemanticDomains.GetAll():
             ...     number = project.SemanticDomains.GetNumber(domain)
             ...     name = project.SemanticDomains.GetName(domain)
             ...     print(f"{number} - {name}")
@@ -1489,7 +1489,7 @@ class FLExProject(object):
             >>> # Get all possibility lists in the project
             >>> for poss_list in project.PossibilityLists.GetAllLists():
             ...     name = project.PossibilityLists.GetListName(poss_list)
-            ...     items = project.PossibilityLists.GetItems(poss_list, flat=True)
+            ...     items = project.PossibilityLists.GetItems(poss_list)
             ...     print(f"{name}: {len(items)} items")
             Semantic Domains: 1435 items
             Parts of Speech: 45 items
@@ -2749,7 +2749,7 @@ class FLExProject(object):
         .. note::
            This method delegates to :meth:`SemanticDomainOperations.GetAll`.
         """
-        return self.SemanticDomains.GetAll(flat=flat)
+        return self.SemanticDomains.GetAll(recursive=flat)
 
     # --- Global utility functions ---
 

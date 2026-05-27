@@ -1410,13 +1410,14 @@ class LexEntryOperations(BaseOperations):
         entry.LexemeFormOA.MorphTypeRA = morph_type
 
     @OperationsMethod
-    def GetAvailableMorphTypes(self, include_subcategories=True):
+    def GetAvailableMorphTypes(self, recursive=True):
         """
         Get a list of all available morph types in the project.
 
         Args:
-            include_subcategories (bool): If True (default), includes subcategories.
-                If False, only returns top-level morph types.
+            recursive (bool): If True (default), includes every morph type in
+                the hierarchy (depth-first, parents before children). If
+                False, returns only top-level morph types.
 
         Returns:
             list: List of tuples (name, IMoMorphType, is_stem_type) where:
@@ -1432,16 +1433,10 @@ class LexEntryOperations(BaseOperations):
             stem: stem
             root: stem
             prefix: affix
-            suffix: affix
-            infix: affix
+            ...
 
-            >>> # Get only top-level types
-            >>> top_level = project.LexEntry.GetAvailableMorphTypes(include_subcategories=False)
-
-        Notes:
-            - Returns morph types defined in the project's MorphTypesOA list
-            - Useful for building UI dropdowns or validating user input
-            - is_stem_type indicates whether to use MoStemAllomorph or MoAffixAllomorph
+            >>> # Top-level types only
+            >>> top_level = project.LexEntry.GetAvailableMorphTypes(recursive=False)
 
         See Also:
             ValidateMorphType, SetMorphType, Create
@@ -1451,7 +1446,6 @@ class LexEntryOperations(BaseOperations):
             return []
 
         result = []
-        wsHandle = self.project.project.DefaultAnalWs
 
         def collect_types(possibilities):
             for mt in possibilities:
@@ -1460,8 +1454,7 @@ class LexEntryOperations(BaseOperations):
                     is_stem = self.__IsStemType(mt)
                     result.append((name, mt, is_stem))
 
-                # Include subcategories if requested
-                if include_subcategories and mt.SubPossibilitiesOS.Count > 0:
+                if recursive and mt.SubPossibilitiesOS.Count > 0:
                     collect_types(mt.SubPossibilitiesOS)
 
         collect_types(morph_types.PossibilitiesOS)

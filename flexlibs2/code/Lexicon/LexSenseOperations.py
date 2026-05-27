@@ -106,53 +106,59 @@ class LexSenseOperations(BaseOperations):
 
     @wrap_enumerable
     @OperationsMethod
-    def GetAll(self, entry_or_hvo=None):
+    def GetAll(self, entry_or_hvo=None, recursive=True):
         """
         Get senses for an entry or all senses in the project.
 
         Args:
-            entry_or_hvo: Optional ILexEntry object or HVO.
-                         If provided, returns senses for that entry only.
-                         If None, returns ALL senses in the entire project.
+            entry_or_hvo: Optional ILexEntry object or HVO. If provided,
+                yields senses for that entry only. If None, yields every
+                sense in the project.
+            recursive (bool): If True (default), yields every sense including
+                subsenses (depth-first, parents before children). If False,
+                yields only top-level senses on each entry.
 
         Yields:
             ILexSense: Each sense.
 
         Example:
-            >>> # Get senses for a specific entry
-            >>> entry = list(project.LexiconAllEntries())[0]
-            >>> for sense in project.Senses.GetAll(entry):
-            ...     gloss = project.Senses.GetGloss(sense)
-            ...     defn = project.Senses.GetDefinition(sense)
-            ...     print(f"{gloss}: {defn}")
-            run: to move swiftly on foot
-            run: to flow or extend
-            >>>
-            >>> # Get ALL senses in entire project
+            >>> # Every sense in the project, subsenses included
             >>> for sense in project.Senses.GetAll():
-            ...     gloss = project.Senses.GetGloss(sense)
-            ...     print(f"Sense: {gloss}")
+            ...     print(project.Senses.GetGloss(sense))
 
-        Notes:
-            - When called with no argument, iterates all senses in project
-            - When called with entry, returns only that entry's senses
-            - Returns senses in order they appear in FLEx
-            - Does not include subsenses (use GetSubsenses for those)
-            - Returns empty generator if no senses exist
+            >>> # Top-level senses only, scoped to one entry
+            >>> entry = project.LexEntry.Find("run")
+            >>> for sense in project.Senses.GetAll(entry, recursive=False):
+            ...     print(project.Senses.GetGloss(sense))
 
         See Also:
             Create, GetSubsenses, GetOwningEntry
         """
         if entry_or_hvo is None:
-            # Iterate ALL senses in entire project
+            # Iterate all senses in the project.
             for entry in self.project.lexDB.Entries:
-                for sense in entry.AllSenses:  # Includes subsenses
-                    yield sense
-        else:
-            # Iterate senses for specific entry
-            entry = self.__GetEntryObject(entry_or_hvo)
+                if recursive:
+                    # entry.AllSenses already includes subsenses.
+                    for sense in entry.AllSenses:
+                        yield sense
+                else:
+                    for sense in entry.SensesOS:
+                        yield sense
+            return
+
+        entry = self.__GetEntryObject(entry_or_hvo)
+        if not recursive:
             for sense in entry.SensesOS:
                 yield sense
+            return
+
+        def walk(collection):
+            for sense in collection:
+                yield sense
+                if sense.SensesOS.Count > 0:
+                    yield from walk(sense.SensesOS)
+
+        yield from walk(entry.SensesOS)
 
     @OperationsMethod
     def Create(self, entry_or_hvo, gloss, wsHandle=None):
@@ -1372,34 +1378,30 @@ class LexSenseOperations(BaseOperations):
     # --- Subsense Operations ---
 
     @OperationsMethod
-    def GetSubsenses(self, sense_or_hvo):
+    def GetSubsenses(self, sense_or_hvo, recursive=True):
         """
-        Get all subsenses (child senses) of a sense.
+        Get the subsenses (child senses) of a sense.
 
         Args:
             sense_or_hvo: The ILexSense object or HVO.
+            recursive (bool): If True (default), returns every descendant
+                subsense (depth-first, parents before children). If False,
+                returns only direct children.
 
         Returns:
-            list: List of ILexSense objects that are subsenses.
+            list: List of ILexSense objects.
 
         Raises:
             FP_NullParameterError: If sense_or_hvo is None.
 
         Example:
-            >>> entry = list(project.LexiconAllEntries())[0]
-            >>> senses = list(project.Senses.GetAll(entry))
-            >>> if senses:
-            ...     subsenses = project.Senses.GetSubsenses(senses[0])
-            ...     for subsense in subsenses:
-            ...         gloss = project.Senses.GetGloss(subsense)
-            ...         print(f"  Subsense: {gloss}")
-              Subsense: to run (of water)
-              Subsense: to run (a program)
+            >>> sense = project.Senses.GetAll(entry, recursive=False)[0]
+            >>> for sub in project.Senses.GetSubsenses(sense):
+            ...     print(project.Senses.GetGloss(sub))     # All descendants
 
-        Notes:
-            - Returns empty list if no subsenses exist
-            - Subsenses represent more specific meanings
-            - Subsenses can have their own subsenses (nested hierarchy)
+            >>> # Direct children only
+            >>> for sub in project.Senses.GetSubsenses(sense, recursive=False):
+            ...     print(project.Senses.GetGloss(sub))
 
         See Also:
             CreateSubsense, GetParentSense
@@ -1407,7 +1409,17 @@ class LexSenseOperations(BaseOperations):
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
-        return list(sense.SensesOS)
+        if not recursive:
+            return list(sense.SensesOS)
+
+        result = []
+        def walk(collection):
+            for child in collection:
+                result.append(child)
+                if child.SensesOS.Count > 0:
+                    walk(child.SensesOS)
+        walk(sense.SensesOS)
+        return result
 
     @OperationsMethod
     def CreateSubsense(self, parent_sense_or_hvo, gloss, wsHandle=None):
@@ -2702,7 +2714,7 @@ class LexSenseOperations(BaseOperations):
             return None
 
         # Search through items in the list for name match
-        for item in self.project.PossibilityLists.GetItems(poss_list, flat=True):
+        for item in self.project.PossibilityLists.GetItems(poss_list):
             item_text = best_analysis_text(item.Name) if item.Name else None
             if item_text == item_name:
                 return item

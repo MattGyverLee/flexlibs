@@ -58,7 +58,7 @@ class PossibilityListOperations(BaseOperations):
             print(f"List: {name}")
 
             # Get items in each list
-            items = project.PossibilityLists.GetItems(poss_list, flat=True)
+            items = project.PossibilityLists.GetItems(poss_list)
             print(f"  Contains {len(items)} items")
 
         # Work with a specific list
@@ -299,7 +299,7 @@ class PossibilityListOperations(BaseOperations):
             >>> # Find the semantic domains list
             >>> sd_list = project.PossibilityLists.FindList("Semantic Domains")
             >>> if sd_list:
-            ...     items = project.PossibilityLists.GetItems(sd_list, flat=True)
+            ...     items = project.PossibilityLists.GetItems(sd_list)
             ...     print(f"Found {len(items)} semantic domains")
 
             >>> # Find text genres list
@@ -412,15 +412,16 @@ class PossibilityListOperations(BaseOperations):
     # --- Item Management ---
 
     @OperationsMethod
-    def GetItems(self, list_or_hvo, flat=False):
+    def GetItems(self, list_or_hvo, recursive=True):
         """
         Get items from a possibility list.
 
         Args:
             list_or_hvo: The ICmPossibilityList object or HVO.
-            flat (bool): If True, returns a flat list of all items including
-                nested items. If False, returns only top-level items.
-                Defaults to False.
+            recursive (bool): If True (default), returns every item in the
+                hierarchy (depth-first, parents before children). If False,
+                returns only top-level items and the caller must descend via
+                GetSubitems.
 
         Returns:
             list: List of ICmPossibility objects.
@@ -429,27 +430,12 @@ class PossibilityListOperations(BaseOperations):
             FP_NullParameterError: If list_or_hvo is None.
 
         Example:
-            >>> # Get top-level items only
             >>> genre_list = project.PossibilityLists.FindList("Text Genres")
-            >>> top_items = project.PossibilityLists.GetItems(genre_list)
-            >>> for item in top_items:
-            ...     name = project.PossibilityLists.GetItemName(item)
-            ...     print(name)
-            Narrative
-            Procedural
-            Expository
-            ...
+            >>> for item in project.PossibilityLists.GetItems(genre_list):
+            ...     print(project.PossibilityLists.GetItemName(item))    # All items at any depth
 
-            >>> # Get all items including nested ones
-            >>> all_items = project.PossibilityLists.GetItems(genre_list, flat=True)
-            >>> print(f"Total items: {len(all_items)}")
-            Total items: 25
-
-        Notes:
-            - flat=False returns only top-level items (direct children of list)
-            - flat=True recursively includes all nested subitems
-            - Returns empty list if no items in the list
-            - Use GetSubitems() to navigate hierarchy manually
+            >>> # Top-level only
+            >>> top = project.PossibilityLists.GetItems(genre_list, recursive=False)
 
         See Also:
             GetSubitems, CreateItem, FindItem
@@ -458,10 +444,11 @@ class PossibilityListOperations(BaseOperations):
 
         poss_list = self.__ResolveList(list_or_hvo)
 
-        if not flat:
+        if not recursive:
             return list(poss_list.PossibilitiesOS)
-        else:
-            return list(self.project.UnpackNestedPossibilityList(poss_list.PossibilitiesOS, ICmPossibility, flat))
+
+        return list(self.project.UnpackNestedPossibilityList(
+            poss_list.PossibilitiesOS, ICmPossibility, True))
 
     @OperationsMethod
     def CreateItem(self, list_or_hvo, name, wsHandle=None, parent=None):
@@ -848,8 +835,8 @@ class PossibilityListOperations(BaseOperations):
         target = normalize_match_key(name.strip(), casefold=True)
         wsHandle = self.project.project.DefaultAnalWs
 
-        # Search through all items (flat)
-        for item in self.GetItems(list_or_hvo, flat=True):
+        # Search through all items (recursive default)
+        for item in self.GetItems(list_or_hvo):
             item_name = ITsString(item.Name.get_String(wsHandle)).Text
             if item_name and normalize_match_key(item_name, casefold=True) == target:
                 return item
@@ -1076,36 +1063,31 @@ class PossibilityListOperations(BaseOperations):
     # --- Hierarchy Operations ---
 
     @OperationsMethod
-    def GetSubitems(self, item_or_hvo):
+    def GetSubitems(self, item_or_hvo, recursive=True):
         """
-        Get all direct child subitems of a possibility item.
+        Get the subitems of a possibility item.
 
         Args:
             item_or_hvo: The ICmPossibility object or HVO.
+            recursive (bool): If True (default), returns every descendant
+                (depth-first, parents before children). If False, returns
+                only direct children.
 
         Returns:
-            list: List of ICmPossibility child objects (empty list if none).
+            list: List of ICmPossibility objects (empty list if none).
 
         Raises:
             FP_NullParameterError: If item_or_hvo is None.
 
         Example:
-            >>> # Get subitems
             >>> pos_list = project.PossibilityLists.FindList("Parts of Speech")
             >>> noun = project.PossibilityLists.FindItem(pos_list, "Noun")
-            >>> subcats = project.PossibilityLists.GetSubitems(noun)
-            >>> for subcat in subcats:
-            ...     name = project.PossibilityLists.GetItemName(subcat)
-            ...     print(f"  {name}")
-              Proper Noun
-              Common Noun
-              Count Noun
+            >>> for sub in project.PossibilityLists.GetSubitems(noun):
+            ...     print(project.PossibilityLists.GetItemName(sub))   # All descendants
 
-        Notes:
-            - Returns direct children only (not recursive)
-            - Returns empty list if item has no subitems
-            - Subitems are ordered as they appear in the list
-            - For all descendants, use GetItems(list, flat=True)
+            >>> # Direct children only
+            >>> for sub in project.PossibilityLists.GetSubitems(noun, recursive=False):
+            ...     print(project.PossibilityLists.GetItemName(sub))
 
         See Also:
             GetParentItem, GetItems, CreateItem
@@ -1114,7 +1096,17 @@ class PossibilityListOperations(BaseOperations):
 
         item = self.__ResolveItem(item_or_hvo)
 
-        return list(item.SubPossibilitiesOS)
+        if not recursive:
+            return list(item.SubPossibilitiesOS)
+
+        result = []
+        def walk(collection):
+            for child in collection:
+                result.append(child)
+                if hasattr(child, "SubPossibilitiesOS") and child.SubPossibilitiesOS.Count > 0:
+                    walk(child.SubPossibilitiesOS)
+        walk(item.SubPossibilitiesOS)
+        return result
 
     @OperationsMethod
     def GetParentItem(self, item_or_hvo):

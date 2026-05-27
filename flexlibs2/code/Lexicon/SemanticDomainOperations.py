@@ -50,7 +50,7 @@ class SemanticDomainOperations(BaseOperations, _LCMNativeCatalogImportMixin):
         project.OpenProject("my project", writeEnabled=True)
 
         # Get all semantic domains (flat list)
-        for domain in project.SemanticDomains.GetAll(flat=True):
+        for domain in project.SemanticDomains.GetAll():
             number = project.SemanticDomains.GetNumber(domain)
             name = project.SemanticDomains.GetName(domain)
             print(f"{number} - {name}")
@@ -93,45 +93,31 @@ class SemanticDomainOperations(BaseOperations, _LCMNativeCatalogImportMixin):
 
     @wrap_enumerable
     @OperationsMethod
-    def GetAll(self, flat=True):
+    def GetAll(self, recursive=True):
         """
         Get all semantic domains in the project.
 
         Args:
-            flat (bool): If True, returns a flat list of all domains including
-                subdomains. If False, returns only top-level domains (use
-                GetSubdomains to navigate hierarchy). Defaults to True.
+            recursive (bool): If True (default), returns every domain in the
+                hierarchy (depth-first, parents before children). If False,
+                returns only top-level domains and the caller must descend
+                via GetSubdomains.
 
         Returns:
             list: List of ICmSemanticDomain objects.
 
         Example:
-            >>> # Get all domains in a flat list
-            >>> for domain in project.SemanticDomains.GetAll(flat=True):
-            ...     number = project.SemanticDomains.GetNumber(domain)
-            ...     name = project.SemanticDomains.GetName(domain)
-            ...     print(f"{number} - {name}")
+            >>> for domain in project.SemanticDomains.GetAll():
+            ...     print(project.SemanticDomains.GetNumber(domain),
+            ...           project.SemanticDomains.GetName(domain))
             1 - Universe, creation
             1.1 - Sky
             1.1.1 - Sun
-            1.1.1.1 - Moon
             ...
 
-            >>> # Get only top-level domains
-            >>> top_level = project.SemanticDomains.GetAll(flat=False)
-            >>> for domain in top_level:
+            >>> # Top-level only
+            >>> for domain in project.SemanticDomains.GetAll(recursive=False):
             ...     print(project.SemanticDomains.GetName(domain))
-            Universe, creation
-            Person
-            Language and thought
-            ...
-
-        Notes:
-            - Returns list, not iterator (consistent with FLExProject.GetAllSemanticDomains)
-            - Flat list is useful for searching and iteration
-            - Hierarchical list is useful for tree display
-            - Most projects use standard SIL semantic domain lists
-            - Domains are ordered by domain number
 
         See Also:
             Find, FindByName, GetSubdomains
@@ -140,7 +126,8 @@ class SemanticDomainOperations(BaseOperations, _LCMNativeCatalogImportMixin):
         if not domain_list:
             return []
 
-        return list(self.project.UnpackNestedPossibilityList(domain_list.PossibilitiesOS, ICmSemanticDomain, flat))
+        return list(self.project.UnpackNestedPossibilityList(
+            domain_list.PossibilitiesOS, ICmSemanticDomain, recursive))
 
     @OperationsMethod
     def Find(self, number):
@@ -188,7 +175,7 @@ class SemanticDomainOperations(BaseOperations, _LCMNativeCatalogImportMixin):
         wsHandle = self.project.project.DefaultAnalWs
 
         # Search through all domains (flat)
-        for domain in self.GetAll(flat=True):
+        for domain in self.GetAll():
             domain_num = self.GetNumber(domain)
             if domain_num == number:
                 return domain
@@ -241,7 +228,7 @@ class SemanticDomainOperations(BaseOperations, _LCMNativeCatalogImportMixin):
         wsHandle = self.project.project.DefaultAnalWs
 
         # Search through all domains
-        for domain in self.GetAll(flat=True):
+        for domain in self.GetAll():
             domain_name = ITsString(domain.Name.get_String(wsHandle)).Text
             if normalize_match_key(domain_name, casefold=True) == target:
                 return domain
@@ -612,37 +599,30 @@ class SemanticDomainOperations(BaseOperations, _LCMNativeCatalogImportMixin):
     # --- Hierarchy Operations ---
 
     @OperationsMethod
-    def GetSubdomains(self, domain_or_hvo):
+    def GetSubdomains(self, domain_or_hvo, recursive=True):
         """
-        Get all direct child subdomains of a semantic domain.
+        Get the subdomains of a semantic domain.
 
         Args:
             domain_or_hvo: The ICmSemanticDomain object or HVO.
+            recursive (bool): If True (default), returns every descendant
+                domain (depth-first, parents before children). If False,
+                returns only direct children.
 
         Returns:
-            list: List of ICmSemanticDomain child objects (empty list if none).
+            list: List of ICmSemanticDomain objects (empty list if none).
 
         Raises:
             FP_NullParameterError: If domain_or_hvo is None.
 
         Example:
-            >>> # Get subdomains of "Universe, creation"
-            >>> top_domain = project.SemanticDomains.Find("1")
-            >>> subdomains = project.SemanticDomains.GetSubdomains(top_domain)
-            >>> for subdomain in subdomains:
-            ...     number = project.SemanticDomains.GetNumber(subdomain)
-            ...     name = project.SemanticDomains.GetName(subdomain)
-            ...     print(f"{number} - {name}")
-            1.1 - Sky
-            1.2 - World
-            1.3 - Water
-            ...
+            >>> top = project.SemanticDomains.Find("1")
+            >>> for sub in project.SemanticDomains.GetSubdomains(top):
+            ...     print(project.SemanticDomains.GetNumber(sub))   # All descendants
 
-        Notes:
-            - Returns direct children only (not recursive)
-            - Returns empty list if domain has no subdomains
-            - Subdomains are ordered by domain number
-            - For full tree, recursively call GetSubdomains on each child
+            >>> # Direct children only
+            >>> for sub in project.SemanticDomains.GetSubdomains(top, recursive=False):
+            ...     print(project.SemanticDomains.GetNumber(sub))
 
         See Also:
             GetParent, GetAll, GetDepth
@@ -651,7 +631,17 @@ class SemanticDomainOperations(BaseOperations, _LCMNativeCatalogImportMixin):
 
         domain = self.__ResolveObject(domain_or_hvo)
 
-        return list(domain.SubPossibilitiesOS)
+        if not recursive:
+            return list(domain.SubPossibilitiesOS)
+
+        result = []
+        def walk(collection):
+            for child in collection:
+                result.append(child)
+                if hasattr(child, "SubPossibilitiesOS") and child.SubPossibilitiesOS.Count > 0:
+                    walk(child.SubPossibilitiesOS)
+        walk(domain.SubPossibilitiesOS)
+        return result
 
     @OperationsMethod
     def GetParent(self, domain_or_hvo):
@@ -832,7 +822,7 @@ class SemanticDomainOperations(BaseOperations, _LCMNativeCatalogImportMixin):
             Domain 7.2.1 (Walk) has 15 senses
 
             >>> # Find empty domains
-            >>> for domain in project.SemanticDomains.GetAll(flat=True):
+            >>> for domain in project.SemanticDomains.GetAll():
             ...     count = project.SemanticDomains.GetSenseCount(domain)
             ...     if count == 0:
             ...         number = project.SemanticDomains.GetNumber(domain)

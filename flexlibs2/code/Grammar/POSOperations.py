@@ -98,7 +98,7 @@ class POSOperations(BaseOperations, CatalogBackedMixin):
 
     @wrap_enumerable
     @OperationsMethod
-    def GetAll(self):
+    def GetAll(self, recursive=True):
         """
         Get all parts of speech in the project.
 
@@ -106,35 +106,39 @@ class POSOperations(BaseOperations, CatalogBackedMixin):
             POSOperations.GetAll(project)         # Class-level, no instantiation
             POSOperations(project).GetAll()       # Instance-level, traditional
 
+        Args:
+            recursive (bool): If True (default), yields every POS in the
+                hierarchy (depth-first, parents before children). If False,
+                yields only top-level POSs and the caller must descend via
+                GetSubcategories.
+
         Yields:
-            IPartOfSpeech: Each part of speech object in the project's POS list.
+            IPartOfSpeech: Each part of speech object.
 
         Example:
-            >>> # Class-level usage (no instantiation needed)
-            >>> for pos in POSOperations.GetAll(project):
-            ...     name = POSOperations.GetName(project, pos)
-            ...     print(name)
-
-            >>> # Instance-level usage (traditional)
             >>> posOps = POSOperations(project)
             >>> for pos in posOps.GetAll():
-            ...     name = posOps.GetName(pos)
-            ...     print(name)
+            ...     print(posOps.GetName(pos))      # Includes Proper Noun, Common Noun, etc.
 
-        Notes:
-            - Returns only top-level parts of speech
-            - Does not include subcategories
-            - Use GetSubcategories() to navigate the POS hierarchy
+            >>> # Top-level only
+            >>> for pos in posOps.GetAll(recursive=False):
+            ...     print(posOps.GetName(pos))
 
         See Also:
             GetSubcategories, Find
         """
         pos_list = self.project.lp.PartsOfSpeechOA
-        if pos_list:
-            # PossibilitiesOS is typed ICmPossibility in C#; cast to
-            # IPartOfSpeech so callers can access POS-specific properties.
-            for pos in pos_list.PossibilitiesOS:
-                yield IPartOfSpeech(pos)
+        if not pos_list:
+            return
+
+        def walk(collection):
+            for raw in collection:
+                pos = IPartOfSpeech(raw)
+                yield pos
+                if recursive and pos.SubPossibilitiesOS.Count > 0:
+                    yield from walk(pos.SubPossibilitiesOS)
+
+        yield from walk(pos_list.PossibilitiesOS)
 
     @OperationsMethod
     def Create(self, name, abbreviation, catalogSourceId=None):
@@ -503,12 +507,15 @@ class POSOperations(BaseOperations, CatalogBackedMixin):
 
     @wrap_enumerable
     @OperationsMethod
-    def GetSubcategories(self, pos_or_hvo):
+    def GetSubcategories(self, pos_or_hvo, recursive=True):
         """
-        Get all subcategories of a part of speech.
+        Get the subcategories of a part of speech.
 
         Args:
             pos_or_hvo: The IPartOfSpeech object or HVO.
+            recursive (bool): If True (default), returns every descendant
+                (depth-first, parents before children). If False, returns only
+                direct children.
 
         Returns:
             list: List of IPartOfSpeech subcategory objects (empty list if none).
@@ -519,18 +526,12 @@ class POSOperations(BaseOperations, CatalogBackedMixin):
         Example:
             >>> posOps = POSOperations(project)
             >>> noun = posOps.Find("Noun")
-            >>> subcats = posOps.GetSubcategories(noun)
-            >>> for subcat in subcats:
-            ...     print(posOps.GetName(subcat))
-            Proper Noun
-            Common Noun
-            Count Noun
-            Mass Noun
+            >>> for subcat in posOps.GetSubcategories(noun):
+            ...     print(posOps.GetName(subcat))       # All descendants
 
-        Notes:
-            - Returns direct children only (not recursive)
-            - Returns empty list if no subcategories
-            - Subcategories form a hierarchy for fine-grained classification
+            >>> # Direct children only
+            >>> for subcat in posOps.GetSubcategories(noun, recursive=False):
+            ...     print(posOps.GetName(subcat))
 
         See Also:
             GetAll, Find
@@ -540,9 +541,19 @@ class POSOperations(BaseOperations, CatalogBackedMixin):
         pos = self.__ResolveObject(pos_or_hvo)
 
         # SubPossibilitiesOS is typed ICmPossibility in C#; cast each child to
-        # IPartOfSpeech so callers can access POS-specific properties without
-        # needing to import from SIL.LCModel themselves.
-        return [IPartOfSpeech(p) for p in pos.SubPossibilitiesOS]
+        # IPartOfSpeech so callers can access POS-specific properties.
+        if not recursive:
+            return [IPartOfSpeech(p) for p in pos.SubPossibilitiesOS]
+
+        result = []
+        def walk(collection):
+            for raw in collection:
+                child = IPartOfSpeech(raw)
+                result.append(child)
+                if child.SubPossibilitiesOS.Count > 0:
+                    walk(child.SubPossibilitiesOS)
+        walk(pos.SubPossibilitiesOS)
+        return result
 
     @OperationsMethod
     def AddSubcategory(self, pos_or_hvo, name, abbreviation):
@@ -768,15 +779,19 @@ class POSOperations(BaseOperations, CatalogBackedMixin):
         return list(pos.AffixSlotsOC)
 
     @OperationsMethod
-    def GetEntryCount(self, pos_or_hvo):
+    def GetEntryCount(self, pos_or_hvo, recursive=True):
         """
         Count the number of lexical entries using this part of speech.
 
         Args:
             pos_or_hvo: The IPartOfSpeech object or HVO.
+            recursive (bool): If True (default), counts entries tagged with
+                this POS OR any descendant POS (e.g., counting "Noun" also
+                counts "Proper Noun", "Common Noun", etc.). If False, only
+                counts entries tagged with this POS exactly.
 
         Returns:
-            int: The count of entries using this POS.
+            int: The count of entries using this POS (or any descendant).
 
         Raises:
             FP_NullParameterError: If pos_or_hvo is None.
@@ -785,33 +800,31 @@ class POSOperations(BaseOperations, CatalogBackedMixin):
             >>> posOps = POSOperations(project)
             >>> noun = posOps.Find("Noun")
             >>> count = posOps.GetEntryCount(noun)
-            >>> print(f"There are {count} noun entries")
-            There are 342 noun entries
+            >>> print(f"There are {count} noun entries (incl. subcategories)")
 
-        Notes:
-            - Counts all lexical entries where PrimaryMorphType.PartOfSpeech matches
-            - Returns 0 if no entries use this POS
-            - Useful for determining if a POS can be safely deleted
-            - May be slow for large lexicons (scans all entries)
+            >>> # Strict count: only entries tagged exactly "Noun"
+            >>> exact = posOps.GetEntryCount(noun, recursive=False)
 
         See Also:
-            Delete
+            Delete, GetSubcategories
         """
         self._ValidateParam(pos_or_hvo, "pos_or_hvo")
 
         pos = self.__ResolveObject(pos_or_hvo)
 
-        # Search all lexical entries
-        # Check MSAs (Morpho-Syntactic Analyses) for PartOfSpeech reference
-        # Note: MoMorphType does NOT have PartOfSpeechRA; MSAs do
-        # Use get_pos_from_msa() to handle pythonnet interface casting
+        # Build the set of POS HVOs to match. With recursive=True this expands
+        # to include every descendant POS, so callers don't miss entries that
+        # are tagged with a subcategory of the requested POS.
+        match_hvos = {pos.Hvo}
+        if recursive:
+            match_hvos.update(d.Hvo for d in self.GetSubcategories(pos, recursive=True))
+
         count = 0
         entry_repo = self.project.project.ServiceLocator.GetService(ILexEntryRepository)
         for entry in entry_repo.AllInstances():
-            # Check if any MSA on this entry references this POS
             for msa in entry.MorphoSyntaxAnalysesOC:
                 msa_pos = get_pos_from_msa(msa)
-                if msa_pos and msa_pos.Hvo == pos.Hvo:
+                if msa_pos and msa_pos.Hvo in match_hvos:
                     count += 1
                     break  # Count each entry only once
 

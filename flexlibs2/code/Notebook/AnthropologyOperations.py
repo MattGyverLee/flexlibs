@@ -171,48 +171,26 @@ class AnthropologyOperations(BaseOperations, _LCMNativeCatalogImportMixin):
 
     @wrap_enumerable
     @OperationsMethod
-    def GetAll(self, flat=True):
+    def GetAll(self, recursive=True):
         """
         Get all anthropology items in the project.
 
         Args:
-            flat (bool): If True, returns a flat list of all items including
-                subitems. If False, returns only top-level items (use
-                GetSubitems to navigate hierarchy). Defaults to True.
+            recursive (bool): If True (default), returns every item in the
+                hierarchy (depth-first, parents before children). If False,
+                returns only top-level items and the caller must descend via
+                GetSubitems.
 
         Returns:
             list: List of ICmAnthroItem objects.
 
         Example:
-            >>> # Get all items in a flat list
-            >>> for item in project.Anthropology.GetAll(flat=True):
-            ...     name = project.Anthropology.GetName(item)
-            ...     code = project.Anthropology.GetAnthroCode(item)
-            ...     print(f"{name} - {code}")
-            Marriage Customs - 586
-            Wedding Ceremony - 586.1
-            Divorce - 587
-            ...
+            >>> for item in project.Anthropology.GetAll():
+            ...     print(project.Anthropology.GetName(item))     # Includes subitems
 
-            >>> # Get only top-level items
-            >>> top_level = project.Anthropology.GetAll(flat=False)
-            >>> for item in top_level:
-            ...     name = project.Anthropology.GetName(item)
-            ...     print(f"Parent: {name}")
-            ...     for subitem in project.Anthropology.GetSubitems(item):
-            ...         sub_name = project.Anthropology.GetName(subitem)
-            ...         print(f"  - {sub_name}")
-            Parent: Marriage Customs
-              - Wedding Ceremony
-              - Marriage Gifts
-            ...
-
-        Notes:
-            - Returns list, not iterator
-            - Flat list is useful for searching and iteration
-            - Hierarchical list is useful for tree display
-            - Items can use OCM (Outline of Cultural Materials) codes
-            - Items are ordered by their position in the database
+            >>> # Top-level only
+            >>> for item in project.Anthropology.GetAll(recursive=False):
+            ...     print(project.Anthropology.GetName(item))
 
         See Also:
             Find, FindByCode, GetSubitems
@@ -221,7 +199,8 @@ class AnthropologyOperations(BaseOperations, _LCMNativeCatalogImportMixin):
         if not anthro_list:
             return []
 
-        return list(self.project.UnpackNestedPossibilityList(anthro_list.PossibilitiesOS, ICmAnthroItem, flat))
+        return list(self.project.UnpackNestedPossibilityList(
+            anthro_list.PossibilitiesOS, ICmAnthroItem, recursive))
 
     @OperationsMethod
     def Create(self, name, abbreviation=None, anthro_code=None):
@@ -558,7 +537,7 @@ class AnthropologyOperations(BaseOperations, _LCMNativeCatalogImportMixin):
 
         # Search through all items
         target = normalize_match_key(name, casefold=False)
-        for item in self.GetAll(flat=True):
+        for item in self.GetAll():
             item_name = ITsString(item.Name.get_String(wsHandle)).Text
             if normalize_match_key(item_name, casefold=False) == target:
                 return item
@@ -625,7 +604,7 @@ class AnthropologyOperations(BaseOperations, _LCMNativeCatalogImportMixin):
         anthro_code = anthro_code.strip()
 
         # Search through all items
-        for item in self.GetAll(flat=True):
+        for item in self.GetAll():
             if hasattr(item, "AnthroCode") and item.AnthroCode:
                 if item.AnthroCode == anthro_code:
                     return item
@@ -673,7 +652,7 @@ class AnthropologyOperations(BaseOperations, _LCMNativeCatalogImportMixin):
         results = []
 
         # Search through all items
-        for item in self.GetAll(flat=True):
+        for item in self.GetAll():
             # Check if item has this category
             if hasattr(item, "CategoryRA") and item.CategoryRA:
                 if item.CategoryRA == category:
@@ -1136,64 +1115,51 @@ class AnthropologyOperations(BaseOperations, _LCMNativeCatalogImportMixin):
     # --- Hierarchy Operations ---
 
     @OperationsMethod
-    def GetSubitems(self, item_or_hvo):
+    def GetSubitems(self, item_or_hvo, recursive=True):
         """
-        Get all direct subitems of an anthropology item.
-
-        Returns only immediate children, not all descendants. For a full
-        hierarchical view, use GetAll(flat=True).
+        Get the subitems of an anthropology item.
 
         Args:
             item_or_hvo: The ICmAnthroItem object or HVO.
+            recursive (bool): If True (default), returns every descendant
+                (depth-first, parents before children). If False, returns
+                only direct children.
 
         Returns:
-            list: List of ICmAnthroItem objects that are direct children.
+            list: List of ICmAnthroItem objects.
 
         Raises:
             FP_NullParameterError: If item_or_hvo is None.
             FP_ParameterError: If the item is invalid.
 
         Example:
-            >>> # Get subitems of a parent
             >>> marriage = project.Anthropology.Find("Marriage Customs")
-            >>> subitems = project.Anthropology.GetSubitems(marriage)
-            >>> for sub in subitems:
-            ...     name = project.Anthropology.GetName(sub)
-            ...     print(f"  - {name}")
-              - Wedding Ceremony
-              - Marriage Gifts
-              - Bride Price
+            >>> for sub in project.Anthropology.GetSubitems(marriage):
+            ...     print(project.Anthropology.GetName(sub))      # All descendants
 
-            >>> # Check if item has subitems
-            >>> if project.Anthropology.GetSubitems(marriage):
-            ...     print("Has subitems")
-            ... else:
-            ...     print("No subitems")
-            Has subitems
-
-            >>> # Build hierarchical display
-            >>> def display_hierarchy(item, indent=0):
-            ...     name = project.Anthropology.GetName(item)
-            ...     print("  " * indent + name)
-            ...     for sub in project.Anthropology.GetSubitems(item):
-            ...         display_hierarchy(sub, indent + 1)
-            >>> for top in project.Anthropology.GetAll(flat=False):
-            ...     display_hierarchy(top)
-
-        Notes:
-            - Returns empty list if item has no subitems
-            - Returns only direct children, not grandchildren
-            - Use GetAll(flat=True) to get all items in hierarchy
-            - Subitems maintain their database order
+            >>> # Direct children only
+            >>> for sub in project.Anthropology.GetSubitems(marriage, recursive=False):
+            ...     print(project.Anthropology.GetName(sub))
 
         See Also:
             CreateSubitem, GetParent, GetAll
         """
         item = self.__GetItemObject(item_or_hvo)
 
-        if hasattr(item, "SubPossibilitiesOS"):
+        if not hasattr(item, "SubPossibilitiesOS"):
+            return []
+
+        if not recursive:
             return list(item.SubPossibilitiesOS)
-        return []
+
+        result = []
+        def walk(collection):
+            for child in collection:
+                result.append(child)
+                if hasattr(child, "SubPossibilitiesOS") and child.SubPossibilitiesOS.Count > 0:
+                    walk(child.SubPossibilitiesOS)
+        walk(item.SubPossibilitiesOS)
+        return result
 
     @OperationsMethod
     def GetParent(self, item_or_hvo):
@@ -1517,7 +1483,7 @@ class AnthropologyOperations(BaseOperations, _LCMNativeCatalogImportMixin):
         results = []
 
         # Search through all items
-        for item in self.GetAll(flat=True):
+        for item in self.GetAll():
             if hasattr(item, "TextsRC") and item.TextsRC.Contains(text_obj):
                 results.append(item)
 
