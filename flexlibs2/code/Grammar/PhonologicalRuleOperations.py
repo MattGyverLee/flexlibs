@@ -1052,6 +1052,12 @@ class PhonologicalRuleOperations(BaseOperations):
               formation ``i -> y / _ + V`` and place-assimilation
               ``N -> [alpha_place] / _ + C[alpha_place]``.
 
+              **mode='replace' cleanup:** when an existing multi-element
+              context is replaced, the previous members are removed from
+              ``PhonologicalDataOA.ContextsOS`` first -- otherwise repeated
+              re-wires (typical in MCP / batch rule-tuning workflows) leak
+              N members per call into the project-wide pool. (issue #134)
+
             **Boundary markers:**
               Word/morpheme boundaries (Boundary('#'), Boundary('+'),
               Boundary('.')) are looked up from
@@ -1107,6 +1113,15 @@ class PhonologicalRuleOperations(BaseOperations):
         if mode == "replace":
             self.__ClearSequence(rule.StrucDescOS)
             self.__ClearSequence(rhs.StrucChangeOS)
+            # For multi-element contexts the members live in
+            # PhPhonData.ContextsOS (the project-wide owner pool) and
+            # are merely *referenced* by the sequence's MembersRS.
+            # Nulling rhs.LeftContextOA / rhs.RightContextOA detaches
+            # only the sequence container; the members would otherwise
+            # leak into ContextsOS, accumulating across every re-wire
+            # of the same rule. Clean those up first. (issue #134)
+            self.__CleanupSequenceContextMembers(rhs.LeftContextOA)
+            self.__CleanupSequenceContextMembers(rhs.RightContextOA)
             if rhs.LeftContextOA is not None:
                 rhs.LeftContextOA = None
             if rhs.RightContextOA is not None:
@@ -1156,6 +1171,41 @@ class PhonologicalRuleOperations(BaseOperations):
         # Walk by index from the end to avoid index drift during removal.
         while seq.Count > 0:
             seq.RemoveAt(seq.Count - 1)
+
+    def __CleanupSequenceContextMembers(self, ctx):
+        """
+        If ``ctx`` is an IPhSequenceContext, remove its MembersRS items
+        from PhPhonData.ContextsOS. No-op for None or for single-context
+        cases (where ``ctx`` is an IPhSimpleContext* owned directly by
+        the rhs.LeftContextOA / RightContextOA OwningAtomic, so nulling
+        the slot already detaches it). (issue #134)
+
+        Multi-element contexts park their members in the project-wide
+        ContextsOS owner pool while the sequence container references
+        them via MembersRS. Setting rhs.LeftContextOA = None detaches
+        only the sequence; the members would otherwise leak.
+        """
+        if ctx is None:
+            return
+        # ClassName check: IPhSequenceContext sequences vs IPhSimpleContext*
+        # simple contexts. The simple-context concrete classes
+        # (PhSimpleContextNC / PhSimpleContextSeg / PhSimpleContextBdry)
+        # have no MembersRS and own their own state via rhs's
+        # OwningAtomic slot, so they don't need this cleanup.
+        if ctx.ClassName != "PhSequenceContext":
+            return
+        phon_data = self.project.lp.PhonologicalDataOA
+        if phon_data is None:
+            return
+        seq_typed = IPhSequenceContext(ctx)
+        # Snapshot the members because RemoveAt would shift indices,
+        # and MembersRS may stop being readable once the sequence is
+        # detached. Copy refs out, then remove from ContextsOS.
+        members_to_remove = list(seq_typed.MembersRS)
+        contexts_pool = phon_data.ContextsOS
+        for member in members_to_remove:
+            if member is not None:
+                contexts_pool.Remove(member)
 
     def __WireContext(self, elements, slot_name):
         """
