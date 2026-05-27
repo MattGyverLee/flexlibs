@@ -462,5 +462,113 @@ class TestNaturalClassFeatureBased:
                 _delete_feature_by_guid(writable_project, created_feat_guid)
 
 
+class TestNaturalClassFindExists:
+    """
+    Coverage for `NaturalClassOperations.Find()` and `Exists()` — closes
+    the API-parity gap reported in issue #30. Sister classes
+    (POSOperations, PhonemeOperations, PhonFeatureOperations,
+    PhonRuleOperations) already expose Find/Exists; this verifies the
+    same pair on NaturalClassOperations behaves consistently.
+
+    The implementations are NFD-aware casefold matchers, so coverage
+    includes both segment-based (IPhNCSegments) and feature-based
+    (IPhNCFeatures) variants — Find must succeed for both because it
+    iterates GetAll() which yields IPhNaturalClass regardless of
+    concrete type.
+    """
+
+    def test_find_returns_segment_class_when_present(self, writable_project):
+        """Round-trip: Create -> Find -> identity match."""
+        name = "qZ_find_roundtrip_segments"
+
+        # Pre-clean if a previous run left the NC behind.
+        leftover = writable_project.NaturalClasses.Find(name)
+        if leftover is not None:
+            _delete_nc(writable_project, leftover)
+
+        nc = writable_project.NaturalClasses.Create(name, "qZf")
+        try:
+            found = writable_project.NaturalClasses.Find(name)
+            assert found is not None, (
+                f"Find({name!r}) returned None for a just-created NC"
+            )
+            assert found.Hvo == nc.Hvo, (
+                "Find returned a different NC than was just created "
+                f"(found Hvo={found.Hvo}, created Hvo={nc.Hvo})"
+            )
+        finally:
+            _delete_nc(writable_project, nc)
+
+    def test_find_returns_none_for_missing(self, writable_project):
+        """Find for a name that doesn't exist must return None, not raise."""
+        result = writable_project.NaturalClasses.Find(
+            "qZ_definitely_does_not_exist_natural_class"
+        )
+        assert result is None, (
+            f"Find for a missing NC must return None, got {result!r}"
+        )
+
+    def test_find_is_nfd_aware(self, writable_project):
+        """
+        Catalog-aligned NC names containing combining marks must be
+        findable using their NFC-encoded form (Python source convention),
+        even though FLEx stores them NFD. POSOperations.Find behaves
+        this way; NaturalClassOperations.Find must match.
+        """
+        # 'négatif' in NFC (single é) vs NFD (e + ́). Both
+        # must resolve to the same NC.
+        nfc_name = "qZ_négatif"           # composed: é
+        nfd_name = "qZ_négatif"          # decomposed: e + combining acute
+
+        leftover = writable_project.NaturalClasses.Find(nfc_name)
+        if leftover is not None:
+            _delete_nc(writable_project, leftover)
+
+        nc = writable_project.NaturalClasses.Create(nfc_name, "qZn")
+        try:
+            # Find via the alternate normalisation form must hit the
+            # same NC. Which form FLEx stores internally is an LCM
+            # implementation detail; the wrapper must hide it.
+            found_via_nfc = writable_project.NaturalClasses.Find(nfc_name)
+            found_via_nfd = writable_project.NaturalClasses.Find(nfd_name)
+
+            assert found_via_nfc is not None, (
+                "Find(NFC) failed for a name created from an NFC string"
+            )
+            assert found_via_nfd is not None, (
+                "Find(NFD) failed for a name created from an NFC string - "
+                "Find is not NFD-aware, contrary to the issue #30 contract"
+            )
+            assert found_via_nfc.Hvo == found_via_nfd.Hvo, (
+                "Find(NFC) and Find(NFD) resolved to different NCs"
+            )
+        finally:
+            _delete_nc(writable_project, nc)
+
+    def test_exists_mirrors_find(self, writable_project):
+        """
+        Exists must return True for a created NC and False for a missing
+        one. Spec says Exists is a thin bool wrapper around Find.
+        """
+        name = "qZ_exists_roundtrip"
+
+        leftover = writable_project.NaturalClasses.Find(name)
+        if leftover is not None:
+            _delete_nc(writable_project, leftover)
+
+        # Before creation, Exists must be False.
+        assert writable_project.NaturalClasses.Exists(name) is False, (
+            "Exists returned True for a non-existent NC"
+        )
+
+        nc = writable_project.NaturalClasses.Create(name, "qZe")
+        try:
+            assert writable_project.NaturalClasses.Exists(name) is True, (
+                "Exists returned False for an NC that was just created"
+            )
+        finally:
+            _delete_nc(writable_project, nc)
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
