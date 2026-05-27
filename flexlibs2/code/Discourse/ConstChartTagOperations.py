@@ -118,29 +118,46 @@ class ConstChartTagOperations(BaseOperations):
         if not tag_name or not tag_name.strip():
             raise FP_ParameterError("Tag name cannot be empty")
 
-        chart = self.__ResolveChart(chart_or_hvo)
+        # Validate the chart by resolving it -- the chart context is no
+        # longer used to find the tag list (it's project-wide), but
+        # we keep the parameter for API stability and to surface
+        # invalid chart references early.
+        self.__ResolveChart(chart_or_hvo)
         wsHandle = self.__WSHandleAnalysis()
 
-        # Get or create the tag possibility list
-        if not hasattr(chart, "TagsOC") or chart.TagsOC is None:
-            # Chart doesn't have tags collection - this is normal
-            # Tags would be in a CmPossibilityList referenced by the chart
-            # For simplicity, we'll create the tag as a CmPossibility
-            pass
+        # Constituent-chart tags (a.k.a. "chart markers") are stored
+        # project-wide in DiscourseDataOA.ChartMarkersOA.PossibilitiesOS,
+        # NOT on individual charts. The previous implementation used a
+        # hasattr(chart, ...TagsOC...) guard around an Add that silently
+        # dropped the tag whenever the chart didn't expose the
+        # expected collection (which is always, since IDsConstChart
+        # has no such property). In addition, set_String was called
+        # on the unowned tag before any owner took it, tripping the
+        # Phase 2 NPE pattern. (issue #26)
+        discourse = self.project.lp.DiscourseDataOA
+        if discourse is None:
+            raise FP_ParameterError(
+                "Project has no DiscourseDataOA; chart tags cannot be "
+                "created until discourse data is initialised."
+            )
+        markers_list = discourse.ChartMarkersOA
+        if markers_list is None:
+            raise FP_ParameterError(
+                "Project has no DiscourseDataOA.ChartMarkersOA; chart "
+                "tags cannot be created until the marker list is "
+                "initialised."
+            )
 
-        # Create the new tag using the possibility factory
-        factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
+        factory = self.project.project.ServiceLocator.GetService(
+            ICmPossibilityFactory
+        )
         new_tag = factory.Create()
+        # Attach to the owning sequence FIRST so subsequent property
+        # writes do not hit the orphan-NPE pattern.
+        markers_list.PossibilitiesOS.Add(new_tag)
 
-        # Set the name
         mkstr = TsStringUtils.MakeString(tag_name, wsHandle)
         new_tag.Name.set_String(wsHandle, mkstr)
-
-        # Add to chart's tags collection
-        # Note: In FLEx, tags may be stored differently depending on the chart structure
-        # This implementation assumes a basic tag storage
-        if hasattr(chart, "TagsOC"):
-            chart.TagsOC.Add(new_tag)
 
         return new_tag
 
@@ -216,16 +233,22 @@ class ConstChartTagOperations(BaseOperations):
         if not name or not name.strip():
             return None
 
-        chart = self.__ResolveChart(chart_or_hvo)
+        # Validate the chart context but search the project-wide
+        # marker list -- chart tags are not owned per-chart. (issue #26)
+        self.__ResolveChart(chart_or_hvo)
         wsHandle = self.__WSHandleAnalysis()
 
-        # Search through chart tags
-        if hasattr(chart, "TagsOC"):
-            target = normalize_match_key(name, casefold=False)
-            for tag in chart.TagsOC:
-                tag_name = ITsString(tag.Name.get_String(wsHandle)).Text
-                if normalize_match_key(tag_name, casefold=False) == target:
-                    return tag
+        markers = self.__GetChartMarkers()
+        if markers is None:
+            return None
+        target = normalize_match_key(name, casefold=False)
+        for tag in markers:
+            tag_name = ITsString(tag.Name.get_String(wsHandle)).Text
+            if (
+                tag_name is not None
+                and normalize_match_key(tag_name, casefold=False) == target
+            ):
+                return tag
 
         return None
 
@@ -261,12 +284,14 @@ class ConstChartTagOperations(BaseOperations):
         """
         self._ValidateParam(chart_or_hvo, "chart_or_hvo")
 
-        chart = self.__ResolveChart(chart_or_hvo)
+        # Validate the chart context; the markers live project-wide.
+        # (issue #26)
+        self.__ResolveChart(chart_or_hvo)
 
-        if hasattr(chart, "TagsOC"):
-            return list(chart.TagsOC)
-
-        return []
+        markers = self.__GetChartMarkers()
+        if markers is None:
+            return []
+        return list(markers)
 
     # --- Tag Properties ---
 
@@ -484,6 +509,24 @@ class ConstChartTagOperations(BaseOperations):
         """
         return self.project.project.DefaultAnalWs
 
+    def __GetChartMarkers(self):
+        """
+        Resolve the project's chart-markers possibility sequence.
+
+        Returns:
+            ILcmOwningSequence[ICmPossibility] or None: The
+            DiscourseDataOA.ChartMarkersOA.PossibilitiesOS sequence,
+            or None when DiscourseDataOA / ChartMarkersOA is not yet
+            initialised on the project.
+        """
+        discourse = self.project.lp.DiscourseDataOA
+        if discourse is None:
+            return None
+        markers_list = discourse.ChartMarkersOA
+        if markers_list is None:
+            return None
+        return markers_list.PossibilitiesOS
+
     # --- Reordering Support ---
 
     def _GetSequence(self, parent):
@@ -497,12 +540,17 @@ class ConstChartTagOperations(BaseOperations):
             ILcmOwningCollection: The TagsOC collection
 
         Notes:
-            - Required for BaseOperations reordering methods
-            - Tags are in an owning collection (OC), not sequence (OS)
-            - Reordering may not be applicable to tag collections
+            - Required for BaseOperations reordering methods.
+            - Chart markers live project-wide in
+              DiscourseDataOA.ChartMarkersOA.PossibilitiesOS (issue #26);
+              the ``parent`` argument is accepted for the BaseOperations
+              reordering contract but is otherwise unused.
         """
-        if hasattr(parent, "TagsOC"):
-            return parent.TagsOC
-        raise NotImplementedError(
-            "Chart does not have a TagsOC collection. " "Tag reordering may not be applicable to this chart structure."
-        )
+        markers = self.__GetChartMarkers()
+        if markers is None:
+            raise NotImplementedError(
+                "Project has no DiscourseDataOA.ChartMarkersOA; chart "
+                "tag reordering is unavailable until the marker list "
+                "is initialised."
+            )
+        return markers
