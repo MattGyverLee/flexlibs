@@ -38,9 +38,10 @@ from ..FLExProject import (
 )
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 from ..Shared.string_utils import normalize_match_key
+from ..Shared.catalog_backed import _LCMNativeCatalogImportMixin
 
 
-class AnthropologyOperations(BaseOperations):
+class AnthropologyOperations(BaseOperations, _LCMNativeCatalogImportMixin):
     """
     This class provides operations for managing anthropological and cultural
     items in a FieldWorks project.
@@ -87,6 +88,17 @@ class AnthropologyOperations(BaseOperations):
 
         project.CloseProject()
     """
+
+    # ---- _LCMNativeCatalogImportMixin configuration -------------------
+    # OCM ships as LCM-native XML in <FWCodeDir>/Templates/OCM.xml;
+    # ImportCatalog delegates to XmlList.ImportList via the mixin's
+    # _import_lcm_native_catalog helper. See catalog_backed.py.
+    CATALOG_FILE = "OCM.xml"
+    CATALOG_SUBDIR = "Templates"
+    LCM_FIELD_NAME = "AnthroList"
+    LANG_PROJECT_LIST_ATTR = "AnthroListOA"
+    DOMAIN_ITEM_LABEL_SINGULAR = "anthropology item"
+    DOMAIN_ITEM_LABEL_PLURAL = "items"
 
     def __init__(self, project):
         """
@@ -1862,38 +1874,10 @@ class AnthropologyOperations(BaseOperations):
             FP_ParameterError: If ``AnthroListOA`` already has anthro
                                items and ``force`` is False.
         """
-        self._EnsureWriteEnabled()
-
-        from SIL.LCModel.Application.ApplicationServices import XmlList
-        from ..Shared.catalog import find_catalog_file
-        from ..exceptions import FP_FileNotFoundError
-
-        existing = self.project.lp.AnthroListOA.PossibilitiesOS.Count
-        if existing > 0 and not force:
-            raise FP_ParameterError(
-                f"AnthroListOA already has {existing} top-level "
-                f"anthropology item(s). XmlList.ImportList APPENDS without "
-                f"GUID-based deduplication, so calling ImportCatalog here "
-                f"would create duplicates. Pass force=True if you intend "
-                f"to layer additional items on top, or clear the list first."
-            )
-
-        try:
-            catalog_path = find_catalog_file("OCM.xml", subdir="Templates")
-        except FileNotFoundError as e:
-            raise FP_FileNotFoundError("OCM.xml", e)
-
-        importer = XmlList()
-        # fieldName "AnthroList" -> LangProject.AnthroListOA.
-        # progress=None is accepted (IProgress is a reference interface).
-        importer.ImportList(
-            self.project.lp,
-            "AnthroList",
-            catalog_path,
-            progress,
-        )
-
-        return self.project.lp.AnthroListOA.PossibilitiesOS.Count
+        # Body extracted to _LCMNativeCatalogImportMixin in Phase Q-3a;
+        # this thin wrapper preserves the @OperationsMethod descriptor
+        # on the class itself (tests introspect via __dict__).
+        return self._import_lcm_native_catalog(progress=progress, force=force)
 
     # ========== SYNC INTEGRATION METHODS ==========
 

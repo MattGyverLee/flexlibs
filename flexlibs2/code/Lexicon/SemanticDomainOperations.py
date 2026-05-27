@@ -14,6 +14,7 @@
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 from ..Shared.string_utils import normalize_match_key
+from ..Shared.catalog_backed import _LCMNativeCatalogImportMixin
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -30,7 +31,7 @@ from ..FLExProject import (
 )
 
 
-class SemanticDomainOperations(BaseOperations):
+class SemanticDomainOperations(BaseOperations, _LCMNativeCatalogImportMixin):
     """
     This class provides operations for managing semantic domains in a
     FieldWorks project.
@@ -67,6 +68,17 @@ class SemanticDomainOperations(BaseOperations):
 
         project.CloseProject()
     """
+
+    # ---- _LCMNativeCatalogImportMixin configuration -------------------
+    # SemDom ships as LCM-native XML in <FWCodeDir>/Templates/SemDom.xml;
+    # ImportCatalog delegates to XmlList.ImportList via the mixin's
+    # _import_lcm_native_catalog helper. See catalog_backed.py.
+    CATALOG_FILE = "SemDom.xml"
+    CATALOG_SUBDIR = "Templates"
+    LCM_FIELD_NAME = "SemanticDomainList"
+    LANG_PROJECT_LIST_ATTR = "SemanticDomainListOA"
+    DOMAIN_ITEM_LABEL_SINGULAR = "domain"
+    DOMAIN_ITEM_LABEL_PLURAL = "domains"
 
     def __init__(self, project):
         """
@@ -1154,38 +1166,10 @@ class SemanticDomainOperations(BaseOperations):
             FP_ParameterError: If ``SemanticDomainListOA`` already has
                                domains and ``force`` is False.
         """
-        self._EnsureWriteEnabled()
-
-        from SIL.LCModel.Application.ApplicationServices import XmlList
-        from ..Shared.catalog import find_catalog_file
-        from ..exceptions import FP_FileNotFoundError
-
-        existing = self.project.lp.SemanticDomainListOA.PossibilitiesOS.Count
-        if existing > 0 and not force:
-            raise FP_ParameterError(
-                f"SemanticDomainListOA already has {existing} top-level "
-                f"domain(s). XmlList.ImportList APPENDS without GUID-based "
-                f"deduplication, so calling ImportCatalog here would create "
-                f"duplicates. Pass force=True if you intend to layer "
-                f"additional domains on top, or clear the list first."
-            )
-
-        try:
-            catalog_path = find_catalog_file("SemDom.xml", subdir="Templates")
-        except FileNotFoundError as e:
-            raise FP_FileNotFoundError("SemDom.xml", e)
-
-        importer = XmlList()
-        # fieldName "SemanticDomainList" -> LangProject.SemanticDomainListOA.
-        # progress=None is accepted (IProgress is a reference interface).
-        importer.ImportList(
-            self.project.lp,
-            "SemanticDomainList",
-            catalog_path,
-            progress,
-        )
-
-        return self.project.lp.SemanticDomainListOA.PossibilitiesOS.Count
+        # Body extracted to _LCMNativeCatalogImportMixin in Phase Q-3a;
+        # this thin wrapper preserves the @OperationsMethod descriptor
+        # on the class itself (tests introspect via __dict__).
+        return self._import_lcm_native_catalog(progress=progress, force=force)
 
     # ========== SYNC INTEGRATION METHODS ==========
 

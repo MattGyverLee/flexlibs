@@ -586,3 +586,160 @@ class CatalogBackedMixin:
         for e in entries:
             n += 1 + self._flattened_catalog_count(e.children)
         return n
+
+
+class _LCMNativeCatalogImportMixin:
+    """
+    Mixin for Operations classes that wrap LCM possibility-list domains
+    whose catalog ships as LCM-native XML (``<LangProject>...<CmPossibilityList>``
+    with canonical-GUID children) rather than as an etic CatalogEntry feed.
+
+    Subclasses delegate the heavy lifting to
+    ``SIL.LCModel.Application.ApplicationServices.XmlList.ImportList(lp,
+    fieldName, path, progress)`` -- LCM's native import path -- and only
+    add a non-empty-list guard around it. ``XmlList.ImportList`` APPENDS
+    without GUID-based deduplication, so calling it on a non-empty list
+    silently duplicates the canonical hierarchy. The guard refuses by
+    default and surfaces an FP_ParameterError; callers pass
+    ``force=True`` to opt in.
+
+    Extracted in Phase Q-3a from the duplicated bodies of
+    SemanticDomainOperations.ImportCatalog (SemDom.xml) and
+    AnthropologyOperations.ImportCatalog (OCM.xml). Both methods are
+    near-identical 80-100-line wrappers around the same LCM call; the
+    only variation is the catalog file, the LCM fieldName argument, the
+    LangProject OA-property holding the target list, and the singular /
+    plural item label used in the guard's error message.
+
+    Subclasses declare class-level constants:
+
+        CATALOG_FILE
+            Filename of the LCM-native catalog XML, e.g. ``"SemDom.xml"``
+            or ``"OCM.xml"``.
+
+        CATALOG_SUBDIR
+            Relative subdirectory under FWCodeDir. Defaults to
+            ``"Templates"`` to match both existing catalogs.
+
+        LCM_FIELD_NAME
+            The second argument to
+            ``XmlList.ImportList(lp, fieldName, path, progress)`` -- LCM's
+            internal name for the LangProject possibility list this
+            catalog feeds. E.g. ``"SemanticDomainList"`` or ``"AnthroList"``.
+
+        LANG_PROJECT_LIST_ATTR
+            Name of the OA property on ``project.lp`` that holds the
+            target list, e.g. ``"SemanticDomainListOA"`` or
+            ``"AnthroListOA"``. Used both for the non-empty guard and
+            for the post-import count returned to the caller.
+
+        DOMAIN_ITEM_LABEL_SINGULAR
+            Singular form of the item label used in the guard's error
+            message, e.g. ``"domain"`` or ``"anthropology item"``. Shows
+            up in ``"top-level {SINGULAR}(s)"``.
+
+        DOMAIN_ITEM_LABEL_PLURAL
+            Plural form used in the "additional X on top" continuation
+            of the same error, e.g. ``"domains"`` or ``"items"``. Note
+            this is the label appearing in the second clause and need
+            not be the strict morphological plural of
+            DOMAIN_ITEM_LABEL_SINGULAR -- it matches each catalog's
+            historical wording so the message stays byte-identical to
+            the pre-extraction implementations.
+
+    The mixin exposes one helper, ``_import_lcm_native_catalog``, which
+    each subclass's thin ``ImportCatalog`` wrapper delegates to. The
+    public method stays on the subclass (with its full docstring and
+    @OperationsMethod decorator) so that
+    ``Operations.__dict__["ImportCatalog"]`` introspection in the test
+    suite continues to find it on the class itself, not only via MRO
+    lookup.
+
+    Why a mixin and not pure inheritance? The shared behaviour cuts
+    across Operations classes whose primary inheritance is
+    ``BaseOperations``; a mixin keeps the LCM-native import surface
+    composable with that chain. Why a private helper rather than an
+    inherited ImportCatalog? Existing tests use
+    ``cls.__dict__["ImportCatalog"]`` to inspect the @OperationsMethod
+    descriptor and would break under MRO-only resolution.
+    """
+
+    # ---- Class-level configuration (subclasses override) ---------------
+
+    CATALOG_FILE = None
+    CATALOG_SUBDIR = "Templates"
+    LCM_FIELD_NAME = None
+    LANG_PROJECT_LIST_ATTR = None
+    DOMAIN_ITEM_LABEL_SINGULAR = "item"
+    DOMAIN_ITEM_LABEL_PLURAL = "items"
+
+    # ---- Mixin-private helper -----------------------------------------
+
+    def _import_lcm_native_catalog(self, progress=None, force=False):
+        """
+        Delegate to LCM's native XmlList.ImportList after the non-empty
+        guard. Subclasses' ImportCatalog methods call this verbatim;
+        their docstrings (which describe the catalog's contents and
+        idempotency contract) stay on the subclass method.
+
+        LOCAL imports: SIL.LCModel and the catalog-locator both live
+        behind FieldWorks-only dependencies; importing at module top
+        would break test collection on machines without FW installed.
+        Both pre-extraction implementations imported locally too -- the
+        pattern is preserved here.
+
+        Args:
+            progress: Optional ``SIL.LCModel.Utils.IProgress`` instance.
+            force: If True, skip the non-empty guard.
+
+        Returns:
+            int: Count of top-level items in the target list after import.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not write-enabled.
+            FP_FileNotFoundError: If the catalog file cannot be located.
+            FP_ParameterError: If the target list is already non-empty
+                               and ``force`` is False.
+        """
+        # LOCAL imports: SIL.LCModel is only available when FieldWorks
+        # is installed; catalog/exceptions are kept consistent with the
+        # pre-extraction local-import pattern.
+        from SIL.LCModel.Application.ApplicationServices import XmlList
+        from .catalog import find_catalog_file
+        from ..exceptions import FP_FileNotFoundError
+
+        self._EnsureWriteEnabled()
+
+        target_list = getattr(self.project.lp, self.LANG_PROJECT_LIST_ATTR)
+        existing = target_list.PossibilitiesOS.Count
+        if existing > 0 and not force:
+            raise FP_ParameterError(
+                f"{self.LANG_PROJECT_LIST_ATTR} already has {existing} "
+                f"top-level {self.DOMAIN_ITEM_LABEL_SINGULAR}(s). "
+                f"XmlList.ImportList APPENDS without GUID-based "
+                f"deduplication, so calling ImportCatalog here would "
+                f"create duplicates. Pass force=True if you intend to "
+                f"layer additional {self.DOMAIN_ITEM_LABEL_PLURAL} on "
+                f"top, or clear the list first."
+            )
+
+        try:
+            catalog_path = find_catalog_file(
+                self.CATALOG_FILE, subdir=self.CATALOG_SUBDIR
+            )
+        except FileNotFoundError as e:
+            raise FP_FileNotFoundError(self.CATALOG_FILE, e)
+
+        importer = XmlList()
+        # LCM_FIELD_NAME maps to LangProject.<LANG_PROJECT_LIST_ATTR>.
+        # progress=None is accepted (IProgress is a reference interface).
+        importer.ImportList(
+            self.project.lp,
+            self.LCM_FIELD_NAME,
+            catalog_path,
+            progress,
+        )
+
+        return getattr(
+            self.project.lp, self.LANG_PROJECT_LIST_ATTR
+        ).PossibilitiesOS.Count
