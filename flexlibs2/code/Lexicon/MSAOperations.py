@@ -40,6 +40,7 @@ from SIL.LCModel import (
     IMoUnclassifiedAffixMsaFactory,
     ILexSense,
     ILexEntry,
+    LexEntryTags,
 )
 from SIL.LCModel.DomainServices import SandboxGenericMSA, MsaType
 
@@ -282,8 +283,14 @@ class MSAOperations(BaseOperations):
             )
 
         # Factory.Create(owner, sandbox) -- the owner is the sense's
-        # entry; LCM walks .Owner from the sense.
-        new_msa = factory.Create(sense.Owner, sandbox)
+        # ENTRY, not the sense's direct Owner. For a subsense,
+        # sense.Owner is the parent sense, not the entry; LCM expects
+        # the enclosing ILexEntry, so walk up the ownership chain via
+        # OwnerOfClass(LexEntryTags.kClassId). Same idiom that
+        # LexSenseOperations.SetPartOfSpeech uses to resolve the owning
+        # entry. (issue #129)
+        entry = ILexEntry(sense.OwnerOfClass(LexEntryTags.kClassId))
+        new_msa = factory.Create(entry, sandbox)
         sense.MorphoSyntaxAnalysisRA = new_msa
         return new_msa
 
