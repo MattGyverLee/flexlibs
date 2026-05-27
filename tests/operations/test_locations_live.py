@@ -265,30 +265,38 @@ class TestLocationsPhaseDModify:
 
 
 # ---------------------------------------------------------------------------
-# Phase E: delete in sandbox (destructive, isolated)
+# Phase E: delete pre-existing (N/A for LocationOperations on Sena 3)
 # ---------------------------------------------------------------------------
 
 
 class TestLocationsPhaseEDelete:
     """
-    Phase E: destructive delete in an isolated sandbox copy of Sena 3.
+    Phase E exists for testing destructive delete against pre-existing
+    project data -- the case where create-then-delete (Phase B) is not
+    sufficient because the deletion target wasn't created by the test.
 
-    Sena 3 has zero pre-existing locations, so "delete a pre-existing"
-    is not a meaningful test for LocationOperations specifically. This
-    test instead exercises the destructive path inside the sandbox --
-    creating an object and deleting it without touching the user's real
-    project. When this template is replicated to a class with existing
-    items (PersonOperations: 6 entries), Phase E should be strengthened
-    to truly delete a pre-existing object.
+    Sena 3 ships with zero existing locations, so for LocationOperations
+    this phase has no meaningful target. The Phase B test already covers
+    Delete's behaviour on TEST_ objects we created ourselves. A
+    sandbox-only test that creates and deletes inside the sandbox would
+    duplicate Phase B with no extra signal.
+
+    When this template is replicated to a class that DOES have
+    pre-existing items in Sena 3 (PersonOperations has 6, PhonemeOperations
+    has 44, etc.), Phase E should: (a) snapshot one pre-existing item's
+    properties, (b) delete it in the sena3_sandbox fixture, (c) confirm
+    Find returns None, (d) reopen and confirm persistence. The sandbox
+    keeps the user's real project untouched.
     """
 
     @pytest.mark.live_phase("LocationOperations", "delete")
-    def test_create_then_delete_in_sandbox(self, sena3_sandbox):
-        """In a sandbox copy, create and delete a location."""
-        name = "TEST_loc_phase_e_sandbox"
-
-        location = sena3_sandbox.Location.Create(name)
-        assert sena3_sandbox.Location.Exists(name) is True
-
-        sena3_sandbox.Location.Delete(location)
-        assert sena3_sandbox.Location.Find(name) is None
+    @pytest.mark.skip(
+        reason=(
+            "N/A: Sena 3 has zero pre-existing locations. Phase B already "
+            "covers Delete on test-created objects; sandbox-only delete "
+            "of a self-created object would duplicate Phase B."
+        )
+    )
+    def test_delete_preexisting_in_sandbox(self, sena3_sandbox):
+        """Placeholder: see class docstring for the replication pattern."""
+        ...

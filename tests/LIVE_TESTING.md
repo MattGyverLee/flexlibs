@@ -87,7 +87,8 @@ any session to discard test-induced timestamp / object churn.
 
 ## The five-phase stabilization model
 
-Each operations class earns "stabilized" by passing every phase:
+Each operations class earns "stabilized" by passing every phase that
+meaningfully applies to it:
 
 | Phase | Pattern | Risk | Where it runs |
 |-------|---------|------|---------------|
@@ -95,16 +96,39 @@ Each operations class earns "stabilized" by passing every phase:
 | B. Add | Create with `TEST_` prefix, verify, delete in `finally:` | Low | In-place on real Sena 3 |
 | C. Reorder | Capture order, swap, restore | Medium | In-place on real Sena 3 |
 | D. Modify | Capture value, set new, assert, restore captured | Medium | In-place on real Sena 3 |
-| E. Delete | Genuinely destructive | High | **Sandbox copy via `sena3_sandbox` fixture** |
+| E. Delete pre-existing | Snapshot real project data, delete it, verify | High | **Sandbox copy via `sena3_sandbox`** |
 
-The `sena3_sandbox` fixture (in `tests/conftest.py`) unzips the
-`.fwbackup` into a `tempfile.mkdtemp()` directory, opens the resulting
-`.fwdata` by absolute path, yields the project, and cleans the tempdir
-on teardown. Use it for any test in Phase E.
+### Philosophy: prefer self-cleaning in-place tests
 
-Phases A--D accept LCM's auto-bump of `DateModified` on any write -- the
-restoration script wipes that churn between sessions. Phase E never
-touches the real project, so churn is irrelevant.
+Tests should leave the database in the same state they found it. The
+default pattern in every phase is **capture-and-restore inside a
+`try/finally`** -- create what you delete, capture what you mutate, undo
+what you did. Mutations to the real Sena 3 are acceptable only when the
+test removes them before exiting; LCM's auto-bump of `DateModified` is
+the only residue, and `scripts/restore_sena3.py` wipes that between
+sessions.
+
+The `sena3_sandbox` fixture is the **exception**, not the rule. Use it
+only when the test genuinely needs to do something that can't be
+self-restored:
+
+- Phase E (delete a pre-existing project object that the user wants
+  preserved) -- the only common case.
+- A regression test that must verify persistence across a project close
+  and re-open in a state that would corrupt the real fixture.
+
+If you find yourself reaching for `sena3_sandbox` to run a Phase B-style
+create-and-delete test, the sandbox is buying you nothing -- write it
+in-place against `writable_project` instead.
+
+### When Phase E is N/A
+
+If the operations class has zero pre-existing instances in Sena 3 (or
+only items that other tests depend on), Phase E for that class has no
+target. Mark the placeholder test `@pytest.mark.skip("N/A: ...")` with a
+reason rather than fabricating a sandbox-only create-and-delete; the
+Phase B coverage already proves Delete's behaviour. `LocationOperations`
+is the canonical example (Sena 3 ships with zero locations).
 
 ## Canonical template
 
