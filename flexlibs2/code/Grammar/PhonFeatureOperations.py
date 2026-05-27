@@ -272,7 +272,7 @@ class PhonFeatureOperations(BaseOperations, CatalogBackedMixin):
     # ========================================================================
 
     @OperationsMethod
-    def Create(self, name, abbreviation, catalogSourceId=None):
+    def Create(self, name, abbreviation, catalogSourceId=None, force=False):
         """
         Create a new phonological feature (IFsClosedFeature).
 
@@ -282,17 +282,29 @@ class PhonFeatureOperations(BaseOperations, CatalogBackedMixin):
             catalogSourceId (str, optional): Optional catalog id. If it
                 starts with the ``PHON:`` prefix (case-insensitive),
                 the feature is created from the MGA catalog (canonical
-                GUID + localized strings + +/- value children), then
-                the user-supplied name/abbreviation overlay the analysis
-                WS. Otherwise the value is written verbatim to
-                ``CatalogSourceId``.
+                GUID + localized strings + +/- value children). When
+                the canonical feature already exists in the project,
+                ``CreateFromCatalog`` is idempotent by GUID and returns
+                the existing object; the user-supplied name/abbreviation
+                are only overlaid when the analysis-WS slots are empty
+                (a fresh import). When the canonical labels already match
+                the user's args, the call is a no-op. When they conflict,
+                the call refuses with FP_ParameterError -- pass
+                ``force=True`` to overlay anyway. Otherwise the value is
+                written verbatim to ``CatalogSourceId``.
+            force (bool): If True, overlay name/abbreviation onto a
+                pre-existing canonical feature even when the labels
+                conflict. Default False (refuse). (issue #138)
 
         Returns:
             IFsClosedFeature: The newly created feature.
 
         Raises:
             FP_ReadOnlyError, FP_NullParameterError, FP_ParameterError:
-                Per BaseOperations validation rules.
+                Per BaseOperations validation rules. FP_ParameterError is
+                also raised when the catalog returns an existing feature
+                with canonical labels that conflict with the user's args
+                and ``force=False``.
         """
         self._EnsureWriteEnabled()
         self._ValidateParam(name, "name")
@@ -304,14 +316,17 @@ class PhonFeatureOperations(BaseOperations, CatalogBackedMixin):
             raise FP_ParameterError("Abbreviation cannot be empty")
 
         # Catalog-driven creation: defer to CreateFromCatalog for the
-        # canonical GUID + values, then overlay the user's strings.
+        # canonical GUID + values, then overlay user-supplied strings
+        # ONLY when the canonical labels are empty or force=True.
+        # Otherwise the canonical labels (possibly set by the FLEx UI
+        # user or a prior programmatic call) would be silently
+        # overwritten. (issue #138)
         if catalogSourceId and catalogSourceId.upper().startswith(CATALOG_PREFIX + ":"):
             wsHandle = self.project.project.DefaultAnalWs
             new_feat = self.CreateFromCatalog(catalogSourceId)
-            mkstr_name = TsStringUtils.MakeString(name, wsHandle)
-            new_feat.Name.set_String(wsHandle, mkstr_name)
-            mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
-            new_feat.Abbreviation.set_String(wsHandle, mkstr_abbr)
+            self.__OverlayCanonicalLabels(
+                new_feat, name, abbreviation, wsHandle, force, catalogSourceId
+            )
             return new_feat
 
         # Uniqueness check by name within the feature system.
@@ -792,6 +807,46 @@ class PhonFeatureOperations(BaseOperations, CatalogBackedMixin):
     # ========================================================================
     # PRIVATE HELPER METHODS
     # ========================================================================
+
+    def __OverlayCanonicalLabels(self, feat, name, abbreviation, wsHandle, force, catalogSourceId):
+        """
+        Overlay user-supplied name + abbreviation onto a feature returned
+        by CreateFromCatalog -- but only when it is safe to do so.
+
+        CreateFromCatalog is idempotent by canonical GUID: if the feature
+        already exists in the project (a prior import or a FLEx UI user
+        having created it), the existing object is returned. Blindly
+        writing user-supplied name/abbreviation onto it would silently
+        clobber whatever canonical labels were already there.
+
+        Policy:
+        - Slots empty -> overlay (newly imported feature, no conflict).
+        - Slots match args -> idempotent no-op.
+        - Slots differ and force=False -> refuse with a clear pointer.
+        - Slots differ and force=True -> overlay (caller opted in).
+
+        (issue #138)
+        """
+        existing_name = ITsString(feat.Name.get_String(wsHandle)).Text or ""
+        existing_abbr = ITsString(feat.Abbreviation.get_String(wsHandle)).Text or ""
+
+        if not force and (existing_name or existing_abbr):
+            if existing_name == name and existing_abbr == abbreviation:
+                # Already labeled exactly as requested; idempotent.
+                return
+            raise FP_ParameterError(
+                f"Phonological feature for catalog id {catalogSourceId!r} "
+                f"already exists with canonical labels "
+                f"Name={existing_name!r} Abbreviation={existing_abbr!r}. "
+                f"Refusing to overwrite with Name={name!r} "
+                f"Abbreviation={abbreviation!r}. Pass force=True to "
+                f"overlay anyway."
+            )
+
+        mkstr_name = TsStringUtils.MakeString(name, wsHandle)
+        feat.Name.set_String(wsHandle, mkstr_name)
+        mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
+        feat.Abbreviation.set_String(wsHandle, mkstr_abbr)
 
     def __ResolveObject(self, obj_or_hvo):
         """
