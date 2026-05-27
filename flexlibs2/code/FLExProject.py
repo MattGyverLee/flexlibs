@@ -395,6 +395,171 @@ class FLExProject(object):
             )
         return result
 
+    def ImportLocalizedLists(self, language_code, progress=None):
+        """
+        Import the localized-lists ZIP for a target writing system.
+
+        FieldWorks ships translation packs at
+        ``<FWCodeDir>/Templates/LocalizedLists-<lang>.zip`` (where
+        ``<lang>`` is an ISO code: ``fr``, ``es``, ``ar``, ``zh-CN``,
+        ...). Each ZIP carries one XML document with localized Name
+        and Abbreviation alternatives for the canonical possibility
+        lists shared across LangProject and LexDb (SemanticDomains,
+        AnthroList, DomainTypes, UsageTypes, RestrictionsList, ...).
+
+        Wraps ``XmlTranslatedLists.ImportTranslatedListsForWs`` --
+        LCM's purpose-built importer for translated lists. Unlike
+        ``XmlList.ImportList`` (which appends new items), this method
+        merges Name / Abbreviation alternatives onto existing items
+        by canonical GUID; no duplicates are created, and there is no
+        need for a non-empty-list guard. (issue #29 item 3)
+
+        Args:
+            language_code (str): ISO writing-system code identifying
+                which LocalizedLists-XX.zip to import. Examples:
+                ``"fr"``, ``"es"``, ``"ar"``, ``"zh-CN"``.
+            progress: Optional ``SIL.LCModel.Utils.IProgress`` instance
+                for progress reporting. ``None`` (default) skips
+                reporting.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with
+                writeEnabled=True.
+            FP_NullParameterError: If ``language_code`` is None.
+            FP_ParameterError: If ``language_code`` is empty.
+            FP_FileNotFoundError: If the corresponding ZIP is not
+                found in the FieldWorks Templates directory.
+
+        Example:
+            >>> project.OpenProject("MyProject", writeEnabled=True)
+            >>> # After ImportCatalog has seeded canonical English
+            >>> # SemDom / OCM / etc., layer French alternatives:
+            >>> project.ImportLocalizedLists("fr")
+            >>> # Spanish on top of French is fine -- merge is per-WS.
+            >>> project.ImportLocalizedLists("es")
+        """
+        if language_code is None:
+            raise FP_NullParameterError()
+        if not isinstance(language_code, str) or not language_code.strip():
+            raise FP_ParameterError(
+                "ImportLocalizedLists: language_code must be a non-empty "
+                f"string, got {language_code!r}"
+            )
+        if not self.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        # LOCAL imports: match the catalog-import pattern -- LCM types
+        # live behind a FieldWorks-only dependency, and the catalog
+        # helpers carry a runtime check that we want to defer to call
+        # time, not module load.
+        import os
+        from SIL.LCModel.Application.ApplicationServices import (
+            XmlTranslatedLists,
+        )
+        from . import FLExGlobals
+        from .exceptions import FP_FileNotFoundError
+
+        if FLExGlobals.FWCodeDir is None:
+            raise FP_FileNotFoundError(
+                f"LocalizedLists-{language_code}.zip",
+                RuntimeError(
+                    "FLExGlobals.FWCodeDir is not set; ensure FLEx "
+                    "initialisation has run."
+                ),
+            )
+
+        templates_dir = os.path.join(FLExGlobals.FWCodeDir, "Templates")
+        expected_zip = os.path.join(
+            templates_dir, f"LocalizedLists-{language_code}.zip"
+        )
+        if not os.path.isfile(expected_zip):
+            raise FP_FileNotFoundError(
+                expected_zip,
+                FileNotFoundError(
+                    f"LocalizedLists-{language_code}.zip not found in "
+                    f"{templates_dir}. Check the language code is a "
+                    f"valid ISO writing-system identifier shipped with "
+                    f"FieldWorks."
+                ),
+            )
+
+        XmlTranslatedLists.ImportTranslatedListsForWs(
+            language_code,
+            self.project,
+            templates_dir,
+            progress,
+        )
+
+    def ImportLocalizedListsForEnabledWS(self, progress=None):
+        """
+        Import LocalizedLists translation packs for every enabled
+        analysis writing system, skipping any WS whose ZIP is not
+        present.
+
+        Convenience wrapper over ``ImportLocalizedLists`` that closes
+        the typical post-ImportCatalog gap: a user enables an analysis
+        WS (Portuguese, French, ...), runs ``SemanticDomains
+        .ImportCatalog`` and then expects the catalog items to carry
+        translations for every WS they've enabled. This method handles
+        the loop and the "no shipping ZIP" case (best-effort skip).
+
+        Mirrors FLEx UI behavior at a coarser grain: in the GUI the
+        user explicitly picks each language to translate. Here, the
+        wrapper assumes "every enabled analysis WS that has a shipping
+        translation pack" is the intent, and the user can use
+        ``ImportLocalizedLists(code)`` directly if they want finer
+        control.
+
+        Important: this does NOT back-fill translations for analysis
+        WSes that get enabled AFTER catalog content is added. Match
+        FLEx's behavior -- the user must explicitly re-invoke this
+        method (or ``ImportLocalizedLists`` for the new WS) after
+        enabling additional analysis WSes.
+
+        Args:
+            progress: Optional ``SIL.LCModel.Utils.IProgress`` instance
+                passed through to each ``ImportLocalizedLists`` call.
+
+        Returns:
+            list[str]: The language codes whose translation pack was
+            applied. WSes whose ZIP was not present are omitted.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not write-enabled.
+
+        Example:
+            >>> project.OpenProject("MyProject", writeEnabled=True)
+            >>> project.SemanticDomains.ImportCatalog()
+            >>> applied = project.ImportLocalizedListsForEnabledWS()
+            >>> # applied == ["en", "fr"] if those packs ship and both
+            >>> # are enabled analysis WSes; "pt" is skipped if no
+            >>> # LocalizedLists-pt.zip exists.
+        """
+        if not self.writeEnabled:
+            raise FP_ReadOnlyError()
+
+        from .exceptions import FP_FileNotFoundError
+
+        applied = []
+        analysis_ws_list = (
+            self.project.ServiceLocator.WritingSystems
+            .CurrentAnalysisWritingSystems
+        )
+        for ws in analysis_ws_list:
+            # IcuLocale matches the LocalizedLists-XX.zip naming
+            # FieldWorks uses for translation packs.
+            code = ws.IcuLocale
+            if not code:
+                continue
+            try:
+                self.ImportLocalizedLists(code, progress=progress)
+            except FP_FileNotFoundError:
+                # No translation pack ships for this WS; matches the
+                # "best-effort skip" contract from the docstring.
+                continue
+            applied.append(code)
+        return applied
+
     def Transaction(self, label="transaction"):
         """
         Return a context manager for a safe rollback transaction.
