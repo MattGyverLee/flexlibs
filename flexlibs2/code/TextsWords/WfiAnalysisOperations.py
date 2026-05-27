@@ -366,8 +366,10 @@ class WfiAnalysisOperations(BaseOperations):
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
-        # Get the owning wordform and remove the analysis
-        wordform = analysis.Owner
+        # Get the owning wordform and remove the analysis. pythonnet
+        # returns analysis.Owner as the base ICmObject, which has no
+        # AnalysesOC; cast to IWfiWordform first (issue #32).
+        wordform = IWfiWordform(analysis.Owner)
         wordform.AnalysesOC.Remove(analysis)
 
     @OperationsMethod
