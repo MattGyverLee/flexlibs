@@ -32,6 +32,7 @@ from SIL.LCModel import (
     ICmTranslationFactory,
     IReversalIndexEntry,
     LexEntryTags,
+    MoMorphTypeTags,
 )
 from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
@@ -994,11 +995,24 @@ class LexSenseOperations(BaseOperations):
             ...         project.Senses.SetPartOfSpeech(senses[0], verb_pos)
 
         Notes:
-            - Creates IMoStemMsa (stem MSA) if sense has no MSA
-            - Updates existing MSA Category if already exists
-            - POS must be from the project's parts of speech list
-            - Setting POS affects grammatical analysis and parsing
-            - MSA is stored in the LexDb.MorphoSyntaxAnalysesOC collection
+            - MSA factory is chosen based on the entry's morph type
+              (issue #33):
+                - Stem morphs (root, stem, clitic, particle, ...) ->
+                  IMoStemMsa.
+                - Affix morphs (prefix, suffix, infix, circumfix, ...)
+                  -> IMoInflAffMsa, matching the FLEx UI default and
+                  the type HermitCrab/the parser expect.
+            - When the existing MSA is of the wrong family for the
+              entry's morph type, a new MSA is created and the sense
+              is repointed at it. The wrong-type MSA is detached from
+              this sense but left in the entry's MorphoSyntaxAnalysesOC
+              collection (it may still be referenced by other senses
+              or morph bundles).
+            - When the existing MSA already matches the family, only
+              PartOfSpeechRA is updated -- the specific affix variant
+              (MoInflAffMsa vs MoDerivAffMsa vs MoUnclassifiedAffixMsa)
+              is preserved.
+            - POS must be from the project's parts of speech list.
 
         See Also:
             GetPartOfSpeech, SetGrammaticalInfo
@@ -1016,39 +1030,96 @@ class LexSenseOperations(BaseOperations):
         else:
             pos_obj = pos
 
-        # Check if sense already has an MSA
-        if sense.MorphoSyntaxAnalysisRA is not None:
-            # Update existing MSA's Category
-            # Use cast_to_concrete() to handle pythonnet interface casting
-            msa = cast_to_concrete(sense.MorphoSyntaxAnalysisRA)
-            if hasattr(msa, "PartOfSpeechRA"):
-                msa.PartOfSpeechRA = pos_obj
-            else:
-                # If existing MSA is not a stem MSA, create new one
-                from SIL.LCModel import IMoStemMsaFactory
+        # MSAs are owned by the LexEntry's MorphoSyntaxAnalysesOC.
+        # Walk up the ownership chain (skipping parent senses for
+        # subsenses) to find the enclosing LexEntry.
+        entry = ILexEntry(sense.OwnerOfClass(LexEntryTags.kClassId))
 
-                factory = self.project.project.ServiceLocator.GetService(IMoStemMsaFactory)
-                new_msa = factory.Create()
-                # MSAs are owned by the LexEntry's MorphoSyntaxAnalysesOC, not by
-                # the sense. OwnerOfClass walks up the ownership chain (skipping
-                # parent senses for subsenses) to find the enclosing LexEntry.
-                entry = ILexEntry(sense.OwnerOfClass(LexEntryTags.kClassId))
-                entry.MorphoSyntaxAnalysesOC.Add(new_msa)
-                new_msa.PartOfSpeechRA = pos_obj
-                sense.MorphoSyntaxAnalysisRA = new_msa
+        # Decide which MSA family the entry's morph type calls for.
+        # The bug from #33 was unconditional use of MoStemMsa even
+        # when the entry was a prefix/suffix/infix/circumfix.
+        entry_is_affix = self.__EntryHasAffixMorphType(entry)
+
+        existing_msa = sense.MorphoSyntaxAnalysisRA
+        if existing_msa is not None:
+            existing_class = existing_msa.ClassName
+            existing_is_stem_msa = (existing_class == "MoStemMsa")
+            # An "affix MSA" is any MoXxxAffMsa subtype:
+            # MoInflAffMsa, MoDerivAffMsa, MoUnclassifiedAffixMsa.
+            existing_is_affix_msa = not existing_is_stem_msa
+
+            family_matches = (
+                (entry_is_affix and existing_is_affix_msa)
+                or (not entry_is_affix and existing_is_stem_msa)
+            )
+
+            if family_matches:
+                # Update PartOfSpeechRA in place and preserve the
+                # specific MSA subtype the user (or earlier code)
+                # chose.
+                msa = cast_to_concrete(existing_msa)
+                if hasattr(msa, "PartOfSpeechRA"):
+                    msa.PartOfSpeechRA = pos_obj
+                    return
+            # Family mismatch: detach the wrong-type MSA from this
+            # sense. We do not remove it from
+            # entry.MorphoSyntaxAnalysesOC because other senses /
+            # morph bundles may still reference it; that cleanup is
+            # the caller's responsibility.
+            sense.MorphoSyntaxAnalysisRA = None
+
+        # Create a fresh MSA of the correct family. Phase 2 ownership
+        # rule: attach to entry.MorphoSyntaxAnalysesOC BEFORE setting
+        # PartOfSpeechRA.
+        if entry_is_affix:
+            from SIL.LCModel import IMoInflAffMsaFactory
+
+            factory = self.project.project.ServiceLocator.GetService(
+                IMoInflAffMsaFactory
+            )
         else:
-            # Create new stem MSA
             from SIL.LCModel import IMoStemMsaFactory
 
-            factory = self.project.project.ServiceLocator.GetService(IMoStemMsaFactory)
-            msa = factory.Create()
-            # MSAs are owned by the LexEntry's MorphoSyntaxAnalysesOC, not by
-            # the sense. OwnerOfClass walks up the ownership chain (skipping
-            # parent senses for subsenses) to find the enclosing LexEntry.
-            entry = ILexEntry(sense.OwnerOfClass(LexEntryTags.kClassId))
-            entry.MorphoSyntaxAnalysesOC.Add(msa)
-            msa.PartOfSpeechRA = pos_obj
-            sense.MorphoSyntaxAnalysisRA = msa
+            factory = self.project.project.ServiceLocator.GetService(
+                IMoStemMsaFactory
+            )
+        msa = factory.Create()
+        entry.MorphoSyntaxAnalysesOC.Add(msa)
+        msa.PartOfSpeechRA = pos_obj
+        sense.MorphoSyntaxAnalysisRA = msa
+
+    def __EntryHasAffixMorphType(self, entry):
+        """
+        Return True iff ``entry``'s morph type is an affix kind.
+
+        Affix kinds (per LCM ``MoMorphTypeTags``): prefix, suffix,
+        infix, circumfix, prefixing/suffixing/infixing interfix,
+        simulfix, suprafix. All other morph types (stem, root, bound
+        root/stem, clitic, enclitic, proclitic, particle, phrase,
+        discontiguous phrase) count as stem-shaped for MSA family
+        purposes.
+
+        An entry with no LexemeFormOA or no MorphTypeRA is treated as
+        non-affix (the safe default; matches LexEntry.Create's behavior
+        of treating absent morph_type_name as 'stem').
+        """
+        if entry is None or entry.LexemeFormOA is None:
+            return False
+        morph_type = entry.LexemeFormOA.MorphTypeRA
+        if morph_type is None:
+            return False
+        affix_guids = {
+            MoMorphTypeTags.kguidMorphPrefix,
+            MoMorphTypeTags.kguidMorphSuffix,
+            MoMorphTypeTags.kguidMorphInfix,
+            MoMorphTypeTags.kguidMorphCircumfix,
+            MoMorphTypeTags.kguidMorphPrefixingInterfix,
+            MoMorphTypeTags.kguidMorphSuffixingInterfix,
+            MoMorphTypeTags.kguidMorphInfixingInterfix,
+            MoMorphTypeTags.kguidMorphSimulfix,
+            MoMorphTypeTags.kguidMorphSuprafix,
+        }
+        return morph_type.Guid in affix_guids
 
     @OperationsMethod
     def GetGrammaticalInfo(self, sense_or_hvo):
