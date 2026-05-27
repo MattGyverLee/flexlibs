@@ -1118,10 +1118,18 @@ class LexSenseOperations(BaseOperations):
         existing_msa = sense.MorphoSyntaxAnalysisRA
         if existing_msa is not None:
             existing_class = existing_msa.ClassName
+            # Classify against the known LCM whitelist instead of
+            # "not stem". The four concrete MSA subtypes are MoStemMsa,
+            # MoInflAffMsa, MoDerivAffMsa, MoUnclassifiedAffixMsa; an
+            # unrecognized class (abstract base, future subtype, stray
+            # value) is treated as wrong-family and triggers recreate
+            # rather than silently being agreed with. (issue #89)
             existing_is_stem_msa = (existing_class == "MoStemMsa")
-            # An "affix MSA" is any MoXxxAffMsa subtype:
-            # MoInflAffMsa, MoDerivAffMsa, MoUnclassifiedAffixMsa.
-            existing_is_affix_msa = not existing_is_stem_msa
+            existing_is_affix_msa = existing_class in (
+                "MoInflAffMsa",
+                "MoDerivAffMsa",
+                "MoUnclassifiedAffixMsa",
+            )
 
             family_matches = (
                 (entry_is_affix and existing_is_affix_msa)
@@ -1129,15 +1137,27 @@ class LexSenseOperations(BaseOperations):
             )
 
             if family_matches:
-                # Update PartOfSpeechRA in place and preserve the
-                # specific MSA subtype the user (or earlier code)
-                # chose.
+                # Update POS in place and preserve the specific MSA
+                # subtype the user (or earlier code) chose.
+                #
+                # MoDerivAffMsa is the special case: it has no
+                # PartOfSpeechRA -- only FromPartOfSpeechRA and
+                # ToPartOfSpeechRA. ToPartOfSpeechRA is the canonical
+                # "output POS" for a derivational affix and matches
+                # what SetPartOfSpeech logically means. The previous
+                # hasattr-guarded write silently no-op'd on
+                # MoDerivAffMsa and fell through to recreate, breaking
+                # the docstring's "specific affix variant is preserved"
+                # contract. (issue #87)
                 msa = cast_to_concrete(existing_msa)
+                if existing_class == "MoDerivAffMsa":
+                    msa.ToPartOfSpeechRA = pos_obj
+                    return
                 if hasattr(msa, "PartOfSpeechRA"):
                     msa.PartOfSpeechRA = pos_obj
                     return
-            # Family mismatch: detach the wrong-type MSA from this
-            # sense. We do not remove it from
+            # Family mismatch (or unrecognized class): detach the
+            # wrong-type MSA from this sense. We do not remove it from
             # entry.MorphoSyntaxAnalysesOC because other senses /
             # morph bundles may still reference it; that cleanup is
             # the caller's responsibility.
