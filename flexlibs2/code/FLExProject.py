@@ -1347,7 +1347,7 @@ class FLExProject(object):
             >>> # Set definition
             >>> project.Senses.SetDefinition(sense, "To move swiftly on foot")
             >>> # Add semantic domain
-            >>> domains = project.GetAllSemanticDomains(flat=True)
+            >>> domains = project.GetAllSemanticDomains()  # default: recursive=True
             >>> if domains:
             ...     project.Senses.AddSemanticDomain(sense, domains[0])
         """
@@ -2923,17 +2923,44 @@ class FLExProject(object):
         """
         return [self.POS.GetName(pos) for pos in self.POS.GetAll()]
 
-    def GetAllSemanticDomains(self, flat=False):
+    def GetAllSemanticDomains(self, recursive=True, **kwargs):
         """
-        Returns a nested or flat list of all semantic domains defined
-        in this project. The list is ordered.
+        Returns a list of all semantic domains defined in this project.
+        The list is ordered.
+
+        Args:
+            recursive (bool): When True (default), walks the full
+                hierarchy and returns every descendant domain
+                (e.g. ~700+ entries on Sena 3). When False, returns
+                only the top-level domains (~7 entries).
 
         Return items are `ICmSemanticDomain` objects.
 
         .. note::
            This method delegates to :meth:`SemanticDomainOperations.GetAll`.
+           The default of ``recursive=True`` matches every other
+           ``GetAll`` accessor in the codebase (refactor d423e83).
+
+           ``flat=`` is accepted as a deprecated alias for ``recursive=``
+           with identical semantics; calls passing ``flat=`` emit a
+           :class:`DeprecationWarning` and translate the value through.
         """
-        return self.SemanticDomains.GetAll(recursive=flat)
+        if "flat" in kwargs:
+            import warnings
+
+            warnings.warn(
+                "GetAllSemanticDomains: 'flat=' is deprecated; use "
+                "'recursive=' instead (same semantics).",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            recursive = kwargs.pop("flat")
+        if kwargs:
+            raise TypeError(
+                "GetAllSemanticDomains() got unexpected keyword arguments: "
+                f"{sorted(kwargs)}"
+            )
+        return self.SemanticDomains.GetAll(recursive=recursive)
 
     # --- Global utility functions ---
 

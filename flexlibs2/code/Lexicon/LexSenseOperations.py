@@ -80,7 +80,7 @@ class LexSenseOperations(BaseOperations):
         project.Senses.SetDefinition(sense, "To move swiftly on foot", "en")
 
         # Add semantic domain
-        domains = project.GetAllSemanticDomains(flat=True)
+        domains = project.GetAllSemanticDomains()
         if domains:
             project.Senses.AddSemanticDomain(sense, domains[0])
 
@@ -1299,7 +1299,7 @@ class LexSenseOperations(BaseOperations):
             >>> senses = list(project.Senses.GetAll(entry))
             >>> if senses:
             ...     # Get semantic domains
-            ...     all_domains = project.GetAllSemanticDomains(flat=True)
+            ...     all_domains = project.GetAllSemanticDomains()
             ...     if all_domains:
             ...         # Add first domain
             ...         project.Senses.AddSemanticDomain(senses[0], all_domains[0])

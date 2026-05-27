@@ -113,7 +113,7 @@ for domain in domains:
     print(f"Domain: {name}")
 
 # Add semantic domain
-all_domains = project.GetAllSemanticDomains(flat=True)
+all_domains = project.GetAllSemanticDomains()
 if all_domains:
     project.Senses.AddSemanticDomain(sense, all_domains[0])
 
@@ -273,7 +273,7 @@ project.Senses.SetDefinition(
 )
 
 # Add semantic domain
-all_domains = project.GetAllSemanticDomains(flat=True)
+all_domains = project.GetAllSemanticDomains()
 motion_domain = None
 for domain in all_domains:
     ws = project.project.DefaultAnalWs
