@@ -16,6 +16,7 @@
 # Copyright 2025
 #
 
+import faulthandler
 import pytest
 from unittest.mock import Mock, MagicMock, patch
 import sys
@@ -93,7 +94,23 @@ def initialize_flex_for_tests():
         from SIL.WritingSystems import Sldr
 
         FwRegistryHelper.Initialize()
-        FwUtils.InitializeIcu()
+        # FwUtils.InitializeIcu() triggers a benign Win32 SEH during
+        # the native ICU bootstrap. Pytest enables faulthandler by
+        # default, which intercepts the SEH and prints a noisy
+        # "Windows fatal exception: access violation" stack to stderr
+        # before the call completes successfully. Temporarily disable
+        # faulthandler across the InitializeIcu call so the trace
+        # doesn't pollute test output. Re-enable immediately after.
+        # Tests are unaffected -- they ran fine before this change;
+        # the trace was cosmetic. (issue #35)
+        _faulthandler_was_enabled = faulthandler.is_enabled()
+        try:
+            if _faulthandler_was_enabled:
+                faulthandler.disable()
+            FwUtils.InitializeIcu()
+        finally:
+            if _faulthandler_was_enabled:
+                faulthandler.enable()
         Sldr.Initialize(True)
         print("[OK] FLEx services initialized")
 
