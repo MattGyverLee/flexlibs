@@ -13,6 +13,7 @@
 
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
+from ..Shared.string_utils import normalize_match_key
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -362,10 +363,14 @@ class LexReferenceOperations(BaseOperations):
 
         wsHandle = self.__WSHandleAnalysis(wsHandle)
 
-        # Search through all reference types
+        # Search through all reference types. NFD-normalize both sides:
+        # FLEx stores Unicode in NFD, Python source is typically NFC; a
+        # diacritic-bearing relation name would silently miss without
+        # this. (issue #125)
+        target = normalize_match_key(name, casefold=False)
         for ref_type in self.GetAllTypes():
             type_name = ITsString(ref_type.Name.get_String(wsHandle)).Text
-            if type_name == name:
+            if type_name and normalize_match_key(type_name, casefold=False) == target:
                 return ref_type
 
         return None

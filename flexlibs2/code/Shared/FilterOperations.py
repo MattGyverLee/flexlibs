@@ -47,7 +47,7 @@ from ..FLExProject import (
 from ..lcm_casting import get_pos_from_msa
 
 # Import string utilities
-from .string_utils import normalize_text
+from .string_utils import normalize_text, normalize_match_key
 
 # Import BaseOperations decorators
 from ..BaseOperations import OperationsMethod, wrap_enumerable
@@ -354,9 +354,14 @@ class FilterOperations:
         if not name or not name.strip():
             return None
 
+        # NFD-normalize both sides: FLEx stores Unicode in NFD, Python
+        # source is typically NFC. A user looking up "Verbes Compose" with
+        # NFC e-acute against NFD-stored data would silently miss without
+        # this. (issue #125)
+        target = normalize_match_key(name.strip(), casefold=False)
         filters = self._LoadFiltersFromProject()
         for filter_data in filters.values():
-            if filter_data["name"] == name.strip():
+            if normalize_match_key(filter_data["name"], casefold=False) == target:
                 return filter_data
 
         return None

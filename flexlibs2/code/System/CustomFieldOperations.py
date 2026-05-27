@@ -48,6 +48,7 @@ from ..FLExProject import (
 # Import FLExLCM types
 from .. import FLExLCM  # Fixed: was "from ." (wrong path)
 from ..BaseOperations import BaseOperations, OperationsMethod
+from ..Shared.string_utils import normalize_match_key
 
 
 class CustomFieldOperations(BaseOperations):
@@ -414,10 +415,14 @@ class CustomFieldOperations(BaseOperations):
         if not owner_class.strip() or not name.strip():
             return None
 
-        # Get all custom fields and search by name
+        # Get all custom fields and search by name. NFD-normalize both
+        # sides: FLEx stores Unicode in NFD, Python source is typically
+        # NFC; a user looking up "Etymologie Detaillee" with NFC e-acute
+        # would silently miss against NFD-stored data. (issue #125)
+        target = normalize_match_key(name, casefold=False)
         fields = self.GetAllFields(owner_class)
         for field_id, label in fields:
-            if label == name:
+            if normalize_match_key(label, casefold=False) == target:
                 return field_id
 
         return None
