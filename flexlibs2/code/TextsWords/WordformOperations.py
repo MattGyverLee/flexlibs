@@ -770,7 +770,9 @@ class WordformOperations(BaseOperations):
                 - IWfiAnalysis objects (with new GUIDs)
                 - CategoryRA reference (part of speech)
                 - WfiGloss objects with Form MultiString (word-level translations)
-                - WfiMorphBundle objects with Form and Gloss MultiStrings
+                - WfiMorphBundle objects with Form MultiString
+                  (IWfiMorphBundle has no Gloss field of its own; the
+                  displayed gloss comes from SenseRA.Gloss)
                 - Morph bundle references: SenseRA, MsaRA, MorphRA, InflClassRA
 
             What's NOT Copied:

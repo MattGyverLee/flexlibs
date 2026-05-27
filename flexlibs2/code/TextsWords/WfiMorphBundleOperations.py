@@ -334,13 +334,14 @@ class WfiMorphBundleOperations(BaseOperations):
             >>> props = project.MorphBundles.GetSyncableProperties(bundle)
             >>> print(props['Form'])
             {'en': 'run'}
-            >>> print(props['Gloss'])
-            {'en': 'run'}
             >>> print(props['SenseRA'])
             'abc123...'  # GUID of linked sense
 
         Notes:
-            - MultiString properties: Form, Gloss
+            - MultiString properties: Form
+              (IWfiMorphBundle has no Gloss field of its own; the
+              displayed gloss is derived from SenseRA.Gloss -- see
+              GetGloss for the read path.)
             - Reference Atomic properties: SenseRA, MsaRA, MorphRA, InflClassRA (GUIDs)
         """
         props = {}
@@ -348,9 +349,6 @@ class WfiMorphBundleOperations(BaseOperations):
         # MultiString properties
         if hasattr(item, "Form") and item.Form:
             props["Form"] = self.project.GetMultiStringDict(item.Form)
-
-        if hasattr(item, "Gloss") and item.Gloss:
-            props["Gloss"] = self.project.GetMultiStringDict(item.Gloss)
 
         # Reference Atomic properties (return GUIDs)
         if hasattr(item, "SenseRA") and item.SenseRA:
@@ -390,7 +388,8 @@ class WfiMorphBundleOperations(BaseOperations):
             ...         print(f"{prop}: {val1} != {val2}")
 
         Notes:
-            - Compares Form and Gloss MultiStrings
+            - Compares the Form MultiString (IWfiMorphBundle has no
+              Gloss field of its own; see GetSyncableProperties)
             - Compares reference properties by GUID
             - Empty/null values are treated as equivalent
         """
