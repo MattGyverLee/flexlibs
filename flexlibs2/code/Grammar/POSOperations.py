@@ -779,19 +779,23 @@ class POSOperations(BaseOperations, CatalogBackedMixin):
         return list(pos.AffixSlotsOC)
 
     @OperationsMethod
-    def GetEntryCount(self, pos_or_hvo, recursive=True):
+    def GetEntryCount(self, pos_or_hvo, recursive=False):
         """
         Count the number of lexical entries using this part of speech.
 
         Args:
             pos_or_hvo: The IPartOfSpeech object or HVO.
-            recursive (bool): If True (default), counts entries tagged with
-                this POS OR any descendant POS (e.g., counting "Noun" also
-                counts "Proper Noun", "Common Noun", etc.). If False, only
-                counts entries tagged with this POS exactly.
+            recursive (bool): If False (default), counts only entries
+                tagged with this POS exactly -- matches what FLEx's UI
+                shows in the Categories tool, Lexicon Browse view, and
+                Tools > Statistics (every count column in FLEx is
+                direct-only). If True, rolls up entries tagged with
+                this POS OR any descendant POS (e.g., counting "Noun"
+                also picks up "Proper Noun", "Common Noun", etc.).
 
         Returns:
-            int: The count of entries using this POS (or any descendant).
+            int: The count of entries using this POS (direct-only by
+            default; including descendants when ``recursive=True``).
 
         Raises:
             FP_NullParameterError: If pos_or_hvo is None.
@@ -800,10 +804,18 @@ class POSOperations(BaseOperations, CatalogBackedMixin):
             >>> posOps = POSOperations(project)
             >>> noun = posOps.Find("Noun")
             >>> count = posOps.GetEntryCount(noun)
-            >>> print(f"There are {count} noun entries (incl. subcategories)")
+            >>> print(f"There are {count} entries tagged exactly Noun")
 
-            >>> # Strict count: only entries tagged exactly "Noun"
-            >>> exact = posOps.GetEntryCount(noun, recursive=False)
+            >>> # Roll-up: include Proper Noun, Common Noun, etc.
+            >>> rollup = posOps.GetEntryCount(noun, recursive=True)
+
+        Notes:
+            Counting queries default to ``recursive=False`` (FLEx UI
+            parity). Collection queries elsewhere in this codebase
+            (e.g. ``GetSubcategories``) default to ``recursive=True``;
+            the asymmetry is intentional -- counts answer "what does
+            the user see in FLEx?" while collections answer "what's
+            in the subtree?"
 
         See Also:
             Delete, GetSubcategories
