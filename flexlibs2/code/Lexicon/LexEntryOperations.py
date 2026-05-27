@@ -1727,7 +1727,10 @@ class LexEntryOperations(BaseOperations):
 
         entry = self.__ResolveObject(entry_or_hvo)
 
-        return self._NormalizeMultiString(entry.ImportResidue)
+        # ILexEntry.ImportResidue is ITsString (single-string), not a plain
+        # Python str -- it must be unwrapped via _ReadTsString, not passed
+        # through _NormalizeMultiString. (Issue #115.)
+        return self._ReadTsString(entry.ImportResidue)
 
     @OperationsMethod
     def SetImportResidue(self, entry_or_hvo, residue):
@@ -1766,7 +1769,10 @@ class LexEntryOperations(BaseOperations):
 
         entry = self.__ResolveObject(entry_or_hvo)
 
-        entry.ImportResidue = residue
+        # ILexEntry.ImportResidue is ITsString (single-string); assigning a
+        # raw Python str raises TypeError at the pythonnet boundary. Wrap
+        # via _MakeTsString. (Issue #39.)
+        entry.ImportResidue = self._MakeTsString(residue)
 
     # --- MultiString/MultiUnicode Properties ---
 

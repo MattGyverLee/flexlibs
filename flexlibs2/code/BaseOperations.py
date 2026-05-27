@@ -1798,3 +1798,96 @@ class BaseOperations:
         if value == "***":
             return ""
         return value
+
+    # ========== ITsString (SINGLE-STRING) HELPERS ==========
+    #
+    # FLEx multilingual fields come in two LCM flavors that look similar at
+    # the API surface but behave very differently. Confusing them is the
+    # recurring source of the "single-string field" bug class:
+    #
+    #   ITsString
+    #       One localised string with an embedded writing-system handle.
+    #       Read via .Text directly. Build via TsStringUtils.MakeString.
+    #       Examples (NON-exhaustive):
+    #         - ILexSense.Source
+    #         - ILexSense.ScientificName
+    #         - ILexSense.ImportResidue
+    #         - ILexEntry.ImportResidue
+    #
+    #   IMultiString / IMultiUnicode
+    #       Collection of localised strings indexed by ws handle. Read via
+    #       .get_String(ws); write via .set_String(ws, ts_string).
+    #       Examples (NON-exhaustive):
+    #         - ILexEtymology.Source           (same name as above, DIFFERENT type)
+    #         - ICmBaseAnnotation.Source       (same name as above, DIFFERENT type)
+    #         - ILexSense.Definition
+    #         - ILexSense.Gloss
+    #
+    # The two helpers below are the canonical adapters for ITsString fields.
+    # Use them instead of assigning a Python str directly to an ITsString
+    # attribute (raises TypeError at the pythonnet boundary) or passing a
+    # raw ITsString through a Python-string normaliser (returns garbage).
+
+    def _MakeTsString(self, text, wsHandle=None):
+        """
+        Build an ITsString for assignment to a single-string ITsString field.
+
+        Args:
+            text (str): The Python string to wrap.
+            wsHandle: Optional writing system handle (int) or language tag
+                (str). Defaults to the project's analysis WS when None.
+
+        Returns:
+            ITsString: The wrapped string ready to assign to an
+            ITsString-typed LCM property.
+
+        Notes:
+            - This is the correct path for writes to ILexSense.Source,
+              ILexSense.ScientificName, ILexSense.ImportResidue,
+              ILexEntry.ImportResidue, and other single-string fields.
+            - For IMultiString fields use ``field.set_String(ws, ts)``
+              directly with a TsStringUtils.MakeString result; do NOT
+              assign through this helper.
+        """
+        from SIL.LCModel.Core.Text import TsStringUtils
+
+        if wsHandle is None:
+            ws = self.project.project.DefaultAnalWs
+        else:
+            ws = self.project._FLExProject__WSHandle(
+                wsHandle, self.project.project.DefaultAnalWs
+            )
+        return TsStringUtils.MakeString(text, ws)
+
+    def _ReadTsString(self, tss):
+        """
+        Read an ITsString field as a Python str.
+
+        Collapses unset / None / the FLEx null-marker ('***') to "".
+        Single-string fields have no per-WS dimension where None vs ""
+        would be meaningful, so the multistring family's None-passthrough
+        is not appropriate here.
+
+        Args:
+            tss: An ITsString-typed LCM value (or None).
+
+        Returns:
+            str: The string content. Always a Python str -- never None,
+            never a raw ITsString object.
+
+        Notes:
+            - This is the correct path for reads from ILexSense.Source,
+              ILexSense.ScientificName, ILexSense.ImportResidue,
+              ILexEntry.ImportResidue, and other single-string fields.
+            - For IMultiString fields read via ``field.get_String(ws)``
+              and call ``ITsString(...).Text`` yourself; do NOT route a
+              per-WS read through this helper.
+        """
+        from SIL.LCModel.Core.KernelInterfaces import ITsString
+
+        if tss is None:
+            return ""
+        text = ITsString(tss).Text
+        if text is None:
+            return ""
+        return self._NormalizeMultiString(text)

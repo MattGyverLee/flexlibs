@@ -562,16 +562,14 @@ class LexSenseOperations(BaseOperations):
         props["SocioLinguisticsNote"] = socio_dict
 
         # Source - bibliographic source
-        source_dict = {}
+        # ILexSense.Source is ITsString (single-string), not IMultiString --
+        # do NOT iterate ws handles here. (Same field name as
+        # ILexEtymology.Source / ICmBaseAnnotation.Source which ARE
+        # IMultiString -- distinct LCM type.) Issue #40.
         if hasattr(item, "Source"):
-            for ws_handle in self.project.GetAllWritingSystems():
-                from SIL.LCModel.Core.KernelInterfaces import ITsString
-
-                text = ITsString(item.Source.get_String(ws_handle)).Text
-                if text:
-                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
-                    source_dict[ws_tag] = text
-        props["Source"] = source_dict
+            props["Source"] = self._ReadTsString(item.Source)
+        else:
+            props["Source"] = ""
 
         # Restrictions - usage restrictions
         restrictions_dict = {}
@@ -2720,7 +2718,7 @@ class LexSenseOperations(BaseOperations):
         """Get the source of a sense."""
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
-        return self.__ReadTsString(sense.Source)
+        return self._ReadTsString(sense.Source)
 
     @OperationsMethod
     def SetSource(self, sense_or_hvo, text, wsHandle=None):
@@ -2729,14 +2727,14 @@ class LexSenseOperations(BaseOperations):
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         self._ValidateParam(text, "text")
         sense = self.__GetSenseObject(sense_or_hvo)
-        sense.Source = self.__MakeTsString(text, wsHandle)
+        sense.Source = self._MakeTsString(text, wsHandle)
 
     @OperationsMethod
     def GetScientificName(self, sense_or_hvo):
         """Get the scientific name of a sense."""
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
-        return self.__ReadTsString(sense.ScientificName)
+        return self._ReadTsString(sense.ScientificName)
 
     @OperationsMethod
     def SetScientificName(self, sense_or_hvo, text, wsHandle=None):
@@ -2745,14 +2743,14 @@ class LexSenseOperations(BaseOperations):
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         self._ValidateParam(text, "text")
         sense = self.__GetSenseObject(sense_or_hvo)
-        sense.ScientificName = self.__MakeTsString(text, wsHandle)
+        sense.ScientificName = self._MakeTsString(text, wsHandle)
 
     @OperationsMethod
     def GetImportResidue(self, sense_or_hvo):
         """Get the import residue of a sense."""
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         sense = self.__GetSenseObject(sense_or_hvo)
-        return self.__ReadTsString(sense.ImportResidue)
+        return self._ReadTsString(sense.ImportResidue)
 
     @OperationsMethod
     def SetImportResidue(self, sense_or_hvo, text, wsHandle=None):
@@ -2761,26 +2759,7 @@ class LexSenseOperations(BaseOperations):
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         self._ValidateParam(text, "text")
         sense = self.__GetSenseObject(sense_or_hvo)
-        sense.ImportResidue = self.__MakeTsString(text, wsHandle)
-
-    def __MakeTsString(self, text, wsHandle):
-        """Build an ITsString in the chosen WS (default: analysis)."""
-        ws = self.__WSHandleAnalysis(wsHandle)
-        return TsStringUtils.MakeString(text, ws)
-
-    def __ReadTsString(self, tss):
-        """
-        Read an ITsString field as str; collapse unset / None / "***"
-        to "". Single-string fields have no per-WS dimension where
-        None vs "" would be meaningful, so the multistring family's
-        None passthrough is not appropriate here.
-        """
-        if tss is None:
-            return ""
-        text = ITsString(tss).Text
-        if text is None:
-            return ""
-        return self._NormalizeMultiString(text)
+        sense.ImportResidue = self._MakeTsString(text, wsHandle)
 
     # --- Reference Collection Properties ---
 

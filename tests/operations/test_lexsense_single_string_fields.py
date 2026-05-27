@@ -109,7 +109,7 @@ class TestLexSenseSingleStringFields:
     def test_get_returns_empty_string_when_unset(self, writable_project):
         """
         Get* on an unset single-string field must return "" -- not
-        None, not the FLEX null marker "***". The fix's __ReadTsString
+        None, not the FLEX null marker "***". The fix's _ReadTsString
         helper normalises both None and "***".
         """
         lexeme = "qZ_lexsense_single_string_empty"
@@ -139,6 +139,184 @@ class TestLexSenseSingleStringFields:
                 writable_project.LexEntry.Delete(entry)
             except Exception:
                 pass
+
+
+class TestLexEntrySingleStringFields:
+    """
+    Round-trip coverage for the ILexEntry ITsString single-string field
+    surfaced by the issue #39 / #115 fix:
+      - ImportResidue (carry-over from non-LIFT import; stored as ITsString)
+
+    Before the fix, SetImportResidue assigned a Python str directly to the
+    ITsString attribute (TypeError at the pythonnet boundary) and
+    GetImportResidue passed the raw ITsString through
+    _NormalizeMultiString (returning a COM-wrapped object instead of a
+    str). The promoted BaseOperations._MakeTsString / _ReadTsString
+    helpers fix both shapes.
+    """
+
+    def test_set_get_import_residue_round_trip(self, writable_project):
+        """
+        Set takes a Python str, Get returns a Python str equal to what
+        was written. Before the fix Set raised TypeError before ever
+        reaching FLEx storage.
+        """
+        lexeme = "qZ_lexentry_import_residue_roundtrip"
+        sentinel = "<custom><field>qZ_residue_value</field></custom>"
+
+        existing = writable_project.LexEntry.Find(lexeme)
+        if existing is not None:
+            writable_project.LexEntry.Delete(existing)
+
+        entry = writable_project.LexEntry.Create(lexeme)
+        try:
+            writable_project.LexEntry.SetImportResidue(entry, sentinel)
+            got = writable_project.LexEntry.GetImportResidue(entry)
+            assert got == sentinel, (
+                f"LexEntry.ImportResidue did not round-trip: "
+                f"wrote {sentinel!r}, read {got!r}"
+            )
+        finally:
+            try:
+                writable_project.LexEntry.Delete(entry)
+            except Exception:
+                pass
+
+    def test_get_import_residue_empty_on_fresh_entry(self, writable_project):
+        """
+        On an entry that has never had ImportResidue set, the getter
+        must return "" -- not None, not "***", not a raw ITsString.
+        """
+        lexeme = "qZ_lexentry_import_residue_empty"
+
+        existing = writable_project.LexEntry.Find(lexeme)
+        if existing is not None:
+            writable_project.LexEntry.Delete(existing)
+
+        entry = writable_project.LexEntry.Create(lexeme)
+        try:
+            value = writable_project.LexEntry.GetImportResidue(entry)
+            assert isinstance(value, str), (
+                f"GetImportResidue() returned {type(value).__name__}; "
+                "expected str"
+            )
+            assert value == "", (
+                f"GetImportResidue() on a fresh entry returned "
+                f"{value!r}; expected empty string"
+            )
+        finally:
+            try:
+                writable_project.LexEntry.Delete(entry)
+            except Exception:
+                pass
+
+
+class TestBaseOperationsTsStringHelpersPromoted:
+    """
+    Lock the helper promotion: _MakeTsString and _ReadTsString must
+    resolve to BaseOperations (not to a subclass-local re-declaration)
+    when accessed from LexSenseOperations and LexEntryOperations.
+    """
+
+    def test_helpers_live_on_base_operations(self):
+        """
+        After promotion (issue #42), both helpers must be defined
+        directly on BaseOperations -- not on either Operations
+        subclass. This prevents accidental re-introduction of the
+        duplicated definitions the consolidation removed.
+        """
+        try:
+            from flexlibs2.code.BaseOperations import BaseOperations
+            from flexlibs2.code.Lexicon.LexSenseOperations import (
+                LexSenseOperations,
+            )
+            from flexlibs2.code.Lexicon.LexEntryOperations import (
+                LexEntryOperations,
+            )
+        except Exception as exc:
+            pytest.skip(f"flexlibs2 imports unavailable: {exc}")
+
+        # The helpers must exist on BaseOperations itself.
+        assert "_MakeTsString" in vars(BaseOperations), (
+            "_MakeTsString must be defined directly on BaseOperations"
+        )
+        assert "_ReadTsString" in vars(BaseOperations), (
+            "_ReadTsString must be defined directly on BaseOperations"
+        )
+
+        # The helpers must NOT shadow on either subclass (would defeat
+        # consolidation and re-introduce drift).
+        assert "_MakeTsString" not in vars(LexSenseOperations), (
+            "LexSenseOperations must not redeclare _MakeTsString"
+        )
+        assert "_ReadTsString" not in vars(LexSenseOperations), (
+            "LexSenseOperations must not redeclare _ReadTsString"
+        )
+        assert "_MakeTsString" not in vars(LexEntryOperations), (
+            "LexEntryOperations must not redeclare _MakeTsString"
+        )
+        assert "_ReadTsString" not in vars(LexEntryOperations), (
+            "LexEntryOperations must not redeclare _ReadTsString"
+        )
+
+        # And the OLD name-mangled helpers must be gone from
+        # LexSenseOperations -- the rename completed.
+        assert not hasattr(
+            LexSenseOperations, "_LexSenseOperations__MakeTsString"
+        ), (
+            "Old name-mangled __MakeTsString must be removed from "
+            "LexSenseOperations after promotion"
+        )
+        assert not hasattr(
+            LexSenseOperations, "_LexSenseOperations__ReadTsString"
+        ), (
+            "Old name-mangled __ReadTsString must be removed from "
+            "LexSenseOperations after promotion"
+        )
+
+    def test_mro_resolves_helpers_through_base(self):
+        """
+        Both Operations subclasses must reach _MakeTsString /
+        _ReadTsString via normal MRO from BaseOperations. Single-
+        underscore (not double) is required for this -- double would
+        trigger Python name-mangling and break subclass access.
+        """
+        try:
+            from flexlibs2.code.BaseOperations import BaseOperations
+            from flexlibs2.code.Lexicon.LexSenseOperations import (
+                LexSenseOperations,
+            )
+            from flexlibs2.code.Lexicon.LexEntryOperations import (
+                LexEntryOperations,
+            )
+        except Exception as exc:
+            pytest.skip(f"flexlibs2 imports unavailable: {exc}")
+
+        for cls in (LexSenseOperations, LexEntryOperations):
+            assert cls._MakeTsString is BaseOperations._MakeTsString, (
+                f"{cls.__name__}._MakeTsString must resolve to "
+                "BaseOperations._MakeTsString via MRO"
+            )
+            assert cls._ReadTsString is BaseOperations._ReadTsString, (
+                f"{cls.__name__}._ReadTsString must resolve to "
+                "BaseOperations._ReadTsString via MRO"
+            )
+
+    def test_read_tsstring_handles_none_and_null_marker(self):
+        """
+        _ReadTsString must collapse None to "". It cannot test ***
+        collapse without an actual ITsString instance, but None handling
+        is the most-load-bearing branch and is reachable without FLEx.
+        """
+        try:
+            from flexlibs2.code.BaseOperations import BaseOperations
+        except Exception as exc:
+            pytest.skip(f"flexlibs2 imports unavailable: {exc}")
+
+        # Build a minimal instance without going through __init__:
+        # _ReadTsString only touches the argument and self._NormalizeMultiString.
+        inst = BaseOperations.__new__(BaseOperations)
+        assert inst._ReadTsString(None) == ""
 
 
 if __name__ == "__main__":
