@@ -2763,16 +2763,11 @@ class LexSenseOperations(BaseOperations):
         sense = self.__GetSenseObject(sense_or_hvo)
         sense.ImportResidue = self.__MakeTsString(text, wsHandle)
 
-    # --- Single-string (ITsString) helpers --------------------------------
-    #
-    # ILexSense.Source / .ScientificName / .ImportResidue are ITsString
-    # (single-string), not IMultiString/IMultiUnicode. Pythonnet does
-    # not coerce a Python str to ITsString on property assignment -- the
-    # previous setters did `sense.Source = text` and raised TypeError.
-    # Similarly, the getters used `_NormalizeMultiString(sense.Source)`
-    # which is a string-normalisation helper that doesn't understand
-    # ITsString. These helpers do the conversion centrally so the
-    # three (Get/Set) pairs above stay one-line delegates. (issue #36)
+    # Single-string ITsString helpers used by Get/Set{Source,ScientificName,
+    # ImportResidue}. These fields don't carry a meaningful tri-state, so
+    # the read helper collapses both "no ITsString" and "ITsString with
+    # None text" to "" rather than letting None leak out -- which would
+    # diverge from how callers typically use these single-string getters.
 
     def __MakeTsString(self, text, wsHandle):
         """Build an ITsString in the chosen WS (default: analysis)."""
@@ -2780,10 +2775,22 @@ class LexSenseOperations(BaseOperations):
         return TsStringUtils.MakeString(text, ws)
 
     def __ReadTsString(self, tss):
-        """Extract a normalised str from an ITsString (or None)."""
+        """
+        Read an ITsString-typed field as str.
+
+        Returns "" when the field is unset, when its .Text is None, or
+        when the underlying text is the FLEX null marker ("***").
+        _NormalizeMultiString preserves None passthrough for the
+        multistring family; single-string fields collapse that None
+        to "" because they have no per-WS dimension where None vs
+        "" would be meaningful.
+        """
         if tss is None:
             return ""
-        return self._NormalizeMultiString(ITsString(tss).Text or "")
+        text = ITsString(tss).Text
+        if text is None:
+            return ""
+        return self._NormalizeMultiString(text)
 
     # --- Reference Collection Properties ---
 
