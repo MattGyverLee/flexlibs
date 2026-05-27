@@ -38,34 +38,23 @@ from dataclasses import dataclass, field
 
 @dataclass(frozen=True)
 class Seg:
-    """A single-phoneme pattern element, optionally with alpha-feature constraints.
+    """A single-phoneme pattern element.
 
     Args:
         phoneme: An IPhPhoneme, HVO (int), or wrapper representing a
             single phoneme.
-        plus: Sequence of IPhFeatureConstraint objects to attach to
-            ``PlusConstrRS`` on the resulting IPhSimpleContextNC. These
-            express positive alpha-variable bindings (e.g. [+aBack]) that
-            apply to the segment's own feature structure -- mechanically
-            making the segment behave as a singleton natural class for
-            constraint-sharing purposes.
-        minus: Sequence of IPhFeatureConstraint objects for
-            ``MinusConstrRS`` (negative alpha-variable bindings, e.g. [-aBack]).
 
     Notes:
-        Re-use the SAME IPhFeatureConstraint object across multiple
-        positions (Seg or NC) to express alpha/beta/gamma agreement.
-        E.g. Bantu N-place assimilation: Seg(N, plus=[alpha_place]) on the
-        input, NC(C, plus=[alpha_place]) on the right context.
-
-        A Seg with constraints attaches via IPhSimpleContextNC under the
-        hood (not IPhSimpleContextSeg), because IPhSimpleContextSeg has
-        no constraint slots in LCM. The composer handles the dispatch
-        transparently.
+        Seg carries no alpha-feature constraints: LCM's
+        ``IPhSimpleContextSeg`` has no ``PlusConstrRS`` / ``MinusConstrRS``
+        slots -- only ``IPhSimpleContextNC`` does. To express alpha-feature
+        constraints on a single phoneme, wrap it in a singleton
+        ``IPhNaturalClass`` and use ``NC(class, plus=[...], minus=[...])``
+        instead. A singleton NC can be reused across rules that target
+        the same phoneme. (Linguistic context: e.g. Bantu N-place
+        assimilation -- see issue #23.)
     """
     phoneme: object
-    plus: tuple = ()
-    minus: tuple = ()
 
 
 @dataclass(frozen=True)
