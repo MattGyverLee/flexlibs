@@ -936,7 +936,8 @@ class LexSenseOperations(BaseOperations):
             sense_or_hvo: The ILexSense object or HVO.
 
         Returns:
-            str: The POS abbreviation, or empty string if not set.
+            str | None: The POS abbreviation (e.g. ``"v"``, ``"n"``),
+            or ``None`` if the sense has no MSA attached.
 
         Raises:
             FP_NullParameterError: If sense_or_hvo is None.
@@ -946,25 +947,74 @@ class LexSenseOperations(BaseOperations):
             >>> senses = list(project.Senses.GetAll(entry))
             >>> if senses:
             ...     pos = project.Senses.GetPartOfSpeech(senses[0])
-            ...     print(f"Part of Speech: {pos}")
+            ...     if pos is None:
+            ...         print("No POS set")
+            ...     else:
+            ...         print(f"Part of Speech: {pos}")
             Part of Speech: v
 
         Notes:
             - Returns the interlinear abbreviation from the MSA
-            - Returns empty string if no MSA is set
-            - MSA (Morphosyntactic Analysis) includes POS and other gram info
+              (``MorphoSyntaxAnalysisRA.InterlinearAbbr``).
+            - Returns ``None`` (not ``""``) when no MSA is set, matching
+              the convention used by other Get* accessors in this file.
+            - For the symmetric counterpart to ``SetPartOfSpeech`` (which
+              takes a POS object), see ``GetPartOfSpeechObject``.
 
         See Also:
-            SetPartOfSpeech, GetGrammaticalInfo
+            SetPartOfSpeech, GetPartOfSpeechObject, GetGrammaticalInfo
         """
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
 
-        if sense.MorphoSyntaxAnalysisRA is not None:
-            return sense.MorphoSyntaxAnalysisRA.InterlinearAbbr
-        else:
-            return ""
+        if sense.MorphoSyntaxAnalysisRA is None:
+            return None
+        return sense.MorphoSyntaxAnalysisRA.InterlinearAbbr
+
+    @OperationsMethod
+    def GetPartOfSpeechObject(self, sense_or_hvo):
+        """
+        Get the part of speech LCM object for a sense (symmetric to
+        :meth:`SetPartOfSpeech`).
+
+        Where :meth:`GetPartOfSpeech` returns the abbreviation string
+        derived from the MSA, this method returns the
+        ``IPartOfSpeech`` object itself -- the same type that
+        ``SetPartOfSpeech`` accepts. Use this when you want to compare,
+        re-assign, or otherwise round-trip the POS without converting
+        through its abbreviation.
+
+        Args:
+            sense_or_hvo: The ILexSense object or HVO.
+
+        Returns:
+            IPartOfSpeech | None: The POS object on the sense's MSA's
+            ``PartOfSpeechRA``, or ``None`` if the sense has no MSA, or
+            if the MSA is a derivational-affix variant that exposes only
+            ``FromPartOfSpeechRA`` / ``ToPartOfSpeechRA`` (issue #87
+            covers the derivational-affix asymmetry separately).
+
+        Raises:
+            FP_NullParameterError: If sense_or_hvo is None.
+
+        Example:
+            >>> verb_pos = project.POS.Find("Verb")
+            >>> sense = senses[0]
+            >>> if project.Senses.GetPartOfSpeechObject(sense) is not verb_pos:
+            ...     project.Senses.SetPartOfSpeech(sense, verb_pos)
+
+        See Also:
+            GetPartOfSpeech, SetPartOfSpeech
+        """
+        self._ValidateParam(sense_or_hvo, "sense_or_hvo")
+
+        sense = self.__GetSenseObject(sense_or_hvo)
+
+        msa = sense.MorphoSyntaxAnalysisRA
+        if msa is None:
+            return None
+        return getattr(msa, "PartOfSpeechRA", None)
 
     @OperationsMethod
     def SetPartOfSpeech(self, sense_or_hvo, pos):
