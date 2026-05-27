@@ -115,6 +115,7 @@ DISCOURSE_OPERATIONS = [
     ("ConstChartOperations", "flexlibs2.code.Discourse.ConstChartOperations"),
     ("ConstChartRowOperations", "flexlibs2.code.Discourse.ConstChartRowOperations"),
     ("ConstChartMarkerOperations", "flexlibs2.code.Discourse.ConstChartMarkerOperations"),
+    ("ConstChartCellTagOperations", "flexlibs2.code.Discourse.ConstChartCellTagOperations"),
     ("ConstChartClauseMarkerOperations", "flexlibs2.code.Discourse.ConstChartClauseMarkerOperations"),
     ("ConstChartWordGroupOperations", "flexlibs2.code.Discourse.ConstChartWordGroupOperations"),
     ("ConstChartMovedTextOperations", "flexlibs2.code.Discourse.ConstChartMovedTextOperations"),

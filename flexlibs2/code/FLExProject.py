@@ -2415,6 +2415,27 @@ class FLExProject(object):
         return self._constchartmarker_ops
 
     @property
+    def ConstChartCellTags(self):
+        """
+        Access to per-cell IConstChartTag operations.
+
+        A cell tag is a chart-cell annotation living on
+        ``IConstChartRow.CellsOS``; it references a marker from the
+        project-wide vocabulary via ``TagRA``. Use this surface to
+        annotate cells; use ``ConstChartMarkers`` to manage the
+        vocabulary itself.
+
+        Returns:
+            ConstChartCellTagOperations
+        """
+        if "_constchartcelltag_ops" not in self.__dict__:
+            from .Discourse.ConstChartCellTagOperations import (
+                ConstChartCellTagOperations,
+            )
+            self._constchartcelltag_ops = ConstChartCellTagOperations(self)
+        return self._constchartcelltag_ops
+
+    @property
     def ConstChartClauseMarkers(self):
         """
         Access to clause marker operations for constituent chart rows.
