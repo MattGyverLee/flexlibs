@@ -34,6 +34,7 @@ from .exceptions import (
 )
 
 import logging
+import warnings
 import clr
 
 clr.AddReference("System")
@@ -1347,7 +1348,7 @@ class FLExProject(object):
             >>> # Set definition
             >>> project.Senses.SetDefinition(sense, "To move swiftly on foot")
             >>> # Add semantic domain
-            >>> domains = project.GetAllSemanticDomains(flat=True)
+            >>> domains = project.GetAllSemanticDomains()
             >>> if domains:
             ...     project.Senses.AddSemanticDomain(sense, domains[0])
         """
@@ -2923,17 +2924,35 @@ class FLExProject(object):
         """
         return [self.POS.GetName(pos) for pos in self.POS.GetAll()]
 
-    def GetAllSemanticDomains(self, flat=False):
+    def GetAllSemanticDomains(self, recursive=True, **kwargs):
         """
-        Returns a nested or flat list of all semantic domains defined
-        in this project. The list is ordered.
+        Returns semantic domains defined in this project. The list is
+        ordered.
+
+        Args:
+            recursive: When True, include nested semantic domains. When
+                False, return only top-level domains.
 
         Return items are `ICmSemanticDomain` objects.
 
         .. note::
            This method delegates to :meth:`SemanticDomainOperations.GetAll`.
         """
-        return self.SemanticDomains.GetAll(recursive=flat)
+        if "flat" in kwargs:
+            warnings.warn(
+                "'flat=' is deprecated; use 'recursive=' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            recursive = kwargs.pop("flat")
+        if kwargs:
+            unexpected = next(iter(kwargs))
+            raise TypeError(
+                "GetAllSemanticDomains() got an unexpected keyword "
+                f"argument {unexpected!r}"
+            )
+
+        return self.SemanticDomains.GetAll(recursive=recursive)
 
     # --- Global utility functions ---
 

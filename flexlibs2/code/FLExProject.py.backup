@@ -705,7 +705,7 @@ class FLExProject (object):
             >>> # Set definition
             >>> project.Senses.SetDefinition(sense, "To move swiftly on foot")
             >>> # Add semantic domain
-            >>> domains = project.GetAllSemanticDomains(flat=True)
+            >>> domains = project.GetAllSemanticDomains()
             >>> if domains:
             ...     project.Senses.AddSemanticDomain(sense, domains[0])
         """
