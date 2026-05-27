@@ -342,18 +342,18 @@ class TestConstChartRowOperations(
         self.assert_write_enabled_error(ops._EnsureWriteEnabled)
 
 
-# ========== DISCOURSE - CONSTCHARTTAGOPERATIONS ==========
+# ========== DISCOURSE - CONSTCHARTMARKEROPERATIONS ==========
 
 
 @pytest.mark.validation
 @pytest.mark.phase4
-class TestConstChartTagOperations(
+class TestConstChartMarkerOperations(
     BaseValidationTest,
     WriteEnabledTestsMixin,
     ParameterValidationTestsMixin,
     StringValidationTestsMixin,
 ):
-    """Tests for ConstChartTagOperations validation methods."""
+    """Tests for ConstChartMarkerOperations validation methods."""
 
     @pytest.mark.validation
     def test_create_requires_write_enabled(self):

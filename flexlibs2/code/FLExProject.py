@@ -2396,32 +2396,23 @@ class FLExProject(object):
         return self._constchartmovedtext_ops
 
     @property
-    def ConstChartTags(self):
+    def ConstChartMarkers(self):
         """
-        Access to chart tag operations for constituent charts.
+        Access to project-wide chart-marker (CmPossibility) operations.
+
+        Markers categorise discourse-chart content (Topic, Focus, ...)
+        and live in ``LangProject.DiscourseDataOA.ChartMarkersOA``,
+        shared across every chart in the project.
 
         Returns:
-            ConstChartTagOperations: Instance providing chart tag management methods
-
-        Example:
-            >>> project = FLExProject()
-            >>> project.OpenProject("MyProject", writeEnabled=True)
-            >>> # Get a chart
-            >>> chart = project.ConstCharts.Find("Genesis 1 Analysis")
-            >>> # Create a tag
-            >>> tag = project.ConstChartTags.Create(chart, "Topic")
-            >>> project.ConstChartTags.SetDescription(tag, "Marks sentence topic")
-            >>> # Get all tags
-            >>> for tag in project.ConstChartTags.GetAll(chart):
-            ...     name = project.ConstChartTags.GetName(tag)
-            ...     desc = project.ConstChartTags.GetDescription(tag)
-            ...     print(f"Tag: {name} - {desc}")
+            ConstChartMarkerOperations
         """
-        if "_constcharttag_ops" not in self.__dict__:
-            from .Discourse.ConstChartTagOperations import ConstChartTagOperations
-
-            self._constcharttag_ops = ConstChartTagOperations(self)
-        return self._constcharttag_ops
+        if "_constchartmarker_ops" not in self.__dict__:
+            from .Discourse.ConstChartMarkerOperations import (
+                ConstChartMarkerOperations,
+            )
+            self._constchartmarker_ops = ConstChartMarkerOperations(self)
+        return self._constchartmarker_ops
 
     @property
     def ConstChartClauseMarkers(self):
