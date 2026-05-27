@@ -1,0 +1,366 @@
+================================================================================
+LCM CAPABILITIES AUDIT - QUICK REFERENCE CARD
+================================================================================
+
+REFRESHED:  2026-05-27 (from original 2025-03-16)
+SCOPE:      flexlibs2/code (106 Python files)
+STATUS:     REFRESHED -- Ready for review
+
+================================================================================
+KEY NUMBERS AT A GLANCE
+================================================================================
+
+Total Import Statements: 569
+Unique Classes/Ifaces:   233
+SIL Namespaces:           14
+Files with Imports:       73 of 106 Python files
+User-Facing Operations:   60 (plus BaseOperations parent)
+Helper/Infrastructure:     7 support modules
+Critical Risks:            0
+Known TODOs:               2 (Linux flatpak, project dialog -- both still open)
+
+DELTA vs. 2025-03-16:
+  Files          101 -> 106  (+5)
+  With imports    72 ->  73  (+1)
+  Unique imports  90+ -> 233 (substantial -- now exhaustive count)
+  Operations      57 ->  60  (+3)
+  Repositories     9 ->  18  (+9, exhaustive count)
+  Factories       12 ->  74  (+62, exhaustive count)
+  Exceptions       5 ->   6  (+1: StartupException)
+
+================================================================================
+IMPORT BREAKDOWN BY CATEGORY (unique classes)
+================================================================================
+
+REPOSITORIES (Data Access)          unique: 18, files: 25
+- ICmObjectRepository           Generic object lookup
+- ICmPossibilityRepository      POS, domains, lists
+- ICmPersonRepository           People (notebook)
+- ICmAnnotationDefnRepository   Annotation defs
+- ILexEntryRepository           Lexicon entries
+- ILexEntryTypeRepository       Entry types
+- ILexSenseRepository           Senses
+- ILexRefTypeRepository         Reference types
+- ITextRepository               Text documents
+- ISegmentRepository            Text segments
+- IStTxtParaRepository          Paragraphs
+- IWfiWordformRepository        Wordforms
+- IWfiAnalysisRepository        Word analyses
+- IWfiGlossRepository           Glosses
+- IReversalIndexRepository      Reversal indexes
+- IRnResearchNbkRepository      Research notebook
+- IDsConstChartRepository       Discourse charts
+- IScrBookRepository            Scripture books
+
+FACTORIES (Object Creation)         unique: 74, files: 57
+Highlights:
+- ICmPossibilityListFactory     Create lists
+- IPartOfSpeechFactory          Create POS
+- IPhEnvironmentFactory         Create environments
+- IMoStemAllomorphFactory       Stem allomorphs
+- IMoAffixAllomorphFactory      Affix allomorphs
+- IStTextFactory                Text objects
+- IStTxtParaFactory             Paragraph objects
+- ILexEntryFactory              Lex entries
+- ILexEntryRefFactory           Lexical refs
+- ILexSenseFactory              Senses
+- IScrBookFactory               Scripture books
+- IScrDraftFactory              Scripture drafts
+- IScrSectionFactory            Scripture sections
+- IScrTxtParaFactory            Scripture paragraphs
+- IScrScriptureNoteFactory      Scripture notes
+- IDsDiscourseDataFactory       Discourse data
+- IDsConstChartFactory          Constituent charts
+- IConstChart*Factory           Chart cells/rows/markers
+- IPhRegularRuleFactory         Phon regular rules
+- IPhMetathesisRuleFactory      Metathesis rules
+- IPhReduplicationRuleFactory   Reduplication rules
+- IRnGenericRecFactory          Research records
+- (+ ~50 more -- see references doc for full list)
+
+MANAGERS / SERVICES                 files: 3
+- IUndoStackManager             Save operations (now exposed via Undo/Redo)
+- IFwMetaDataCacheManaged       Metadata cache (still NOT actively used)
+- IDataReader                   Infrastructure data reader
+
+TEXT INTERFACES                     unique: 5, files: 62
+- ITsString                     Immutable text (WRAPPED via BestStr)
+- ITsStrBldr                    Text builder (HIDDEN)
+- IMultiUnicode                 Multi-lingual unicode
+- IMultiString                  Multi-language strings
+- FwObjDataTypes                Embedded object data type enum
++ TsStringUtils (Core.Text)     Text utilities -- used in 58 files
+
+EXCEPTIONS (6 unique, files: 1)
+- LcmFileLockedException        -> FP_FileLockedError
+- LcmDataMigrationForbiddenException -> FP_MigrationRequired
+- LcmInvalidClassException      Type validation
+- LcmInvalidFieldException      Field validation
+- WorkerThreadException         Thread errors
+- StartupException              FW startup errors  [NEW since original]
+
+TAGS (13 unique, files: 6)
+- LexEntryTags, LexEntryRefTags, LexSenseTags, LexRefTypeTags,
+  LexExampleSentenceTags
+- WfiWordformTags, WfiAnalysisTags, WfiGlossTags, WfiMorphBundleTags
+- MoFormTags, MoMorphTypeTags
+- TextTags, ReversalIndexEntryTags
+
+CELLAR (3 unique, files: 3)
+- CellarPropertyType
+- CellarPropertyType as _LCMCellarPropertyType (aliased import)
+- CellarPropertyTypeFilter
+
+UTILITIES (6 unique, files: 59)
+- TsStringUtils                  Text utilities (heavy use)
+- ReflectionHelper               .NET reflection
+- ThreadHelper                   Thread synchronization
+- LcmFileHelper                  File path helpers
+- FwRegistryHelper               Registry access
+- FwUtils                        FW utilities
+
+================================================================================
+EXPOSURE MATRIX
+================================================================================
+
+FULLY EXPOSED (Users)
+- 60 Domain Operations via project.DOMAIN.METHOD()
+- String utilities (BestStr, WSHandle)
+- Exception handling (custom wrappers)
+- Undo/Redo (NEW since original audit)
+- Object access (.project, .lp, .lexDB -- discouraged)
+
+PARTIALLY EXPOSED (Power Users)
+- IFwMetaDataCacheManaged (imported, not used)
+- ITsStrBldr (hidden, available via .project)
+- Advanced text handling (not documented)
+
+NOT EXPOSED (Internal)
+- Repositories/Factories (wrapped only)
+- Tag/Constants classes (never exposed)
+- Property system (read-only metadata)
+- Utilities (infrastructure only)
+- UI/FieldWorks integration (init only)
+
+================================================================================
+RISK ASSESSMENT
+================================================================================
+
+CRITICAL RISKS: NONE FOUND  [OK]
+
+MEDIUM RISKS:
+1. Direct .project access -- Available, discouraged
+2. Incomplete domain coverage -- Scripture partial (now 6 ops, up from 2)
+
+LOW RISKS: ALL HANDLED
+1. Text string handling -- Wrapped
+2. Factory calls -- Write-enabled checks
+3. Repository access -- Safe wrappers
+4. Type casting -- Internal module
+5. Exception mapping -- Custom wrappers
+
+================================================================================
+RECOMMENDED ACTIONS
+================================================================================
+
+IMMEDIATE (HIGH PRIORITY)
+- Document power-user LCM access patterns
+- Add "Advanced Access" to CLAUDE.md
+
+SHORT TERM (MEDIUM PRIORITY)
+- Expose IFwMetaDataCacheManaged for schema queries
+- Create TextBuilderOperations wrapper
+- Complete remaining Scripture domain operations
+
+LONG TERM (LOW PRIORITY)
+- Update Linux flatpak path detection (FLExGlobals.py:103)
+- Implement FW Project Chooser dialog (FLExLCM.py:59)
+
+================================================================================
+USAGE PATTERNS
+================================================================================
+
+SAFE REPOSITORY ACCESS (Wrapped)
+Grammar/POSOperations.py     -- repo = project.ObjectRepository(...)
+Grammar/EnvironmentOperations.py -- factory lookup
+All 60 Operations classes follow similar pattern
+
+FACTORY + WRITE CHECKS (Protected)
+Lexicon/AllomorphOperations.py -- if project.WriteEnabled: factory = ...
+Grammar/POSOperations.py       -- Write-enabled check first
+Pattern: Check write enabled, get factory, create with validation
+
+LOCAL IMPORTS (Dependency Injection)
+Factories imported inside methods only
+Avoids circular imports
+Allows optional functionality
+
+TEXT HANDLING (Wrapped)
+FLExProject.py -- BestStr() hides ITsString
+58 files -- TsStringUtils.MakeString() for internal use
+Users never see ITsString directly
+
+TYPE CASTING (Hidden)
+lcm_casting.py -- cast_to_concrete() internal utility
+Used for: MSAs, allomorphs, phonological rules, etc.
+Not exposed -- Operations classes handle polymorphism
+
+================================================================================
+FILE ORGANIZATION
+================================================================================
+
+ROOT LEVEL (flexlibs2/code/)
+FLExProject.py              -- User API (~95 properties)
+BaseOperations.py           -- Parent class for ops
+FLExInit.py                 -- Initialization
+FLExLCM.py                  -- Project opening (TODO: project chooser)
+FLExGlobals.py              -- FW paths (TODO: Linux flatpak)
+lcm_casting.py              -- Type casting (INTERNAL)
+CastingOperations.py        -- Casting helper (INTERNAL)
+PythonicWrapper.py          -- Property access (INTERNAL)
+
+DOMAIN FOLDERS (Operations counts -- excludes BaseOperations)
+Grammar/                    -- 9 Operations classes
+Lexicon/                    -- 10 Operations classes
+TextsWords/                 -- 8 Operations classes
+Notebook/                   -- 5 Operations classes
+Lists/                      -- 6 Operations classes
+System/                     -- 5 Operations classes
+Discourse/                  -- 7 Operations classes
+Reversal/                   -- 2 Operations classes
+Scripture/                  -- 6 Operations classes
+Shared/                     -- 2 Operations classes + utilities
+
+TOTAL: 106 Python files, 60 Operations + BaseOperations
+
+================================================================================
+KNOWN TODOS
+================================================================================
+
+TODO #1: Linux Flatpak Support              [still open]
+File: flexlibs2/code/FLExGlobals.py:103
+Issue: FW changed to flatpak in Apr2024
+Current: Windows/macOS only
+Effort: LOW | Impact: MEDIUM
+
+TODO #2: Use FW Project Chooser Dialog       [still open]
+File: flexlibs2/code/FLExLCM.py:59
+Issue: Simple file listing vs FW native dialog
+Current: Works but not user-friendly
+Effort: LOW | Impact: LOW
+
+================================================================================
+STATISTICS
+================================================================================
+
+IMPORTS BY TYPE (unique classes):
+Repositories:         18
+Factories:            74
+Other Interfaces:     94
+Tags/Constants:       13
+Cellar System:         3
+Utilities:             6
+Classes (non-I*):     28
+Exception types:       6 (subset of above)
+TOTAL UNIQUE:        233
+
+FILES BY CONTENT:
+With SIL imports:     73
+Without imports:      33
+Operations classes:   60 (+ BaseOperations parent)
+Infrastructure:        7
+
+TOP 10 MOST-USED CLASSES (by file count):
+ 1. ITsString                            87 files
+ 2. TsStringUtils                        58 files
+ 3. ICmPossibility                       15 files
+ 4. ILexEntry                            13 files
+ 5. ILexSense                            10 files
+ 6. ICmPossibilityRepository              7 files
+ 7. IText                                 7 files
+ 8. ICmPossibilityFactory                 7 files
+ 9. ICmObjectRepository                   6 files
+10. IDsConstChart                         6 files
+
+================================================================================
+DOCUMENT REFERENCE
+================================================================================
+
+LCM_AUDIT_INDEX.md
+- Navigation guide to all documents
+- Quick reference by question
+- Reading paths by role
+
+LCM_AUDIT_SUMMARY.md
+- Executive overview (10-15 min read)
+- Architecture summary
+- Recommendations
+- Best for: Decision makers, managers
+
+LCM_CAPABILITIES_AUDIT.md
+- Comprehensive analysis (30-45 min read)
+- All categories detailed
+- Risk assessment
+- Best for: Architects, developers
+
+LCM_CAPABILITIES_AUDIT_REFERENCES.md
+- File/line references (lookup style)
+- Code location cross-references
+- Best for: Developers, code reviewers
+
+DATA SOURCES (regenerated on refresh)
+- reports/audit/api_usage_summary.json
+- reports/audit/api_usage_by_namespace.json
+- reports/audit/api_usage_by_file.json
+- reports/audit/api_usage_extract.json
+
+================================================================================
+QUICK NAVIGATION
+================================================================================
+
+"Is LCM usage safe?"
+- LCM_AUDIT_SUMMARY.md -- Risk Assessment section
+
+"What should I expose?"
+- LCM_CAPABILITIES_AUDIT.md -- Recommendations section
+
+"Where is X imported?"
+- LCM_CAPABILITIES_AUDIT_REFERENCES.md -- Search by name
+- or grep reports/audit/api_usage_extract.json
+
+"How do I add new Operations?"
+- LCM_CAPABILITIES_AUDIT.md -- Usage Patterns section
+
+"What's the architecture?"
+- LCM_AUDIT_SUMMARY.md -- File Organization section
+
+================================================================================
+SUMMARY
+================================================================================
+
+STATUS: HEALTHY ARCHITECTURE [OK]
+
+Strengths:
+- Well-designed abstraction (233 unique imports -> 60 Operations)
+- Consistent patterns throughout
+- Strong write operation protection
+- Safe exception handling
+- Undo/Redo now wired through public API
+
+Improvements:
+- Document power-user access
+- Add schema introspection (IFwMetaDataCacheManaged)
+- Complete remaining Scripture domain features
+
+Risks:
+- NONE CRITICAL
+- 2 Medium (both documented)
+- Several Low (all handled)
+
+Overall: Ready for production with recommended enhancements
+
+================================================================================
+Audit Date: 2026-05-27 (refreshed from 2025-03-16)
+Confidence: HIGH
+Methodology: Automated extraction (tools/extract_api_usage.py) + manual review
+================================================================================

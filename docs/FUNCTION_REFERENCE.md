@@ -1,9 +1,13 @@
 # FlexLibs v2.0.0 - Comprehensive Function Reference
 
+**Last refreshed:** 2026-05-27 — Phase 5/6 additions integrated.
+
 ## Overview
-This document lists ALL functions in flexlibs v2.0.0, organized by the 14 implementation phases. For each function, we identify:
+This document lists ALL functions in flexlibs (v2.0 through v2.4+), organized by implementation phase. For each function, we identify:
 - The method name (e.g., `project.LexEntry.Create()`)
 - The LibLCM function(s) it replaces/wraps
+
+The original 14 phases (the v2.0.0 baseline) are documented unchanged below. Public-method additions made in **Phase 5/6 and later** (alpha-feature constraints + the WireRule composer, feature-based natural classes, IPA management on phonemes, the phonological-feature system, expanded inflection-feature surface, MSA creation, catalog imports for the major reference lists, and several FLExProject-level service/factory accessors) are listed in [Recent Additions (Post-v2.0)](#recent-additions-post-v20) at the end of this document. That section is grouped by Operations class rather than phase because the post-v2.0 work doesn't map onto the original phase model cleanly — e.g. Phonological Rules received new methods in Phase 5e *and* catalog plumbing in Phase 6, and the catalog imports themselves cut across four operations classes.
 
 ---
 
@@ -1199,6 +1203,233 @@ Methods for research notebook record management:
 
 ---
 
+## Recent Additions (Post-v2.0)
+
+> Public-method surface added after the v2.0.0 baseline (the 14 phases above). Grouped by Operations class rather than phase number, because the post-v2.0 work cuts across multiple phase boundaries: Phase 5 (a–e) expanded the morphology / phonology surface, Phase 6 (a–d) added catalog importers in four different domains, and assorted Q-series follow-ups added FLExProject-level helpers and the MSA wrapper. Each entry documents the LCM call(s) it wraps; methods marked **(supersedes Phase 13)** were stubs in Phase 13 that are now backed by real implementations.
+
+### FLExProject (top-level)
+
+#### `project.GetFactory(interface_type)`
+**Replaces:** `ILcmServiceLocator.GetInstance<T>()` generic-method invocation. Tries the overload-resolved `ServiceLocator.GetInstance(Type)` path first, then falls back to reflection over the parameterless generic `GetInstance<T>()` with `clr.GetClrType(interface_type)`. Caches the resolved `MethodInfo` on the FLExProject instance.
+
+#### `project.GetService(interface_type)`
+**Replaces:** `ILcmServiceLocator.GetService(Type)` — thin discoverable wrapper.
+
+#### `project.ImportLocalizedLists(language_code, progress=None)`
+**Replaces:** `SIL.LCModel.Application.ApplicationServices.XmlTranslatedLists.ImportTranslatedListsForWs()`, with path resolution into `<FWCodeDir>/Templates/LocalizedLists-<lang>.zip` and FLEx-specific error wrapping.
+
+#### `project.ImportLocalizedListsForEnabledWS(progress=None)`
+**Replaces:** Iteration over `ILangProject.CurAnalysisWss` calling `XmlTranslatedLists.ImportTranslatedListsForWs()` for each WS whose `LocalizedLists-XX.zip` exists, with per-WS error isolation.
+
+### MSAOperations (`project.MSA`)
+
+Brand new in Phase 5/6+. Wraps the four concrete MoMsa subtypes (kStem / kDeriv / kInfl / kUnclassified) behind a common SandboxGenericMSA + attach-to-sense idiom, so callers don't have to wire ServiceLocator + factory + SandboxGenericMSA themselves.
+
+#### `project.MSA.CreateStem(sense, pos)`
+**Replaces:** `ILcmServiceLocator.GetService(IMoStemMsaFactory)`, `SandboxGenericMSA{ MsaType = kStem, MainPOS = pos }`, `IMoStemMsaFactory.Create(sense.Owner, sandbox)`, `ILexSense.MorphoSyntaxAnalysisRA` assignment.
+
+#### `project.MSA.CreateDerivAff(sense, from_pos, to_pos)`
+**Replaces:** Same idiom with `IMoDerivAffMsaFactory`, `MsaType = kDeriv`, `MainPOS = from_pos`, `SecondaryPOS = to_pos`.
+
+#### `project.MSA.CreateInflAff(sense, pos, slots=None)`
+**Replaces:** Same idiom with `IMoInflAffMsaFactory`, `MsaType = kInfl`, plus `IMoInflAffMsa.SlotsRC.Add()` for each slot in the optional collection.
+
+#### `project.MSA.CreateUnclassifiedAffix(sense, pos)`
+**Replaces:** Same idiom with `IMoUnclassifiedAffixMsaFactory`, `MsaType = kUnclassified`.
+
+#### `project.MSA.SetStemMsaPos(sense, pos)`
+**Replaces:** `IMoStemMsa(ILexSense.MorphoSyntaxAnalysisRA).PartOfSpeechRA` assignment, after a type guard that rejects non-stem existing MSAs.
+
+### PhonologicalRuleOperations (`project.PhonRules`)
+
+The Phase 13 entries (GetAll, Create, Delete, Find, Exists, GetName/SetName, GetDescription/SetDescription, GetStratum/SetStratum, GetDirection/SetDirection, AddInputSegment, AddOutputSegment, SetLeftContext, SetRightContext) remain accurate. The Phase 5e additions below provide alpha-feature constraints and a high-level rule composer.
+
+#### `project.PhonRules.MakeConstraint(feature_or_hvo)`
+**Replaces:** `ILcmServiceLocator.GetService(IPhFeatureConstraintFactory).Create()`, `ILangProject.PhonologicalDataOA.FeatConstraintsOS.Add()`, `IPhFeatureConstraint.FeatureRA` assignment (ownership-before-property ordering).
+
+#### `project.PhonRules.DeleteConstraint(constraint_or_hvo)`
+**Replaces:** `ILangProject.PhonologicalDataOA.FeatConstraintsOS.Remove()` with explicit presence check.
+
+#### `project.PhonRules.GetConstraints()`
+**Replaces:** `ILangProject.PhonologicalDataOA.FeatConstraintsOS` list conversion.
+
+#### `project.PhonRules.WireRule(rule_or_hvo, input_pattern=None, output_change=None, left_context=None, right_context=None, mode="replace")`
+**Replaces:** Composite operation across `IPhSegmentRule.StrucDescOS`, `IPhSegRuleRHS.StrucChangeOS`, `IPhContextOrVar.LeftContextOA / RightContextOA`, the IPhSequenceContext / IPhSimpleContextSeg / IPhSimpleContextNC / IPhSimpleContextBdry factories, plus `PlusConstrRS / MinusConstrRS` wiring for alpha-feature constraints. High-level SPE-notation composer that hides the multi-stage context construction.
+
+#### `project.PhonRules.Duplicate(item_or_hvo, insert_after=True, deep=True)`
+**Replaces:** Type-aware deep clone for `IPhRegularRule` / `IPhMetathesisRule` / `IPhReduplicationRule` via `lcm_casting.clone_properties()`, with optional insertion adjacent to the source in `PhonRulesOS`.
+
+#### `project.PhonRules.GetSyncableProperties(item)`
+**Replaces:** Per-property reflection of an IPhSegmentRule into a dict suitable for the sync engine's comparison stage.
+
+#### `project.PhonRules.CompareTo(item1, item2, ops1=None, ops2=None)`
+**Replaces:** Cross-project diff of two phonological rules; pairs with `GetSyncableProperties` for the sync workflow.
+
+### NaturalClassOperations (`project.NaturalClasses`)
+
+Phase 5d added the feature-based subtype and unified read/write across the two concrete shapes (IPhNCSegments vs IPhNCFeatures).
+
+#### `project.NaturalClasses.Find(name, wsHandle=None)`
+**Replaces:** NFD-normalized search through `ILangProject.PhonologicalDataOA.NaturalClassesOS` by `IPhNaturalClass.Name.get_String()`.
+
+#### `project.NaturalClasses.Exists(name, wsHandle=None)`
+**Replaces:** Existence check via `Find()`.
+
+#### `project.NaturalClasses.CreateFeatureBased(name, abbreviation=None, specs=None)`
+**Replaces:** `ILcmServiceLocator.GetService(IPhNCFeaturesFactory).Create()`, `NaturalClassesOS.Add()`, name/abbreviation strings, and `IPhNCFeatures.FeaturesOA` population via `PhonFeatureOperations.MakeFeatStruc()` when `specs` is supplied.
+
+#### `project.NaturalClasses.GetType(nc_or_hvo)`
+**Replaces:** Concrete-type detection via `hasattr(nc, "FeaturesOA")` / `hasattr(nc, "SegmentsRC")` — returns `"features"` / `"segments"` / `ClassName` fallback. No direct LCM equivalent.
+
+#### `project.NaturalClasses.GetFeatures(nc_or_hvo)`
+**Replaces:** `IPhNCFeatures.FeaturesOA` property access; returns the owned IFsFeatStruc or None.
+
+#### `project.NaturalClasses.SetFeatures(nc_or_hvo, specs)`
+**Replaces:** Replacement of `IPhNCFeatures.FeaturesOA` via the IFsFeatStrucFactory + IFsClosedValueFactory chain (ownership-first attachment, then per-spec value assignment).
+
+#### `project.NaturalClasses.Duplicate(item_or_hvo, insert_after=True)`
+**Replaces:** Type-aware clone dispatching on `IPhNCSegments` (copy SegmentsRC) vs `IPhNCFeatures` (copy FeaturesOA via clone_properties).
+
+#### `project.NaturalClasses.GetSyncableProperties(item)` / `CompareTo(item1, item2, ops1=None, ops2=None)`
+**Replaces:** Sync-engine integration; per-property reflection and pairwise diff over the two NC subtypes.
+
+### PhonemeOperations (`project.Phonemes`)
+
+Phase 5d/6d added catalog-driven code management and IPA symbol handling.
+
+#### `project.Phonemes.FindCode(phoneme_or_hvo, representation, wsHandle=None)`
+**Replaces:** Iteration over `IPhPhoneme.CodesOS` with NFD-normalized comparison on `IPhCode.Representation.get_String()`.
+
+#### `project.Phonemes.ReplaceCode(phoneme_or_hvo, old_code_or_repr, new_representation, wsHandle=None)`
+**Replaces:** `RemoveCode()` + `AddCode()` round-trip on `IPhPhoneme.CodesOS`. Returns the new IPhCode.
+
+#### `project.Phonemes.GetBasicIPASymbol(phoneme_or_hvo, wsHandle=None)`
+**Replaces:** `IPhPhoneme.BasicIPASymbol.get_String()` (or scalar `BasicIPASymbol` per-build fallback), `ITsString.Text`. Handles both IMultiString and ITsString shapes the property takes across FLEx builds.
+
+#### `project.Phonemes.SetBasicIPASymbol(phoneme_or_hvo, ipa, wsHandle=None)`
+**Replaces:** `TsStringUtils.MakeString()`, `IPhPhoneme.BasicIPASymbol.set_String()` (with scalar-property fallback for older builds).
+
+#### `project.Phonemes.Duplicate(item_or_hvo, insert_after=True, deep=True)`
+**Replaces:** `IPhPhonemeFactory.Create()`, `PhonemesOC.Add()`, deep-clone of `Representation` / `Description` multistrings and `FeaturesOA` IFsFeatStruc via `lcm_casting.clone_properties()`, optional CodesOS clone.
+
+#### `project.Phonemes.ImportCatalog(progress=None, force=False)`
+**Replaces:** XML parse of `<FWCodeDir>/Templates/BasicIPAInfo.xml` (via `Shared.catalog.parse_basic_ipa_info`), creation of IPhPhonemes through IPhPhonemeFactory, attachment to `IPhPhonemeSet.PhonemesOC`, cross-reference of BasicIPAInfo feature ids to existing IFsClosedFeature/IFsSymFeatVal objects loaded from PhonFeats. Non-empty-set guard requires `force=True` to re-import (no canonical GUIDs to dedupe against).
+
+#### `project.Phonemes.GetSyncableProperties(item)` / `CompareTo(item1, item2, ops1=None, ops2=None)`
+**Replaces:** Sync-engine integration.
+
+### PhonFeatureOperations (`project.PhonFeatures`)
+
+New module in Phase 5b. Manages `ILangProject.PhFeatureSystemOA` (IFsFeatureSystem) — the phonological-feature half of the FLEx feature system. Mirrors InflectionFeatureOperations and inherits `CatalogBackedMixin`.
+
+#### `project.PhonFeatures.GetAll()`
+**Replaces:** `ILangProject.PhFeatureSystemOA.FeaturesOC` list conversion.
+
+#### `project.PhonFeatures.GetName(feature_or_hvo, wsHandle=None)`
+**Replaces:** `IFsFeatDefn.Name.get_String()`, `ITsString.Text`.
+
+#### `project.PhonFeatures.GetAbbreviation(feature_or_hvo, wsHandle=None)`
+**Replaces:** `IFsFeatDefn.Abbreviation.get_String()`, `ITsString.Text`.
+
+#### `project.PhonFeatures.GetDescription(feature_or_hvo, wsHandle=None)`
+**Replaces:** `IFsFeatDefn.Description.get_String()`, `ITsString.Text`.
+
+#### `project.PhonFeatures.GetValues(feature_or_hvo)`
+**Replaces:** `IFsClosedFeature.ValuesOC` list conversion (returns IFsSymFeatVal objects).
+
+#### `project.PhonFeatures.Find(name, wsHandle=None)`
+**Replaces:** Iteration through `PhFeatureSystemOA.FeaturesOC` with NFD-normalized name match.
+
+#### `project.PhonFeatures.Exists(name, wsHandle=None)`
+**Replaces:** Existence check via `Find()`.
+
+#### `project.PhonFeatures.Create(name, abbreviation, catalogSourceId=None)`
+**Replaces:** `IFsClosedFeatureFactory.Create()`, `PhFeatureSystemOA.FeaturesOC.Add()`, `Name.set_String()`, `Abbreviation.set_String()`, optional `CatalogSourceId` assignment. When `catalogSourceId` starts with `PHON:`, defers to `CreateFromCatalog()` (from CatalogBackedMixin) for canonical-GUID + values.
+
+#### `project.PhonFeatures.SetName(feature_or_hvo, name, wsHandle=None)`
+**Replaces:** `TsStringUtils.MakeString()`, `IFsFeatDefn.Name.set_String()` (also works on IFsSymFeatVal).
+
+#### `project.PhonFeatures.SetAbbreviation(feature_or_hvo, abbrev, wsHandle=None)`
+**Replaces:** `TsStringUtils.MakeString()`, `IFsFeatDefn.Abbreviation.set_String()`.
+
+#### `project.PhonFeatures.SetDescription(feature_or_hvo, description, wsHandle=None)`
+**Replaces:** `TsStringUtils.MakeString()`, `IFsFeatDefn.Description.set_String()`.
+
+#### `project.PhonFeatures.Delete(feature_or_hvo)`
+**Replaces:** `PhFeatureSystemOA.FeaturesOC.Remove()` for closed features, or `IFsClosedFeature.ValuesOC.Remove()` for values nested under a feature.
+
+#### `project.PhonFeatures.CreateValue(feature_or_hvo, name, abbreviation, value_marker=None)`
+**Replaces:** `IFsSymFeatValFactory.Create()`, `IFsClosedFeature.ValuesOC.Add()` (ownership-first), `Name.set_String()`, `Abbreviation.set_String()`.
+
+#### `project.PhonFeatures.DeleteValue(value_or_hvo)`
+**Replaces:** `IFsClosedFeature.ValuesOC.Remove()` after walking up the owner chain to the parent feature.
+
+#### `project.PhonFeatures.MakeFeatStruc(specs, owner=None)`
+**Replaces:** `IFsFeatStrucFactory.Create()`, attachment to `owner.FeaturesOA` (Phase 2 ownership rule applied before populating specs), one `IFsClosedValueFactory.Create()` + `FeatureSpecsOC.Add()` per `(feature, value)` pair.
+
+#### `project.PhonFeatures.ImportCatalog(progress=None)` (inherited from `CatalogBackedMixin`)
+**Replaces:** XML parse of `<FWCodeDir>/Templates/PhonFeatsEticGlossList.xml` (via `parse_etic_gloss_list`), canonical-GUID dedupe against existing `FeaturesOC`, per-feature `IFsClosedFeatureFactory.Create()` and per-value `IFsSymFeatValFactory.Create()` with localized name/abbreviation/description across all enabled WSes.
+
+#### `project.PhonFeatures.CreateFromCatalog(source_id, parent=None)` (inherited from `CatalogBackedMixin`)
+**Replaces:** Catalog lookup by `PHON:`-prefixed id, idempotent create-or-return-existing of the corresponding IFsClosedFeature + its IFsSymFeatVal children.
+
+### InflectionFeatureOperations (`project.InflectionFeatures`, alias `project.Features`)
+
+Phase 5a/d expanded the surface to match PhonFeatureOperations for symmetry.
+
+#### `project.InflectionFeatures.Find(name, wsHandle=None)`
+**Replaces:** Iteration through `ILangProject.MsFeatureSystemOA.FeaturesOC` with NFD-normalized match against `IFsFeatDefn.Name`.
+
+#### `project.InflectionFeatures.Exists(name, wsHandle=None)`
+**Replaces:** Existence check via `Find()`.
+
+#### `project.InflectionFeatures.Create(name, abbreviation, type="closed", catalogSourceId=None)`
+**Replaces:** `IFsClosedFeatureFactory.Create()` or `IFsComplexFeatureFactory.Create()` depending on `type`, `MsFeatureSystemOA.FeaturesOC.Add()`, name/abbreviation strings. When `catalogSourceId` starts with `INFL:`, defers to `CreateFromCatalog()` (canonical GUID + values).
+
+#### `project.InflectionFeatures.CreateValue(feature_or_hvo, name, abbreviation, value_marker=None)`
+**Replaces:** `IFsSymFeatValFactory.Create()`, `IFsClosedFeature.ValuesOC.Add()` (ownership-first), name/abbreviation set.
+
+#### `project.InflectionFeatures.CreateClosedFeatureWithValues(name, abbreviation, values, catalogSourceId=None)`
+**Replaces:** Compound of `Create(type="closed")` + N×`CreateValue()`. Validates the `[(value_name, value_abbreviation), ...]` tuples up front. Returns `(feature, [values])`.
+
+#### `project.InflectionFeatures.MakeFeatStruc(specs, owner=None)`
+**Replaces:** `IFsFeatStrucFactory.Create()`, owner-attach, per-spec `IFsClosedValueFactory.Create()` + `FeatureSpecsOC.Add()` — mirrors the PhonFeatures version but produces an inflection feature structure suitable for MSAs and inflection templates.
+
+#### `project.InflectionFeatures.TypeFind(name, wsHandle=None)`
+**Replaces:** Iteration through `ILangProject.MsFeatureSystemOA.TypesOC` with name match.
+
+#### `project.InflectionFeatures.TypeCreate(name, abbreviation)`
+**Replaces:** `IFsFeatStrucTypeFactory.Create()`, `MsFeatureSystemOA.TypesOC.Add()`, name/abbreviation set. Provides the IFsFeatStrucType objects features can group under.
+
+#### `project.InflectionFeatures.ImportCatalog(progress=None)` (inherited from `CatalogBackedMixin`)
+**Replaces:** XML parse of `<FWCodeDir>/Templates/EticGlossList.xml` (via `parse_etic_gloss_list`), canonical-GUID dedupe, per-feature/per-value factory creation with localized strings.
+
+#### `project.InflectionFeatures.CreateFromCatalog(source_id, parent=None)` (inherited)
+**Replaces:** Single-item create-or-return from `INFL:`-prefixed catalog id.
+
+### SemanticDomainOperations (`project.SemanticDomains`)
+
+Phase 6b added native-XML catalog import.
+
+#### `project.SemanticDomains.ImportCatalog(progress=None, force=False)`
+**Replaces:** `SIL.LCModel.Application.ApplicationServices.XmlList.ImportList()` against `<FWCodeDir>/Templates/SemDom.xml` targeting `ILangProject.SemanticDomainListOA`. Adds an idempotency guard (refuses when the list is non-empty unless `force=True`) because XmlList.ImportList appends without GUID dedup. Returns the post-import top-level domain count.
+
+### AnthropologyOperations (`project.Anthropology`)
+
+Phase 6c added native-XML catalog import plus the OCM-Frame sibling.
+
+#### `project.Anthropology.ImportCatalog(progress=None, force=False)`
+**Replaces:** `XmlList.ImportList()` against `<FWCodeDir>/Templates/OCM.xml` targeting `ILangProject.AnthroListOA`. Same idempotency-guard contract as `SemanticDomains.ImportCatalog`.
+
+#### `project.Anthropology.ImportFrameCatalog(progress=None, force=False)`
+**Replaces:** Same `XmlList.ImportList()` plumbing pointed at `OCM-Frame.xml` (the framework variant that ships alongside OCM.xml). The usual workflow is `ImportCatalog()` then `ImportFrameCatalog(force=True)` to layer framework entries on top.
+
+### Phase 13 PhonologicalRule entries — superseded notes
+
+The Phase 13 entries for `Find()`, `Exists()`, `AddInputSegment()`, `AddOutputSegment()`, `SetLeftContext()`, `SetRightContext()` remain accurate but should be understood as the low-level primitives that `WireRule()` composes. For most user code, `WireRule(rule, input_pattern=..., output_change=..., left_context=..., right_context=...)` is the preferred entry point.
+
+---
+
 ## Common LibLCM Patterns
 
 ### Factory Pattern
@@ -1235,9 +1466,9 @@ Methods for research notebook record management:
 
 ## Summary Statistics
 
-**Total Phases Documented:** 14 of 14 (Complete)
-**Total Operations Classes:** 30+
-**Total Methods Documented:** 350+
+**Total Phases Documented:** 14 of 14 (Complete) + Post-v2.0 additions
+**Total Operations Classes:** 35+
+**Total Methods Documented:** 400+
 
 ### Coverage by Phase:
 - **Phase 1:** Core Text & Lexicon Objects (3 classes, 40+ methods) ✓
@@ -1254,9 +1485,11 @@ Methods for research notebook record management:
 - **Phase 12:** Translation Types, Semantic Domains & Possibility Lists (3 classes, 20+ methods) ✓
 - **Phase 13:** Checks, Overlays, Settings & Phonological Rules (4 classes, 60+ methods) ✓
 - **Phase 14:** Data Notebook Operations (1 class, 42 methods) ✓
+- **Post-v2.0 (Phase 5/6+):** Alpha-feature constraints + WireRule composer, feature-based natural classes, IPA management, PhonFeatures module, expanded InflectionFeatures, MSAOperations, catalog imports (SemDom / OCM / OCM-Frame / BasicIPAInfo / PhonFeats / EticGloss / GOLD), LocalizedLists, FLExProject GetFactory/GetService (9 classes touched, 50+ methods) ✓
 
 ---
 
-**Document Version:** 2.0 (Complete)
-**Date:** 2025-11-23
-**Status:** All 14 phases fully documented with LibLCM API mappings
+**Document Version:** 2.1 (Phase 5/6 refresh)
+**Original Baseline:** 2025-11-23 (v2.0, 14 phases)
+**Last Refreshed:** 2026-05-27
+**Status:** All 14 phases plus post-v2.0 additions documented with LibLCM API mappings

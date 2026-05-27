@@ -2,19 +2,21 @@
 
 A comprehensive audit of all Language and Culture Model (LCM) capabilities imported into flexlibs2, their exposure through the public API, and internal usage patterns.
 
-**Audit Date:** 2025-03-16  
-**Scope:** flexlibs2/code directory (101 Python files)  
-**Status:** COMPLETE - Ready for review and action
+**Audit Date:** 2026-05-27
+**Scope:** flexlibs2/code directory (106 Python files)
+**Status:** REFRESHED — Ready for review
+
+> Refreshed from the original 2025-03-16 audit. Counts, namespace breakdowns, and per-domain inventories were regenerated from the live tree via `tools/extract_api_usage.py`. The deep narrative in `LCM_CAPABILITIES_AUDIT.md` retains the original prose with refreshed numbers and a TODO block for sections that warrant a fuller rewrite.
 
 ---
 
 ## Documents Included
 
-### 1. **START HERE: LCM_AUDIT_SUMMARY.md** (12 KB)
+### 1. **START HERE: LCM_AUDIT_SUMMARY.md**
 **Quick overview for decision makers** - 10-15 minute read
 
 - 30-second architecture explanation
-- Key statistics (25 modules, 90+ imports, 57 operations)
+- Key statistics (14 SIL namespaces, 233 unique imports, 60 Operations)
 - What's imported by category
 - Exposure matrix (public vs. internal)
 - Risk assessment with findings
@@ -25,7 +27,7 @@ A comprehensive audit of all Language and Culture Model (LCM) capabilities impor
 
 ---
 
-### 2. **LCM_CAPABILITIES_AUDIT.md** (23 KB)
+### 2. **LCM_CAPABILITIES_AUDIT.md**
 **Deep technical analysis** - 30-45 minute read
 
 - Import statistics and breakdown
@@ -41,12 +43,12 @@ A comprehensive audit of all Language and Culture Model (LCM) capabilities impor
 
 ---
 
-### 3. **LCM_CAPABILITIES_AUDIT_REFERENCES.md** (16 KB)
+### 3. **LCM_CAPABILITIES_AUDIT_REFERENCES.md**
 **Code lookup reference** - Lookup style (as needed)
 
 - File paths and line numbers for every import
-- Repository interfaces (9 total) with usage
-- Factory interfaces (12 total) with usage
+- Repository interfaces (18 total) with usage
+- Factory interfaces (74 total) with usage
 - Manager/Service interfaces with usage
 - Text/String interfaces with code examples
 - Exception types with handling
@@ -59,7 +61,7 @@ A comprehensive audit of all Language and Culture Model (LCM) capabilities impor
 
 ---
 
-### 4. **LCM_AUDIT_INDEX.md** (12 KB)
+### 4. **LCM_AUDIT_INDEX.md**
 **Navigation hub** - Find what you need
 
 - Document overview and quick links
@@ -75,7 +77,7 @@ A comprehensive audit of all Language and Culture Model (LCM) capabilities impor
 
 ---
 
-### 5. **LCM_AUDIT_QUICK_REFERENCE.txt** (11 KB)
+### 5. **LCM_AUDIT_QUICK_REFERENCE.txt**
 **Quick lookup card** - One-page reference
 
 - Key numbers at a glance
@@ -130,22 +132,22 @@ A comprehensive audit of all Language and Culture Model (LCM) capabilities impor
 
 ## Key Findings
 
-### Statistics
-- **90+ LCM classes/interfaces imported** across 25 SIL modules
-- **57 user-facing Operations classes** wrapping the complexity
-- **72 of 101 Python files** contain SIL imports
+### Statistics (Refreshed 2026-05-27)
+- **569 LCM import statements** importing **233 unique classes/interfaces** across **14 SIL namespaces**
+- **60 user-facing Operations classes** (plus BaseOperations parent) wrapping the complexity
+- **73 of 106 Python files** contain SIL imports
 - **0 critical risks** identified
-- **2 known TODOs** (Linux flatpak, project chooser dialog)
+- **2 known TODOs** (Linux flatpak, project chooser dialog) — both still open from original audit
 
 ### Architecture Pattern
 ```
 Users
   ↓
-FLExProject.DOMAIN.METHOD()  ← 57 Operations classes (safe, documented)
+FLExProject.DOMAIN.METHOD()  ← 60 Operations classes (safe, documented)
   ↓
 Repository/Factory/Manager   ← Wrapped LCM APIs (protected)
   ↓
-SIL.LCModel (90+ classes)    ← FieldWorks internals (hidden)
+SIL.LCModel (233 classes)    ← FieldWorks internals (hidden)
 ```
 
 ### Risk Assessment
@@ -156,7 +158,7 @@ SIL.LCModel (90+ classes)    ← FieldWorks internals (hidden)
 ### Top Recommendations
 1. **[HIGH]** Document power-user LCM access patterns
 2. **[MEDIUM]** Expose IFwMetaDataCacheManaged for schema introspection
-3. **[MEDIUM]** Complete Scripture domain operations
+3. **[MEDIUM]** Complete Scripture domain operations (improved coverage since original audit but still incomplete)
 4. **[LOW]** Update Linux flatpak support
 5. **[LOW]** Implement FW project chooser dialog
 
@@ -165,52 +167,60 @@ SIL.LCModel (90+ classes)    ← FieldWorks internals (hidden)
 ## Quick Answers
 
 ### "What does flexlibs2 import from LCM?"
-→ See **LCM_AUDIT_SUMMARY.md** - "What's Imported" section
+- See **LCM_AUDIT_SUMMARY.md** - "What's Imported" section
 
 ### "Is LCM usage safe?"
-→ See **LCM_AUDIT_SUMMARY.md** and **LCM_CAPABILITIES_AUDIT.md** - "Risk Assessment" sections
+- See **LCM_AUDIT_SUMMARY.md** and **LCM_CAPABILITIES_AUDIT.md** - "Risk Assessment" sections
 
 ### "Where is feature X imported?"
-→ Use **LCM_CAPABILITIES_AUDIT_REFERENCES.md** - Search by name
+- Use **LCM_CAPABILITIES_AUDIT_REFERENCES.md** - Search by name
 
 ### "How do I add a new Operations class?"
-→ See **LCM_CAPABILITIES_AUDIT.md** - "Usage Patterns" section
+- See **LCM_CAPABILITIES_AUDIT.md** - "Usage Patterns" section
 
 ### "What should I wrap/expose?"
-→ See **LCM_AUDIT_SUMMARY.md** - "What Should Be Wrapped vs. Not"
+- See **LCM_AUDIT_SUMMARY.md** - "What Should Be Wrapped vs. Not"
 
 ### "What's the architecture philosophy?"
-→ See **LCM_AUDIT_SUMMARY.md** - "The Architecture in 30 Seconds"
+- See **LCM_AUDIT_SUMMARY.md** - "The Architecture in 30 Seconds"
 
 ---
 
 ## Document Sizes and Content
 
-| Document | Size | Type | Read Time | Best For |
-|---|---|---|---|---|
-| LCM_AUDIT_SUMMARY.md | 12 KB | Overview | 10-15 min | Managers, architects |
-| LCM_CAPABILITIES_AUDIT.md | 23 KB | Deep dive | 30-45 min | Developers, reviewers |
-| LCM_CAPABILITIES_AUDIT_REFERENCES.md | 16 KB | Reference | As needed | Developers, lookup |
-| LCM_AUDIT_INDEX.md | 12 KB | Navigation | 5 min | Everyone |
-| LCM_AUDIT_QUICK_REFERENCE.txt | 11 KB | Cheat sheet | 2 min | Developers |
-
-**Total:** 74 KB of comprehensive documentation
+| Document | Type | Read Time | Best For |
+|---|---|---|---|
+| LCM_AUDIT_SUMMARY.md | Overview | 10-15 min | Managers, architects |
+| LCM_CAPABILITIES_AUDIT.md | Deep dive | 30-45 min | Developers, reviewers |
+| LCM_CAPABILITIES_AUDIT_REFERENCES.md | Reference | As needed | Developers, lookup |
+| LCM_AUDIT_INDEX.md | Navigation | 5 min | Everyone |
+| LCM_AUDIT_QUICK_REFERENCE.txt | Cheat sheet | 2 min | Developers |
 
 ---
 
 ## File Locations
 
-All documents are in the flexlibs2 root directory:
+All audit documents now live under `docs/audit/`:
 
 ```
 /d/Github/_Projects/_LEX/flexlibs2/
-├── README_LCM_AUDIT.md                    ← Overview (this file)
-├── LCM_AUDIT_INDEX.md                     ← Navigation hub
-├── LCM_AUDIT_SUMMARY.md                   ← Executive summary
-├── LCM_CAPABILITIES_AUDIT.md              ← Deep analysis
-├── LCM_CAPABILITIES_AUDIT_REFERENCES.md   ← Code references
-├── LCM_AUDIT_QUICK_REFERENCE.txt          ← Quick lookup
-└── (project files...)
+└── docs/audit/
+    ├── README_LCM_AUDIT.md                    ← Overview (this file)
+    ├── LCM_AUDIT_INDEX.md                     ← Navigation hub
+    ├── LCM_AUDIT_SUMMARY.md                   ← Executive summary
+    ├── LCM_CAPABILITIES_AUDIT.md              ← Deep analysis
+    ├── LCM_CAPABILITIES_AUDIT_REFERENCES.md   ← Code references
+    └── LCM_AUDIT_QUICK_REFERENCE.txt          ← Quick lookup
+```
+
+Underlying JSON data (regenerated for each refresh) lives in `reports/audit/`:
+
+```
+reports/audit/
+├── api_usage_summary.json
+├── api_usage_by_namespace.json
+├── api_usage_by_file.json
+└── api_usage_extract.json
 ```
 
 ---
@@ -241,26 +251,23 @@ See **LCM_AUDIT_SUMMARY.md** - "Recommendations Summary" for details.
 ## Methodology
 
 **Approach:**
-- Full import analysis of all SIL.* statements
-- File-by-file code tracing
+- Automated extraction via `tools/extract_api_usage.py --code-dir flexlibs2/code --all` regenerates the JSON corpus in `reports/audit/`
+- File-by-file code tracing for usage patterns and TODO scan
 - Cross-reference validation
-- Usage pattern documentation
-- Risk categorization
+- Risk categorization (manual)
 
-**Confidence Level:** HIGH  
+**Confidence Level:** HIGH
 **Coverage:** 100% of SIL imports in flexlibs2/code directory
 
 ---
 
 ## Version Info
 
-- **Created:** 2025-03-16
-- **Scope:** flexlibs2/code (101 Python files)
-- **Total Imports Analyzed:** 90+ classes
-- **Files Documented:** All 25 SIL modules
-- **Status:** COMPLETE - Ready for implementation
+- **Original Audit:** 2025-03-16 (scope: 101 Python files, 90+ classes)
+- **Refreshed:** 2026-05-27 (scope: 106 Python files, 233 unique classes)
+- **Files Documented:** All 14 SIL namespaces currently in use
+- **Status:** REFRESHED — Ready for review
 
 ---
 
 **Start with LCM_AUDIT_INDEX.md for navigation guidance.**
-

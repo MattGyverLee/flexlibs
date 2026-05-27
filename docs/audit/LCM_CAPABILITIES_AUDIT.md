@@ -1,14 +1,28 @@
 # FlexLibs2 LCM Capabilities Audit
 
-**Date:** 2025-03-16
-**Scope:** Analysis of SIL.LCModel (Language and Culture Model) capabilities imported into flexlibs2, their exposure via the public API, and internal usage patterns.
-**Codebase:** flexlibs2/code directory (101 Python files, 64 Operations classes)
+**Audit Date:** 2026-05-27 (refreshed from 2025-03-16)
+**Scope:** 106 Python files in `flexlibs2/code/` (60 Operations classes + BaseOperations parent)
+**Status:** REFRESHED -- Ready for review
+**Methodology:** Automated extraction via `tools/extract_api_usage.py --code-dir flexlibs2/code --all` (JSON outputs in `reports/audit/`) supplemented by manual usage-pattern review.
+
+> ## TODO -- Sections requiring fuller narrative rewrite
+>
+> The data-bearing parts of this document (Import Statistics, Distribution by Module, per-category counts, Summary Table) have been refreshed against the live tree. The narrative prose in the per-category sections retains the original analysis with refreshed counts where they appear in the body. The following narrative content still reflects 2025-03-16 framing and is a candidate for a future refresh that goes beyond a data refresh:
+> - Category 2 (Factories) -- the 12-factory list reflects the original spot inspection; the live tree imports 74 unique factories. The category narrative still summarises the original 12. The QUICK_REFERENCE and SUMMARY files list the expanded set; see also `reports/audit/api_usage_extract.json`.
+> - Category 6 (Tags) -- the 11-tag list reflects the original audit; the live tree has 13 unique tags (`LexEntryRefTags`, `LexRefTypeTags`, `MoMorphTypeTags` are new).
+> - Category 5 (Exceptions) -- the 5-exception list is now 6; `StartupException` from `SIL.FieldWorks.Common.FwUtils` was added.
+> - Category 10 (Writing Systems) and Category 9 (FieldWorks UI) -- narrative still correct in shape but does not enumerate `FwAppArgs`, `VersionInfoProvider`, or `StartupException`.
+> - Scripture domain coverage discussion -- original said "minimal coverage". Scripture now has 6 Operations classes (ScrBook, ScrDraft, ScrSection, ScrTxtPara, ScrAnnotations, ScrNote). The narrative still reads as if minimal.
+> - Discourse domain coverage -- original noted 8 Discourse operations; live tree has 7 ConstChart-prefixed Operations. The narrative is approximately correct.
+> - Recommendations -- "Complete Scripture" recommendation is partially addressed; refresh recommendation list once narrative is rewritten.
+>
+> These TODOs do not affect the audit's headline conclusions (no critical risks, healthy architecture). They affect the depth-of-detail in the per-category narrative only.
 
 ---
 
 ## Executive Summary
 
-This audit reveals a **well-designed abstraction layer** that intentionally hides the complexity of the LCM API while providing comprehensive access through a user-friendly public interface. The project imports **25+ distinct SIL modules** encompassing:
+This audit reveals a **well-designed abstraction layer** that intentionally hides the complexity of the LCM API while providing comprehensive access through a user-friendly public interface. The project imports **14 distinct SIL namespaces** (the original audit said 25; the live count is 14 namespaces containing 233 unique classes) encompassing:
 
 - **Repository pattern** for data access (collections/queries)
 - **Factory pattern** for object creation
@@ -18,35 +32,42 @@ This audit reveals a **well-designed abstraction layer** that intentionally hide
 
 ### Key Findings
 
-- **Fully exposed:** 57 data domain operations (POS, LexEntry, Texts, etc.)
-- **Partially exposed:** Advanced features (undo/redo, caching, metadata)
+- **Fully exposed:** 60 data domain Operations (POS, LexEntry, Texts, etc.) -- up from 57 in original audit
+- **Partially exposed:** Advanced features (caching, metadata); Undo/Redo are now exposed via dedicated methods
 - **Not exposed:** Low-level LCM infrastructure and developer-only services
 - **Low risk exposure:** The abstraction prevents direct access to internal FW infrastructure
 - **Recommended:** Document advanced access patterns for power users
 
 ---
 
-## Import Statistics
+## Import Statistics (refreshed 2026-05-27)
 
 ### Summary
-- **Total SIL Modules Imported:** 25
-- **Total Python Files with SIL Imports:** 72
-- **Total Classes/Interfaces Imported:** 90+
-- **Operations Classes in API:** 57 (exposed via FLExProject properties)
-- **Helper Classes:** 7 (CastingOperations, PythonicWrapper, etc.)
+- **Distinct SIL Namespaces Imported:** 14
+- **Total Python Files with SIL Imports:** 73 (of 106 total)
+- **Total Import Statements:** 569
+- **Unique Classes/Interfaces Imported:** 233
+- **Operations Classes in API:** 60 (exposed via FLExProject properties)
+- **Helper Classes:** 7 (CastingOperations, PythonicWrapper, lcm_casting, etc.)
 
-### Distribution by Module
+### Distribution by Namespace
 
-| Module Category | Count | Files | Status |
-|---|---|---|---|
-| **SIL.LCModel** (core data types) | 45+ | 70 | Fully integrated |
-| **SIL.LCModel.Core.KernelInterfaces** | 4 | 50+ | Heavily used for text |
-| **SIL.LCModel.Core.Text** | 1 | 50+ | String handling |
-| **SIL.LCModel.Infrastructure** | 2 | 3 | Advanced/internal |
-| **SIL.LCModel.Core.Cellar** | 2 | 3 | Property type system |
-| **SIL.LCModel.Utils** | 2 | 2 | Reflection/threading |
-| **SIL.FieldWorks.*** | 10+ | 8 | Project/UI integration |
-| **SIL.WritingSystems** | 2 | 2 | Language data |
+| Namespace | Unique classes | Files | Total imports | Status |
+|---|---:|---:|---:|---|
+| `SIL.LCModel` (core data types) | 203 | 64 | 389 | Fully integrated |
+| `SIL.LCModel.Core.KernelInterfaces` | 5 | 62 | 92 | Heavily used for text |
+| `SIL.LCModel.Core.Text` | 1 | 57 | 58 | String handling |
+| `SIL.LCModel.Core.Cellar` | 3 | 3 | 5 | Property type system |
+| `SIL.LCModel.Infrastructure` | 2 | 2 | 3 | Advanced/internal |
+| `SIL.LCModel.Utils` | 2 | 2 | 3 | Reflection/threading |
+| `SIL.LCModel.Application.ApplicationServices` | 2 | 2 | 2 | XML list import/export |
+| `SIL.LCModel.DomainServices` | 2 | 1 | 2 | MsaType, SandboxGenericMSA |
+| `SIL.FieldWorks` | 1 | 1 | 1 | ProjectId |
+| `SIL.FieldWorks.Common.FwUtils` | 7 | 4 | 8 | FW utilities, paths, threading |
+| `SIL.FieldWorks.Common.Controls` | 1 | 1 | 1 | ProgressDialogWithTask |
+| `SIL.FieldWorks.FdoUi` | 1 | 1 | 1 | FwLcmUI |
+| `SIL.FieldWorks.FwCoreDlgs` | 1 | 1 | 1 | ChooseLangProjectDialog |
+| `SIL.WritingSystems` | 2 | 3 | 3 | Sldr, WritingSystemDefinition |
 
 ---
 
@@ -55,23 +76,33 @@ This audit reveals a **well-designed abstraction layer** that intentionally hide
 ### Category 1: Repository Interfaces (Data Access)
 
 **Status:** [OK] Exposed through Operations classes, internal access only
+**Count (refreshed):** 18 unique repository interfaces across 25 files
 
 #### Repositories Used
 ```
-ICmObjectRepository          - Generic object lookup by ID
-ILexEntryRepository          - Lexicon entry access (POSOperations, LexEntryOperations)
-ILexRefTypeRepository        - Reference type definitions
-IWfiWordformRepository       - Wordform inventory
-IWfiAnalysisRepository       - Wordform analysis access
-ICmPossibilityRepository     - POS, semantic domains, lists
-ITextRepository              - Text/document access
-ISegmentRepository           - Text segment lookup
-IReversalIndex, IReversalIndexEntry - Reversal index access
+ICmObjectRepository              - Generic object lookup by ID
+ICmPossibilityRepository         - POS, semantic domains, lists
+ICmPersonRepository              - People (notebook)
+ICmAnnotationDefnRepository      - Annotation definitions
+ILexEntryRepository              - Lexicon entry access
+ILexEntryTypeRepository          - Entry type definitions
+ILexSenseRepository              - Sense access
+ILexRefTypeRepository            - Reference type definitions
+ITextRepository                  - Text/document access
+ISegmentRepository               - Text segment lookup
+IStTxtParaRepository             - Paragraph access
+IWfiWordformRepository           - Wordform inventory
+IWfiAnalysisRepository           - Wordform analysis access
+IWfiGlossRepository              - Gloss access
+IReversalIndexRepository         - Reversal index access
+IRnResearchNbkRepository         - Research notebook
+IDsConstChartRepository          - Discourse constituent charts
+IScrBookRepository               - Scripture books
 ```
 
 **Exposure:**
 - **Public API:** Users access these through `.GetAll()`, `.Find()`, `.Create()` methods in Operations classes
-- **Files:** 70+ files (nearly all Operations classes)
+- **Files:** 25 files use repositories directly
 - **Risk Level:** MINIMAL - repositories accessed through safe wrapper methods
 - **Usage Pattern:** `ICmObjectRepository(IHvo)` used in:
   - `Grammar/EnvironmentOperations.py` - lookup by Hvo
@@ -94,26 +125,89 @@ pos_list = project.POS.GetAll()
 ### Category 2: Factory Interfaces (Object Creation)
 
 **Status:** [OK] Fully wrapped in Create/Update methods
+**Count (refreshed):** 74 unique factory interfaces across 57 files
 
-#### Factories Used
+#### Factories Used (selected highlights -- full list in `reports/audit/api_usage_extract.json`)
 ```
-ICmPossibilityListFactory    - Create POS lists, semantic domains, lists
-IPartOfSpeechFactory         - Create parts of speech
-IPhEnvironmentFactory        - Create phonological environments
-IMoStemAllomorphFactory      - Create stem allomorphs
-IMoAffixAllomorphFactory     - Create affix allomorphs
-IStTextFactory               - Create text blocks
-IStTxtParaFactory            - Create paragraphs
-ILexEntryRefFactory          - Create lexical references
-IScrBookAnnotationsFactory   - Scripture annotations
-IDsDiscourseFactory          - Discourse structures
-IMoStemMsaFactory            - Create stem MSAs
-IMoAffixAllomorphFactory     - Affix allomorphs
+ICmPossibilityListFactory      - Create POS lists, semantic domains, lists
+ICmPossibilityFactory          - Create possibility items
+IPartOfSpeechFactory           - Create parts of speech
+IPhEnvironmentFactory          - Create phonological environments
+IPhPhonemeFactory              - Create phonemes
+IPhCodeFactory                 - Create phoneme codes
+IPhNCSegmentsFactory           - Natural class (segments)
+IPhNCFeaturesFactory           - Natural class (features)
+IPhSimpleContextSegFactory     - Simple seg context
+IPhSimpleContextNCFactory      - Simple NC context
+IPhRegularRuleFactory          - Regular phonological rules
+IPhMetathesisRuleFactory       - Metathesis rules
+IPhReduplicationRuleFactory    - Reduplication rules
+IPhSegRuleRHSFactory           - Rule right-hand side
+IMoStemAllomorphFactory        - Stem allomorphs
+IMoAffixAllomorphFactory       - Affix allomorphs
+IMoStemMsaFactory              - Stem MSAs
+IMoDerivAffMsaFactory          - Derivational MSAs
+IMoInflAffMsaFactory           - Inflectional MSAs
+IMoUnclassifiedAffixMsaFactory - Unclassified MSAs
+IMoEndoCompoundFactory         - Endocentric compounds
+IMoExoCompoundFactory          - Exocentric compounds
+IMoInflAffixTemplateFactory    - Inflection templates
+IMoInflClassFactory            - Inflection classes
+IFsClosedFeatureFactory        - Closed features
+IFsClosedValueFactory          - Closed values
+IFsFeatStrucFactory            - Feature structures
+IFsSymFeatValFactory           - Symbolic feature values
+IStTextFactory                 - Text blocks
+IStTxtParaFactory              - Paragraphs
+ITextFactory                   - Text container
+ISegmentFactory                - Text segments
+IWfiWordformFactory            - Wordforms
+IWfiAnalysisFactory            - Word analyses
+IWfiGlossFactory               - Glosses
+IWfiMorphBundleFactory         - Morpheme bundles
+ILexEntryFactory               - Lex entries
+ILexEntryRefFactory            - Lex entry refs
+ILexSenseFactory               - Senses
+ILexExampleSentenceFactory     - Example sentences
+ILexEtymologyFactory           - Etymology
+ILexPronunciationFactory       - Pronunciations
+ILexReferenceFactory           - Lexical references
+ILexRefTypeFactory             - Lex ref types
+IDsDiscourseDataFactory        - Discourse data
+IDsDiscourseFactory            - Discourse structures
+IDsConstChartFactory           - Constituent charts
+IConstChartRowFactory          - Chart rows
+IConstChartWordGroupFactory    - Chart word groups
+IConstChartMovedTextMarkerFactory - Moved text markers
+IConstChartClauseMarkerFactory - Clause markers
+IConstChartTagFactory          - Cell tags
+IRnGenericRecFactory           - Research records
+ICmAgentFactory                - Agents
+ICmAnnotationDefnFactory       - Annotation defs
+ICmAnthroItemFactory           - Anthropology items
+ICmBaseAnnotationFactory       - Base annotations
+ICmFileFactory                 - File objects
+ICmFilterFactory               - Filters
+ICmFolderFactory               - Folders
+ICmLocationFactory             - Locations
+ICmMediaFactory                - Media
+ICmPersonFactory               - People
+ICmPictureFactory              - Pictures
+ICmSemanticDomainFactory       - Semantic domains
+ICmTranslationFactory          - Translations
+IReversalIndexFactory          - Reversal indexes
+IReversalIndexEntryFactory     - Reversal entries
+IScrBookFactory                - Scripture books
+IScrDraftFactory               - Scripture drafts
+IScrSectionFactory             - Scripture sections
+IScrTxtParaFactory             - Scripture paragraphs
+IScrScriptureNoteFactory       - Scripture notes
+IScrBookAnnotationsFactory     - Scripture book annotations
 ```
 
 **Exposure:**
 - **Public API:** Never exposed directly - wrapped in `Create()` methods
-- **Files:** Conditional imports in 12 Operations classes
+- **Files:** Imports across 57 Operations files (conditional imports are common; see "Pattern 5: Local Imports" below)
 - **Risk Level:** MINIMAL - factory calls wrapped in validation logic
 - **Usage Pattern:** Imported locally within Create methods:
 
@@ -199,14 +293,16 @@ ts = TsStringUtils.MakeString(text_value, ws_handle)
 ### Category 5: Exception Types
 
 **Status:** [OK] Standard exceptions imported and wrapped
+**Count (refreshed):** 6 unique exception types
 
 #### Exception Types
 ```
-LcmInvalidClassException         - Invalid object type
-LcmInvalidFieldException         - Invalid field access
-LcmFileLockedException           - Project locked by another process
-LcmDataMigrationForbiddenException - Project needs FW migration
-WorkerThreadException            - Background task failure
+LcmInvalidClassException             - Invalid object type
+LcmInvalidFieldException             - Invalid field access
+LcmFileLockedException               - Project locked by another process
+LcmDataMigrationForbiddenException   - Project needs FW migration
+WorkerThreadException                - Background task failure
+StartupException                     - FieldWorks startup failure  [NEW since original]
 ```
 
 **Exposure:**

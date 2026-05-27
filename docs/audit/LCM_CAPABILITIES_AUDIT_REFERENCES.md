@@ -2,6 +2,12 @@
 
 This document provides specific file and line references for each LCM capability mentioned in the main audit.
 
+**Audit Date:** 2026-05-27 (refreshed from 2025-03-16)
+**Scope:** 106 Python files in `flexlibs2/code/`
+**Status:** REFRESHED -- Ready for review
+
+> Line numbers below reflect the original 2025-03-16 snapshot. The current line numbers may have shifted (e.g., `FLExGlobals.py` TODO is now at line 103, `FLExLCM.py` TODO is now at line 59). The categorical inventory has been refreshed in `Summary Statistics` below; for full source-of-truth on every import location, see the regenerated JSON in `reports/audit/api_usage_extract.json` (one record per import statement with file path and line number).
+
 ---
 
 ## Repository Interfaces
@@ -434,64 +440,138 @@ for msa in entry.MorphoSyntaxAnalysesOC:
 
 ### 1. Linux Flatpak Support
 - **File:** `/d/Github/_Projects/_LEX/flexlibs2/flexlibs2/code/FLExGlobals.py`
-- **Lines:** 102-105
+- **Lines:** 103+ (was 102-105 in original audit)
 - **Issue:** FW now uses flatpak on Linux, old path logic doesn't work
 - **Current:** Only Windows/macOS supported
+- **Status:** Still open since 2025-03-16
 
 ### 2. Project Chooser Dialog
 - **File:** `/d/Github/_Projects/_LEX/flexlibs2/flexlibs2/code/FLExLCM.py`
-- **Line:** 53-54
+- **Line:** 59 (was 53-54 in original audit)
 - **Issue:** Using simple file listing instead of FW native dialog
 - **Enhancement:** Would use `ChooseLangProjectDialog()` and support network drives
+- **Status:** Still open since 2025-03-16
 
 ---
 
-## Summary Statistics
+## Summary Statistics (refreshed 2026-05-27)
 
-**Total Files with SIL Imports:** 72
-**Total Code Lines with SIL References:** 500+
-**Repositories Imported:** 9
-**Factories Imported:** 12
-**Manager/Services:** 2
-**Text Interfaces:** 4
-**Exception Types:** 5
-**Tag Classes:** 11
-**Cellar Classes:** 2
-**Utility Classes:** 7+
-**UI/Infrastructure:** 10+
-**Writing System Classes:** 2
-**Casting/Helper Modules:** 3 (lcm_casting.py, CastingOperations.py, PythonicWrapper.py)
+**Total Python Files Scanned:** 106
+**Total Files with SIL Imports:** 73
+**Total SIL Import Statements:** 569
+**Total Unique Classes/Interfaces:** 233
+**Distinct SIL Namespaces:** 14
+
+By category (unique class counts):
+- **Repositories Imported:** 18 (was 9)
+- **Factories Imported:** 74 (was 12)
+- **Other Interfaces:** 94
+- **Manager/Services:** 2 (IUndoStackManager, IFwMetaDataCacheManaged)
+- **Text Interfaces:** 5 (`ITsString`, `ITsStrBldr`, `IMultiString`, `IMultiUnicode`, `FwObjDataTypes`)
+- **Exception Types:** 6 (was 5; `StartupException` is new)
+- **Tag Classes:** 13 (was 11; `LexEntryRefTags`, `LexRefTypeTags`, `MoMorphTypeTags` are new)
+- **Cellar Classes:** 3 (`CellarPropertyType`, `CellarPropertyType as _LCMCellarPropertyType`, `CellarPropertyTypeFilter`)
+- **Utility Classes:** 6 (`TsStringUtils`, `ReflectionHelper`, `ThreadHelper`, `LcmFileHelper`, `FwRegistryHelper`, `FwUtils`)
+- **UI/Infrastructure:** 10+ (`ProjectId`, `FwLcmUI`, `ChooseLangProjectDialog`, `ProgressDialogWithTask`, `FwDirectoryFinder`, `VersionInfoProvider`, `FwAppArgs`, etc.)
+- **Writing System Classes:** 2 (`Sldr`, `WritingSystemDefinition`)
+- **Casting/Helper Modules:** 3 (`lcm_casting.py`, `CastingOperations.py`, `PythonicWrapper.py`)
+
+Top 10 most-used classes (by file count):
+1. `ITsString` -- 87 files
+2. `TsStringUtils` -- 58 files
+3. `ICmPossibility` -- 15 files
+4. `ILexEntry` -- 13 files
+5. `ILexSense` -- 10 files
+6. `ICmPossibilityRepository` -- 7 files
+7. `IText` -- 7 files
+8. `ICmPossibilityFactory` -- 7 files
+9. `ICmObjectRepository` -- 6 files
+10. `IDsConstChart` -- 6 files
 
 ---
 
-## Cross-Reference: By Domain
+## Cross-Reference: By Domain (refreshed 2026-05-27)
 
-### Grammar Domain Files
+### Grammar Domain (9 Operations classes)
 - `Grammar/GramCatOperations.py` - ICmPossibility, ICmPossibilityFactory
 - `Grammar/POSOperations.py` - IPartOfSpeechFactory, IPartOfSpeech, ILexEntryRepository
 - `Grammar/EnvironmentOperations.py` - IPhEnvironmentFactory, IPhEnvironment, ICmObjectRepository
-- `Grammar/PhonologicalRuleOperations.py` - Uses casting for polymorphic rules
-- `Grammar/NaturalClassOperations.py` - References and properties
-- `Grammar/InflectionFeatureOperations.py` - Grammatical features
-- `Grammar/MorphRuleOperations.py` - Morphological rules
+- `Grammar/PhonemeOperations.py` - IPhPhonemeFactory, IPhCodeFactory
+- `Grammar/PhonologicalRuleOperations.py` - Uses casting for polymorphic rules (PhRegularRule, PhMetathesisRule, PhReduplicationRule)
+- `Grammar/PhonFeatureOperations.py` - Phonological feature structures
+- `Grammar/NaturalClassOperations.py` - IPhNCSegmentsFactory, IPhNCFeaturesFactory
+- `Grammar/InflectionFeatureOperations.py` - IFsClosedFeatureFactory, IFsClosedValueFactory, IFsFeatStrucFactory, IFsSymFeatValFactory
+- `Grammar/MorphRuleOperations.py` - IMoEndoCompoundFactory, IMoExoCompoundFactory, IMoInflAffixTemplateFactory, IMoInflClassFactory
 
-### Lexicon Domain Files
-- `Lexicon/LexEntryOperations.py` - Core lexical operations
+### Lexicon Domain (10 Operations classes)
+- `Lexicon/LexEntryOperations.py` - Core lexical operations, ILexEntryFactory, ILexEntryRefFactory
+- `Lexicon/LexSenseOperations.py` - ILexSenseFactory, ILexSenseRepository
 - `Lexicon/AllomorphOperations.py` - IMoStemAllomorphFactory, IMoAffixAllomorphFactory
-- `Lexicon/LexReferenceOperations.py` - ICmPossibilityListFactory
-- `Lexicon/ExampleOperations.py` - Example sentences
-- `Lexicon/EtymologyOperations.py` - Etymology references
+- `Lexicon/MSAOperations.py` - IMoStemMsaFactory, IMoDerivAffMsaFactory, IMoInflAffMsaFactory, IMoUnclassifiedAffixMsaFactory, MsaType, SandboxGenericMSA
+- `Lexicon/LexReferenceOperations.py` - ICmPossibilityListFactory, ILexReferenceFactory, ILexRefTypeFactory
+- `Lexicon/ExampleOperations.py` - ILexExampleSentenceFactory
+- `Lexicon/EtymologyOperations.py` - ILexEtymologyFactory
+- `Lexicon/PronunciationOperations.py` - ILexPronunciationFactory
+- `Lexicon/SemanticDomainOperations.py` - ICmSemanticDomainFactory
+- `Lexicon/VariantOperations.py` - Variant entry refs
 
-### TextsWords Domain
-- `TextsWords/TextOperations.py` - ITextRepository
+### TextsWords Domain (8 Operations classes)
+- `TextsWords/TextOperations.py` - ITextRepository, ITextFactory
 - `TextsWords/ParagraphOperations.py` - IStTextFactory, IStTxtParaFactory
-- `TextsWords/SegmentOperations.py` - ISegmentRepository
+- `TextsWords/SegmentOperations.py` - ISegmentRepository, ISegmentFactory
+- `TextsWords/WordformOperations.py` - IWfiWordformFactory, IWfiWordformRepository
+- `TextsWords/WfiAnalysisOperations.py` - IWfiAnalysisFactory, IWfiAnalysisRepository
+- `TextsWords/WfiGlossOperations.py` - IWfiGlossFactory, IWfiGlossRepository
+- `TextsWords/WfiMorphBundleOperations.py` - IWfiMorphBundleFactory, WfiMorphBundleTags
+- `TextsWords/DiscourseOperations.py` - legacy discourse alias
 
-### Notebook Domain
-- `Notebook/*.py` - Uses ICmObjectRepository for person/location lookups
+### Notebook Domain (5 Operations classes)
+- `Notebook/DataNotebookOperations.py` - IRnGenericRecFactory, IRnResearchNbkRepository
+- `Notebook/NoteOperations.py` - Notes / annotation handling
+- `Notebook/PersonOperations.py` - ICmPersonFactory, ICmPersonRepository
+- `Notebook/LocationOperations.py` - ICmLocationFactory
+- `Notebook/AnthropologyOperations.py` - ICmAnthroItemFactory
 
-### Discourse Domain
-- `Discourse/ConstChartOperations.py` - IDsDiscourseFactory
+### Lists Domain (6 Operations classes)
+- `Lists/AgentOperations.py` - ICmAgentFactory
+- `Lists/PossibilityListOperations.py` - ICmPossibilityListFactory, XmlList, XmlTranslatedLists
+- `Lists/PublicationOperations.py` - Publications list
+- `Lists/TranslationTypeOperations.py` - ICmTranslationFactory
+- `Lists/ConfidenceOperations.py` - Confidence values
+- `Lists/OverlayOperations.py` - Overlays
+
+### System Domain (5 Operations classes)
+- `System/AnnotationDefOperations.py` - ICmAnnotationDefnFactory, ICmAnnotationDefnRepository
+- `System/CheckOperations.py` - Editorial checks
+- `System/CustomFieldOperations.py` - Custom field metadata (uses CellarPropertyType heavily)
+- `System/ProjectSettingsOperations.py` - Project-wide settings
+- `System/WritingSystemOperations.py` - WritingSystemDefinition, Sldr
+
+### Discourse Domain (7 Operations classes)
+- `Discourse/ConstChartOperations.py` - IDsConstChartFactory, IDsConstChartRepository, IDsDiscourseFactory, IDsDiscourseDataFactory
+- `Discourse/ConstChartRowOperations.py` - IConstChartRowFactory
+- `Discourse/ConstChartWordGroupOperations.py` - IConstChartWordGroupFactory
+- `Discourse/ConstChartMovedTextOperations.py` - IConstChartMovedTextMarkerFactory
+- `Discourse/ConstChartMarkerOperations.py` - Marker access (base)
+- `Discourse/ConstChartCellTagOperations.py` - IConstChartTagFactory
+- `Discourse/ConstChartClauseMarkerOperations.py` - IConstChartClauseMarkerFactory
+
+### Reversal Domain (2 Operations classes)
+- `Reversal/ReversalIndexOperations.py` - IReversalIndexFactory, IReversalIndexRepository
+- `Reversal/ReversalIndexEntryOperations.py` - IReversalIndexEntryFactory, ReversalIndexEntryTags
+
+### Scripture Domain (6 Operations classes) -- grown from 2 in original audit
+- `Scripture/ScrBookOperations.py` - IScrBookFactory, IScrBookRepository
+- `Scripture/ScrDraftOperations.py` - IScrDraftFactory
+- `Scripture/ScrSectionOperations.py` - IScrSectionFactory
+- `Scripture/ScrTxtParaOperations.py` - IScrTxtParaFactory
+- `Scripture/ScrAnnotationsOperations.py` - IScrBookAnnotationsFactory
+- `Scripture/ScrNoteOperations.py` - IScrScriptureNoteFactory
+
+### Shared Domain (2 Operations classes + utilities)
+- `Shared/FilterOperations.py` - ICmFilterFactory
+- `Shared/MediaOperations.py` - ICmMediaFactory, ICmFileFactory, ICmFolderFactory, ICmPictureFactory
+- `Shared/string_utils.py`, `Shared/smart_collection.py`, `Shared/wrapper_base.py` - infrastructure (no SIL imports)
 
 ---
 

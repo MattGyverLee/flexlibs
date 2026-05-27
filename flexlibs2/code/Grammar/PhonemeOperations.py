@@ -784,15 +784,18 @@ class PhonemeOperations(BaseOperations):
         # append a parallel one, otherwise every wrapper-created
         # phoneme ends up carrying a junk '***' allophone that breaks
         # HermitCrab parser loading. (issue #17)
+        #
+        # The placeholder is distinguishable from a real UI-created code
+        # by emptiness across EVERY populated WS, not just the target WS:
+        # a real code with vernacular populated but analysis empty would
+        # otherwise be silently overwritten by AddCode(..., wsHandle=anal).
+        # Iterate every WS that has data on this Representation and
+        # require all of them to normalize to empty before reusing. (#112)
         existing_codes = list(phoneme.CodesOS)
-        if len(existing_codes) == 1:
+        if len(existing_codes) == 1 and self.__is_placeholder_code(existing_codes[0]):
             existing = existing_codes[0]
-            existing_repr = normalize_text(
-                ITsString(existing.Representation.get_String(wsHandle)).Text
-            )
-            if not existing_repr:
-                existing.Representation.set_String(wsHandle, mkstr)
-                return existing
+            existing.Representation.set_String(wsHandle, mkstr)
+            return existing
 
         # Normal path: create + append a new IPhCode.
         factory = self.project.project.ServiceLocator.GetService(IPhCodeFactory)
@@ -1378,6 +1381,23 @@ class PhonemeOperations(BaseOperations):
         return (is_different, differences)
 
     # --- Private Helper Methods ---
+
+    def __is_placeholder_code(self, code):
+        """
+        True iff `code` is the factory-autocreated placeholder IPhCode --
+        i.e. its Representation is empty (or the FLEX '***' null marker)
+        across EVERY populated writing system. (issue #112)
+
+        The naive "empty in this one WS" check would falsely classify a
+        real UI-created code as a placeholder whenever the caller's
+        target WS happened to be unpopulated -- and AddCode would then
+        silently overwrite real vernacular data.
+        """
+        for ws_id in code.Representation.AvailableWritingSystemIds:
+            text = ITsString(code.Representation.get_String(ws_id)).Text
+            if normalize_text(text):
+                return False
+        return True
 
     def __WSHandle(self, wsHandle):
         """
