@@ -473,13 +473,16 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
         # Resolve to feature structure object
         fs = self.__ResolveFeatureStructure(fs_or_hvo)
 
-        # Feature structures are typically owned by other objects,
-        # so deletion involves removing from the owner's collection
-        # This is a simplified implementation
-        if hasattr(fs, "Owner") and fs.Owner:
-            owner = fs.Owner
-            if hasattr(owner, "FeaturesOA") and owner.FeaturesOA == fs:
-                owner.FeaturesOA = None
+        # Feature structures are held in the parent's FeaturesOA slot
+        # (e.g. IPosFeatures.FeaturesOA, IFsComplexFeature.FeaturesOA).
+        # pythonnet narrows fs.Owner to the base ICmObject interface,
+        # which does NOT expose FeaturesOA -- so the prior hasattr(owner,
+        # "FeaturesOA") was always False and Delete silently did nothing.
+        # Route through _GetTypedOwner to recover the concrete interface
+        # before checking the slot. (issue #133, same class as #98/#116)
+        parent = self._GetTypedOwner(fs)
+        if parent is not None and hasattr(parent, "FeaturesOA") and parent.FeaturesOA == fs:
+            parent.FeaturesOA = None
 
     # ========================================================================
     # FEATURE OPERATIONS

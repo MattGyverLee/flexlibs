@@ -376,13 +376,18 @@ class DataNotebookOperations(BaseOperations):
             "Delete Notebook Record", "Undo Delete Notebook Record", lambda: None
         )
 
-        # Remove from its owner's collection
-        if hasattr(record, "Owner") and record.Owner:
-            owner = record.Owner
-            if hasattr(owner, "SubRecordsOS"):
-                owner.SubRecordsOS.Remove(record)
-            else:
-                repos.RecordsOC.Remove(record)
+        # SubRecordsOS lives on IRnGenericRec (the parent record's concrete
+        # interface), not on the base ICmObject that pythonnet returns from
+        # .Owner. The prior hasattr(owner, "SubRecordsOS") was therefore
+        # always False on a real sub-record -- execution fell through to
+        # repos.RecordsOC.Remove(record), which removes from the top-level
+        # records collection (where the sub-record never lived). Sub-record
+        # deletes either silently no-op'd or removed the wrong row.
+        # Route through _GetTypedOwner to recover IRnGenericRec before
+        # checking the slot. (issue #133, same class as #98/#116)
+        parent = self._GetTypedOwner(record)
+        if parent is not None and hasattr(parent, "SubRecordsOS"):
+            parent.SubRecordsOS.Remove(record)
         else:
             repos.RecordsOC.Remove(record)
 

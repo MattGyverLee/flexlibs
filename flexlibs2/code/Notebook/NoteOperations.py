@@ -126,10 +126,10 @@ class NoteOperations(BaseOperations):
             if hasattr(annotation, "BeginObjectRA"):
                 if annotation.BeginObjectRA == owner_object:
                     yield annotation
-            # Also check for direct ownership
-            if hasattr(annotation, "Owner"):
-                if annotation.Owner == owner_object:
-                    yield annotation
+            # Also check for direct ownership. .Owner is on every
+            # ICmObject; no hasattr guard needed. (issue #133 sweep)
+            if annotation.Owner == owner_object:
+                yield annotation
 
     @OperationsMethod
     def Create(self, owner_object, content, wsHandle=None):
@@ -1020,14 +1020,11 @@ class NoteOperations(BaseOperations):
         """
         self._ValidateParam(note, "note")
 
-        if hasattr(note, "Owner"):
-            return note.Owner
-
-        # Alternative: check BeginObjectRA
-        if hasattr(note, "BeginObjectRA"):
-            return note.BeginObjectRA
-
-        return None
+        # .Owner is on every ICmObject; no hasattr guard needed. The
+        # previous BeginObjectRA fallback was unreachable. (issue #133
+        # sweep -- BeginObjectRA is exposed as the annotated-object
+        # reference via separate accessors.)
+        return note.Owner
 
     @OperationsMethod
     def GetGuid(self, note):

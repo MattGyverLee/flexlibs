@@ -1218,7 +1218,9 @@ class AnthropologyOperations(BaseOperations, _LCMNativeCatalogImportMixin):
         """
         item = self.__GetItemObject(item_or_hvo)
 
-        if hasattr(item, "Owner") and item.Owner:
+        # .Owner is on every ICmObject; the truthiness check still
+        # discriminates orphans / detached items. (issue #133 sweep)
+        if item.Owner:
             try:
                 # Check if owner is an ICmAnthroItem (not the list)
                 parent = ICmAnthroItem(item.Owner)

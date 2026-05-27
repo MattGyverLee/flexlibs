@@ -353,8 +353,10 @@ class ConstChartMovedTextOperations(BaseOperations):
 
         marker = self.__ResolveObject(marker_or_hvo)
 
-        # Get owner (should be IConstChartWordGroup)
-        if hasattr(marker, "Owner") and marker.Owner:
+        # Get owner (should be IConstChartWordGroup). .Owner is on every
+        # ICmObject; the truthiness check still discriminates orphans /
+        # detached markers. (issue #133 sweep)
+        if marker.Owner:
             owner = marker.Owner
             if isinstance(owner, IConstChartWordGroup):
                 return owner
