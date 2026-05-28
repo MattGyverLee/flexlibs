@@ -47,6 +47,7 @@ from .catalog import (
     find_catalog_file,
 )
 from ..FLExProject import FP_ParameterError
+from ..exceptions import FP_FileNotFoundError
 from ..lcm_casting import cast_to_concrete
 
 
@@ -719,12 +720,13 @@ class _LCMNativeCatalogImportMixin:
             FP_ParameterError: If the target list is already non-empty
                                and ``force`` is False.
         """
-        # LOCAL imports: SIL.LCModel is only available when FieldWorks
-        # is installed; catalog/exceptions are kept consistent with the
-        # pre-extraction local-import pattern.
+        # LOCAL import: XmlList is the only FieldWorks-dependent symbol
+        # used here, and SIL.LCModel.Application.ApplicationServices is
+        # only available when FieldWorks is installed. find_catalog_file
+        # (pure flexlibs2) and FP_FileNotFoundError (pure flexlibs2) are
+        # hoisted to module top -- they don't need deferred loading.
+        # (issue #119 item 2)
         from SIL.LCModel.Application.ApplicationServices import XmlList
-        from .catalog import find_catalog_file
-        from ..exceptions import FP_FileNotFoundError
 
         self._EnsureWriteEnabled()
 
