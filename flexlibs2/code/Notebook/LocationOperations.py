@@ -928,10 +928,14 @@ class LocationOperations(BaseOperations):
         location = self.__ResolveObject(location_or_hvo)
         owner = location.Owner
 
-        # Check if owner is a location (sublocation) or the list (top-level)
+        # Check if owner is a location (sublocation) or the list (top-level).
+        # Cast through ICmLocation when it is, so callers can reach
+        # SubPossibilitiesOS / Name / Abbreviation on the parent without
+        # the AttributeError that the base ICmObject return would cause.
+        # Same Owner-without-cast bug class as #97/#98/#129/#151. (issue #157)
         if owner and hasattr(owner, "ClassName"):
             if owner.ClassName == "CmLocation":
-                return owner
+                return ICmLocation(owner)
 
         return None
 
