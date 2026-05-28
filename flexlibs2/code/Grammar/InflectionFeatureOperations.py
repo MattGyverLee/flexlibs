@@ -922,9 +922,25 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
             type="closed",
             catalogSourceId=catalogSourceId,
         )
+        # Roll the feature back if any CreateValue fails mid-loop, so a
+        # downstream LCM exception (WS issue, GUID collision, etc.)
+        # doesn't leave a partially-populated feature behind. Up-front
+        # tuple-shape validation above already covers the cheap-fail
+        # cases; this guards the LCM-call slice. (issue #127)
         created_values = []
-        for vname, vabbr in normalized:
-            created_values.append(self.CreateValue(feature, vname, vabbr))
+        try:
+            for vname, vabbr in normalized:
+                created_values.append(self.CreateValue(feature, vname, vabbr))
+        except Exception:
+            try:
+                self.FeatureDelete(feature)
+            except Exception:
+                # Best-effort rollback; if FeatureDelete also fails
+                # (read-only transaction, weird LCM state), let the
+                # original exception propagate -- it carries the real
+                # failure.
+                pass
+            raise
 
         return feature, created_values
 
