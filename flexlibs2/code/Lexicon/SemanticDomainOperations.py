@@ -802,15 +802,24 @@ class SemanticDomainOperations(BaseOperations, _LCMNativeCatalogImportMixin):
         return senses
 
     @OperationsMethod
-    def GetSenseCount(self, domain_or_hvo):
+    def GetSenseCount(self, domain_or_hvo, recursive=False):
         """
         Get the count of lexical senses that belong to this semantic domain.
 
         Args:
             domain_or_hvo: The ICmSemanticDomain object or HVO.
+            recursive (bool): If False (default), counts only senses
+                tagged with this domain exactly -- matches what FLEx's UI
+                shows in the Semantic Domain browse view (every count
+                column in FLEx is direct-only, same convention as
+                POSOperations.GetEntryCount). If True, rolls up senses
+                tagged with this domain OR any descendant domain
+                (e.g. counting "1" rolls up everything under
+                "1.1", "1.1.1", ...).
 
         Returns:
-            int: The number of senses using this domain.
+            int: The count of senses using this domain (direct-only by
+            default; including descendants when ``recursive=True``).
 
         Raises:
             FP_NullParameterError: If domain_or_hvo is None.
@@ -818,8 +827,11 @@ class SemanticDomainOperations(BaseOperations, _LCMNativeCatalogImportMixin):
         Example:
             >>> domain = project.SemanticDomains.Find("7.2.1")
             >>> count = project.SemanticDomains.GetSenseCount(domain)
-            >>> print(f"Domain 7.2.1 (Walk) has {count} senses")
-            Domain 7.2.1 (Walk) has 15 senses
+            >>> print(f"Domain 7.2.1 (Walk) has {count} senses (direct)")
+            Domain 7.2.1 (Walk) has 15 senses (direct)
+
+            >>> # Roll up: include 7.2.1.x sub-domains
+            >>> rollup = project.SemanticDomains.GetSenseCount(domain, recursive=True)
 
             >>> # Find empty domains
             >>> for domain in project.SemanticDomains.GetAll():
@@ -834,21 +846,36 @@ class SemanticDomainOperations(BaseOperations, _LCMNativeCatalogImportMixin):
             - May still be slow for large lexicons
             - Returns 0 for domains with no senses
             - Useful for coverage analysis
+            - Counting queries default to ``recursive=False`` (FLEx UI
+              parity), matching POSOperations.GetEntryCount. Collection
+              queries (GetAll, GetSubdomains) default to True; the
+              asymmetry is intentional. (issue #106 part 1)
 
         See Also:
-            GetSensesInDomain
+            GetSensesInDomain, GetSubdomains
         """
         self._ValidateParam(domain_or_hvo, "domain_or_hvo")
 
         domain = self.__ResolveObject(domain_or_hvo)
 
-        # Count senses
+        # Build the set of domain HVOs to match. With recursive=True
+        # this expands to include every descendant domain so callers
+        # don't miss senses tagged with a sub-domain of the requested
+        # one. (issue #106 part 1)
+        match_hvos = {domain.Hvo}
+        if recursive:
+            match_hvos.update(
+                d.Hvo for d in self.GetSubdomains(domain, recursive=True)
+            )
+
         count = 0
         sense_repo = self.project.project.ServiceLocator.GetService(ILexSenseRepository)
 
         for sense in sense_repo.AllInstances():
-            if domain in sense.SemanticDomainsRC:
-                count += 1
+            for sense_domain in sense.SemanticDomainsRC:
+                if sense_domain.Hvo in match_hvos:
+                    count += 1
+                    break  # Count each sense only once
 
         return count
 
