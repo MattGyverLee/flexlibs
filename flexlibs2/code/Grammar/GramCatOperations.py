@@ -15,7 +15,11 @@
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
 # Import FLEx LCM types
-from SIL.LCModel import ICmPossibility, ICmPossibilityFactory
+from SIL.LCModel import (
+    ICmPossibility,
+    ICmPossibilityFactory,
+    IFsFeatStrucTypeFactory,
+)
 from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
 
@@ -177,16 +181,24 @@ class GramCatOperations(BaseOperations):
         # Get the writing system handle
         wsHandle = self.project.project.DefaultAnalWs
 
-        # Create the new category using the factory
-        factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
-        new_cat = factory.Create()
-
-        # Add to parent's subcategories or to top-level TypesOC (must be done before setting properties)
+        # Dispatch the factory on the destination collection's typed
+        # element. MsFeatureSystemOA.TypesOC is
+        # LcmOwningCollection<IFsFeatStrucType> -- adding a bare
+        # ICmPossibility there violates the typed-collection invariant
+        # (the bug #163 calls out). SubPossibilitiesOS is the generic
+        # ICmPossibility sequence and accepts the base factory. So:
+        # top-level new categories go through IFsFeatStrucTypeFactory,
+        # subcategories stay with ICmPossibilityFactory.
+        # (issue #163)
         if parent:
             parent_obj = self.__ResolveObject(parent)
+            factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
+            new_cat = factory.Create()
             parent_obj.SubPossibilitiesOS.Add(new_cat)
         else:
             feature_system = self.project.lp.MsFeatureSystemOA
+            factory = self.project.project.ServiceLocator.GetService(IFsFeatStrucTypeFactory)
+            new_cat = factory.Create()
             feature_system.TypesOC.Add(new_cat)
 
         # Set name
@@ -479,12 +491,12 @@ class GramCatOperations(BaseOperations):
         # Get source category
         source = self.__ResolveObject(item_or_hvo)
 
-        # Create new category using factory (auto-generates new GUID)
-        factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
-        duplicate = factory.Create()
-
-        # Determine parent and insertion position
-        # Check if source is a subcategory or top-level
+        # Determine parent and insertion position. Top-level categories
+        # live in feature_system.TypesOC (LcmOwningCollection<IFsFeatStrucType>);
+        # subcategories live in their parent's SubPossibilitiesOS
+        # (LcmOwningSequence<ICmPossibility>). Dispatch the factory on
+        # the destination to satisfy each typed-collection invariant.
+        # (issue #163)
         parent_is_possibility = False
         try:
             parent_cat = ICmPossibility(source.Owner)
@@ -495,14 +507,18 @@ class GramCatOperations(BaseOperations):
         if parent_is_possibility:
             # Source is a subcategory
             parent_cat = ICmPossibility(source.Owner)
+            factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
+            duplicate = factory.Create()
             if insert_after:
                 source_index = parent_cat.SubPossibilitiesOS.IndexOf(source)
                 parent_cat.SubPossibilitiesOS.Insert(source_index + 1, duplicate)
             else:
                 parent_cat.SubPossibilitiesOS.Add(duplicate)
         else:
-            # Source is top-level
+            # Source is top-level -- TypesOC requires IFsFeatStrucType.
             feature_system = self.project.lp.MsFeatureSystemOA
+            factory = self.project.project.ServiceLocator.GetService(IFsFeatStrucTypeFactory)
+            duplicate = factory.Create()
             if insert_after:
                 source_index = feature_system.TypesOC.IndexOf(source)
                 feature_system.TypesOC.Insert(source_index + 1, duplicate)
