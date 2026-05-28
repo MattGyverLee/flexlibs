@@ -31,6 +31,8 @@ from SIL.LCModel import (
     ICmPictureFactory,
     ICmTranslationFactory,
     IReversalIndexEntry,
+    IMoInflAffMsaFactory,
+    IMoStemMsaFactory,
     LexEntryTags,
     MoMorphTypeTags,
 )
@@ -45,6 +47,23 @@ from ..FLExProject import (
 
 # Import LCM casting utilities for pythonnet interface casting
 from ..lcm_casting import cast_to_concrete
+
+
+# Affix morph-type GUIDs (per LCM MoMorphTypeTags). Constructed once at
+# module load -- the set is data, not control flow. Used by
+# __EntryHasAffixMorphType to dispatch MSA factories on the entry's
+# morph type. (issue #92)
+_AFFIX_MORPH_TYPE_GUIDS = frozenset({
+    MoMorphTypeTags.kguidMorphPrefix,
+    MoMorphTypeTags.kguidMorphSuffix,
+    MoMorphTypeTags.kguidMorphInfix,
+    MoMorphTypeTags.kguidMorphCircumfix,
+    MoMorphTypeTags.kguidMorphPrefixingInterfix,
+    MoMorphTypeTags.kguidMorphSuffixingInterfix,
+    MoMorphTypeTags.kguidMorphInfixingInterfix,
+    MoMorphTypeTags.kguidMorphSimulfix,
+    MoMorphTypeTags.kguidMorphSuprafix,
+})
 
 # Import string utilities
 from ..Shared.string_utils import best_analysis_text
@@ -351,7 +370,7 @@ class LexSenseOperations(BaseOperations):
                 parent.SensesOS.Add(duplicate)
 
         # Copy all content from source to duplicate (including owned objects if deep)
-        self._copy_sense_content(source, duplicate, deep)
+        self.__copy_sense_content(source, duplicate, deep)
 
         return duplicate
 
@@ -373,10 +392,10 @@ class LexSenseOperations(BaseOperations):
         factory = self.project.project.ServiceLocator.GetService(ILexSenseFactory)
         duplicate = factory.Create()
         target_parent.SensesOS.Add(duplicate)
-        self._copy_sense_content(source, duplicate, deep=True)
+        self.__copy_sense_content(source, duplicate, deep=True)
         return duplicate
 
-    def _copy_sense_content(self, source, duplicate, deep=False):
+    def __copy_sense_content(self, source, duplicate, deep=False):
         """
         Copy all sense content from source to duplicate.
 
@@ -626,7 +645,7 @@ class LexSenseOperations(BaseOperations):
         # Source / ScientificName / ImportResidue all live on the sense
         # (taxonomic name, bibliographic source, LIFT import carry-over),
         # are surfaced via Get/Set accessors elsewhere on this class, and
-        # are copied by _copy_sense_content; the sync surface mirrors
+        # are copied by __copy_sense_content; the sync surface mirrors
         # those round-trip contracts. Read via _ReadTsString so the
         # values come out as plain Python strings (or "" for unset),
         # consistent with the Source block above at the SocioLinguistics
@@ -1165,19 +1184,9 @@ class LexSenseOperations(BaseOperations):
 
         # Create a fresh MSA of the correct family. Phase 2 ownership
         # rule: attach to entry.MorphoSyntaxAnalysesOC BEFORE setting
-        # PartOfSpeechRA.
-        if entry_is_affix:
-            from SIL.LCModel import IMoInflAffMsaFactory
-
-            factory = self.project.project.ServiceLocator.GetService(
-                IMoInflAffMsaFactory
-            )
-        else:
-            from SIL.LCModel import IMoStemMsaFactory
-
-            factory = self.project.project.ServiceLocator.GetService(
-                IMoStemMsaFactory
-            )
+        # PartOfSpeechRA. (issue #92)
+        factory_iface = IMoInflAffMsaFactory if entry_is_affix else IMoStemMsaFactory
+        factory = self.project.project.ServiceLocator.GetService(factory_iface)
         msa = factory.Create()
         entry.MorphoSyntaxAnalysesOC.Add(msa)
         msa.PartOfSpeechRA = pos_obj
@@ -1203,18 +1212,7 @@ class LexSenseOperations(BaseOperations):
         morph_type = entry.LexemeFormOA.MorphTypeRA
         if morph_type is None:
             return False
-        affix_guids = {
-            MoMorphTypeTags.kguidMorphPrefix,
-            MoMorphTypeTags.kguidMorphSuffix,
-            MoMorphTypeTags.kguidMorphInfix,
-            MoMorphTypeTags.kguidMorphCircumfix,
-            MoMorphTypeTags.kguidMorphPrefixingInterfix,
-            MoMorphTypeTags.kguidMorphSuffixingInterfix,
-            MoMorphTypeTags.kguidMorphInfixingInterfix,
-            MoMorphTypeTags.kguidMorphSimulfix,
-            MoMorphTypeTags.kguidMorphSuprafix,
-        }
-        return morph_type.Guid in affix_guids
+        return morph_type.Guid in _AFFIX_MORPH_TYPE_GUIDS
 
     @OperationsMethod
     def GetGrammaticalInfo(self, sense_or_hvo):
