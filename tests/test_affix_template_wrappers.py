@@ -24,24 +24,42 @@ import pytest
 from unittest.mock import Mock, MagicMock, PropertyMock, patch
 import sys
 
-# Patch lcm_casting to avoid SIL.LCModel import errors in test environment
-sil_lcmodel = MagicMock()
-sil_lcmodel.IMoInflAffixTemplate = MagicMock()
+# Try the real flexlibs2 first (works when FieldWorks is installed). If that
+# fails (CI / no-FW environment), fall back to mocking SIL.* so the wrapper
+# modules can still be imported in isolation. When the real SIL is loaded,
+# tests that rely on a lambda ITsString patch (the property/edge-case suites
+# below) cannot pass -- the real .NET ITsString interface rejects Mock()
+# inputs and the type does not allow attribute replacement. Those tests
+# self-skip via SIL_IS_REAL below.
+SIL_IS_REAL = False
+try:
+    import flexlibs2.code.lcm_casting as lcm_casting  # noqa: F401
 
-sys.modules["SIL"] = MagicMock()
-sys.modules["SIL.LCModel"] = sil_lcmodel
-sys.modules["SIL.LCModel.Core"] = MagicMock()
-sil_kernel = MagicMock()
-# Create a mock ITsString class that just returns the object passed to it
-sil_kernel.ITsString = lambda x: x
-sys.modules["SIL.LCModel.Core.KernelInterfaces"] = sil_kernel
-sys.modules["SIL.LCModel.Core.Text"] = MagicMock()
+    SIL_IS_REAL = True
+except Exception:
+    sil_lcmodel = MagicMock()
+    sil_lcmodel.IMoInflAffixTemplate = MagicMock()
+
+    sys.modules["SIL"] = MagicMock()
+    sys.modules["SIL.LCModel"] = sil_lcmodel
+    sys.modules["SIL.LCModel.Core"] = MagicMock()
+    sil_kernel = MagicMock()
+    # Create a mock ITsString class that just returns the object passed to it
+    sil_kernel.ITsString = lambda x: x
+    sys.modules["SIL.LCModel.Core.KernelInterfaces"] = sil_kernel
+    sys.modules["SIL.LCModel.Core.Text"] = MagicMock()
+
+    import flexlibs2.code.lcm_casting as lcm_casting
 
 # Patch cast_to_concrete to just return the object as-is (no actual casting needed for tests)
-import flexlibs2.code.lcm_casting as lcm_casting
-
 original_cast = lcm_casting.cast_to_concrete
 lcm_casting.cast_to_concrete = lambda obj: obj
+
+# Skip mock-only tests when running against a real FieldWorks install.
+_real_sil_skip = pytest.mark.skipif(
+    SIL_IS_REAL,
+    reason="Mock fixtures here cannot satisfy real .NET ITsString interface",
+)
 
 
 # ==============================================================================
@@ -131,6 +149,7 @@ def mock_template_all_slots():
 # ==============================================================================
 
 
+@_real_sil_skip
 class TestAffixTemplateProperties:
     """Test basic property access on AffixTemplate wrapper."""
 
@@ -311,6 +330,7 @@ class TestAffixTemplateCapabilities:
 # ==============================================================================
 
 
+@_real_sil_skip
 class TestAffixTemplateCollectionFiltering:
     """Test collection filtering operations."""
 
@@ -428,6 +448,7 @@ class TestAffixTemplateCollectionFiltering:
 # ==============================================================================
 
 
+@_real_sil_skip
 class TestAffixTemplateCollectionConvenience:
     """Test convenience filtering methods."""
 
@@ -482,6 +503,7 @@ class TestAffixTemplateCollectionConvenience:
 # ==============================================================================
 
 
+@_real_sil_skip
 class TestAffixTemplateRepresentations:
     """Test string representations and display."""
 
@@ -537,6 +559,7 @@ class TestAffixTemplateRepresentations:
 # ==============================================================================
 
 
+@_real_sil_skip
 class TestAffixTemplateEdgeCases:
     """Test edge cases and error handling."""
 

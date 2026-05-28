@@ -27,15 +27,20 @@ import pytest
 import sys
 from unittest.mock import Mock, MagicMock, PropertyMock, patch
 
-# Mock SIL.LCModel before importing wrapper classes
-sys.modules["SIL"] = MagicMock()
-sys.modules["SIL.LCModel"] = MagicMock()
-sys.modules["SIL.LCModel.Core"] = MagicMock()
-sys.modules["SIL.LCModel.Core.KernelInterfaces"] = MagicMock()
-sys.modules["SIL.LCModel.Core.Text"] = MagicMock()
+# Try the real flexlibs2 first (works when FieldWorks is installed). Only
+# fall back to mocking SIL.* if that fails (CI / no-FW environment).
+try:
+    from flexlibs2.code.Grammar.adhoc_prohibition import AdhocProhibition
+    from flexlibs2.code.Grammar.prohibition_collection import ProhibitionCollection
+except Exception:
+    sys.modules["SIL"] = MagicMock()
+    sys.modules["SIL.LCModel"] = MagicMock()
+    sys.modules["SIL.LCModel.Core"] = MagicMock()
+    sys.modules["SIL.LCModel.Core.KernelInterfaces"] = MagicMock()
+    sys.modules["SIL.LCModel.Core.Text"] = MagicMock()
 
-from flexlibs2.code.Grammar.adhoc_prohibition import AdhocProhibition
-from flexlibs2.code.Grammar.prohibition_collection import ProhibitionCollection
+    from flexlibs2.code.Grammar.adhoc_prohibition import AdhocProhibition
+    from flexlibs2.code.Grammar.prohibition_collection import ProhibitionCollection
 
 
 # ============================================================================

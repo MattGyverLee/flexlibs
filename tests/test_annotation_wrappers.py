@@ -24,9 +24,21 @@ the complete FLEx/LCM environment. These tests use mock objects to
 validate collection filtering logic.
 """
 
+import sys
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, MagicMock
 from datetime import datetime
+
+# Try the real flexlibs2 first (works when FieldWorks is installed). Only
+# fall back to mocking SIL.* if that fails (CI / no-FW environment).
+try:
+    import flexlibs2  # noqa: F401
+except Exception:
+    sys.modules["SIL"] = MagicMock()
+    sys.modules["SIL.LCModel"] = MagicMock()
+    sys.modules["SIL.LCModel.Core"] = MagicMock()
+    sys.modules["SIL.LCModel.Core.KernelInterfaces"] = MagicMock()
+    sys.modules["SIL.LCModel.Core.Text"] = MagicMock()
 
 
 # DateTime mock for testing
