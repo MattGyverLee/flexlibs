@@ -446,6 +446,18 @@ class FLExProject(object):
             >>> project.ImportLocalizedLists("fr")
             >>> # Spanish on top of French is fine -- merge is per-WS.
             >>> project.ImportLocalizedLists("es")
+
+        Notes:
+            Translation packs match by canonical GUID and silently
+            ignore GUIDs they don't recognise (and silently leave
+            GUIDs they don't carry untranslated). Catalog skew is
+            therefore invisible at the call site. The biggest known
+            case: ``OCM-Frame.xml`` (loaded via
+            ``AnthropologyOperations.ImportFrameCatalog``) carries
+            116 GUIDs that ``OCM.xml`` does not. Pairing the wrong
+            catalog with the wrong pack leaves part of AnthroListOA
+            untranslated without any warning. (issue #82; structured
+            unmatched-GUID diagnostics are filed as #75.)
         """
         if language_code is None:
             raise FP_NullParameterError()

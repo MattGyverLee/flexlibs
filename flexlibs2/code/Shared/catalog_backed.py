@@ -662,6 +662,16 @@ class _LCMNativeCatalogImportMixin:
     inherited ImportCatalog? Existing tests use
     ``cls.__dict__["ImportCatalog"]`` to inspect the @OperationsMethod
     descriptor and would break under MRO-only resolution.
+
+    Sibling-catalog importers:
+        A subclass that ships multiple catalogs feeding the same target
+        list (e.g. ``AnthropologyOperations`` with both ``OCM.xml`` and
+        ``OCM-Frame.xml``) can expose additional public ``Import*``
+        methods that route through ``_import_lcm_native_catalog`` with
+        the ``catalog_file=`` runtime override (rather than overriding
+        the class-level ``CATALOG_FILE`` constant). The
+        ``ImportFrameCatalog`` method on AnthropologyOperations is the
+        established precedent. (issue #83)
     """
 
     # ---- Class-level configuration (subclasses override) ---------------
@@ -718,19 +728,28 @@ class _LCMNativeCatalogImportMixin:
 
         self._EnsureWriteEnabled()
 
-        effective_catalog = catalog_file or self.CATALOG_FILE
+        # Explicit None-check rather than truthy fallback so an empty
+        # string passed by mistake fails loudly via find_catalog_file
+        # rather than silently degrading to the class-level default.
+        # (issue #83 item 2)
+        effective_catalog = catalog_file if catalog_file is not None else self.CATALOG_FILE
 
         target_list = getattr(self.project.lp, self.LANG_PROJECT_LIST_ATTR)
         existing = target_list.PossibilitiesOS.Count
         if existing > 0 and not force:
+            # Name the specific catalog in the message so a sibling
+            # caller (ImportFrameCatalog at effective_catalog='OCM-Frame.xml')
+            # self-identifies in error logs instead of saying generic
+            # "this". (issue #83 item 3)
             raise FP_ParameterError(
                 f"{self.LANG_PROJECT_LIST_ATTR} already has {existing} "
                 f"top-level {self.DOMAIN_ITEM_LABEL_SINGULAR}(s). "
                 f"XmlList.ImportList APPENDS without GUID-based "
-                f"deduplication, so calling this here would create "
-                f"duplicates. Pass force=True if you intend to layer "
-                f"additional {self.DOMAIN_ITEM_LABEL_PLURAL} on top, "
-                f"or clear the list first."
+                f"deduplication, so importing {effective_catalog!r} "
+                f"here would create duplicates. Pass force=True if "
+                f"you intend to layer additional "
+                f"{self.DOMAIN_ITEM_LABEL_PLURAL} on top, or clear "
+                f"the list first."
             )
 
         try:

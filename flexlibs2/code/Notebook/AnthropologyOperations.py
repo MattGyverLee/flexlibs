@@ -1892,6 +1892,17 @@ class AnthropologyOperations(BaseOperations, _LCMNativeCatalogImportMixin):
             FP_FileNotFoundError: If OCM-Frame.xml cannot be located.
             FP_ParameterError: If ``AnthroListOA`` already has items
                 and ``force`` is False.
+
+        See Also:
+            ``FLExProject.ImportLocalizedLists``: localisation packs
+            match by canonical GUID. ``OCM-Frame.xml`` carries 116
+            GUIDs that ``OCM.xml`` does not. An OCM-only pack against
+            an OCM-Frame project will leave the 116 frame-specific
+            items untranslated; an OCM-Frame-aware pack against an
+            OCM-only project will silently drop translations for the
+            116 GUIDs the project doesn't have. If you call
+            ``ImportLocalizedLists``, do so **after** the relevant
+            catalog import and verify counts. (issue #82)
         """
         return self._import_lcm_native_catalog(
             progress=progress, force=force, catalog_file="OCM-Frame.xml"
