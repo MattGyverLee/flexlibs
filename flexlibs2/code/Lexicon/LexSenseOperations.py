@@ -66,7 +66,7 @@ _AFFIX_MORPH_TYPE_GUIDS = frozenset({
 })
 
 # Import string utilities
-from ..Shared.string_utils import best_analysis_text
+from ..Shared.string_utils import best_analysis_text, normalize_match_key
 
 
 class LexSenseOperations(BaseOperations):
@@ -745,6 +745,31 @@ class LexSenseOperations(BaseOperations):
         # Add in new order
         for sense in resolved_senses:
             entry.SensesOS.Add(sense)
+
+    # --- Lookup ---
+
+    @OperationsMethod
+    def Find(self, gloss, wsHandle=None):
+        """Find a sense by gloss text, returning the first match or None.
+
+        Senses are identified in the lexicon by their gloss (a short
+        textual definition), so Find matches against ``ILexSense.Gloss``.
+        Searches a single writing system at a time (defaulting to the
+        project's analysis WS when ``wsHandle`` is omitted) and walks
+        every sense in the project including subsenses. For partial
+        matches or filtering by entry, iterate ``GetAll()`` directly.
+        """
+        self._ValidateParam(gloss, "gloss")
+        if not gloss or not gloss.strip():
+            return None
+
+        wsHandle = self.__WSHandle(wsHandle)
+        target = normalize_match_key(gloss, casefold=False)
+        for sense in self.GetAll():
+            current = ITsString(sense.Gloss.get_String(wsHandle)).Text
+            if normalize_match_key(current, casefold=False) == target:
+                return sense
+        return None
 
     # --- Gloss & Definition Operations ---
 
@@ -2816,7 +2841,17 @@ class LexSenseOperations(BaseOperations):
 
     @OperationsMethod
     def SetSource(self, sense_or_hvo, text, wsHandle=None):
-        """Set the source of a sense."""
+        """Set the source of a sense.
+
+        ``ILexSense.Source`` is an ITsString (single-string), not an
+        IMultiString. ``wsHandle`` therefore only tags the WS metadata
+        on the single TsString run -- it does **not** pick a per-WS
+        slot the way it does on multi-WS setters like SetBibliography
+        or SetGeneralNote. Only one source value is ever stored. Pass
+        ``wsHandle`` explicitly when the source needs to be tagged for
+        a specific WS (e.g. citing a vernacular-language reference);
+        omit it to default to the analysis WS. (issue #43)
+        """
         self._EnsureWriteEnabled()
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         self._ValidateParam(text, "text")
@@ -2833,6 +2868,12 @@ class LexSenseOperations(BaseOperations):
     @OperationsMethod
     def SetScientificName(self, sense_or_hvo, text, wsHandle=None):
         """Set the scientific name of a sense.
+
+        ``ILexSense.ScientificName`` is an ITsString (single-string),
+        not an IMultiString. ``wsHandle`` only tags the WS metadata on
+        the single TsString run -- it does **not** pick a per-WS slot
+        the way it does on multi-WS setters. Only one scientific-name
+        value is stored. (issue #43)
 
         Defaults wsHandle to the project's vernacular WS rather than
         the analysis WS. Scientific binomials (e.g. *Panthera leo*) are
@@ -2862,7 +2903,17 @@ class LexSenseOperations(BaseOperations):
 
     @OperationsMethod
     def SetImportResidue(self, sense_or_hvo, text, wsHandle=None):
-        """Set the import residue of a sense."""
+        """Set the import residue of a sense.
+
+        ``ILexSense.ImportResidue`` is an ITsString (single-string), not
+        an IMultiString. ``wsHandle`` therefore only tags the WS
+        metadata on the single TsString run -- it does **not** pick a
+        per-WS slot the way it does on multi-WS setters. Only one
+        residue value is ever stored. Pass ``wsHandle`` explicitly when
+        the residue needs a specific WS tag (rare; typically import
+        residue is whatever the import source produced); omit to
+        default to the analysis WS. (issue #43)
+        """
         self._EnsureWriteEnabled()
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         self._ValidateParam(text, "text")

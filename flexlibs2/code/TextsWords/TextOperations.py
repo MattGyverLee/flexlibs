@@ -482,6 +482,40 @@ class TextOperations(BaseOperations):
         return self.project.ObjectsIn(ITextRepository)
 
     @OperationsMethod
+    def Find(self, title, wsHandle=None):
+        """Find a text by title, returning None when no match exists.
+
+        ``IText.Name`` is the user-facing title in FieldWorks, so Find
+        searches that field. Matches a single writing system at a time
+        (the default analysis WS when ``wsHandle`` is omitted). Returns
+        the first matching ``IText`` or None; for partial matching,
+        iterate ``GetAll()`` and filter manually.
+        """
+        self._ValidateParam(title, "title")
+        if not title or not title.strip():
+            return None
+
+        wsHandle = self.__WSHandle(wsHandle)
+        target = normalize_match_key(title, casefold=False)
+        for text in self.GetAll():
+            current = ITsString(text.Name.get_String(wsHandle)).Text
+            if normalize_match_key(current, casefold=False) == target:
+                return text
+        return None
+
+    # GetTitle / SetTitle are user-facing names for the same field that
+    # LCM exposes as IText.Name. Both spellings appear in the codebase's
+    # public conventions (and in FieldWorks' UI), so expose them as
+    # first-class methods rather than as deprecated aliases.
+    def GetTitle(self, text_or_hvo, wsHandle=None):
+        """Get the text's title (same field as GetName)."""
+        return self.GetName(text_or_hvo, wsHandle=wsHandle)
+
+    def SetTitle(self, text_or_hvo, title, wsHandle=None):
+        """Set the text's title (same field as SetName)."""
+        return self.SetName(text_or_hvo, title, wsHandle=wsHandle)
+
+    @OperationsMethod
     def GetName(self, text_or_hvo, wsHandle=None):
         """
         Get the name of a text.
