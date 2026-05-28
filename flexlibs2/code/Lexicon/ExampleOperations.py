@@ -520,7 +520,11 @@ class ExampleOperations(BaseOperations):
         wsHandle = self.__WSHandleVern(wsHandle)
 
         text = ITsString(example.Example.get_String(wsHandle)).Text
-        return self._NormalizeMultiString(text)
+        # _NormalizeMultiString turns "***" into "" but leaves None alone.
+        # GetExample's docstring promises a str (empty when unset), so coerce
+        # the None-on-unset case to "" as well -- callers do not expect to
+        # have to .startswith()-guard the return value.
+        return self._NormalizeMultiString(text) or ""
 
     @OperationsMethod
     def SetExample(self, example_or_hvo, text, wsHandle=None):
