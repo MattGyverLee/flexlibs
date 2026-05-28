@@ -71,12 +71,16 @@ class PhonologicalRuleOperations(BaseOperations):
         rule = phonRuleOps.Create("Voicing Assimilation")
         phonRuleOps.SetDescription(rule, "Obstruents become voiced before vowels")
 
-        # Add input/output components
-        phonRuleOps.AddInputSegment(rule, phoneme_t)
-        phonRuleOps.AddOutputSegment(rule, phoneme_d)
-
-        # Set phonological context
-        phonRuleOps.SetRightContext(rule, vowel_class)
+        # Wire the rule via WireRule (the supported composer).
+        # AddInputSegment / AddOutputSegment still work for simple cases,
+        # but SetLeftContext / SetRightContext are refused with
+        # NotImplementedError (they wrote to the wrong owner -- see #142).
+        from flexlibs2 import Seg, NC
+        phonRuleOps.WireRule(rule,
+            input_pattern=[Seg(phoneme_t)],
+            output_change=[Seg(phoneme_d)],
+            right_context=[NC(vowel_class)],
+        )
 
         project.CloseProject()
     """
@@ -742,125 +746,66 @@ class PhonologicalRuleOperations(BaseOperations):
     @OperationsMethod
     def SetLeftContext(self, rule_or_hvo, context_item):
         """
-        [DEPRECATED] Use WireRule for new code.
+        Refuses with NotImplementedError.
 
-        This method writes to ``StrucDescOS[0].LeftContextOA`` but the
-        ``LeftContextOA``/``RightContextOA`` properties actually live on
-        ``IPhSegRuleRHS`` (the structural-change/environment owner), not
-        on ``IPhSimpleContext``. As a result this method does not produce
-        runnable rules. WireRule supersedes it with the correct ownership
-        path (``rhs.LeftContextOA``) and supports Seg/NC/Boundary elements.
+        This method's previous implementation wrote to
+        ``StrucDescOS[0].LeftContextOA``, but ``LeftContextOA`` /
+        ``RightContextOA`` actually live on ``IPhSegRuleRHS`` (the
+        structural-change/environment owner), not on
+        ``IPhSimpleContext``. The method therefore never produced
+        runnable rules -- the call appeared to succeed but the rule
+        could not be applied. Refusing loudly is strictly better than
+        silently emitting a non-runnable rule. (issue #142)
 
-        Set the left context (environment before the target) for the rule.
+        Use :meth:`WireRule` instead, which writes to the correct
+        ownership path (``rhs.LeftContextOA``) and supports
+        Seg/NC/Boundary elements::
 
-        Args:
-            rule_or_hvo: The IPhPhonRule object or HVO.
-            context_item: A phoneme, natural class, or environment object/HVO.
+            project.PhonRules.WireRule(rule, left_context=[Seg('a')])
 
         Raises:
-            FP_ReadOnlyError: If the project is not opened with write enabled.
-            FP_NullParameterError: If rule_or_hvo is None.
-
-        Example:
-            >>> phonRuleOps = PhonologicalRuleOperations(project)
-            >>> rule = phonRuleOps.Create("Final Devoicing")
-            >>> # Set word boundary as left context
-            >>> phonRuleOps.SetLeftContext(rule, None)  # No left constraint
-
-        Notes:
-            - Left context specifies what must precede the input
-            - Pass None to indicate no left context constraint
-            - Can be a phoneme, natural class, or word boundary
+            NotImplementedError: Always.
 
         See Also:
-            SetRightContext, GetLeftContext
+            WireRule, SetRightContext
         """
-        self._EnsureWriteEnabled()
-
-        self._ValidateParam(rule_or_hvo, "rule_or_hvo")
-
-        rule = self.__ResolveObject(rule_or_hvo)
-
-        # Resolve context item if HVO
-        if isinstance(context_item, int):
-            context_item = self.project.Object(context_item)
-
-        # Set left context in the rule's structural description
-        # This typically uses the LeftContext property
-        if hasattr(rule, "StrucDescOS") and rule.StrucDescOS.Count > 0:
-            input_context = rule.StrucDescOS[0]
-            if hasattr(input_context, "LeftContextOA"):
-                if context_item is None:
-                    input_context.LeftContextOA = None
-                else:
-                    # Create context specification
-                    ctx_factory = self.project.project.ServiceLocator.GetService(IPhSimpleContextSegFactory)
-                    left_ctx = ctx_factory.Create()
-                    # Attach to owner (must be done before setting properties)
-                    input_context.LeftContextOA = left_ctx
-                    left_ctx.FeatureStructureRA = context_item
+        raise NotImplementedError(
+            "SetLeftContext never produced runnable rules (it wrote to "
+            "LeftContextOA on a simple context, but that property lives "
+            "on IPhSegRuleRHS). Use WireRule(rule, left_context=...) "
+            "instead. (issue #142)"
+        )
 
     @OperationsMethod
     def SetRightContext(self, rule_or_hvo, context_item):
         """
-        [DEPRECATED] Use WireRule for new code.
+        Refuses with NotImplementedError.
 
-        This method writes to ``StrucDescOS[0].RightContextOA`` but the
-        ``RightContextOA``/``LeftContextOA`` properties actually live on
-        ``IPhSegRuleRHS``, not on ``IPhSimpleContext``. As a result this
-        method does not produce runnable rules. WireRule supersedes it
-        with the correct ownership path (``rhs.RightContextOA``) and
-        supports Seg/NC/Boundary elements.
+        This method's previous implementation wrote to
+        ``StrucDescOS[0].RightContextOA``, but ``RightContextOA`` /
+        ``LeftContextOA`` actually live on ``IPhSegRuleRHS``, not on
+        ``IPhSimpleContext``. The method therefore never produced
+        runnable rules. Refusing loudly is strictly better than
+        silently emitting a non-runnable rule. (issue #142)
 
-        Set the right context (environment after the target) for the rule.
+        Use :meth:`WireRule` instead, which writes to the correct
+        ownership path (``rhs.RightContextOA``) and supports
+        Seg/NC/Boundary elements::
 
-        Args:
-            rule_or_hvo: The IPhPhonRule object or HVO.
-            context_item: A phoneme, natural class, or environment object/HVO.
+            project.PhonRules.WireRule(rule, right_context=[NC(vowels)])
 
         Raises:
-            FP_ReadOnlyError: If the project is not opened with write enabled.
-            FP_NullParameterError: If rule_or_hvo is None.
-
-        Example:
-            >>> phonRuleOps = PhonologicalRuleOperations(project)
-            >>> rule = phonRuleOps.Create("Intervocalic Voicing")
-            >>> # Get vowel natural class
-            >>> vowels = project.NaturalClasses.Find("Vowels")
-            >>> # Set vowel as right context
-            >>> phonRuleOps.SetRightContext(rule, vowels)
-
-        Notes:
-            - Right context specifies what must follow the input
-            - Pass None to indicate no right context constraint
-            - Can be a phoneme, natural class, or word boundary
+            NotImplementedError: Always.
 
         See Also:
-            SetLeftContext, GetRightContext
+            WireRule, SetLeftContext
         """
-        self._EnsureWriteEnabled()
-
-        self._ValidateParam(rule_or_hvo, "rule_or_hvo")
-
-        rule = self.__ResolveObject(rule_or_hvo)
-
-        # Resolve context item if HVO
-        if isinstance(context_item, int):
-            context_item = self.project.Object(context_item)
-
-        # Set right context in the rule's structural description
-        if hasattr(rule, "StrucDescOS") and rule.StrucDescOS.Count > 0:
-            input_context = rule.StrucDescOS[0]
-            if hasattr(input_context, "RightContextOA"):
-                if context_item is None:
-                    input_context.RightContextOA = None
-                else:
-                    # Create context specification
-                    ctx_factory = self.project.project.ServiceLocator.GetService(IPhSimpleContextSegFactory)
-                    right_ctx = ctx_factory.Create()
-                    # Attach to owner (must be done before setting properties)
-                    input_context.RightContextOA = right_ctx
-                    right_ctx.FeatureStructureRA = context_item
+        raise NotImplementedError(
+            "SetRightContext never produced runnable rules (it wrote to "
+            "RightContextOA on a simple context, but that property lives "
+            "on IPhSegRuleRHS). Use WireRule(rule, right_context=...) "
+            "instead. (issue #142)"
+        )
 
     # ========================================================================
     # ALPHA-FEATURE CONSTRAINTS (Greek-variable agreement)
