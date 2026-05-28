@@ -10,9 +10,8 @@ Date: 2026-02-28
 Version: 2.3.0
 """
 
-# NOTE: FLExProject exposes operations classes using plural names (e.g., Agents, WritingSystems).
-# For backward compatibility, singular aliases are also available (e.g., Agent, WritingSystem).
-# Both project.Agent and project.Agents refer to the same operations class.
+# NOTE: project.ProjectSettings has no plural alias -- ProjectSettings is the
+# singleton handle for the project's settings, not a collection.
 
 from flexlibs2 import FLExProject, FLExInitialize, FLExCleanup
 

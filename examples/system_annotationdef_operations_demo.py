@@ -12,7 +12,7 @@ Version: 2.3.0
 
 # NOTE: FLExProject exposes operations classes using plural names (e.g., Agents, WritingSystems).
 # For backward compatibility, singular aliases are also available (e.g., Agent, WritingSystem).
-# Both project.Agent and project.Agents refer to the same operations class.
+# Both project.AnnotationDef and project.AnnotationDefs refer to the same operations class.
 
 from flexlibs2 import FLExProject, FLExInitialize, FLExCleanup
 
