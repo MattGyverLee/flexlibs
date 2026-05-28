@@ -1093,19 +1093,30 @@ class PhonologicalRuleOperations(BaseOperations):
 
         # --- Wire left context -> rhs.LeftContextOA ---
         if left_context:
-            ctx = self.__WireContext(left_context, slot_name="left_context")
+            ctx, deferred_elem = self.__WireContext(
+                left_context, slot_name="left_context"
+            )
             # OwningAtomic: assignment IS the attach. Do NOT re-fetch via
             # rhs.LeftContextOA -- pythonnet narrows the proxy to the
             # IPhPhonContext base interface, losing access to concrete-type
             # properties like PlusConstrRS / MinusConstrRS. The local `ctx`
             # already points at the same LCM object with the concrete type.
             rhs.LeftContextOA = ctx
+            if deferred_elem is not None:
+                # Single-element path: ctx is now owned by rhs; populate
+                # FeatureStructureRA / alpha constraints after the attach
+                # so LCM's validity check via Owner passes.
+                self.__PopulateSimpleContext(ctx, deferred_elem)
 
         # --- Wire right context -> rhs.RightContextOA ---
         if right_context:
-            ctx = self.__WireContext(right_context, slot_name="right_context")
+            ctx, deferred_elem = self.__WireContext(
+                right_context, slot_name="right_context"
+            )
             # See note on LeftContextOA above -- skip the defensive re-fetch.
             rhs.RightContextOA = ctx
+            if deferred_elem is not None:
+                self.__PopulateSimpleContext(ctx, deferred_elem)
 
     # ------------------------------------------------------------------
     # WireRule internals
@@ -1156,33 +1167,39 @@ class PhonologicalRuleOperations(BaseOperations):
         """
         Build the appropriate context object for a left/right context list.
 
-        Single-element fast path: returns an unattached IPhSimpleContext*
-        (caller assigns to rhs.LeftContextOA / RightContextOA, which is the
-        attach).
+        Returns ``(ctx, deferred_elem)``:
 
-        Multi-element path: creates each member context, attaches it to
-        PhonologicalDataOA.ContextsOS (the project-level owner pool),
-        populates it, then creates an IPhSequenceContext and adds the
-        members via MembersRS (reference-only list). Returns the sequence;
-        caller's assignment to rhs.LeftContextOA / RightContextOA attaches
-        the sequence to the rule.
+        * Single-element fast path: ``ctx`` is an unattached
+          IPhSimpleContext*; ``deferred_elem`` is the source pattern
+          element. The caller MUST assign ``ctx`` to
+          rhs.LeftContextOA / RightContextOA first (the attach), then call
+          ``__PopulateSimpleContext(ctx, deferred_elem)`` to set
+          FeatureStructureRA + alpha constraints. Populating before the
+          attach raises System.NullReferenceException from LCM's setter
+          because the context's Owner is unset.
 
-        Ownership-ordering trap: each member context must be Add()-ed to
-        ContextsOS BEFORE its FeatureStructureRA / constraint properties
-        are populated. LCM's reference-list validity check runs through
-        the context's Owner, which is unset until the Add() happens. See
-        the worked-out diagnosis in issue #23.
+        * Multi-element path: each member is attached to
+          PhonologicalDataOA.ContextsOS (the project-level owner pool)
+          and fully populated inline, then an IPhSequenceContext is
+          created and the members are added via MembersRS (reference-
+          only list). ``ctx`` is the sequence (still unowned -- caller
+          assigns to rhs.LeftContextOA / RightContextOA); ``deferred_elem``
+          is None because no further population is required.
+
+        Ownership-ordering trap (single AND multi paths): each
+        IPhSimpleContext* must be owned BEFORE its FeatureStructureRA /
+        constraint properties are populated. LCM's validity check runs
+        through the context's Owner. See the diagnosis in issue #23.
         """
         if not elements:
-            return None
+            return None, None
 
         if len(elements) == 1:
             elem = elements[0]
             ctx = self.__BuildSimpleContext(elem, slot_name=slot_name)
-            # Single-element path: caller's OwningAtomic assignment will
-            # attach this context to the RHS. Populate before that handoff.
-            self.__PopulateSimpleContext(ctx, elem)
-            return ctx
+            # Defer population until the caller's OwningAtomic assignment
+            # has happened (ownership-ordering trap).
+            return ctx, elem
 
         # Multi-element path. Members live in PhPhonData.ContextsOS; the
         # sequence references them via MembersRS (reference-only).
@@ -1221,7 +1238,7 @@ class PhonologicalRuleOperations(BaseOperations):
         for member in members:
             seq_typed.MembersRS.Add(member)
 
-        return seq
+        return seq, None
 
     def __BuildSimpleContext(self, elem, slot_name):
         """Create the appropriate IPhSimpleContext* for a pattern element.
