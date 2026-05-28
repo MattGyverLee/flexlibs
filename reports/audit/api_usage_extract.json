@@ -1,0 +1,5123 @@
+[
+  {
+    "file": "code\\BaseOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 1852,
+    "line_end": 1852,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\BaseOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 1886,
+    "line_end": 1886,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\FLExGlobals.py",
+    "namespace": "SIL.FieldWorks.Common.FwUtils",
+    "class": "VersionInfoProvider",
+    "line_start": 159,
+    "line_end": 159,
+    "import_type": "class",
+    "statement": "from SIL.FieldWorks.Common.FwUtils import VersionInfoProvider"
+  },
+  {
+    "file": "code\\FLExInit.py",
+    "namespace": "SIL.FieldWorks.Common.FwUtils",
+    "class": "FwRegistryHelper",
+    "line_start": 47,
+    "line_end": 47,
+    "import_type": "utility",
+    "statement": "from SIL.FieldWorks.Common.FwUtils import FwRegistryHelper"
+  },
+  {
+    "file": "code\\FLExInit.py",
+    "namespace": "SIL.FieldWorks.Common.FwUtils",
+    "class": "FwUtils",
+    "line_start": 47,
+    "line_end": 47,
+    "import_type": "utility",
+    "statement": "from SIL.FieldWorks.Common.FwUtils import FwUtils"
+  },
+  {
+    "file": "code\\FLExInit.py",
+    "namespace": "SIL.WritingSystems",
+    "class": "Sldr",
+    "line_start": 50,
+    "line_end": 50,
+    "import_type": "class",
+    "statement": "from SIL.WritingSystems import Sldr"
+  },
+  {
+    "file": "code\\FLExLCM.py",
+    "namespace": "SIL.LCModel",
+    "class": "LcmCache",
+    "line_start": 34,
+    "line_end": 34,
+    "import_type": "class",
+    "statement": "from SIL.LCModel import LcmCache"
+  },
+  {
+    "file": "code\\FLExLCM.py",
+    "namespace": "SIL.LCModel",
+    "class": "LcmSettings",
+    "line_start": 34,
+    "line_end": 34,
+    "import_type": "class",
+    "statement": "from SIL.LCModel import LcmSettings"
+  },
+  {
+    "file": "code\\FLExLCM.py",
+    "namespace": "SIL.LCModel",
+    "class": "LcmFileHelper",
+    "line_start": 34,
+    "line_end": 34,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel import LcmFileHelper"
+  },
+  {
+    "file": "code\\FLExLCM.py",
+    "namespace": "SIL.LCModel.Core.Cellar",
+    "class": "CellarPropertyType as _LCMCellarPropertyType",
+    "line_start": 35,
+    "line_end": 35,
+    "import_type": "class",
+    "statement": "from SIL.LCModel.Core.Cellar import CellarPropertyType as _LCMCellarPropertyType"
+  },
+  {
+    "file": "code\\FLExLCM.py",
+    "namespace": "SIL.FieldWorks",
+    "class": "ProjectId",
+    "line_start": 37,
+    "line_end": 37,
+    "import_type": "class",
+    "statement": "from SIL.FieldWorks import ProjectId"
+  },
+  {
+    "file": "code\\FLExLCM.py",
+    "namespace": "SIL.FieldWorks.Common.Controls",
+    "class": "ProgressDialogWithTask",
+    "line_start": 38,
+    "line_end": 38,
+    "import_type": "class",
+    "statement": "from SIL.FieldWorks.Common.Controls import ProgressDialogWithTask"
+  },
+  {
+    "file": "code\\FLExLCM.py",
+    "namespace": "SIL.FieldWorks.Common.FwUtils",
+    "class": "ThreadHelper",
+    "line_start": 39,
+    "line_end": 39,
+    "import_type": "utility",
+    "statement": "from SIL.FieldWorks.Common.FwUtils import ThreadHelper"
+  },
+  {
+    "file": "code\\FLExLCM.py",
+    "namespace": "SIL.FieldWorks.Common.FwUtils",
+    "class": "FwDirectoryFinder",
+    "line_start": 40,
+    "line_end": 40,
+    "import_type": "class",
+    "statement": "from SIL.FieldWorks.Common.FwUtils import FwDirectoryFinder"
+  },
+  {
+    "file": "code\\FLExLCM.py",
+    "namespace": "SIL.FieldWorks.Common.FwUtils",
+    "class": "FwUtils",
+    "line_start": 41,
+    "line_end": 41,
+    "import_type": "utility",
+    "statement": "from SIL.FieldWorks.Common.FwUtils import FwUtils"
+  },
+  {
+    "file": "code\\FLExLCM.py",
+    "namespace": "SIL.FieldWorks.FdoUi",
+    "class": "FwLcmUI",
+    "line_start": 42,
+    "line_end": 42,
+    "import_type": "class",
+    "statement": "from SIL.FieldWorks.FdoUi import FwLcmUI"
+  },
+  {
+    "file": "code\\FLExLCM.py",
+    "namespace": "SIL.FieldWorks.FwCoreDlgs",
+    "class": "ChooseLangProjectDialog",
+    "line_start": 43,
+    "line_end": 43,
+    "import_type": "class",
+    "statement": "from SIL.FieldWorks.FwCoreDlgs import ChooseLangProjectDialog"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmObjectRepository",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import ICmObjectRepository"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexEntryRepository",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import ILexEntryRepository"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexEntry",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexEntry"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "LexEntryTags",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "tags",
+    "statement": "from SIL.LCModel import LexEntryTags"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexSense",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexSense"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "LexSenseTags",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "tags",
+    "statement": "from SIL.LCModel import LexSenseTags"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "IWfiWordformRepository",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import IWfiWordformRepository"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "WfiWordformTags",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "tags",
+    "statement": "from SIL.LCModel import WfiWordformTags"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "WfiGlossTags",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "tags",
+    "statement": "from SIL.LCModel import WfiGlossTags"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "IWfiAnalysisRepository",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import IWfiAnalysisRepository"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "IWfiAnalysis",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IWfiAnalysis"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "WfiAnalysisTags",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "tags",
+    "statement": "from SIL.LCModel import WfiAnalysisTags"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "WfiMorphBundleTags",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "tags",
+    "statement": "from SIL.LCModel import WfiMorphBundleTags"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "LexExampleSentenceTags",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "tags",
+    "statement": "from SIL.LCModel import LexExampleSentenceTags"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "MoFormTags",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "tags",
+    "statement": "from SIL.LCModel import MoFormTags"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexRefTypeRepository",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import ILexRefTypeRepository"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibilityRepository",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import ICmPossibilityRepository"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibilityList",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmPossibilityList"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmSemanticDomain",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmSemanticDomain"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "TextTags",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "tags",
+    "statement": "from SIL.LCModel import TextTags"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "ITextRepository",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import ITextRepository"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "IStTxtPara",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IStTxtPara"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "ISegmentRepository",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import ISegmentRepository"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "IReversalIndex",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IReversalIndex"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "IReversalIndexEntry",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IReversalIndexEntry"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "ReversalIndexEntryTags",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "tags",
+    "statement": "from SIL.LCModel import ReversalIndexEntryTags"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoMorphType",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IMoMorphType"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "SpecialWritingSystemCodes",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "class",
+    "statement": "from SIL.LCModel import SpecialWritingSystemCodes"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "LcmInvalidClassException",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "class",
+    "statement": "from SIL.LCModel import LcmInvalidClassException"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "LcmInvalidFieldException",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "class",
+    "statement": "from SIL.LCModel import LcmInvalidFieldException"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "LcmFileLockedException",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "class",
+    "statement": "from SIL.LCModel import LcmFileLockedException"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "LcmDataMigrationForbiddenException",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "class",
+    "statement": "from SIL.LCModel import LcmDataMigrationForbiddenException"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "IUndoStackManager",
+    "line_start": 42,
+    "line_end": 76,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IUndoStackManager"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel.Core.Cellar",
+    "class": "CellarPropertyType",
+    "line_start": 78,
+    "line_end": 81,
+    "import_type": "class",
+    "statement": "from SIL.LCModel.Core.Cellar import CellarPropertyType"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel.Core.Cellar",
+    "class": "CellarPropertyTypeFilter",
+    "line_start": 78,
+    "line_end": 81,
+    "import_type": "class",
+    "statement": "from SIL.LCModel.Core.Cellar import CellarPropertyTypeFilter"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel.Infrastructure",
+    "class": "IFwMetaDataCacheManaged",
+    "line_start": 83,
+    "line_end": 85,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Infrastructure import IFwMetaDataCacheManaged"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 87,
+    "line_end": 87,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsStrBldr",
+    "line_start": 87,
+    "line_end": 87,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsStrBldr"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 88,
+    "line_end": 88,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel.Utils",
+    "class": "WorkerThreadException",
+    "line_start": 89,
+    "line_end": 89,
+    "import_type": "class",
+    "statement": "from SIL.LCModel.Utils import WorkerThreadException"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel.Utils",
+    "class": "ReflectionHelper",
+    "line_start": 89,
+    "line_end": 89,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Utils import ReflectionHelper"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.FieldWorks.Common.FwUtils",
+    "class": "StartupException",
+    "line_start": 90,
+    "line_end": 93,
+    "import_type": "class",
+    "statement": "from SIL.FieldWorks.Common.FwUtils import StartupException"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.FieldWorks.Common.FwUtils",
+    "class": "FwAppArgs",
+    "line_start": 90,
+    "line_end": 93,
+    "import_type": "class",
+    "statement": "from SIL.FieldWorks.Common.FwUtils import FwAppArgs"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 128,
+    "line_end": 128,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsStrBldr",
+    "line_start": 128,
+    "line_end": 128,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsStrBldr"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 129,
+    "line_end": 129,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel.Application.ApplicationServices",
+    "class": "XmlTranslatedLists",
+    "line_start": 456,
+    "line_end": 458,
+    "import_type": "class",
+    "statement": "from SIL.LCModel.Application.ApplicationServices import XmlTranslatedLists"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "FwObjDataTypes",
+    "line_start": 2892,
+    "line_end": 2892,
+    "import_type": "class",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import FwObjDataTypes"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel.Infrastructure",
+    "class": "IDataReader",
+    "line_start": 4105,
+    "line_end": 4105,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Infrastructure import IDataReader"
+  },
+  {
+    "file": "code\\FLExProject.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexEntryRefFactory",
+    "line_start": 4363,
+    "line_end": 4363,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ILexEntryRefFactory"
+  },
+  {
+    "file": "code\\lcm_casting.py",
+    "namespace": "SIL.LCModel",
+    "class": "IPhRegularRule",
+    "line_start": 126,
+    "line_end": 133,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IPhRegularRule"
+  },
+  {
+    "file": "code\\lcm_casting.py",
+    "namespace": "SIL.LCModel",
+    "class": "IPhMetathesisRule",
+    "line_start": 126,
+    "line_end": 133,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IPhMetathesisRule"
+  },
+  {
+    "file": "code\\lcm_casting.py",
+    "namespace": "SIL.LCModel",
+    "class": "IPhReduplicationRule",
+    "line_start": 126,
+    "line_end": 133,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IPhReduplicationRule"
+  },
+  {
+    "file": "code\\lcm_casting.py",
+    "namespace": "SIL.LCModel",
+    "class": "IPhSimpleContextSeg",
+    "line_start": 126,
+    "line_end": 133,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IPhSimpleContextSeg"
+  },
+  {
+    "file": "code\\lcm_casting.py",
+    "namespace": "SIL.LCModel",
+    "class": "IPhSimpleContextNC",
+    "line_start": 126,
+    "line_end": 133,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IPhSimpleContextNC"
+  },
+  {
+    "file": "code\\lcm_casting.py",
+    "namespace": "SIL.LCModel",
+    "class": "IPhSegRuleRHS",
+    "line_start": 126,
+    "line_end": 133,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IPhSegRuleRHS"
+  },
+  {
+    "file": "code\\lcm_casting.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoEndoCompound",
+    "line_start": 143,
+    "line_end": 146,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IMoEndoCompound"
+  },
+  {
+    "file": "code\\lcm_casting.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoExoCompound",
+    "line_start": 143,
+    "line_end": 146,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IMoExoCompound"
+  },
+  {
+    "file": "code\\lcm_casting.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoAdhocProhibGr",
+    "line_start": 156,
+    "line_end": 160,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IMoAdhocProhibGr"
+  },
+  {
+    "file": "code\\lcm_casting.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoAdhocProhibMorph",
+    "line_start": 156,
+    "line_end": 160,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IMoAdhocProhibMorph"
+  },
+  {
+    "file": "code\\lcm_casting.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoAdhocProhibAllomorph",
+    "line_start": 156,
+    "line_end": 160,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IMoAdhocProhibAllomorph"
+  },
+  {
+    "file": "code\\lcm_casting.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoInflAffixTemplate",
+    "line_start": 167,
+    "line_end": 169,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IMoInflAffixTemplate"
+  },
+  {
+    "file": "code\\lcm_casting.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexEntry",
+    "line_start": 182,
+    "line_end": 192,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexEntry"
+  },
+  {
+    "file": "code\\lcm_casting.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexSense",
+    "line_start": 182,
+    "line_end": 192,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexSense"
+  },
+  {
+    "file": "code\\lcm_casting.py",
+    "namespace": "SIL.LCModel",
+    "class": "IRnGenericRec",
+    "line_start": 182,
+    "line_end": 192,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IRnGenericRec"
+  },
+  {
+    "file": "code\\lcm_casting.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibility",
+    "line_start": 182,
+    "line_end": 192,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmPossibility"
+  },
+  {
+    "file": "code\\lcm_casting.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmAnthroItem",
+    "line_start": 182,
+    "line_end": 192,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmAnthroItem"
+  },
+  {
+    "file": "code\\lcm_casting.py",
+    "namespace": "SIL.LCModel",
+    "class": "IDsConstChart",
+    "line_start": 182,
+    "line_end": 192,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IDsConstChart"
+  },
+  {
+    "file": "code\\lcm_casting.py",
+    "namespace": "SIL.LCModel",
+    "class": "IText",
+    "line_start": 182,
+    "line_end": 192,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IText"
+  },
+  {
+    "file": "code\\lcm_casting.py",
+    "namespace": "SIL.LCModel",
+    "class": "IStText",
+    "line_start": 182,
+    "line_end": 192,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IStText"
+  },
+  {
+    "file": "code\\lcm_casting.py",
+    "namespace": "SIL.LCModel",
+    "class": "IStTxtPara",
+    "line_start": 182,
+    "line_end": 192,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IStTxtPara"
+  },
+  {
+    "file": "code\\lcm_casting.py",
+    "namespace": "SIL.LCModel",
+    "class": "IPhRegularRuleFactory",
+    "line_start": 536,
+    "line_end": 543,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IPhRegularRuleFactory"
+  },
+  {
+    "file": "code\\lcm_casting.py",
+    "namespace": "SIL.LCModel",
+    "class": "IPhMetathesisRuleFactory",
+    "line_start": 536,
+    "line_end": 543,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IPhMetathesisRuleFactory"
+  },
+  {
+    "file": "code\\lcm_casting.py",
+    "namespace": "SIL.LCModel",
+    "class": "IPhReduplicationRuleFactory",
+    "line_start": 536,
+    "line_end": 543,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IPhReduplicationRuleFactory"
+  },
+  {
+    "file": "code\\lcm_casting.py",
+    "namespace": "SIL.LCModel",
+    "class": "IPhSegRuleRHSFactory",
+    "line_start": 536,
+    "line_end": 543,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IPhSegRuleRHSFactory"
+  },
+  {
+    "file": "code\\lcm_casting.py",
+    "namespace": "SIL.LCModel",
+    "class": "IPhSimpleContextSegFactory",
+    "line_start": 536,
+    "line_end": 543,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IPhSimpleContextSegFactory"
+  },
+  {
+    "file": "code\\lcm_casting.py",
+    "namespace": "SIL.LCModel",
+    "class": "IPhSimpleContextNCFactory",
+    "line_start": 536,
+    "line_end": 543,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IPhSimpleContextNCFactory"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartCellTagOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IConstChartTag",
+    "line_start": 17,
+    "line_end": 22,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IConstChartTag"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartCellTagOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IConstChartTagFactory",
+    "line_start": 17,
+    "line_end": 22,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IConstChartTagFactory"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartCellTagOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IConstChartRow",
+    "line_start": 17,
+    "line_end": 22,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IConstChartRow"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartCellTagOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibility",
+    "line_start": 17,
+    "line_end": 22,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmPossibility"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartClauseMarkerOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IConstChartClauseMarker",
+    "line_start": 18,
+    "line_end": 23,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IConstChartClauseMarker"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartClauseMarkerOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IConstChartClauseMarkerFactory",
+    "line_start": 18,
+    "line_end": 23,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IConstChartClauseMarkerFactory"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartClauseMarkerOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IConstChartRow",
+    "line_start": 18,
+    "line_end": 23,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IConstChartRow"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartClauseMarkerOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IConstChartWordGroup",
+    "line_start": 18,
+    "line_end": 23,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IConstChartWordGroup"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartMarkerOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibility",
+    "line_start": 18,
+    "line_end": 25,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmPossibility"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartMarkerOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibilityFactory",
+    "line_start": 18,
+    "line_end": 25,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ICmPossibilityFactory"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartMarkerOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibilityList",
+    "line_start": 18,
+    "line_end": 25,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmPossibilityList"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartMarkerOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibilityListFactory",
+    "line_start": 18,
+    "line_end": 25,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ICmPossibilityListFactory"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartMarkerOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IDsDiscourseData",
+    "line_start": 18,
+    "line_end": 25,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IDsDiscourseData"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartMarkerOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IDsDiscourseDataFactory",
+    "line_start": 18,
+    "line_end": 25,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IDsDiscourseDataFactory"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartMarkerOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 26,
+    "line_end": 26,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartMarkerOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 27,
+    "line_end": 27,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartMovedTextOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IConstChartMovedTextMarker",
+    "line_start": 18,
+    "line_end": 23,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IConstChartMovedTextMarker"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartMovedTextOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IConstChartMovedTextMarkerFactory",
+    "line_start": 18,
+    "line_end": 23,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IConstChartMovedTextMarkerFactory"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartMovedTextOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IConstChartWordGroup",
+    "line_start": 18,
+    "line_end": 23,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IConstChartWordGroup"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartMovedTextOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IDsConstChart",
+    "line_start": 18,
+    "line_end": 23,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IDsConstChart"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IDsConstChart",
+    "line_start": 19,
+    "line_end": 26,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IDsConstChart"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IDsConstChartFactory",
+    "line_start": 19,
+    "line_end": 26,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IDsConstChartFactory"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IDsConstChartRepository",
+    "line_start": 19,
+    "line_end": 26,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import IDsConstChartRepository"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IDsDiscourse",
+    "line_start": 19,
+    "line_end": 26,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IDsDiscourse"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IConstChartRow",
+    "line_start": 19,
+    "line_end": 26,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IConstChartRow"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibility",
+    "line_start": 19,
+    "line_end": 26,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmPossibility"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 27,
+    "line_end": 27,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 28,
+    "line_end": 28,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IDsDiscourseFactory",
+    "line_start": 540,
+    "line_end": 540,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IDsDiscourseFactory"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartRowOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IConstChartRow",
+    "line_start": 18,
+    "line_end": 23,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IConstChartRow"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartRowOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IConstChartRowFactory",
+    "line_start": 18,
+    "line_end": 23,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IConstChartRowFactory"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartRowOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IDsConstChart",
+    "line_start": 18,
+    "line_end": 23,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IDsConstChart"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartRowOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IConstChartWordGroup",
+    "line_start": 18,
+    "line_end": 23,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IConstChartWordGroup"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartRowOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 24,
+    "line_end": 24,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartRowOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 25,
+    "line_end": 25,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartWordGroupOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IConstChartWordGroup",
+    "line_start": 18,
+    "line_end": 24,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IConstChartWordGroup"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartWordGroupOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IConstChartWordGroupFactory",
+    "line_start": 18,
+    "line_end": 24,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IConstChartWordGroupFactory"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartWordGroupOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IConstChartRow",
+    "line_start": 18,
+    "line_end": 24,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IConstChartRow"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartWordGroupOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IAnalysis",
+    "line_start": 18,
+    "line_end": 24,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IAnalysis"
+  },
+  {
+    "file": "code\\Discourse\\ConstChartWordGroupOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ISegment",
+    "line_start": 18,
+    "line_end": 24,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ISegment"
+  },
+  {
+    "file": "code\\Grammar\\affix_template.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 113,
+    "line_end": 113,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Grammar\\affix_template.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 134,
+    "line_end": 134,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Grammar\\compound_rule.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 119,
+    "line_end": 119,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Grammar\\EnvironmentOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IPhEnvironmentFactory",
+    "line_start": 18,
+    "line_end": 18,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IPhEnvironmentFactory"
+  },
+  {
+    "file": "code\\Grammar\\EnvironmentOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IPhEnvironment",
+    "line_start": 18,
+    "line_end": 18,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IPhEnvironment"
+  },
+  {
+    "file": "code\\Grammar\\EnvironmentOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmObjectRepository",
+    "line_start": 18,
+    "line_end": 18,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import ICmObjectRepository"
+  },
+  {
+    "file": "code\\Grammar\\EnvironmentOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 19,
+    "line_end": 19,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Grammar\\EnvironmentOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 20,
+    "line_end": 20,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Grammar\\GramCatOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibility",
+    "line_start": 18,
+    "line_end": 18,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmPossibility"
+  },
+  {
+    "file": "code\\Grammar\\GramCatOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibilityFactory",
+    "line_start": 18,
+    "line_end": 18,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ICmPossibilityFactory"
+  },
+  {
+    "file": "code\\Grammar\\GramCatOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 19,
+    "line_end": 19,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Grammar\\GramCatOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 20,
+    "line_end": 20,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Grammar\\InflectionFeatureOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoInflClass",
+    "line_start": 26,
+    "line_end": 42,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IMoInflClass"
+  },
+  {
+    "file": "code\\Grammar\\InflectionFeatureOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoInflClassFactory",
+    "line_start": 26,
+    "line_end": 42,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IMoInflClassFactory"
+  },
+  {
+    "file": "code\\Grammar\\InflectionFeatureOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IFsFeatStruc",
+    "line_start": 26,
+    "line_end": 42,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IFsFeatStruc"
+  },
+  {
+    "file": "code\\Grammar\\InflectionFeatureOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IFsFeatStrucFactory",
+    "line_start": 26,
+    "line_end": 42,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IFsFeatStrucFactory"
+  },
+  {
+    "file": "code\\Grammar\\InflectionFeatureOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IFsFeatDefn",
+    "line_start": 26,
+    "line_end": 42,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IFsFeatDefn"
+  },
+  {
+    "file": "code\\Grammar\\InflectionFeatureOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 43,
+    "line_end": 43,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Grammar\\InflectionFeatureOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 44,
+    "line_end": 44,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Grammar\\MorphRuleOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoEndoCompoundFactory",
+    "line_start": 41,
+    "line_end": 45,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IMoEndoCompoundFactory"
+  },
+  {
+    "file": "code\\Grammar\\MorphRuleOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoExoCompoundFactory",
+    "line_start": 41,
+    "line_end": 45,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IMoExoCompoundFactory"
+  },
+  {
+    "file": "code\\Grammar\\MorphRuleOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoInflAffixTemplateFactory",
+    "line_start": 41,
+    "line_end": 45,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IMoInflAffixTemplateFactory"
+  },
+  {
+    "file": "code\\Grammar\\MorphRuleOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 46,
+    "line_end": 46,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Grammar\\MorphRuleOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 47,
+    "line_end": 47,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Grammar\\NaturalClassOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IPhNaturalClass",
+    "line_start": 18,
+    "line_end": 26,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IPhNaturalClass"
+  },
+  {
+    "file": "code\\Grammar\\NaturalClassOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IPhNCSegments",
+    "line_start": 18,
+    "line_end": 26,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IPhNCSegments"
+  },
+  {
+    "file": "code\\Grammar\\NaturalClassOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IPhNCSegmentsFactory",
+    "line_start": 18,
+    "line_end": 26,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IPhNCSegmentsFactory"
+  },
+  {
+    "file": "code\\Grammar\\NaturalClassOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IPhNCFeatures",
+    "line_start": 18,
+    "line_end": 26,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IPhNCFeatures"
+  },
+  {
+    "file": "code\\Grammar\\NaturalClassOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IPhNCFeaturesFactory",
+    "line_start": 18,
+    "line_end": 26,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IPhNCFeaturesFactory"
+  },
+  {
+    "file": "code\\Grammar\\NaturalClassOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IPhPhoneme",
+    "line_start": 18,
+    "line_end": 26,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IPhPhoneme"
+  },
+  {
+    "file": "code\\Grammar\\NaturalClassOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IFsClosedValue",
+    "line_start": 18,
+    "line_end": 26,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IFsClosedValue"
+  },
+  {
+    "file": "code\\Grammar\\NaturalClassOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 27,
+    "line_end": 27,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Grammar\\NaturalClassOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 28,
+    "line_end": 28,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Grammar\\PhonemeOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IPhPhoneme",
+    "line_start": 18,
+    "line_end": 26,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IPhPhoneme"
+  },
+  {
+    "file": "code\\Grammar\\PhonemeOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IPhPhonemeFactory",
+    "line_start": 18,
+    "line_end": 26,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IPhPhonemeFactory"
+  },
+  {
+    "file": "code\\Grammar\\PhonemeOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IPhCode",
+    "line_start": 18,
+    "line_end": 26,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IPhCode"
+  },
+  {
+    "file": "code\\Grammar\\PhonemeOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IPhCodeFactory",
+    "line_start": 18,
+    "line_end": 26,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IPhCodeFactory"
+  },
+  {
+    "file": "code\\Grammar\\PhonemeOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IFsFeatStruc",
+    "line_start": 18,
+    "line_end": 26,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IFsFeatStruc"
+  },
+  {
+    "file": "code\\Grammar\\PhonemeOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IFsClosedFeature",
+    "line_start": 18,
+    "line_end": 26,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IFsClosedFeature"
+  },
+  {
+    "file": "code\\Grammar\\PhonemeOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmObjectRepository",
+    "line_start": 18,
+    "line_end": 26,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import ICmObjectRepository"
+  },
+  {
+    "file": "code\\Grammar\\PhonemeOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 27,
+    "line_end": 27,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Grammar\\PhonemeOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 28,
+    "line_end": 28,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Grammar\\PhonFeatureOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IFsClosedFeature",
+    "line_start": 27,
+    "line_end": 36,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IFsClosedFeature"
+  },
+  {
+    "file": "code\\Grammar\\PhonFeatureOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IFsClosedFeatureFactory",
+    "line_start": 27,
+    "line_end": 36,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IFsClosedFeatureFactory"
+  },
+  {
+    "file": "code\\Grammar\\PhonFeatureOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IFsSymFeatVal",
+    "line_start": 27,
+    "line_end": 36,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IFsSymFeatVal"
+  },
+  {
+    "file": "code\\Grammar\\PhonFeatureOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IFsSymFeatValFactory",
+    "line_start": 27,
+    "line_end": 36,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IFsSymFeatValFactory"
+  },
+  {
+    "file": "code\\Grammar\\PhonFeatureOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IFsFeatStruc",
+    "line_start": 27,
+    "line_end": 36,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IFsFeatStruc"
+  },
+  {
+    "file": "code\\Grammar\\PhonFeatureOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IFsFeatStrucFactory",
+    "line_start": 27,
+    "line_end": 36,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IFsFeatStrucFactory"
+  },
+  {
+    "file": "code\\Grammar\\PhonFeatureOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IFsClosedValue",
+    "line_start": 27,
+    "line_end": 36,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IFsClosedValue"
+  },
+  {
+    "file": "code\\Grammar\\PhonFeatureOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IFsClosedValueFactory",
+    "line_start": 27,
+    "line_end": 36,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IFsClosedValueFactory"
+  },
+  {
+    "file": "code\\Grammar\\PhonFeatureOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 37,
+    "line_end": 37,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Grammar\\PhonFeatureOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 38,
+    "line_end": 38,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Grammar\\PhonologicalRuleOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IPhRegularRuleFactory",
+    "line_start": 19,
+    "line_end": 33,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IPhRegularRuleFactory"
+  },
+  {
+    "file": "code\\Grammar\\PhonologicalRuleOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 34,
+    "line_end": 34,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Grammar\\PhonologicalRuleOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 35,
+    "line_end": 35,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Grammar\\phonological_rule.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 130,
+    "line_end": 130,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Grammar\\POSOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IPartOfSpeechFactory",
+    "line_start": 18,
+    "line_end": 18,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IPartOfSpeechFactory"
+  },
+  {
+    "file": "code\\Grammar\\POSOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IPartOfSpeech",
+    "line_start": 18,
+    "line_end": 18,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IPartOfSpeech"
+  },
+  {
+    "file": "code\\Grammar\\POSOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexEntryRepository",
+    "line_start": 18,
+    "line_end": 18,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import ILexEntryRepository"
+  },
+  {
+    "file": "code\\Grammar\\POSOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 19,
+    "line_end": 19,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Grammar\\POSOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 20,
+    "line_end": 20,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Lexicon\\allomorph.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 127,
+    "line_end": 127,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\allomorph.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 158,
+    "line_end": 158,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\allomorph.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 273,
+    "line_end": 273,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\AllomorphOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoForm",
+    "line_start": 22,
+    "line_end": 29,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IMoForm"
+  },
+  {
+    "file": "code\\Lexicon\\AllomorphOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoStemAllomorphFactory",
+    "line_start": 22,
+    "line_end": 29,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IMoStemAllomorphFactory"
+  },
+  {
+    "file": "code\\Lexicon\\AllomorphOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoAffixAllomorphFactory",
+    "line_start": 22,
+    "line_end": 29,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IMoAffixAllomorphFactory"
+  },
+  {
+    "file": "code\\Lexicon\\AllomorphOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexEntry",
+    "line_start": 22,
+    "line_end": 29,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexEntry"
+  },
+  {
+    "file": "code\\Lexicon\\AllomorphOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IPhEnvironment",
+    "line_start": 22,
+    "line_end": 29,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IPhEnvironment"
+  },
+  {
+    "file": "code\\Lexicon\\AllomorphOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "MoMorphTypeTags",
+    "line_start": 22,
+    "line_end": 29,
+    "import_type": "tags",
+    "statement": "from SIL.LCModel import MoMorphTypeTags"
+  },
+  {
+    "file": "code\\Lexicon\\AllomorphOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 30,
+    "line_end": 30,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\AllomorphOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 31,
+    "line_end": 31,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Lexicon\\AllomorphOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoStemAllomorphFactory",
+    "line_start": 411,
+    "line_end": 411,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IMoStemAllomorphFactory"
+  },
+  {
+    "file": "code\\Lexicon\\AllomorphOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoAffixAllomorphFactory",
+    "line_start": 415,
+    "line_end": 415,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IMoAffixAllomorphFactory"
+  },
+  {
+    "file": "code\\Lexicon\\EtymologyOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexEtymology",
+    "line_start": 18,
+    "line_end": 22,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexEtymology"
+  },
+  {
+    "file": "code\\Lexicon\\EtymologyOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexEtymologyFactory",
+    "line_start": 18,
+    "line_end": 22,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ILexEtymologyFactory"
+  },
+  {
+    "file": "code\\Lexicon\\EtymologyOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexEntry",
+    "line_start": 18,
+    "line_end": 22,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexEntry"
+  },
+  {
+    "file": "code\\Lexicon\\EtymologyOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 23,
+    "line_end": 23,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\EtymologyOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 24,
+    "line_end": 24,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Lexicon\\EtymologyOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 389,
+    "line_end": 389,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\EtymologyOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 401,
+    "line_end": 401,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\EtymologyOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 413,
+    "line_end": 413,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\EtymologyOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 425,
+    "line_end": 425,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\EtymologyOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 437,
+    "line_end": 437,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\ExampleOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexExampleSentence",
+    "line_start": 22,
+    "line_end": 28,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexExampleSentence"
+  },
+  {
+    "file": "code\\Lexicon\\ExampleOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexExampleSentenceFactory",
+    "line_start": 22,
+    "line_end": 28,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ILexExampleSentenceFactory"
+  },
+  {
+    "file": "code\\Lexicon\\ExampleOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexSense",
+    "line_start": 22,
+    "line_end": 28,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexSense"
+  },
+  {
+    "file": "code\\Lexicon\\ExampleOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmTranslation",
+    "line_start": 22,
+    "line_end": 28,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmTranslation"
+  },
+  {
+    "file": "code\\Lexicon\\ExampleOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmTranslationFactory",
+    "line_start": 22,
+    "line_end": 28,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ICmTranslationFactory"
+  },
+  {
+    "file": "code\\Lexicon\\ExampleOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 29,
+    "line_end": 29,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\ExampleOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 30,
+    "line_end": 30,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Lexicon\\ExampleOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 365,
+    "line_end": 365,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\ExampleOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 377,
+    "line_end": 377,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\LexEntryOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexEntry",
+    "line_start": 22,
+    "line_end": 39,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexEntry"
+  },
+  {
+    "file": "code\\Lexicon\\LexEntryOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexEntryFactory",
+    "line_start": 22,
+    "line_end": 39,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ILexEntryFactory"
+  },
+  {
+    "file": "code\\Lexicon\\LexEntryOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexEntryRepository",
+    "line_start": 22,
+    "line_end": 39,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import ILexEntryRepository"
+  },
+  {
+    "file": "code\\Lexicon\\LexEntryOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexSense",
+    "line_start": 22,
+    "line_end": 39,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexSense"
+  },
+  {
+    "file": "code\\Lexicon\\LexEntryOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexSenseFactory",
+    "line_start": 22,
+    "line_end": 39,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ILexSenseFactory"
+  },
+  {
+    "file": "code\\Lexicon\\LexEntryOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoMorphType",
+    "line_start": 22,
+    "line_end": 39,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IMoMorphType"
+  },
+  {
+    "file": "code\\Lexicon\\LexEntryOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoStemAllomorphFactory",
+    "line_start": 22,
+    "line_end": 39,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IMoStemAllomorphFactory"
+  },
+  {
+    "file": "code\\Lexicon\\LexEntryOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoAffixAllomorphFactory",
+    "line_start": 22,
+    "line_end": 39,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IMoAffixAllomorphFactory"
+  },
+  {
+    "file": "code\\Lexicon\\LexEntryOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoForm",
+    "line_start": 22,
+    "line_end": 39,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IMoForm"
+  },
+  {
+    "file": "code\\Lexicon\\LexEntryOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "MoMorphTypeTags",
+    "line_start": 22,
+    "line_end": 39,
+    "import_type": "tags",
+    "statement": "from SIL.LCModel import MoMorphTypeTags"
+  },
+  {
+    "file": "code\\Lexicon\\LexEntryOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexEntryRef",
+    "line_start": 22,
+    "line_end": 39,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexEntryRef"
+  },
+  {
+    "file": "code\\Lexicon\\LexEntryOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexEntryRefFactory",
+    "line_start": 22,
+    "line_end": 39,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ILexEntryRefFactory"
+  },
+  {
+    "file": "code\\Lexicon\\LexEntryOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "LexEntryRefTags",
+    "line_start": 22,
+    "line_end": 39,
+    "import_type": "tags",
+    "statement": "from SIL.LCModel import LexEntryRefTags"
+  },
+  {
+    "file": "code\\Lexicon\\LexEntryOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexPronunciationFactory",
+    "line_start": 22,
+    "line_end": 39,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ILexPronunciationFactory"
+  },
+  {
+    "file": "code\\Lexicon\\LexEntryOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexEtymologyFactory",
+    "line_start": 22,
+    "line_end": 39,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ILexEtymologyFactory"
+  },
+  {
+    "file": "code\\Lexicon\\LexEntryOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmFileFactory",
+    "line_start": 22,
+    "line_end": 39,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ICmFileFactory"
+  },
+  {
+    "file": "code\\Lexicon\\LexEntryOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 40,
+    "line_end": 40,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\LexEntryOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 41,
+    "line_end": 41,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Lexicon\\LexReferenceOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexReference",
+    "line_start": 18,
+    "line_end": 27,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexReference"
+  },
+  {
+    "file": "code\\Lexicon\\LexReferenceOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexReferenceFactory",
+    "line_start": 18,
+    "line_end": 27,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ILexReferenceFactory"
+  },
+  {
+    "file": "code\\Lexicon\\LexReferenceOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexRefType",
+    "line_start": 18,
+    "line_end": 27,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexRefType"
+  },
+  {
+    "file": "code\\Lexicon\\LexReferenceOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexRefTypeFactory",
+    "line_start": 18,
+    "line_end": 27,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ILexRefTypeFactory"
+  },
+  {
+    "file": "code\\Lexicon\\LexReferenceOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexRefTypeRepository",
+    "line_start": 18,
+    "line_end": 27,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import ILexRefTypeRepository"
+  },
+  {
+    "file": "code\\Lexicon\\LexReferenceOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexEntry",
+    "line_start": 18,
+    "line_end": 27,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexEntry"
+  },
+  {
+    "file": "code\\Lexicon\\LexReferenceOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexSense",
+    "line_start": 18,
+    "line_end": 27,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexSense"
+  },
+  {
+    "file": "code\\Lexicon\\LexReferenceOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "LexRefTypeTags",
+    "line_start": 18,
+    "line_end": 27,
+    "import_type": "tags",
+    "statement": "from SIL.LCModel import LexRefTypeTags"
+  },
+  {
+    "file": "code\\Lexicon\\LexReferenceOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 28,
+    "line_end": 28,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\LexReferenceOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 29,
+    "line_end": 29,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Lexicon\\LexReferenceOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibilityListFactory",
+    "line_start": 269,
+    "line_end": 269,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ICmPossibilityListFactory"
+  },
+  {
+    "file": "code\\Lexicon\\LexReferenceOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 1285,
+    "line_end": 1285,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\LexReferenceOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 1297,
+    "line_end": 1297,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\LexSenseOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexSense",
+    "line_start": 24,
+    "line_end": 36,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexSense"
+  },
+  {
+    "file": "code\\Lexicon\\LexSenseOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexSenseFactory",
+    "line_start": 24,
+    "line_end": 36,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ILexSenseFactory"
+  },
+  {
+    "file": "code\\Lexicon\\LexSenseOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexEntry",
+    "line_start": 24,
+    "line_end": 36,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexEntry"
+  },
+  {
+    "file": "code\\Lexicon\\LexSenseOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexExampleSentenceFactory",
+    "line_start": 24,
+    "line_end": 36,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ILexExampleSentenceFactory"
+  },
+  {
+    "file": "code\\Lexicon\\LexSenseOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmSemanticDomain",
+    "line_start": 24,
+    "line_end": 36,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmSemanticDomain"
+  },
+  {
+    "file": "code\\Lexicon\\LexSenseOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPicture",
+    "line_start": 24,
+    "line_end": 36,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmPicture"
+  },
+  {
+    "file": "code\\Lexicon\\LexSenseOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPictureFactory",
+    "line_start": 24,
+    "line_end": 36,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ICmPictureFactory"
+  },
+  {
+    "file": "code\\Lexicon\\LexSenseOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmTranslationFactory",
+    "line_start": 24,
+    "line_end": 36,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ICmTranslationFactory"
+  },
+  {
+    "file": "code\\Lexicon\\LexSenseOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IReversalIndexEntry",
+    "line_start": 24,
+    "line_end": 36,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IReversalIndexEntry"
+  },
+  {
+    "file": "code\\Lexicon\\LexSenseOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "LexEntryTags",
+    "line_start": 24,
+    "line_end": 36,
+    "import_type": "tags",
+    "statement": "from SIL.LCModel import LexEntryTags"
+  },
+  {
+    "file": "code\\Lexicon\\LexSenseOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "MoMorphTypeTags",
+    "line_start": 24,
+    "line_end": 36,
+    "import_type": "tags",
+    "statement": "from SIL.LCModel import MoMorphTypeTags"
+  },
+  {
+    "file": "code\\Lexicon\\LexSenseOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 37,
+    "line_end": 37,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\LexSenseOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 38,
+    "line_end": 38,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Lexicon\\LexSenseOperations.py",
+    "namespace": "SIL.LCModel.Utils",
+    "class": "ReflectionHelper",
+    "line_start": 39,
+    "line_end": 39,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Utils import ReflectionHelper"
+  },
+  {
+    "file": "code\\Lexicon\\LexSenseOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 460,
+    "line_end": 460,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\LexSenseOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 472,
+    "line_end": 472,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\LexSenseOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 484,
+    "line_end": 484,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\LexSenseOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 496,
+    "line_end": 496,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\LexSenseOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 508,
+    "line_end": 508,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\LexSenseOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 520,
+    "line_end": 520,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\LexSenseOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 532,
+    "line_end": 532,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\LexSenseOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 544,
+    "line_end": 544,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\LexSenseOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 556,
+    "line_end": 556,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\LexSenseOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 578,
+    "line_end": 578,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\LexSenseOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 590,
+    "line_end": 590,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\LexSenseOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoInflAffMsaFactory",
+    "line_start": 1123,
+    "line_end": 1123,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IMoInflAffMsaFactory"
+  },
+  {
+    "file": "code\\Lexicon\\LexSenseOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoStemMsaFactory",
+    "line_start": 1129,
+    "line_end": 1129,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IMoStemMsaFactory"
+  },
+  {
+    "file": "code\\Lexicon\\MSAOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoStemMsa",
+    "line_start": 32,
+    "line_end": 43,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IMoStemMsa"
+  },
+  {
+    "file": "code\\Lexicon\\MSAOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoStemMsaFactory",
+    "line_start": 32,
+    "line_end": 43,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IMoStemMsaFactory"
+  },
+  {
+    "file": "code\\Lexicon\\MSAOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoDerivAffMsa",
+    "line_start": 32,
+    "line_end": 43,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IMoDerivAffMsa"
+  },
+  {
+    "file": "code\\Lexicon\\MSAOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoDerivAffMsaFactory",
+    "line_start": 32,
+    "line_end": 43,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IMoDerivAffMsaFactory"
+  },
+  {
+    "file": "code\\Lexicon\\MSAOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoInflAffMsa",
+    "line_start": 32,
+    "line_end": 43,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IMoInflAffMsa"
+  },
+  {
+    "file": "code\\Lexicon\\MSAOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoInflAffMsaFactory",
+    "line_start": 32,
+    "line_end": 43,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IMoInflAffMsaFactory"
+  },
+  {
+    "file": "code\\Lexicon\\MSAOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoUnclassifiedAffixMsa",
+    "line_start": 32,
+    "line_end": 43,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IMoUnclassifiedAffixMsa"
+  },
+  {
+    "file": "code\\Lexicon\\MSAOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoUnclassifiedAffixMsaFactory",
+    "line_start": 32,
+    "line_end": 43,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IMoUnclassifiedAffixMsaFactory"
+  },
+  {
+    "file": "code\\Lexicon\\MSAOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexSense",
+    "line_start": 32,
+    "line_end": 43,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexSense"
+  },
+  {
+    "file": "code\\Lexicon\\MSAOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexEntry",
+    "line_start": 32,
+    "line_end": 43,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexEntry"
+  },
+  {
+    "file": "code\\Lexicon\\MSAOperations.py",
+    "namespace": "SIL.LCModel.DomainServices",
+    "class": "SandboxGenericMSA",
+    "line_start": 44,
+    "line_end": 44,
+    "import_type": "class",
+    "statement": "from SIL.LCModel.DomainServices import SandboxGenericMSA"
+  },
+  {
+    "file": "code\\Lexicon\\MSAOperations.py",
+    "namespace": "SIL.LCModel.DomainServices",
+    "class": "MsaType",
+    "line_start": 44,
+    "line_end": 44,
+    "import_type": "class",
+    "statement": "from SIL.LCModel.DomainServices import MsaType"
+  },
+  {
+    "file": "code\\Lexicon\\PronunciationOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexEntry",
+    "line_start": 24,
+    "line_end": 30,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexEntry"
+  },
+  {
+    "file": "code\\Lexicon\\PronunciationOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexPronunciation",
+    "line_start": 24,
+    "line_end": 30,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexPronunciation"
+  },
+  {
+    "file": "code\\Lexicon\\PronunciationOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexPronunciationFactory",
+    "line_start": 24,
+    "line_end": 30,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ILexPronunciationFactory"
+  },
+  {
+    "file": "code\\Lexicon\\PronunciationOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmFile",
+    "line_start": 24,
+    "line_end": 30,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmFile"
+  },
+  {
+    "file": "code\\Lexicon\\PronunciationOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmFileFactory",
+    "line_start": 24,
+    "line_end": 30,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ICmFileFactory"
+  },
+  {
+    "file": "code\\Lexicon\\PronunciationOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 31,
+    "line_end": 31,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\PronunciationOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 32,
+    "line_end": 32,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Lexicon\\PronunciationOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 380,
+    "line_end": 380,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\SemanticDomainOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmSemanticDomain",
+    "line_start": 20,
+    "line_end": 24,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmSemanticDomain"
+  },
+  {
+    "file": "code\\Lexicon\\SemanticDomainOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmSemanticDomainFactory",
+    "line_start": 20,
+    "line_end": 24,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ICmSemanticDomainFactory"
+  },
+  {
+    "file": "code\\Lexicon\\SemanticDomainOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexSenseRepository",
+    "line_start": 20,
+    "line_end": 24,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import ILexSenseRepository"
+  },
+  {
+    "file": "code\\Lexicon\\SemanticDomainOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 25,
+    "line_end": 25,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\SemanticDomainOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 26,
+    "line_end": 26,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Lexicon\\VariantOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexEntry",
+    "line_start": 18,
+    "line_end": 25,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexEntry"
+  },
+  {
+    "file": "code\\Lexicon\\VariantOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexEntryRef",
+    "line_start": 18,
+    "line_end": 25,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexEntryRef"
+  },
+  {
+    "file": "code\\Lexicon\\VariantOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexEntryRefFactory",
+    "line_start": 18,
+    "line_end": 25,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ILexEntryRefFactory"
+  },
+  {
+    "file": "code\\Lexicon\\VariantOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexEntryType",
+    "line_start": 18,
+    "line_end": 25,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexEntryType"
+  },
+  {
+    "file": "code\\Lexicon\\VariantOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexEntryTypeRepository",
+    "line_start": 18,
+    "line_end": 25,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import ILexEntryTypeRepository"
+  },
+  {
+    "file": "code\\Lexicon\\VariantOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IVariantComponentLexeme",
+    "line_start": 18,
+    "line_end": 25,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IVariantComponentLexeme"
+  },
+  {
+    "file": "code\\Lexicon\\VariantOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 26,
+    "line_end": 26,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lexicon\\VariantOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 27,
+    "line_end": 27,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Lists\\AgentOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmAgent",
+    "line_start": 16,
+    "line_end": 21,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmAgent"
+  },
+  {
+    "file": "code\\Lists\\AgentOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmAgentFactory",
+    "line_start": 16,
+    "line_end": 21,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ICmAgentFactory"
+  },
+  {
+    "file": "code\\Lists\\AgentOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPerson",
+    "line_start": 16,
+    "line_end": 21,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmPerson"
+  },
+  {
+    "file": "code\\Lists\\AgentOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmAgentEvaluation",
+    "line_start": 16,
+    "line_end": 21,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmAgentEvaluation"
+  },
+  {
+    "file": "code\\Lists\\AgentOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 22,
+    "line_end": 22,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lists\\AgentOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 23,
+    "line_end": 23,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Lists\\ConfidenceOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IWfiAnalysisRepository",
+    "line_start": 15,
+    "line_end": 18,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import IWfiAnalysisRepository"
+  },
+  {
+    "file": "code\\Lists\\ConfidenceOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IWfiGlossRepository",
+    "line_start": 15,
+    "line_end": 18,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import IWfiGlossRepository"
+  },
+  {
+    "file": "code\\Lists\\OverlayOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IDsConstChart",
+    "line_start": 20,
+    "line_end": 25,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IDsConstChart"
+  },
+  {
+    "file": "code\\Lists\\OverlayOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IDsConstChartFactory",
+    "line_start": 20,
+    "line_end": 25,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IDsConstChartFactory"
+  },
+  {
+    "file": "code\\Lists\\OverlayOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibility",
+    "line_start": 20,
+    "line_end": 25,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmPossibility"
+  },
+  {
+    "file": "code\\Lists\\OverlayOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibilityFactory",
+    "line_start": 20,
+    "line_end": 25,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ICmPossibilityFactory"
+  },
+  {
+    "file": "code\\Lists\\OverlayOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 27,
+    "line_end": 27,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lists\\OverlayOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 28,
+    "line_end": 28,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Lists\\PossibilityListOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibility",
+    "line_start": 15,
+    "line_end": 21,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmPossibility"
+  },
+  {
+    "file": "code\\Lists\\PossibilityListOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibilityFactory",
+    "line_start": 15,
+    "line_end": 21,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ICmPossibilityFactory"
+  },
+  {
+    "file": "code\\Lists\\PossibilityListOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibilityList",
+    "line_start": 15,
+    "line_end": 21,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmPossibilityList"
+  },
+  {
+    "file": "code\\Lists\\PossibilityListOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibilityListFactory",
+    "line_start": 15,
+    "line_end": 21,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ICmPossibilityListFactory"
+  },
+  {
+    "file": "code\\Lists\\PossibilityListOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibilityRepository",
+    "line_start": 15,
+    "line_end": 21,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import ICmPossibilityRepository"
+  },
+  {
+    "file": "code\\Lists\\PossibilityListOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 22,
+    "line_end": 22,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lists\\PossibilityListOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 23,
+    "line_end": 23,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Lists\\possibility_item_base.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibilityFactory",
+    "line_start": 15,
+    "line_end": 15,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ICmPossibilityFactory"
+  },
+  {
+    "file": "code\\Lists\\possibility_item_base.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 16,
+    "line_end": 16,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lists\\possibility_item_base.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 17,
+    "line_end": 17,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Lists\\PublicationOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibility",
+    "line_start": 15,
+    "line_end": 19,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmPossibility"
+  },
+  {
+    "file": "code\\Lists\\PublicationOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibilityFactory",
+    "line_start": 15,
+    "line_end": 19,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ICmPossibilityFactory"
+  },
+  {
+    "file": "code\\Lists\\PublicationOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibilityRepository",
+    "line_start": 15,
+    "line_end": 19,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import ICmPossibilityRepository"
+  },
+  {
+    "file": "code\\Lists\\PublicationOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 20,
+    "line_end": 20,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lists\\PublicationOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 21,
+    "line_end": 21,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Lists\\TranslationTypeOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ITextRepository",
+    "line_start": 15,
+    "line_end": 18,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import ITextRepository"
+  },
+  {
+    "file": "code\\Lists\\TranslationTypeOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IStTxtParaRepository",
+    "line_start": 15,
+    "line_end": 18,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import IStTxtParaRepository"
+  },
+  {
+    "file": "code\\Lists\\TranslationTypeOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 19,
+    "line_end": 19,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Lists\\TranslationTypeOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 20,
+    "line_end": 20,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Notebook\\annotation.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 66,
+    "line_end": 66,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Notebook\\AnthropologyOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmAnthroItem",
+    "line_start": 24,
+    "line_end": 30,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmAnthroItem"
+  },
+  {
+    "file": "code\\Notebook\\AnthropologyOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmAnthroItemFactory",
+    "line_start": 24,
+    "line_end": 30,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ICmAnthroItemFactory"
+  },
+  {
+    "file": "code\\Notebook\\AnthropologyOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IText",
+    "line_start": 24,
+    "line_end": 30,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IText"
+  },
+  {
+    "file": "code\\Notebook\\AnthropologyOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPerson",
+    "line_start": 24,
+    "line_end": 30,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmPerson"
+  },
+  {
+    "file": "code\\Notebook\\AnthropologyOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibility",
+    "line_start": 24,
+    "line_end": 30,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmPossibility"
+  },
+  {
+    "file": "code\\Notebook\\AnthropologyOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 31,
+    "line_end": 31,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Notebook\\AnthropologyOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 32,
+    "line_end": 32,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Notebook\\AnthropologyOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibilityListFactory",
+    "line_start": 270,
+    "line_end": 270,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ICmPossibilityListFactory"
+  },
+  {
+    "file": "code\\Notebook\\DataNotebookOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IRnGenericRec",
+    "line_start": 19,
+    "line_end": 29,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IRnGenericRec"
+  },
+  {
+    "file": "code\\Notebook\\DataNotebookOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IRnGenericRecFactory",
+    "line_start": 19,
+    "line_end": 29,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IRnGenericRecFactory"
+  },
+  {
+    "file": "code\\Notebook\\DataNotebookOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IRnResearchNbkRepository",
+    "line_start": 19,
+    "line_end": 29,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import IRnResearchNbkRepository"
+  },
+  {
+    "file": "code\\Notebook\\DataNotebookOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibility",
+    "line_start": 19,
+    "line_end": 29,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmPossibility"
+  },
+  {
+    "file": "code\\Notebook\\DataNotebookOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibilityRepository",
+    "line_start": 19,
+    "line_end": 29,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import ICmPossibilityRepository"
+  },
+  {
+    "file": "code\\Notebook\\DataNotebookOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPerson",
+    "line_start": 19,
+    "line_end": 29,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmPerson"
+  },
+  {
+    "file": "code\\Notebook\\DataNotebookOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IText",
+    "line_start": 19,
+    "line_end": 29,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IText"
+  },
+  {
+    "file": "code\\Notebook\\DataNotebookOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmFile",
+    "line_start": 19,
+    "line_end": 29,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmFile"
+  },
+  {
+    "file": "code\\Notebook\\DataNotebookOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmFileFactory",
+    "line_start": 19,
+    "line_end": 29,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ICmFileFactory"
+  },
+  {
+    "file": "code\\Notebook\\DataNotebookOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 30,
+    "line_end": 30,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Notebook\\DataNotebookOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 31,
+    "line_end": 31,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Notebook\\LocationOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmLocation",
+    "line_start": 21,
+    "line_end": 25,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmLocation"
+  },
+  {
+    "file": "code\\Notebook\\LocationOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmLocationFactory",
+    "line_start": 21,
+    "line_end": 25,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ICmLocationFactory"
+  },
+  {
+    "file": "code\\Notebook\\LocationOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibilityRepository",
+    "line_start": 21,
+    "line_end": 25,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import ICmPossibilityRepository"
+  },
+  {
+    "file": "code\\Notebook\\LocationOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 26,
+    "line_end": 26,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Notebook\\LocationOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 27,
+    "line_end": 27,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Notebook\\LocationOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "GenDate",
+    "line_start": 662,
+    "line_end": 662,
+    "import_type": "class",
+    "statement": "from SIL.LCModel import GenDate"
+  },
+  {
+    "file": "code\\Notebook\\NoteOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IScrScriptureNote",
+    "line_start": 15,
+    "line_end": 22,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IScrScriptureNote"
+  },
+  {
+    "file": "code\\Notebook\\NoteOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IScrScriptureNoteFactory",
+    "line_start": 15,
+    "line_end": 22,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IScrScriptureNoteFactory"
+  },
+  {
+    "file": "code\\Notebook\\NoteOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmBaseAnnotation",
+    "line_start": 15,
+    "line_end": 22,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmBaseAnnotation"
+  },
+  {
+    "file": "code\\Notebook\\NoteOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmBaseAnnotationFactory",
+    "line_start": 15,
+    "line_end": 22,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ICmBaseAnnotationFactory"
+  },
+  {
+    "file": "code\\Notebook\\NoteOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmAnnotationDefn",
+    "line_start": 15,
+    "line_end": 22,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmAnnotationDefn"
+  },
+  {
+    "file": "code\\Notebook\\NoteOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibility",
+    "line_start": 15,
+    "line_end": 22,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmPossibility"
+  },
+  {
+    "file": "code\\Notebook\\NoteOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 23,
+    "line_end": 23,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Notebook\\NoteOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 24,
+    "line_end": 24,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Notebook\\PersonOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPerson",
+    "line_start": 15,
+    "line_end": 23,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmPerson"
+  },
+  {
+    "file": "code\\Notebook\\PersonOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPersonFactory",
+    "line_start": 15,
+    "line_end": 23,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ICmPersonFactory"
+  },
+  {
+    "file": "code\\Notebook\\PersonOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPersonRepository",
+    "line_start": 15,
+    "line_end": 23,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import ICmPersonRepository"
+  },
+  {
+    "file": "code\\Notebook\\PersonOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibility",
+    "line_start": 15,
+    "line_end": 23,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmPossibility"
+  },
+  {
+    "file": "code\\Notebook\\PersonOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibilityRepository",
+    "line_start": 15,
+    "line_end": 23,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import ICmPossibilityRepository"
+  },
+  {
+    "file": "code\\Notebook\\PersonOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmLocation",
+    "line_start": 15,
+    "line_end": 23,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmLocation"
+  },
+  {
+    "file": "code\\Notebook\\PersonOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILangProject",
+    "line_start": 15,
+    "line_end": 23,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILangProject"
+  },
+  {
+    "file": "code\\Notebook\\PersonOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 24,
+    "line_end": 24,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Notebook\\PersonOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 25,
+    "line_end": 25,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Reversal\\ReversalIndexEntryOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IReversalIndex",
+    "line_start": 19,
+    "line_end": 24,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IReversalIndex"
+  },
+  {
+    "file": "code\\Reversal\\ReversalIndexEntryOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IReversalIndexEntry",
+    "line_start": 19,
+    "line_end": 24,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IReversalIndexEntry"
+  },
+  {
+    "file": "code\\Reversal\\ReversalIndexEntryOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IReversalIndexEntryFactory",
+    "line_start": 19,
+    "line_end": 24,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IReversalIndexEntryFactory"
+  },
+  {
+    "file": "code\\Reversal\\ReversalIndexEntryOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexSense",
+    "line_start": 19,
+    "line_end": 24,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexSense"
+  },
+  {
+    "file": "code\\Reversal\\ReversalIndexEntryOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 25,
+    "line_end": 25,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Reversal\\ReversalIndexEntryOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 26,
+    "line_end": 26,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Reversal\\ReversalIndexOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IReversalIndex",
+    "line_start": 19,
+    "line_end": 24,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IReversalIndex"
+  },
+  {
+    "file": "code\\Reversal\\ReversalIndexOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IReversalIndexFactory",
+    "line_start": 19,
+    "line_end": 24,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IReversalIndexFactory"
+  },
+  {
+    "file": "code\\Reversal\\ReversalIndexOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IReversalIndexRepository",
+    "line_start": 19,
+    "line_end": 24,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import IReversalIndexRepository"
+  },
+  {
+    "file": "code\\Reversal\\ReversalIndexOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILangProject",
+    "line_start": 19,
+    "line_end": 24,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILangProject"
+  },
+  {
+    "file": "code\\Reversal\\ReversalIndexOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 25,
+    "line_end": 25,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Reversal\\ReversalIndexOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 26,
+    "line_end": 26,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Scripture\\ScrAnnotationsOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IScrBook",
+    "line_start": 18,
+    "line_end": 23,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IScrBook"
+  },
+  {
+    "file": "code\\Scripture\\ScrAnnotationsOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IScrBookAnnotations",
+    "line_start": 18,
+    "line_end": 23,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IScrBookAnnotations"
+  },
+  {
+    "file": "code\\Scripture\\ScrAnnotationsOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IScrBookAnnotationsFactory",
+    "line_start": 18,
+    "line_end": 23,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IScrBookAnnotationsFactory"
+  },
+  {
+    "file": "code\\Scripture\\ScrAnnotationsOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IScrScriptureNote",
+    "line_start": 18,
+    "line_end": 23,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IScrScriptureNote"
+  },
+  {
+    "file": "code\\Scripture\\ScrBookOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IScrBook",
+    "line_start": 18,
+    "line_end": 24,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IScrBook"
+  },
+  {
+    "file": "code\\Scripture\\ScrBookOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IScrBookFactory",
+    "line_start": 18,
+    "line_end": 24,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IScrBookFactory"
+  },
+  {
+    "file": "code\\Scripture\\ScrBookOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IScrBookRepository",
+    "line_start": 18,
+    "line_end": 24,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import IScrBookRepository"
+  },
+  {
+    "file": "code\\Scripture\\ScrBookOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IScrSection",
+    "line_start": 18,
+    "line_end": 24,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IScrSection"
+  },
+  {
+    "file": "code\\Scripture\\ScrBookOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IScripture",
+    "line_start": 18,
+    "line_end": 24,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IScripture"
+  },
+  {
+    "file": "code\\Scripture\\ScrBookOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 25,
+    "line_end": 25,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Scripture\\ScrBookOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 26,
+    "line_end": 26,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Scripture\\ScrDraftOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IScrDraft",
+    "line_start": 19,
+    "line_end": 23,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IScrDraft"
+  },
+  {
+    "file": "code\\Scripture\\ScrDraftOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IScrDraftFactory",
+    "line_start": 19,
+    "line_end": 23,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IScrDraftFactory"
+  },
+  {
+    "file": "code\\Scripture\\ScrDraftOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IScripture",
+    "line_start": 19,
+    "line_end": 23,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IScripture"
+  },
+  {
+    "file": "code\\Scripture\\ScrDraftOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 24,
+    "line_end": 24,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Scripture\\ScrDraftOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 25,
+    "line_end": 25,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Scripture\\ScrNoteOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IScrBook",
+    "line_start": 18,
+    "line_end": 24,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IScrBook"
+  },
+  {
+    "file": "code\\Scripture\\ScrNoteOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IScrBookAnnotations",
+    "line_start": 18,
+    "line_end": 24,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IScrBookAnnotations"
+  },
+  {
+    "file": "code\\Scripture\\ScrNoteOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IScrScriptureNote",
+    "line_start": 18,
+    "line_end": 24,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IScrScriptureNote"
+  },
+  {
+    "file": "code\\Scripture\\ScrNoteOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IScrScriptureNoteFactory",
+    "line_start": 18,
+    "line_end": 24,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IScrScriptureNoteFactory"
+  },
+  {
+    "file": "code\\Scripture\\ScrNoteOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IScrTxtPara",
+    "line_start": 18,
+    "line_end": 24,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IScrTxtPara"
+  },
+  {
+    "file": "code\\Scripture\\ScrNoteOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 25,
+    "line_end": 25,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Scripture\\ScrNoteOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 26,
+    "line_end": 26,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Scripture\\ScrNoteOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IScrBookAnnotationsFactory",
+    "line_start": 149,
+    "line_end": 149,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IScrBookAnnotationsFactory"
+  },
+  {
+    "file": "code\\Scripture\\ScrNoteOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IStTxtParaFactory",
+    "line_start": 176,
+    "line_end": 176,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IStTxtParaFactory"
+  },
+  {
+    "file": "code\\Scripture\\ScrNoteOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IStTextFactory",
+    "line_start": 184,
+    "line_end": 184,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IStTextFactory"
+  },
+  {
+    "file": "code\\Scripture\\ScrNoteOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IStTxtParaFactory",
+    "line_start": 184,
+    "line_end": 184,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IStTxtParaFactory"
+  },
+  {
+    "file": "code\\Scripture\\ScrNoteOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IStTextFactory",
+    "line_start": 431,
+    "line_end": 431,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IStTextFactory"
+  },
+  {
+    "file": "code\\Scripture\\ScrNoteOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IStTxtParaFactory",
+    "line_start": 438,
+    "line_end": 438,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IStTxtParaFactory"
+  },
+  {
+    "file": "code\\Scripture\\ScrSectionOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IScrBook",
+    "line_start": 18,
+    "line_end": 25,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IScrBook"
+  },
+  {
+    "file": "code\\Scripture\\ScrSectionOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IScrSection",
+    "line_start": 18,
+    "line_end": 25,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IScrSection"
+  },
+  {
+    "file": "code\\Scripture\\ScrSectionOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IScrSectionFactory",
+    "line_start": 18,
+    "line_end": 25,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IScrSectionFactory"
+  },
+  {
+    "file": "code\\Scripture\\ScrSectionOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IScrTxtPara",
+    "line_start": 18,
+    "line_end": 25,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IScrTxtPara"
+  },
+  {
+    "file": "code\\Scripture\\ScrSectionOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IStText",
+    "line_start": 18,
+    "line_end": 25,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IStText"
+  },
+  {
+    "file": "code\\Scripture\\ScrSectionOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IStTextFactory",
+    "line_start": 18,
+    "line_end": 25,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IStTextFactory"
+  },
+  {
+    "file": "code\\Scripture\\ScrSectionOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 26,
+    "line_end": 26,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Scripture\\ScrSectionOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 27,
+    "line_end": 27,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Scripture\\ScrSectionOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IStTxtParaFactory",
+    "line_start": 360,
+    "line_end": 360,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IStTxtParaFactory"
+  },
+  {
+    "file": "code\\Scripture\\ScrTxtParaOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IScrSection",
+    "line_start": 18,
+    "line_end": 23,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IScrSection"
+  },
+  {
+    "file": "code\\Scripture\\ScrTxtParaOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IScrTxtPara",
+    "line_start": 18,
+    "line_end": 23,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IScrTxtPara"
+  },
+  {
+    "file": "code\\Scripture\\ScrTxtParaOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IScrTxtParaFactory",
+    "line_start": 18,
+    "line_end": 23,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IScrTxtParaFactory"
+  },
+  {
+    "file": "code\\Scripture\\ScrTxtParaOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IStStyle",
+    "line_start": 18,
+    "line_end": 23,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IStStyle"
+  },
+  {
+    "file": "code\\Scripture\\ScrTxtParaOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 24,
+    "line_end": 24,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Scripture\\ScrTxtParaOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 25,
+    "line_end": 25,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Scripture\\ScrTxtParaOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IStTextFactory",
+    "line_start": 133,
+    "line_end": 133,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IStTextFactory"
+  },
+  {
+    "file": "code\\Shared\\catalog_backed.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 41,
+    "line_end": 41,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Shared\\catalog_backed.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 42,
+    "line_end": 42,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Shared\\catalog_backed.py",
+    "namespace": "SIL.LCModel.Application.ApplicationServices",
+    "class": "XmlList",
+    "line_start": 715,
+    "line_end": 715,
+    "import_type": "class",
+    "statement": "from SIL.LCModel.Application.ApplicationServices import XmlList"
+  },
+  {
+    "file": "code\\Shared\\FilterOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmFilter",
+    "line_start": 28,
+    "line_end": 36,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmFilter"
+  },
+  {
+    "file": "code\\Shared\\FilterOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmFilterFactory",
+    "line_start": 28,
+    "line_end": 36,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ICmFilterFactory"
+  },
+  {
+    "file": "code\\Shared\\FilterOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IFsClosedFeature",
+    "line_start": 28,
+    "line_end": 36,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IFsClosedFeature"
+  },
+  {
+    "file": "code\\Shared\\FilterOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexEntry",
+    "line_start": 28,
+    "line_end": 36,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexEntry"
+  },
+  {
+    "file": "code\\Shared\\FilterOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IWfiWordform",
+    "line_start": 28,
+    "line_end": 36,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IWfiWordform"
+  },
+  {
+    "file": "code\\Shared\\FilterOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IText",
+    "line_start": 28,
+    "line_end": 36,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IText"
+  },
+  {
+    "file": "code\\Shared\\FilterOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmObjectRepository",
+    "line_start": 28,
+    "line_end": 36,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import ICmObjectRepository"
+  },
+  {
+    "file": "code\\Shared\\FilterOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 38,
+    "line_end": 38,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Shared\\FilterOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 39,
+    "line_end": 39,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\Shared\\MediaOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmFile",
+    "line_start": 22,
+    "line_end": 28,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmFile"
+  },
+  {
+    "file": "code\\Shared\\MediaOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmFileFactory",
+    "line_start": 22,
+    "line_end": 28,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ICmFileFactory"
+  },
+  {
+    "file": "code\\Shared\\MediaOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmFolder",
+    "line_start": 22,
+    "line_end": 28,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmFolder"
+  },
+  {
+    "file": "code\\Shared\\MediaOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmFolderFactory",
+    "line_start": 22,
+    "line_end": 28,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ICmFolderFactory"
+  },
+  {
+    "file": "code\\Shared\\MediaOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmObjectRepository",
+    "line_start": 22,
+    "line_end": 28,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import ICmObjectRepository"
+  },
+  {
+    "file": "code\\Shared\\MediaOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 29,
+    "line_end": 29,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\Shared\\MediaOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 30,
+    "line_end": 30,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\System\\AnnotationDefOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmAnnotationDefn",
+    "line_start": 15,
+    "line_end": 20,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmAnnotationDefn"
+  },
+  {
+    "file": "code\\System\\AnnotationDefOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmAnnotationDefnRepository",
+    "line_start": 15,
+    "line_end": 20,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import ICmAnnotationDefnRepository"
+  },
+  {
+    "file": "code\\System\\AnnotationDefOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmAnnotationDefnFactory",
+    "line_start": 15,
+    "line_end": 20,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ICmAnnotationDefnFactory"
+  },
+  {
+    "file": "code\\System\\AnnotationDefOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibility",
+    "line_start": 15,
+    "line_end": 20,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmPossibility"
+  },
+  {
+    "file": "code\\System\\AnnotationDefOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 21,
+    "line_end": 21,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\System\\AnnotationDefOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 22,
+    "line_end": 22,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\System\\CheckOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibility",
+    "line_start": 25,
+    "line_end": 32,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmPossibility"
+  },
+  {
+    "file": "code\\System\\CheckOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibilityFactory",
+    "line_start": 25,
+    "line_end": 32,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ICmPossibilityFactory"
+  },
+  {
+    "file": "code\\System\\CheckOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibilityList",
+    "line_start": 25,
+    "line_end": 32,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmPossibilityList"
+  },
+  {
+    "file": "code\\System\\CheckOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexEntry",
+    "line_start": 25,
+    "line_end": 32,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexEntry"
+  },
+  {
+    "file": "code\\System\\CheckOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IWfiWordform",
+    "line_start": 25,
+    "line_end": 32,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IWfiWordform"
+  },
+  {
+    "file": "code\\System\\CheckOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IText",
+    "line_start": 25,
+    "line_end": 32,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IText"
+  },
+  {
+    "file": "code\\System\\CheckOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 33,
+    "line_end": 33,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\System\\CheckOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 34,
+    "line_end": 34,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\System\\CheckOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibilityListFactory",
+    "line_start": 1185,
+    "line_end": 1185,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ICmPossibilityListFactory"
+  },
+  {
+    "file": "code\\System\\CustomFieldOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmObjectRepository",
+    "line_start": 17,
+    "line_end": 28,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import ICmObjectRepository"
+  },
+  {
+    "file": "code\\System\\CustomFieldOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibilityRepository",
+    "line_start": 17,
+    "line_end": 28,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import ICmPossibilityRepository"
+  },
+  {
+    "file": "code\\System\\CustomFieldOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexEntry",
+    "line_start": 17,
+    "line_end": 28,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexEntry"
+  },
+  {
+    "file": "code\\System\\CustomFieldOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexSense",
+    "line_start": 17,
+    "line_end": 28,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexSense"
+  },
+  {
+    "file": "code\\System\\CustomFieldOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexExampleSentence",
+    "line_start": 17,
+    "line_end": 28,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexExampleSentence"
+  },
+  {
+    "file": "code\\System\\CustomFieldOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoForm",
+    "line_start": 17,
+    "line_end": 28,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IMoForm"
+  },
+  {
+    "file": "code\\System\\CustomFieldOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "LexEntryTags",
+    "line_start": 17,
+    "line_end": 28,
+    "import_type": "tags",
+    "statement": "from SIL.LCModel import LexEntryTags"
+  },
+  {
+    "file": "code\\System\\CustomFieldOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "LexSenseTags",
+    "line_start": 17,
+    "line_end": 28,
+    "import_type": "tags",
+    "statement": "from SIL.LCModel import LexSenseTags"
+  },
+  {
+    "file": "code\\System\\CustomFieldOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "LexExampleSentenceTags",
+    "line_start": 17,
+    "line_end": 28,
+    "import_type": "tags",
+    "statement": "from SIL.LCModel import LexExampleSentenceTags"
+  },
+  {
+    "file": "code\\System\\CustomFieldOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "MoFormTags",
+    "line_start": 17,
+    "line_end": 28,
+    "import_type": "tags",
+    "statement": "from SIL.LCModel import MoFormTags"
+  },
+  {
+    "file": "code\\System\\CustomFieldOperations.py",
+    "namespace": "SIL.LCModel.Core.Cellar",
+    "class": "CellarPropertyType",
+    "line_start": 30,
+    "line_end": 33,
+    "import_type": "class",
+    "statement": "from SIL.LCModel.Core.Cellar import CellarPropertyType"
+  },
+  {
+    "file": "code\\System\\CustomFieldOperations.py",
+    "namespace": "SIL.LCModel.Core.Cellar",
+    "class": "CellarPropertyTypeFilter",
+    "line_start": 30,
+    "line_end": 33,
+    "import_type": "class",
+    "statement": "from SIL.LCModel.Core.Cellar import CellarPropertyTypeFilter"
+  },
+  {
+    "file": "code\\System\\CustomFieldOperations.py",
+    "namespace": "SIL.LCModel.Infrastructure",
+    "class": "IFwMetaDataCacheManaged",
+    "line_start": 35,
+    "line_end": 37,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Infrastructure import IFwMetaDataCacheManaged"
+  },
+  {
+    "file": "code\\System\\CustomFieldOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 39,
+    "line_end": 39,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\System\\CustomFieldOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 40,
+    "line_end": 40,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\System\\ProjectSettingsOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILangProject",
+    "line_start": 19,
+    "line_end": 21,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILangProject"
+  },
+  {
+    "file": "code\\System\\ProjectSettingsOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 22,
+    "line_end": 22,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\System\\ProjectSettingsOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 23,
+    "line_end": 23,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\System\\ProjectSettingsOperations.py",
+    "namespace": "SIL.WritingSystems",
+    "class": "WritingSystemDefinition",
+    "line_start": 24,
+    "line_end": 24,
+    "import_type": "class",
+    "statement": "from SIL.WritingSystems import WritingSystemDefinition"
+  },
+  {
+    "file": "code\\System\\WritingSystemOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "SpecialWritingSystemCodes",
+    "line_start": 15,
+    "line_end": 15,
+    "import_type": "class",
+    "statement": "from SIL.LCModel import SpecialWritingSystemCodes"
+  },
+  {
+    "file": "code\\System\\WritingSystemOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 16,
+    "line_end": 16,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\System\\WritingSystemOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 17,
+    "line_end": 17,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\System\\WritingSystemOperations.py",
+    "namespace": "SIL.WritingSystems",
+    "class": "WritingSystemDefinition",
+    "line_start": 18,
+    "line_end": 18,
+    "import_type": "class",
+    "statement": "from SIL.WritingSystems import WritingSystemDefinition"
+  },
+  {
+    "file": "code\\System\\WritingSystemOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "IMultiUnicode",
+    "line_start": 894,
+    "line_end": 894,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import IMultiUnicode"
+  },
+  {
+    "file": "code\\System\\WritingSystemOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "IMultiString",
+    "line_start": 894,
+    "line_end": 894,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import IMultiString"
+  },
+  {
+    "file": "code\\TextsWords\\DiscourseOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IDsConstChart",
+    "line_start": 16,
+    "line_end": 32,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IDsConstChart"
+  },
+  {
+    "file": "code\\TextsWords\\DiscourseOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 34,
+    "line_end": 34,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\TextsWords\\DiscourseOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 35,
+    "line_end": 35,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\TextsWords\\ParagraphOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IText",
+    "line_start": 16,
+    "line_end": 20,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IText"
+  },
+  {
+    "file": "code\\TextsWords\\ParagraphOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IStTxtPara",
+    "line_start": 16,
+    "line_end": 20,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IStTxtPara"
+  },
+  {
+    "file": "code\\TextsWords\\ParagraphOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IStTxtParaFactory",
+    "line_start": 16,
+    "line_end": 20,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IStTxtParaFactory"
+  },
+  {
+    "file": "code\\TextsWords\\ParagraphOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 22,
+    "line_end": 22,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\TextsWords\\ParagraphOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 23,
+    "line_end": 23,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\TextsWords\\SegmentOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ISegment",
+    "line_start": 18,
+    "line_end": 22,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ISegment"
+  },
+  {
+    "file": "code\\TextsWords\\SegmentOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ISegmentFactory",
+    "line_start": 18,
+    "line_end": 22,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ISegmentFactory"
+  },
+  {
+    "file": "code\\TextsWords\\SegmentOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IStTxtPara",
+    "line_start": 18,
+    "line_end": 22,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IStTxtPara"
+  },
+  {
+    "file": "code\\TextsWords\\SegmentOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 24,
+    "line_end": 24,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\TextsWords\\SegmentOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 25,
+    "line_end": 25,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\TextsWords\\TextOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IText",
+    "line_start": 16,
+    "line_end": 27,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IText"
+  },
+  {
+    "file": "code\\TextsWords\\TextOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ITextFactory",
+    "line_start": 16,
+    "line_end": 27,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ITextFactory"
+  },
+  {
+    "file": "code\\TextsWords\\TextOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IStTextFactory",
+    "line_start": 16,
+    "line_end": 27,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IStTextFactory"
+  },
+  {
+    "file": "code\\TextsWords\\TextOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IStTxtParaFactory",
+    "line_start": 16,
+    "line_end": 27,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IStTxtParaFactory"
+  },
+  {
+    "file": "code\\TextsWords\\TextOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ITextRepository",
+    "line_start": 16,
+    "line_end": 27,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import ITextRepository"
+  },
+  {
+    "file": "code\\TextsWords\\TextOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IStTxtPara",
+    "line_start": 16,
+    "line_end": 27,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IStTxtPara"
+  },
+  {
+    "file": "code\\TextsWords\\TextOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmPossibility",
+    "line_start": 16,
+    "line_end": 27,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmPossibility"
+  },
+  {
+    "file": "code\\TextsWords\\TextOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmMedia",
+    "line_start": 16,
+    "line_end": 27,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmMedia"
+  },
+  {
+    "file": "code\\TextsWords\\TextOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmMediaFactory",
+    "line_start": 16,
+    "line_end": 27,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ICmMediaFactory"
+  },
+  {
+    "file": "code\\TextsWords\\TextOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmFolderFactory",
+    "line_start": 16,
+    "line_end": 27,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import ICmFolderFactory"
+  },
+  {
+    "file": "code\\TextsWords\\TextOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 29,
+    "line_end": 29,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\TextsWords\\TextOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 30,
+    "line_end": 30,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\TextsWords\\WfiAnalysisOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IWfiAnalysis",
+    "line_start": 19,
+    "line_end": 29,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IWfiAnalysis"
+  },
+  {
+    "file": "code\\TextsWords\\WfiAnalysisOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IWfiAnalysisFactory",
+    "line_start": 19,
+    "line_end": 29,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IWfiAnalysisFactory"
+  },
+  {
+    "file": "code\\TextsWords\\WfiAnalysisOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IWfiAnalysisRepository",
+    "line_start": 19,
+    "line_end": 29,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import IWfiAnalysisRepository"
+  },
+  {
+    "file": "code\\TextsWords\\WfiAnalysisOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IWfiWordform",
+    "line_start": 19,
+    "line_end": 29,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IWfiWordform"
+  },
+  {
+    "file": "code\\TextsWords\\WfiAnalysisOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IWfiGlossFactory",
+    "line_start": 19,
+    "line_end": 29,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IWfiGlossFactory"
+  },
+  {
+    "file": "code\\TextsWords\\WfiAnalysisOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IWfiMorphBundleFactory",
+    "line_start": 19,
+    "line_end": 29,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IWfiMorphBundleFactory"
+  },
+  {
+    "file": "code\\TextsWords\\WfiAnalysisOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IPartOfSpeech",
+    "line_start": 19,
+    "line_end": 29,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IPartOfSpeech"
+  },
+  {
+    "file": "code\\TextsWords\\WfiAnalysisOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmAgentEvaluation",
+    "line_start": 19,
+    "line_end": 29,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmAgentEvaluation"
+  },
+  {
+    "file": "code\\TextsWords\\WfiAnalysisOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ICmAgent",
+    "line_start": 19,
+    "line_end": 29,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ICmAgent"
+  },
+  {
+    "file": "code\\TextsWords\\WfiAnalysisOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 31,
+    "line_end": 31,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\TextsWords\\WfiAnalysisOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 32,
+    "line_end": 32,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\TextsWords\\WfiAnalysisOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "Opinions",
+    "line_start": 702,
+    "line_end": 702,
+    "import_type": "class",
+    "statement": "from SIL.LCModel import Opinions"
+  },
+  {
+    "file": "code\\TextsWords\\WfiGlossOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IWfiGloss",
+    "line_start": 18,
+    "line_end": 22,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IWfiGloss"
+  },
+  {
+    "file": "code\\TextsWords\\WfiGlossOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IWfiGlossFactory",
+    "line_start": 18,
+    "line_end": 22,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IWfiGlossFactory"
+  },
+  {
+    "file": "code\\TextsWords\\WfiGlossOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IWfiAnalysis",
+    "line_start": 18,
+    "line_end": 22,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IWfiAnalysis"
+  },
+  {
+    "file": "code\\TextsWords\\WfiGlossOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 24,
+    "line_end": 24,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\TextsWords\\WfiGlossOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 25,
+    "line_end": 25,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\TextsWords\\WfiMorphBundleOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IWfiMorphBundle",
+    "line_start": 15,
+    "line_end": 23,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IWfiMorphBundle"
+  },
+  {
+    "file": "code\\TextsWords\\WfiMorphBundleOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IWfiMorphBundleFactory",
+    "line_start": 15,
+    "line_end": 23,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IWfiMorphBundleFactory"
+  },
+  {
+    "file": "code\\TextsWords\\WfiMorphBundleOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IWfiAnalysis",
+    "line_start": 15,
+    "line_end": 23,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IWfiAnalysis"
+  },
+  {
+    "file": "code\\TextsWords\\WfiMorphBundleOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "ILexSense",
+    "line_start": 15,
+    "line_end": 23,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import ILexSense"
+  },
+  {
+    "file": "code\\TextsWords\\WfiMorphBundleOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoMorphSynAnalysis",
+    "line_start": 15,
+    "line_end": 23,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IMoMorphSynAnalysis"
+  },
+  {
+    "file": "code\\TextsWords\\WfiMorphBundleOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoMorphType",
+    "line_start": 15,
+    "line_end": 23,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IMoMorphType"
+  },
+  {
+    "file": "code\\TextsWords\\WfiMorphBundleOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IMoInflClass",
+    "line_start": 15,
+    "line_end": 23,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IMoInflClass"
+  },
+  {
+    "file": "code\\TextsWords\\WfiMorphBundleOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 24,
+    "line_end": 24,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\TextsWords\\WfiMorphBundleOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 25,
+    "line_end": 25,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  },
+  {
+    "file": "code\\TextsWords\\WordformOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IWfiWordformRepository",
+    "line_start": 22,
+    "line_end": 29,
+    "import_type": "repository",
+    "statement": "from SIL.LCModel import IWfiWordformRepository"
+  },
+  {
+    "file": "code\\TextsWords\\WordformOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IWfiWordformFactory",
+    "line_start": 22,
+    "line_end": 29,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IWfiWordformFactory"
+  },
+  {
+    "file": "code\\TextsWords\\WordformOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IWfiWordform",
+    "line_start": 22,
+    "line_end": 29,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel import IWfiWordform"
+  },
+  {
+    "file": "code\\TextsWords\\WordformOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IWfiAnalysisFactory",
+    "line_start": 22,
+    "line_end": 29,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IWfiAnalysisFactory"
+  },
+  {
+    "file": "code\\TextsWords\\WordformOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IWfiGlossFactory",
+    "line_start": 22,
+    "line_end": 29,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IWfiGlossFactory"
+  },
+  {
+    "file": "code\\TextsWords\\WordformOperations.py",
+    "namespace": "SIL.LCModel",
+    "class": "IWfiMorphBundleFactory",
+    "line_start": 22,
+    "line_end": 29,
+    "import_type": "factory",
+    "statement": "from SIL.LCModel import IWfiMorphBundleFactory"
+  },
+  {
+    "file": "code\\TextsWords\\WordformOperations.py",
+    "namespace": "SIL.LCModel.Core.KernelInterfaces",
+    "class": "ITsString",
+    "line_start": 31,
+    "line_end": 31,
+    "import_type": "interface",
+    "statement": "from SIL.LCModel.Core.KernelInterfaces import ITsString"
+  },
+  {
+    "file": "code\\TextsWords\\WordformOperations.py",
+    "namespace": "SIL.LCModel.Core.Text",
+    "class": "TsStringUtils",
+    "line_start": 32,
+    "line_end": 32,
+    "import_type": "utility",
+    "statement": "from SIL.LCModel.Core.Text import TsStringUtils"
+  }
+]

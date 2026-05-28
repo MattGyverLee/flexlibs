@@ -1,0 +1,3444 @@
+{
+  "SIL.LCModel.Core.Text": [
+    {
+      "file": "code\\BaseOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 1852
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 88
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 129
+    },
+    {
+      "file": "code\\Discourse\\ConstChartMarkerOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 27
+    },
+    {
+      "file": "code\\Discourse\\ConstChartOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 28
+    },
+    {
+      "file": "code\\Discourse\\ConstChartRowOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 25
+    },
+    {
+      "file": "code\\Grammar\\EnvironmentOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 20
+    },
+    {
+      "file": "code\\Grammar\\GramCatOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 20
+    },
+    {
+      "file": "code\\Grammar\\InflectionFeatureOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 44
+    },
+    {
+      "file": "code\\Grammar\\MorphRuleOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 47
+    },
+    {
+      "file": "code\\Grammar\\NaturalClassOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 28
+    },
+    {
+      "file": "code\\Grammar\\PhonemeOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 28
+    },
+    {
+      "file": "code\\Grammar\\PhonFeatureOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 38
+    },
+    {
+      "file": "code\\Grammar\\PhonologicalRuleOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 35
+    },
+    {
+      "file": "code\\Grammar\\POSOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 20
+    },
+    {
+      "file": "code\\Lexicon\\AllomorphOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 31
+    },
+    {
+      "file": "code\\Lexicon\\EtymologyOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 24
+    },
+    {
+      "file": "code\\Lexicon\\ExampleOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 30
+    },
+    {
+      "file": "code\\Lexicon\\LexEntryOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 41
+    },
+    {
+      "file": "code\\Lexicon\\LexReferenceOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 29
+    },
+    {
+      "file": "code\\Lexicon\\LexSenseOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 38
+    },
+    {
+      "file": "code\\Lexicon\\PronunciationOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 32
+    },
+    {
+      "file": "code\\Lexicon\\SemanticDomainOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 26
+    },
+    {
+      "file": "code\\Lexicon\\VariantOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 27
+    },
+    {
+      "file": "code\\Lists\\AgentOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 23
+    },
+    {
+      "file": "code\\Lists\\OverlayOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 28
+    },
+    {
+      "file": "code\\Lists\\PossibilityListOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 23
+    },
+    {
+      "file": "code\\Lists\\possibility_item_base.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 17
+    },
+    {
+      "file": "code\\Lists\\PublicationOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 21
+    },
+    {
+      "file": "code\\Lists\\TranslationTypeOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 20
+    },
+    {
+      "file": "code\\Notebook\\AnthropologyOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 32
+    },
+    {
+      "file": "code\\Notebook\\DataNotebookOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 31
+    },
+    {
+      "file": "code\\Notebook\\LocationOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 27
+    },
+    {
+      "file": "code\\Notebook\\NoteOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 24
+    },
+    {
+      "file": "code\\Notebook\\PersonOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 25
+    },
+    {
+      "file": "code\\Reversal\\ReversalIndexEntryOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 26
+    },
+    {
+      "file": "code\\Reversal\\ReversalIndexOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 26
+    },
+    {
+      "file": "code\\Scripture\\ScrBookOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 26
+    },
+    {
+      "file": "code\\Scripture\\ScrDraftOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 25
+    },
+    {
+      "file": "code\\Scripture\\ScrNoteOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 26
+    },
+    {
+      "file": "code\\Scripture\\ScrSectionOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 27
+    },
+    {
+      "file": "code\\Scripture\\ScrTxtParaOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 25
+    },
+    {
+      "file": "code\\Shared\\catalog_backed.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 42
+    },
+    {
+      "file": "code\\Shared\\FilterOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 39
+    },
+    {
+      "file": "code\\Shared\\MediaOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 30
+    },
+    {
+      "file": "code\\System\\AnnotationDefOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 22
+    },
+    {
+      "file": "code\\System\\CheckOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 34
+    },
+    {
+      "file": "code\\System\\CustomFieldOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 40
+    },
+    {
+      "file": "code\\System\\ProjectSettingsOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 23
+    },
+    {
+      "file": "code\\System\\WritingSystemOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 17
+    },
+    {
+      "file": "code\\TextsWords\\DiscourseOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 35
+    },
+    {
+      "file": "code\\TextsWords\\ParagraphOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 23
+    },
+    {
+      "file": "code\\TextsWords\\SegmentOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 25
+    },
+    {
+      "file": "code\\TextsWords\\TextOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 30
+    },
+    {
+      "file": "code\\TextsWords\\WfiAnalysisOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 32
+    },
+    {
+      "file": "code\\TextsWords\\WfiGlossOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 25
+    },
+    {
+      "file": "code\\TextsWords\\WfiMorphBundleOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 25
+    },
+    {
+      "file": "code\\TextsWords\\WordformOperations.py",
+      "class": "TsStringUtils",
+      "type": "utility",
+      "line": 32
+    }
+  ],
+  "SIL.LCModel.Core.KernelInterfaces": [
+    {
+      "file": "code\\BaseOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 1886
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 87
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "ITsStrBldr",
+      "type": "interface",
+      "line": 87
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 128
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "ITsStrBldr",
+      "type": "interface",
+      "line": 128
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "FwObjDataTypes",
+      "type": "class",
+      "line": 2892
+    },
+    {
+      "file": "code\\Discourse\\ConstChartMarkerOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 26
+    },
+    {
+      "file": "code\\Discourse\\ConstChartOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 27
+    },
+    {
+      "file": "code\\Discourse\\ConstChartRowOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 24
+    },
+    {
+      "file": "code\\Grammar\\affix_template.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 113
+    },
+    {
+      "file": "code\\Grammar\\affix_template.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 134
+    },
+    {
+      "file": "code\\Grammar\\compound_rule.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 119
+    },
+    {
+      "file": "code\\Grammar\\EnvironmentOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 19
+    },
+    {
+      "file": "code\\Grammar\\GramCatOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 19
+    },
+    {
+      "file": "code\\Grammar\\InflectionFeatureOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 43
+    },
+    {
+      "file": "code\\Grammar\\MorphRuleOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 46
+    },
+    {
+      "file": "code\\Grammar\\NaturalClassOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 27
+    },
+    {
+      "file": "code\\Grammar\\PhonemeOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 27
+    },
+    {
+      "file": "code\\Grammar\\PhonFeatureOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 37
+    },
+    {
+      "file": "code\\Grammar\\PhonologicalRuleOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 34
+    },
+    {
+      "file": "code\\Grammar\\phonological_rule.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 130
+    },
+    {
+      "file": "code\\Grammar\\POSOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 19
+    },
+    {
+      "file": "code\\Lexicon\\allomorph.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 127
+    },
+    {
+      "file": "code\\Lexicon\\allomorph.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 158
+    },
+    {
+      "file": "code\\Lexicon\\allomorph.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 273
+    },
+    {
+      "file": "code\\Lexicon\\AllomorphOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 30
+    },
+    {
+      "file": "code\\Lexicon\\EtymologyOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 23
+    },
+    {
+      "file": "code\\Lexicon\\EtymologyOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 389
+    },
+    {
+      "file": "code\\Lexicon\\EtymologyOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 401
+    },
+    {
+      "file": "code\\Lexicon\\EtymologyOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 413
+    },
+    {
+      "file": "code\\Lexicon\\EtymologyOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 425
+    },
+    {
+      "file": "code\\Lexicon\\EtymologyOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 437
+    },
+    {
+      "file": "code\\Lexicon\\ExampleOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 29
+    },
+    {
+      "file": "code\\Lexicon\\ExampleOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 365
+    },
+    {
+      "file": "code\\Lexicon\\ExampleOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 377
+    },
+    {
+      "file": "code\\Lexicon\\LexEntryOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 40
+    },
+    {
+      "file": "code\\Lexicon\\LexReferenceOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 28
+    },
+    {
+      "file": "code\\Lexicon\\LexReferenceOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 1285
+    },
+    {
+      "file": "code\\Lexicon\\LexReferenceOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 1297
+    },
+    {
+      "file": "code\\Lexicon\\LexSenseOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 37
+    },
+    {
+      "file": "code\\Lexicon\\LexSenseOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 460
+    },
+    {
+      "file": "code\\Lexicon\\LexSenseOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 472
+    },
+    {
+      "file": "code\\Lexicon\\LexSenseOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 484
+    },
+    {
+      "file": "code\\Lexicon\\LexSenseOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 496
+    },
+    {
+      "file": "code\\Lexicon\\LexSenseOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 508
+    },
+    {
+      "file": "code\\Lexicon\\LexSenseOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 520
+    },
+    {
+      "file": "code\\Lexicon\\LexSenseOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 532
+    },
+    {
+      "file": "code\\Lexicon\\LexSenseOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 544
+    },
+    {
+      "file": "code\\Lexicon\\LexSenseOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 556
+    },
+    {
+      "file": "code\\Lexicon\\LexSenseOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 578
+    },
+    {
+      "file": "code\\Lexicon\\LexSenseOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 590
+    },
+    {
+      "file": "code\\Lexicon\\PronunciationOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 31
+    },
+    {
+      "file": "code\\Lexicon\\PronunciationOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 380
+    },
+    {
+      "file": "code\\Lexicon\\SemanticDomainOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 25
+    },
+    {
+      "file": "code\\Lexicon\\VariantOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 26
+    },
+    {
+      "file": "code\\Lists\\AgentOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 22
+    },
+    {
+      "file": "code\\Lists\\OverlayOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 27
+    },
+    {
+      "file": "code\\Lists\\PossibilityListOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 22
+    },
+    {
+      "file": "code\\Lists\\possibility_item_base.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 16
+    },
+    {
+      "file": "code\\Lists\\PublicationOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 20
+    },
+    {
+      "file": "code\\Lists\\TranslationTypeOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 19
+    },
+    {
+      "file": "code\\Notebook\\annotation.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 66
+    },
+    {
+      "file": "code\\Notebook\\AnthropologyOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 31
+    },
+    {
+      "file": "code\\Notebook\\DataNotebookOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 30
+    },
+    {
+      "file": "code\\Notebook\\LocationOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 26
+    },
+    {
+      "file": "code\\Notebook\\NoteOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 23
+    },
+    {
+      "file": "code\\Notebook\\PersonOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 24
+    },
+    {
+      "file": "code\\Reversal\\ReversalIndexEntryOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 25
+    },
+    {
+      "file": "code\\Reversal\\ReversalIndexOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 25
+    },
+    {
+      "file": "code\\Scripture\\ScrBookOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 25
+    },
+    {
+      "file": "code\\Scripture\\ScrDraftOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 24
+    },
+    {
+      "file": "code\\Scripture\\ScrNoteOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 25
+    },
+    {
+      "file": "code\\Scripture\\ScrSectionOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 26
+    },
+    {
+      "file": "code\\Scripture\\ScrTxtParaOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 24
+    },
+    {
+      "file": "code\\Shared\\catalog_backed.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 41
+    },
+    {
+      "file": "code\\Shared\\FilterOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 38
+    },
+    {
+      "file": "code\\Shared\\MediaOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 29
+    },
+    {
+      "file": "code\\System\\AnnotationDefOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 21
+    },
+    {
+      "file": "code\\System\\CheckOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 33
+    },
+    {
+      "file": "code\\System\\CustomFieldOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 39
+    },
+    {
+      "file": "code\\System\\ProjectSettingsOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 22
+    },
+    {
+      "file": "code\\System\\WritingSystemOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 16
+    },
+    {
+      "file": "code\\System\\WritingSystemOperations.py",
+      "class": "IMultiUnicode",
+      "type": "interface",
+      "line": 894
+    },
+    {
+      "file": "code\\System\\WritingSystemOperations.py",
+      "class": "IMultiString",
+      "type": "interface",
+      "line": 894
+    },
+    {
+      "file": "code\\TextsWords\\DiscourseOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 34
+    },
+    {
+      "file": "code\\TextsWords\\ParagraphOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 22
+    },
+    {
+      "file": "code\\TextsWords\\SegmentOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 24
+    },
+    {
+      "file": "code\\TextsWords\\TextOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 29
+    },
+    {
+      "file": "code\\TextsWords\\WfiAnalysisOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 31
+    },
+    {
+      "file": "code\\TextsWords\\WfiGlossOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 24
+    },
+    {
+      "file": "code\\TextsWords\\WfiMorphBundleOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 24
+    },
+    {
+      "file": "code\\TextsWords\\WordformOperations.py",
+      "class": "ITsString",
+      "type": "interface",
+      "line": 31
+    }
+  ],
+  "SIL.FieldWorks.Common.FwUtils": [
+    {
+      "file": "code\\FLExGlobals.py",
+      "class": "VersionInfoProvider",
+      "type": "class",
+      "line": 159
+    },
+    {
+      "file": "code\\FLExInit.py",
+      "class": "FwRegistryHelper",
+      "type": "utility",
+      "line": 47
+    },
+    {
+      "file": "code\\FLExInit.py",
+      "class": "FwUtils",
+      "type": "utility",
+      "line": 47
+    },
+    {
+      "file": "code\\FLExLCM.py",
+      "class": "ThreadHelper",
+      "type": "utility",
+      "line": 39
+    },
+    {
+      "file": "code\\FLExLCM.py",
+      "class": "FwDirectoryFinder",
+      "type": "class",
+      "line": 40
+    },
+    {
+      "file": "code\\FLExLCM.py",
+      "class": "FwUtils",
+      "type": "utility",
+      "line": 41
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "StartupException",
+      "type": "class",
+      "line": 90
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "FwAppArgs",
+      "type": "class",
+      "line": 90
+    }
+  ],
+  "SIL.WritingSystems": [
+    {
+      "file": "code\\FLExInit.py",
+      "class": "Sldr",
+      "type": "class",
+      "line": 50
+    },
+    {
+      "file": "code\\System\\ProjectSettingsOperations.py",
+      "class": "WritingSystemDefinition",
+      "type": "class",
+      "line": 24
+    },
+    {
+      "file": "code\\System\\WritingSystemOperations.py",
+      "class": "WritingSystemDefinition",
+      "type": "class",
+      "line": 18
+    }
+  ],
+  "SIL.LCModel": [
+    {
+      "file": "code\\FLExLCM.py",
+      "class": "LcmCache",
+      "type": "class",
+      "line": 34
+    },
+    {
+      "file": "code\\FLExLCM.py",
+      "class": "LcmSettings",
+      "type": "class",
+      "line": 34
+    },
+    {
+      "file": "code\\FLExLCM.py",
+      "class": "LcmFileHelper",
+      "type": "utility",
+      "line": 34
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "ICmObjectRepository",
+      "type": "repository",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "ILexEntryRepository",
+      "type": "repository",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "ILexEntry",
+      "type": "interface",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "LexEntryTags",
+      "type": "tags",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "ILexSense",
+      "type": "interface",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "LexSenseTags",
+      "type": "tags",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "IWfiWordformRepository",
+      "type": "repository",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "WfiWordformTags",
+      "type": "tags",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "WfiGlossTags",
+      "type": "tags",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "IWfiAnalysisRepository",
+      "type": "repository",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "IWfiAnalysis",
+      "type": "interface",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "WfiAnalysisTags",
+      "type": "tags",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "WfiMorphBundleTags",
+      "type": "tags",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "LexExampleSentenceTags",
+      "type": "tags",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "MoFormTags",
+      "type": "tags",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "ILexRefTypeRepository",
+      "type": "repository",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "ICmPossibilityRepository",
+      "type": "repository",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "ICmPossibilityList",
+      "type": "interface",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "ICmSemanticDomain",
+      "type": "interface",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "TextTags",
+      "type": "tags",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "ITextRepository",
+      "type": "repository",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "IStTxtPara",
+      "type": "interface",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "ISegmentRepository",
+      "type": "repository",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "IReversalIndex",
+      "type": "interface",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "IReversalIndexEntry",
+      "type": "interface",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "ReversalIndexEntryTags",
+      "type": "tags",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "IMoMorphType",
+      "type": "interface",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "SpecialWritingSystemCodes",
+      "type": "class",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "LcmInvalidClassException",
+      "type": "class",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "LcmInvalidFieldException",
+      "type": "class",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "LcmFileLockedException",
+      "type": "class",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "LcmDataMigrationForbiddenException",
+      "type": "class",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "IUndoStackManager",
+      "type": "interface",
+      "line": 42
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "ILexEntryRefFactory",
+      "type": "factory",
+      "line": 4363
+    },
+    {
+      "file": "code\\lcm_casting.py",
+      "class": "IPhRegularRule",
+      "type": "interface",
+      "line": 126
+    },
+    {
+      "file": "code\\lcm_casting.py",
+      "class": "IPhMetathesisRule",
+      "type": "interface",
+      "line": 126
+    },
+    {
+      "file": "code\\lcm_casting.py",
+      "class": "IPhReduplicationRule",
+      "type": "interface",
+      "line": 126
+    },
+    {
+      "file": "code\\lcm_casting.py",
+      "class": "IPhSimpleContextSeg",
+      "type": "interface",
+      "line": 126
+    },
+    {
+      "file": "code\\lcm_casting.py",
+      "class": "IPhSimpleContextNC",
+      "type": "interface",
+      "line": 126
+    },
+    {
+      "file": "code\\lcm_casting.py",
+      "class": "IPhSegRuleRHS",
+      "type": "interface",
+      "line": 126
+    },
+    {
+      "file": "code\\lcm_casting.py",
+      "class": "IMoEndoCompound",
+      "type": "interface",
+      "line": 143
+    },
+    {
+      "file": "code\\lcm_casting.py",
+      "class": "IMoExoCompound",
+      "type": "interface",
+      "line": 143
+    },
+    {
+      "file": "code\\lcm_casting.py",
+      "class": "IMoAdhocProhibGr",
+      "type": "interface",
+      "line": 156
+    },
+    {
+      "file": "code\\lcm_casting.py",
+      "class": "IMoAdhocProhibMorph",
+      "type": "interface",
+      "line": 156
+    },
+    {
+      "file": "code\\lcm_casting.py",
+      "class": "IMoAdhocProhibAllomorph",
+      "type": "interface",
+      "line": 156
+    },
+    {
+      "file": "code\\lcm_casting.py",
+      "class": "IMoInflAffixTemplate",
+      "type": "interface",
+      "line": 167
+    },
+    {
+      "file": "code\\lcm_casting.py",
+      "class": "ILexEntry",
+      "type": "interface",
+      "line": 182
+    },
+    {
+      "file": "code\\lcm_casting.py",
+      "class": "ILexSense",
+      "type": "interface",
+      "line": 182
+    },
+    {
+      "file": "code\\lcm_casting.py",
+      "class": "IRnGenericRec",
+      "type": "interface",
+      "line": 182
+    },
+    {
+      "file": "code\\lcm_casting.py",
+      "class": "ICmPossibility",
+      "type": "interface",
+      "line": 182
+    },
+    {
+      "file": "code\\lcm_casting.py",
+      "class": "ICmAnthroItem",
+      "type": "interface",
+      "line": 182
+    },
+    {
+      "file": "code\\lcm_casting.py",
+      "class": "IDsConstChart",
+      "type": "interface",
+      "line": 182
+    },
+    {
+      "file": "code\\lcm_casting.py",
+      "class": "IText",
+      "type": "interface",
+      "line": 182
+    },
+    {
+      "file": "code\\lcm_casting.py",
+      "class": "IStText",
+      "type": "interface",
+      "line": 182
+    },
+    {
+      "file": "code\\lcm_casting.py",
+      "class": "IStTxtPara",
+      "type": "interface",
+      "line": 182
+    },
+    {
+      "file": "code\\lcm_casting.py",
+      "class": "IPhRegularRuleFactory",
+      "type": "factory",
+      "line": 536
+    },
+    {
+      "file": "code\\lcm_casting.py",
+      "class": "IPhMetathesisRuleFactory",
+      "type": "factory",
+      "line": 536
+    },
+    {
+      "file": "code\\lcm_casting.py",
+      "class": "IPhReduplicationRuleFactory",
+      "type": "factory",
+      "line": 536
+    },
+    {
+      "file": "code\\lcm_casting.py",
+      "class": "IPhSegRuleRHSFactory",
+      "type": "factory",
+      "line": 536
+    },
+    {
+      "file": "code\\lcm_casting.py",
+      "class": "IPhSimpleContextSegFactory",
+      "type": "factory",
+      "line": 536
+    },
+    {
+      "file": "code\\lcm_casting.py",
+      "class": "IPhSimpleContextNCFactory",
+      "type": "factory",
+      "line": 536
+    },
+    {
+      "file": "code\\Discourse\\ConstChartCellTagOperations.py",
+      "class": "IConstChartTag",
+      "type": "interface",
+      "line": 17
+    },
+    {
+      "file": "code\\Discourse\\ConstChartCellTagOperations.py",
+      "class": "IConstChartTagFactory",
+      "type": "factory",
+      "line": 17
+    },
+    {
+      "file": "code\\Discourse\\ConstChartCellTagOperations.py",
+      "class": "IConstChartRow",
+      "type": "interface",
+      "line": 17
+    },
+    {
+      "file": "code\\Discourse\\ConstChartCellTagOperations.py",
+      "class": "ICmPossibility",
+      "type": "interface",
+      "line": 17
+    },
+    {
+      "file": "code\\Discourse\\ConstChartClauseMarkerOperations.py",
+      "class": "IConstChartClauseMarker",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Discourse\\ConstChartClauseMarkerOperations.py",
+      "class": "IConstChartClauseMarkerFactory",
+      "type": "factory",
+      "line": 18
+    },
+    {
+      "file": "code\\Discourse\\ConstChartClauseMarkerOperations.py",
+      "class": "IConstChartRow",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Discourse\\ConstChartClauseMarkerOperations.py",
+      "class": "IConstChartWordGroup",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Discourse\\ConstChartMarkerOperations.py",
+      "class": "ICmPossibility",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Discourse\\ConstChartMarkerOperations.py",
+      "class": "ICmPossibilityFactory",
+      "type": "factory",
+      "line": 18
+    },
+    {
+      "file": "code\\Discourse\\ConstChartMarkerOperations.py",
+      "class": "ICmPossibilityList",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Discourse\\ConstChartMarkerOperations.py",
+      "class": "ICmPossibilityListFactory",
+      "type": "factory",
+      "line": 18
+    },
+    {
+      "file": "code\\Discourse\\ConstChartMarkerOperations.py",
+      "class": "IDsDiscourseData",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Discourse\\ConstChartMarkerOperations.py",
+      "class": "IDsDiscourseDataFactory",
+      "type": "factory",
+      "line": 18
+    },
+    {
+      "file": "code\\Discourse\\ConstChartMovedTextOperations.py",
+      "class": "IConstChartMovedTextMarker",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Discourse\\ConstChartMovedTextOperations.py",
+      "class": "IConstChartMovedTextMarkerFactory",
+      "type": "factory",
+      "line": 18
+    },
+    {
+      "file": "code\\Discourse\\ConstChartMovedTextOperations.py",
+      "class": "IConstChartWordGroup",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Discourse\\ConstChartMovedTextOperations.py",
+      "class": "IDsConstChart",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Discourse\\ConstChartOperations.py",
+      "class": "IDsConstChart",
+      "type": "interface",
+      "line": 19
+    },
+    {
+      "file": "code\\Discourse\\ConstChartOperations.py",
+      "class": "IDsConstChartFactory",
+      "type": "factory",
+      "line": 19
+    },
+    {
+      "file": "code\\Discourse\\ConstChartOperations.py",
+      "class": "IDsConstChartRepository",
+      "type": "repository",
+      "line": 19
+    },
+    {
+      "file": "code\\Discourse\\ConstChartOperations.py",
+      "class": "IDsDiscourse",
+      "type": "interface",
+      "line": 19
+    },
+    {
+      "file": "code\\Discourse\\ConstChartOperations.py",
+      "class": "IConstChartRow",
+      "type": "interface",
+      "line": 19
+    },
+    {
+      "file": "code\\Discourse\\ConstChartOperations.py",
+      "class": "ICmPossibility",
+      "type": "interface",
+      "line": 19
+    },
+    {
+      "file": "code\\Discourse\\ConstChartOperations.py",
+      "class": "IDsDiscourseFactory",
+      "type": "factory",
+      "line": 540
+    },
+    {
+      "file": "code\\Discourse\\ConstChartRowOperations.py",
+      "class": "IConstChartRow",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Discourse\\ConstChartRowOperations.py",
+      "class": "IConstChartRowFactory",
+      "type": "factory",
+      "line": 18
+    },
+    {
+      "file": "code\\Discourse\\ConstChartRowOperations.py",
+      "class": "IDsConstChart",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Discourse\\ConstChartRowOperations.py",
+      "class": "IConstChartWordGroup",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Discourse\\ConstChartWordGroupOperations.py",
+      "class": "IConstChartWordGroup",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Discourse\\ConstChartWordGroupOperations.py",
+      "class": "IConstChartWordGroupFactory",
+      "type": "factory",
+      "line": 18
+    },
+    {
+      "file": "code\\Discourse\\ConstChartWordGroupOperations.py",
+      "class": "IConstChartRow",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Discourse\\ConstChartWordGroupOperations.py",
+      "class": "IAnalysis",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Discourse\\ConstChartWordGroupOperations.py",
+      "class": "ISegment",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Grammar\\EnvironmentOperations.py",
+      "class": "IPhEnvironmentFactory",
+      "type": "factory",
+      "line": 18
+    },
+    {
+      "file": "code\\Grammar\\EnvironmentOperations.py",
+      "class": "IPhEnvironment",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Grammar\\EnvironmentOperations.py",
+      "class": "ICmObjectRepository",
+      "type": "repository",
+      "line": 18
+    },
+    {
+      "file": "code\\Grammar\\GramCatOperations.py",
+      "class": "ICmPossibility",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Grammar\\GramCatOperations.py",
+      "class": "ICmPossibilityFactory",
+      "type": "factory",
+      "line": 18
+    },
+    {
+      "file": "code\\Grammar\\InflectionFeatureOperations.py",
+      "class": "IMoInflClass",
+      "type": "interface",
+      "line": 26
+    },
+    {
+      "file": "code\\Grammar\\InflectionFeatureOperations.py",
+      "class": "IMoInflClassFactory",
+      "type": "factory",
+      "line": 26
+    },
+    {
+      "file": "code\\Grammar\\InflectionFeatureOperations.py",
+      "class": "IFsFeatStruc",
+      "type": "interface",
+      "line": 26
+    },
+    {
+      "file": "code\\Grammar\\InflectionFeatureOperations.py",
+      "class": "IFsFeatStrucFactory",
+      "type": "factory",
+      "line": 26
+    },
+    {
+      "file": "code\\Grammar\\InflectionFeatureOperations.py",
+      "class": "IFsFeatDefn",
+      "type": "interface",
+      "line": 26
+    },
+    {
+      "file": "code\\Grammar\\MorphRuleOperations.py",
+      "class": "IMoEndoCompoundFactory",
+      "type": "factory",
+      "line": 41
+    },
+    {
+      "file": "code\\Grammar\\MorphRuleOperations.py",
+      "class": "IMoExoCompoundFactory",
+      "type": "factory",
+      "line": 41
+    },
+    {
+      "file": "code\\Grammar\\MorphRuleOperations.py",
+      "class": "IMoInflAffixTemplateFactory",
+      "type": "factory",
+      "line": 41
+    },
+    {
+      "file": "code\\Grammar\\NaturalClassOperations.py",
+      "class": "IPhNaturalClass",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Grammar\\NaturalClassOperations.py",
+      "class": "IPhNCSegments",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Grammar\\NaturalClassOperations.py",
+      "class": "IPhNCSegmentsFactory",
+      "type": "factory",
+      "line": 18
+    },
+    {
+      "file": "code\\Grammar\\NaturalClassOperations.py",
+      "class": "IPhNCFeatures",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Grammar\\NaturalClassOperations.py",
+      "class": "IPhNCFeaturesFactory",
+      "type": "factory",
+      "line": 18
+    },
+    {
+      "file": "code\\Grammar\\NaturalClassOperations.py",
+      "class": "IPhPhoneme",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Grammar\\NaturalClassOperations.py",
+      "class": "IFsClosedValue",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Grammar\\PhonemeOperations.py",
+      "class": "IPhPhoneme",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Grammar\\PhonemeOperations.py",
+      "class": "IPhPhonemeFactory",
+      "type": "factory",
+      "line": 18
+    },
+    {
+      "file": "code\\Grammar\\PhonemeOperations.py",
+      "class": "IPhCode",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Grammar\\PhonemeOperations.py",
+      "class": "IPhCodeFactory",
+      "type": "factory",
+      "line": 18
+    },
+    {
+      "file": "code\\Grammar\\PhonemeOperations.py",
+      "class": "IFsFeatStruc",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Grammar\\PhonemeOperations.py",
+      "class": "IFsClosedFeature",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Grammar\\PhonemeOperations.py",
+      "class": "ICmObjectRepository",
+      "type": "repository",
+      "line": 18
+    },
+    {
+      "file": "code\\Grammar\\PhonFeatureOperations.py",
+      "class": "IFsClosedFeature",
+      "type": "interface",
+      "line": 27
+    },
+    {
+      "file": "code\\Grammar\\PhonFeatureOperations.py",
+      "class": "IFsClosedFeatureFactory",
+      "type": "factory",
+      "line": 27
+    },
+    {
+      "file": "code\\Grammar\\PhonFeatureOperations.py",
+      "class": "IFsSymFeatVal",
+      "type": "interface",
+      "line": 27
+    },
+    {
+      "file": "code\\Grammar\\PhonFeatureOperations.py",
+      "class": "IFsSymFeatValFactory",
+      "type": "factory",
+      "line": 27
+    },
+    {
+      "file": "code\\Grammar\\PhonFeatureOperations.py",
+      "class": "IFsFeatStruc",
+      "type": "interface",
+      "line": 27
+    },
+    {
+      "file": "code\\Grammar\\PhonFeatureOperations.py",
+      "class": "IFsFeatStrucFactory",
+      "type": "factory",
+      "line": 27
+    },
+    {
+      "file": "code\\Grammar\\PhonFeatureOperations.py",
+      "class": "IFsClosedValue",
+      "type": "interface",
+      "line": 27
+    },
+    {
+      "file": "code\\Grammar\\PhonFeatureOperations.py",
+      "class": "IFsClosedValueFactory",
+      "type": "factory",
+      "line": 27
+    },
+    {
+      "file": "code\\Grammar\\PhonologicalRuleOperations.py",
+      "class": "IPhRegularRuleFactory",
+      "type": "factory",
+      "line": 19
+    },
+    {
+      "file": "code\\Grammar\\POSOperations.py",
+      "class": "IPartOfSpeechFactory",
+      "type": "factory",
+      "line": 18
+    },
+    {
+      "file": "code\\Grammar\\POSOperations.py",
+      "class": "IPartOfSpeech",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Grammar\\POSOperations.py",
+      "class": "ILexEntryRepository",
+      "type": "repository",
+      "line": 18
+    },
+    {
+      "file": "code\\Lexicon\\AllomorphOperations.py",
+      "class": "IMoForm",
+      "type": "interface",
+      "line": 22
+    },
+    {
+      "file": "code\\Lexicon\\AllomorphOperations.py",
+      "class": "IMoStemAllomorphFactory",
+      "type": "factory",
+      "line": 22
+    },
+    {
+      "file": "code\\Lexicon\\AllomorphOperations.py",
+      "class": "IMoAffixAllomorphFactory",
+      "type": "factory",
+      "line": 22
+    },
+    {
+      "file": "code\\Lexicon\\AllomorphOperations.py",
+      "class": "ILexEntry",
+      "type": "interface",
+      "line": 22
+    },
+    {
+      "file": "code\\Lexicon\\AllomorphOperations.py",
+      "class": "IPhEnvironment",
+      "type": "interface",
+      "line": 22
+    },
+    {
+      "file": "code\\Lexicon\\AllomorphOperations.py",
+      "class": "MoMorphTypeTags",
+      "type": "tags",
+      "line": 22
+    },
+    {
+      "file": "code\\Lexicon\\AllomorphOperations.py",
+      "class": "IMoStemAllomorphFactory",
+      "type": "factory",
+      "line": 411
+    },
+    {
+      "file": "code\\Lexicon\\AllomorphOperations.py",
+      "class": "IMoAffixAllomorphFactory",
+      "type": "factory",
+      "line": 415
+    },
+    {
+      "file": "code\\Lexicon\\EtymologyOperations.py",
+      "class": "ILexEtymology",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Lexicon\\EtymologyOperations.py",
+      "class": "ILexEtymologyFactory",
+      "type": "factory",
+      "line": 18
+    },
+    {
+      "file": "code\\Lexicon\\EtymologyOperations.py",
+      "class": "ILexEntry",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Lexicon\\ExampleOperations.py",
+      "class": "ILexExampleSentence",
+      "type": "interface",
+      "line": 22
+    },
+    {
+      "file": "code\\Lexicon\\ExampleOperations.py",
+      "class": "ILexExampleSentenceFactory",
+      "type": "factory",
+      "line": 22
+    },
+    {
+      "file": "code\\Lexicon\\ExampleOperations.py",
+      "class": "ILexSense",
+      "type": "interface",
+      "line": 22
+    },
+    {
+      "file": "code\\Lexicon\\ExampleOperations.py",
+      "class": "ICmTranslation",
+      "type": "interface",
+      "line": 22
+    },
+    {
+      "file": "code\\Lexicon\\ExampleOperations.py",
+      "class": "ICmTranslationFactory",
+      "type": "factory",
+      "line": 22
+    },
+    {
+      "file": "code\\Lexicon\\LexEntryOperations.py",
+      "class": "ILexEntry",
+      "type": "interface",
+      "line": 22
+    },
+    {
+      "file": "code\\Lexicon\\LexEntryOperations.py",
+      "class": "ILexEntryFactory",
+      "type": "factory",
+      "line": 22
+    },
+    {
+      "file": "code\\Lexicon\\LexEntryOperations.py",
+      "class": "ILexEntryRepository",
+      "type": "repository",
+      "line": 22
+    },
+    {
+      "file": "code\\Lexicon\\LexEntryOperations.py",
+      "class": "ILexSense",
+      "type": "interface",
+      "line": 22
+    },
+    {
+      "file": "code\\Lexicon\\LexEntryOperations.py",
+      "class": "ILexSenseFactory",
+      "type": "factory",
+      "line": 22
+    },
+    {
+      "file": "code\\Lexicon\\LexEntryOperations.py",
+      "class": "IMoMorphType",
+      "type": "interface",
+      "line": 22
+    },
+    {
+      "file": "code\\Lexicon\\LexEntryOperations.py",
+      "class": "IMoStemAllomorphFactory",
+      "type": "factory",
+      "line": 22
+    },
+    {
+      "file": "code\\Lexicon\\LexEntryOperations.py",
+      "class": "IMoAffixAllomorphFactory",
+      "type": "factory",
+      "line": 22
+    },
+    {
+      "file": "code\\Lexicon\\LexEntryOperations.py",
+      "class": "IMoForm",
+      "type": "interface",
+      "line": 22
+    },
+    {
+      "file": "code\\Lexicon\\LexEntryOperations.py",
+      "class": "MoMorphTypeTags",
+      "type": "tags",
+      "line": 22
+    },
+    {
+      "file": "code\\Lexicon\\LexEntryOperations.py",
+      "class": "ILexEntryRef",
+      "type": "interface",
+      "line": 22
+    },
+    {
+      "file": "code\\Lexicon\\LexEntryOperations.py",
+      "class": "ILexEntryRefFactory",
+      "type": "factory",
+      "line": 22
+    },
+    {
+      "file": "code\\Lexicon\\LexEntryOperations.py",
+      "class": "LexEntryRefTags",
+      "type": "tags",
+      "line": 22
+    },
+    {
+      "file": "code\\Lexicon\\LexEntryOperations.py",
+      "class": "ILexPronunciationFactory",
+      "type": "factory",
+      "line": 22
+    },
+    {
+      "file": "code\\Lexicon\\LexEntryOperations.py",
+      "class": "ILexEtymologyFactory",
+      "type": "factory",
+      "line": 22
+    },
+    {
+      "file": "code\\Lexicon\\LexEntryOperations.py",
+      "class": "ICmFileFactory",
+      "type": "factory",
+      "line": 22
+    },
+    {
+      "file": "code\\Lexicon\\LexReferenceOperations.py",
+      "class": "ILexReference",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Lexicon\\LexReferenceOperations.py",
+      "class": "ILexReferenceFactory",
+      "type": "factory",
+      "line": 18
+    },
+    {
+      "file": "code\\Lexicon\\LexReferenceOperations.py",
+      "class": "ILexRefType",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Lexicon\\LexReferenceOperations.py",
+      "class": "ILexRefTypeFactory",
+      "type": "factory",
+      "line": 18
+    },
+    {
+      "file": "code\\Lexicon\\LexReferenceOperations.py",
+      "class": "ILexRefTypeRepository",
+      "type": "repository",
+      "line": 18
+    },
+    {
+      "file": "code\\Lexicon\\LexReferenceOperations.py",
+      "class": "ILexEntry",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Lexicon\\LexReferenceOperations.py",
+      "class": "ILexSense",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Lexicon\\LexReferenceOperations.py",
+      "class": "LexRefTypeTags",
+      "type": "tags",
+      "line": 18
+    },
+    {
+      "file": "code\\Lexicon\\LexReferenceOperations.py",
+      "class": "ICmPossibilityListFactory",
+      "type": "factory",
+      "line": 269
+    },
+    {
+      "file": "code\\Lexicon\\LexSenseOperations.py",
+      "class": "ILexSense",
+      "type": "interface",
+      "line": 24
+    },
+    {
+      "file": "code\\Lexicon\\LexSenseOperations.py",
+      "class": "ILexSenseFactory",
+      "type": "factory",
+      "line": 24
+    },
+    {
+      "file": "code\\Lexicon\\LexSenseOperations.py",
+      "class": "ILexEntry",
+      "type": "interface",
+      "line": 24
+    },
+    {
+      "file": "code\\Lexicon\\LexSenseOperations.py",
+      "class": "ILexExampleSentenceFactory",
+      "type": "factory",
+      "line": 24
+    },
+    {
+      "file": "code\\Lexicon\\LexSenseOperations.py",
+      "class": "ICmSemanticDomain",
+      "type": "interface",
+      "line": 24
+    },
+    {
+      "file": "code\\Lexicon\\LexSenseOperations.py",
+      "class": "ICmPicture",
+      "type": "interface",
+      "line": 24
+    },
+    {
+      "file": "code\\Lexicon\\LexSenseOperations.py",
+      "class": "ICmPictureFactory",
+      "type": "factory",
+      "line": 24
+    },
+    {
+      "file": "code\\Lexicon\\LexSenseOperations.py",
+      "class": "ICmTranslationFactory",
+      "type": "factory",
+      "line": 24
+    },
+    {
+      "file": "code\\Lexicon\\LexSenseOperations.py",
+      "class": "IReversalIndexEntry",
+      "type": "interface",
+      "line": 24
+    },
+    {
+      "file": "code\\Lexicon\\LexSenseOperations.py",
+      "class": "LexEntryTags",
+      "type": "tags",
+      "line": 24
+    },
+    {
+      "file": "code\\Lexicon\\LexSenseOperations.py",
+      "class": "MoMorphTypeTags",
+      "type": "tags",
+      "line": 24
+    },
+    {
+      "file": "code\\Lexicon\\LexSenseOperations.py",
+      "class": "IMoInflAffMsaFactory",
+      "type": "factory",
+      "line": 1123
+    },
+    {
+      "file": "code\\Lexicon\\LexSenseOperations.py",
+      "class": "IMoStemMsaFactory",
+      "type": "factory",
+      "line": 1129
+    },
+    {
+      "file": "code\\Lexicon\\MSAOperations.py",
+      "class": "IMoStemMsa",
+      "type": "interface",
+      "line": 32
+    },
+    {
+      "file": "code\\Lexicon\\MSAOperations.py",
+      "class": "IMoStemMsaFactory",
+      "type": "factory",
+      "line": 32
+    },
+    {
+      "file": "code\\Lexicon\\MSAOperations.py",
+      "class": "IMoDerivAffMsa",
+      "type": "interface",
+      "line": 32
+    },
+    {
+      "file": "code\\Lexicon\\MSAOperations.py",
+      "class": "IMoDerivAffMsaFactory",
+      "type": "factory",
+      "line": 32
+    },
+    {
+      "file": "code\\Lexicon\\MSAOperations.py",
+      "class": "IMoInflAffMsa",
+      "type": "interface",
+      "line": 32
+    },
+    {
+      "file": "code\\Lexicon\\MSAOperations.py",
+      "class": "IMoInflAffMsaFactory",
+      "type": "factory",
+      "line": 32
+    },
+    {
+      "file": "code\\Lexicon\\MSAOperations.py",
+      "class": "IMoUnclassifiedAffixMsa",
+      "type": "interface",
+      "line": 32
+    },
+    {
+      "file": "code\\Lexicon\\MSAOperations.py",
+      "class": "IMoUnclassifiedAffixMsaFactory",
+      "type": "factory",
+      "line": 32
+    },
+    {
+      "file": "code\\Lexicon\\MSAOperations.py",
+      "class": "ILexSense",
+      "type": "interface",
+      "line": 32
+    },
+    {
+      "file": "code\\Lexicon\\MSAOperations.py",
+      "class": "ILexEntry",
+      "type": "interface",
+      "line": 32
+    },
+    {
+      "file": "code\\Lexicon\\PronunciationOperations.py",
+      "class": "ILexEntry",
+      "type": "interface",
+      "line": 24
+    },
+    {
+      "file": "code\\Lexicon\\PronunciationOperations.py",
+      "class": "ILexPronunciation",
+      "type": "interface",
+      "line": 24
+    },
+    {
+      "file": "code\\Lexicon\\PronunciationOperations.py",
+      "class": "ILexPronunciationFactory",
+      "type": "factory",
+      "line": 24
+    },
+    {
+      "file": "code\\Lexicon\\PronunciationOperations.py",
+      "class": "ICmFile",
+      "type": "interface",
+      "line": 24
+    },
+    {
+      "file": "code\\Lexicon\\PronunciationOperations.py",
+      "class": "ICmFileFactory",
+      "type": "factory",
+      "line": 24
+    },
+    {
+      "file": "code\\Lexicon\\SemanticDomainOperations.py",
+      "class": "ICmSemanticDomain",
+      "type": "interface",
+      "line": 20
+    },
+    {
+      "file": "code\\Lexicon\\SemanticDomainOperations.py",
+      "class": "ICmSemanticDomainFactory",
+      "type": "factory",
+      "line": 20
+    },
+    {
+      "file": "code\\Lexicon\\SemanticDomainOperations.py",
+      "class": "ILexSenseRepository",
+      "type": "repository",
+      "line": 20
+    },
+    {
+      "file": "code\\Lexicon\\VariantOperations.py",
+      "class": "ILexEntry",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Lexicon\\VariantOperations.py",
+      "class": "ILexEntryRef",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Lexicon\\VariantOperations.py",
+      "class": "ILexEntryRefFactory",
+      "type": "factory",
+      "line": 18
+    },
+    {
+      "file": "code\\Lexicon\\VariantOperations.py",
+      "class": "ILexEntryType",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Lexicon\\VariantOperations.py",
+      "class": "ILexEntryTypeRepository",
+      "type": "repository",
+      "line": 18
+    },
+    {
+      "file": "code\\Lexicon\\VariantOperations.py",
+      "class": "IVariantComponentLexeme",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Lists\\AgentOperations.py",
+      "class": "ICmAgent",
+      "type": "interface",
+      "line": 16
+    },
+    {
+      "file": "code\\Lists\\AgentOperations.py",
+      "class": "ICmAgentFactory",
+      "type": "factory",
+      "line": 16
+    },
+    {
+      "file": "code\\Lists\\AgentOperations.py",
+      "class": "ICmPerson",
+      "type": "interface",
+      "line": 16
+    },
+    {
+      "file": "code\\Lists\\AgentOperations.py",
+      "class": "ICmAgentEvaluation",
+      "type": "interface",
+      "line": 16
+    },
+    {
+      "file": "code\\Lists\\ConfidenceOperations.py",
+      "class": "IWfiAnalysisRepository",
+      "type": "repository",
+      "line": 15
+    },
+    {
+      "file": "code\\Lists\\ConfidenceOperations.py",
+      "class": "IWfiGlossRepository",
+      "type": "repository",
+      "line": 15
+    },
+    {
+      "file": "code\\Lists\\OverlayOperations.py",
+      "class": "IDsConstChart",
+      "type": "interface",
+      "line": 20
+    },
+    {
+      "file": "code\\Lists\\OverlayOperations.py",
+      "class": "IDsConstChartFactory",
+      "type": "factory",
+      "line": 20
+    },
+    {
+      "file": "code\\Lists\\OverlayOperations.py",
+      "class": "ICmPossibility",
+      "type": "interface",
+      "line": 20
+    },
+    {
+      "file": "code\\Lists\\OverlayOperations.py",
+      "class": "ICmPossibilityFactory",
+      "type": "factory",
+      "line": 20
+    },
+    {
+      "file": "code\\Lists\\PossibilityListOperations.py",
+      "class": "ICmPossibility",
+      "type": "interface",
+      "line": 15
+    },
+    {
+      "file": "code\\Lists\\PossibilityListOperations.py",
+      "class": "ICmPossibilityFactory",
+      "type": "factory",
+      "line": 15
+    },
+    {
+      "file": "code\\Lists\\PossibilityListOperations.py",
+      "class": "ICmPossibilityList",
+      "type": "interface",
+      "line": 15
+    },
+    {
+      "file": "code\\Lists\\PossibilityListOperations.py",
+      "class": "ICmPossibilityListFactory",
+      "type": "factory",
+      "line": 15
+    },
+    {
+      "file": "code\\Lists\\PossibilityListOperations.py",
+      "class": "ICmPossibilityRepository",
+      "type": "repository",
+      "line": 15
+    },
+    {
+      "file": "code\\Lists\\possibility_item_base.py",
+      "class": "ICmPossibilityFactory",
+      "type": "factory",
+      "line": 15
+    },
+    {
+      "file": "code\\Lists\\PublicationOperations.py",
+      "class": "ICmPossibility",
+      "type": "interface",
+      "line": 15
+    },
+    {
+      "file": "code\\Lists\\PublicationOperations.py",
+      "class": "ICmPossibilityFactory",
+      "type": "factory",
+      "line": 15
+    },
+    {
+      "file": "code\\Lists\\PublicationOperations.py",
+      "class": "ICmPossibilityRepository",
+      "type": "repository",
+      "line": 15
+    },
+    {
+      "file": "code\\Lists\\TranslationTypeOperations.py",
+      "class": "ITextRepository",
+      "type": "repository",
+      "line": 15
+    },
+    {
+      "file": "code\\Lists\\TranslationTypeOperations.py",
+      "class": "IStTxtParaRepository",
+      "type": "repository",
+      "line": 15
+    },
+    {
+      "file": "code\\Notebook\\AnthropologyOperations.py",
+      "class": "ICmAnthroItem",
+      "type": "interface",
+      "line": 24
+    },
+    {
+      "file": "code\\Notebook\\AnthropologyOperations.py",
+      "class": "ICmAnthroItemFactory",
+      "type": "factory",
+      "line": 24
+    },
+    {
+      "file": "code\\Notebook\\AnthropologyOperations.py",
+      "class": "IText",
+      "type": "interface",
+      "line": 24
+    },
+    {
+      "file": "code\\Notebook\\AnthropologyOperations.py",
+      "class": "ICmPerson",
+      "type": "interface",
+      "line": 24
+    },
+    {
+      "file": "code\\Notebook\\AnthropologyOperations.py",
+      "class": "ICmPossibility",
+      "type": "interface",
+      "line": 24
+    },
+    {
+      "file": "code\\Notebook\\AnthropologyOperations.py",
+      "class": "ICmPossibilityListFactory",
+      "type": "factory",
+      "line": 270
+    },
+    {
+      "file": "code\\Notebook\\DataNotebookOperations.py",
+      "class": "IRnGenericRec",
+      "type": "interface",
+      "line": 19
+    },
+    {
+      "file": "code\\Notebook\\DataNotebookOperations.py",
+      "class": "IRnGenericRecFactory",
+      "type": "factory",
+      "line": 19
+    },
+    {
+      "file": "code\\Notebook\\DataNotebookOperations.py",
+      "class": "IRnResearchNbkRepository",
+      "type": "repository",
+      "line": 19
+    },
+    {
+      "file": "code\\Notebook\\DataNotebookOperations.py",
+      "class": "ICmPossibility",
+      "type": "interface",
+      "line": 19
+    },
+    {
+      "file": "code\\Notebook\\DataNotebookOperations.py",
+      "class": "ICmPossibilityRepository",
+      "type": "repository",
+      "line": 19
+    },
+    {
+      "file": "code\\Notebook\\DataNotebookOperations.py",
+      "class": "ICmPerson",
+      "type": "interface",
+      "line": 19
+    },
+    {
+      "file": "code\\Notebook\\DataNotebookOperations.py",
+      "class": "IText",
+      "type": "interface",
+      "line": 19
+    },
+    {
+      "file": "code\\Notebook\\DataNotebookOperations.py",
+      "class": "ICmFile",
+      "type": "interface",
+      "line": 19
+    },
+    {
+      "file": "code\\Notebook\\DataNotebookOperations.py",
+      "class": "ICmFileFactory",
+      "type": "factory",
+      "line": 19
+    },
+    {
+      "file": "code\\Notebook\\LocationOperations.py",
+      "class": "ICmLocation",
+      "type": "interface",
+      "line": 21
+    },
+    {
+      "file": "code\\Notebook\\LocationOperations.py",
+      "class": "ICmLocationFactory",
+      "type": "factory",
+      "line": 21
+    },
+    {
+      "file": "code\\Notebook\\LocationOperations.py",
+      "class": "ICmPossibilityRepository",
+      "type": "repository",
+      "line": 21
+    },
+    {
+      "file": "code\\Notebook\\LocationOperations.py",
+      "class": "GenDate",
+      "type": "class",
+      "line": 662
+    },
+    {
+      "file": "code\\Notebook\\NoteOperations.py",
+      "class": "IScrScriptureNote",
+      "type": "interface",
+      "line": 15
+    },
+    {
+      "file": "code\\Notebook\\NoteOperations.py",
+      "class": "IScrScriptureNoteFactory",
+      "type": "factory",
+      "line": 15
+    },
+    {
+      "file": "code\\Notebook\\NoteOperations.py",
+      "class": "ICmBaseAnnotation",
+      "type": "interface",
+      "line": 15
+    },
+    {
+      "file": "code\\Notebook\\NoteOperations.py",
+      "class": "ICmBaseAnnotationFactory",
+      "type": "factory",
+      "line": 15
+    },
+    {
+      "file": "code\\Notebook\\NoteOperations.py",
+      "class": "ICmAnnotationDefn",
+      "type": "interface",
+      "line": 15
+    },
+    {
+      "file": "code\\Notebook\\NoteOperations.py",
+      "class": "ICmPossibility",
+      "type": "interface",
+      "line": 15
+    },
+    {
+      "file": "code\\Notebook\\PersonOperations.py",
+      "class": "ICmPerson",
+      "type": "interface",
+      "line": 15
+    },
+    {
+      "file": "code\\Notebook\\PersonOperations.py",
+      "class": "ICmPersonFactory",
+      "type": "factory",
+      "line": 15
+    },
+    {
+      "file": "code\\Notebook\\PersonOperations.py",
+      "class": "ICmPersonRepository",
+      "type": "repository",
+      "line": 15
+    },
+    {
+      "file": "code\\Notebook\\PersonOperations.py",
+      "class": "ICmPossibility",
+      "type": "interface",
+      "line": 15
+    },
+    {
+      "file": "code\\Notebook\\PersonOperations.py",
+      "class": "ICmPossibilityRepository",
+      "type": "repository",
+      "line": 15
+    },
+    {
+      "file": "code\\Notebook\\PersonOperations.py",
+      "class": "ICmLocation",
+      "type": "interface",
+      "line": 15
+    },
+    {
+      "file": "code\\Notebook\\PersonOperations.py",
+      "class": "ILangProject",
+      "type": "interface",
+      "line": 15
+    },
+    {
+      "file": "code\\Reversal\\ReversalIndexEntryOperations.py",
+      "class": "IReversalIndex",
+      "type": "interface",
+      "line": 19
+    },
+    {
+      "file": "code\\Reversal\\ReversalIndexEntryOperations.py",
+      "class": "IReversalIndexEntry",
+      "type": "interface",
+      "line": 19
+    },
+    {
+      "file": "code\\Reversal\\ReversalIndexEntryOperations.py",
+      "class": "IReversalIndexEntryFactory",
+      "type": "factory",
+      "line": 19
+    },
+    {
+      "file": "code\\Reversal\\ReversalIndexEntryOperations.py",
+      "class": "ILexSense",
+      "type": "interface",
+      "line": 19
+    },
+    {
+      "file": "code\\Reversal\\ReversalIndexOperations.py",
+      "class": "IReversalIndex",
+      "type": "interface",
+      "line": 19
+    },
+    {
+      "file": "code\\Reversal\\ReversalIndexOperations.py",
+      "class": "IReversalIndexFactory",
+      "type": "factory",
+      "line": 19
+    },
+    {
+      "file": "code\\Reversal\\ReversalIndexOperations.py",
+      "class": "IReversalIndexRepository",
+      "type": "repository",
+      "line": 19
+    },
+    {
+      "file": "code\\Reversal\\ReversalIndexOperations.py",
+      "class": "ILangProject",
+      "type": "interface",
+      "line": 19
+    },
+    {
+      "file": "code\\Scripture\\ScrAnnotationsOperations.py",
+      "class": "IScrBook",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Scripture\\ScrAnnotationsOperations.py",
+      "class": "IScrBookAnnotations",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Scripture\\ScrAnnotationsOperations.py",
+      "class": "IScrBookAnnotationsFactory",
+      "type": "factory",
+      "line": 18
+    },
+    {
+      "file": "code\\Scripture\\ScrAnnotationsOperations.py",
+      "class": "IScrScriptureNote",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Scripture\\ScrBookOperations.py",
+      "class": "IScrBook",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Scripture\\ScrBookOperations.py",
+      "class": "IScrBookFactory",
+      "type": "factory",
+      "line": 18
+    },
+    {
+      "file": "code\\Scripture\\ScrBookOperations.py",
+      "class": "IScrBookRepository",
+      "type": "repository",
+      "line": 18
+    },
+    {
+      "file": "code\\Scripture\\ScrBookOperations.py",
+      "class": "IScrSection",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Scripture\\ScrBookOperations.py",
+      "class": "IScripture",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Scripture\\ScrDraftOperations.py",
+      "class": "IScrDraft",
+      "type": "interface",
+      "line": 19
+    },
+    {
+      "file": "code\\Scripture\\ScrDraftOperations.py",
+      "class": "IScrDraftFactory",
+      "type": "factory",
+      "line": 19
+    },
+    {
+      "file": "code\\Scripture\\ScrDraftOperations.py",
+      "class": "IScripture",
+      "type": "interface",
+      "line": 19
+    },
+    {
+      "file": "code\\Scripture\\ScrNoteOperations.py",
+      "class": "IScrBook",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Scripture\\ScrNoteOperations.py",
+      "class": "IScrBookAnnotations",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Scripture\\ScrNoteOperations.py",
+      "class": "IScrScriptureNote",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Scripture\\ScrNoteOperations.py",
+      "class": "IScrScriptureNoteFactory",
+      "type": "factory",
+      "line": 18
+    },
+    {
+      "file": "code\\Scripture\\ScrNoteOperations.py",
+      "class": "IScrTxtPara",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Scripture\\ScrNoteOperations.py",
+      "class": "IScrBookAnnotationsFactory",
+      "type": "factory",
+      "line": 149
+    },
+    {
+      "file": "code\\Scripture\\ScrNoteOperations.py",
+      "class": "IStTxtParaFactory",
+      "type": "factory",
+      "line": 176
+    },
+    {
+      "file": "code\\Scripture\\ScrNoteOperations.py",
+      "class": "IStTextFactory",
+      "type": "factory",
+      "line": 184
+    },
+    {
+      "file": "code\\Scripture\\ScrNoteOperations.py",
+      "class": "IStTxtParaFactory",
+      "type": "factory",
+      "line": 184
+    },
+    {
+      "file": "code\\Scripture\\ScrNoteOperations.py",
+      "class": "IStTextFactory",
+      "type": "factory",
+      "line": 431
+    },
+    {
+      "file": "code\\Scripture\\ScrNoteOperations.py",
+      "class": "IStTxtParaFactory",
+      "type": "factory",
+      "line": 438
+    },
+    {
+      "file": "code\\Scripture\\ScrSectionOperations.py",
+      "class": "IScrBook",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Scripture\\ScrSectionOperations.py",
+      "class": "IScrSection",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Scripture\\ScrSectionOperations.py",
+      "class": "IScrSectionFactory",
+      "type": "factory",
+      "line": 18
+    },
+    {
+      "file": "code\\Scripture\\ScrSectionOperations.py",
+      "class": "IScrTxtPara",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Scripture\\ScrSectionOperations.py",
+      "class": "IStText",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Scripture\\ScrSectionOperations.py",
+      "class": "IStTextFactory",
+      "type": "factory",
+      "line": 18
+    },
+    {
+      "file": "code\\Scripture\\ScrSectionOperations.py",
+      "class": "IStTxtParaFactory",
+      "type": "factory",
+      "line": 360
+    },
+    {
+      "file": "code\\Scripture\\ScrTxtParaOperations.py",
+      "class": "IScrSection",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Scripture\\ScrTxtParaOperations.py",
+      "class": "IScrTxtPara",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Scripture\\ScrTxtParaOperations.py",
+      "class": "IScrTxtParaFactory",
+      "type": "factory",
+      "line": 18
+    },
+    {
+      "file": "code\\Scripture\\ScrTxtParaOperations.py",
+      "class": "IStStyle",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\Scripture\\ScrTxtParaOperations.py",
+      "class": "IStTextFactory",
+      "type": "factory",
+      "line": 133
+    },
+    {
+      "file": "code\\Shared\\FilterOperations.py",
+      "class": "ICmFilter",
+      "type": "interface",
+      "line": 28
+    },
+    {
+      "file": "code\\Shared\\FilterOperations.py",
+      "class": "ICmFilterFactory",
+      "type": "factory",
+      "line": 28
+    },
+    {
+      "file": "code\\Shared\\FilterOperations.py",
+      "class": "IFsClosedFeature",
+      "type": "interface",
+      "line": 28
+    },
+    {
+      "file": "code\\Shared\\FilterOperations.py",
+      "class": "ILexEntry",
+      "type": "interface",
+      "line": 28
+    },
+    {
+      "file": "code\\Shared\\FilterOperations.py",
+      "class": "IWfiWordform",
+      "type": "interface",
+      "line": 28
+    },
+    {
+      "file": "code\\Shared\\FilterOperations.py",
+      "class": "IText",
+      "type": "interface",
+      "line": 28
+    },
+    {
+      "file": "code\\Shared\\FilterOperations.py",
+      "class": "ICmObjectRepository",
+      "type": "repository",
+      "line": 28
+    },
+    {
+      "file": "code\\Shared\\MediaOperations.py",
+      "class": "ICmFile",
+      "type": "interface",
+      "line": 22
+    },
+    {
+      "file": "code\\Shared\\MediaOperations.py",
+      "class": "ICmFileFactory",
+      "type": "factory",
+      "line": 22
+    },
+    {
+      "file": "code\\Shared\\MediaOperations.py",
+      "class": "ICmFolder",
+      "type": "interface",
+      "line": 22
+    },
+    {
+      "file": "code\\Shared\\MediaOperations.py",
+      "class": "ICmFolderFactory",
+      "type": "factory",
+      "line": 22
+    },
+    {
+      "file": "code\\Shared\\MediaOperations.py",
+      "class": "ICmObjectRepository",
+      "type": "repository",
+      "line": 22
+    },
+    {
+      "file": "code\\System\\AnnotationDefOperations.py",
+      "class": "ICmAnnotationDefn",
+      "type": "interface",
+      "line": 15
+    },
+    {
+      "file": "code\\System\\AnnotationDefOperations.py",
+      "class": "ICmAnnotationDefnRepository",
+      "type": "repository",
+      "line": 15
+    },
+    {
+      "file": "code\\System\\AnnotationDefOperations.py",
+      "class": "ICmAnnotationDefnFactory",
+      "type": "factory",
+      "line": 15
+    },
+    {
+      "file": "code\\System\\AnnotationDefOperations.py",
+      "class": "ICmPossibility",
+      "type": "interface",
+      "line": 15
+    },
+    {
+      "file": "code\\System\\CheckOperations.py",
+      "class": "ICmPossibility",
+      "type": "interface",
+      "line": 25
+    },
+    {
+      "file": "code\\System\\CheckOperations.py",
+      "class": "ICmPossibilityFactory",
+      "type": "factory",
+      "line": 25
+    },
+    {
+      "file": "code\\System\\CheckOperations.py",
+      "class": "ICmPossibilityList",
+      "type": "interface",
+      "line": 25
+    },
+    {
+      "file": "code\\System\\CheckOperations.py",
+      "class": "ILexEntry",
+      "type": "interface",
+      "line": 25
+    },
+    {
+      "file": "code\\System\\CheckOperations.py",
+      "class": "IWfiWordform",
+      "type": "interface",
+      "line": 25
+    },
+    {
+      "file": "code\\System\\CheckOperations.py",
+      "class": "IText",
+      "type": "interface",
+      "line": 25
+    },
+    {
+      "file": "code\\System\\CheckOperations.py",
+      "class": "ICmPossibilityListFactory",
+      "type": "factory",
+      "line": 1185
+    },
+    {
+      "file": "code\\System\\CustomFieldOperations.py",
+      "class": "ICmObjectRepository",
+      "type": "repository",
+      "line": 17
+    },
+    {
+      "file": "code\\System\\CustomFieldOperations.py",
+      "class": "ICmPossibilityRepository",
+      "type": "repository",
+      "line": 17
+    },
+    {
+      "file": "code\\System\\CustomFieldOperations.py",
+      "class": "ILexEntry",
+      "type": "interface",
+      "line": 17
+    },
+    {
+      "file": "code\\System\\CustomFieldOperations.py",
+      "class": "ILexSense",
+      "type": "interface",
+      "line": 17
+    },
+    {
+      "file": "code\\System\\CustomFieldOperations.py",
+      "class": "ILexExampleSentence",
+      "type": "interface",
+      "line": 17
+    },
+    {
+      "file": "code\\System\\CustomFieldOperations.py",
+      "class": "IMoForm",
+      "type": "interface",
+      "line": 17
+    },
+    {
+      "file": "code\\System\\CustomFieldOperations.py",
+      "class": "LexEntryTags",
+      "type": "tags",
+      "line": 17
+    },
+    {
+      "file": "code\\System\\CustomFieldOperations.py",
+      "class": "LexSenseTags",
+      "type": "tags",
+      "line": 17
+    },
+    {
+      "file": "code\\System\\CustomFieldOperations.py",
+      "class": "LexExampleSentenceTags",
+      "type": "tags",
+      "line": 17
+    },
+    {
+      "file": "code\\System\\CustomFieldOperations.py",
+      "class": "MoFormTags",
+      "type": "tags",
+      "line": 17
+    },
+    {
+      "file": "code\\System\\ProjectSettingsOperations.py",
+      "class": "ILangProject",
+      "type": "interface",
+      "line": 19
+    },
+    {
+      "file": "code\\System\\WritingSystemOperations.py",
+      "class": "SpecialWritingSystemCodes",
+      "type": "class",
+      "line": 15
+    },
+    {
+      "file": "code\\TextsWords\\DiscourseOperations.py",
+      "class": "IDsConstChart",
+      "type": "interface",
+      "line": 16
+    },
+    {
+      "file": "code\\TextsWords\\ParagraphOperations.py",
+      "class": "IText",
+      "type": "interface",
+      "line": 16
+    },
+    {
+      "file": "code\\TextsWords\\ParagraphOperations.py",
+      "class": "IStTxtPara",
+      "type": "interface",
+      "line": 16
+    },
+    {
+      "file": "code\\TextsWords\\ParagraphOperations.py",
+      "class": "IStTxtParaFactory",
+      "type": "factory",
+      "line": 16
+    },
+    {
+      "file": "code\\TextsWords\\SegmentOperations.py",
+      "class": "ISegment",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\TextsWords\\SegmentOperations.py",
+      "class": "ISegmentFactory",
+      "type": "factory",
+      "line": 18
+    },
+    {
+      "file": "code\\TextsWords\\SegmentOperations.py",
+      "class": "IStTxtPara",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\TextsWords\\TextOperations.py",
+      "class": "IText",
+      "type": "interface",
+      "line": 16
+    },
+    {
+      "file": "code\\TextsWords\\TextOperations.py",
+      "class": "ITextFactory",
+      "type": "factory",
+      "line": 16
+    },
+    {
+      "file": "code\\TextsWords\\TextOperations.py",
+      "class": "IStTextFactory",
+      "type": "factory",
+      "line": 16
+    },
+    {
+      "file": "code\\TextsWords\\TextOperations.py",
+      "class": "IStTxtParaFactory",
+      "type": "factory",
+      "line": 16
+    },
+    {
+      "file": "code\\TextsWords\\TextOperations.py",
+      "class": "ITextRepository",
+      "type": "repository",
+      "line": 16
+    },
+    {
+      "file": "code\\TextsWords\\TextOperations.py",
+      "class": "IStTxtPara",
+      "type": "interface",
+      "line": 16
+    },
+    {
+      "file": "code\\TextsWords\\TextOperations.py",
+      "class": "ICmPossibility",
+      "type": "interface",
+      "line": 16
+    },
+    {
+      "file": "code\\TextsWords\\TextOperations.py",
+      "class": "ICmMedia",
+      "type": "interface",
+      "line": 16
+    },
+    {
+      "file": "code\\TextsWords\\TextOperations.py",
+      "class": "ICmMediaFactory",
+      "type": "factory",
+      "line": 16
+    },
+    {
+      "file": "code\\TextsWords\\TextOperations.py",
+      "class": "ICmFolderFactory",
+      "type": "factory",
+      "line": 16
+    },
+    {
+      "file": "code\\TextsWords\\WfiAnalysisOperations.py",
+      "class": "IWfiAnalysis",
+      "type": "interface",
+      "line": 19
+    },
+    {
+      "file": "code\\TextsWords\\WfiAnalysisOperations.py",
+      "class": "IWfiAnalysisFactory",
+      "type": "factory",
+      "line": 19
+    },
+    {
+      "file": "code\\TextsWords\\WfiAnalysisOperations.py",
+      "class": "IWfiAnalysisRepository",
+      "type": "repository",
+      "line": 19
+    },
+    {
+      "file": "code\\TextsWords\\WfiAnalysisOperations.py",
+      "class": "IWfiWordform",
+      "type": "interface",
+      "line": 19
+    },
+    {
+      "file": "code\\TextsWords\\WfiAnalysisOperations.py",
+      "class": "IWfiGlossFactory",
+      "type": "factory",
+      "line": 19
+    },
+    {
+      "file": "code\\TextsWords\\WfiAnalysisOperations.py",
+      "class": "IWfiMorphBundleFactory",
+      "type": "factory",
+      "line": 19
+    },
+    {
+      "file": "code\\TextsWords\\WfiAnalysisOperations.py",
+      "class": "IPartOfSpeech",
+      "type": "interface",
+      "line": 19
+    },
+    {
+      "file": "code\\TextsWords\\WfiAnalysisOperations.py",
+      "class": "ICmAgentEvaluation",
+      "type": "interface",
+      "line": 19
+    },
+    {
+      "file": "code\\TextsWords\\WfiAnalysisOperations.py",
+      "class": "ICmAgent",
+      "type": "interface",
+      "line": 19
+    },
+    {
+      "file": "code\\TextsWords\\WfiAnalysisOperations.py",
+      "class": "Opinions",
+      "type": "class",
+      "line": 702
+    },
+    {
+      "file": "code\\TextsWords\\WfiGlossOperations.py",
+      "class": "IWfiGloss",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\TextsWords\\WfiGlossOperations.py",
+      "class": "IWfiGlossFactory",
+      "type": "factory",
+      "line": 18
+    },
+    {
+      "file": "code\\TextsWords\\WfiGlossOperations.py",
+      "class": "IWfiAnalysis",
+      "type": "interface",
+      "line": 18
+    },
+    {
+      "file": "code\\TextsWords\\WfiMorphBundleOperations.py",
+      "class": "IWfiMorphBundle",
+      "type": "interface",
+      "line": 15
+    },
+    {
+      "file": "code\\TextsWords\\WfiMorphBundleOperations.py",
+      "class": "IWfiMorphBundleFactory",
+      "type": "factory",
+      "line": 15
+    },
+    {
+      "file": "code\\TextsWords\\WfiMorphBundleOperations.py",
+      "class": "IWfiAnalysis",
+      "type": "interface",
+      "line": 15
+    },
+    {
+      "file": "code\\TextsWords\\WfiMorphBundleOperations.py",
+      "class": "ILexSense",
+      "type": "interface",
+      "line": 15
+    },
+    {
+      "file": "code\\TextsWords\\WfiMorphBundleOperations.py",
+      "class": "IMoMorphSynAnalysis",
+      "type": "interface",
+      "line": 15
+    },
+    {
+      "file": "code\\TextsWords\\WfiMorphBundleOperations.py",
+      "class": "IMoMorphType",
+      "type": "interface",
+      "line": 15
+    },
+    {
+      "file": "code\\TextsWords\\WfiMorphBundleOperations.py",
+      "class": "IMoInflClass",
+      "type": "interface",
+      "line": 15
+    },
+    {
+      "file": "code\\TextsWords\\WordformOperations.py",
+      "class": "IWfiWordformRepository",
+      "type": "repository",
+      "line": 22
+    },
+    {
+      "file": "code\\TextsWords\\WordformOperations.py",
+      "class": "IWfiWordformFactory",
+      "type": "factory",
+      "line": 22
+    },
+    {
+      "file": "code\\TextsWords\\WordformOperations.py",
+      "class": "IWfiWordform",
+      "type": "interface",
+      "line": 22
+    },
+    {
+      "file": "code\\TextsWords\\WordformOperations.py",
+      "class": "IWfiAnalysisFactory",
+      "type": "factory",
+      "line": 22
+    },
+    {
+      "file": "code\\TextsWords\\WordformOperations.py",
+      "class": "IWfiGlossFactory",
+      "type": "factory",
+      "line": 22
+    },
+    {
+      "file": "code\\TextsWords\\WordformOperations.py",
+      "class": "IWfiMorphBundleFactory",
+      "type": "factory",
+      "line": 22
+    }
+  ],
+  "SIL.LCModel.Core.Cellar": [
+    {
+      "file": "code\\FLExLCM.py",
+      "class": "CellarPropertyType as _LCMCellarPropertyType",
+      "type": "class",
+      "line": 35
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "CellarPropertyType",
+      "type": "class",
+      "line": 78
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "CellarPropertyTypeFilter",
+      "type": "class",
+      "line": 78
+    },
+    {
+      "file": "code\\System\\CustomFieldOperations.py",
+      "class": "CellarPropertyType",
+      "type": "class",
+      "line": 30
+    },
+    {
+      "file": "code\\System\\CustomFieldOperations.py",
+      "class": "CellarPropertyTypeFilter",
+      "type": "class",
+      "line": 30
+    }
+  ],
+  "SIL.FieldWorks": [
+    {
+      "file": "code\\FLExLCM.py",
+      "class": "ProjectId",
+      "type": "class",
+      "line": 37
+    }
+  ],
+  "SIL.FieldWorks.Common.Controls": [
+    {
+      "file": "code\\FLExLCM.py",
+      "class": "ProgressDialogWithTask",
+      "type": "class",
+      "line": 38
+    }
+  ],
+  "SIL.FieldWorks.FdoUi": [
+    {
+      "file": "code\\FLExLCM.py",
+      "class": "FwLcmUI",
+      "type": "class",
+      "line": 42
+    }
+  ],
+  "SIL.FieldWorks.FwCoreDlgs": [
+    {
+      "file": "code\\FLExLCM.py",
+      "class": "ChooseLangProjectDialog",
+      "type": "class",
+      "line": 43
+    }
+  ],
+  "SIL.LCModel.Infrastructure": [
+    {
+      "file": "code\\FLExProject.py",
+      "class": "IFwMetaDataCacheManaged",
+      "type": "interface",
+      "line": 83
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "IDataReader",
+      "type": "interface",
+      "line": 4105
+    },
+    {
+      "file": "code\\System\\CustomFieldOperations.py",
+      "class": "IFwMetaDataCacheManaged",
+      "type": "interface",
+      "line": 35
+    }
+  ],
+  "SIL.LCModel.Utils": [
+    {
+      "file": "code\\FLExProject.py",
+      "class": "WorkerThreadException",
+      "type": "class",
+      "line": 89
+    },
+    {
+      "file": "code\\FLExProject.py",
+      "class": "ReflectionHelper",
+      "type": "utility",
+      "line": 89
+    },
+    {
+      "file": "code\\Lexicon\\LexSenseOperations.py",
+      "class": "ReflectionHelper",
+      "type": "utility",
+      "line": 39
+    }
+  ],
+  "SIL.LCModel.Application.ApplicationServices": [
+    {
+      "file": "code\\FLExProject.py",
+      "class": "XmlTranslatedLists",
+      "type": "class",
+      "line": 456
+    },
+    {
+      "file": "code\\Shared\\catalog_backed.py",
+      "class": "XmlList",
+      "type": "class",
+      "line": 715
+    }
+  ],
+  "SIL.LCModel.DomainServices": [
+    {
+      "file": "code\\Lexicon\\MSAOperations.py",
+      "class": "SandboxGenericMSA",
+      "type": "class",
+      "line": 44
+    },
+    {
+      "file": "code\\Lexicon\\MSAOperations.py",
+      "class": "MsaType",
+      "type": "class",
+      "line": 44
+    }
+  ]
+}
