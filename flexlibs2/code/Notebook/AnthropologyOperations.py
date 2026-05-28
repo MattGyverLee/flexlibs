@@ -171,7 +171,7 @@ class AnthropologyOperations(BaseOperations, _LCMNativeCatalogImportMixin):
 
     @wrap_enumerable
     @OperationsMethod
-    def GetAll(self, recursive=True):
+    def GetAll(self, recursive=True, **kwargs):
         """
         Get all anthropology items in the project.
 
@@ -195,6 +195,9 @@ class AnthropologyOperations(BaseOperations, _LCMNativeCatalogImportMixin):
         See Also:
             Find, FindByCode, GetSubitems
         """
+        self._RejectLegacyKwargs(kwargs, {
+            "flat": ("recursive", "semantics inverted: flat=True is now recursive=True"),
+        })
         anthro_list = self.project.lp.AnthroListOA
         if not anthro_list:
             return []
@@ -1123,7 +1126,7 @@ class AnthropologyOperations(BaseOperations, _LCMNativeCatalogImportMixin):
     # --- Hierarchy Operations ---
 
     @OperationsMethod
-    def GetSubitems(self, item_or_hvo, recursive=True):
+    def GetSubitems(self, item_or_hvo, recursive=True, **kwargs):
         """
         Get the subitems of an anthropology item.
 
@@ -1152,6 +1155,9 @@ class AnthropologyOperations(BaseOperations, _LCMNativeCatalogImportMixin):
         See Also:
             CreateSubitem, GetParent, GetAll
         """
+        self._RejectLegacyKwargs(kwargs, {
+            "flat": ("recursive", "semantics inverted: flat=True is now recursive=True"),
+        })
         item = self.__GetItemObject(item_or_hvo)
 
         if not hasattr(item, "SubPossibilitiesOS"):

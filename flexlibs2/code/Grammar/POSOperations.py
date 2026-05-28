@@ -98,7 +98,7 @@ class POSOperations(BaseOperations, CatalogBackedMixin):
 
     @wrap_enumerable
     @OperationsMethod
-    def GetAll(self, recursive=True):
+    def GetAll(self, recursive=True, **kwargs):
         """
         Get all parts of speech in the project.
 
@@ -127,6 +127,9 @@ class POSOperations(BaseOperations, CatalogBackedMixin):
         See Also:
             GetSubcategories, Find
         """
+        self._RejectLegacyKwargs(kwargs, {
+            "flat": ("recursive", "semantics inverted: flat=True is now recursive=True"),
+        })
         pos_list = self.project.lp.PartsOfSpeechOA
         if not pos_list:
             return
@@ -507,7 +510,7 @@ class POSOperations(BaseOperations, CatalogBackedMixin):
 
     @wrap_enumerable
     @OperationsMethod
-    def GetSubcategories(self, pos_or_hvo, recursive=True):
+    def GetSubcategories(self, pos_or_hvo, recursive=True, **kwargs):
         """
         Get the subcategories of a part of speech.
 
@@ -536,6 +539,9 @@ class POSOperations(BaseOperations, CatalogBackedMixin):
         See Also:
             GetAll, Find
         """
+        self._RejectLegacyKwargs(kwargs, {
+            "flat": ("recursive", "semantics inverted: flat=True is now recursive=True"),
+        })
         self._ValidateParam(pos_or_hvo, "pos_or_hvo")
 
         pos = self.__ResolveObject(pos_or_hvo)

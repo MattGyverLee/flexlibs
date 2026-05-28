@@ -93,7 +93,7 @@ class SemanticDomainOperations(BaseOperations, _LCMNativeCatalogImportMixin):
 
     @wrap_enumerable
     @OperationsMethod
-    def GetAll(self, recursive=True):
+    def GetAll(self, recursive=True, **kwargs):
         """
         Get all semantic domains in the project.
 
@@ -122,6 +122,9 @@ class SemanticDomainOperations(BaseOperations, _LCMNativeCatalogImportMixin):
         See Also:
             Find, FindByName, GetSubdomains
         """
+        self._RejectLegacyKwargs(kwargs, {
+            "flat": ("recursive", "semantics inverted: flat=True is now recursive=True"),
+        })
         domain_list = self.project.lp.SemanticDomainListOA
         if not domain_list:
             return []
@@ -599,7 +602,7 @@ class SemanticDomainOperations(BaseOperations, _LCMNativeCatalogImportMixin):
     # --- Hierarchy Operations ---
 
     @OperationsMethod
-    def GetSubdomains(self, domain_or_hvo, recursive=True):
+    def GetSubdomains(self, domain_or_hvo, recursive=True, **kwargs):
         """
         Get the subdomains of a semantic domain.
 
@@ -627,6 +630,9 @@ class SemanticDomainOperations(BaseOperations, _LCMNativeCatalogImportMixin):
         See Also:
             GetParent, GetAll, GetDepth
         """
+        self._RejectLegacyKwargs(kwargs, {
+            "flat": ("recursive", "semantics inverted: flat=True is now recursive=True"),
+        })
         self._ValidateParam(domain_or_hvo, "domain_or_hvo")
 
         domain = self.__ResolveObject(domain_or_hvo)

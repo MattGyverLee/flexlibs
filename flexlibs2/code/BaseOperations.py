@@ -1300,6 +1300,56 @@ class BaseOperations:
         from .lcm_casting import cast_to_concrete
         return cast_to_concrete(owner)
 
+    def _RejectLegacyKwargs(self, kwargs, legacy_to_new):
+        """
+        Trap unexpected legacy keyword arguments with a clear,
+        actionable TypeError pointing at the rename + migration guide.
+
+        Used by methods that renamed parameters in d423e83 (v2.4 -> v2.5
+        breaking change: ``flat=`` -> ``recursive=``,
+        ``include_subcategories=`` -> ``recursive=``). Per CLAUDE.md, the
+        repo does not ship compat shims, so the rename remains a hard
+        break -- but a bare ``TypeError: unexpected keyword 'flat'``
+        offers no breadcrumb to the new name. This helper raises a
+        TypeError that names the new parameter and points at the
+        migration guide. (issue #104)
+
+        Args:
+            kwargs: The caller's ``**kwargs`` dict (after the named
+                parameters have been bound).
+            legacy_to_new: Mapping of legacy kwarg name to a
+                ``(new_kwarg_name, semantics_note)`` tuple, e.g.
+                ``{"flat": ("recursive", "semantics inverted: "
+                "flat=True is now recursive=False")}``. The semantics
+                note is appended to the error message to flag any
+                non-name-only changes.
+
+        Raises:
+            TypeError: When ``kwargs`` contains a legacy name OR any
+                other unrecognized kwarg (so typos in the new name
+                surface as errors too).
+
+        Example:
+            >>> def GetAll(self, recursive=True, **kwargs):
+            ...     self._RejectLegacyKwargs(kwargs, {
+            ...         "flat": ("recursive",
+            ...                  "semantics inverted: flat=True -> "
+            ...                  "recursive=False"),
+            ...     })
+            ...     ...
+        """
+        for legacy_name, (new_name, semantics_note) in legacy_to_new.items():
+            if legacy_name in kwargs:
+                raise TypeError(
+                    f"{legacy_name!r} was renamed to {new_name!r} in v2.5 "
+                    f"({semantics_note}). See docs/MIGRATION_GUIDE.md."
+                )
+        if kwargs:
+            unknown = sorted(kwargs)
+            raise TypeError(
+                f"unexpected keyword argument(s) {unknown!r}"
+            )
+
     def _FindCommonSequence(self, item1, item2):
         """
         Find the sequence that contains both items.

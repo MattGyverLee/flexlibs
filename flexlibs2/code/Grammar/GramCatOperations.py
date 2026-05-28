@@ -80,7 +80,7 @@ class GramCatOperations(BaseOperations):
 
     @wrap_enumerable
     @OperationsMethod
-    def GetAll(self, recursive=True):
+    def GetAll(self, recursive=True, **kwargs):
         """
         Get all grammatical categories in the project.
 
@@ -105,6 +105,9 @@ class GramCatOperations(BaseOperations):
         See Also:
             GetSubcategories, Create
         """
+        self._RejectLegacyKwargs(kwargs, {
+            "flat": ("recursive", "semantics inverted: flat=True is now recursive=True"),
+        })
         feature_system = self.project.lp.MsFeatureSystemOA
         if not feature_system:
             return
@@ -313,7 +316,7 @@ class GramCatOperations(BaseOperations):
 
     @wrap_enumerable
     @OperationsMethod
-    def GetSubcategories(self, cat_or_hvo, recursive=True):
+    def GetSubcategories(self, cat_or_hvo, recursive=True, **kwargs):
         """
         Get the subcategories of a grammatical category.
 
@@ -342,6 +345,9 @@ class GramCatOperations(BaseOperations):
         See Also:
             GetAll, GetParent, Create
         """
+        self._RejectLegacyKwargs(kwargs, {
+            "flat": ("recursive", "semantics inverted: flat=True is now recursive=True"),
+        })
         self._ValidateParam(cat_or_hvo, "cat_or_hvo")
 
         cat = self.__ResolveObject(cat_or_hvo)

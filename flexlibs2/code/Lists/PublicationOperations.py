@@ -128,7 +128,7 @@ class PublicationOperations(PossibilityItemOperations):
 
     @wrap_enumerable
     @OperationsMethod
-    def GetAll(self, recursive=True):
+    def GetAll(self, recursive=True, **kwargs):
         """
         Get all publications in the project.
 
@@ -152,6 +152,9 @@ class PublicationOperations(PossibilityItemOperations):
         See Also:
             Find, GetSubPublications
         """
+        self._RejectLegacyKwargs(kwargs, {
+            "flat": ("recursive", "semantics inverted: flat=True is now recursive=True"),
+        })
         list_obj = self._get_list_object()
         if not list_obj:
             return []

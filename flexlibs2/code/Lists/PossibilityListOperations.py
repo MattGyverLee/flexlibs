@@ -1063,7 +1063,7 @@ class PossibilityListOperations(BaseOperations):
     # --- Hierarchy Operations ---
 
     @OperationsMethod
-    def GetSubitems(self, item_or_hvo, recursive=True):
+    def GetSubitems(self, item_or_hvo, recursive=True, **kwargs):
         """
         Get the subitems of a possibility item.
 
@@ -1092,6 +1092,9 @@ class PossibilityListOperations(BaseOperations):
         See Also:
             GetParentItem, GetItems, CreateItem
         """
+        self._RejectLegacyKwargs(kwargs, {
+            "flat": ("recursive", "semantics inverted: flat=True is now recursive=True"),
+        })
         self._ValidateParam(item_or_hvo, "item_or_hvo")
 
         item = self.__ResolveItem(item_or_hvo)

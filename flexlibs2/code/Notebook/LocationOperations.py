@@ -90,7 +90,7 @@ class LocationOperations(BaseOperations):
 
     @wrap_enumerable
     @OperationsMethod
-    def GetAll(self, recursive=True):
+    def GetAll(self, recursive=True, **kwargs):
         """
         Get all locations in the project.
 
@@ -114,6 +114,9 @@ class LocationOperations(BaseOperations):
         See Also:
             Find, Create, GetSublocations
         """
+        self._RejectLegacyKwargs(kwargs, {
+            "flat": ("recursive", "semantics inverted: flat=True is now recursive=True"),
+        })
         location_list = self.project.lp.LocationsOA
         if not location_list:
             return []

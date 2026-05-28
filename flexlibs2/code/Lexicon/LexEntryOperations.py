@@ -1410,7 +1410,7 @@ class LexEntryOperations(BaseOperations):
         entry.LexemeFormOA.MorphTypeRA = morph_type
 
     @OperationsMethod
-    def GetAvailableMorphTypes(self, recursive=True):
+    def GetAvailableMorphTypes(self, recursive=True, **kwargs):
         """
         Get a list of all available morph types in the project.
 
@@ -1441,6 +1441,16 @@ class LexEntryOperations(BaseOperations):
         See Also:
             ValidateMorphType, SetMorphType, Create
         """
+        self._RejectLegacyKwargs(kwargs, {
+            "include_subcategories": (
+                "recursive",
+                "name-only rename; semantics preserved",
+            ),
+            "flat": (
+                "recursive",
+                "semantics inverted: flat=True is now recursive=True",
+            ),
+        })
         morph_types = self.project.lp.LexDbOA.MorphTypesOA
         if not morph_types:
             return []
