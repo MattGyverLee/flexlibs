@@ -182,6 +182,7 @@ def _ensure_interfaces() -> None:
         from SIL.LCModel import (
             ILexEntry,
             ILexSense,
+            ILexRefType,
             IRnGenericRec,
             ICmPossibility,
             ICmAnthroItem,
@@ -189,11 +190,13 @@ def _ensure_interfaces() -> None:
             IText,
             IStText,
             IStTxtPara,
+            IWfiAnalysis,
         )
     except ImportError:
-        ILexEntry = ILexSense = IRnGenericRec = None
+        ILexEntry = ILexSense = ILexRefType = IRnGenericRec = None
         ICmPossibility = ICmAnthroItem = None
         IDsConstChart = IText = IStText = IStTxtPara = None
+        IWfiAnalysis = None
 
     _interface_cache = {
         # MSA types - used for grammatical category assignment
@@ -250,6 +253,8 @@ def _ensure_interfaces() -> None:
         _interface_cache["LexEntry"] = ILexEntry
     if ILexSense is not None:
         _interface_cache["LexSense"] = ILexSense
+    if ILexRefType is not None:
+        _interface_cache["LexRefType"] = ILexRefType
     if IRnGenericRec is not None:
         _interface_cache["RnGenericRec"] = IRnGenericRec
     if ICmPossibility is not None:
@@ -264,6 +269,8 @@ def _ensure_interfaces() -> None:
         _interface_cache["StText"] = IStText
     if IStTxtPara is not None:
         _interface_cache["StTxtPara"] = IStTxtPara
+    if IWfiAnalysis is not None:
+        _interface_cache["WfiAnalysis"] = IWfiAnalysis
 
     _interfaces_loaded = True
 

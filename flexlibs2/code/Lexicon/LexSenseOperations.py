@@ -278,16 +278,15 @@ class LexSenseOperations(BaseOperations):
 
         sense = self.__GetSenseObject(sense_or_hvo)
 
-        # Get the owning entry or parent sense
-        owner = sense.Owner
-
-        # Check if this is a top-level sense or subsense
-        if hasattr(owner, "SensesOS"):
-            # Top-level sense owned by entry
-            owner.SensesOS.Remove(sense)
-        elif hasattr(owner, "SensesOS"):
-            # Subsense owned by another sense
-            owner.SensesOS.Remove(sense)
+        # Cast owner to its concrete interface so SensesOS is reachable.
+        # Both ILexEntry (top-level) and ILexSense (subsense parent) expose
+        # SensesOS, so one Remove call handles both paths. Raw sense.Owner
+        # is typed as ICmObject and hasattr(...,"SensesOS") returns False
+        # there, which is why the prior implementation silently no-opped.
+        owner = self._GetTypedOwner(sense)
+        if owner is None:
+            raise FP_ParameterError("Sense has no owning entry or parent sense")
+        owner.SensesOS.Remove(sense)
 
     @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True, deep=True):

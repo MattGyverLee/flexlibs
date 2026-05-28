@@ -226,12 +226,15 @@ class ParagraphOperations(BaseOperations):
 
         para_obj = self.__GetParagraphObject(paragraph_or_hvo)
 
-        # Get the owner (StText) and remove the paragraph
-        owner = para_obj.Owner
-        if owner and hasattr(owner, "ParagraphsOS"):
-            owner.ParagraphsOS.Remove(para_obj)
-        else:
+        # Cast owner to its concrete IStText so ParagraphsOS is reachable.
+        # Raw para.Owner is typed as ICmObject and
+        # hasattr(...,"ParagraphsOS") returns False there, which is why
+        # the prior implementation always fell through to the else branch
+        # and spuriously raised even on perfectly valid paragraphs.
+        owner = self._GetTypedOwner(para_obj)
+        if owner is None:
             raise FP_ParameterError("Paragraph has no valid owner or cannot be removed")
+        owner.ParagraphsOS.Remove(para_obj)
 
     @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True, deep=True):

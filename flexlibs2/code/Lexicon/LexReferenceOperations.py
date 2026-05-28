@@ -811,10 +811,14 @@ class LexReferenceOperations(BaseOperations):
 
         lex_ref = self.__ResolveLexRef(lex_ref_or_hvo)
 
-        # Get the owning type and remove the reference
-        owner = lex_ref.Owner
-        if hasattr(owner, "MembersOC"):
-            owner.MembersOC.Remove(lex_ref)
+        # Cast owner to its concrete ILexRefType so MembersOC is reachable.
+        # Raw lex_ref.Owner is typed as ICmObject and
+        # hasattr(...,"MembersOC") returns False there, which is why the
+        # prior implementation silently no-opped.
+        owner = self._GetTypedOwner(lex_ref)
+        if owner is None:
+            raise FP_ParameterError("Lex reference has no owning type")
+        owner.MembersOC.Remove(lex_ref)
 
     @OperationsMethod
     def GetTargets(self, lex_ref_or_hvo):

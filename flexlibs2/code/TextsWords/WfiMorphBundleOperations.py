@@ -224,12 +224,14 @@ class WfiMorphBundleOperations(BaseOperations):
 
         bundle = self.__GetBundleObject(bundle_or_hvo)
 
-        # Get the owning analysis
-        owner = bundle.Owner
-
-        # Remove from the analysis's morph bundles collection
-        if hasattr(owner, "MorphBundlesOS"):
-            owner.MorphBundlesOS.Remove(bundle)
+        # Cast owner to its concrete IWfiAnalysis so MorphBundlesOS is
+        # reachable. Raw bundle.Owner is typed as ICmObject and
+        # hasattr(...,"MorphBundlesOS") returns False there, which is why
+        # the prior implementation silently no-opped.
+        owner = self._GetTypedOwner(bundle)
+        if owner is None:
+            raise FP_ParameterError("Morph bundle has no owning analysis")
+        owner.MorphBundlesOS.Remove(bundle)
 
     @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True):
@@ -299,9 +301,14 @@ class WfiMorphBundleOperations(BaseOperations):
             # Insert at end
             parent.MorphBundlesOS.Add(duplicate)
 
-        # Copy simple MultiString properties
+        # Copy MultiString properties. IWfiMorphBundle has Form but
+        # NOT Gloss -- the displayed gloss comes from SenseRA.Gloss,
+        # which the SenseRA assignment below preserves automatically.
+        # The previous duplicate.Gloss.CopyAlternatives line raised
+        # AttributeError on every call (same root bug as #16 / #108);
+        # 4319886 fixed GetGloss/SetGloss but missed this site.
+        # (issue #107)
         duplicate.Form.CopyAlternatives(source.Form)
-        duplicate.Gloss.CopyAlternatives(source.Gloss)
 
         # Copy Reference Atomic (RA) properties
         if hasattr(source, "SenseRA") and source.SenseRA:

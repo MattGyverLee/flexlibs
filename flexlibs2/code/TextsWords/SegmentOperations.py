@@ -543,10 +543,14 @@ class SegmentOperations(BaseOperations):
 
         segment_obj = self.__GetSegmentObject(segment_or_hvo)
 
-        # Get the owner (paragraph) and remove from collection
-        owner = segment_obj.Owner
-        if owner and hasattr(owner, "SegmentsOS"):
-            owner.SegmentsOS.Remove(segment_obj)
+        # Cast owner to its concrete IStTxtPara so SegmentsOS is reachable.
+        # Raw segment.Owner is typed as ICmObject and
+        # hasattr(...,"SegmentsOS") returns False there, which is why the
+        # prior implementation silently no-opped.
+        owner = self._GetTypedOwner(segment_obj)
+        if owner is None:
+            raise FP_ParameterError("Segment has no owning paragraph")
+        owner.SegmentsOS.Remove(segment_obj)
 
     @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True):
