@@ -171,7 +171,7 @@ class PersonOperations(BaseOperations):
         new_person = factory.Create()
 
         # Add person to the language project's people collection (must be done before setting properties)
-        self.project.lp.PeopleOC.Add(new_person)
+        self.project.lp.PeopleOA.PossibilitiesOS.Add(new_person)
 
         # Set the name
         mkstr = TsStringUtils.MakeString(name, wsHandle)
@@ -223,7 +223,7 @@ class PersonOperations(BaseOperations):
         person = self.__ResolveObject(person_or_hvo)
 
         # Remove from people collection
-        self.project.lp.PeopleOC.Remove(person)
+        self.project.lp.PeopleOA.PossibilitiesOS.Remove(person)
 
     @OperationsMethod
     def Exists(self, name, wsHandle=None):
@@ -1025,10 +1025,10 @@ class PersonOperations(BaseOperations):
 
         # Determine insertion position and add to parent FIRST
         if insert_after:
-            source_index = self.project.lp.PeopleOC.IndexOf(source)
-            self.project.lp.PeopleOC.Insert(source_index + 1, duplicate)
+            source_index = self.project.lp.PeopleOA.PossibilitiesOS.IndexOf(source)
+            self.project.lp.PeopleOA.PossibilitiesOS.Insert(source_index + 1, duplicate)
         else:
-            self.project.lp.PeopleOC.Add(duplicate)
+            self.project.lp.PeopleOA.PossibilitiesOS.Add(duplicate)
 
         # Copy simple MultiString properties
         duplicate.Name.CopyAlternatives(source.Name)
