@@ -401,11 +401,16 @@ class NaturalClassOperations(BaseOperations):
         source = self.__GetNaturalClassObject(item_or_hvo)
         phon_data = self.project.lp.PhonologicalDataOA
 
-        # Detect concrete NC type using the same discriminator GetType()
-        # uses (issue #27). IPhNCFeatures owns FeaturesOA; IPhNCSegments
-        # references SegmentsRC. Hardcoding IPhNCSegmentsFactory was
-        # silently producing wrong-type clones from feature-based sources.
-        is_features = hasattr(source, "FeaturesOA")
+        # Single source of truth for concrete-NC discrimination: route
+        # through GetType() so future subtype additions or defensive
+        # fallback changes propagate here automatically. Hardcoding
+        # IPhNCSegmentsFactory (the original #27 bug) silently produced
+        # wrong-type clones from feature-based sources; the inline
+        # `hasattr(source, "FeaturesOA")` duplicate was the same rule
+        # as GetType but shipped a second copy that could drift.
+        # (issue #96)
+        nc_type = self.GetType(source)
+        is_features = (nc_type == "features")
 
         if is_features:
             factory = self.project.project.ServiceLocator.GetService(
