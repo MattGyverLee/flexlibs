@@ -18,8 +18,6 @@ from ..Shared.string_utils import normalize_match_key
 # Import FLEx LCM types
 from SIL.LCModel import (
     IPhRegularRuleFactory,  # Fixed: was IPhPhonRuleFactory
-    IPhMetathesisRuleFactory,
-    IPhReduplicationRuleFactory,
     IPhSegRuleRHSFactory,
     IPhSegmentRuleFactory,
     IPhSimpleContextNC,
@@ -1467,20 +1465,27 @@ class PhonologicalRuleOperations(BaseOperations):
         # IPhRegularRuleFactory-only fallback both produced PhRegularRule
         # regardless of source. Same fix shape as 76204e0 (#27) for
         # NaturalClassOperations.Duplicate. (issue #126)
-        factory_by_class = {
-            "PhRegularRule": IPhRegularRuleFactory,
-            "PhMetathesisRule": IPhMetathesisRuleFactory,
-            "PhReduplicationRule": IPhReduplicationRuleFactory,
-        }
+        #
+        # Resolve the factory through lcm_casting's _get_factory_for_class
+        # rather than importing IPh{Metathesis,Reduplication}RuleFactory at
+        # module load. Some pythonnet/LCM builds don't expose all three
+        # factory interfaces at import time; lcm_casting wraps the lookup
+        # in a try/except and returns None if the factory isn't bindable
+        # on the current build. That lets PhonologicalRuleOperations
+        # itself remain importable everywhere, and surfaces a clear
+        # FP_ParameterError only when a caller actually asks to duplicate
+        # a rule of an unsupported concrete type.
+        from ..lcm_casting import _get_factory_for_class
+
         source_class = source.ClassName
-        factory_iface = factory_by_class.get(source_class)
-        if factory_iface is None:
+        factory = _get_factory_for_class(source_class, self.project.project)
+        if factory is None:
             raise FP_ParameterError(
-                f"Cannot duplicate rule of class {source_class!r}: "
-                f"unknown concrete rule type. Known types: "
-                f"{sorted(factory_by_class)}."
+                f"Cannot duplicate rule of class {source_class!r}: no "
+                f"factory available on this LCM build. Known concrete "
+                f"phonological rule types are PhRegularRule, "
+                f"PhMetathesisRule, PhReduplicationRule."
             )
-        factory = self.project.project.ServiceLocator.GetService(factory_iface)
         duplicate = factory.Create()
         if insert_after:
             source_index = phon_data.PhonRulesOS.IndexOf(source)
