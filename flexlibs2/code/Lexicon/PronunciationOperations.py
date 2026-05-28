@@ -244,10 +244,12 @@ class PronunciationOperations(BaseOperations):
 
         pronunciation = self.__GetPronunciationObject(pronunciation_or_hvo)
 
-        # Get owning entry and remove from collection
-        entry = pronunciation.Owner
-        if hasattr(entry, "PronunciationsOS"):
-            entry.PronunciationsOS.Remove(pronunciation)
+        # pronunciation.Owner is typed as ICmObject in LCM. pythonnet only
+        # surfaces attributes from the static type, so
+        # hasattr(entry, "PronunciationsOS") returns False without a cast
+        # and the Remove() silently never runs (issue #151).
+        entry = ILexEntry(pronunciation.Owner)
+        entry.PronunciationsOS.Remove(pronunciation)
 
     @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
