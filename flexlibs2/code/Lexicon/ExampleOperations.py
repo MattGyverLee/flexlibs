@@ -243,10 +243,15 @@ class ExampleOperations(BaseOperations):
 
         example = self.__GetExampleObject(example_or_hvo)
 
-        # Get the owning sense and remove the example
-        owner = example.Owner
-        if hasattr(owner, "ExamplesOS"):
-            owner.ExamplesOS.Remove(example)
+        # ExamplesOS lives on ILexSense (the concrete owner), not on the
+        # base ICmObject that pythonnet returns from .Owner. The prior
+        # hasattr(owner, "ExamplesOS") was always False on the base type
+        # and Delete silently no-op'd. Route through _GetTypedOwner to
+        # recover the concrete ILexSense first. Same shape as #160 / #98.
+        # (issue #162)
+        sense = self._GetTypedOwner(example)
+        if sense is not None and hasattr(sense, "ExamplesOS"):
+            sense.ExamplesOS.Remove(example)
 
     @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
