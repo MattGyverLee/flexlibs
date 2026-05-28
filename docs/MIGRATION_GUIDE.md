@@ -114,3 +114,94 @@ Quick checklist:
 ## Questions?
 
 See [CLAUDE.md](../CLAUDE.md) for more details on FLEx conventions and data handling.
+
+---
+
+# v2.4 → v2.5 Migration
+
+## Breaking Change: `flat=` → `recursive=` on hierarchical-list `GetAll`
+
+### What Changed
+
+Every hierarchical-list `GetAll()` accessor (POS, LexSense, SemanticDomain, Anthropology, Location, Publication, PossibilityLists, plus the inline `GetSubcategories` / `GetSubdomains` / `GetSubitems` helpers) standardized on a single parameter name. The old `flat=` is renamed to `recursive=` and the default is now `recursive=True` -- the intuitive "give me everything under this node" query is the one with no argument.
+
+| Behavior | v2.4 | v2.5 |
+|---|---|---|
+| `POS.GetAll()` (no args) | Top-level only (~30) | All POSs including subcategories (~80) |
+| `POS.GetAll(flat=True)` | Returns all | Raises `TypeError` |
+| `POS.GetAll(recursive=False)` | -- | Top-level only |
+| `LexEntry.GetAvailableMorphTypes(include_subcategories=True)` | Worked | Raises `TypeError` |
+| `LexEntry.GetAvailableMorphTypes(recursive=True)` | -- | Works |
+| `FLExProject.GetAllSemanticDomains(flat=True)` | Works | Emits `DeprecationWarning`, translates through |
+
+### Why This Changed
+
+The intuitive query ("give me everything under this category") was the harder one to spell when `flat=False` was the default for some accessors and `flat=True` for others. Standardizing on `recursive=True` as the default for collection queries lets the common case stay simple and the specialized case (`recursive=False`) stay explicit. See #100 and #101 for the full story.
+
+### Migration: rename `flat=` to `recursive=`
+
+**Before (v2.4):**
+```python
+poses = project.POS.GetAll(flat=True)
+domains = project.SemanticDomains.GetAll(flat=True)
+```
+
+**After (v2.5):**
+```python
+poses = project.POS.GetAll()              # recursive by default
+domains = project.SemanticDomains.GetAll()
+# or, for top-level only:
+top_poses = project.POS.GetAll(recursive=False)
+```
+
+### Migration: `include_subcategories=` -> `recursive=`
+
+**Before:**
+```python
+mt = project.LexEntry.GetAvailableMorphTypes(include_subcategories=True)
+```
+
+**After:**
+```python
+mt = project.LexEntry.GetAvailableMorphTypes(recursive=True)
+```
+
+## Behavior Change: counting queries default to FLEx UI parity (direct-only)
+
+### What Changed
+
+Counting queries (`POSOperations.GetEntryCount`, `SemanticDomainOperations.GetSenseCount`) default to `recursive=False` -- they count only objects tagged with the requested category exactly, matching every count column FLEx itself surfaces (Categories tool, Lexicon Browse view, Tools > Statistics). The previous v2.4 default of `recursive=True` for `GetEntryCount` was reverted in #101 because users would see flexlibs2 reporting ~3x the counts FLEx shows and assume flexlibs2 was wrong.
+
+The two distinct user questions:
+
+- "How many entries match this tag?"             -> `GetEntryCount(noun)`            (direct, FLEx UI parity)
+- "How many entries match this tag or descendants?" -> `GetEntryCount(noun, recursive=True)`
+
+**No caller code change is required for the common path.** If you previously relied on the brief recursive=True default that shipped between d423e83 and the #101 revert, pass it explicitly.
+
+### Migration
+
+**Before (v2.4 / d423e83):**
+```python
+n = project.POS.GetEntryCount(noun)               # rolled up descendants
+```
+
+**After (v2.5):**
+```python
+n = project.POS.GetEntryCount(noun)               # direct-tagged only (FLEx UI parity)
+n = project.POS.GetEntryCount(noun, recursive=True)  # roll up
+n = project.SemanticDomains.GetSenseCount(dom)    # direct-tagged only
+n = project.SemanticDomains.GetSenseCount(dom, recursive=True)  # roll up
+```
+
+### Migration: Detect-and-Fix Recipe
+
+```bash
+# Find all callers using the old flat= kwarg
+rg --type py 'GetAll\(.*flat='
+rg --type py 'GetAvailableMorphTypes\(.*include_subcategories='
+```
+
+Replace `flat=` with `recursive=` (same boolean value). Replace `include_subcategories=True` with `recursive=True`.
+
+---

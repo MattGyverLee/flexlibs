@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+Future breaking changes go under `[Unreleased]` until the next version cut.
+
+---
+
+## [Unreleased]
+
+### Changed (Breaking)
+
+- **`flat=` parameter renamed to `recursive=` (inverted semantics) on every hierarchical-list `GetAll()` accessor.** Collection queries default to `recursive=True` (returns every descendant). Passing `flat=` raises `TypeError`. Affected modules:
+  - `POSOperations.GetAll`, `LexSenseOperations.GetAll`, `SemanticDomainOperations.GetAll`,
+    `AnthropologyOperations.GetAll`, `LocationOperations.GetAll`,
+    `PublicationOperations.GetAll`, `PossibilityListOperations.GetAll`,
+    plus the inline `GetSubcategories` / `GetSubdomains` / `GetSubitems` helpers.
+  - `FLExProject.GetAllSemanticDomains` keeps a one-release `flat=` deprecation shim that emits `DeprecationWarning` and translates straight through. Other accessors raise immediately.
+- **`include_subcategories=` parameter renamed to `recursive=`** on `LexEntryOperations.GetAvailableMorphTypes`. Same semantics, more consistent naming.
+- **Counting queries default to `recursive=False`** (FLEx UI parity). `POSOperations.GetEntryCount` was briefly flipped to `recursive=True` in d423e83 and reverted by #101 to match every count column in FLEx's UI (Categories tool, Lexicon Browse, Tools > Statistics — all direct-tag only). `SemanticDomainOperations.GetSenseCount` now accepts the same `recursive=` parameter (default `False`), so caller code looks identical across all `Get*Count` methods. Pass `recursive=True` when you actually want the descendant roll-up.
+
+### Fixed
+
+This section will accumulate non-breaking fixes that ship before the next version cut.
+
 ---
 
 ## [2.4.0] - 2026-03-22
