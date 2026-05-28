@@ -164,5 +164,44 @@ class TestWfiMorphBundleGlossContract:
             setattr(WfiMorphBundleOperations, mangled_ws, original_ws)
 
 
+class TestWfiMorphBundleDuplicate:
+    """
+    Static-source coverage for WfiMorphBundleOperations.Duplicate.
+    Live-LCM regression for the orphan-Owner / bundle.Gloss bug is
+    blocked on the access-violation failures tracked in #144; this
+    test locks the absence of the broken access pattern at the source
+    level so the regression cannot creep back in via copy-paste.
+    """
+
+    def test_duplicate_does_not_reference_bundle_dot_gloss(self):
+        """
+        IWfiMorphBundle has no Gloss field. Any
+        ``duplicate.Gloss.CopyAlternatives(source.Gloss)`` or
+        ``bundle.Gloss.<anything>`` access inside Duplicate raises
+        AttributeError on every call (the original #16 / #107 bug).
+        4319886 fixed GetGloss / SetGloss but missed Duplicate; this
+        test guards against the bug returning to any method on this
+        class. (issue #107)
+        """
+        import inspect
+        from flexlibs2.code.TextsWords.WfiMorphBundleOperations import (
+            WfiMorphBundleOperations,
+        )
+
+        src = inspect.getsource(WfiMorphBundleOperations.Duplicate)
+        # Either a write-side access (duplicate.Gloss) or a read-side
+        # access (source.Gloss) inside Duplicate is the regression.
+        # The displayed gloss is on SenseRA.Gloss and is preserved by
+        # the SenseRA = source.SenseRA assignment in Duplicate.
+        assert "duplicate.Gloss" not in src, (
+            "Duplicate references duplicate.Gloss; IWfiMorphBundle has "
+            "no Gloss field. Remove the line (#107 regression)."
+        )
+        assert "source.Gloss" not in src, (
+            "Duplicate references source.Gloss; IWfiMorphBundle has no "
+            "Gloss field. Remove the line (#107 regression)."
+        )
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
