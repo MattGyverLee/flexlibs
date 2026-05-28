@@ -2832,11 +2832,25 @@ class LexSenseOperations(BaseOperations):
 
     @OperationsMethod
     def SetScientificName(self, sense_or_hvo, text, wsHandle=None):
-        """Set the scientific name of a sense."""
+        """Set the scientific name of a sense.
+
+        Defaults wsHandle to the project's vernacular WS rather than
+        the analysis WS. Scientific binomials (e.g. *Panthera leo*) are
+        Latin-script, language-neutral notation; tagging them with the
+        analysis WS (typically the user's metalanguage -- English,
+        French, etc.) mis-tags downstream rendering: font-fallback
+        rules pick the wrong italic, LIFT export emits the wrong
+        ``<form lang="...">`` attribute, and hyphenation rules treat
+        the binomial as a metalanguage word. Source and ImportResidue
+        legitimately default to analysis (they're caller-provided
+        annotations); ScientificName is the odd one out. (issue #41)
+        """
         self._EnsureWriteEnabled()
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
         self._ValidateParam(text, "text")
         sense = self.__GetSenseObject(sense_or_hvo)
+        if wsHandle is None:
+            wsHandle = self.project.project.DefaultVernWs
         sense.ScientificName = self._MakeTsString(text, wsHandle)
 
     @OperationsMethod
