@@ -376,36 +376,32 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
         """
         Get all feature structures in the project.
 
+        Yields nothing in the current implementation.
+
+        ``IFsFeatStruc`` objects are not stored in a central
+        project-level collection; they are owned by various LCM
+        objects (morphemes, MSAs, allomorphs, entries, etc.) and
+        attached as ``FeatureStructureRA`` or in domain-specific
+        owning collections. Walking them requires iterating each
+        owning surface in turn, not enumerating ``MsFeatureSystemOA``.
+
+        The previous implementation guarded the inner loop with
+        ``hasattr(feature, "FeaturesOS")`` against IFsFeatDefn variants
+        that do not expose that property; the check was always False
+        at runtime and the body was always-empty. Removed in (#140).
+
         Yields:
-            IFsFeatStruc: Each feature structure object in the project.
-
-        Example:
-            >>> inflOps = InflectionFeatureOperations(project)
-            >>> for fs in inflOps.FeatureStructureGetAll():
-            ...     print(f"Feature Structure HVO: {fs.Hvo}")
-
-        Notes:
-            - Feature structures encode grammatical information
-            - Used in morphosyntactic descriptions
-            - Can represent combinations of features (person+number+gender, etc.)
-            - Returns empty if no feature structures defined
-            - Note: This method may need adjustment based on actual FLEx API
-              structure for storing feature structures
+            IFsFeatStruc: Empty generator (placeholder for a future
+            cross-surface walk implementation).
 
         See Also:
             FeatureStructureCreate, FeatureGetAll
         """
-        # Feature structures in FLEx are typically owned by various objects
-        # (morphemes, entries, etc.) rather than stored in a central list.
-        # This implementation may need adjustment based on specific requirements.
-        feature_system = self.project.lp.MsFeatureSystemOA
-        if feature_system:
-            # This yields feature definitions which may contain feature structures
-            # The actual implementation depends on what the user needs
-            for feature in feature_system.FeaturesOC:
-                if hasattr(feature, "FeaturesOS"):
-                    for fs in feature.FeaturesOS:
-                        yield fs
+        # Empty generator: see docstring. Returning empty rather than
+        # raising preserves the historic "calls succeed and yield []"
+        # contract for any caller that loops over the result.
+        return
+        yield  # pragma: no cover -- makes this a generator
 
     @OperationsMethod
     def FeatureStructureCreate(self):
@@ -1168,12 +1164,15 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
 
         feature = self.__ResolveFeature(feature_or_hvo)
 
-        # Check if feature has values collection
+        # IFsClosedFeature has the symbolic ValuesOC; IFsComplexFeature
+        # has no children of its own at this surface (sub-features live
+        # on its TypeRA.FeaturesRS, a separate read shape). The previous
+        # hasattr(feature, "FeaturesOS") fallback was always False at
+        # runtime -- no IFsFeatDefn variant exposes FeaturesOS. Removed
+        # in (#140); a IFsComplexFeature traversal would belong in a
+        # separate method with an explicit isinstance check.
         if hasattr(feature, "ValuesOC"):
             return list(feature.ValuesOC)
-        elif hasattr(feature, "FeaturesOS"):
-            return list(feature.FeaturesOS)
-
         return []
 
     @OperationsMethod
