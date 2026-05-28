@@ -216,6 +216,18 @@ class TestBasicIPACatalog:
                 "cover it end-to-end."
             )
 
+        # ImportCatalog checks the non-empty-phoneme-set guard BEFORE the
+        # phonfeats-empty guard (see PhonemeOperations.ImportCatalog body).
+        # If the phoneme set is already populated we'd hit the wrong guard
+        # and never exercise this branch.
+        phoneme_count = _phoneme_count(writable_project)
+        if phoneme_count > 0:
+            pytest.skip(
+                f"PhonemeSetsOS[0].PhonemesOC already populated ({phoneme_count} "
+                "phonemes); the non-empty-set guard fires first and masks the "
+                "PhonFeats-empty branch."
+            )
+
         with pytest.raises(FP_ParameterError) as exc_info:
             writable_project.Phonemes.ImportCatalog()
 
