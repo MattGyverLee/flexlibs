@@ -1,11 +1,12 @@
 # Sena 3 Real-World Status
 
-Last run: 2026-05-27T21:01:16Z
+Last run: 2026-05-28T00:50:07Z
 
 Legend: `[PASS]` verified - `[FAIL]` regressed - `[SKIP]` skipped this run - `[----]` untested
 
 | Operations class   | Read    | Add     | Reorder | Modify  | Delete  | Last verified |
 |--------------------|---------|---------|---------|---------|---------|---------------|
+| ExampleOperations  | [PASS]  | [FAIL]  | [PASS]  | [PASS]  | [FAIL]  | 2026-05-27    |
 | LocationOperations | [PASS]  | [PASS]  | [PASS]  | [PASS]  | [SKIP]  | 2026-05-27    |
 | PersonOperations   | [PASS]  | [FAIL]  | [SKIP]  | [FAIL]  | [FAIL]  | 2026-05-27    |
 
