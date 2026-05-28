@@ -748,16 +748,13 @@ class WfiAnalysisOperations(BaseOperations):
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
-        # Check for human evaluation with approval
-        # ICmAgentEvaluation has Human (bool) and Approves (bool) directly
-        for evaluation in analysis.EvaluationsRC:
-            # Check if this is a human evaluation (not parser/computer)
-            if hasattr(evaluation, "Human") and evaluation.Human:
-                # Check if it approves this analysis
-                if hasattr(evaluation, "Approves") and evaluation.Approves:
-                    return True
-
-        return False
+        # ICmAgentEvaluation always exposes Human (bool) and Approves
+        # (bool) per LCM schema; the previous hasattr guards were dead
+        # weight. GetApprovalStatus uses the bare property access
+        # pattern. (issue #60)
+        return any(
+            e.Human and e.Approves for e in analysis.EvaluationsRC
+        )
 
     @OperationsMethod
     def IsComputerApproved(self, analysis_or_hvo):
@@ -799,16 +796,12 @@ class WfiAnalysisOperations(BaseOperations):
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
-        # Check for computer/parser evaluation with approval
-        # ICmAgentEvaluation has Human (bool) directly - False for computer/parser
-        for evaluation in analysis.EvaluationsRC:
-            # Check if this is a computer evaluation (not human)
-            if hasattr(evaluation, "Human") and not evaluation.Human:
-                # Check if it approves this analysis
-                if hasattr(evaluation, "Approves") and evaluation.Approves:
-                    return True
-
-        return False
+        # ICmAgentEvaluation always exposes Human (bool) and Approves
+        # (bool) per LCM schema; the previous hasattr guards were dead
+        # weight. (issue #60)
+        return any(
+            not e.Human and e.Approves for e in analysis.EvaluationsRC
+        )
 
     @OperationsMethod
     def ApproveAnalysis(self, analysis_or_hvo):
