@@ -11,6 +11,7 @@ Legend: `[PASS]` verified - `[FAIL]` regressed - `[SKIP]` skipped this run - `[-
 | LocationOperations    | [PASS]  | [PASS]  | [PASS]  | [PASS]  | [SKIP]  | 2026-05-27    |
 | PersonOperations      | [PASS]  | [FAIL]  | [SKIP]  | [FAIL]  | [FAIL]  | 2026-05-27    |
 | VariantOperations     | [PASS]  | [FAIL]  | [FAIL]  | [FAIL]  | [PASS]  | 2026-05-27    |
+| PronunciationOperations | [PASS] | [FAIL]  | [PASS]  | [PASS]  | [SKIP]  | 2026-05-27    |
 
 ## Uncategorized live tests
 
