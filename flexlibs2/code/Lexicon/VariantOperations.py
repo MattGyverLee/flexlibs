@@ -99,9 +99,16 @@ class VariantOperations(BaseOperations):
     def _GetSequence(self, parent):
         """
         Specify which sequence to reorder for variants.
-        For Variant, we reorder parent.VariantEntryBackRefsOS
+
+        A LexEntryRef with RefType=0 is owned by the variant entry via
+        EntryRefsOS (that is where Create appends to). The previous
+        implementation pointed at ``VariantEntryBackRefsOS`` -- a virtual
+        property that does not exist on ILexEntry (the analogous
+        back-reference is the read-only ``VariantEntryRefs`` virtual list
+        on the COMPONENT entry, not the variant entry, and it is not
+        reorderable). MoveUp/MoveDown must operate on the owning sequence.
         """
-        return parent.VariantEntryBackRefsOS
+        return parent.EntryRefsOS
 
     # --- Variant Type Management ---
 
@@ -401,30 +408,27 @@ class VariantOperations(BaseOperations):
         entry = self.__GetEntryObject(entry_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
 
-        # Create the entry reference
+        # Create the entry reference, then attach it to the owning entry
+        # BEFORE touching any of its reference-sequence properties.
+        # LexEntryRef.VariantEntryTypesRS returns null until the ref is
+        # owned, so accessing it before EntryRefsOS.Add raises a
+        # System.NullReferenceException from native LCM (#165).
         factory = self.project.project.ServiceLocator.GetService(ILexEntryRefFactory)
         entry_ref = factory.Create()
+        entry.EntryRefsOS.Add(entry_ref)
 
-        # Set as variant type (RefType = 0)
+        # Set as variant type (RefType = 0) and add the variant type
         entry_ref.RefType = 0
-
-        # Set the variant type
         entry_ref.VariantEntryTypesRS.Add(variant_type)
 
-        # Note: The variant form itself is typically the entry's lexeme form
-        # We don't set a separate form on the ILexEntryRef
-        # The variant_form parameter is for consistency with the API and
-        # for cases where the entry's lexeme form needs to be set
-
-        # Ensure the entry's lexeme form matches
+        # The variant form itself is typically the entry's lexeme form.
+        # We don't set a separate form on the ILexEntryRef; instead make
+        # sure the entry's lexeme form matches the requested variant_form.
         if entry.LexemeFormOA:
             current_form = ITsString(entry.LexemeFormOA.Form.get_String(wsHandle)).Text
             if not current_form or current_form != variant_form:
                 mkstr = TsStringUtils.MakeString(variant_form, wsHandle)
                 entry.LexemeFormOA.Form.set_String(wsHandle, mkstr)
-
-        # Add to entry
-        entry.EntryRefsOS.Add(entry_ref)
 
         return entry_ref
 
@@ -678,11 +682,13 @@ class VariantOperations(BaseOperations):
         variant = self.__GetVariantObject(variant_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
 
-        # Get the owning entry
-        owner = variant.Owner
+        # variant.Owner is typed as ICmObject in LCM. pythonnet only surfaces
+        # attributes from the static type, so hasattr(owner, "LexemeFormOA")
+        # is always False without an explicit downcast. Cast to ILexEntry
+        # so LexemeFormOA becomes accessible.
+        owner = ILexEntry(variant.Owner)
 
-        # Get the lexeme form from the entry
-        if hasattr(owner, "LexemeFormOA") and owner.LexemeFormOA:
+        if owner.LexemeFormOA:
             form = ITsString(owner.LexemeFormOA.Form.get_String(wsHandle)).Text
             return form or ""
 
@@ -731,10 +737,11 @@ class VariantOperations(BaseOperations):
         variant = self.__GetVariantObject(variant_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
 
-        # Get the owning entry
-        owner = variant.Owner
+        # Cast variant.Owner from ICmObject to ILexEntry so LexemeFormOA
+        # is reachable (see GetForm rationale).
+        owner = ILexEntry(variant.Owner)
 
-        if not hasattr(owner, "LexemeFormOA") or not owner.LexemeFormOA:
+        if not owner.LexemeFormOA:
             raise FP_ParameterError("Entry has no lexeme form object")
 
         mkstr = TsStringUtils.MakeString(text, wsHandle)
