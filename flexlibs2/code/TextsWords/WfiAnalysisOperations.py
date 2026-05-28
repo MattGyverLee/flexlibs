@@ -38,13 +38,56 @@ from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
 # --- Approval Status Enum ---
 
+import enum
 
-class ApprovalStatusTypes:
-    """Approval status values for wordform analyses."""
+
+class ApprovalStatusTypes(enum.IntEnum):
+    """Approval status values for wordform analyses.
+
+    IntEnum so existing callers that compared by the underlying integer
+    keep working: ``ApprovalStatusTypes.APPROVED == 2`` is still True,
+    and ``int(ApprovalStatusTypes.APPROVED) == 2`` for explicit
+    coercion. New callers can also pass ``True`` / ``False`` / ``None``
+    directly to :meth:`SetApprovalStatus` (more user-centric per
+    CLAUDE.md). (issue #59)
+    """
 
     DISAPPROVED = 0  # Parser or human has disapproved
     UNAPPROVED = 1  # Not yet approved/reviewed
     APPROVED = 2  # Parser or human has approved
+
+
+def _coerce_approval_status(status):
+    """Normalize a user-facing approval value to ApprovalStatusTypes.
+
+    Accepts:
+      - ApprovalStatusTypes member -> passes through.
+      - True / False / None -> APPROVED / DISAPPROVED / UNAPPROVED.
+        Matches the natural mental model: "I approve this" / "I reject
+        this" / "no opinion." (issue #59)
+      - Bare ints 0/1/2 -> looked up against the enum members for
+        back-compat with the pre-IntEnum constants.
+
+    Raises FP_ParameterError on anything else so a typo'd value fails
+    loudly instead of silently dispatching to the wrong opinion.
+    """
+    if isinstance(status, ApprovalStatusTypes):
+        return status
+    if status is True:
+        return ApprovalStatusTypes.APPROVED
+    if status is False:
+        return ApprovalStatusTypes.DISAPPROVED
+    if status is None:
+        return ApprovalStatusTypes.UNAPPROVED
+    if isinstance(status, int):
+        try:
+            return ApprovalStatusTypes(status)
+        except ValueError:
+            pass
+    raise FP_ParameterError(
+        f"status must be ApprovalStatusTypes (or True/False/None for "
+        f"approved/disapproved/unapproved), got {status!r}"
+    )
 
 
 # --- WfiAnalysisOperations Class ---
@@ -699,6 +742,11 @@ class WfiAnalysisOperations(BaseOperations):
         #
         # SetEvaluation handles ownership, opinion bookkeeping, and the
         # remove/replace cases internally.
+        #
+        # Coerce status from True/False/None (user-centric input) or
+        # bare-int 0/1/2 (back-compat with the pre-IntEnum constants)
+        # to the IntEnum members before dispatching. (issue #59)
+        normalized = _coerce_approval_status(status)
         from SIL.LCModel import Opinions
 
         opinion_map = {
@@ -706,7 +754,7 @@ class WfiAnalysisOperations(BaseOperations):
             ApprovalStatusTypes.DISAPPROVED: Opinions.disapproves,
             ApprovalStatusTypes.UNAPPROVED: Opinions.noopinion,
         }
-        agent.SetEvaluation(analysis, opinion_map[status])
+        agent.SetEvaluation(analysis, opinion_map[normalized])
 
     @OperationsMethod
     def IsHumanApproved(self, analysis_or_hvo):
