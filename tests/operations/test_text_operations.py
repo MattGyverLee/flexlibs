@@ -204,6 +204,9 @@ class TestTextOperationsValidation:
 # =============================================================================
 
 
+_CANDIDATE_PROJECTS = ("Sena 3", "Test", "SampleLexicon", "SampleLexicon3")
+
+
 @pytest.mark.integration
 @pytest.mark.requires_live_project
 class TestTextOperationsIntegration:
@@ -217,6 +220,11 @@ class TestTextOperationsIntegration:
     def flex_project(self):
         """Setup real FLEx project for integration testing.
 
+        Tries the canonical test projects (Sena 3 first); skips if none
+        can be opened. Previously opened ``AllProjectNames()[0]`` which
+        picked an unrelated user project (e.g. ``Aweti``) and left tests
+        running against arbitrary local state.
+
         Uses the session-scoped FLEx services bootstrapped by
         tests/conftest.py::initialize_flex_for_tests. Calling
         FLExInitialize() / FLExCleanup() here would tear down state
@@ -224,14 +232,20 @@ class TestTextOperationsIntegration:
         """
         pytest.importorskip("flexlibs2")
 
-        from flexlibs2 import FLExProject, AllProjectNames
-
-        projects = AllProjectNames()
-        if not projects:
-            pytest.skip("No FLEx projects available")
+        from flexlibs2 import FLExProject
 
         project = FLExProject()
-        project.OpenProject(projects[0], writeEnabled=True)
+        for name in _CANDIDATE_PROJECTS:
+            try:
+                project.OpenProject(name, writeEnabled=True)
+                break
+            except Exception:
+                continue
+        else:
+            pytest.skip(
+                "No writable canonical test project available "
+                f"(tried: {', '.join(_CANDIDATE_PROJECTS)})"
+            )
 
         yield project
 
@@ -240,21 +254,31 @@ class TestTextOperationsIntegration:
         except Exception:
             pass
 
+    @pytest.mark.live_phase("TextOperations", "add")
     def test_create_and_delete_text(self, flex_project):
-        """Integration test: Create and delete a text."""
+        """Integration test: Create and delete a text.
+
+        Self-cleaning: if a prior run aborted between Create and Delete
+        and left ``Test Text 123`` behind, delete it first so this test
+        is idempotent against project state.
+        """
         from flexlibs2.code.TextsWords.TextOperations import TextOperations
 
         ops = TextOperations(flex_project)
 
-        # Create text
+        if ops.Exists("Test Text 123"):
+            for stale in list(ops.GetAll()):
+                from flexlibs2.code.Shared.string_utils import best_analysis_text
+                if best_analysis_text(stale.Name) == "Test Text 123":
+                    ops.Delete(stale)
+                    break
+
         text = ops.Create("Test Text 123")
         assert text is not None
 
-        # Verify title
         title = ops.GetTitle(text)
         assert "Test Text 123" in title
 
-        # Delete text
         ops.Delete(text)
 
     def test_getall_returns_texts(self, flex_project):
