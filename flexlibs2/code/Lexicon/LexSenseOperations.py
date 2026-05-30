@@ -1706,10 +1706,16 @@ class LexSenseOperations(BaseOperations):
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
 
         sense = self.__GetSenseObject(sense_or_hvo)
-        owner = sense.Owner
 
-        # Check if owner is a sense (subsense) or entry (top-level)
-        if hasattr(owner, "ClassName") and owner.ClassName == "LexSense":
+        # Cast owner to its concrete interface via _GetTypedOwner so typed
+        # properties are reachable. Raw sense.Owner is ICmObject; ClassName
+        # is present on ICmObject but the returned object won't satisfy an
+        # isinstance(ILexSense) check without the cast.
+        owner = self._GetTypedOwner(sense)
+
+        # Check if owner is a sense (subsense) or entry (top-level).
+        # _GetTypedOwner returns ILexSense when the ClassName is "LexSense".
+        if isinstance(owner, ILexSense):
             return owner
         else:
             return None
@@ -2542,22 +2548,11 @@ class LexSenseOperations(BaseOperations):
 
         sense = self.__GetSenseObject(sense_or_hvo)
 
-        # Climb the ownership chain to find the entry
-        owner = sense.Owner
-        while owner is not None:
-            if hasattr(owner, "ClassName"):
-                if owner.ClassName == "LexEntry":
-                    return owner
-                elif owner.ClassName == "LexSense":
-                    # Keep climbing
-                    owner = owner.Owner
-                else:
-                    break
-            else:
-                break
-
-        # Shouldn't reach here, but return owner if we do
-        return owner
+        # OwnerOfClass walks the ownership chain directly to the nearest
+        # ancestor with the given class ID, regardless of nesting depth.
+        # Cast the result to ILexEntry so typed properties are reachable —
+        # raw sense.Owner / Owner.Owner loops are fragile and return ICmObject.
+        return ILexEntry(sense.OwnerOfClass(LexEntryTags.kClassId))
 
     @OperationsMethod
     def GetSenseNumber(self, sense_or_hvo):

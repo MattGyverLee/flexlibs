@@ -687,7 +687,10 @@ class WfiGlossOperations(BaseOperations):
         else:
             gloss = gloss_or_hvo
 
-        return gloss.Owner
+        # Cast to declared return type IWfiAnalysis. Raw gloss.Owner is typed
+        # as ICmObject in LCM; pythonnet only surfaces IWfiAnalysis properties
+        # (e.g. MorphBundlesOS) after the explicit interface cast.
+        return IWfiAnalysis(gloss.Owner)
 
     @OperationsMethod
     def GetGuid(self, gloss_or_hvo):

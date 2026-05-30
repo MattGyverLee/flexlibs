@@ -1158,7 +1158,10 @@ class WfiMorphBundleOperations(BaseOperations):
         self._ValidateParam(bundle_or_hvo, "bundle_or_hvo")
 
         bundle = self.__GetBundleObject(bundle_or_hvo)
-        return bundle.Owner
+        # Cast to declared return type IWfiAnalysis. Raw bundle.Owner is typed
+        # as ICmObject in LCM; pythonnet only surfaces IWfiAnalysis properties
+        # (e.g. MorphBundlesOS) after the explicit interface cast.
+        return IWfiAnalysis(bundle.Owner)
 
     @OperationsMethod
     def GetGuid(self, bundle_or_hvo):

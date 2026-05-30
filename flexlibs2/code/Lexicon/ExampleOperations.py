@@ -305,23 +305,27 @@ class ExampleOperations(BaseOperations):
 
         self._ValidateParam(item_or_hvo, "item_or_hvo")
 
-        # Get source example and parent
+        # Get source example and parent.  Cast owner to its concrete
+        # ILexSense (the only LCM owner of ILexExample) so ExamplesOS is
+        # reachable. Raw source.Owner is typed ICmObject; hasattr(...,
+        # "ExamplesOS") returns False there, silently no-opping Duplicate.
         source = self.__GetExampleObject(item_or_hvo)
-        parent = source.Owner
+        parent = self._GetTypedOwner(source)
+        if parent is None:
+            raise FP_ParameterError("Example has no owning sense")
 
         # Create new example using factory (auto-generates new GUID)
         factory = self.project.project.ServiceLocator.GetService(ILexExampleSentenceFactory)
         duplicate = factory.Create()
 
         # Determine insertion position
-        if insert_after and hasattr(parent, "ExamplesOS"):
+        if insert_after:
             # Insert after source example
             source_index = parent.ExamplesOS.IndexOf(source)
             parent.ExamplesOS.Insert(source_index + 1, duplicate)
         else:
             # Insert at end
-            if hasattr(parent, "ExamplesOS"):
-                parent.ExamplesOS.Add(duplicate)
+            parent.ExamplesOS.Add(duplicate)
 
         # Copy simple MultiString properties (AFTER adding to parent)
         duplicate.Example.CopyAlternatives(source.Example)

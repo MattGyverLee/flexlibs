@@ -1448,7 +1448,10 @@ class WfiAnalysisOperations(BaseOperations):
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
-        return analysis.Owner
+        # Cast to declared return type IWfiWordform. Raw analysis.Owner is
+        # typed as ICmObject in LCM; pythonnet only surfaces IWfiWordform
+        # properties (e.g. AnalysesOC, Form) after the explicit interface cast.
+        return IWfiWordform(analysis.Owner)
 
     @OperationsMethod
     def GetGuid(self, analysis_or_hvo):

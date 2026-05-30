@@ -291,14 +291,18 @@ class ParagraphOperations(BaseOperations):
 
         para_obj = self.__GetParagraphObject(item_or_hvo)
 
-        # Get the owner (StText/IText)
-        owner = para_obj.Owner
-        if not owner or not hasattr(owner, "ParagraphsOS"):
+        # Cast owner to its concrete IStText so ParagraphsOS is reachable.
+        # Raw para_obj.Owner is typed as ICmObject; hasattr(..., "ParagraphsOS")
+        # returns False there, silently no-opping Duplicate.
+        owner = self._GetTypedOwner(para_obj)
+        if owner is None:
             raise FP_ParameterError("Paragraph has no valid owner text")
 
-        # Get parent text - owner is StText, need to go up one more level to IText
-        parent_text = owner.Owner
-        if not parent_text:
+        # Get parent IText — StText.Owner is the IText container.
+        # Cast via IText so ContentsOA and ParagraphsOS are accessible when
+        # the result is passed to InsertAt / Create.
+        parent_text = IText(owner.Owner) if owner.Owner is not None else None
+        if parent_text is None:
             raise FP_ParameterError("Cannot determine parent text for paragraph")
 
         # Get source properties

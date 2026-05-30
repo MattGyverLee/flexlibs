@@ -1022,8 +1022,11 @@ class LexReferenceOperations(BaseOperations):
 
         lex_ref = self.__ResolveLexRef(lex_ref_or_hvo)
 
-        # The owner of a LexReference is always a LexRefType
-        return lex_ref.Owner
+        # Cast to declared return type ILexRefType. Raw lex_ref.Owner is typed
+        # as ICmObject in LCM; pythonnet only surfaces ILexRefType properties
+        # (e.g. MembersOC, MappingType) after the explicit interface cast.
+        # The owner of a LexReference is always a LexRefType.
+        return ILexRefType(lex_ref.Owner)
 
     @OperationsMethod
     def GetReferencesOfType(self, ref_type_or_name):

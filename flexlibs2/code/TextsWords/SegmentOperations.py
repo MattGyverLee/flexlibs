@@ -621,9 +621,11 @@ class SegmentOperations(BaseOperations):
 
         segment_obj = self.__GetSegmentObject(item_or_hvo)
 
-        # Get the owner (paragraph)
-        owner = segment_obj.Owner
-        if not owner or not hasattr(owner, "SegmentsOS"):
+        # Cast owner to its concrete IStTxtPara so SegmentsOS is reachable.
+        # Raw segment_obj.Owner is typed as ICmObject; hasattr(..., "SegmentsOS")
+        # returns False there, which silently no-ops Duplicate.
+        owner = self._GetTypedOwner(segment_obj)
+        if owner is None:
             raise FP_ParameterError("Segment has no valid owner paragraph")
 
         # Create the new segment (factory + add to parent)
@@ -853,9 +855,12 @@ class SegmentOperations(BaseOperations):
             raise FP_ParameterError("position must be a non-negative integer")
 
         segment_obj = self.__GetSegmentObject(segment_or_hvo)
-        owner = segment_obj.Owner
 
-        if not owner or not hasattr(owner, "SegmentsOS"):
+        # Cast owner to its concrete IStTxtPara so SegmentsOS is reachable.
+        # Raw segment_obj.Owner is typed as ICmObject; hasattr(..., "SegmentsOS")
+        # returns False there, silently no-opping Split.
+        owner = self._GetTypedOwner(segment_obj)
+        if owner is None:
             raise FP_ParameterError("Segment has no valid owner paragraph")
 
         # Get baseline text and writing system
@@ -947,12 +952,15 @@ class SegmentOperations(BaseOperations):
         if not is_compatible:
             raise FP_ParameterError(error_msg)
 
-        # Check they have the same owner
+        # Check they have the same owner (HVO comparison is safe on raw ICmObject)
         if segment1.Owner != segment2.Owner:
             raise FP_ParameterError("Segments must be in the same paragraph")
 
-        owner = segment1.Owner
-        if not owner or not hasattr(owner, "SegmentsOS"):
+        # Cast owner to its concrete IStTxtPara so SegmentsOS is reachable.
+        # Raw segment.Owner is typed as ICmObject; hasattr(..., "SegmentsOS")
+        # returns False there, silently no-opping Merge.
+        owner = self._GetTypedOwner(segment1)
+        if owner is None:
             raise FP_ParameterError("Segments have no valid owner paragraph")
 
         # Get indices and check adjacency

@@ -957,7 +957,10 @@ class PronunciationOperations(BaseOperations):
         self._ValidateParam(pronunciation_or_hvo, "pronunciation_or_hvo")
 
         pronunciation = self.__GetPronunciationObject(pronunciation_or_hvo)
-        return pronunciation.Owner
+        # Cast to declared return type ILexEntry. Raw pronunciation.Owner is
+        # typed as ICmObject in LCM; pythonnet only surfaces ILexEntry
+        # properties after the explicit interface cast.
+        return ILexEntry(pronunciation.Owner)
 
     @OperationsMethod
     def GetGuid(self, pronunciation_or_hvo):

@@ -1031,7 +1031,10 @@ class VariantOperations(BaseOperations):
 
         variant = self.__GetVariantObject(variant_or_hvo)
 
-        return variant.Owner
+        # Cast to declared return type ILexEntry. Raw variant.Owner is typed
+        # as ICmObject in LCM; pythonnet only surfaces ILexEntry properties
+        # (e.g. LexemeFormOA) after the explicit interface cast.
+        return ILexEntry(variant.Owner)
 
     @OperationsMethod
     def GetVariantCount(self, entry_or_hvo):
