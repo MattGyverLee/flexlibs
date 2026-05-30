@@ -76,6 +76,32 @@ This section will accumulate non-breaking fixes that ship before the next versio
 
 ---
 
+## [3.0.0] - 2026-04-07
+
+### Breaking Changes
+
+#### Reversal API Removed (GROUP 6)
+- **`project.Reversal` API entirely removed** — 1,343 LOC deleted.
+  Migrate to `project.ReversalIndexes` and `project.ReversalEntries`.
+  See [docs/REVERSAL_API_MIGRATION.md](docs/REVERSAL_API_MIGRATION.md) for the full per-method table and code examples.
+  - `project.Reversal.GetAllIndexes()` → `project.ReversalIndexes.GetAll()`
+  - `project.Reversal.GetAll(index)` → `project.ReversalEntries.GetAll(index)`
+  - `project.Reversal.GetForm(entry)` → `project.ReversalEntries.GetForm(entry)`
+  - `project.Reversal.SetForm(entry, text)` → `project.ReversalEntries.SetForm(entry, text)`
+  - `project.Reversal.Create(index, form, ws)` → `project.ReversalEntries.Create(index, form, ws)`
+
+#### Lists Consolidation (GROUP 8)
+- **`AgentOperations`, `PublicationOperations`, `TranslationTypeOperations`, and `OverlayOperations`
+  now inherit from `PossibilityItemOperations`** instead of duplicating CRUD methods.
+  Most caller code is unchanged; see [docs/RELEASE_v3_0_0.md](docs/RELEASE_v3_0_0.md) for full details.
+  Known follow-up issues: `AgentOperations` (#54) and `OverlayOperations` (#149) have partial
+  parent-class fit problems; some inherited methods may not function correctly.
+
+### Changed
+- Net -3,686 LOC since v2.4.0 (6,583 deletions, 2,897 additions) from deprecated-code removal.
+
+---
+
 ## [2.4.0] - 2026-03-22
 
 ### Added
@@ -126,29 +152,6 @@ This section will accumulate non-breaking fixes that ship before the next versio
 ### Breaking Changes
 
 None. Fully backward compatible with v2.3.x APIs.
-
----
-
-## [2.4.1] - 2026-03-16
-
-### Fixed
-
-#### Decorator Bugs
-- **Duplicate `@OperationsMethod` decorators** - Fixed `'OperationsMethod' object is not callable'` errors
-  - BaseOperations.py: Removed duplicates from 9 reordering/sync methods
-  - POSOperations.py: Removed duplicates from 17 methods (including GetAll)
-  - LexEntryOperations.py: Removed duplicates from 5 methods
-  - All 64 operation files verified clean
-
-### Added
-
-#### Pre-commit Hooks
-- Custom decorator validator prevents duplicate decorators
-- Black code formatting enforcement
-- Flake8 linting (unused imports, complexity)
-- Detect-secrets for credential detection
-- Setup documentation in docs/PRE_COMMIT_SETUP.md
-- Decorator checking script in scripts/check_decorators.py
 
 ---
 
