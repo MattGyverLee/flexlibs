@@ -130,7 +130,7 @@ class Allomorph(LCMObjectWrapper):
             form_multistring = self._obj.Form
             if form_multistring:
                 # Get from default vernacular writing system
-                default_ws = self._obj.OwnerOfClass.project.DefaultVernWs
+                default_ws = self._obj.Cache.DefaultVernWs
                 form_text = ITsString(form_multistring.get_String(default_ws)).Text
                 return normalize_text(form_text)
             return ""
@@ -160,7 +160,7 @@ class Allomorph(LCMObjectWrapper):
 
             if hasattr(self._concrete, "Gloss") and self._concrete.Gloss:
                 # Get from default analysis writing system
-                default_ws = self._obj.OwnerOfClass.project.DefaultAnalWs
+                default_ws = self._obj.Cache.DefaultAnalWs
                 gloss_text = ITsString(self._concrete.Gloss.get_String(default_ws)).Text
                 return normalize_text(gloss_text)
             return ""
@@ -275,7 +275,7 @@ class Allomorph(LCMObjectWrapper):
 
             if hasattr(self._concrete, "StemName") and self._concrete.StemName:
                 # Get from default analysis writing system
-                default_ws = self._obj.OwnerOfClass.project.DefaultAnalWs
+                default_ws = self._obj.Cache.DefaultAnalWs
                 stem_name_text = ITsString(self._concrete.StemName.get_String(default_ws)).Text
                 return normalize_text(stem_name_text)
             return ""
