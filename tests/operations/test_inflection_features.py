@@ -614,5 +614,369 @@ class TestInflectionFeaturesTypeFindCreate:
             writable_project.InflectionFeatures.TypeCreate("   ", "abb")
 
 
+# ---------------------------------------------------------------------------
+# Mock-based unit tests for Find / Exists / Create / CreateValue (issue #137)
+# ---------------------------------------------------------------------------
+# These tests exercise the Python logic of each method -- loops, condition
+# checks, normalize_match_key comparisons, factory dispatch, error paths --
+# by patching all LCM-specific calls (IFsFeatDefn casting, ITsString text
+# extraction, TsStringUtils, factory.Create) so the tests run without a live
+# FieldWorks project but still verify the actual code paths.
+#
+# Pattern: build a minimal mock FLExProject, patch LCM helpers at the
+# InflectionFeatureOperations module level, then call the method under test.
+# ---------------------------------------------------------------------------
+
+
+def _make_infl_project(features=None, write_enabled=True):
+    """
+    Return a minimal mock FLExProject suitable for InflectionFeatureOperations.
+
+    ``features`` is a list of (name_text, hvo) pairs that will be visible as
+    mock IFsFeatDefn objects in MsFeatureSystemOA.FeaturesOC.
+    """
+    from unittest.mock import Mock, MagicMock
+
+    project = Mock()
+    project.writeEnabled = write_enabled
+
+    # project.project is the internal LCM cache accessor
+    project.project = Mock()
+    project.project.DefaultAnalWs = 2   # analysis WS handle = 2
+
+    # project._FLExProject__WSHandle is called by __WSHandle(wsHandle) when a
+    # non-None wsHandle is passed. Default: return the value unchanged.
+    project._FLExProject__WSHandle = Mock(side_effect=lambda ws, default: ws)
+
+    # MsFeatureSystemOA with FeaturesOC
+    feature_system = Mock()
+    feature_system.TypesOC = []
+
+    raw_features = []
+    for name_text, hvo in (features or []):
+        raw = Mock()
+        raw.Hvo = hvo
+        # Store the text so the IFsFeatDefn + ITsString patch can retrieve it.
+        raw._name_text = name_text
+        raw_features.append(raw)
+    feature_system.FeaturesOC = raw_features
+
+    project.lp = Mock()
+    project.lp.MsFeatureSystemOA = feature_system
+
+    # ServiceLocator factory (used by Create / CreateValue)
+    factory_mock = Mock()
+    factory_mock.Create = Mock(return_value=Mock())
+    service_locator = Mock()
+    service_locator.GetService = Mock(return_value=factory_mock)
+    project.project.ServiceLocator = service_locator
+
+    return project, feature_system, factory_mock
+
+
+def _patch_infl_ops_lcm(raw_features):
+    """
+    Return a context-manager stack that patches the LCM calls inside
+    InflectionFeatureOperations at module level:
+      - IFsFeatDefn(raw)  -> returns a Mock whose .Name.get_String(ws).Text
+                             equals raw._name_text
+      - ITsString(ts)     -> returns ts  (pass-through; Name.get_String already
+                             returns an object with .Text set)
+      - TsStringUtils.MakeString(text, ws) -> Mock with .Text = text
+    """
+    from unittest.mock import Mock, patch, MagicMock
+
+    def _ifsfeatdefn(raw):
+        m = Mock()
+        ts = Mock()
+        ts.Text = getattr(raw, "_name_text", "")
+        m.Name = Mock()
+        m.Name.get_String = Mock(return_value=ts)
+        m.Hvo = getattr(raw, "Hvo", 0)
+        return m
+
+    def _itsstring(ts_obj):
+        # ITsString(feat.Name.get_String(ws)) - the ts_obj already has .Text
+        return ts_obj
+
+    def _makestring(text, ws):
+        m = Mock()
+        m.Text = text
+        return m
+
+    target = "flexlibs2.code.Grammar.InflectionFeatureOperations"
+    patches = [
+        patch(f"{target}.IFsFeatDefn", side_effect=_ifsfeatdefn),
+        patch(f"{target}.ITsString", side_effect=_itsstring),
+        patch(f"{target}.TsStringUtils.MakeString", side_effect=_makestring),
+    ]
+    return patches
+
+
+# Marker: these tests require the InflectionFeatureOperations module to be
+# importable (i.e. SIL.LCModel available), so they naturally skip on machines
+# without FieldWorks -- same contract as every other class in this file.
+
+class TestInflectionFeaturesMock:
+    """
+    Mock-based unit tests for InflectionFeatureOperations.
+    Covers Find, Exists, Create, CreateValue (issue #137).
+    """
+
+    def _get_ops(self, project):
+        from flexlibs2.code.Grammar.InflectionFeatureOperations import (
+            InflectionFeatureOperations,
+        )
+        return InflectionFeatureOperations(project)
+
+    # -----------------------------------------------------------------------
+    # Find
+    # -----------------------------------------------------------------------
+
+    def test_find_returns_matching_feature(self):
+        """Find locates a feature by exact name (case-insensitive NFD match)."""
+        project, fs, _ = _make_infl_project([("person", 10), ("number", 11)])
+        ops = self._get_ops(project)
+
+        patches = _patch_infl_ops_lcm(fs.FeaturesOC)
+        import contextlib
+        with contextlib.ExitStack() as stack:
+            for p in patches:
+                stack.enter_context(p)
+            result = ops.Find("person")
+
+        assert result is not None, "Find('person') should find the feature"
+
+    def test_find_returns_none_for_missing(self):
+        """Find returns None when no feature has the given name."""
+        project, fs, _ = _make_infl_project([("person", 10)])
+        ops = self._get_ops(project)
+
+        patches = _patch_infl_ops_lcm(fs.FeaturesOC)
+        import contextlib
+        with contextlib.ExitStack() as stack:
+            for p in patches:
+                stack.enter_context(p)
+            result = ops.Find("gender")
+
+        assert result is None
+
+    def test_find_is_case_insensitive(self):
+        """Find matches 'Person' even when stored name is 'person'."""
+        project, fs, _ = _make_infl_project([("person", 10)])
+        ops = self._get_ops(project)
+
+        patches = _patch_infl_ops_lcm(fs.FeaturesOC)
+        import contextlib
+        with contextlib.ExitStack() as stack:
+            for p in patches:
+                stack.enter_context(p)
+            result = ops.Find("PERSON")
+
+        assert result is not None, "Find must be case-insensitive"
+
+    def test_find_returns_none_when_feature_system_missing(self):
+        """Find returns None gracefully when MsFeatureSystemOA is None."""
+        project, fs, _ = _make_infl_project([])
+        project.lp.MsFeatureSystemOA = None
+        ops = self._get_ops(project)
+
+        result = ops.Find("person")
+        assert result is None
+
+    # -----------------------------------------------------------------------
+    # Exists
+    # -----------------------------------------------------------------------
+
+    def test_exists_true_for_present_feature(self):
+        """Exists returns True when the feature is in MsFeatureSystemOA."""
+        project, fs, _ = _make_infl_project([("number", 11)])
+        ops = self._get_ops(project)
+
+        patches = _patch_infl_ops_lcm(fs.FeaturesOC)
+        import contextlib
+        with contextlib.ExitStack() as stack:
+            for p in patches:
+                stack.enter_context(p)
+            exists = ops.Exists("number")
+
+        assert exists is True
+
+    def test_exists_false_for_absent_feature(self):
+        """Exists returns False when no feature has the given name."""
+        project, fs, _ = _make_infl_project([("number", 11)])
+        ops = self._get_ops(project)
+
+        patches = _patch_infl_ops_lcm(fs.FeaturesOC)
+        import contextlib
+        with contextlib.ExitStack() as stack:
+            for p in patches:
+                stack.enter_context(p)
+            exists = ops.Exists("tense")
+
+        assert exists is False
+
+    # -----------------------------------------------------------------------
+    # Create
+    # -----------------------------------------------------------------------
+
+    def test_create_closed_feature_succeeds(self):
+        """Create adds a closed feature when name does not exist."""
+        from unittest.mock import Mock, patch, MagicMock
+
+        project, fs, factory_mock = _make_infl_project([])
+
+        # Make the factory return a clean mock and track Add calls
+        new_feat_raw = Mock()
+        new_feat_raw.Name = Mock()
+        new_feat_raw.Name.set_String = Mock()
+        new_feat_raw.Abbreviation = Mock()
+        new_feat_raw.Abbreviation.set_String = Mock()
+        factory_mock.Create = Mock(return_value=new_feat_raw)
+
+        added_items = []
+        fs.FeaturesOC = []
+        original_add = Mock(side_effect=lambda x: added_items.append(x))
+        # FeaturesOC needs .Add() and must be iterable for Exists check
+        feat_oc_mock = Mock()
+        feat_oc_mock.__iter__ = Mock(return_value=iter([]))
+        feat_oc_mock.Add = original_add
+        fs.FeaturesOC = feat_oc_mock
+
+        ops = self._get_ops(project)
+
+        target = "flexlibs2.code.Grammar.InflectionFeatureOperations"
+        with patch(f"{target}.IFsFeatDefn", side_effect=lambda r: r), \
+             patch(f"{target}.ITsString", side_effect=lambda t: t), \
+             patch(f"{target}.TsStringUtils.MakeString", side_effect=lambda t, ws: Mock(Text=t)), \
+             patch(f"{target}.IFsClosedFeature", side_effect=lambda r: r), \
+             patch(f"{target}.IFsClosedFeatureFactory", MagicMock()):
+            result = ops.Create("gender", "gend", type="closed")
+
+        assert result is not None
+        assert len(added_items) == 1, "New feature must be added to FeaturesOC"
+
+    def test_create_raises_if_feature_exists(self):
+        """Create raises FP_ParameterError when a feature with that name exists."""
+        from flexlibs2.code.FLExProject import FP_ParameterError
+
+        project, fs, _ = _make_infl_project([("gender", 20)])
+        ops = self._get_ops(project)
+
+        patches = _patch_infl_ops_lcm(fs.FeaturesOC)
+        import contextlib, pytest
+        with contextlib.ExitStack() as stack:
+            for p in patches:
+                stack.enter_context(p)
+            with pytest.raises(FP_ParameterError):
+                ops.Create("gender", "gend")
+
+    def test_create_raises_on_empty_name(self):
+        """Create raises FP_ParameterError for an empty name."""
+        from flexlibs2.code.FLExProject import FP_ParameterError
+
+        project, _, _ = _make_infl_project([])
+        ops = self._get_ops(project)
+
+        with pytest.raises(FP_ParameterError):
+            ops.Create("", "gend")
+
+    def test_create_raises_on_empty_abbreviation(self):
+        """Create raises FP_ParameterError for an empty abbreviation."""
+        from flexlibs2.code.FLExProject import FP_ParameterError
+
+        project, fs, _ = _make_infl_project([])
+        ops = self._get_ops(project)
+
+        patches = _patch_infl_ops_lcm(fs.FeaturesOC)
+        import contextlib
+        with contextlib.ExitStack() as stack:
+            for p in patches:
+                stack.enter_context(p)
+            with pytest.raises(FP_ParameterError):
+                ops.Create("gender", "")
+
+    def test_create_raises_when_write_disabled(self):
+        """Create raises FP_ReadOnlyError when project is read-only."""
+        from flexlibs2.code.FLExProject import FP_ReadOnlyError
+
+        project, _, _ = _make_infl_project([], write_enabled=False)
+        ops = self._get_ops(project)
+
+        with pytest.raises(FP_ReadOnlyError):
+            ops.Create("gender", "gend")
+
+    # -----------------------------------------------------------------------
+    # CreateValue
+    # -----------------------------------------------------------------------
+
+    def test_create_value_adds_to_feature_values_oc(self):
+        """CreateValue attaches a new IFsSymFeatVal to the feature's ValuesOC."""
+        from unittest.mock import Mock, patch, MagicMock
+
+        project, fs, factory_mock = _make_infl_project([])
+
+        # Build a mock closed feature with ValuesOC
+        feature_mock = Mock()
+        feature_mock.Hvo = 50
+        values_oc = Mock()
+        added_values = []
+        values_oc.Add = Mock(side_effect=lambda v: added_values.append(v))
+        feature_mock.ValuesOC = values_oc
+
+        # New value returned by factory
+        new_val = Mock()
+        new_val.Name = Mock()
+        new_val.Name.set_String = Mock()
+        new_val.Abbreviation = Mock()
+        new_val.Abbreviation.set_String = Mock()
+        factory_mock.Create = Mock(return_value=new_val)
+
+        ops = self._get_ops(project)
+
+        target = "flexlibs2.code.Grammar.InflectionFeatureOperations"
+        with patch(f"{target}.IFsClosedFeature", side_effect=lambda r: r), \
+             patch(f"{target}.IFsSymFeatVal", side_effect=lambda r: r), \
+             patch(f"{target}.IFsSymFeatValFactory", MagicMock()), \
+             patch(f"{target}.TsStringUtils.MakeString", side_effect=lambda t, ws: Mock(Text=t)):
+            result = ops.CreateValue(feature_mock, "masculine", "m")
+
+        assert result is not None
+        assert len(added_values) == 1, "CreateValue must add value to feature.ValuesOC"
+
+    def test_create_value_raises_on_empty_name(self):
+        """CreateValue raises FP_ParameterError for an empty value name."""
+        from flexlibs2.code.FLExProject import FP_ParameterError
+        from unittest.mock import Mock
+
+        project, _, _ = _make_infl_project([])
+        ops = self._get_ops(project)
+
+        feature_mock = Mock()
+        with pytest.raises(FP_ParameterError):
+            ops.CreateValue(feature_mock, "", "m")
+
+    def test_create_value_raises_when_write_disabled(self):
+        """CreateValue raises FP_ReadOnlyError when project is read-only."""
+        from flexlibs2.code.FLExProject import FP_ReadOnlyError
+        from unittest.mock import Mock
+
+        project, _, _ = _make_infl_project([], write_enabled=False)
+        ops = self._get_ops(project)
+
+        with pytest.raises(FP_ReadOnlyError):
+            ops.CreateValue(Mock(), "masculine", "m")
+
+    def test_create_value_raises_on_null_feature(self):
+        """CreateValue raises FP_NullParameterError when feature is None."""
+        from flexlibs2.code.FLExProject import FP_NullParameterError
+
+        project, _, _ = _make_infl_project([])
+        ops = self._get_ops(project)
+
+        with pytest.raises(FP_NullParameterError):
+            ops.CreateValue(None, "masculine", "m")
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
