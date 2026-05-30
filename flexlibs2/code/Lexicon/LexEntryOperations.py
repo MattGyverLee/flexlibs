@@ -2307,7 +2307,8 @@ class LexEntryOperations(BaseOperations):
 
         Notes:
             - Filters out subentries from VisibleComplexFormBackRefs
-            - A subentry is where the entry appears in PrimaryLexemesRS
+            - A subentry is where the entry appears in PrimaryLexemesRS, OR where
+              one of the entry's senses appears in SensesRS (sense-level subentry)
             - Based on FLEx LCM ComplexFormsNotSubentries property
 
         See Also:
@@ -2320,12 +2321,31 @@ class LexEntryOperations(BaseOperations):
         # Get all complex form back refs
         all_complex_forms = self.GetVisibleComplexFormBackRefs(entry)
 
-        # Filter out subentries (where entry is in PrimaryLexemesRS)
+        # Collect HVOs of all senses owned by this entry for the sense-level check.
+        try:
+            entry_sense_hvos = {s.Hvo for s in entry.SensesOS}
+        except Exception:
+            entry_sense_hvos = set()
+
+        # Filter out subentries.  An entry is treated as a subentry when:
+        #   (a) it appears in PrimaryLexemesRS of the ILexEntryRef (entry-level), OR
+        #   (b) one of its senses appears in SensesRS of the ILexEntryRef
+        #       (sense-level subentry, e.g. shown via ShowSubentriesIn).
         result = []
         for lex_ref in all_complex_forms:
             try:
-                # Check if entry is in PrimaryLexemesRS (makes it a subentry)
+                # Check entry-level subentry (PrimaryLexemesRS)
                 is_subentry = any(item.Hvo == entry.Hvo for item in lex_ref.PrimaryLexemesRS)
+
+                # Check sense-level subentry (SensesRS) if not already excluded
+                if not is_subentry and entry_sense_hvos:
+                    try:
+                        is_subentry = any(
+                            item.Hvo in entry_sense_hvos for item in lex_ref.SensesRS
+                        )
+                    except Exception:
+                        pass
+
                 if not is_subentry:
                     result.append(lex_ref)
             except Exception:

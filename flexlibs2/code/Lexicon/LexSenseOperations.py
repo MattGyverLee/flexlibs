@@ -1158,7 +1158,10 @@ class LexSenseOperations(BaseOperations):
         # MSAs are owned by the LexEntry's MorphoSyntaxAnalysesOC.
         # Walk up the ownership chain (skipping parent senses for
         # subsenses) to find the enclosing LexEntry.
-        entry = ILexEntry(sense.OwnerOfClass(LexEntryTags.kClassId))
+        _owner = sense.OwnerOfClass(LexEntryTags.kClassId)
+        if _owner is None:
+            raise FP_ParameterError("sense_or_hvo has no owning LexEntry")
+        entry = ILexEntry(_owner)
 
         # Decide which MSA family the entry's morph type calls for.
         # The bug from #33 was unconditional use of MoStemMsa even
@@ -2559,7 +2562,10 @@ class LexSenseOperations(BaseOperations):
         # ancestor with the given class ID, regardless of nesting depth.
         # Cast the result to ILexEntry so typed properties are reachable —
         # raw sense.Owner / Owner.Owner loops are fragile and return ICmObject.
-        return ILexEntry(sense.OwnerOfClass(LexEntryTags.kClassId))
+        _owner = sense.OwnerOfClass(LexEntryTags.kClassId)
+        if _owner is None:
+            return None
+        return ILexEntry(_owner)
 
     @OperationsMethod
     def GetSenseNumber(self, sense_or_hvo):
