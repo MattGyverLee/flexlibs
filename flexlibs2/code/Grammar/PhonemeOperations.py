@@ -210,6 +210,17 @@ class PhonemeOperations(BaseOperations):
         mkstr = TsStringUtils.MakeString(representation, wsHandle)
         new_phoneme.Name.set_String(wsHandle, mkstr)
 
+        # The IPhPhoneme factory autocreates one IPhCode whose Representation
+        # is the FLEx null marker ('***'). Clean it up here so that Create()
+        # always returns a phoneme with no junk placeholder allophone.
+        # AddCode reuses the placeholder slot on the first call, but if the
+        # caller never calls AddCode the phoneme would otherwise carry a
+        # spurious '***' code that breaks HermitCrab parser loading.
+        # (issue #113 -- cleanup moved here from AddCode)
+        existing_codes = list(new_phoneme.CodesOS)
+        if len(existing_codes) == 1 and self.__is_placeholder_code(existing_codes[0]):
+            new_phoneme.CodesOS.Remove(existing_codes[0])
+
         return new_phoneme
 
     @OperationsMethod
