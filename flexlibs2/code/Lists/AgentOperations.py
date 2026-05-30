@@ -24,9 +24,10 @@ from SIL.LCModel.Core.Text import TsStringUtils
 import System
 
 # Import flexlibs exceptions
-from ..FLExProject import FP_ParameterError
+from ..FLExProject import FP_ParameterError, FP_NullParameterError
 from ..BaseOperations import OperationsMethod
 from .possibility_item_base import PossibilityItemOperations
+from ..Shared.string_utils import normalize_match_key
 
 
 class AgentOperations(PossibilityItemOperations):
@@ -37,12 +38,14 @@ class AgentOperations(PossibilityItemOperations):
     linguistic analysis. They track who (or what) created analyses, glosses,
     and evaluations in the project.
 
-    Inherited CRUD Operations (from PossibilityItemOperations):
-    - GetAll() - Get all agents
-    - Create() - Create new agent
-    - Delete() - Delete agent
-    - Duplicate() - Clone agent
-    - Find() - Find by name
+    Overridden CRUD Operations (AnalyzingAgentsOC has no PossibilitiesOS):
+    - GetAll() - Get all agents (iterates OC directly)
+    - Create() - Create new agent (uses ICmAgentFactory + OC.Add)
+    - Delete() - Delete agent (uses OC.Remove)
+    - Duplicate() - Clone agent (uses OC.Add)
+    - Find() - Find by name (searches OC directly)
+
+    Inherited Operations (from PossibilityItemOperations):
     - Exists() - Check existence
     - GetName() / SetName() - Get/set name
     - GetDescription() / SetDescription() - Get/set description
@@ -91,11 +94,170 @@ class AgentOperations(PossibilityItemOperations):
 
         Returns:
             list: List of ICmAgent objects.
+
+        Notes:
+            - Returns ALL agents, including stale parser-version agents
+              left behind when the parser is upgraded. Callers that want
+              only human analysts should filter with::
+
+                  [a for a in project.Agents.GetAll()
+                   if project.Agents.IsHuman(a)]
+
+              or call GetHumanAgents() directly.
         """
         agents_oc = self._get_list_object()
         if agents_oc is None:
             return []
         return list(agents_oc)
+
+    @OperationsMethod
+    def Create(self, name, wsHandle=None):
+        """
+        Create a new agent in AnalyzingAgentsOC.
+
+        Overrides PossibilityItemOperations.Create, which calls
+        list_obj.PossibilitiesOS -- a property that does not exist on
+        LcmOwningCollection (AnalyzingAgentsOC). This override uses
+        ICmAgentFactory and adds the new object directly to the OC.
+
+        Args:
+            name (str): The name for the new agent.
+            wsHandle: Optional writing system handle. Defaults to analysis WS.
+
+        Returns:
+            ICmAgent: The newly created agent object.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If name is None.
+            FP_ParameterError: If name is empty.
+        """
+        self._EnsureWriteEnabled()
+        self._ValidateParam(name, "name")
+
+        if not name or not name.strip():
+            raise FP_ParameterError("Agent name cannot be empty")
+
+        agents_oc = self._get_list_object()
+        if agents_oc is None:
+            raise FP_ParameterError("AnalyzingAgentsOC not found in project")
+
+        if wsHandle is None:
+            wsHandle = self.project.project.DefaultAnalWs
+
+        factory = self.project.project.ServiceLocator.GetService(ICmAgentFactory)
+        new_agent = factory.Create()
+
+        # Add to collection before setting properties
+        agents_oc.Add(new_agent)
+
+        mkstr = TsStringUtils.MakeString(name, wsHandle)
+        new_agent.Name.set_String(wsHandle, mkstr)
+
+        return new_agent
+
+    @OperationsMethod
+    def Delete(self, agent_or_hvo):
+        """
+        Delete an agent from AnalyzingAgentsOC.
+
+        Overrides PossibilityItemOperations.Delete, which calls
+        list_obj.PossibilitiesOS.Remove() -- not available on the OC.
+        This override removes directly from AnalyzingAgentsOC.
+
+        Args:
+            agent_or_hvo: Either an ICmAgent object or its HVO.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If agent_or_hvo is None.
+        """
+        self._EnsureWriteEnabled()
+        self._ValidateParam(agent_or_hvo, "agent_or_hvo")
+
+        agent = self._PossibilityItemOperations__ResolveObject(agent_or_hvo)
+
+        agents_oc = self._get_list_object()
+        if agents_oc is not None and agent in agents_oc:
+            agents_oc.Remove(agent)
+
+    @OperationsMethod
+    def Duplicate(self, agent_or_hvo, insert_after=True):
+        """
+        Duplicate an agent, creating a new copy with a new GUID.
+
+        Overrides PossibilityItemOperations.Duplicate, which calls
+        list_obj.PossibilitiesOS.Add/Insert -- not available on the OC.
+        This override adds directly to AnalyzingAgentsOC and copies the
+        Name and Human flag from the source.
+
+        Args:
+            agent_or_hvo: Either an ICmAgent object or its HVO to duplicate.
+            insert_after (bool): Ignored for OC collections (no ordered insert);
+                                 the duplicate is always appended.
+
+        Returns:
+            ICmAgent: The newly created duplicate agent with a new GUID.
+
+        Raises:
+            FP_ReadOnlyError: If the project is not opened with write enabled.
+            FP_NullParameterError: If agent_or_hvo is None.
+        """
+        self._EnsureWriteEnabled()
+        self._ValidateParam(agent_or_hvo, "agent_or_hvo")
+
+        source = self._PossibilityItemOperations__ResolveObject(agent_or_hvo)
+
+        agents_oc = self._get_list_object()
+        if agents_oc is None:
+            raise FP_ParameterError("AnalyzingAgentsOC not found in project")
+
+        factory = self.project.project.ServiceLocator.GetService(ICmAgentFactory)
+        duplicate = factory.Create()
+
+        agents_oc.Add(duplicate)
+
+        # Copy MultiString name alternatives
+        duplicate.Name.CopyAlternatives(source.Name)
+
+        # Copy Human flag (True = human analyst)
+        duplicate.Human = source.Human
+
+        return duplicate
+
+    @OperationsMethod
+    def Find(self, name):
+        """
+        Find an agent by name (case-insensitive).
+
+        Searches AnalyzingAgentsOC directly (via GetAll).
+
+        Args:
+            name (str): The name to search for.
+
+        Returns:
+            ICmAgent: The matching agent, or None if not found.
+
+        Notes:
+            - Searches ALL agents, including stale parser-version agents
+              accumulated from parser upgrades. If you want only human
+              agents, filter the result with IsHuman() or use
+              GetHumanAgents() instead.
+        """
+        self._ValidateParam(name, "name")
+
+        if not name or not name.strip():
+            return None
+
+        target = normalize_match_key(name.strip(), casefold=True)
+        wsHandle = self.project.project.DefaultAnalWs
+
+        for agent in self.GetAll():
+            agent_name = ITsString(agent.Name.get_String(wsHandle)).Text
+            if normalize_match_key(agent_name, casefold=True) == target:
+                return agent
+
+        return None
 
     # --- Version and Type Management ---
 
