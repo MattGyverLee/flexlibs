@@ -277,12 +277,17 @@ class TestLexSenseOperationsIntegration:
 
     @pytest.fixture(scope="class")
     def flex_project(self):
-        """Setup real FLEx project for integration testing."""
-        pytest.importorskip("flexlibs")
+        """Setup real FLEx project for integration testing.
 
-        from flexlibs2 import FLExInitialize, FLExCleanup, FLExProject, AllProjectNames
+        Uses the session-scoped FLEx services bootstrapped by
+        tests/conftest.py::initialize_flex_for_tests. Calling
+        FLExInitialize() / FLExCleanup() here would tear down state
+        shared with the rest of the live-DB suite.
+        """
+        pytest.importorskip("flexlibs2")
 
-        FLExInitialize()
+        from flexlibs2 import FLExProject, AllProjectNames
+
         projects = AllProjectNames()
         if not projects:
             pytest.skip("No FLEx projects available")
@@ -292,8 +297,10 @@ class TestLexSenseOperationsIntegration:
 
         yield project
 
-        project.CloseProject()
-        FLExCleanup()
+        try:
+            project.CloseProject()
+        except Exception:
+            pass
 
     def test_create_and_delete_sense(self, flex_project):
         """Integration test: Create and delete a sense."""

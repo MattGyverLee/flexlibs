@@ -38,6 +38,20 @@ def pytest_configure(config):
         sys.path.insert(0, _project_root)
 
 
+# Mock-only test files that stub sys.modules["SIL"] = MagicMock() at module
+# scope. That stub poisons the real CLR namespace pythonnet would otherwise
+# populate, so importing flexlibs2 anywhere later in the same process fails
+# with "'SIL' is not a package". These tests never exercise real library
+# behavior (they just test mock orchestration), so skip collection and let
+# the live-DB suite carry the actual coverage. Replace with live tests if
+# the wrapper logic needs verification.
+collect_ignore = [
+    "test_affix_template_wrappers.py",
+    "test_annotation_wrappers.py",
+    "test_prohibition_wrappers.py",
+]
+
+
 # ========== SESSION-SCOPED FIXTURE FOR FIELDWORKS INITIALIZATION ==========
 # Using autouse=True ensures this runs before any tests, regardless of scope
 
@@ -148,7 +162,6 @@ def initialize_flex_for_tests():
             ("flexlibs2.code.Lexicon.VariantOperations", "VariantOperations"),
             ("flexlibs2.code.Lexicon.PronunciationOperations", "PronunciationOperations"),
             ("flexlibs2.code.Lexicon.SemanticDomainOperations", "SemanticDomainOperations"),
-            ("flexlibs2.code.Lexicon.ReversalOperations", "ReversalOperations"),
             ("flexlibs2.code.Lexicon.EtymologyOperations", "EtymologyOperations"),
             ("flexlibs2.code.Lexicon.AllomorphOperations", "AllomorphOperations"),
             ("flexlibs2.code.Lexicon.MSAOperations", "MSAOperations"),
@@ -180,6 +193,24 @@ def initialize_flex_for_tests():
             ("flexlibs2.code.System.AnnotationDefOperations", "AnnotationDefOperations"),
             ("flexlibs2.code.System.CheckOperations", "CheckOperations"),
             ("flexlibs2.code.System.CustomFieldOperations", "CustomFieldOperations"),
+            # Scripture
+            ("flexlibs2.code.Scripture.ScrBookOperations", "ScrBookOperations"),
+            ("flexlibs2.code.Scripture.ScrSectionOperations", "ScrSectionOperations"),
+            ("flexlibs2.code.Scripture.ScrTxtParaOperations", "ScrTxtParaOperations"),
+            ("flexlibs2.code.Scripture.ScrNoteOperations", "ScrNoteOperations"),
+            ("flexlibs2.code.Scripture.ScrAnnotationsOperations", "ScrAnnotationsOperations"),
+            ("flexlibs2.code.Scripture.ScrDraftOperations", "ScrDraftOperations"),
+            # Reversal
+            ("flexlibs2.code.Reversal.ReversalIndexOperations", "ReversalIndexOperations"),
+            ("flexlibs2.code.Reversal.ReversalIndexEntryOperations", "ReversalIndexEntryOperations"),
+            # Discourse
+            ("flexlibs2.code.Discourse.ConstChartOperations", "ConstChartOperations"),
+            ("flexlibs2.code.Discourse.ConstChartRowOperations", "ConstChartRowOperations"),
+            ("flexlibs2.code.Discourse.ConstChartMarkerOperations", "ConstChartMarkerOperations"),
+            ("flexlibs2.code.Discourse.ConstChartCellTagOperations", "ConstChartCellTagOperations"),
+            ("flexlibs2.code.Discourse.ConstChartClauseMarkerOperations", "ConstChartClauseMarkerOperations"),
+            ("flexlibs2.code.Discourse.ConstChartWordGroupOperations", "ConstChartWordGroupOperations"),
+            ("flexlibs2.code.Discourse.ConstChartMovedTextOperations", "ConstChartMovedTextOperations"),
             # Shared
             ("flexlibs2.code.Shared.MediaOperations", "MediaOperations"),
             ("flexlibs2.code.Shared.FilterOperations", "FilterOperations"),
@@ -671,34 +702,275 @@ def temp_test_dir(tmp_path):
 # by pytest_sessionfinish. Keyed by nodeid -> {"status": ..., "duration": ...}.
 _LIVE_RESULTS = {}
 
+# Parallel recorder for the dashboard JSON. Stores per-test detail across
+# all phases (setup/call/teardown) so the dashboard report has stdout,
+# stderr, and tracebacks. Keyed by nodeid -> dict.
+_DASHBOARD_RESULTS = {}
+
+
+# Operations-class -> FLEx domain map, used by the dashboard JSON producer
+# to label each test. Mirrors the operations_modules list in
+# initialize_flex_for_tests; keep them in sync when adding a new class.
+_OPERATIONS_CLASS_DOMAIN = {
+    # Grammar
+    "POSOperations": "Grammar",
+    "PhonemeOperations": "Grammar",
+    "NaturalClassOperations": "Grammar",
+    "EnvironmentOperations": "Grammar",
+    "PhonologicalRuleOperations": "Grammar",
+    "MorphRuleOperations": "Grammar",
+    "GramCatOperations": "Grammar",
+    "InflectionFeatureOperations": "Grammar",
+    # Lexicon
+    "LexEntryOperations": "Lexicon",
+    "LexSenseOperations": "Lexicon",
+    "ExampleOperations": "Lexicon",
+    "LexReferenceOperations": "Lexicon",
+    "VariantOperations": "Lexicon",
+    "PronunciationOperations": "Lexicon",
+    "SemanticDomainOperations": "Lexicon",
+    "EtymologyOperations": "Lexicon",
+    "AllomorphOperations": "Lexicon",
+    "MSAOperations": "Lexicon",
+    # Texts & Words
+    "TextOperations": "Texts & Words",
+    "WordformOperations": "Texts & Words",
+    "WfiAnalysisOperations": "Texts & Words",
+    "ParagraphOperations": "Texts & Words",
+    "SegmentOperations": "Texts & Words",
+    "WfiGlossOperations": "Texts & Words",
+    "WfiMorphBundleOperations": "Texts & Words",
+    "DiscourseOperations": "Texts & Words",
+    # Notebook
+    "NoteOperations": "Notebook",
+    "PersonOperations": "Notebook",
+    "LocationOperations": "Notebook",
+    "AnthropologyOperations": "Notebook",
+    "DataNotebookOperations": "Notebook",
+    # Lists
+    "PublicationOperations": "Lists",
+    "AgentOperations": "Lists",
+    "ConfidenceOperations": "Lists",
+    "OverlayOperations": "Lists",
+    "TranslationTypeOperations": "Lists",
+    "PossibilityListOperations": "Lists",
+    # System
+    "WritingSystemOperations": "System",
+    "ProjectSettingsOperations": "System",
+    "AnnotationDefOperations": "System",
+    "CheckOperations": "System",
+    "CustomFieldOperations": "System",
+    # Scripture
+    "ScrBookOperations": "Scripture",
+    "ScrSectionOperations": "Scripture",
+    "ScrTxtParaOperations": "Scripture",
+    "ScrNoteOperations": "Scripture",
+    "ScrAnnotationsOperations": "Scripture",
+    "ScrDraftOperations": "Scripture",
+    # Reversal
+    "ReversalIndexOperations": "Reversal",
+    "ReversalIndexEntryOperations": "Reversal",
+    # Discourse
+    "ConstChartOperations": "Discourse",
+    "ConstChartRowOperations": "Discourse",
+    "ConstChartMarkerOperations": "Discourse",
+    "ConstChartCellTagOperations": "Discourse",
+    "ConstChartClauseMarkerOperations": "Discourse",
+    "ConstChartWordGroupOperations": "Discourse",
+    "ConstChartMovedTextOperations": "Discourse",
+    # Shared
+    "MediaOperations": "Shared",
+    "FilterOperations": "Shared",
+}
+
+
+# Fallback file-path substring -> domain. Matched against the lower-cased
+# nodeid path; ordered most-specific first. Used when no live_phase marker
+# pins down the operations class. The catch-all "Infrastructure" bucket at
+# the end soaks up cross-cutting tests (BaseOperations, wrappers, LCM
+# contract, smart collections, etc.) so nothing falls through as Unknown.
+_FILE_PATH_DOMAIN_HINTS = (
+    # Subdirectory hints (most specific)
+    ("/lexicon/", "Lexicon"),
+    ("/grammar/", "Grammar"),
+    ("/textswords/", "Texts & Words"),
+    ("/texts_words/", "Texts & Words"),
+    ("/textwords/", "Texts & Words"),
+    ("/notebook/", "Notebook"),
+    ("/lists/", "Lists"),
+    ("/system/", "System"),
+    ("/scripture/", "Scripture"),
+    ("/reversal/", "Reversal"),
+    ("/discourse/", "Discourse"),
+    ("/shared/", "Shared"),
+    # Lexicon-flavored file names
+    ("test_lex", "Lexicon"),
+    ("test_example", "Lexicon"),
+    ("test_sense", "Lexicon"),
+    ("test_variant", "Lexicon"),
+    ("test_pronunciation", "Lexicon"),
+    ("test_semantic", "Lexicon"),
+    ("test_etymology", "Lexicon"),
+    ("test_allomorph", "Lexicon"),
+    ("test_msa", "Lexicon"),
+    ("test_homograph", "Lexicon"),
+    ("test_set_pos_msa", "Lexicon"),
+    # Grammar-flavored
+    ("test_pos", "Grammar"),
+    ("test_phoneme", "Grammar"),
+    ("test_phonological", "Grammar"),
+    ("test_phon_rule", "Grammar"),
+    ("test_phon_feature", "Grammar"),
+    ("test_morph", "Grammar"),
+    ("test_natural_class", "Grammar"),
+    ("test_environment", "Grammar"),
+    ("test_gram_cat", "Grammar"),
+    ("test_inflection", "Grammar"),
+    ("test_compound_rule", "Grammar"),
+    ("test_context_wrapper", "Grammar"),
+    ("test_rule_pattern", "Grammar"),
+    ("test_basic_ipa", "Grammar"),
+    # Texts & Words
+    ("test_text", "Texts & Words"),
+    ("test_wordform", "Texts & Words"),
+    ("test_wfi", "Texts & Words"),
+    ("test_paragraph", "Texts & Words"),
+    ("test_segment", "Texts & Words"),
+    ("test_discourse", "Texts & Words"),
+    # Notebook
+    ("test_note", "Notebook"),
+    ("test_person", "Notebook"),
+    ("test_location", "Notebook"),
+    ("test_anthropology", "Notebook"),
+    # Lists
+    ("test_publication", "Lists"),
+    ("test_agent", "Lists"),
+    ("test_confidence", "Lists"),
+    ("test_overlay", "Lists"),
+    ("test_translation_type", "Lists"),
+    ("test_possibility", "Lists"),
+    ("test_import_localized_lists", "Lists"),
+    # System
+    ("test_writing_system", "System"),
+    ("test_project_settings", "System"),
+    ("test_annotation_def", "System"),
+    ("test_check", "System"),
+    ("test_custom_field", "System"),
+    # Scripture
+    ("test_scr", "Scripture"),
+    # Reversal
+    ("test_reversal", "Reversal"),
+    # Discourse
+    ("test_const_chart", "Discourse"),
+    # Shared
+    ("test_media", "Shared"),
+    ("test_filter", "Shared"),
+    # Infrastructure / cross-cutting catch-all (must stay last, before
+    # the final Unknown fallback in _infer_dashboard_domain)
+    ("test_operations_baseline", "Infrastructure"),
+    ("test_collections", "Infrastructure"),
+    ("test_wrappers", "Infrastructure"),
+    ("test_owner_cast_pattern", "Infrastructure"),
+    ("test_catalog", "Infrastructure"),
+    ("test_exception_handling", "Infrastructure"),
+    ("test_lcm_contract", "Infrastructure"),
+    ("test_lcm_api", "Infrastructure"),
+    ("test_lcm_method", "Infrastructure"),
+    ("test_lcm_direct", "Infrastructure"),
+    ("test_consolidation_coverage", "Infrastructure"),
+    ("test_flexproject_discoverability", "Infrastructure"),
+    ("test_normalize_match_key", "Infrastructure"),
+    ("test_write_enabled_fix", "Infrastructure"),
+    ("test_itsstring_fix", "Infrastructure"),
+    ("test_helpers", "Infrastructure"),
+    ("/contract/", "Infrastructure"),
+)
+
 
 def pytest_runtest_logreport(report):
-    """Record the call-phase outcome of every test for the live-project ledger."""
-    if report.when != "call" and not (report.when == "setup" and report.skipped):
-        # Only the call phase is the "real" result. Skips happen at setup
-        # (e.g. fixture pytest.skip()) and we want to capture those too.
-        return
-
+    """Record per-test outcomes for both the live-project ledger and the dashboard JSON."""
     nodeid = report.nodeid
-    if report.skipped:
-        status = "skip"
-    elif report.passed:
-        status = "pass"
-    elif report.failed:
-        # Failures during setup/teardown become "error", during call "fail".
-        status = "error" if report.when != "call" else "fail"
-    else:
-        return
 
-    existing = _LIVE_RESULTS.get(nodeid)
-    if existing is not None:
-        # Don't overwrite a real call outcome with a teardown skip etc.
-        if existing.get("status") in ("pass", "fail", "error") and status == "skip":
+    # --- Live-project ledger recorder (existing behavior) ---------------
+    if report.when == "call" or (report.when == "setup" and report.skipped):
+        if report.skipped:
+            status = "skip"
+        elif report.passed:
+            status = "pass"
+        elif report.failed:
+            status = "error" if report.when != "call" else "fail"
+        else:
+            status = None
+
+        if status is not None:
+            existing = _LIVE_RESULTS.get(nodeid)
+            if not (
+                existing is not None
+                and existing.get("status") in ("pass", "fail", "error")
+                and status == "skip"
+            ):
+                _LIVE_RESULTS[nodeid] = {
+                    "status": status,
+                    "duration": getattr(report, "duration", 0.0),
+                }
+
+    # --- Dashboard JSON recorder ---------------------------------------
+    # Capture detail across all phases so the dashboard has stdout/stderr
+    # and tracebacks. The call phase is authoritative; setup/teardown
+    # failures upgrade the record to "error".
+    stdout_text = getattr(report, "capstdout", None) or None
+    stderr_text = getattr(report, "capstderr", None) or None
+    longrepr_text = getattr(report, "longreprtext", None) or None
+    if longrepr_text == "":
+        longrepr_text = None
+
+    current = _DASHBOARD_RESULTS.get(nodeid)
+
+    if report.when == "call":
+        if report.passed:
+            new_status = "pass"
+            new_tb = None
+        elif report.failed:
+            new_status = "fail"
+            new_tb = longrepr_text
+        elif report.skipped:
+            new_status = "skip"
+            new_tb = longrepr_text
+        else:
             return
-    _LIVE_RESULTS[nodeid] = {
-        "status": status,
-        "duration": getattr(report, "duration", 0.0),
-    }
+
+        _DASHBOARD_RESULTS[nodeid] = {
+            "status": new_status,
+            "duration": getattr(report, "duration", 0.0),
+            "stdout": stdout_text,
+            "stderr": stderr_text,
+            "traceback": new_tb,
+        }
+
+    elif report.when == "setup":
+        if report.failed:
+            _DASHBOARD_RESULTS[nodeid] = {
+                "status": "error",
+                "duration": getattr(report, "duration", 0.0),
+                "stdout": stdout_text,
+                "stderr": stderr_text,
+                "traceback": longrepr_text,
+            }
+        elif report.skipped and current is None:
+            _DASHBOARD_RESULTS[nodeid] = {
+                "status": "skip",
+                "duration": getattr(report, "duration", 0.0),
+                "stdout": stdout_text,
+                "stderr": stderr_text,
+                "traceback": longrepr_text,
+            }
+
+    elif report.when == "teardown":
+        if report.failed and current is not None and current.get("status") == "pass":
+            current["status"] = "error"
+            current["traceback"] = longrepr_text or current.get("traceback")
+            if stderr_text and not current.get("stderr"):
+                current["stderr"] = stderr_text
 
 
 def _extract_live_phase(item):
@@ -720,14 +992,125 @@ def _extract_live_phase(item):
 _LIVE_PHASES = ("read", "add", "reorder", "modify", "delete")
 
 
-def pytest_sessionfinish(session, exitstatus):
+def _infer_dashboard_domain(item):
+    """Resolve a FLEx domain string for a test item."""
+    marker = item.get_closest_marker("live_phase")
+    if marker is not None:
+        ops_class = None
+        if marker.args:
+            ops_class = marker.args[0]
+        elif "operations_class" in marker.kwargs:
+            ops_class = marker.kwargs["operations_class"]
+        if ops_class and ops_class in _OPERATIONS_CLASS_DOMAIN:
+            return _OPERATIONS_CLASS_DOMAIN[ops_class]
+
+    try:
+        path_str = str(item.fspath).replace("\\", "/").lower()
+    except Exception:
+        path_str = item.nodeid.replace("\\", "/").lower()
+    for keyword, domain in _FILE_PATH_DOMAIN_HINTS:
+        if keyword in path_str:
+            return domain
+    return "Unknown"
+
+
+def _extract_dashboard_docstring(item):
+    """Return the first non-empty line of the test function's docstring."""
+    func = getattr(item, "function", None)
+    if func is None:
+        return None
+    doc = getattr(func, "__doc__", None)
+    if not doc:
+        return None
+    for line in doc.splitlines():
+        stripped = line.strip()
+        if stripped:
+            return stripped
+    return None
+
+
+def _write_dashboard_results_json(session):
     """
-    Emit tests/live_status.json summarising the run, but only if at least
-    one requires_live_project test actually executed. Pure-mock runs leave
-    the ledger untouched.
+    Emit tests/test_results.json in the schema consumed by
+    scripts/generate_dashboard.py. Always runs, regardless of which
+    subset of tests was selected, so partial runs are still reflected
+    (and merged into the persistent store by the dashboard generator).
     """
     import datetime
     import json
+
+    tests_out = []
+    for item in session.items:
+        recorded = _DASHBOARD_RESULTS.get(item.nodeid)
+        if recorded is None:
+            continue
+
+        parts = item.nodeid.split("::")
+        name = parts[-1] if parts else item.nodeid
+        class_name = parts[1] if len(parts) >= 3 else None
+
+        is_live = item.get_closest_marker("requires_live_project") is not None
+        tests_out.append(
+            {
+                "class_name": class_name,
+                "docstring": _extract_dashboard_docstring(item),
+                "domain": _infer_dashboard_domain(item),
+                "duration": round(float(recorded.get("duration") or 0.0), 3),
+                "name": name,
+                "nodeid": item.nodeid,
+                "status": recorded["status"],
+                "stderr": recorded.get("stderr"),
+                "stdout": recorded.get("stdout"),
+                "traceback": recorded.get("traceback"),
+                "type": "live" if is_live else "mock",
+            }
+        )
+
+    if not tests_out:
+        # No tests ran (e.g. collection failed); leave the file alone.
+        return
+
+    total = len(tests_out)
+    passed = sum(1 for t in tests_out if t["status"] == "pass")
+    failed = sum(1 for t in tests_out if t["status"] == "fail")
+    skipped = sum(1 for t in tests_out if t["status"] == "skip")
+    error = sum(1 for t in tests_out if t["status"] == "error")
+    duration = round(sum(t["duration"] for t in tests_out), 3)
+    pass_rate = round(passed / total * 100, 1) if total else 0
+
+    payload = {
+        "run_timestamp": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "summary": {
+            "duration_seconds": duration,
+            "error": error,
+            "failed": failed,
+            "pass_rate_percent": pass_rate,
+            "passed": passed,
+            "skipped": skipped,
+            "total": total,
+        },
+        "tests": tests_out,
+    }
+
+    out_path = os.path.join(_test_dir, "test_results.json")
+    try:
+        with open(out_path, "w", encoding="utf-8") as fh:
+            json.dump(payload, fh, indent=2, sort_keys=True)
+            fh.write("\n")
+        print(f"\n[OK] Wrote {out_path} ({total} tests recorded)")
+    except OSError as exc:
+        print(f"[WARN] Could not write {out_path}: {exc}")
+
+
+def pytest_sessionfinish(session, exitstatus):
+    """
+    Emit tests/test_results.json (always) and tests/live_status.json
+    (only when at least one requires_live_project test actually executed).
+    """
+    import datetime
+    import json
+
+    _write_dashboard_results_json(session)
 
     live_items = [
         item
@@ -803,7 +1186,7 @@ def pytest_sessionfinish(session, exitstatus):
                     cell["last_verified"] = None
 
     payload = {
-        "run_timestamp": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "run_timestamp": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "by_test": by_test,
         "by_class": by_class,
         "uncategorized_live_tests": uncategorized,
