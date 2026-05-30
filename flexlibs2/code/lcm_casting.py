@@ -472,10 +472,10 @@ def clone_properties(source_obj, dest_obj, project=None):
     source = cast_to_concrete(source_obj)
     dest = cast_to_concrete(dest_obj)
 
-    # If project not provided, try to get it from the destination object
-    if project is None and hasattr(dest, "OwnerOfClass"):
+    # If project not provided, resolve via Cache.LanguageProject (canonical accessor)
+    if project is None and hasattr(dest, "Cache"):
         try:
-            project = dest.OwnerOfClass.project
+            project = dest.Cache.LanguageProject
         except Exception:
             pass
 
