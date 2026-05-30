@@ -13,7 +13,7 @@
 
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
-from ..Shared.string_utils import normalize_match_key
+from ..Shared.string_utils import normalize_match_key, best_analysis_text
 from ..Shared.catalog_backed import _LCMNativeCatalogImportMixin
 
 # Import FLEx LCM types
@@ -495,7 +495,10 @@ class SemanticDomainOperations(BaseOperations, _LCMNativeCatalogImportMixin):
         Notes:
             - Domain number is stored in the abbreviation field
             - Numbers are hierarchical (e.g., 1.2.3.4)
-            - Returns abbreviation from default analysis writing system
+            - Resolves via BestAnalysisAlternative so canonical-catalog
+              numbers (only populated in English by SemDom.xml) are
+              still found when the project's default analysis WS is a
+              language without translated abbreviations.
             - Returns empty string if domain has no number
 
         See Also:
@@ -504,10 +507,12 @@ class SemanticDomainOperations(BaseOperations, _LCMNativeCatalogImportMixin):
         self._ValidateParam(domain_or_hvo, "domain_or_hvo")
 
         domain = self.__ResolveObject(domain_or_hvo)
-        wsHandle = self.project.project.DefaultAnalWs
 
-        # Domain number is stored in the abbreviation
-        number = ITsString(domain.Abbreviation.get_String(wsHandle)).Text
+        # Domain number is stored in the abbreviation. SemDom.xml only
+        # populates the English alternative, so BestAnalysisAlternative
+        # is required for projects whose default analysis WS is not
+        # English (e.g., Sena 3, where DefaultAnalWs is Portuguese).
+        number = best_analysis_text(domain.Abbreviation)
         return number or ""
 
     @OperationsMethod
