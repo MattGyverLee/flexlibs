@@ -1,0 +1,32 @@
+POST-STATE EVIDENCE -- issue #158 Pattern I fix
+File: flexlibs2/code/Grammar/GramCatOperations.py
+Date: 2026-05-30
+
+import warnings added at line 14.
+
+Duplicate() signature changed: insert_after=True -> insert_after=False
+Docstring updated to document TypesOC deprecation.
+
+Fixed body (TypesOC branch, top-level categories):
+
+        else:
+            # Source is top-level -- TypesOC requires IFsFeatStrucType.
+            feature_system = self.project.lp.MsFeatureSystemOA
+            factory = self.project.project.ServiceLocator.GetService(IFsFeatStrucTypeFactory)
+            duplicate = factory.Create()
+            # TypesOC is an unordered ILcmOwningCollection; warn callers who
+            # still pass insert_after=True for top-level categories.
+            if insert_after:
+                warnings.warn(
+                    "GramCatOperations.Duplicate: insert_after is deprecated and "
+                    "ignored for top-level categories. TypesOC is an unordered "
+                    "ILcmOwningCollection; positional insertion is not supported. "
+                    "The duplicate is always appended via Add().",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+            feature_system.TypesOC.Add(duplicate)
+
+Note: The SubPossibilitiesOS branch (subcategories) is unchanged -- OS
+(ordered sequence) supports IndexOf/Insert correctly.
+No Reorder() in this file.

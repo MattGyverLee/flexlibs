@@ -1,0 +1,28 @@
+POST-STATE EVIDENCE -- issue #158 Pattern I fix
+File: flexlibs2/code/TextsWords/WfiAnalysisOperations.py
+Date: 2026-05-30
+
+import warnings added at line 15.
+
+Duplicate() signature changed: insert_after=True -> insert_after=False
+Docstring updated to document AnalysesOC deprecation.
+
+Fixed body (AnalysesOC branch -- covers both sibling sites 5 and 6):
+
+        # AnalysesOC is an unordered ILcmOwningCollection; warn callers who
+        # still pass insert_after=True.
+        if insert_after:
+            warnings.warn(
+                "WfiAnalysisOperations.Duplicate: insert_after is deprecated and "
+                "ignored. AnalysesOC is an unordered ILcmOwningCollection; "
+                "positional insertion is not supported. The duplicate is always "
+                "appended via Add().",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        parent.AnalysesOC.Add(duplicate)
+
+Site 5 (list(parent.AnalysesOC).index(source)) and site 6
+(parent.AnalysesOC.Insert(...)) were both in the same if-block; both
+removed by replacing the entire insert_after branch with the warning + Add().
+No Reorder() in this file.

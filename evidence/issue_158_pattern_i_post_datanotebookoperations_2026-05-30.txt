@@ -1,0 +1,30 @@
+POST-STATE EVIDENCE -- issue #158 Pattern I fix
+File: flexlibs2/code/Notebook/DataNotebookOperations.py
+Date: 2026-05-30
+
+import warnings added at line 15.
+
+Duplicate() signature changed: insert_after=True -> insert_after=False
+Docstring updated to document RecordsOC deprecation (SubRecordsOS branch unchanged).
+
+Fixed body (RecordsOC branch, top-level records):
+
+        else:
+            # Parent is the top-level repository
+            repos = self.project.project.ServiceLocator.GetService(IRnResearchNbkRepository)
+            # RecordsOC is an unordered ILcmOwningCollection; warn callers who
+            # still pass insert_after=True for top-level records.
+            if insert_after:
+                warnings.warn(
+                    "DataNotebookOperations.Duplicate: insert_after is deprecated "
+                    "and ignored for top-level records. RecordsOC is an unordered "
+                    "ILcmOwningCollection; positional insertion is not supported. "
+                    "The duplicate is always appended via Add().",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+            repos.RecordsOC.Add(duplicate)
+
+Note: The SubRecordsOS branch (sub-records) is unchanged -- OS (ordered
+sequence) supports IndexOf/Insert correctly.
+No Reorder() in this file.

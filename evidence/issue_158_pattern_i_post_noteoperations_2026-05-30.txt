@@ -1,0 +1,41 @@
+POST-STATE EVIDENCE -- issue #158 Pattern I fix
+File: flexlibs2/code/Notebook/NoteOperations.py
+Date: 2026-05-30
+
+import warnings added at module level.
+
+Duplicate() signature changed: insert_after=True -> insert_after=False
+Docstring updated to document AnnotationsOC deprecation (RepliesOS branch unchanged).
+
+Fixed body (AnnotationsOC branch):
+
+        if hasattr(parent, "RepliesOS"):
+            if insert_after:
+                source_index = parent.RepliesOS.IndexOf(source)
+                parent.RepliesOS.Insert(source_index + 1, duplicate)
+            else:
+                parent.RepliesOS.Add(duplicate)
+        elif hasattr(parent, "AnnotationsOC"):
+            if insert_after:
+                warnings.warn(
+                    "NoteOperations.Duplicate: insert_after is deprecated and "
+                    "ignored when the parent exposes AnnotationsOC. "
+                    "AnnotationsOC is an unordered ILcmOwningCollection; "
+                    "positional insertion is not supported. The duplicate is "
+                    "always appended via Add().",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+            parent.AnnotationsOC.Add(duplicate)
+
+Reorder() converted to no-op + DeprecationWarning:
+
+        warnings.warn(
+            "NoteOperations.Reorder is a no-op: AnnotationsOC is an unordered "
+            "ILcmOwningCollection and reorder has no semantic meaning. "
+            "The previous implementation called Clear() which cascade-deletes "
+            "all ICmBaseAnnotation objects (P0 data corruption, issue #158). "
+            "This method does nothing and will be removed in a future release.",
+            DeprecationWarning,
+            stacklevel=2,
+        )

@@ -11,6 +11,8 @@
 #   Copyright 2025
 #
 
+import warnings
+
 # Import FLEx LCM types
 from SIL.LCModel import (
     IScrScriptureNote,
@@ -470,54 +472,44 @@ class NoteOperations(BaseOperations):
     @OperationsMethod
     def Reorder(self, owner_object, note_list):
         """
-        Reorder notes for an object.
+        [DEPRECATED - NO-OP] Reorder notes for an object.
+
+        This method is a no-op. AnnotationsOC is an unordered
+        ILcmOwningCollection<ICmBaseAnnotation>; it has no concept of
+        positional ordering and its Clear() method cascade-deletes all owned
+        objects. Calling Clear() followed by Add() would permanently destroy
+        the ICmBaseAnnotation objects, which is P0 data corruption.
+
+        The method signature is preserved so that existing callers do not
+        receive AttributeError. A DeprecationWarning is emitted; no
+        collection methods are called.
 
         Args:
-            owner_object: The object whose notes to reorder.
-            note_list (list): List of note objects in desired order.
-
-        Raises:
-            FP_ReadOnlyError: If project is not opened with write enabled.
-            FP_NullParameterError: If owner_object or note_list is None.
-            FP_ParameterError: If note_list contains notes not owned by object.
+            owner_object: The object whose notes to reorder (ignored).
+            note_list (list): List of note objects in desired order (ignored).
 
         Example:
-            >>> entry = project.LexEntry.Find("run")
-            >>> notes = list(project.Note.GetAll(entry))
-            >>> # Reverse the order
-            >>> notes.reverse()
+            >>> # This call does nothing; the warning explains why.
             >>> project.Note.Reorder(entry, notes)
-
-            >>> # Sort by date created
-            >>> notes.sort(key=lambda n: project.Note.GetDateCreated(n))
-            >>> project.Note.Reorder(entry, notes)
+            DeprecationWarning: NoteOperations.Reorder is a no-op ...
 
         Notes:
-            - All notes must belong to the specified owner object
-            - Any notes not in note_list remain in original positions
-            - Order affects display in FLEx UI
+            - AnnotationsOC is unordered; reorder has no semantic meaning.
+            - Clear() on an ILcmOwningCollection cascade-deletes all members.
+            - The previous implementation was P0 data corruption (issue #158).
 
         See Also:
             GetAll, GetDateCreated
         """
-        self._EnsureWriteEnabled()
-
-        self._ValidateParam(owner_object, "owner_object")
-        self._ValidateParam(note_list, "note_list")
-
-        if not hasattr(owner_object, "AnnotationsOC"):
-            raise FP_ParameterError("Owner object does not support annotations")
-
-        # Verify all notes belong to this owner
-        for note in note_list:
-            if note.Owner != owner_object:
-                raise FP_ParameterError("Note list contains notes not owned by this object")
-
-        # Clear and re-add in new order
-        annotations = owner_object.AnnotationsOC
-        annotations.Clear()
-        for note in note_list:
-            annotations.Add(note)
+        warnings.warn(
+            "NoteOperations.Reorder is a no-op: AnnotationsOC is an unordered "
+            "ILcmOwningCollection and reorder has no semantic meaning. "
+            "The previous implementation called Clear() which cascade-deletes "
+            "all ICmBaseAnnotation objects (P0 data corruption, issue #158). "
+            "This method does nothing and will be removed in a future release.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
     # --- Content Operations ---
 

@@ -1,0 +1,30 @@
+POST-STATE EVIDENCE -- issue #158 Pattern I fix
+File: flexlibs2/code/TextsWords/DiscourseOperations.py
+Date: 2026-05-30
+
+import warnings added at line 12.
+
+Duplicate() signature changed: insert_after=True -> insert_after=False
+Docstring updated to document ChartsOC deprecation.
+
+Fixed body (ChartsOC branch):
+
+        # ADD TO PARENT FIRST.
+        # ChartsOC is an unordered ILcmOwningCollection; warn callers who
+        # still pass insert_after=True.
+        if insert_after:
+            warnings.warn(
+                "DiscourseOperations.Duplicate: insert_after is deprecated and "
+                "ignored. ChartsOC is an unordered ILcmOwningCollection; "
+                "positional insertion is not supported. The duplicate is always "
+                "appended via Add().",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        if hasattr(parent, "ChartsOC"):
+            parent.ChartsOC.Add(duplicate)
+
+Also fixed: when insert_after=True and parent had no ChartsOC, the duplicate
+was previously silently orphaned. Now Add() is always called regardless of
+the deprecated flag.
+No Reorder() in this file.

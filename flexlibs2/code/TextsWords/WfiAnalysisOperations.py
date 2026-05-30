@@ -12,6 +12,7 @@
 #
 
 import clr
+import warnings
 
 clr.AddReference("System")
 import System
@@ -415,14 +416,17 @@ class WfiAnalysisOperations(BaseOperations):
         wordform.AnalysesOC.Remove(analysis)
 
     @OperationsMethod
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=False):
+    def Duplicate(self, item_or_hvo, insert_after=False, deep=False):
         """
         Duplicate a wordform analysis, creating a new copy with a new GUID.
 
         Args:
             item_or_hvo: The IWfiAnalysis object or HVO to duplicate.
-            insert_after (bool): If True (default), insert after the source analysis.
-                                If False, insert at end of wordform's analysis list.
+            insert_after (bool): Deprecated and ignored. AnalysesOC is an
+                unordered ILcmOwningCollection; it has no Insert() method and
+                no concept of positional ordering. The duplicate is always
+                appended via Add(). Passing insert_after=True emits a
+                DeprecationWarning and is otherwise harmless.
             deep (bool): If True, also duplicate owned objects (glosses, morph bundles).
                         If False (default), only copy simple properties and references.
 
@@ -472,8 +476,17 @@ class WfiAnalysisOperations(BaseOperations):
         factory = self.project.project.ServiceLocator.GetService(IWfiAnalysisFactory)
         duplicate = factory.Create()
 
-        # Determine insertion position
-        # AnalysesOC is unordered (OC); insert_after is a no-op, add at end
+        # AnalysesOC is an unordered ILcmOwningCollection; warn callers who
+        # still pass insert_after=True.
+        if insert_after:
+            warnings.warn(
+                "WfiAnalysisOperations.Duplicate: insert_after is deprecated and "
+                "ignored. AnalysesOC is an unordered ILcmOwningCollection; "
+                "positional insertion is not supported. The duplicate is always "
+                "appended via Add().",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         parent.AnalysesOC.Add(duplicate)
 
         # Copy Reference Atomic (RA) properties

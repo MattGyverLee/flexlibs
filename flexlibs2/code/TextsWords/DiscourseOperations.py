@@ -9,6 +9,7 @@
 #
 
 import clr
+import warnings
 
 clr.AddReference("System")
 import System
@@ -1041,14 +1042,17 @@ class DiscourseOperations(BaseOperations):
             raise FP_ParameterError("Chart object does not have a GUID")
 
     @OperationsMethod
-    def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
+    def Duplicate(self, item_or_hvo, insert_after=False, deep=True):
         """
         Duplicate a chart, creating a new copy with a new GUID.
 
         Args:
             item_or_hvo: The chart object or HVO to duplicate.
-            insert_after (bool): If True (default), insert after the source chart.
-                                If False, insert at end of text's chart collection.
+            insert_after (bool): Deprecated and ignored. ChartsOC is an
+                unordered ILcmOwningCollection; it has no Insert() method and
+                no concept of positional ordering. The duplicate is always
+                appended via Add(). Passing insert_after=True emits a
+                DeprecationWarning and is otherwise harmless.
             deep (bool): If True (default), also duplicate rows (structure only, empty).
                         If False, only copy chart properties. Note: Row contents and
                         cells are not duplicated (requires complex cell mapping logic).
@@ -1095,8 +1099,18 @@ class DiscourseOperations(BaseOperations):
         factory = self.project.project.ServiceLocator.GetService(IDsConstChartFactory)
         duplicate = factory.Create()
 
-        # ADD TO PARENT FIRST
-        # ChartsOC is unordered (OC); insert_after is a no-op, add at end
+        # ADD TO PARENT FIRST.
+        # ChartsOC is an unordered ILcmOwningCollection; warn callers who
+        # still pass insert_after=True.
+        if insert_after:
+            warnings.warn(
+                "DiscourseOperations.Duplicate: insert_after is deprecated and "
+                "ignored. ChartsOC is an unordered ILcmOwningCollection; "
+                "positional insertion is not supported. The duplicate is always "
+                "appended via Add().",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         if hasattr(parent, "ChartsOC"):
             parent.ChartsOC.Add(duplicate)
 

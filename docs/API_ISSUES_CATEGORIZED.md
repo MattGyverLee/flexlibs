@@ -472,6 +472,87 @@ Future contributors are welcome to extend this table when they discover addition
 
 ---
 
+## Category 9: OC/OS confusion (unordered vs ordered collections)
+### [WARN] Recurring trap - prevention via documentation and deprecation warnings
+
+**Issue**: LCM collections come in two flavours:
+
+- **OC (ILcmOwningCollection)** - *unordered*. Members have no defined position. Supports `Add()` and `Remove()`. Does NOT support `IndexOf()`, `Insert()`, or positional access. `Clear()` **cascade-deletes all owned objects** (P0 data corruption if misused).
+- **OS (ILcmOwningSequence)** - *ordered*. Members have defined positions. Supports `Add()`, `Insert(index, obj)`, `IndexOf(obj)`, and index access.
+
+The naming suffix (`OC` vs `OS`) encodes the type, but authors copying a Duplicate() pattern from an OS-bearing class to an OC-bearing class silently ship a bug. The Python boundary gives no warning until runtime.
+
+### Detection signature
+
+Any of these three sub-patterns applied to a `*OC`-suffixed property is a Category 9 bug:
+
+| Sub-pattern | Example | Bug |
+|---|---|---|
+| Sub-pattern 1: IndexOf+Insert | `coll.Insert(coll.IndexOf(x)+1, y)` | `AttributeError`: OC has no `Insert()` |
+| Sub-pattern 2: Clear+re-add loop | `coll.Clear(); for o in lst: coll.Add(o)` | `Clear()` cascade-deletes all owned objects (P0) |
+| Sub-pattern 3: list().index() | `list(coll).index(x)` then `coll.Insert(...)` | Nondeterministic position; then `AttributeError` on `Insert()` |
+
+### Resolution template
+
+1. Replace the `insert_after` branch body with a `warnings.warn(..., DeprecationWarning)` call naming the specific OC collection.
+2. Always call `coll.Add(duplicate)` regardless of the deprecated kwarg.
+3. Flip the `insert_after` default from `True` to `False`.
+4. If the method is `Reorder()` operating on an OC: convert the entire body to a no-op that emits `DeprecationWarning`. Never call `Clear()`.
+5. For OS collections (`*OS`-suffixed), `IndexOf()` and `Insert()` remain correct and should not be changed.
+
+```python
+# WRONG (sub-pattern 1 on OC):
+if insert_after:
+    idx = parent.FooOC.IndexOf(source)
+    parent.FooOC.Insert(idx + 1, duplicate)   # AttributeError
+else:
+    parent.FooOC.Add(duplicate)
+
+# FIXED:
+if insert_after:
+    warnings.warn(
+        "XxxOperations.Duplicate: insert_after is deprecated and ignored. "
+        "FooOC is an unordered ILcmOwningCollection; positional insertion "
+        "is not supported. The duplicate is always appended via Add().",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+parent.FooOC.Add(duplicate)
+```
+
+### Relationship to Category 8
+
+Category 8 and Category 9 are the same trap at different levels:
+
+- **Category 8**: Same *field name*, different *LCM type* (e.g., `Source` is `ITsString` on `ILexSense` but `IMultiString` on `ILexEtymology`).
+- **Category 9**: Same *variable name convention*, different *collection contract* (e.g., `FooOC` is unordered while `FooOS` is ordered).
+
+Both bugs share the root cause: a pattern that works correctly for one LCM type is copied to a different type without verifying the type contract.
+
+### Affected sites table
+
+| # | File | Collection | Sub-pattern(s) | Status |
+|---|------|-----------|----------------|--------|
+| 1 | `TextsWords/WfiGlossOperations.py` | `MeaningsOC` (Duplicate) | 1 | [DONE] Fixed #158 Cycle 2 |
+| 2 | `TextsWords/WfiGlossOperations.py` | `MeaningsOC` (Reorder) | 2 | [DONE] Fixed #158 Cycle 2 |
+| 3 | `TextsWords/WfiGlossOperations.py` | `MeaningsOC` (test) | -- | [DONE] test locked Cycle 2 |
+| 4 | `Grammar/GramCatOperations.py` | `TypesOC` (Duplicate) | 1 | [DONE] Fixed #158 Cycle 3 |
+| 5 | `Notebook/NoteOperations.py` | `AnnotationsOC` (Duplicate) | 1 | [DONE] Fixed #158 Cycle 3 |
+| 6 | `Notebook/NoteOperations.py` | `AnnotationsOC` (Reorder) | 2 | [DONE] Fixed #158 Cycle 3 |
+| 7 | `Notebook/DataNotebookOperations.py` | `RecordsOC` (Duplicate) | 1 | [DONE] Fixed #158 Cycle 3 |
+| 8 | `TextsWords/DiscourseOperations.py` | `ChartsOC` (Duplicate) | 1 | [DONE] Fixed #158 Cycle 3 |
+| 9 | `TextsWords/WfiAnalysisOperations.py` | `AnalysesOC` (Duplicate) | 1+3 | [DONE] Fixed #158 Cycle 3 |
+
+**Notes**:
+- Sites 1-3 were fixed in #158 Cycle 2 (WfiGloss sweep).
+- Sites 4-9 were fixed in #158 Cycle 3 (sibling sweep).
+- Site 4 (GramCatOperations) has a mixed OC/OS Duplicate(): the subcategory branch uses `SubPossibilitiesOS` (OS, correctly uses IndexOf/Insert); only the top-level `TypesOC` branch required the fix.
+- Site 7 (DataNotebookOperations) similarly has a mixed OC/OS Duplicate(): the sub-record branch uses `SubRecordsOS` (OS, unchanged); only the top-level `RecordsOC` branch required the fix.
+- Site 5 (NoteOperations.Duplicate) similarly dispatches between `RepliesOS` (OS, unchanged) and `AnnotationsOC` (OC, fixed).
+- Site 9 (WfiAnalysisOperations) exhibited both sub-patterns 1 and 3 in the same if-block; one combined fix covers both.
+
+---
+
 ## Summary Statistics
 
 ### By Status (Updated):

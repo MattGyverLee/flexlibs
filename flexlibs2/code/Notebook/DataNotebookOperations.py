@@ -12,6 +12,7 @@
 #
 
 import logging
+import warnings
 
 logger = logging.getLogger(__name__)
 
@@ -2468,14 +2469,20 @@ class DataNotebookOperations(BaseOperations):
         return results
 
     @OperationsMethod
-    def Duplicate(self, record_or_hvo, insert_after=True, deep=True):
+    def Duplicate(self, record_or_hvo, insert_after=False, deep=True):
         """
         Duplicate a notebook record, creating a new copy with a new GUID.
 
         Args:
             record_or_hvo: The IRnGenericRec object or HVO to duplicate.
-            insert_after (bool): If True (default), insert after the source record.
-                                If False, insert at end of parent's records list.
+            insert_after (bool): Deprecated and ignored for top-level records.
+                For top-level records, RecordsOC is an unordered
+                ILcmOwningCollection; it has no Insert() method and no concept
+                of positional ordering. The duplicate is always appended via
+                Add(). Passing insert_after=True emits a DeprecationWarning
+                when the source is a top-level record.
+                For sub-records (SubRecordsOS is an ordered sequence),
+                insert_after still controls positional insertion as before.
             deep (bool): If True (default), also duplicate owned objects (sub-records).
                         If False, only copy simple properties and references.
 
@@ -2538,7 +2545,17 @@ class DataNotebookOperations(BaseOperations):
         else:
             # Parent is the top-level repository
             repos = self.project.project.ServiceLocator.GetService(IRnResearchNbkRepository)
-            # RecordsOC is unordered (OC); insert_after is a no-op, add at end
+            # RecordsOC is an unordered ILcmOwningCollection; warn callers who
+            # still pass insert_after=True for top-level records.
+            if insert_after:
+                warnings.warn(
+                    "DataNotebookOperations.Duplicate: insert_after is deprecated "
+                    "and ignored for top-level records. RecordsOC is an unordered "
+                    "ILcmOwningCollection; positional insertion is not supported. "
+                    "The duplicate is always appended via Add().",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
             repos.RecordsOC.Add(duplicate)
 
         # Copy simple MultiString properties
