@@ -720,10 +720,12 @@ class SegmentOperations(BaseOperations):
         props = {}
 
         # BaselineText is ITsString (single-WS, read-only computed from para Contents).
-        # GetMultiStringDict() expects IMultiString; use get_WritingSystem(0) instead.
+        # ITsString has no get_WritingSystem(); extract the WS handle from the first
+        # run's text properties via get_Properties(0).GetIntPropValues(1, 0)[0].
+        # Verified live against Sena 3 by /lex-verification (returns e.g. 999000003).
         if hasattr(item, "BaselineText") and item.BaselineText:
             bt = item.BaselineText
-            ws_handle = bt.get_WritingSystem(0)
+            ws_handle = bt.get_Properties(0).GetIntPropValues(1, 0)[0]
             props["BaselineText"] = {ws_handle: bt.Text or ""}
 
         # FreeTranslation and LiteralTranslation are genuine IMultiString fields.

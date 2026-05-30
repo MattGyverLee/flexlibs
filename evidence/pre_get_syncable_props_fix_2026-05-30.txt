@@ -1,0 +1,2 @@
+723:        # GetMultiStringDict() expects IMultiString; use get_WritingSystem(0) instead.
+726:            ws_handle = bt.get_WritingSystem(0)
