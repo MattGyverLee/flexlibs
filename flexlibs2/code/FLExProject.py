@@ -573,7 +573,7 @@ class FLExProject(object):
         for ws in analysis_ws_list:
             code = ws.IcuLocale
             if not code:
-                logger.warning(
+                logging.getLogger(__name__).warning(
                     "ImportLocalizedListsForEnabledWS: skipping WS with "
                     "empty IcuLocale (hvo=%s)", getattr(ws, "Hvo", "?")
                 )
@@ -586,7 +586,7 @@ class FLExProject(object):
                     templates_dir, f"LocalizedLists-{code}.zip"
                 )
                 if not os.path.isfile(expected_zip):
-                    logger.warning(
+                    logging.getLogger(__name__).warning(
                         "ImportLocalizedListsForEnabledWS: no translation "
                         "pack for %r (expected %s); skipping",
                         code, expected_zip,
