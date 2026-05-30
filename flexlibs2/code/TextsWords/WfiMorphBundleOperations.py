@@ -586,16 +586,18 @@ class WfiMorphBundleOperations(BaseOperations):
         gloss field on IWfiMorphBundle itself. The displayed gloss
         comes from the bundle's linked lexical sense
         (``bundle.SenseRA.Gloss``). This method forwards to that path
-        and returns an empty string when no sense is linked.
+        and, if no sense gloss is found, falls back to the MSA-level
+        ``InterlinearAbbr`` (``bundle.MsaRA.InterlinearAbbr``) which
+        covers grammatical morphemes whose gloss lives on the MSA.
 
         Args:
             bundle_or_hvo: The IWfiMorphBundle object or HVO.
             wsHandle: Optional writing system handle. Defaults to analysis WS.
 
         Returns:
-            str: The linked sense's gloss in the chosen WS, or an empty
-            string if the bundle has no linked sense or the sense has no
-            gloss in that WS.
+            str: The linked sense's gloss in the chosen WS; if the sense
+            gloss is empty or absent, the MSA InterlinearAbbr; or an
+            empty string if neither is available.
 
         Raises:
             FP_NullParameterError: If bundle_or_hvo is None.
@@ -609,10 +611,12 @@ class WfiMorphBundleOperations(BaseOperations):
             run
 
         Notes:
-            - Returns "" for unlinked bundles or grammatical morphemes
-              whose gloss is held on the MSA / analysis rather than a
-              lexical sense.
-            - Uses the analysis writing system by default.
+            - Returns "" only when neither a sense gloss nor an MSA
+              InterlinearAbbr is available.
+            - Uses the analysis writing system by default (sense gloss
+              only; InterlinearAbbr is WS-independent).
+            - The sense-gloss path honours the wsHandle; the MSA fallback
+              returns the LCM-computed abbreviation string directly.
 
         See Also:
             GetForm, GetSense
@@ -625,11 +629,22 @@ class WfiMorphBundleOperations(BaseOperations):
         # IWfiMorphBundle has no Gloss field; the displayed gloss comes
         # from the linked sense's MultiUnicode Gloss. (issue #16)
         sense = bundle.SenseRA
-        if sense is None:
-            return ""
+        if sense is not None:
+            gloss = ITsString(sense.Gloss.get_String(wsHandle)).Text
+            if gloss:
+                return gloss
 
-        gloss = ITsString(sense.Gloss.get_String(wsHandle)).Text
-        return gloss or ""
+        # Fallback for grammatical morphemes (issue #110): if the bundle has
+        # an MsaRA, use InterlinearAbbr which is defined on IMoMorphSynAnalysis
+        # and covers all four concrete MSA types (MoStemMsa, MoDerivAffMsa,
+        # MoInflAffMsa, MoUnclassifiedAffixMsa).
+        msa = bundle.MsaRA
+        if msa is not None:
+            abbr = msa.InterlinearAbbr
+            if abbr:
+                return abbr
+
+        return ""
 
     @OperationsMethod
     def SetGloss(self, bundle_or_hvo, text, wsHandle=None):
