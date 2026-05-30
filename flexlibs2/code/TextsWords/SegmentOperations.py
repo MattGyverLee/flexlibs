@@ -526,10 +526,8 @@ class SegmentOperations(BaseOperations):
         factory = self.project.project.ServiceLocator.GetService(ISegmentFactory)
         segment = factory.Create()
 
-        # TODO(#174): see issue #174 -- SegmentsOS architectural rework.
-        # Manually adding to SegmentsOS and then calling set_String() on the
-        # computed read-only ITsString BaselineText is incorrect.  The correct
-        # idiom is to append the text to IStTxtPara.Contents so that
+        # Workaround: direct SegmentsOS manipulation is incorrect long-term.
+        # The right approach is appending to IStTxtPara.Contents so that
         # ContentsSideEffects triggers AnalysisAdjuster.AdjustAnalysis.
 
         # Add to paragraph's segments collection
@@ -645,11 +643,9 @@ class SegmentOperations(BaseOperations):
         if owner is None:
             raise FP_ParameterError("Segment has no valid owner paragraph")
 
-        # TODO(#174): see issue #174 -- SegmentsOS architectural rework.
-        # Manually adding to SegmentsOS and then calling CopyAlternatives() on the
-        # computed read-only ITsString BaselineText is incorrect (CopyAlternatives is
-        # an IMultiString method).  Duplication should be driven by editing
-        # IStTxtPara.Contents so that AnalysisAdjuster.AdjustAnalysis manages segments.
+        # Workaround: direct SegmentsOS manipulation is incorrect long-term.
+        # Duplication should be driven by editing IStTxtPara.Contents so that
+        # AnalysisAdjuster.AdjustAnalysis manages segments.
 
         # Create the new segment (factory + add to parent)
         factory = self.project.project.ServiceLocator.GetService(ISegmentFactory)
@@ -910,12 +906,9 @@ class SegmentOperations(BaseOperations):
         segments_list = list(owner.SegmentsOS)
         segment_index = segments_list.index(segment_obj)
 
-        # TODO(#174): see issue #174 -- SegmentsOS architectural rework.
-        # Manually inserting into SegmentsOS and then calling set_String() on the
-        # computed read-only ITsString BaselineText is incorrect.  The correct idiom
-        # is to edit IStTxtPara.Contents (insert a sentence boundary) so that
-        # ContentsSideEffects triggers AnalysisAdjuster.AdjustAnalysis which splits
-        # the segment automatically.
+        # Workaround: direct SegmentsOS manipulation is incorrect long-term.
+        # The right approach is inserting a sentence boundary into IStTxtPara.Contents
+        # so that ContentsSideEffects triggers AnalysisAdjuster.AdjustAnalysis.
 
         # Create factory for new segments
         factory = self.project.project.ServiceLocator.GetService(ISegmentFactory)
@@ -1020,12 +1013,9 @@ class SegmentOperations(BaseOperations):
         # Merge with a space between
         merged_text = f"{text1} {text2}"
 
-        # TODO(#174): see issue #174 -- SegmentsOS architectural rework.
-        # Manually inserting into SegmentsOS and then calling set_String() on the
-        # computed read-only ITsString BaselineText is incorrect.  The correct idiom
-        # is to remove the sentence boundary from IStTxtPara.Contents so that
-        # ContentsSideEffects triggers AnalysisAdjuster.AdjustAnalysis which merges
-        # the segment automatically.
+        # Workaround: direct SegmentsOS manipulation is incorrect long-term.
+        # The right approach is removing the sentence boundary from IStTxtPara.Contents
+        # so that ContentsSideEffects triggers AnalysisAdjuster.AdjustAnalysis.
 
         # Create merged segment
         factory = self.project.project.ServiceLocator.GetService(ISegmentFactory)
@@ -1378,13 +1368,10 @@ class SegmentOperations(BaseOperations):
         else:
             para_text = ""
 
-        # Clear existing segments
-        # TODO(#174): see issue #174 -- SegmentsOS architectural rework.
-        # Manually clearing SegmentsOS, creating factory segments, and then calling
-        # set_String() on the computed read-only ITsString BaselineText is incorrect.
-        # The correct idiom is to assign a new value to IStTxtPara.Contents (built from
-        # the desired sentence strings) and let ContentsSideEffects trigger
-        # AnalysisAdjuster.AdjustAnalysis to rebuild segments.
+        # Clear existing segments.
+        # Workaround: direct SegmentsOS manipulation is incorrect long-term.
+        # The right approach is assigning a new value to IStTxtPara.Contents so
+        # that ContentsSideEffects triggers AnalysisAdjuster.AdjustAnalysis.
 
         if hasattr(para_obj, "SegmentsOS"):
             para_obj.SegmentsOS.Clear()

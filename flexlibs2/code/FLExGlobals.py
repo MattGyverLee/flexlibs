@@ -99,12 +99,8 @@ def InitialiseFWGlobals():
         raise
 
     if platform.system() == "Linux":
-        # **********************************************************
-        # TODO: First attempt at Linux support.
-        # As of Apr2024, FW installation has changed to use flatpak
-        # and this no longer works.
-        # **********************************************************
-        # On Linux, for installed versions of Flex,
+        # Linux support is incomplete: as of Apr2024 FW uses flatpak and
+        # this path no longer works. On installed Linux FW,
         # FWREG_CODEDIR points to /usr/share/fieldworks,
         # but FieldWorks.exe resides in /usr/lib/fieldworks.
         # I can't find any registry keys/values that point to

@@ -56,8 +56,7 @@ CellarAllStringTypes = CellarStringTypes | CellarMultiStringTypes
 
 
 def GetListOfProjects():
-    # TODO: Use FW Project Chooser (ChooseLangProjectDialog())
-    #       and handle network drives
+    # Enumerates local projects only; network drives are not yet supported.
     projectsPath = FwDirectoryFinder.ProjectsDirectory
     objs = os.listdir(str(projectsPath))
     projectList = []
