@@ -31,8 +31,6 @@ from SIL.LCModel import (
     ICmPictureFactory,
     ICmTranslationFactory,
     IReversalIndexEntry,
-    IMoInflAffMsaFactory,
-    IMoStemMsaFactory,
     LexEntryTags,
     MoMorphTypeTags,
 )
@@ -1216,15 +1214,13 @@ class LexSenseOperations(BaseOperations):
             # the caller's responsibility.
             sense.MorphoSyntaxAnalysisRA = None
 
-        # Create a fresh MSA of the correct family. Phase 2 ownership
-        # rule: attach to entry.MorphoSyntaxAnalysesOC BEFORE setting
-        # PartOfSpeechRA. (issue #92)
-        factory_iface = IMoInflAffMsaFactory if entry_is_affix else IMoStemMsaFactory
-        factory = self.project.project.ServiceLocator.GetService(factory_iface)
-        msa = factory.Create()
-        entry.MorphoSyntaxAnalysesOC.Add(msa)
-        msa.PartOfSpeechRA = pos_obj
-        sense.MorphoSyntaxAnalysisRA = msa
+        # Create a fresh MSA of the correct family via MSAOperations so
+        # ownership, factory dispatch, and sense attachment are handled
+        # in one place. (issue #90)
+        if entry_is_affix:
+            self.project.MSA.CreateInflAff(sense, pos_obj)
+        else:
+            self.project.MSA.CreateStem(sense, pos_obj)
 
     def __EntryHasAffixMorphType(self, entry):
         """

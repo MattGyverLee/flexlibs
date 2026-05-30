@@ -217,6 +217,7 @@ def initialize_flex_for_tests():
         ]
 
         loaded_count = 0
+        failed_modules = []
         for module_path, class_name in operations_modules:
             try:
                 module = importlib.import_module(module_path)
@@ -224,13 +225,22 @@ def initialize_flex_for_tests():
                 setattr(flexlibs2, class_name, ops_class)
                 loaded_count += 1
             except ImportError as e:
-                print(f"[WARN] Could not import {class_name}: {e}")
+                failed_modules.append((class_name, e))
             except AttributeError as e:
-                print(f"[WARN] {class_name} not found in {module_path}: {e}")
+                failed_modules.append((class_name, e))
             except Exception as e:
-                print(f"[WARN] Error loading {class_name}: {e}")
+                failed_modules.append((class_name, e))
 
-        print(f"[OK] Loaded {loaded_count}/{len(operations_modules)} operations classes")
+        total = len(operations_modules)
+        if failed_modules:
+            lines = "\n".join(f"  {cls}: {err}" for cls, err in failed_modules)
+            print(f"[ERROR] {len(failed_modules)}/{total} operations classes failed to import:\n{lines}")
+            if os.environ.get("FLEXLIBS_ALLOW_PARTIAL_LOAD") != "1":
+                raise pytest.UsageError(
+                    f"{len(failed_modules)} operations class(es) failed to import "
+                    f"(set FLEXLIBS_ALLOW_PARTIAL_LOAD=1 to continue anyway):\n{lines}"
+                )
+        print(f"[OK] Loaded {loaded_count}/{total} operations classes")
 
         # Verify
         ops_found = [x for x in dir(flexlibs2) if "Operations" in x]

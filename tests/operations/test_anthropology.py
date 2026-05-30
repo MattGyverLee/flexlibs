@@ -48,6 +48,7 @@
 
 import inspect
 import sys
+from unittest import mock
 
 import pytest
 
@@ -325,3 +326,24 @@ class TestAnthropologyFrameCatalog:
 
         with pytest.raises(FP_ParameterError):
             writable_project.Anthropology.ImportFrameCatalog()
+
+    def test_import_frame_catalog_passes_correct_filename(self):
+        """
+        ImportFrameCatalog must pass catalog_file="OCM-Frame.xml" to
+        _import_lcm_native_catalog. Tests the actual payload of the
+        commit: the catalog_file kwarg routing. No live project needed.
+        (issue #81)
+        """
+        from flexlibs2.code.Notebook.AnthropologyOperations import (
+            AnthropologyOperations,
+        )
+
+        ops = AnthropologyOperations.__new__(AnthropologyOperations)
+        with mock.patch.object(
+            ops, "_import_lcm_native_catalog", return_value=None
+        ) as m:
+            ops.ImportFrameCatalog(progress=None, force=True)
+
+        m.assert_called_once_with(
+            progress=None, force=True, catalog_file="OCM-Frame.xml"
+        )

@@ -455,5 +455,113 @@ class TestLexSenseSetPartOfSpeechRegression:
                 pass
 
 
+class TestGetComplexFormsNotSubentries:
+    """
+    Regression tests for LexSenseOperations.GetComplexFormsNotSubentries.
+
+    The original bug (issue #26 / fixed in commit 5f72c55): OwnerOfClass
+    was called with an ILexEntry .NET Type object instead of the integer
+    class ID (LexEntryTags.kClassId), raising ArgumentException at runtime.
+    These tests guard against that regression. (issue #85)
+    """
+
+    def test_method_exists_on_operations_class(self):
+        """GetComplexFormsNotSubentries must be defined on LexSenseOperations."""
+        from flexlibs2.code.Lexicon.LexSenseOperations import LexSenseOperations
+        assert hasattr(LexSenseOperations, "GetComplexFormsNotSubentries")
+
+    def test_uses_kclassid_not_type_for_ownerofclass(self):
+        """
+        The fix for the ArgumentException was to pass LexEntryTags.kClassId
+        (an int) to OwnerOfClass, not an ILexEntry Type. Verify the call
+        site uses the integer constant so this regression cannot be
+        silently reintroduced.
+
+        Uses raw source-file AST parsing so this test runs without FLEx/clr.
+        """
+        import ast
+        import os
+
+        src_path = os.path.join(
+            os.path.dirname(__file__),
+            "..", "..", "flexlibs2", "code", "Lexicon", "LexSenseOperations.py"
+        )
+        with open(os.path.normpath(src_path), encoding="utf-8") as fh:
+            tree = ast.parse(fh.read())
+
+        # Find the GetComplexFormsNotSubentries method body
+        method_node = None
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef) and node.name == "GetComplexFormsNotSubentries":
+                method_node = node
+                break
+
+        assert method_node is not None, (
+            "GetComplexFormsNotSubentries not found in LexSenseOperations.py"
+        )
+
+        ownerofclass_args = []
+        for node in ast.walk(method_node):
+            if (
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Attribute)
+                and node.func.attr == "OwnerOfClass"
+            ):
+                ownerofclass_args.extend(ast.unparse(a) for a in node.args)
+
+        assert ownerofclass_args, (
+            "GetComplexFormsNotSubentries contains no OwnerOfClass call; "
+            "the filtering logic may have been removed"
+        )
+        for arg in ownerofclass_args:
+            assert "kClassId" in arg, (
+                f"OwnerOfClass called with '{arg}' instead of "
+                "LexEntryTags.kClassId — this was the original bug that "
+                "raised ArgumentException (issue #26). Use the integer "
+                "class ID, not a .NET Type object."
+            )
+
+    def test_returns_list_excluding_subentries(self, mock_flex_project):
+        """
+        When a sense's entry appears in PrimaryLexemesRS of a complex-form
+        back-ref, that back-ref must be excluded from the result.
+        """
+        from flexlibs2.code.Lexicon.LexSenseOperations import LexSenseOperations
+
+        ops = LexSenseOperations(mock_flex_project)
+
+        # Build a minimal mock sense
+        sense = Mock()
+        owner_entry = Mock()
+        owner_entry.Hvo = 100
+
+        # OwnerOfClass must return owner_entry (simulating the fixed pattern)
+        sense.OwnerOfClass = Mock(return_value=owner_entry)
+
+        # Two complex-form back-refs: one subentry (owner in PrimaryLexemesRS),
+        # one genuine complex form (owner absent from PrimaryLexemesRS).
+        subentry_ref = Mock()
+        primary_item = Mock()
+        primary_item.Hvo = 100  # matches owner_entry.Hvo
+        subentry_ref.PrimaryLexemesRS = [primary_item]
+
+        complex_ref = Mock()
+        other_item = Mock()
+        other_item.Hvo = 999
+        complex_ref.PrimaryLexemesRS = [other_item]
+
+        # Patch GetVisibleComplexFormBackRefs to return both refs
+        with patch.object(
+            ops, "GetVisibleComplexFormBackRefs", return_value=[subentry_ref, complex_ref]
+        ):
+            # Also need __GetSenseObject to return sense unchanged
+            with patch.object(ops, "_LexSenseOperations__GetSenseObject", return_value=sense):
+                result = ops.GetComplexFormsNotSubentries(sense)
+
+        assert complex_ref in result, "Genuine complex form should be included"
+        assert subentry_ref not in result, "Subentry back-ref should be excluded"
+        assert len(result) == 1
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short", "-m", "not integration"])
