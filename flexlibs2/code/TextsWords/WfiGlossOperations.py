@@ -413,8 +413,7 @@ class WfiGlossOperations(BaseOperations):
         factory = self.project.project.ServiceLocator.GetService(IWfiGlossFactory)
         duplicate = factory.Create()
 
-        # Determine insertion position
-        # MeaningsOC is unordered (OC); insert_after is a no-op, add at end
+        # MeaningsOC is unordered; always append via Add().
         parent.MeaningsOC.Add(duplicate)
 
         # Copy simple MultiString properties
