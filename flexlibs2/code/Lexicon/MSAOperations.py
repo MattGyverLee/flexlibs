@@ -261,6 +261,51 @@ class MSAOperations(BaseOperations):
         pos_obj = self.__Resolve(pos)
         stem.PartOfSpeechRA = pos_obj
 
+    @OperationsMethod
+    def SetDerivAffMsaPos(self, sense, from_pos=None, to_pos=None):
+        """
+        Update the from-POS and/or to-POS on an existing IMoDerivAffMsa
+        attached to a sense.
+
+        If the sense has no MSA, or if its MSA isn't a derivational-affix
+        MSA, raises FP_ParameterError. At least one of from_pos or to_pos
+        must be supplied.
+
+        Args:
+            sense: An ILexSense whose MSA should be updated.
+            from_pos: New IPartOfSpeech (or HVO) for the input category
+                (FromPartOfSpeechRA). Pass None to leave unchanged.
+            to_pos: New IPartOfSpeech (or HVO) for the output category
+                (ToPartOfSpeechRA). Pass None to leave unchanged.
+        """
+        self._EnsureWriteEnabled()
+        self._ValidateParam(sense, "sense")
+
+        if from_pos is None and to_pos is None:
+            raise FP_ParameterError(
+                "At least one of from_pos or to_pos must be supplied."
+            )
+
+        sense_obj = self.__ResolveSense(sense)
+        existing = sense_obj.MorphoSyntaxAnalysisRA
+        if existing is None:
+            raise FP_ParameterError(
+                "Sense has no MSA; use CreateDerivAff to create one."
+            )
+        try:
+            deriv = IMoDerivAffMsa(existing)
+        except Exception:
+            raise FP_ParameterError(
+                "Sense's existing MSA is not a derivational-affix MSA. To "
+                "change MSA type, create a new MSA with the appropriate "
+                "Create* method."
+            )
+
+        if from_pos is not None:
+            deriv.FromPartOfSpeechRA = self.__Resolve(from_pos)
+        if to_pos is not None:
+            deriv.ToPartOfSpeechRA = self.__Resolve(to_pos)
+
     # ------------------------------------------------------------------
     # Internals
     # ------------------------------------------------------------------
