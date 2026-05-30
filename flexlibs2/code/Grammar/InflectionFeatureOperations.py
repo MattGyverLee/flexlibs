@@ -999,13 +999,14 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
                     f"specs[{i}] must be a (feature, value) tuple"
                 )
             feat_in, val_in = pair
-            feat = self.__ResolveFeature(feat_in) if not isinstance(feat_in, int) else self.project.Object(feat_in)
-            val = val_in if not isinstance(val_in, int) else self.project.Object(val_in)
+            feat = self.__Unwrap(self.__ResolveFeature(feat_in) if not isinstance(feat_in, int) else self.project.Object(feat_in))
+            val = self.__Unwrap(val_in if not isinstance(val_in, int) else self.project.Object(val_in))
             normalized.append((feat, val))
 
         # Attach owner FIRST so subsequent FeatureSpecsOC mutations
         # don't trip the Phase 2 NPE pattern.
-        if not hasattr(owner, "FeaturesOA"):
+        owner_unwrapped = self.__Unwrap(owner)
+        if not hasattr(owner_unwrapped, "FeaturesOA"):
             raise FP_ParameterError(
                 "owner has no FeaturesOA property; cannot attach FsFeatStruc."
             )
@@ -1014,10 +1015,10 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
             IFsFeatStrucFactory
         )
         struct = factory.Create()
-        owner.FeaturesOA = struct
+        owner_unwrapped.FeaturesOA = struct
         # Re-fetch via the owning property to hold the LCM view of the
         # now-owned struct.
-        struct = IFsFeatStruc(owner.FeaturesOA)
+        struct = IFsFeatStruc(owner_unwrapped.FeaturesOA)
 
         # Populate FeatureSpecsOC. Each spec is an IFsClosedValue with
         # FeatureRA -> feature and ValueRA -> value.
@@ -1769,6 +1770,19 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
         feat.Name.set_String(wsHandle, mkstr_name)
         mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
         feat.Abbreviation.set_String(wsHandle, mkstr_abbr)
+
+    def __Unwrap(self, obj):
+        """
+        Peel off LCMObjectWrapper-style wrappers, if any. Plain LCM
+        objects pass through unchanged. Mirrors PhonFeatureOperations.__Unwrap
+        so that wrapper objects can be passed as feature/value/owner
+        arguments to MakeFeatStruc (issue #120).
+        """
+        if hasattr(obj, "_obj") and not hasattr(obj, "Hvo"):
+            return obj._obj
+        if hasattr(obj, "_obj") and hasattr(obj._obj, "Hvo"):
+            return obj._obj
+        return obj
 
     def __WSHandle(self, wsHandle):
         """
