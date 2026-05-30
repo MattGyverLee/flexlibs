@@ -51,14 +51,36 @@ BASELINE_SNAPSHOT_PATH = SNAPSHOTS_DIR / "liblcm_baseline.json"
 
 # --- Markers ---
 
-requires_liblcm = (
-    pytest.mark.skipif(
-        not _has_liblcm(),
-        reason="Requires FieldWorks/liblcm (pythonnet + SIL.LCModel)",
-    )
-    if not callable
-    else None
-)  # defined below
+
+def _add_fieldworks_path():
+    """
+    Add the FieldWorks install directory to sys.path so clr.AddReference
+    can find SIL.LCModel. Mirrors the bootstrap in tests/conftest.py, which
+    runs as an autouse session fixture -- too late for the module-level
+    skipif marker below, which is evaluated at collection time.
+
+    Best-effort: silently no-op if the registry/key isn't readable or if
+    pythonnet/CLR isn't on the box.
+    """
+    import sys as _sys
+
+    try:
+        import clr  # noqa: F401  # ensure pythonnet is loaded first
+        from Microsoft.Win32 import Registry
+    except Exception:
+        return
+
+    for hive in (Registry.LocalMachine, Registry.CurrentUser):
+        try:
+            key = hive.OpenSubKey(r"SOFTWARE\SIL\FieldWorks\9")
+            if key is None:
+                continue
+            code_dir = key.GetValue("RootCodeDir")
+            if code_dir and code_dir not in _sys.path:
+                _sys.path.append(code_dir)
+                return
+        except Exception:
+            continue
 
 
 def _has_liblcm():
@@ -66,6 +88,7 @@ def _has_liblcm():
     try:
         import clr
 
+        _add_fieldworks_path()
         clr.AddReference("SIL.LCModel")
         return True
     except Exception:
