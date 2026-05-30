@@ -323,8 +323,8 @@ class NoteOperations(BaseOperations):
                 source_index = parent.RepliesOS.IndexOf(source)
                 parent.RepliesOS.Insert(source_index + 1, duplicate)
             elif hasattr(parent, "AnnotationsOC"):
-                source_index = parent.AnnotationsOC.IndexOf(source)
-                parent.AnnotationsOC.Insert(source_index + 1, duplicate)
+                # AnnotationsOC is unordered (OC); insert_after is a no-op, add at end
+                parent.AnnotationsOC.Add(duplicate)
         else:
             # Insert at end
             if hasattr(parent, "RepliesOS"):

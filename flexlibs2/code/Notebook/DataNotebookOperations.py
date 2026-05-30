@@ -2538,11 +2538,8 @@ class DataNotebookOperations(BaseOperations):
         else:
             # Parent is the top-level repository
             repos = self.project.project.ServiceLocator.GetService(IRnResearchNbkRepository)
-            if insert_after:
-                source_index = repos.RecordsOC.IndexOf(source)
-                repos.RecordsOC.Insert(source_index + 1, duplicate)
-            else:
-                repos.RecordsOC.Add(duplicate)
+            # RecordsOC is unordered (OC); insert_after is a no-op, add at end
+            repos.RecordsOC.Add(duplicate)
 
         # Copy simple MultiString properties
         duplicate.Title.CopyAlternatives(source.Title)

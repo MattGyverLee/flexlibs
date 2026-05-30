@@ -401,13 +401,8 @@ class WfiGlossOperations(BaseOperations):
         duplicate = factory.Create()
 
         # Determine insertion position
-        if insert_after:
-            # Insert after source gloss
-            source_index = list(parent.MeaningsOC).index(source)
-            parent.MeaningsOC.Insert(source_index + 1, duplicate)
-        else:
-            # Insert at end
-            parent.MeaningsOC.Add(duplicate)
+        # MeaningsOC is unordered (OC); insert_after is a no-op, add at end
+        parent.MeaningsOC.Add(duplicate)
 
         # Copy simple MultiString properties
         duplicate.Form.CopyAlternatives(source.Form)

@@ -1096,15 +1096,9 @@ class DiscourseOperations(BaseOperations):
         duplicate = factory.Create()
 
         # ADD TO PARENT FIRST
-        if insert_after:
-            # Insert after source chart
-            if hasattr(parent, "ChartsOC"):
-                source_index = parent.ChartsOC.IndexOf(source)
-                parent.ChartsOC.Insert(source_index + 1, duplicate)
-        else:
-            # Insert at end
-            if hasattr(parent, "ChartsOC"):
-                parent.ChartsOC.Add(duplicate)
+        # ChartsOC is unordered (OC); insert_after is a no-op, add at end
+        if hasattr(parent, "ChartsOC"):
+            parent.ChartsOC.Add(duplicate)
 
         # Copy MultiString properties (AFTER adding to parent)
         if hasattr(source, "Name") and source.Name:

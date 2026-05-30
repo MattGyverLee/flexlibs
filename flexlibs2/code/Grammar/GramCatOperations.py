@@ -519,11 +519,8 @@ class GramCatOperations(BaseOperations):
             feature_system = self.project.lp.MsFeatureSystemOA
             factory = self.project.project.ServiceLocator.GetService(IFsFeatStrucTypeFactory)
             duplicate = factory.Create()
-            if insert_after:
-                source_index = feature_system.TypesOC.IndexOf(source)
-                feature_system.TypesOC.Insert(source_index + 1, duplicate)
-            else:
-                feature_system.TypesOC.Add(duplicate)
+            # TypesOC is unordered (OC); insert_after is a no-op, add at end
+            feature_system.TypesOC.Add(duplicate)
 
         # Copy simple MultiString properties (AFTER adding to parent)
         duplicate.Name.CopyAlternatives(source.Name)

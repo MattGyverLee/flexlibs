@@ -472,13 +472,8 @@ class WfiAnalysisOperations(BaseOperations):
         duplicate = factory.Create()
 
         # Determine insertion position
-        if insert_after:
-            # Insert after source analysis
-            source_index = list(parent.AnalysesOC).index(source)
-            parent.AnalysesOC.Insert(source_index + 1, duplicate)
-        else:
-            # Insert at end
-            parent.AnalysesOC.Add(duplicate)
+        # AnalysesOC is unordered (OC); insert_after is a no-op, add at end
+        parent.AnalysesOC.Add(duplicate)
 
         # Copy Reference Atomic (RA) properties
         if hasattr(source, "CategoryRA") and source.CategoryRA:
