@@ -12,6 +12,7 @@
 #
 
 import clr
+import warnings
 
 clr.AddReference("System")
 
@@ -329,25 +330,25 @@ class WfiGlossOperations(BaseOperations):
         else:
             gloss = gloss_or_hvo
 
-        # Get the owning analysis
-        analysis = gloss.Owner
+        # Get the owning analysis; MeaningsOC is declared on IWfiAnalysis so
+        # cast unconditionally to surface the typed collection accessor.
+        analysis = IWfiAnalysis(gloss.Owner)
 
         # Remove from analysis's Meanings collection
-        if hasattr(analysis, "MeaningsOC"):
-            analysis.MeaningsOC.Remove(gloss)
+        analysis.MeaningsOC.Remove(gloss)
 
     @OperationsMethod
-    def Duplicate(self, item_or_hvo, insert_after=True):
+    def Duplicate(self, item_or_hvo, insert_after=False):
         """
         Duplicate a wordform gloss, creating a new copy with a new GUID.
 
         Args:
             item_or_hvo: The IWfiGloss object or HVO to duplicate.
-            insert_after (bool): If True (default), insert after the source gloss.
-                                If False, insert at end of analysis's gloss list.
-            deep (bool): If True, also duplicate owned objects (if any exist).
-                        If False (default), only copy simple properties and references.
-                        Note: WfiGloss has no owned objects, so deep has no effect.
+            insert_after (bool): Deprecated and ignored. MeaningsOC is an
+                unordered ILcmOwningCollection; it has no Insert() method and
+                no concept of positional ordering. The duplicate is always
+                appended via Add(). Passing insert_after=True emits a
+                DeprecationWarning and is otherwise harmless.
 
         Returns:
             IWfiGloss: The newly created duplicate gloss with a new GUID.
@@ -374,7 +375,7 @@ class WfiGlossOperations(BaseOperations):
 
         Notes:
             - Factory.Create() automatically generates a new GUID
-            - insert_after=True preserves the original gloss's position
+            - MeaningsOC is unordered; the duplicate is appended via Add()
             - Simple properties copied: Form (MultiString in all writing systems)
             - Reference properties: None (WfiGloss has no reference properties)
             - WfiGloss has no owned objects, so deep parameter has no effect
@@ -385,6 +386,18 @@ class WfiGlossOperations(BaseOperations):
         self._EnsureWriteEnabled()
 
         self._ValidateParam(item_or_hvo, "item_or_hvo")
+
+        # Warn callers who still pass insert_after=True; MeaningsOC is an
+        # unordered ILcmOwningCollection with no Insert() method.
+        if insert_after:
+            warnings.warn(
+                "WfiGlossOperations.Duplicate: insert_after is deprecated and "
+                "ignored. MeaningsOC is an unordered ILcmOwningCollection; "
+                "positional insertion is not supported. The duplicate is always "
+                "appended via Add().",
+                DeprecationWarning,
+                stacklevel=2,
+            )
 
         # Resolve to gloss object
         if isinstance(item_or_hvo, int):
@@ -400,14 +413,8 @@ class WfiGlossOperations(BaseOperations):
         factory = self.project.project.ServiceLocator.GetService(IWfiGlossFactory)
         duplicate = factory.Create()
 
-        # Determine insertion position
-        if insert_after:
-            # Insert after source gloss
-            source_index = list(parent.MeaningsOC).index(source)
-            parent.MeaningsOC.Insert(source_index + 1, duplicate)
-        else:
-            # Insert at end
-            parent.MeaningsOC.Add(duplicate)
+        # MeaningsOC is unordered; always append via Add().
+        parent.MeaningsOC.Add(duplicate)
 
         # Copy simple MultiString properties
         duplicate.Form.CopyAlternatives(source.Form)
@@ -419,70 +426,44 @@ class WfiGlossOperations(BaseOperations):
     @OperationsMethod
     def Reorder(self, analysis_or_hvo, gloss_list):
         """
-        Reorder glosses for a wordform analysis.
+        [DEPRECATED - NO-OP] Reorder glosses for a wordform analysis.
+
+        This method is a no-op. MeaningsOC is an unordered
+        ILcmOwningCollection<IWfiGloss>; it has no concept of positional
+        ordering and its Clear() method cascade-deletes all owned objects.
+        Calling Clear() followed by Add() would permanently destroy the
+        IWfiGloss objects, which is P0 data corruption.
+
+        The method signature is preserved so that existing callers do not
+        receive AttributeError. A DeprecationWarning is emitted; no
+        collection methods are called.
 
         Args:
-            analysis_or_hvo: Either an IWfiAnalysis object or its HVO
-            gloss_list: List of IWfiGloss objects or HVOs in desired order
-
-        Raises:
-            FP_ReadOnlyError: If project is not opened with write enabled
-            FP_NullParameterError: If analysis_or_hvo or gloss_list is None
-            FP_ParameterError: If gloss_list is empty or contains invalid glosses
+            analysis_or_hvo: Either an IWfiAnalysis object or its HVO (ignored)
+            gloss_list: List of IWfiGloss objects or HVOs in desired order (ignored)
 
         Example:
-            >>> wf = project.Wordforms.Find("running")
-            >>> analyses = project.Wordforms.GetAnalyses(wf)
-            >>> if analyses:
-            ...     glosses = list(project.WfiGlosses.GetAll(analyses[0]))
-            ...     if len(glosses) > 1:
-            ...         # Reverse the order
-            ...         project.WfiGlosses.Reorder(analyses[0], reversed(glosses))
-            ...         # Verify new order
-            ...         for gloss in project.WfiGlosses.GetAll(analyses[0]):
-            ...             print(project.WfiGlosses.GetForm(gloss))
+            >>> # This call does nothing; the warning explains why.
+            >>> project.WfiGlosses.Reorder(analysis, glosses)
+            DeprecationWarning: WfiGlossOperations.Reorder is a no-op ...
 
         Notes:
-            - All glosses in gloss_list must belong to the analysis
-            - Any glosses not in gloss_list remain at the end in original order
-            - Use this to prioritize glosses for display or selection
+            - MeaningsOC is unordered; reorder has no semantic meaning.
+            - Clear() on an ILcmOwningCollection cascade-deletes all members.
+            - The previous implementation was P0 data corruption (issue #158).
 
         See Also:
             GetAll, Create
         """
-        self._EnsureWriteEnabled()
-
-        self._ValidateParam(analysis_or_hvo, "analysis_or_hvo")
-        self._ValidateParam(gloss_list, "gloss_list")
-
-        if not gloss_list:
-            raise FP_ParameterError("Gloss list cannot be empty")
-
-        # Resolve to analysis object
-        if isinstance(analysis_or_hvo, int):
-            analysis = self.project.Object(analysis_or_hvo)
-            if not isinstance(analysis, IWfiAnalysis):
-                raise FP_ParameterError("HVO does not refer to a wordform analysis")
-        else:
-            analysis = analysis_or_hvo
-
-        # Resolve HVOs to gloss objects
-        resolved_glosses = []
-        for gloss_or_hvo in gloss_list:
-            if isinstance(gloss_or_hvo, int):
-                gloss = self.project.Object(gloss_or_hvo)
-                if not isinstance(gloss, IWfiGloss):
-                    raise FP_ParameterError("HVO does not refer to a wordform gloss")
-            else:
-                gloss = gloss_or_hvo
-            resolved_glosses.append(gloss)
-
-        # Clear current glosses
-        analysis.MeaningsOC.Clear()
-
-        # Add in new order
-        for gloss in resolved_glosses:
-            analysis.MeaningsOC.Add(gloss)
+        warnings.warn(
+            "WfiGlossOperations.Reorder is a no-op: MeaningsOC is an unordered "
+            "ILcmOwningCollection and reorder has no semantic meaning. "
+            "The previous implementation called Clear() which cascade-deletes "
+            "all IWfiGloss objects (P0 data corruption, issue #158). "
+            "This method does nothing and will be removed in a future release.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
     # --- Form Management Operations ---
 

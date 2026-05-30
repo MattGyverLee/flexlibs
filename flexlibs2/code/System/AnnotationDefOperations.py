@@ -17,6 +17,7 @@ from SIL.LCModel import (
     ICmAnnotationDefnRepository,
     ICmAnnotationDefnFactory,
     ICmPossibility,
+    ICmPossibilityList,
 )
 from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
@@ -1099,7 +1100,14 @@ class AnnotationDefOperations(BaseOperations):
             if not isinstance(item_or_hvo, int)
             else ICmAnnotationDefn(self.project.Object(item_or_hvo))
         )
-        parent = source.Owner
+        # PossibilitiesOS lives on ICmPossibilityList (top-level list owner) and
+        # SubPossibilitiesOS lives on ICmAnnotationDefn (sub-item owner).
+        # Disambiguate by ClassName so pythonnet surfaces the typed accessor.
+        raw_parent = source.Owner
+        if raw_parent.ClassName == "CmPossibilityList":
+            parent = ICmPossibilityList(raw_parent)
+        else:
+            parent = ICmAnnotationDefn(raw_parent)
 
         # Create new annotation definition using factory (auto-generates new GUID)
         factory = self.project.project.ServiceLocator.GetService(ICmAnnotationDefnFactory)

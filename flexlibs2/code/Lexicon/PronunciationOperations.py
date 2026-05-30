@@ -307,7 +307,9 @@ class PronunciationOperations(BaseOperations):
 
         # Get source pronunciation and parent
         source = self.__GetPronunciationObject(item_or_hvo)
-        parent = source.Owner
+        # PronunciationsOS is declared only on ILexEntry; cast so pythonnet
+        # surfaces the typed collection accessor.
+        parent = ILexEntry(source.Owner)
 
         # Create new pronunciation using factory (auto-generates new GUID)
         factory = self.project.project.ServiceLocator.GetService(ILexPronunciationFactory)

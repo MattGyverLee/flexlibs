@@ -463,9 +463,10 @@ class WfiAnalysisOperations(BaseOperations):
         self._EnsureWriteEnabled()
         self._ValidateParam(item_or_hvo, "item_or_hvo")
 
-        # Get source analysis and parent
+        # Get source analysis and parent; AnalysesOC is declared on IWfiWordform
+        # so cast directly instead of doing a wasteful Hvo round-trip.
         source = self.__GetAnalysisObject(item_or_hvo)
-        parent = self._GetObject(source.Owner.Hvo)
+        parent = IWfiWordform(source.Owner)
 
         # Create new analysis using factory (auto-generates new GUID)
         factory = self.project.project.ServiceLocator.GetService(IWfiAnalysisFactory)

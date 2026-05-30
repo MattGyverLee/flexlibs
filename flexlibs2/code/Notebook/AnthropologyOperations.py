@@ -1716,14 +1716,18 @@ class AnthropologyOperations(BaseOperations, _LCMNativeCatalogImportMixin):
         source = self.__GetItemObject(item_or_hvo)
 
         # Determine parent (owner)
-        owner = source.Owner
+        raw_owner = source.Owner
 
         # Create new item using factory (auto-generates new GUID)
         factory = self.project.project.ServiceLocator.GetService(ICmAnthroItemFactory)
         duplicate = factory.Create()
 
         # Determine insertion position and add to parent FIRST
-        if hasattr(owner, "SubPossibilitiesOS"):
+        # SubPossibilitiesOS is declared on ICmAnthroItem; cast by ClassName so
+        # pythonnet surfaces the typed collection accessor. The top-level branch
+        # bypasses the owner entirely via lp.AnthroListOA — no cast needed there.
+        if hasattr(raw_owner, "ClassName") and raw_owner.ClassName == "CmAnthroItem":
+            owner = ICmAnthroItem(raw_owner)
             # Parent is another anthropology item
             if insert_after:
                 source_index = owner.SubPossibilitiesOS.IndexOf(source)
