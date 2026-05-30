@@ -6,6 +6,69 @@ None
 
 ## History
 
+### 2026-05-30 — /lex-lead cycle: Pattern A sweep + Category 8 doc fix + #172 BaselineText partial
+
+**Pattern A sweep — typed Owner casts (closes #166, #168, #159)** (`295f613`)
+
+14 raw `Owner` return sites across 10 files converted to properly typed casts
+(`ILexEntry(obj.Owner)`, `ILexSense(obj.Owner)`, etc.):
+
+- ExampleOperations.py, VariantOperations.py, PronunciationOperations.py,
+  LexReferenceOperations.py, LexSenseOperations.py, WfiAnalysisOperations.py,
+  WfiGlossOperations.py, WfiMorphBundleOperations.py, SegmentOperations.py,
+  ParagraphOperations.py
+
+Closes:
+- #166 HIGH — silent orphan in ExampleOperations.Duplicate (untyped Owner used
+  as parent reference, object created with wrong parent relationship)
+- #168 MEDIUM — 7 GetOwning*/GetParent* methods returning raw Owner across
+  Lexicon and TextsWords modules
+- #159 MEDIUM — Segment/Paragraph Duplicate/Split/Merge raw Owner
+
+Verification: 94 tests passing; all in-scope sites converted; out-of-scope
+siblings preserved. QC: 88/100 PASS-WITH-NOTES.
+
+**Category 8 API docs corrected (closes #173)** (`3bbbcd9`)
+
+`docs/API_ISSUES_CATEGORIZED.md` Category 8 (same-name fields with different LCM
+types):
+- Corrected the `Source` field row: field lives on `IStText`, not
+  `ICmBaseAnnotation` (verified from liblcm `InterfaceAdditions.cs:3018`).
+  Stale `ICmBaseAnnotation.Source` comments remain in BaseOperations.py:1872 and
+  LexSenseOperations.py:599 — flagged for follow-up.
+- Added new row for `ISegment.BaselineText`: `ITsString` single-WS read-only
+  computed property; backed by `IStTxtPara.Contents`; `AnalysisAdjuster`
+  re-derives segments via `ContentsSideEffects`.
+
+**#172 BaselineText read/write — 2/7 sites fixed** (`20e4a0d`, `14f8840`, `de5a173`)
+
+SegmentOperations.py:
+- `SetBaselineText` corrected to the proper write idiom: build via
+  `para.Contents.GetBldr().ReplaceTsString(begin, end, new_run)`, then assign
+  `para.Contents = bldr.GetString()` — fires `ContentsSideEffects` →
+  `AnalysisAdjuster.AdjustAnalysis`.
+- `GetSyncableProperties` BaselineText read fixed (was calling
+  `GetMultiStringDict` on an `ITsString`, which is wrong type); now uses
+  `bt.get_Properties(0).GetIntPropValues(1, 0)[0]` to extract WS handle
+  (live-verified on Sena 3, returns e.g. 999000003).
+- `None` guard added in `SetBaselineText`; `DeprecationWarning` silenced in
+  three internal callers.
+- 7 new tests (`TestGetSyncablePropertiesBaselineText`) added.
+
+Regression fix (`14f8840`): initial replacement used `bt.get_WritingSystem(0)`
+(does not exist on `ITsString`); corrected to verified idiom above.
+
+5 entangled sites (Create, Duplicate, SplitSegment, MergeSegments,
+RebuildSegments) deferred with `TODO(#174)` annotations — these methods manually
+mutate `SegmentsOS` and require architectural rework per `AnalysisAdjuster`
+contract. **#172 is NOT closed.**
+
+**New issue filed: #174** — Segment Create/SplitSegment/MergeSegments/
+RebuildSegments/Duplicate: replace manual `SegmentsOS` mutation with
+`IStTxtPara.Contents` edits.
+
+---
+
 ### 2.3.0 - 28 Feb 2026
 
 **Extended Domain Coverage Release**

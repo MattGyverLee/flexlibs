@@ -24,6 +24,54 @@ Future breaking changes go under `[Unreleased]` until the next version cut.
 
 ### Fixed
 
+#### LCM Owner Typing — Pattern A Sweep (2026-05-30)
+
+- **14 raw `Owner` return sites converted to typed casts** across 10 files in
+  the Lexicon and TextsWords modules. Untyped `Owner` references silently
+  produced wrong parent relationships in `Duplicate` operations and returned
+  objects that callers could not navigate without manual casting. All 14 sites
+  now cast to the correct interface (e.g. `ILexEntry(obj.Owner)`,
+  `ILexSense(obj.Owner)`). (closes #166, closes #168, closes #159)
+  - Affected: ExampleOperations, VariantOperations, PronunciationOperations,
+    LexReferenceOperations, LexSenseOperations, WfiAnalysisOperations,
+    WfiGlossOperations, WfiMorphBundleOperations, SegmentOperations,
+    ParagraphOperations
+
+#### API Documentation — Category 8 Correction (2026-05-30)
+
+- **`docs/API_ISSUES_CATEGORIZED.md` Category 8 corrected.** The `Source` field
+  row previously listed `ICmBaseAnnotation` as the owner; the field actually
+  lives on `IStText`. The stale `ICmBaseAnnotation.Source` is unused dead
+  interface; any code relying on it would silently return nothing. Row updated
+  to reflect the correct `IStText.Source` owner. (closes #173)
+- **`ISegment.BaselineText` entry added** to Category 8. Documents that this is
+  an `ITsString` single-WS read-only computed property (backed by
+  `IStTxtPara.Contents`) and that writing must go through the
+  `Contents`/`ContentsSideEffects`/`AnalysisAdjuster` chain, not direct segment
+  assignment.
+
+#### SegmentOperations BaselineText — Partial Fix (2026-05-30, refs #172)
+
+- **`SetBaselineText` write idiom corrected.** Was attempting direct segment
+  mutation; now uses `para.Contents.GetBldr().ReplaceTsString(begin, end,
+  new_run)` + `para.Contents = bldr.GetString()`, which fires
+  `ContentsSideEffects` and lets `AnalysisAdjuster.AdjustAnalysis` maintain
+  segment consistency.
+- **`GetSyncableProperties` BaselineText read corrected.** Was calling
+  `GetMultiStringDict` on an `ITsString` (type mismatch). Now reads the WS
+  handle via `bt.get_Properties(0).GetIntPropValues(1, 0)[0]`, verified against
+  a live Sena 3 project.
+- **Defensive `None` guard** added in `SetBaselineText`; raises
+  `FP_ParameterError` on null paragraph.
+- **`DeprecationWarning` silenced** in three `SplitSegment`/`MergeSegments`
+  internal callers that were passing a deprecated `ws` argument to
+  `GetBaselineText`.
+- 7 new regression tests (`TestGetSyncablePropertiesBaselineText`) added to
+  `tests/test_segment_baseline_text.py`.
+- Note: 5 entangled methods (Create, Duplicate, SplitSegment, MergeSegments,
+  RebuildSegments) still manually mutate `SegmentsOS`; these require
+  architectural rework tracked at #174. **#172 remains open.**
+
 This section will accumulate non-breaking fixes that ship before the next version cut.
 
 ---
