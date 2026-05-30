@@ -682,7 +682,11 @@ def _patch_infl_ops_lcm(raw_features):
                              equals raw._name_text
       - ITsString(ts)     -> returns ts  (pass-through; Name.get_String already
                              returns an object with .Text set)
-      - TsStringUtils.MakeString(text, ws) -> Mock with .Text = text
+      - TsStringUtils     -> MagicMock whose .MakeString(text, ws) returns a
+                             Mock with .Text = text. Patching the module-level
+                             binding rather than .MakeString directly is
+                             required because TsStringUtils is a CLR class
+                             and its members are read-only at the .NET level.
     """
     from unittest.mock import Mock, patch, MagicMock
 
@@ -704,11 +708,14 @@ def _patch_infl_ops_lcm(raw_features):
         m.Text = text
         return m
 
+    ts_string_utils_stub = MagicMock()
+    ts_string_utils_stub.MakeString = Mock(side_effect=_makestring)
+
     target = "flexlibs2.code.Grammar.InflectionFeatureOperations"
     patches = [
         patch(f"{target}.IFsFeatDefn", side_effect=_ifsfeatdefn),
         patch(f"{target}.ITsString", side_effect=_itsstring),
-        patch(f"{target}.TsStringUtils.MakeString", side_effect=_makestring),
+        patch(f"{target}.TsStringUtils", new=ts_string_utils_stub),
     ]
     return patches
 
@@ -846,9 +853,11 @@ class TestInflectionFeaturesMock:
         ops = self._get_ops(project)
 
         target = "flexlibs2.code.Grammar.InflectionFeatureOperations"
+        ts_string_utils_stub = MagicMock()
+        ts_string_utils_stub.MakeString = Mock(side_effect=lambda t, ws: Mock(Text=t))
         with patch(f"{target}.IFsFeatDefn", side_effect=lambda r: r), \
              patch(f"{target}.ITsString", side_effect=lambda t: t), \
-             patch(f"{target}.TsStringUtils.MakeString", side_effect=lambda t, ws: Mock(Text=t)), \
+             patch(f"{target}.TsStringUtils", new=ts_string_utils_stub), \
              patch(f"{target}.IFsClosedFeature", side_effect=lambda r: r), \
              patch(f"{target}.IFsClosedFeatureFactory", MagicMock()):
             result = ops.Create("gender", "gend", type="closed")
@@ -935,10 +944,12 @@ class TestInflectionFeaturesMock:
         ops = self._get_ops(project)
 
         target = "flexlibs2.code.Grammar.InflectionFeatureOperations"
+        ts_string_utils_stub = MagicMock()
+        ts_string_utils_stub.MakeString = Mock(side_effect=lambda t, ws: Mock(Text=t))
         with patch(f"{target}.IFsClosedFeature", side_effect=lambda r: r), \
              patch(f"{target}.IFsSymFeatVal", side_effect=lambda r: r), \
              patch(f"{target}.IFsSymFeatValFactory", MagicMock()), \
-             patch(f"{target}.TsStringUtils.MakeString", side_effect=lambda t, ws: Mock(Text=t)):
+             patch(f"{target}.TsStringUtils", new=ts_string_utils_stub):
             result = ops.CreateValue(feature_mock, "masculine", "m")
 
         assert result is not None
