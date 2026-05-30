@@ -19,6 +19,7 @@ from . import FLExLCM
 
 from subprocess import Popen, DETACHED_PROCESS
 from .FLExGlobals import FWExecutable
+from . import FLExGlobals
 
 from .exceptions import (
     FP_ProjectError,
@@ -34,6 +35,7 @@ from .exceptions import (
 )
 
 import logging
+import os
 import clr
 
 from .Shared.string_utils import normalize_ws_handle
@@ -89,6 +91,7 @@ from SIL.LCModel.Infrastructure import (
 from SIL.LCModel.Core.KernelInterfaces import ITsString, ITsStrBldr
 from SIL.LCModel.Core.Text import TsStringUtils
 from SIL.LCModel.Utils import WorkerThreadException, ReflectionHelper
+from SIL.LCModel.Application.ApplicationServices import XmlTranslatedLists
 from SIL.FieldWorks.Common.FwUtils import (
     StartupException,
     FwAppArgs,
@@ -465,22 +468,10 @@ class FLExProject(object):
             raise FP_NullParameterError()
         if not isinstance(language_code, str) or not language_code.strip():
             raise FP_ParameterError(
-                "ImportLocalizedLists: language_code must be a non-empty "
-                f"string, got {language_code!r}"
+                f"language_code must be a non-empty string, got {language_code!r}"
             )
         if not self.writeEnabled:
             raise FP_ReadOnlyError()
-
-        # LOCAL imports: match the catalog-import pattern -- LCM types
-        # live behind a FieldWorks-only dependency, and the catalog
-        # helpers carry a runtime check that we want to defer to call
-        # time, not module load.
-        import os
-        from SIL.LCModel.Application.ApplicationServices import (
-            XmlTranslatedLists,
-        )
-        from . import FLExGlobals
-        from .exceptions import FP_FileNotFoundError
 
         if FLExGlobals.FWCodeDir is None:
             raise FP_FileNotFoundError(
@@ -506,38 +497,46 @@ class FLExProject(object):
                 ),
             )
 
-        XmlTranslatedLists.ImportTranslatedListsForWs(
-            language_code,
-            self.project,
-            templates_dir,
-            progress,
-        )
+        with self.Transaction(f"ImportLocalizedLists({language_code!r})"):
+            XmlTranslatedLists.ImportTranslatedListsForWs(
+                language_code,
+                self.project,
+                templates_dir,
+                progress,
+            )
 
     def ImportLocalizedListsForEnabledWS(self, progress=None):
         """
-        Import LocalizedLists translation packs for every enabled
-        analysis writing system, skipping any WS whose ZIP is not
-        present.
+        Import LocalizedLists translation packs for every writing system
+        in ``CurrentAnalysisWritingSystems`` whose ``IcuLocale`` matches
+        a shipping ``LocalizedLists-<IcuLocale>.zip``, skipping any WS
+        whose ZIP is absent.
+
+        Iterates ``project.ServiceLocator.WritingSystems
+        .CurrentAnalysisWritingSystems`` and dispatches
+        ``ImportLocalizedLists(ws.IcuLocale)`` for each entry. WSes
+        whose ``IcuLocale`` does not map to a shipping ZIP are silently
+        skipped (best-effort); WSes with an empty ``IcuLocale`` are
+        also skipped with a logged warning.
 
         Convenience wrapper over ``ImportLocalizedLists`` that closes
         the typical post-ImportCatalog gap: a user enables an analysis
         WS (Portuguese, French, ...), runs ``SemanticDomains
         .ImportCatalog`` and then expects the catalog items to carry
         translations for every WS they've enabled. This method handles
-        the loop and the "no shipping ZIP" case (best-effort skip).
+        the loop and the "no shipping ZIP" case.
 
         Mirrors FLEx UI behavior at a coarser grain: in the GUI the
         user explicitly picks each language to translate. Here, the
-        wrapper assumes "every enabled analysis WS that has a shipping
-        translation pack" is the intent, and the user can use
-        ``ImportLocalizedLists(code)`` directly if they want finer
-        control.
+        wrapper assumes "every enabled analysis WS whose IcuLocale has a
+        shipping translation pack" is the intent, and the user can use
+        ``ImportLocalizedLists(code)`` directly for finer control.
 
         Important: this does NOT back-fill translations for analysis
-        WSes that get enabled AFTER catalog content is added. Match
-        FLEx's behavior -- the user must explicitly re-invoke this
-        method (or ``ImportLocalizedLists`` for the new WS) after
-        enabling additional analysis WSes.
+        WSes that get enabled AFTER catalog content is added. The user
+        must explicitly re-invoke this method (or
+        ``ImportLocalizedLists`` for the new WS) after enabling
+        additional analysis WSes.
 
         Args:
             progress: Optional ``SIL.LCModel.Utils.IProgress`` instance
@@ -561,24 +560,41 @@ class FLExProject(object):
         if not self.writeEnabled:
             raise FP_ReadOnlyError()
 
-        from .exceptions import FP_FileNotFoundError
-
         applied = []
         analysis_ws_list = (
             self.project.ServiceLocator.WritingSystems
             .CurrentAnalysisWritingSystems
         )
+        templates_dir = (
+            os.path.join(FLExGlobals.FWCodeDir, "Templates")
+            if FLExGlobals.FWCodeDir
+            else None
+        )
         for ws in analysis_ws_list:
-            # IcuLocale matches the LocalizedLists-XX.zip naming
-            # FieldWorks uses for translation packs.
             code = ws.IcuLocale
             if not code:
+                logger.warning(
+                    "ImportLocalizedListsForEnabledWS: skipping WS with "
+                    "empty IcuLocale (hvo=%s)", getattr(ws, "Hvo", "?")
+                )
                 continue
+            # Validate that a matching ZIP exists before attempting the
+            # import. LocalizedLists-<IcuLocale>.zip must exist in the
+            # Templates directory; if not, skip with a warning.
+            if templates_dir is not None:
+                expected_zip = os.path.join(
+                    templates_dir, f"LocalizedLists-{code}.zip"
+                )
+                if not os.path.isfile(expected_zip):
+                    logger.warning(
+                        "ImportLocalizedListsForEnabledWS: no translation "
+                        "pack for %r (expected %s); skipping",
+                        code, expected_zip,
+                    )
+                    continue
             try:
                 self.ImportLocalizedLists(code, progress=progress)
             except FP_FileNotFoundError:
-                # No translation pack ships for this WS; matches the
-                # "best-effort skip" contract from the docstring.
                 continue
             applied.append(code)
         return applied

@@ -94,6 +94,7 @@ class AnthropologyOperations(BaseOperations, _LCMNativeCatalogImportMixin):
     # ImportCatalog delegates to XmlList.ImportList via the mixin's
     # _import_lcm_native_catalog helper. See catalog_backed.py.
     CATALOG_FILE = "OCM.xml"
+    FRAME_CATALOG_FILE = "OCM-Frame.xml"
     CATALOG_SUBDIR = "Templates"
     LCM_FIELD_NAME = "AnthroList"
     LANG_PROJECT_LIST_ATTR = "AnthroListOA"
@@ -1868,15 +1869,15 @@ class AnthropologyOperations(BaseOperations, _LCMNativeCatalogImportMixin):
     @OperationsMethod
     def ImportFrameCatalog(self, progress=None, force=False):
         """
-        Import the OCM-Frame sibling catalog into this project.
+        Import the OCM-Frame catalog into this project.
 
-        ``OCM-Frame.xml`` is the framework variant of the OCM
-        anthropology catalog (ships alongside ``OCM.xml`` under
-        ``<FWCodeDir>/Templates/``). It targets the same
-        ``LangProject.AnthroListOA`` list, so the typical usage is
-        ``ImportCatalog()`` first (main OCM) followed by
-        ``ImportFrameCatalog(force=True)`` to layer the framework
-        entries on top.
+        ``OCM-Frame.xml`` is an alternative complete anthropology
+        catalog that ships alongside ``OCM.xml`` under
+        ``<FWCodeDir>/Templates/``. It targets the same
+        ``LangProject.AnthroListOA`` list but carries a different set
+        of items: 116 GUIDs present in OCM-Frame are absent from OCM,
+        so the two catalogs are NOT additive layers -- use one or the
+        other as the primary catalog for a given project.
 
         Same XmlList.ImportList plumbing, same non-empty-list guard,
         same caveats around appending without GUID deduplication. See
@@ -1915,7 +1916,7 @@ class AnthropologyOperations(BaseOperations, _LCMNativeCatalogImportMixin):
             catalog import and verify counts. (issue #82)
         """
         return self._import_lcm_native_catalog(
-            progress=progress, force=force, catalog_file="OCM-Frame.xml"
+            progress=progress, force=force, catalog_file=self.FRAME_CATALOG_FILE
         )
 
     # ========== SYNC INTEGRATION METHODS ==========

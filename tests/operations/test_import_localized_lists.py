@@ -23,6 +23,7 @@
 
 import inspect
 import sys
+from unittest.mock import patch
 
 import pytest
 
@@ -190,20 +191,12 @@ class TestImportLocalizedListsForEnabledWS:
 
         def _recording_stub(self_arg, language_code, progress=None):
             # Capture what the enumerator dispatched; do NOT touch LCM.
-            # First positional is the FLExProject instance because we
-            # bound this onto the class via descriptor protocol.
             recorded_calls.append(language_code)
 
-        # Snapshot the real bound method so we can put it back even
-        # if the assertions throw mid-test.
         flex_project_obj = writable_project
-        real = type(flex_project_obj).ImportLocalizedLists
-
-        type(flex_project_obj).ImportLocalizedLists = _recording_stub
-        try:
+        target = f"{type(flex_project_obj).__module__}.{type(flex_project_obj).__qualname__}.ImportLocalizedLists"
+        with patch(target, _recording_stub):
             result = flex_project_obj.ImportLocalizedListsForEnabledWS()
-        finally:
-            type(flex_project_obj).ImportLocalizedLists = real
 
         assert isinstance(result, list), (
             f"Enumerator must return list, got {type(result).__name__}"
