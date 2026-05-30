@@ -117,6 +117,59 @@ See [CLAUDE.md](../CLAUDE.md) for more details on FLEx conventions and data hand
 
 ---
 
+## v2 to v3 Migration
+
+FlexLibs2 v3.0.0 (April 7, 2026) introduced two breaking changes. If you are upgrading from
+any v2.x release, check both sections below.
+
+### 1. Removed: `project.Reversal` API
+
+The bundled `project.Reversal` namespace was removed entirely. Replace each call with the
+equivalent modular API:
+
+| v2.x (removed) | v3.0 replacement |
+|---|---|
+| `project.Reversal.GetAllIndexes()` | `project.ReversalIndexes.GetAll()` |
+| `project.Reversal.GetAll(index)` | `project.ReversalEntries.GetAll(index)` |
+| `project.Reversal.GetForm(entry)` | `project.ReversalEntries.GetForm(entry)` |
+| `project.Reversal.SetForm(entry, text)` | `project.ReversalEntries.SetForm(entry, text)` |
+| `project.Reversal.Create(index, form, ws)` | `project.ReversalEntries.Create(index, form, ws)` |
+| `project.Reversal.AddSense(entry, sense)` | `project.ReversalEntries.AddSense(entry, sense)` |
+| `project.ReversalIndex(ws)` | `project.ReversalIndexes.Find(ws)` |
+
+**Before (v2.x):**
+```python
+for index in project.Reversal.GetAllIndexes():
+    ws = index.WritingSystem
+    for entry in project.Reversal.GetAll(index):
+        print(project.Reversal.GetForm(entry))
+```
+
+**After (v3.0):**
+```python
+for index in project.ReversalIndexes.GetAll():
+    ws = index.WritingSystem
+    for entry in project.ReversalEntries.GetAll(index):
+        print(project.ReversalEntries.GetForm(entry))
+```
+
+See [REVERSAL_API_MIGRATION.md](REVERSAL_API_MIGRATION.md) for the complete 20-method table
+and additional code examples.
+
+### 2. Lists Consolidation (GROUP 8)
+
+`AgentOperations`, `PublicationOperations`, `TranslationTypeOperations`, and `OverlayOperations`
+now inherit from `PossibilityItemOperations`. For most callers **no code changes are needed** —
+the same CRUD methods are available under the same names.
+
+Known caveats:
+- `AgentOperations` (#54) and `OverlayOperations` (#149) have partial parent-class fit problems;
+  a small number of inherited methods may not function correctly in edge cases.
+
+See [RELEASE_v3_0_0.md](RELEASE_v3_0_0.md) for the full consolidation table and change details.
+
+---
+
 # v2.4 → v2.5 Migration
 
 ## Breaking Change: `flat=` → `recursive=` on hierarchical-list `GetAll`
