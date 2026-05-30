@@ -275,8 +275,17 @@ class SegmentOperations(BaseOperations):
         segment_obj = self.__GetSegmentObject(segment_or_hvo)
         ws = self.__WSHandleVern(wsHandle)
 
-        mkstr = TsStringUtils.MakeString(text, ws)
-        segment_obj.BaselineText.set_String(ws, mkstr)
+        # ISegment.BaselineText is a read-only ITsString backed by IStTxtPara.Contents.
+        # The correct write idiom is to edit the paragraph Contents via a TsStrBldr;
+        # ContentsSideEffects then fires AnalysisAdjuster.AdjustAnalysis which reconciles
+        # segment offsets automatically.  set_String() on a computed ITsString is a no-op.
+        para = segment_obj.Paragraph
+        begin = segment_obj.BeginOffset
+        end = segment_obj.EndOffset
+        bldr = para.Contents.GetBldr()
+        new_run = TsStringUtils.MakeString(text, ws)
+        bldr.ReplaceTsString(begin, end, new_run)
+        para.Contents = bldr.GetString()
 
     @OperationsMethod
     def GetFreeTranslation(self, segment_or_hvo, wsHandle=None):
@@ -515,6 +524,12 @@ class SegmentOperations(BaseOperations):
         factory = self.project.project.ServiceLocator.GetService(ISegmentFactory)
         segment = factory.Create()
 
+        # TODO(#174): see issue #174 -- SegmentsOS architectural rework.
+        # Manually adding to SegmentsOS and then calling set_String() on the
+        # computed read-only ITsString BaselineText is incorrect.  The correct
+        # idiom is to append the text to IStTxtPara.Contents so that
+        # ContentsSideEffects triggers AnalysisAdjuster.AdjustAnalysis.
+
         # Add to paragraph's segments collection
         para_obj.SegmentsOS.Add(segment)
 
@@ -628,6 +643,12 @@ class SegmentOperations(BaseOperations):
         if owner is None:
             raise FP_ParameterError("Segment has no valid owner paragraph")
 
+        # TODO(#174): see issue #174 -- SegmentsOS architectural rework.
+        # Manually adding to SegmentsOS and then calling CopyAlternatives() on the
+        # computed read-only ITsString BaselineText is incorrect (CopyAlternatives is
+        # an IMultiString method).  Duplication should be driven by editing
+        # IStTxtPara.Contents so that AnalysisAdjuster.AdjustAnalysis manages segments.
+
         # Create the new segment (factory + add to parent)
         factory = self.project.project.ServiceLocator.GetService(ISegmentFactory)
         new_segment = factory.Create()
@@ -698,10 +719,14 @@ class SegmentOperations(BaseOperations):
         """
         props = {}
 
-        # MultiString properties
+        # BaselineText is ITsString (single-WS, read-only computed from para Contents).
+        # GetMultiStringDict() expects IMultiString; use get_WritingSystem(0) instead.
         if hasattr(item, "BaselineText") and item.BaselineText:
-            props["BaselineText"] = self.project.GetMultiStringDict(item.BaselineText)
+            bt = item.BaselineText
+            ws_handle = bt.get_WritingSystem(0)
+            props["BaselineText"] = {ws_handle: bt.Text or ""}
 
+        # FreeTranslation and LiteralTranslation are genuine IMultiString fields.
         if hasattr(item, "FreeTranslation") and item.FreeTranslation:
             props["FreeTranslation"] = self.project.GetMultiStringDict(item.FreeTranslation)
 
@@ -881,6 +906,13 @@ class SegmentOperations(BaseOperations):
         segments_list = list(owner.SegmentsOS)
         segment_index = segments_list.index(segment_obj)
 
+        # TODO(#174): see issue #174 -- SegmentsOS architectural rework.
+        # Manually inserting into SegmentsOS and then calling set_String() on the
+        # computed read-only ITsString BaselineText is incorrect.  The correct idiom
+        # is to edit IStTxtPara.Contents (insert a sentence boundary) so that
+        # ContentsSideEffects triggers AnalysisAdjuster.AdjustAnalysis which splits
+        # the segment automatically.
+
         # Create factory for new segments
         factory = self.project.project.ServiceLocator.GetService(ISegmentFactory)
 
@@ -983,6 +1015,13 @@ class SegmentOperations(BaseOperations):
 
         # Merge with a space between
         merged_text = f"{text1} {text2}"
+
+        # TODO(#174): see issue #174 -- SegmentsOS architectural rework.
+        # Manually inserting into SegmentsOS and then calling set_String() on the
+        # computed read-only ITsString BaselineText is incorrect.  The correct idiom
+        # is to remove the sentence boundary from IStTxtPara.Contents so that
+        # ContentsSideEffects triggers AnalysisAdjuster.AdjustAnalysis which merges
+        # the segment automatically.
 
         # Create merged segment
         factory = self.project.project.ServiceLocator.GetService(ISegmentFactory)
@@ -1336,6 +1375,13 @@ class SegmentOperations(BaseOperations):
             para_text = ""
 
         # Clear existing segments
+        # TODO(#174): see issue #174 -- SegmentsOS architectural rework.
+        # Manually clearing SegmentsOS, creating factory segments, and then calling
+        # set_String() on the computed read-only ITsString BaselineText is incorrect.
+        # The correct idiom is to assign a new value to IStTxtPara.Contents (built from
+        # the desired sentence strings) and let ContentsSideEffects trigger
+        # AnalysisAdjuster.AdjustAnalysis to rebuild segments.
+
         if hasattr(para_obj, "SegmentsOS"):
             para_obj.SegmentsOS.Clear()
 
