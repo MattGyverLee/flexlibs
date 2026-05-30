@@ -36,6 +36,8 @@ from .exceptions import (
 import logging
 import clr
 
+from .Shared.string_utils import normalize_ws_handle
+
 clr.AddReference("System")
 import System
 
@@ -3130,14 +3132,17 @@ class FLExProject(object):
     #  Private writing system utilities
 
     def __WSHandle(self, languageTagOrHandle, defaultWS):
-        if languageTagOrHandle == None:
+        if languageTagOrHandle is None:
             handle = defaultWS
         else:
             # print "Specified ws =", languageTagOrHandle
             if isinstance(languageTagOrHandle, str):
                 handle = self.WSHandle(languageTagOrHandle)
             else:
-                handle = languageTagOrHandle
+                # Coerce CoreWritingSystemDefinition (or any object with .Handle)
+                # to int so callers can pass WS objects from project.WritingSystems
+                # without a confusing pythonnet TypeError.  See issue #171.
+                handle = normalize_ws_handle(languageTagOrHandle)
         if not handle:
             raise FP_WritingSystemError(languageTagOrHandle)
         return handle

@@ -83,6 +83,52 @@ def normalize_match_key(text, casefold=True):
     return text
 
 
+def normalize_ws_handle(ws):
+    """
+    Normalize a writing-system argument to an integer handle.
+
+    LCM methods such as ``ITsMultiString.get_String`` require a plain
+    ``int`` handle.  Users naturally obtain writing-system objects from
+    ``project.WritingSystems`` (``CoreWritingSystemDefinition``) or pass
+    an int they already have.  This helper smooths over both cases so
+    wrappers don't expose a confusing pythonnet ``TypeError`` when the
+    caller passes an object instead of a raw handle.
+
+    Args:
+        ws: An ``int`` handle, a ``CoreWritingSystemDefinition`` (or any
+            object that exposes a ``.Handle`` attribute returning an
+            ``int``), or ``None``.
+
+    Returns:
+        ``int`` handle, or ``None`` if ``ws`` is ``None``.
+
+    Raises:
+        TypeError: If ``ws`` is not ``None``, not an ``int``, and has no
+            ``.Handle`` attribute.
+
+    Example:
+        >>> from flexlibs2.code.Shared.string_utils import normalize_ws_handle
+        >>> normalize_ws_handle(123)
+        123
+        >>> normalize_ws_handle(None) is None
+        True
+        >>> # CoreWritingSystemDefinition object with .Handle == 1
+        >>> normalize_ws_handle(ws_def)
+        1
+    """
+    if ws is None:
+        return None
+    if isinstance(ws, int):
+        return ws
+    handle = getattr(ws, "Handle", None)
+    if handle is not None:
+        return int(handle)
+    raise TypeError(
+        f"Unsupported writing-system argument type: {type(ws).__name__}. "
+        "Pass an int handle or a CoreWritingSystemDefinition object."
+    )
+
+
 def is_empty_text(text):
     """
     Check if a text value from LCM is empty (None, empty string, or '***').
