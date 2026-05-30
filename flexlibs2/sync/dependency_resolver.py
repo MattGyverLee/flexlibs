@@ -269,8 +269,8 @@ class DependencyResolver:
             if property_name.endswith("OA"):
                 owned.append((prop_value, owned_type))
 
-            # Handle collection of owned objects (OS suffix)
-            elif property_name.endswith("OS") or property_name.endswith("RC") or property_name.endswith("RS"):
+            # Handle collection of owned objects (OS/OC suffix)
+            elif property_name.endswith("OS") or property_name.endswith("OC"):
                 try:
                     for owned_obj in prop_value:
                         owned.append((owned_obj, owned_type))
