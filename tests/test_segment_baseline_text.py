@@ -128,8 +128,10 @@ class TestGetBaselineTextBody:
         """
         seg = _make_old_segment("ignored")
         with pytest.raises(AttributeError):
-            # Directly replicate the pre-fix call: .get_String(ws)
-            _ = seg.BaselineText.Text  # AttributeError: no .Text attribute
+            # Accessing .Text on the old-style stub (which has no .Text) raises
+            # AttributeError, confirming the old stubs are incompatible with the
+            # new-style access pattern.
+            _ = seg.BaselineText.Text
 
     def test_deprecation_warning_fired_when_ws_handle_passed(self):
         """
@@ -296,14 +298,6 @@ class TestGetSyncablePropertiesBaselineText:
         """
         from unittest.mock import MagicMock
 
-        bt = MagicMock(spec=[])  # spec=[] means NO attributes allowed by default
-        # Allow only the attributes/methods the correct implementation uses.
-        bt.Text = "hello"
-        type(bt).Text = property(lambda self: "hello")
-
-        # We cannot use spec=[] for a MagicMock and also set attributes easily,
-        # so instead verify via the call record that get_WritingSystem was never
-        # called on the full mock used in the other tests.
         full_bt = MagicMock()
         full_bt.Text = "hello"
         full_bt.get_Properties.return_value.GetIntPropValues.return_value = (99, 0)

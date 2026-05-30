@@ -280,6 +280,8 @@ class SegmentOperations(BaseOperations):
         # ContentsSideEffects then fires AnalysisAdjuster.AdjustAnalysis which reconciles
         # segment offsets automatically.  set_String() on a computed ITsString is a no-op.
         para = segment_obj.Paragraph
+        if para is None:
+            raise FP_ParameterError("Segment has no owning paragraph; cannot write BaselineText")
         begin = segment_obj.BeginOffset
         end = segment_obj.EndOffset
         bldr = para.Contents.GetBldr()
@@ -892,7 +894,7 @@ class SegmentOperations(BaseOperations):
 
         # Get baseline text and writing system
         ws = self.__WSHandleVern(None)
-        baseline_text = self.GetBaselineText(segment_obj, ws)
+        baseline_text = self.GetBaselineText(segment_obj)
 
         if position >= len(baseline_text):
             raise FP_ParameterError(f"position {position} is beyond text length {len(baseline_text)}")
@@ -1012,8 +1014,8 @@ class SegmentOperations(BaseOperations):
 
         # Get baseline texts
         ws = self.__WSHandleVern(None)
-        text1 = self.GetBaselineText(segment1, ws)
-        text2 = self.GetBaselineText(segment2, ws)
+        text1 = self.GetBaselineText(segment1)
+        text2 = self.GetBaselineText(segment2)
 
         # Merge with a space between
         merged_text = f"{text1} {text2}"
