@@ -110,6 +110,7 @@ class TestWfiMorphBundleGlossContract:
         # resolver that this test sidesteps by patching with a passthrough.
         class _MockBundle:
             SenseRA = None  # the case under test
+            MsaRA = None  # fully-unlinked bundle: no grammatical-morpheme fallback either
 
         captured = {}
 
