@@ -19,7 +19,11 @@
       "Bash(findstr /I \"sense\")",
       "Bash(git -C \"d:\\\\Github\\\\_Projects\\\\_LEX\\\\flexlibs2\" show fd4a2d0 --stat)",
       "PowerShell(& 'D:\\\\Apps\\\\anaconda3\\\\python.exe' -m pytest tests/test_affix_template_wrappers.py tests/test_annotation_wrappers.py tests/test_prohibition_wrappers.py --collect-only 2>&1)",
-      "PowerShell(Get-ChildItem $HOME\\\\.claude\\\\skills -Directory | Select-Object Name; \"---\"; Get-ChildItem $HOME\\\\.claude\\\\skills -File -ErrorAction SilentlyContinue | Select-Object Name -First 20)"
+      "PowerShell(Get-ChildItem $HOME\\\\.claude\\\\skills -Directory | Select-Object Name; \"---\"; Get-ChildItem $HOME\\\\.claude\\\\skills -File -ErrorAction SilentlyContinue | Select-Object Name -First 20)",
+      "Read(//c/Users/thoua/.claude/commands/**)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Read(//c/Program Files/SIL/FieldWorks 9/**)"
     ]
   }
 }
