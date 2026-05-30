@@ -163,13 +163,9 @@ class WordformOperations(BaseOperations):
 
         wsHandle = self.__WSHandle(wsHandle)
 
-        # Get the factory and create the wordform
+        # Factory.Create() owns the wordform automatically in FLEx 9 LCM
         factory = self.project.project.ServiceLocator.GetService(IWfiWordformFactory)
         new_wf = factory.Create()
-
-        # Add to wordform inventory (must be done before setting properties)
-        wordform_inventory = self.project.lp.WordformInventoryOA
-        wordform_inventory.WordformsOC.Add(new_wf)
 
         # Set the form
         mkstr = TsStringUtils.MakeString(form, wsHandle)
@@ -212,9 +208,8 @@ class WordformOperations(BaseOperations):
         else:
             wordform = wordform_or_hvo
 
-        # Remove from wordform inventory
-        wordform_inventory = self.project.lp.WordformInventoryOA
-        wordform_inventory.WordformsOC.Remove(wordform)
+        # LCM Delete() removes the object from the repository
+        wordform.Delete()
 
     @OperationsMethod
     def Exists(self, form, wsHandle=None):
@@ -809,11 +804,7 @@ class WordformOperations(BaseOperations):
         factory = self.project.project.ServiceLocator.GetService(IWfiWordformFactory)
         duplicate = factory.Create()
 
-        # ADD TO PARENT FIRST (wordform inventory)
-        wordform_inventory = self.project.lp.WordformInventoryOA
-        wordform_inventory.WordformsOC.Add(duplicate)
-
-        # Copy MultiString properties (AFTER adding to parent)
+        # Copy MultiString properties
         duplicate.Form.CopyAlternatives(source.Form)
 
         # Copy simple properties
