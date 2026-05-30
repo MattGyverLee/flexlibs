@@ -531,20 +531,15 @@ class Annotation(LCMObjectWrapper):
 
         Notes:
             - Used internally for text property access
-            - Tries to get from project, defaults to hardcoded analysis WS
+            - Reads from LcmCache.DefaultAnalWs (the authoritative WS handle)
         """
-        try:
-            # Try to get from the object's owner's project
-            if hasattr(self._obj, "OwnerOfClass"):
-                owner_class = self._obj.OwnerOfClass
-                if hasattr(owner_class, "project"):
-                    proj = owner_class.project
-                    if hasattr(proj, "DefaultAnalWs"):
-                        return proj.DefaultAnalWs
-            # Fallback to hardcoded analysis WS (typically -1 or similar)
-            return -1
-        except Exception:
-            return -1
+        # self._obj.Cache is the LcmCache; Cache.DefaultAnalWs is the
+        # established accessor (same pattern used in phonological_rule.py,
+        # affix_template.py, compound_rule.py after d2a20fa).
+        # The previous code read OwnerOfClass as a bare attribute (returning
+        # the bound method object), then tried .project.DefaultAnalWs on it;
+        # bare-except swallowed the AttributeError and returned -1 every time.
+        return self._obj.Cache.DefaultAnalWs
 
     def __repr__(self):
         """String representation showing annotation type and content preview."""

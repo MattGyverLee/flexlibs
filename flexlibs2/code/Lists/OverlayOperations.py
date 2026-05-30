@@ -24,6 +24,13 @@ from SIL.LCModel import (
     ICmPossibilityFactory,
 )
 
+try:
+    from SIL.LCModel import DsConstChartTags
+except ImportError:
+    # Mock for testing without FieldWorks installed
+    class DsConstChartTags:
+        kClassId = 0
+
 from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
 
@@ -408,14 +415,20 @@ class OverlayOperations(PossibilityItemOperations):
 
         overlay = self._PossibilityItemOperations__ResolveObject(overlay_or_hvo)
 
-        # Chart reference is typically in a link or parent reference
+        # Direct-reference fast path: if a future LCM version exposes ChartRA
+        # or Chart as a direct property, prefer it over walking ownership.
         if hasattr(overlay, "ChartRA"):
             return overlay.ChartRA
         elif hasattr(overlay, "Chart"):
             return overlay.Chart
-        elif hasattr(overlay, "OwnerOfClass"):
-            return overlay.OwnerOfClass
-        return None
+        # Per issue #149: ICmOverlay is owned per-chart via
+        # IDsConstChart.OverlaysOC (LcmOwningCollection<ICmOverlay>), not via a
+        # project-wide DsDiscourseData list.  Walk the ownership chain to find
+        # the enclosing IDsConstChart ancestor.
+        chart_lcm = overlay.OwnerOfClass(DsConstChartTags.kClassId)
+        if chart_lcm is None:
+            return None
+        return IDsConstChart(chart_lcm) if IDsConstChart is not None else chart_lcm
 
     @OperationsMethod
     def GetPossItems(self, overlay_or_hvo):

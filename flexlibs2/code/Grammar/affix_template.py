@@ -59,6 +59,14 @@ Example::
 from ..Shared.wrapper_base import LCMObjectWrapper
 from ..lcm_casting import cast_to_concrete
 
+try:
+    from SIL.LCModel import IPartOfSpeech, PartOfSpeechTags
+except ImportError:
+    # Mock for testing without FieldWorks installed
+    IPartOfSpeech = None
+    class PartOfSpeechTags:
+        kClassId = 0
+
 
 class AffixTemplate(LCMObjectWrapper):
     """
@@ -388,13 +396,17 @@ class AffixTemplate(LCMObjectWrapper):
             if wrapped.owner_pos:
                 print(f"Template for POS: {wrapped.owner_pos.Name}")
         """
-        try:
-            if hasattr(self._concrete, "OwnerOfClass"):
-                owner = self._concrete.OwnerOfClass
-                return owner
+        # OwnerOfClass is an LCM method requiring an Int32 class ID argument.
+        # The previous code read it as a bare attribute (returning the bound
+        # method object) and the hasattr guard was always True (every ICmObject
+        # has OwnerOfClass), so the caller always received a method object
+        # instead of an IPartOfSpeech.  (Pattern G, issue #152)
+        if not hasattr(self._concrete, "OwnerOfClass"):
             return None
-        except Exception:
+        pos_lcm = self._concrete.OwnerOfClass(PartOfSpeechTags.kClassId)
+        if pos_lcm is None:
             return None
+        return IPartOfSpeech(pos_lcm) if IPartOfSpeech is not None else pos_lcm
 
     # ========== Capability Checks (for slot-specific operations) ==========
 
