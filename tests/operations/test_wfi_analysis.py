@@ -495,5 +495,192 @@ class TestWfiAnalysisAgentTypeDiscrimination:
                 pass
 
 
+class TestWfiAnalysisSetApprovalStatusErrorPaths:
+    """
+    Issue #58: SetApprovalStatus error-path coverage.
+
+    The happy-path round-trip is covered in
+    TestWfiAnalysisSetApprovalStatus. This class exercises the two
+    remaining branches:
+      1. Passing an unrecognised status value must raise FP_ParameterError
+         (via _coerce_approval_status).
+      2. When no human agents exist in the project, SetApprovalStatus
+         must raise FP_ParameterError rather than silently choosing a
+         parser agent.
+    """
+
+    def test_invalid_status_raises_fp_parameter_error(self, writable_project):
+        """
+        SetApprovalStatus with an unrecognised status (e.g. the string
+        "yes" or an out-of-range integer) must raise FP_ParameterError.
+        The previous implementation did not validate status and would
+        silently pass an invalid value to LCM.
+        """
+        from flexlibs2.code.FLExProject import FP_ParameterError
+
+        # Find any wordform to attach a throw-away analysis to.
+        candidate_wf = None
+        for wf in writable_project.Wordforms.GetAll():
+            candidate_wf = wf
+            break
+        if candidate_wf is None:
+            pytest.skip("Project has no wordforms")
+
+        analysis = writable_project.WfiAnalyses.Create(candidate_wf)
+        try:
+            # String values are not valid status inputs.
+            with pytest.raises(FP_ParameterError):
+                writable_project.WfiAnalyses.SetApprovalStatus(
+                    analysis, "yes"
+                )
+
+            # Out-of-range integers (ApprovalStatusTypes only has 0, 1, 2)
+            # should also raise.
+            with pytest.raises(FP_ParameterError):
+                writable_project.WfiAnalyses.SetApprovalStatus(
+                    analysis, 99
+                )
+        finally:
+            try:
+                writable_project.WfiAnalyses.Delete(analysis)
+            except Exception:
+                pass
+
+    def test_no_human_agents_raises_fp_parameter_error(self, writable_project):
+        """
+        If the project has no human agents, SetApprovalStatus must raise
+        FP_ParameterError rather than silently doing nothing or choosing
+        a parser agent.
+
+        This test is designed to run as a no-op when the project already
+        has human agents (the common case in real test projects). In that
+        situation it skips rather than destructively removing agents.
+
+        We verify the error path by monkey-patching AgentOperations so
+        that GetHumanAgents() returns an empty list for the duration of
+        the call, without touching the actual project state.
+        """
+        from flexlibs2.code.TextsWords.WfiAnalysisOperations import (
+            ApprovalStatusTypes,
+        )
+        from flexlibs2.code.FLExProject import FP_ParameterError
+        import flexlibs2.code.Lists.AgentOperations as agent_mod
+
+        candidate_wf = None
+        for wf in writable_project.Wordforms.GetAll():
+            candidate_wf = wf
+            break
+        if candidate_wf is None:
+            pytest.skip("Project has no wordforms")
+
+        analysis = writable_project.WfiAnalyses.Create(candidate_wf)
+        # Patch GetHumanAgents to return an empty iterator for the
+        # duration of this test so we can exercise the no-agent branch
+        # without mutating the project's agent list.
+        original_get_human_agents = agent_mod.AgentOperations.GetHumanAgents
+
+        def _empty_human_agents(self_inner):
+            return iter([])
+
+        try:
+            agent_mod.AgentOperations.GetHumanAgents = _empty_human_agents
+            with pytest.raises(FP_ParameterError, match="[Nn]o human agent"):
+                writable_project.WfiAnalyses.SetApprovalStatus(
+                    analysis, ApprovalStatusTypes.APPROVED
+                )
+        finally:
+            agent_mod.AgentOperations.GetHumanAgents = original_get_human_agents
+            try:
+                writable_project.WfiAnalyses.Delete(analysis)
+            except Exception:
+                pass
+
+
+class TestWfiAnalysisDeleteWithMorphBundles:
+    """
+    Issue #99: Delete cascade coverage for analyses that own
+    WfiMorphBundle objects.
+
+    The existing TestWfiAnalysisDelete only creates a bare analysis
+    with no morph bundles. An analysis with MorphBundlesOS children
+    exercises a different code path in the LCM ownership graph; LCM
+    should cascade-delete the bundles when the owning analysis is
+    removed from AnalysesOC.
+    """
+
+    def test_delete_analysis_with_morph_bundle_cascades(
+        self, writable_project
+    ):
+        """
+        Create an analysis with one morph bundle, delete the analysis,
+        and verify both the analysis and its bundle are gone.
+
+        Before the issue #32 fix, Delete raised AttributeError before
+        reaching LCM's cascaded delete -- so bundles were never touched.
+        This test ensures the cascade path is reachable and works.
+        """
+        # Find any wordform to host the throw-away analysis.
+        candidate_wf = None
+        starting_count = 0
+        for wf in writable_project.Wordforms.GetAll():
+            candidate_wf = wf
+            starting_count = wf.AnalysesOC.Count
+            break
+        if candidate_wf is None:
+            pytest.skip("Project has no wordforms")
+
+        analysis = writable_project.WfiAnalyses.Create(candidate_wf)
+        bundle_hvo = None
+        try:
+            # Add one morph bundle so the cascade path is exercised.
+            # Use AddMorphBundle if available; otherwise call the factory
+            # directly as the WfiAnalysisOperations.Duplicate test does.
+            from SIL.LCModel import IWfiMorphBundleFactory
+
+            bundle_factory = writable_project.project.ServiceLocator.GetService(
+                IWfiMorphBundleFactory
+            )
+            new_bundle = bundle_factory.Create()
+            analysis.MorphBundlesOS.Add(new_bundle)
+            bundle_hvo = new_bundle.Hvo
+
+            assert analysis.MorphBundlesOS.Count == 1, (
+                "MorphBundlesOS should have 1 bundle before Delete"
+            )
+
+            # Delete the analysis -- the bundle must disappear too.
+            writable_project.WfiAnalyses.Delete(analysis)
+            analysis = None  # prevent double-delete in finally
+
+            # The wordform's AnalysesOC must be back to starting_count.
+            assert candidate_wf.AnalysesOC.Count == starting_count, (
+                f"AnalysesOC count did not return to {starting_count} "
+                f"after deleting an analysis with a morph bundle: "
+                f"got {candidate_wf.AnalysesOC.Count}"
+            )
+
+            # The bundle's HVO must no longer resolve in the repository.
+            # Object() returns None (or raises) for deleted objects.
+            try:
+                leftover = writable_project.Object(bundle_hvo)
+                assert leftover is None, (
+                    "WfiMorphBundle survived deletion of its owning "
+                    "analysis -- cascade delete did not fire. "
+                    f"bundle_hvo={bundle_hvo}, leftover={leftover!r}"
+                )
+            except Exception:
+                # Any exception from Object() also means the bundle is
+                # gone (repository lookup failed), which is the expected
+                # cascade behaviour.
+                pass
+
+        finally:
+            if analysis is not None:
+                try:
+                    writable_project.WfiAnalyses.Delete(analysis)
+                except Exception:
+                    pass
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

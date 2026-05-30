@@ -147,5 +147,192 @@ class TestLexEntryDuplicateDeep:
                 pass
 
 
+class TestLexEntryDuplicateFields:
+    """
+    Issue #94: additional field coverage for LexEntryOperations.Duplicate.
+
+    The existing test only verifies the Source field on the sense.
+    The Duplicate implementation copies several entry-level fields:
+    LexemeForm, CitationForm, MorphType, and (with deep=True) all
+    senses. This class verifies those fields round-trip correctly and
+    that the duplicate gets a new GUID distinct from the source.
+    """
+
+    def test_duplicate_copies_lexeme_form(self, writable_project):
+        """
+        The duplicate's LexemeForm must match the source's LexemeForm.
+        """
+        lexeme = "qZ_dup_lexeme_field"
+        existing = writable_project.LexEntry.Find(lexeme)
+        if existing is not None:
+            writable_project.LexEntry.Delete(existing)
+
+        entry = writable_project.LexEntry.Create(lexeme)
+        duplicate = None
+        try:
+            duplicate = writable_project.LexEntry.Duplicate(entry, deep=False)
+            assert duplicate is not None, "Duplicate returned None"
+
+            src_form = writable_project.LexEntry.GetLexemeForm(entry)
+            dup_form = writable_project.LexEntry.GetLexemeForm(duplicate)
+            assert dup_form == src_form, (
+                f"LexemeForm did not round-trip through Duplicate: "
+                f"source={src_form!r}, duplicate={dup_form!r}"
+            )
+        finally:
+            for obj in (duplicate, entry):
+                if obj is not None:
+                    try:
+                        writable_project.LexEntry.Delete(obj)
+                    except Exception:
+                        pass
+
+    def test_duplicate_copies_citation_form(self, writable_project):
+        """
+        The duplicate's CitationForm must match the source's CitationForm.
+        Duplicate() calls new_entry.CitationForm.CopyAlternatives(...).
+        """
+        lexeme = "qZ_dup_citation_field"
+        existing = writable_project.LexEntry.Find(lexeme)
+        if existing is not None:
+            writable_project.LexEntry.Delete(existing)
+
+        entry = writable_project.LexEntry.Create(lexeme)
+        duplicate = None
+        try:
+            # Set a non-empty citation form so we have something to
+            # round-trip (empty CitationForm would always match).
+            writable_project.LexEntry.SetCitationForm(
+                entry, "qZ-citation-form"
+            )
+
+            duplicate = writable_project.LexEntry.Duplicate(entry, deep=False)
+            assert duplicate is not None, "Duplicate returned None"
+
+            src_cf = writable_project.LexEntry.GetCitationForm(entry)
+            dup_cf = writable_project.LexEntry.GetCitationForm(duplicate)
+            assert dup_cf == src_cf, (
+                f"CitationForm did not round-trip through Duplicate: "
+                f"source={src_cf!r}, duplicate={dup_cf!r}"
+            )
+        finally:
+            for obj in (duplicate, entry):
+                if obj is not None:
+                    try:
+                        writable_project.LexEntry.Delete(obj)
+                    except Exception:
+                        pass
+
+    def test_duplicate_copies_morph_type(self, writable_project):
+        """
+        The duplicate's MorphType must match the source's MorphType.
+        Duplicate() passes the morph type name to Create().
+        """
+        lexeme = "qZ_dup_morphtype_field"
+        existing = writable_project.LexEntry.Find(lexeme)
+        if existing is not None:
+            writable_project.LexEntry.Delete(existing)
+
+        # Create as "root" (distinct from the default "stem") so the
+        # assertion has a non-trivial value to compare.
+        is_valid, _mt, _is_stem = writable_project.LexEntry.ValidateMorphType(
+            "root"
+        )
+        morph_type_name = "root" if is_valid else "stem"
+
+        entry = writable_project.LexEntry.Create(lexeme, morph_type_name)
+        duplicate = None
+        try:
+            duplicate = writable_project.LexEntry.Duplicate(entry, deep=False)
+            assert duplicate is not None, "Duplicate returned None"
+
+            src_mt = writable_project.LexEntry.GetMorphType(entry)
+            dup_mt = writable_project.LexEntry.GetMorphType(duplicate)
+            assert dup_mt is not None, (
+                "Duplicate has no MorphType; Duplicate() should have "
+                "passed the source's morph type name to Create()"
+            )
+            assert dup_mt.Hvo == src_mt.Hvo, (
+                "MorphType did not round-trip through Duplicate: "
+                f"source HVO={src_mt.Hvo}, duplicate HVO={dup_mt.Hvo}"
+            )
+        finally:
+            for obj in (duplicate, entry):
+                if obj is not None:
+                    try:
+                        writable_project.LexEntry.Delete(obj)
+                    except Exception:
+                        pass
+
+    def test_duplicate_deep_copies_senses(self, writable_project):
+        """
+        With deep=True, the duplicate must have the same number of
+        senses as the source. Duplicate() iterates source_entry.SensesOS
+        and calls project.Senses._deep_copy_sense_to() for each one.
+        """
+        lexeme = "qZ_dup_senses_field"
+        existing = writable_project.LexEntry.Find(lexeme)
+        if existing is not None:
+            writable_project.LexEntry.Delete(existing)
+
+        # Create with the default blank sense (count=1), then add a
+        # second sense so the count assertion is more meaningful.
+        entry = writable_project.LexEntry.Create(lexeme)
+        duplicate = None
+        try:
+            writable_project.LexEntry.AddSense(entry, "second sense")
+            src_count = writable_project.LexEntry.GetSenseCount(entry)
+            assert src_count >= 2, (
+                "Setup failed: source entry should have at least 2 senses"
+            )
+
+            duplicate = writable_project.LexEntry.Duplicate(entry, deep=True)
+            assert duplicate is not None, "Duplicate returned None"
+
+            dup_count = writable_project.LexEntry.GetSenseCount(duplicate)
+            assert dup_count == src_count, (
+                f"Deep duplicate should have {src_count} senses "
+                f"(same as source), but got {dup_count}"
+            )
+        finally:
+            for obj in (duplicate, entry):
+                if obj is not None:
+                    try:
+                        writable_project.LexEntry.Delete(obj)
+                    except Exception:
+                        pass
+
+    def test_duplicate_has_new_guid(self, writable_project):
+        """
+        The duplicate must have a different GUID from the source.
+        Factory.Create() auto-generates a new GUID; if Duplicate() ever
+        accidentally copied the Guid property the two would collide.
+        """
+        lexeme = "qZ_dup_guid_field"
+        existing = writable_project.LexEntry.Find(lexeme)
+        if existing is not None:
+            writable_project.LexEntry.Delete(existing)
+
+        entry = writable_project.LexEntry.Create(lexeme)
+        duplicate = None
+        try:
+            duplicate = writable_project.LexEntry.Duplicate(entry, deep=False)
+            assert duplicate is not None, "Duplicate returned None"
+
+            src_guid = str(writable_project.LexEntry.GetGuid(entry))
+            dup_guid = str(writable_project.LexEntry.GetGuid(duplicate))
+            assert dup_guid != src_guid, (
+                f"Duplicate has the same GUID as the source ({src_guid}); "
+                "Factory.Create() should auto-generate a fresh GUID"
+            )
+        finally:
+            for obj in (duplicate, entry):
+                if obj is not None:
+                    try:
+                        writable_project.LexEntry.Delete(obj)
+                    except Exception:
+                        pass
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
