@@ -789,26 +789,10 @@ class PhonemeOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
         mkstr = TsStringUtils.MakeString(representation, wsHandle)
 
-        # The IPhPhoneme factory autocreates one IPhCode whose
-        # Representation is the FLEX null marker ('***'). The first
-        # AddCode call must reuse that placeholder code rather than
-        # append a parallel one, otherwise every wrapper-created
-        # phoneme ends up carrying a junk '***' allophone that breaks
-        # HermitCrab parser loading. (issue #17)
-        #
-        # The placeholder is distinguishable from a real UI-created code
-        # by emptiness across EVERY populated WS, not just the target WS:
-        # a real code with vernacular populated but analysis empty would
-        # otherwise be silently overwritten by AddCode(..., wsHandle=anal).
-        # Iterate every WS that has data on this Representation and
-        # require all of them to normalize to empty before reusing. (#112)
-        existing_codes = list(phoneme.CodesOS)
-        if len(existing_codes) == 1 and self.__is_placeholder_code(existing_codes[0]):
-            existing = existing_codes[0]
-            existing.Representation.set_String(wsHandle, mkstr)
-            return existing
-
-        # Normal path: create + append a new IPhCode.
+        # Create + append a new IPhCode. The factory-autocreated placeholder
+        # code ('***') is now removed by Create() before it returns, so
+        # AddCode always operates on a clean CodesOS and can unconditionally
+        # append. (issue #113 -- placeholder cleanup moved to Create)
         factory = self.project.project.ServiceLocator.GetService(IPhCodeFactory)
         code = factory.Create()
 
