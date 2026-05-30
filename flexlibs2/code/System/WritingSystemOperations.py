@@ -238,34 +238,30 @@ class WritingSystemOperations(BaseOperations):
         if self.Exists(language_tag):
             raise FP_ParameterError(f"Writing system '{language_tag}' already exists")
 
-        # Get the writing system store
         ws_manager = self.project.project.ServiceLocator.WritingSystemManager
 
-        # Create the writing system
+        # Create + register the WS with the manager. Set() stores it in the
+        # repository, assigns a runtime Handle, and persists the .ldml
+        # backing file on Save. Without Set(), Create() returns a detached
+        # object -- adding the tag to CurXxxWss would yield an orphan
+        # reference and the next OpenProject would hit a modal
+        # "Unable to create writing system: <tag>" dialog from liblcm.
         ws = ws_manager.Create(language_tag)
         ws.Abbreviation = language_tag
-
-        # Set the display label/name
-        # Note: DisplayLabel may be read-only in some versions, so we try both
         try:
             ws.DisplayLabel = name
         except Exception:
-            # If DisplayLabel is read-only, the language tag is used
             pass
+        ws_manager.Set(ws)
 
-        # Add to vernacular or analysis list
+        # AddToCurrent* updates BOTH the full XxxWss list AND the current
+        # list via the proper change-notification path. Raw assignment to
+        # CurXxxWss (the previous implementation) bypassed the WS-list
+        # collection bookkeeping and left the full list out of sync.
         if is_vernacular:
-            vern_wss = self.project.lp.CurVernWss
-            if vern_wss:
-                self.project.lp.CurVernWss = f"{vern_wss} {language_tag}"
-            else:
-                self.project.lp.CurVernWss = language_tag
+            self.project.lp.AddToCurrentVernacularWritingSystems(ws)
         else:
-            anal_wss = self.project.lp.CurAnalysisWss
-            if anal_wss:
-                self.project.lp.CurAnalysisWss = f"{anal_wss} {language_tag}"
-            else:
-                self.project.lp.CurAnalysisWss = language_tag
+            self.project.lp.AddToCurrentAnalysisWritingSystems(ws)
 
         return ws
 
@@ -328,17 +324,20 @@ class WritingSystemOperations(BaseOperations):
         if ws.Handle == default_anal.Handle:
             raise FP_ParameterError("Cannot delete the default analysis writing system")
 
-        # Remove from vernacular list if present
-        vern_tags = self._GetAllVernacularWSTags()
-        if language_tag in vern_tags:
-            vern_tags.discard(language_tag)
-            self.project.lp.CurVernWss = " ".join(sorted(vern_tags))
-
-        # Remove from analysis list if present
-        anal_tags = self._GetAllAnalysisWSTags()
-        if language_tag in anal_tags:
-            anal_tags.discard(language_tag)
-            self.project.lp.CurAnalysisWss = " ".join(sorted(anal_tags))
+        # Removal contract from IWritingSystemContainer: "first remove from
+        # AnalysisWritingSystems [the full list], then from
+        # CurrentAnalysisWritingSystems [the current list]." Same for
+        # vernacular. Going through the collections (rather than
+        # rewriting the CurXxxWss space-delimited string) keeps the full
+        # list and current list in sync.
+        for full_list, current_list in (
+            (self.project.lp.VernacularWritingSystems, self.project.lp.CurrentVernacularWritingSystems),
+            (self.project.lp.AnalysisWritingSystems, self.project.lp.CurrentAnalysisWritingSystems),
+        ):
+            if full_list.Contains(ws):
+                full_list.Remove(ws)
+            if current_list.Contains(ws):
+                current_list.Remove(ws)
 
     # --- Configuration Methods ---
 

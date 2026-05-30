@@ -9,22 +9,19 @@ import logging
 
 logging.basicConfig(filename="flexlibs2.log", filemode="w", level=logging.DEBUG)
 
-from flexlibs2 import FLExInitialize, FLExCleanup
 from flexlibs2 import FLExProject, AllProjectNames
 
 
 class TestFLExProject(unittest.TestCase):
-    """Test FLExProject functionality."""
+    """Test FLExProject functionality.
 
-    @classmethod
-    def setUpClass(cls):
-        """Initialize FLEx before running tests."""
-        FLExInitialize()
-
-    @classmethod
-    def tearDownClass(cls):
-        """Clean up FLEx after running tests."""
-        FLExCleanup()
+    FLEx services (SLDR, ICU, registry, FLExInitialize) are owned by the
+    session-wide fixture in tests/conftest.py::initialize_flex_for_tests.
+    A per-class FLExCleanup() here would tear down SLDR for the remainder
+    of the suite, causing later OpenProject calls to mark .ldml files as
+    bad ("SLDR has not been initialized") and triggering the "Unable to
+    create writing system" popup on the next run.
+    """
 
     def test_AllProjectNames(self):
         """Test that AllProjectNames returns a list."""

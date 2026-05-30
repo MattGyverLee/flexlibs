@@ -227,13 +227,20 @@ class TestWordformOperationsIntegration:
 
     @pytest.fixture(scope="class")
     def flex_project(self):
-        """Setup real FLEx project for integration testing."""
+        """Setup real FLEx project for integration testing.
+
+        Uses the session-scoped FLEx services bootstrapped by
+        tests/conftest.py::initialize_flex_for_tests. Calling
+        FLExInitialize() / FLExCleanup() here would tear down SLDR
+        for the remainder of the suite, causing later OpenProject
+        calls to mark .ldml files as bad ("SLDR has not been
+        initialized") and triggering the "Unable to create writing
+        system" popup on the next run.
+        """
         pytest.importorskip("SIL.LCModel")
 
-        from flexlibs2.code.FLExInit import FLExInitialize, FLExCleanup
         from flexlibs2.code.FLExProject import FLExProject, AllProjectNames
 
-        FLExInitialize()
         projects = AllProjectNames()
         if not projects:
             pytest.skip("No FLEx projects available")
@@ -244,7 +251,6 @@ class TestWordformOperationsIntegration:
         yield project
 
         project.CloseProject()
-        FLExCleanup()
 
     def test_create_and_delete_wordform(self, flex_project):
         """Integration test: Create and delete a wordform."""
