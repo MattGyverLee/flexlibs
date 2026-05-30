@@ -419,18 +419,54 @@ ImportError: cannot import name 'IMoMorphRule' from 'SIL.LCModel'
 |---|---|---|
 | `ILexSense` | `ITsString` (single string with embedded ws handle) | Read `.Text` directly; write via `TsStringUtils.MakeString(text, ws_handle)` |
 | `ILexEtymology` | `IMultiString` (per-WS) | Iterate ws handles; use `.get_String(ws)` / `.set_String(ws, ts_string)` |
-| `ICmBaseAnnotation` | `IMultiString` (per-WS) | Same as `ILexEtymology` |
+| `IStText` | `IMultiAccessorBase` (per-WS; virtualised; "Used to get Text.Source") | Same multi-WS access pattern as `ILexEtymology`; field lives on the `IStText` body of a `IText`, not on `ICmBaseAnnotation` |
+
+Note: `ICmBaseAnnotation` does NOT expose a `Source` field. The source-of-confusion was that the `OverridesCellar.cs` helper `TextSourceForWs(int ws)` (line ~683) navigates from an annotation to its owning `IStText` to call `text.Source.get_String(ws)` -- it is a helper that *reads* `IStText.Source`, not a field on the annotation itself. The LCM declaration is in `InterfaceAdditions.cs` line 3018 inside `public partial interface IStText`.
 
 Reference: see `LexSenseOperations._ReadTsString` / `_MakeTsString` (ITsString helpers, single source of truth on `BaseOperations`) versus `EtymologyOperations` and `NoteOperations` which iterate ws handles for the IMultiString form.
+
+### The `BaselineText` field
+
+| Object type | `BaselineText` field type | Correct access pattern |
+|---|---|---|
+| `ISegment` | `ITsString` (single-WS, read-only computed) | Read via `.Text` on the returned `ITsString`; do NOT call `.get_String(ws)` (that is the `IMultiString` API and will raise `AttributeError` at runtime) |
+
+How `ISegment.BaselineText` is computed: the getter at `OverridesCellar.cs:4397-4400` calls `((IStTxtPara)Owner).Contents.GetSubstring(BeginOffset, EndOffset)`. The backing store is the parent paragraph's `Contents` (`ITsString`). Because `BaselineText` is derived, it cannot be set directly.
+
+To modify the text covered by a segment, you must rewrite `IStTxtPara.Contents` (or a region of it via `ITsStrBldr`) and then set `Contents` back. The LCM framework auto-re-derives segments and their offsets via `ContentsSideEffects` -> `AnalysisAdjuster.AdjustAnalysis` (see `StTxtPara.cs:533-577`).
+
+Correct read:
+```python
+baseline = segment.BaselineText    # ITsString
+text_value = baseline.Text         # plain Python string (single WS)
+```
+
+Common mistake -- treating BaselineText as multi-string:
+```python
+# WRONG: BaselineText is ITsString, not IMultiString
+text_value = segment.BaselineText.get_String(ws_handle)   # AttributeError at runtime
+```
+
+Common mistake -- treating BaselineText as writable:
+```python
+# WRONG: BaselineText is a computed read-only property
+segment.BaselineText = new_ts_string   # has no effect / raises AttributeError
+```
+
+LCM source references:
+- Interface declaration: `InterfaceAdditions.cs:542` (`ITsString BaselineText { get; }` inside `ISegment`)
+- Computed getter implementation: `OverridesCellar.cs:4396-4400` (inside `internal partial class Segment`)
+- Side-effect chain that re-derives segments on Contents change: `StTxtPara.cs:533-577` (`ContentsSideEffects` / `OnContentsChanged` / `AnalysisAdjuster.AdjustAnalysis`)
 
 ### Why this matters
 
 - Same field name + different LCM type = silent bug. The `hasattr` / duck-typing patterns common in this codebase mask the mismatch.
-- Has caused issues #36, #39, #40 -- the same shape recurs whenever an author looks at one Operations class to learn how to handle "Source" and applies the pattern to the wrong type.
+- `Source` has caused issues #36, #39, #40 -- the same shape recurs whenever an author looks at one Operations class to learn how to handle "Source" and applies the pattern to the wrong type.
+- `BaselineText` is the poster-child of the single-vs-multi confusion: it looks like any other text field on a text-bearing object, but it is single-WS `ITsString` while other fields on neighbouring types (like `ILexEtymology.Source`) are per-WS `IMultiString`.
 
 ### Recommended pattern
 
-Before touching a field named `Source` (or any field whose type you have not verified for *this specific LCM type*), check this table. If the type is not listed here, verify via the LCM model documentation or by reading another Operations class that already handles the same type.
+Before touching a field whose type you have not verified for *this specific LCM type*, check this table. If the type is not listed here, verify via the LCM source in `liblcm/src/SIL.LCModel/InterfaceAdditions.cs` or by reading another Operations class that already handles the same type correctly.
 
 Future contributors are welcome to extend this table when they discover additional same-name / different-type collisions.
 
