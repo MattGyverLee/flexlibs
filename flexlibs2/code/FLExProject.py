@@ -4126,10 +4126,12 @@ class FLExProject(object):
                         except Exception:
                             pass
 
-            # Fallback: use DeleteUnderlyingObject
-            from SIL.LCModel.Infrastructure import IDataReader
-
-            self.project.ServiceLocator.GetInstance(IDataReader).DeleteUnderlyingObject(obj.Hvo)
+            # Fallback: delete via the object's own ICmObject.Delete().
+            # The earlier code reached for IDataReader.DeleteUnderlyingObject,
+            # but that interface is `internal` in liblcm and pythonnet only
+            # exposes `public` types, so the import always failed.
+            # ICmObject.Delete() is the documented public deletion entry point.
+            obj.Delete()
 
     def LexiconGetHeadWord(self, entry):
         """

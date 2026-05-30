@@ -20,7 +20,7 @@ from SIL.LCModel import (
     IDsConstChart,
     IDsConstChartFactory,
     IDsConstChartRepository,
-    IDsDiscourse,
+    IDsDiscourseData,
     IConstChartRow,
     ICmPossibility,
 )
@@ -524,22 +524,22 @@ class ConstChartOperations(BaseOperations):
 
     def __GetOrCreateDiscourse(self):
         """
-        Get or create the DsDiscourse container for charts.
+        Get or create the DsDiscourseData container for charts.
 
         Returns:
-            IDsDiscourse: The discourse data container
+            IDsDiscourseData: The discourse data container
 
         Notes:
-            - Creates DsDiscourse if it doesn't exist
-            - DsDiscourse is the container for all discourse analysis data
+            - Creates DsDiscourseData if it doesn't exist
+            - DsDiscourseData is the container for all discourse analysis data
         """
         discourse = self.project.lp.DiscourseDataOA
 
         if not discourse:
-            # Create DsDiscourse container
-            from SIL.LCModel import IDsDiscourseFactory
+            # Create DsDiscourseData container
+            from SIL.LCModel import IDsDiscourseDataFactory
 
-            factory = self.project.project.ServiceLocator.GetService(IDsDiscourseFactory)
+            factory = self.project.project.ServiceLocator.GetService(IDsDiscourseDataFactory)
             discourse = factory.Create()
             self.project.lp.DiscourseDataOA = discourse
 

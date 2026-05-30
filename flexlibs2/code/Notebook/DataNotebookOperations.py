@@ -229,7 +229,7 @@ class DataNotebookOperations(BaseOperations):
             # Only yield top-level records (those without an owner that's also a record)
             try:
                 owner = record.Owner
-                if not IRnGenericRec.IsInstance(owner):
+                if not isinstance(owner, IRnGenericRec):
                     yield record
             except (AttributeError, System.NullReferenceException) as e:
                 yield record
@@ -1251,7 +1251,7 @@ class DataNotebookOperations(BaseOperations):
 
         try:
             owner = record.Owner
-            if IRnGenericRec.IsInstance(owner):
+            if isinstance(owner, IRnGenericRec):
                 return IRnGenericRec(owner)
         except (AttributeError, TypeError, System.InvalidCastException) as e:
             pass
@@ -2531,7 +2531,7 @@ class DataNotebookOperations(BaseOperations):
         duplicate = factory.Create()
 
         # Determine insertion position and add to parent FIRST
-        if IRnGenericRec.IsInstance(owner):
+        if isinstance(owner, IRnGenericRec):
             # Parent is another notebook record (sub-record)
             parent_record = IRnGenericRec(owner)
             if insert_after:

@@ -41,8 +41,9 @@ from SIL.LCModel import (
     ILexSense,
     ILexEntry,
     LexEntryTags,
+    MsaType,
 )
-from SIL.LCModel.DomainServices import SandboxGenericMSA, MsaType
+from SIL.LCModel.DomainServices import SandboxGenericMSA
 
 import clr
 

@@ -22,6 +22,7 @@
       "ChooseLangProjectDialog"
     ],
     "SIL.LCModel": [
+      "DsConstChartTags",
       "GenDate",
       "IAnalysis",
       "ICmAgent",
@@ -73,10 +74,8 @@
       "IDsConstChart",
       "IDsConstChartFactory",
       "IDsConstChartRepository",
-      "IDsDiscourse",
       "IDsDiscourseData",
       "IDsDiscourseDataFactory",
-      "IDsDiscourseFactory",
       "IFsClosedFeature",
       "IFsClosedFeatureFactory",
       "IFsClosedValue",
@@ -112,12 +111,11 @@
       "ILexSense",
       "ILexSenseFactory",
       "ILexSenseRepository",
-      "IMoAdhocProhibAllomorph",
       "IMoAdhocProhibGr",
-      "IMoAdhocProhibMorph",
       "IMoAffixAllomorph",
       "IMoAffixAllomorphFactory",
       "IMoAffixForm",
+      "IMoAlloAdhocProhib",
       "IMoDerivAffMsa",
       "IMoDerivAffMsaFactory",
       "IMoEndoCompound",
@@ -131,6 +129,7 @@
       "IMoInflAffixTemplateFactory",
       "IMoInflClass",
       "IMoInflClassFactory",
+      "IMoMorphAdhocProhib",
       "IMoMorphSynAnalysis",
       "IMoMorphType",
       "IMoStemAllomorph",
@@ -157,8 +156,6 @@
       "IPhNaturalClass",
       "IPhPhoneme",
       "IPhPhonemeFactory",
-      "IPhReduplicationRule",
-      "IPhReduplicationRuleFactory",
       "IPhRegularRule",
       "IPhRegularRuleFactory",
       "IPhSegRuleRHS",
@@ -232,7 +229,9 @@
       "LexSenseTags",
       "MoFormTags",
       "MoMorphTypeTags",
+      "MsaType",
       "Opinions",
+      "PartOfSpeechTags",
       "ReversalIndexEntryTags",
       "SpecialWritingSystemCodes",
       "TextTags",
@@ -260,11 +259,9 @@
       "TsStringUtils"
     ],
     "SIL.LCModel.DomainServices": [
-      "MsaType",
       "SandboxGenericMSA"
     ],
     "SIL.LCModel.Infrastructure": [
-      "IDataReader",
       "IFwMetaDataCacheManaged"
     ],
     "SIL.LCModel.Utils": [
@@ -291,6 +288,12 @@
     "CellarPropertyTypeFilter": {
       "properties": [
         "All"
+      ],
+      "methods": []
+    },
+    "DsConstChartTags": {
+      "properties": [
+        "kClassId"
       ],
       "methods": []
     },
@@ -321,14 +324,6 @@
       ],
       "methods": [
         "InitializeIcu"
-      ]
-    },
-    "IRnGenericRec": {
-      "properties": [
-        "IsInstance"
-      ],
-      "methods": [
-        "IsInstance"
       ]
     },
     "LcmCache": {
@@ -416,6 +411,12 @@
         "approves",
         "disapproves",
         "noopinion"
+      ],
+      "methods": []
+    },
+    "PartOfSpeechTags": {
+      "properties": [
+        "kClassId"
       ],
       "methods": []
     },
@@ -515,7 +516,6 @@
     "IConstChartWordGroupFactory",
     "IDsConstChartFactory",
     "IDsDiscourseDataFactory",
-    "IDsDiscourseFactory",
     "IFsClosedFeatureFactory",
     "IFsClosedValueFactory",
     "IFsComplexFeatureFactory",
@@ -549,7 +549,6 @@
     "IPhNCFeaturesFactory",
     "IPhNCSegmentsFactory",
     "IPhPhonemeFactory",
-    "IPhReduplicationRuleFactory",
     "IPhRegularRuleFactory",
     "IPhSegRuleRHSFactory",
     "IPhSegmentRuleFactory",
@@ -618,10 +617,8 @@
     "IConstChartRow",
     "IConstChartTag",
     "IConstChartWordGroup",
-    "IDataReader",
     "IDsChart",
     "IDsConstChart",
-    "IDsDiscourse",
     "IDsDiscourseData",
     "IFsClosedFeature",
     "IFsClosedValue",
@@ -641,11 +638,10 @@
     "ILexRefType",
     "ILexReference",
     "ILexSense",
-    "IMoAdhocProhibAllomorph",
     "IMoAdhocProhibGr",
-    "IMoAdhocProhibMorph",
     "IMoAffixAllomorph",
     "IMoAffixForm",
+    "IMoAlloAdhocProhib",
     "IMoDerivAffMsa",
     "IMoEndoCompound",
     "IMoExoCompound",
@@ -653,6 +649,7 @@
     "IMoInflAffMsa",
     "IMoInflAffixTemplate",
     "IMoInflClass",
+    "IMoMorphAdhocProhib",
     "IMoMorphSynAnalysis",
     "IMoMorphType",
     "IMoStemAllomorph",
@@ -669,7 +666,6 @@
     "IPhNCSegments",
     "IPhNaturalClass",
     "IPhPhoneme",
-    "IPhReduplicationRule",
     "IPhRegularRule",
     "IPhSegRuleRHS",
     "IPhSequenceContext",
@@ -703,6 +699,7 @@
     "CellarPropertyType",
     "CellarPropertyTypeFilter",
     "ChooseLangProjectDialog",
+    "DsConstChartTags",
     "FwAppArgs",
     "FwDirectoryFinder",
     "FwLcmUI",
@@ -726,6 +723,7 @@
     "MoMorphTypeTags",
     "MsaType",
     "Opinions",
+    "PartOfSpeechTags",
     "ProgressDialogWithTask",
     "ProjectId",
     "ReflectionHelper",
@@ -837,8 +835,8 @@
           "IDsConstChart",
           "IDsConstChartFactory",
           "IDsConstChartRepository",
-          "IDsDiscourse",
-          "IDsDiscourseFactory"
+          "IDsDiscourseData",
+          "IDsDiscourseDataFactory"
         ],
         "SIL.LCModel.Core.KernelInterfaces": [
           "ITsString"
@@ -1049,7 +1047,6 @@
           "CellarPropertyTypeFilter"
         ],
         "SIL.LCModel.Infrastructure": [
-          "IDataReader",
           "IFwMetaDataCacheManaged"
         ],
         "SIL.LCModel.Core.KernelInterfaces": [
@@ -1064,12 +1061,12 @@
           "ReflectionHelper",
           "WorkerThreadException"
         ],
+        "SIL.LCModel.Application.ApplicationServices": [
+          "XmlTranslatedLists"
+        ],
         "SIL.FieldWorks.Common.FwUtils": [
           "FwAppArgs",
           "StartupException"
-        ],
-        "SIL.LCModel.Application.ApplicationServices": [
-          "XmlTranslatedLists"
         ]
       },
       "type_usage": {
@@ -1154,12 +1151,23 @@
     },
     "code/Grammar/affix_template.py": {
       "imports": {
+        "SIL.LCModel": [
+          "IPartOfSpeech",
+          "PartOfSpeechTags"
+        ],
         "SIL.LCModel.Core.KernelInterfaces": [
           "ITsString",
           "ITsString"
         ]
       },
-      "type_usage": {}
+      "type_usage": {
+        "PartOfSpeechTags": {
+          "properties": [
+            "kClassId"
+          ],
+          "methods": []
+        }
+      }
     },
     "code/Grammar/compound_rule.py": {
       "imports": {
@@ -1446,23 +1454,21 @@
           "ILexEntry",
           "ILexRefType",
           "ILexSense",
-          "IMoAdhocProhibAllomorph",
           "IMoAdhocProhibGr",
-          "IMoAdhocProhibMorph",
           "IMoAffixAllomorph",
           "IMoAffixForm",
+          "IMoAlloAdhocProhib",
           "IMoDerivAffMsa",
           "IMoEndoCompound",
           "IMoExoCompound",
           "IMoInflAffMsa",
           "IMoInflAffixTemplate",
+          "IMoMorphAdhocProhib",
           "IMoStemAllomorph",
           "IMoStemMsa",
           "IMoUnclassifiedAffixMsa",
           "IPhMetathesisRule",
           "IPhMetathesisRuleFactory",
-          "IPhReduplicationRule",
-          "IPhReduplicationRuleFactory",
           "IPhRegularRule",
           "IPhRegularRuleFactory",
           "IPhSegRuleRHS",
@@ -1776,10 +1782,10 @@
           "IMoStemMsaFactory",
           "IMoUnclassifiedAffixMsa",
           "IMoUnclassifiedAffixMsaFactory",
-          "LexEntryTags"
+          "LexEntryTags",
+          "MsaType"
         ],
         "SIL.LCModel.DomainServices": [
-          "MsaType",
           "SandboxGenericMSA"
         ]
       },
@@ -1920,6 +1926,7 @@
     "code/Lists/OverlayOperations.py": {
       "imports": {
         "SIL.LCModel": [
+          "DsConstChartTags",
           "ICmPossibility",
           "ICmPossibilityFactory",
           "IDsConstChart",
@@ -1932,7 +1939,14 @@
           "TsStringUtils"
         ]
       },
-      "type_usage": {}
+      "type_usage": {
+        "DsConstChartTags": {
+          "properties": [
+            "kClassId"
+          ],
+          "methods": []
+        }
+      }
     },
     "code/Lists/possibility_item_base.py": {
       "imports": {
@@ -2090,14 +2104,6 @@
         ]
       },
       "type_usage": {
-        "IRnGenericRec": {
-          "properties": [
-            "IsInstance"
-          ],
-          "methods": [
-            "IsInstance"
-          ]
-        },
         "TsStringUtils": {
           "properties": [
             "MakeString"
@@ -2471,7 +2477,8 @@
           "ICmAnnotationDefn",
           "ICmAnnotationDefnFactory",
           "ICmAnnotationDefnRepository",
-          "ICmPossibility"
+          "ICmPossibility",
+          "ICmPossibilityList"
         ],
         "SIL.LCModel.Core.KernelInterfaces": [
           "ITsString"
@@ -2878,12 +2885,12 @@
   },
   "summary": {
     "total_files_with_lcm_deps": 73,
-    "total_unique_imports": 247,
+    "total_unique_imports": 244,
     "total_modules": 14,
-    "total_factories": 81,
+    "total_factories": 79,
     "total_repositories": 18,
-    "total_interfaces": 102,
-    "total_classes": 46,
-    "total_type_usages_tracked": 27
+    "total_interfaces": 99,
+    "total_classes": 48,
+    "total_type_usages_tracked": 28
   }
 }

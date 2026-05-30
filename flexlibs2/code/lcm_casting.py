@@ -118,22 +118,24 @@ def _ensure_interfaces() -> None:
     )
 
     # Phonological rule interfaces - try to import, but don't fail if unavailable
-    # These are the three main phonological rule types:
-    # - PhRegularRule: Standard phonological rules (most common)
-    # - PhMetathesisRule: Metathesis rules (swapping segments)
-    # - PhReduplicationRule: Reduplication rules
+    # LCM defines two concrete subclasses of PhSegmentRule:
+    #   - PhRegularRule: Standard phonological rules (most common)
+    #   - PhMetathesisRule: Metathesis rules (swapping segments)
+    # There is no IPhReduplicationRule interface in LCM (no PhReduplicationRule
+    # class in MasterLCModel.xml); the slot is kept as None for back-compat
+    # callers that still pass the legacy key.
     try:
         from SIL.LCModel import (
             IPhRegularRule,
             IPhMetathesisRule,
-            IPhReduplicationRule,
             IPhSimpleContextSeg,
             IPhSimpleContextNC,
             IPhSegRuleRHS,
         )
     except ImportError:
-        IPhRegularRule = IPhMetathesisRule = IPhReduplicationRule = None
+        IPhRegularRule = IPhMetathesisRule = None
         IPhSimpleContextSeg = IPhSimpleContextNC = IPhSegRuleRHS = None
+    IPhReduplicationRule = None
 
     # Compound rule interfaces - try to import, but don't fail if unavailable
     # These are the two main compound rule types:
@@ -147,19 +149,27 @@ def _ensure_interfaces() -> None:
     except ImportError:
         IMoEndoCompound = IMoExoCompound = None
 
-    # Morphosyntactic prohibition interfaces - try to import, but don't fail if unavailable
-    # These are the three main ad hoc prohibition types:
-    # - MoAdhocProhibGr: Grammatical feature prohibitions
-    # - MoAdhocProhibMorph: Morpheme co-occurrence prohibitions
-    # - MoAdhocProhibAllomorph: Allomorph co-occurrence prohibitions
+    # Morphosyntactic prohibition interfaces - LCM names diverge from the
+    # POS-flavored shorthand flexlibs2 historically used:
+    #   - MoAdhocProhibGr   : Grammatical feature prohibitions       (class 110)
+    #   - MoMorphAdhocProhib: Morpheme co-occurrence prohibitions    (class 102)
+    #   - MoAlloAdhocProhib : Allomorph co-occurrence prohibitions   (class 101)
+    # Earlier versions of this module spelled the latter two as
+    # IMoAdhocProhibMorph / IMoAdhocProhibAllomorph -- which never existed in
+    # LCM -- so the imports always failed and the cache silently went to None.
+    # Use the real LCM names and expose them under both keys so existing
+    # cache callers keep working.
     try:
         from SIL.LCModel import (
             IMoAdhocProhibGr,
-            IMoAdhocProhibMorph,
-            IMoAdhocProhibAllomorph,
+            IMoMorphAdhocProhib,
+            IMoAlloAdhocProhib,
         )
+        IMoAdhocProhibMorph = IMoMorphAdhocProhib
+        IMoAdhocProhibAllomorph = IMoAlloAdhocProhib
     except ImportError:
-        IMoAdhocProhibGr = IMoAdhocProhibMorph = IMoAdhocProhibAllomorph = None
+        IMoAdhocProhibGr = IMoMorphAdhocProhib = IMoAlloAdhocProhib = None
+        IMoAdhocProhibMorph = IMoAdhocProhibAllomorph = None
 
     # Affix template interface - try to import, but don't fail if unavailable
     # - MoInflAffixTemplate: Inflectional affix template patterns
@@ -543,17 +553,19 @@ def _get_factory_for_class(class_name: str, project: object) -> "Optional[object
         from SIL.LCModel import (
             IPhRegularRuleFactory,
             IPhMetathesisRuleFactory,
-            IPhReduplicationRuleFactory,
             IPhSegRuleRHSFactory,
             IPhSimpleContextSegFactory,
             IPhSimpleContextNCFactory,
         )
 
+        # LCM has no PhReduplicationRule class -- PhSegmentRule only branches
+        # into PhRegularRule (129) and PhMetathesisRule (130). The factory map
+        # therefore omits any reduplication entry; callers that pass that key
+        # fall through to None.
         factory_map = {
-            # The 3 main phonological rule types
+            # The 2 concrete PhSegmentRule subclasses
             "PhRegularRule": IPhRegularRuleFactory,
             "PhMetathesisRule": IPhMetathesisRuleFactory,
-            "PhReduplicationRule": IPhReduplicationRuleFactory,
             # Context and RHS types
             "PhSegRuleRHS": IPhSegRuleRHSFactory,
             "PhSimpleContextSeg": IPhSimpleContextSegFactory,
