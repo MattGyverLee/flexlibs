@@ -11,8 +11,6 @@
 #   Copyright 2025
 #
 
-import warnings
-
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
@@ -446,8 +444,11 @@ class GramCatOperations(BaseOperations):
 
         Args:
             item_or_hvo: The ICmPossibility object or HVO to duplicate.
-            insert_after (bool): If True (default), insert after the source category.
-                                If False, insert at end of parent's possibilities list.
+            insert_after (bool): For subcategories (SubPossibilitiesOS is
+                ordered), controls whether the duplicate is inserted
+                immediately after the source. Ignored for top-level
+                categories: TypesOC is an unordered ILcmOwningCollection, so
+                top-level duplicates are always appended via Add().
             deep (bool): If True, recursively duplicate all subcategories.
                         If False (default), only duplicate the category itself.
 
@@ -518,20 +519,11 @@ class GramCatOperations(BaseOperations):
                 parent_cat.SubPossibilitiesOS.Add(duplicate)
         else:
             # Source is top-level -- TypesOC requires IFsFeatStrucType.
+            # TypesOC is an unordered ILcmOwningCollection; insert_after has
+            # no semantic meaning here and is ignored.
             feature_system = self.project.lp.MsFeatureSystemOA
             factory = self.project.project.ServiceLocator.GetService(IFsFeatStrucTypeFactory)
             duplicate = factory.Create()
-            # TypesOC is an unordered ILcmOwningCollection; warn callers who
-            # still pass insert_after=True for top-level categories.
-            if insert_after:
-                warnings.warn(
-                    "GramCatOperations.Duplicate: insert_after is deprecated and "
-                    "ignored for top-level categories. TypesOC is an unordered "
-                    "ILcmOwningCollection; positional insertion is not supported. "
-                    "The duplicate is always appended via Add().",
-                    DeprecationWarning,
-                    stacklevel=2,
-                )
             feature_system.TypesOC.Add(duplicate)
 
         # Copy simple MultiString properties (AFTER adding to parent)

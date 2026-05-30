@@ -1,20 +1,15 @@
 #
 #   test_note_duplicate.py
 #
-#   Class: TestNoteDuplicate, TestNoteReorder
+#   Class: TestNoteDuplicateAnnotationsOC, TestNoteDuplicateRepliesOS
 #          Regression coverage for issue #158 Pattern I:
-#          NoteOperations.Duplicate(insert_after=True) called
+#          NoteOperations.Duplicate(insert_after=True) used to call
 #          AnnotationsOC.IndexOf() + AnnotationsOC.Insert() on an
 #          ILcmOwningCollection (OC), which has no Insert() method.
-#          NoteOperations.Reorder() called Clear() on AnnotationsOC,
-#          cascade-deleting all ICmBaseAnnotation objects (P0 corruption).
 #
-#          Fixes:
-#            - Duplicate: default changed to insert_after=False; kwarg is
-#              deprecated and ignored for the AnnotationsOC branch; always
-#              uses Add(). RepliesOS (OS) branch is unchanged.
-#            - Reorder: converted to no-op that emits DeprecationWarning
-#              and never touches the collection.
+#          Fix: Duplicate's AnnotationsOC branch always uses Add(); the
+#          insert_after kwarg is silently ignored there. The RepliesOS
+#          (ordered sequence) branch still honors insert_after.
 #
 #   Platform: Python.NET
 #             FieldWorks Version 9+
@@ -116,30 +111,12 @@ class _MockOwnerWithRepliesOS:
 # ---------------------------------------------------------------------------
 
 
-def _simulate_duplicate_oc_default(source_note, owner):
+def _simulate_duplicate_oc(source_note, owner):
     """
-    Simulate Duplicate(item, insert_after=False) when parent has AnnotationsOC.
-    No DeprecationWarning; uses Add().
+    Simulate Duplicate() when parent has AnnotationsOC. AnnotationsOC is an
+    unordered ILcmOwningCollection; the duplicate is always appended via
+    Add(), regardless of the insert_after argument.
     """
-    duplicate = _MockNote(source_note.name + "_copy")
-    owner.AnnotationsOC.Add(duplicate)
-    return duplicate
-
-
-def _simulate_duplicate_oc_deprecated(source_note, owner):
-    """
-    Simulate Duplicate(item, insert_after=True) when parent has AnnotationsOC.
-    Emits DeprecationWarning; still uses Add(), never Insert().
-    """
-    warnings.warn(
-        "NoteOperations.Duplicate: insert_after is deprecated and "
-        "ignored when the parent exposes AnnotationsOC. "
-        "AnnotationsOC is an unordered ILcmOwningCollection; "
-        "positional insertion is not supported. The duplicate is "
-        "always appended via Add().",
-        DeprecationWarning,
-        stacklevel=2,
-    )
     duplicate = _MockNote(source_note.name + "_copy")
     owner.AnnotationsOC.Add(duplicate)
     return duplicate
@@ -148,29 +125,12 @@ def _simulate_duplicate_oc_deprecated(source_note, owner):
 def _simulate_duplicate_os_insert_after(source_note, parent_note):
     """
     Simulate Duplicate(item, insert_after=True) when parent has RepliesOS.
-    RepliesOS is an OS (ordered); positional Insert is valid. No warning.
+    RepliesOS is an OS (ordered); positional Insert is valid.
     """
     duplicate = _MockNote(source_note.name + "_copy")
     idx = parent_note.RepliesOS.IndexOf(source_note)
     parent_note.RepliesOS.Insert(idx + 1, duplicate)
     return duplicate
-
-
-def _simulate_reorder(owner_object, note_list):
-    """
-    Simulate Reorder() -- the fixed no-op body.
-    Emits DeprecationWarning; never calls Clear() or Add().
-    """
-    warnings.warn(
-        "NoteOperations.Reorder is a no-op: AnnotationsOC is an unordered "
-        "ILcmOwningCollection and reorder has no semantic meaning. "
-        "The previous implementation called Clear() which cascade-deletes "
-        "all ICmBaseAnnotation objects (P0 data corruption, issue #158). "
-        "This method does nothing and will be removed in a future release.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    # No collection operations performed.
 
 
 # ---------------------------------------------------------------------------
@@ -184,65 +144,34 @@ class TestNoteDuplicateAnnotationsOC:
     when parent exposes AnnotationsOC (unordered OC).
     """
 
-    def test_default_path_uses_add_not_insert(self):
+    def test_uses_add_not_insert(self):
         """
-        Duplicate(item) -- default insert_after=False -- must call Add() and
+        Duplicate() against an AnnotationsOC parent must call Add() and
         must NOT raise AttributeError from a missing Insert().
         """
         n1 = _MockNote("note1")
         owner = _MockOwnerWithAnnotationsOC([n1])
         assert len(owner.AnnotationsOC) == 1
 
-        dup = _simulate_duplicate_oc_default(n1, owner)
+        dup = _simulate_duplicate_oc(n1, owner)
 
         assert len(owner.AnnotationsOC) == 2
         assert dup in owner.AnnotationsOC._items
 
-    def test_default_path_emits_no_deprecation_warning(self):
+    def test_emits_no_deprecation_warning(self):
         """
-        The default path (insert_after=False) must not emit DeprecationWarning.
+        The AnnotationsOC branch must not emit any DeprecationWarning,
+        regardless of the insert_after value the caller would have passed.
         """
         n1 = _MockNote("note1")
         owner = _MockOwnerWithAnnotationsOC([n1])
 
         with warnings.catch_warnings(record=True) as caught:
             warnings.simplefilter("always")
-            _simulate_duplicate_oc_default(n1, owner)
+            _simulate_duplicate_oc(n1, owner)
 
         dep = [w for w in caught if issubclass(w.category, DeprecationWarning)]
         assert dep == [], f"Unexpected DeprecationWarning(s): {dep}"
-
-    def test_deprecated_insert_after_true_emits_warning(self):
-        """
-        Duplicate(item, insert_after=True) with AnnotationsOC parent must emit
-        exactly one DeprecationWarning mentioning 'AnnotationsOC'.
-        """
-        n1 = _MockNote("note1")
-        owner = _MockOwnerWithAnnotationsOC([n1])
-
-        with warnings.catch_warnings(record=True) as caught:
-            warnings.simplefilter("always")
-            _simulate_duplicate_oc_deprecated(n1, owner)
-
-        dep = [w for w in caught if issubclass(w.category, DeprecationWarning)]
-        assert len(dep) == 1
-        assert "AnnotationsOC" in str(dep[0].message)
-
-    def test_deprecated_insert_after_true_still_adds_via_add(self):
-        """
-        Even with insert_after=True the duplicate must be added via Add()
-        so the collection count increases by 1 and no AttributeError occurs.
-        """
-        n1 = _MockNote("note1")
-        owner = _MockOwnerWithAnnotationsOC([n1])
-        initial = len(owner.AnnotationsOC)
-
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            dup = _simulate_duplicate_oc_deprecated(n1, owner)
-
-        assert len(owner.AnnotationsOC) == initial + 1
-        assert dup in owner.AnnotationsOC._items
 
     def test_insert_method_absent_on_mock_oc(self):
         """
@@ -260,7 +189,7 @@ class TestNoteDuplicateAnnotationsOC:
         n1 = _MockNote("note1")
         owner = _MockOwnerWithAnnotationsOC([n1])
 
-        _simulate_duplicate_oc_default(n1, owner)
+        _simulate_duplicate_oc(n1, owner)
 
         assert not owner.AnnotationsOC.clear_called, \
             "Duplicate() must not call Clear() on AnnotationsOC"
@@ -302,82 +231,3 @@ class TestNoteDuplicateRepliesOS:
 
         dep = [w for w in caught if issubclass(w.category, DeprecationWarning)]
         assert dep == [], f"Unexpected DeprecationWarning(s): {dep}"
-
-
-class TestNoteReorder:
-    """
-    Regression tests for issue #158 -- Reorder() path.
-    """
-
-    def test_reorder_emits_deprecation_warning(self):
-        """
-        Reorder() must emit exactly one DeprecationWarning mentioning 'no-op'.
-        """
-        n1 = _MockNote("note1")
-        n2 = _MockNote("note2")
-        owner = _MockOwnerWithAnnotationsOC([n1, n2])
-
-        with warnings.catch_warnings(record=True) as caught:
-            warnings.simplefilter("always")
-            _simulate_reorder(owner, [n2, n1])
-
-        dep = [w for w in caught if issubclass(w.category, DeprecationWarning)]
-        assert len(dep) == 1
-        assert "no-op" in str(dep[0].message)
-
-    def test_reorder_does_not_call_clear(self):
-        """
-        Reorder() must NOT call Clear() -- that would cascade-delete all
-        ICmBaseAnnotation objects (P0 data corruption).
-        """
-        n1 = _MockNote("note1")
-        n2 = _MockNote("note2")
-        owner = _MockOwnerWithAnnotationsOC([n1, n2])
-
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            _simulate_reorder(owner, [n2, n1])
-
-        assert not owner.AnnotationsOC.clear_called, \
-            "Reorder() must not call Clear() -- cascade-delete is P0 corruption"
-
-    def test_reorder_collection_count_unchanged(self):
-        """
-        After Reorder() the collection must still have the same number of items.
-        """
-        notes = [_MockNote(f"note{i}") for i in range(3)]
-        owner = _MockOwnerWithAnnotationsOC(notes)
-        count_before = len(owner.AnnotationsOC)
-
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            _simulate_reorder(owner, list(reversed(notes)))
-
-        assert len(owner.AnnotationsOC) == count_before
-
-    def test_reorder_no_deleted_items(self):
-        """
-        After Reorder() the _deleted list must be empty.
-        """
-        n1 = _MockNote("note1")
-        n2 = _MockNote("note2")
-        owner = _MockOwnerWithAnnotationsOC([n1, n2])
-
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            _simulate_reorder(owner, [n2, n1])
-
-        assert owner.AnnotationsOC._deleted == []
-
-    def test_reorder_returns_none(self):
-        """
-        Reorder() is a no-op and returns None (implicit).
-        """
-        n1 = _MockNote("note1")
-        owner = _MockOwnerWithAnnotationsOC([n1])
-
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            result = _simulate_reorder(owner, [n1])
-
-        assert result is None

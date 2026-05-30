@@ -185,7 +185,7 @@ Every hierarchical-list `GetAll()` accessor (POS, LexSense, SemanticDomain, Anth
 | `POS.GetAll(recursive=False)` | -- | Top-level only |
 | `LexEntry.GetAvailableMorphTypes(include_subcategories=True)` | Worked | Raises `TypeError` |
 | `LexEntry.GetAvailableMorphTypes(recursive=True)` | -- | Works |
-| `FLExProject.GetAllSemanticDomains(flat=True)` | Works | Emits `DeprecationWarning`, translates through |
+| `FLExProject.GetAllSemanticDomains(flat=True)` | Works | Raises `TypeError` |
 
 ### Why This Changed
 

@@ -3,17 +3,15 @@
 #
 #   Class: TestDiscourseDuplicate
 #          Regression coverage for issue #158 Pattern I:
-#          DiscourseOperations.Duplicate(insert_after=True) called
+#          DiscourseOperations.Duplicate(insert_after=True) used to call
 #          ChartsOC.IndexOf() + ChartsOC.Insert() on an
 #          ILcmOwningCollection (OC), which has no Insert() method.
 #          Also: when insert_after=True and parent had no ChartsOC, the
 #          duplicate was silently orphaned (never added to any collection).
 #
-#          Fix:
-#            - Duplicate: default changed to insert_after=False; kwarg is
-#              deprecated and ignored; always uses Add() on ChartsOC.
-#            - Orphan bug fixed: Add() is now always called regardless of
-#              the deprecated insert_after flag.
+#          Fix: Duplicate always uses Add() on ChartsOC; insert_after is
+#          silently ignored. Add() is always called, eliminating the
+#          orphan bug.
 #
 #   Platform: Python.NET
 #             FieldWorks Version 9+
@@ -84,34 +82,15 @@ class _MockTextNoCharts:
 
 
 # ---------------------------------------------------------------------------
-# Helpers that mimic the relevant code paths from DiscourseOperations
+# Helper that mimics the relevant code path from DiscourseOperations
 # ---------------------------------------------------------------------------
 
 
-def _simulate_duplicate_default(source_chart, parent):
+def _simulate_duplicate(source_chart, parent):
     """
-    Simulate Duplicate(item, insert_after=False).
-    No DeprecationWarning; uses Add() on ChartsOC.
+    Simulate Duplicate() -- ChartsOC is unordered, so insert_after is
+    ignored and the duplicate is always appended via Add().
     """
-    duplicate = _MockChart(source_chart.name + "_copy")
-    if hasattr(parent, "ChartsOC"):
-        parent.ChartsOC.Add(duplicate)
-    return duplicate
-
-
-def _simulate_duplicate_deprecated(source_chart, parent):
-    """
-    Simulate Duplicate(item, insert_after=True).
-    Emits DeprecationWarning; still uses Add(), never Insert().
-    """
-    warnings.warn(
-        "DiscourseOperations.Duplicate: insert_after is deprecated and "
-        "ignored. ChartsOC is an unordered ILcmOwningCollection; "
-        "positional insertion is not supported. The duplicate is always "
-        "appended via Add().",
-        DeprecationWarning,
-        stacklevel=2,
-    )
     duplicate = _MockChart(source_chart.name + "_copy")
     if hasattr(parent, "ChartsOC"):
         parent.ChartsOC.Add(duplicate)
@@ -128,65 +107,34 @@ class TestDiscourseDuplicate:
     Regression tests for issue #158 Pattern I -- Duplicate() path.
     """
 
-    def test_default_path_uses_add_not_insert(self):
+    def test_uses_add_not_insert(self):
         """
-        Duplicate(item) -- default insert_after=False -- must call Add() and
-        must NOT raise AttributeError from a missing Insert().
+        Duplicate() must call Add() and must NOT raise AttributeError from
+        a missing Insert().
         """
         c1 = _MockChart("main chart")
         parent = _MockText([c1])
         assert len(parent.ChartsOC) == 1
 
-        dup = _simulate_duplicate_default(c1, parent)
+        dup = _simulate_duplicate(c1, parent)
 
         assert len(parent.ChartsOC) == 2
         assert dup in parent.ChartsOC._items
 
-    def test_default_path_emits_no_deprecation_warning(self):
+    def test_emits_no_deprecation_warning(self):
         """
-        The default path (insert_after=False) must not emit DeprecationWarning.
+        Duplicate() must not emit any DeprecationWarning, regardless of
+        what value the caller would have passed for insert_after.
         """
         c1 = _MockChart("main chart")
         parent = _MockText([c1])
 
         with warnings.catch_warnings(record=True) as caught:
             warnings.simplefilter("always")
-            _simulate_duplicate_default(c1, parent)
+            _simulate_duplicate(c1, parent)
 
         dep = [w for w in caught if issubclass(w.category, DeprecationWarning)]
         assert dep == [], f"Unexpected DeprecationWarning(s): {dep}"
-
-    def test_deprecated_insert_after_true_emits_warning(self):
-        """
-        Duplicate(item, insert_after=True) must emit exactly one
-        DeprecationWarning mentioning 'ChartsOC'.
-        """
-        c1 = _MockChart("main chart")
-        parent = _MockText([c1])
-
-        with warnings.catch_warnings(record=True) as caught:
-            warnings.simplefilter("always")
-            _simulate_duplicate_deprecated(c1, parent)
-
-        dep = [w for w in caught if issubclass(w.category, DeprecationWarning)]
-        assert len(dep) == 1
-        assert "ChartsOC" in str(dep[0].message)
-
-    def test_deprecated_insert_after_true_still_adds_via_add(self):
-        """
-        Even with insert_after=True the duplicate must be added via Add()
-        so the collection count increases by 1 and no AttributeError occurs.
-        """
-        c1 = _MockChart("main chart")
-        parent = _MockText([c1])
-        initial = len(parent.ChartsOC)
-
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            dup = _simulate_duplicate_deprecated(c1, parent)
-
-        assert len(parent.ChartsOC) == initial + 1
-        assert dup in parent.ChartsOC._items
 
     def test_insert_method_absent_on_mock_oc(self):
         """
@@ -204,7 +152,7 @@ class TestDiscourseDuplicate:
         c1 = _MockChart("main chart")
         parent = _MockText([c1])
 
-        _simulate_duplicate_default(c1, parent)
+        _simulate_duplicate(c1, parent)
 
         assert not parent.ChartsOC.clear_called, \
             "Duplicate() must not call Clear() on ChartsOC"
@@ -217,20 +165,6 @@ class TestDiscourseDuplicate:
         parent = _MockText(charts)
         count_before = len(parent.ChartsOC)
 
-        _simulate_duplicate_default(charts[0], parent)
+        _simulate_duplicate(charts[0], parent)
 
         assert len(parent.ChartsOC) == count_before + 1
-
-    def test_insert_after_warning_text_mentions_deprecated(self):
-        """
-        The DeprecationWarning message must mention 'insert_after is deprecated'.
-        """
-        c1 = _MockChart("chart")
-        parent = _MockText([c1])
-
-        with warnings.catch_warnings(record=True) as caught:
-            warnings.simplefilter("always")
-            _simulate_duplicate_deprecated(c1, parent)
-
-        dep = [w for w in caught if issubclass(w.category, DeprecationWarning)]
-        assert "insert_after is deprecated" in str(dep[0].message)

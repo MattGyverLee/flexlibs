@@ -9,7 +9,6 @@
 #
 
 import re
-import warnings
 
 import clr
 
@@ -196,16 +195,12 @@ class SegmentOperations(BaseOperations):
         return analyses
 
     @OperationsMethod
-    def GetBaselineText(self, segment_or_hvo, wsHandle=None):
+    def GetBaselineText(self, segment_or_hvo):
         """
         Get the baseline text of a segment (the original text in the vernacular language).
 
         Args:
             segment_or_hvo: The ISegment object or HVO.
-            wsHandle: Deprecated.  ``ISegment.BaselineText`` is already an
-                ``ITsString`` (single-WS, WS baked in), not an
-                ``IMultiString``.  This parameter is ignored.  Pass
-                ``None`` (or omit) to avoid the DeprecationWarning.
 
         Returns:
             str: The baseline text, or empty string if not set.
@@ -223,15 +218,6 @@ class SegmentOperations(BaseOperations):
             SetBaselineText, GetFreeTranslation, GetLiteralTranslation
         """
         self._ValidateParam(segment_or_hvo, "segment_or_hvo")
-
-        if wsHandle is not None:
-            warnings.warn(
-                "GetBaselineText: wsHandle is ignored. "
-                "ISegment.BaselineText is an ITsString (WS already embedded), "
-                "not an IMultiString.  Remove the wsHandle argument.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
 
         segment_obj = self.__GetSegmentObject(segment_or_hvo)
         # ISegment.BaselineText is ITsString (WS already resolved by LCM),

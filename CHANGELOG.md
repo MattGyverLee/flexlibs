@@ -18,7 +18,7 @@ Future breaking changes go under `[Unreleased]` until the next version cut.
     `AnthropologyOperations.GetAll`, `LocationOperations.GetAll`,
     `PublicationOperations.GetAll`, `PossibilityListOperations.GetAll`,
     plus the inline `GetSubcategories` / `GetSubdomains` / `GetSubitems` helpers.
-  - `FLExProject.GetAllSemanticDomains` keeps a one-release `flat=` deprecation shim that emits `DeprecationWarning` and translates straight through. Other accessors raise immediately.
+  - `FLExProject.GetAllSemanticDomains` now also raises `TypeError` on `flat=` (the one-release deprecation shim has been removed).
 - **`include_subcategories=` parameter renamed to `recursive=`** on `LexEntryOperations.GetAvailableMorphTypes`. Same semantics, more consistent naming.
 - **Counting queries default to `recursive=False`** (FLEx UI parity). `POSOperations.GetEntryCount` was briefly flipped to `recursive=True` in d423e83 and reverted by #101 to match every count column in FLEx's UI (Categories tool, Lexicon Browse, Tools > Statistics — all direct-tag only). `SemanticDomainOperations.GetSenseCount` now accepts the same `recursive=` parameter (default `False`), so caller code looks identical across all `Get*Count` methods. Pass `recursive=True` when you actually want the descendant roll-up.
 

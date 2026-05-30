@@ -1316,20 +1316,22 @@ class FLExProject(object):
             PhonologicalRuleOperations: Instance providing phonological rule management methods
 
         Example:
+            >>> from flexlibs2 import FLExProject, Seg, NC
             >>> project = FLExProject()
             >>> project.OpenProject("MyProject", writeEnabled=True)
             >>> # Create a phonological rule
             >>> rule = project.PhonRules.Create("Voicing Assimilation",
             ...     "Voiceless stops become voiced between vowels")
-            >>> # Add input and output
+            >>> # Wire input, output, and contexts via WireRule (the composer)
             >>> phoneme_t = project.Phonemes.Find("/t/")
             >>> phoneme_d = project.Phonemes.Find("/d/")
-            >>> project.PhonRules.AddInputSegment(rule, phoneme_t)
-            >>> project.PhonRules.AddOutputSegment(rule, phoneme_d)
-            >>> # Set context
             >>> vowels = project.NaturalClasses.Find("Vowels")
-            >>> project.PhonRules.SetLeftContext(rule, vowels)
-            >>> project.PhonRules.SetRightContext(rule, vowels)
+            >>> project.PhonRules.WireRule(rule,
+            ...     input_pattern=[Seg(phoneme_t)],
+            ...     output_change=[Seg(phoneme_d)],
+            ...     left_context=[NC(vowels)],
+            ...     right_context=[NC(vowels)],
+            ... )
         """
         if "_phonrule_ops" not in self.__dict__:
             from .Grammar.PhonologicalRuleOperations import PhonologicalRuleOperations
@@ -2962,7 +2964,7 @@ class FLExProject(object):
         """
         return [self.POS.GetName(pos) for pos in self.POS.GetAll()]
 
-    def GetAllSemanticDomains(self, recursive=True, **kwargs):
+    def GetAllSemanticDomains(self, recursive=True):
         """
         Returns a list of all semantic domains defined in this project.
         The list is ordered.
@@ -2979,26 +2981,7 @@ class FLExProject(object):
            This method delegates to :meth:`SemanticDomainOperations.GetAll`.
            The default of ``recursive=True`` matches every other
            ``GetAll`` accessor in the codebase (refactor d423e83).
-
-           ``flat=`` is accepted as a deprecated alias for ``recursive=``
-           with identical semantics; calls passing ``flat=`` emit a
-           :class:`DeprecationWarning` and translate the value through.
         """
-        if "flat" in kwargs:
-            import warnings
-
-            warnings.warn(
-                "GetAllSemanticDomains: 'flat=' is deprecated; use "
-                "'recursive=' instead (same semantics).",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            recursive = kwargs.pop("flat")
-        if kwargs:
-            raise TypeError(
-                "GetAllSemanticDomains() got unexpected keyword arguments: "
-                f"{sorted(kwargs)}"
-            )
         return self.SemanticDomains.GetAll(recursive=recursive)
 
     # --- Global utility functions ---

@@ -7,11 +7,10 @@
 #          category called TypesOC.IndexOf() + TypesOC.Insert() on an
 #          ILcmOwningCollection (OC), which has no Insert() method.
 #
-#          Fix:
-#            - Duplicate: default changed to insert_after=False; kwarg is
-#              deprecated and ignored for the TypesOC (top-level) branch;
-#              always uses Add() on OC. OS branch (SubPossibilitiesOS)
-#              continues to support positional Insert() unchanged.
+#          Fix: Duplicate always uses Add() on TypesOC; insert_after is
+#          silently ignored at the top level. The OS branch
+#          (SubPossibilitiesOS) continues to support positional Insert()
+#          unchanged.
 #
 #   Platform: Python.NET
 #             FieldWorks Version 9+
@@ -111,29 +110,11 @@ class _MockFeatureSystem:
 # ---------------------------------------------------------------------------
 
 
-def _simulate_duplicate_toplevel_default(source_cat, feature_system):
+def _simulate_duplicate_toplevel(source_cat, feature_system):
     """
-    Simulate Duplicate(item, insert_after=False) for a top-level category.
-    No DeprecationWarning; uses Add() on TypesOC.
+    Simulate Duplicate() for a top-level category. TypesOC is unordered,
+    so insert_after is ignored and the duplicate is always appended via Add().
     """
-    duplicate = _MockCat(source_cat.name + "_copy")
-    feature_system.TypesOC.Add(duplicate)
-    return duplicate
-
-
-def _simulate_duplicate_toplevel_deprecated(source_cat, feature_system):
-    """
-    Simulate Duplicate(item, insert_after=True) for a top-level category.
-    Emits DeprecationWarning; still uses Add(), never Insert().
-    """
-    warnings.warn(
-        "GramCatOperations.Duplicate: insert_after is deprecated and "
-        "ignored for top-level categories. TypesOC is an unordered "
-        "ILcmOwningCollection; positional insertion is not supported. "
-        "The duplicate is always appended via Add().",
-        DeprecationWarning,
-        stacklevel=2,
-    )
     duplicate = _MockCat(source_cat.name + "_copy")
     feature_system.TypesOC.Add(duplicate)
     return duplicate
@@ -162,65 +143,34 @@ class TestGramCatDuplicateTopLevel:
     (TypesOC is unordered OC).
     """
 
-    def test_default_path_uses_add_not_insert(self):
+    def test_uses_add_not_insert(self):
         """
-        Duplicate(item) -- default insert_after=False -- must call Add() and
-        must NOT raise AttributeError from a missing Insert().
+        Duplicate() must call Add() and must NOT raise AttributeError from
+        a missing Insert().
         """
         cat1 = _MockCat("person")
         fs = _MockFeatureSystem([cat1])
         assert len(fs.TypesOC) == 1
 
-        dup = _simulate_duplicate_toplevel_default(cat1, fs)
+        dup = _simulate_duplicate_toplevel(cat1, fs)
 
         assert len(fs.TypesOC) == 2
         assert dup in fs.TypesOC._items
 
-    def test_default_path_emits_no_deprecation_warning(self):
+    def test_emits_no_deprecation_warning(self):
         """
-        The default path (insert_after=False) must not emit DeprecationWarning.
+        Duplicate() of a top-level category must not emit any
+        DeprecationWarning, regardless of insert_after.
         """
         cat1 = _MockCat("person")
         fs = _MockFeatureSystem([cat1])
 
         with warnings.catch_warnings(record=True) as caught:
             warnings.simplefilter("always")
-            _simulate_duplicate_toplevel_default(cat1, fs)
+            _simulate_duplicate_toplevel(cat1, fs)
 
         dep = [w for w in caught if issubclass(w.category, DeprecationWarning)]
         assert dep == [], f"Unexpected DeprecationWarning(s): {dep}"
-
-    def test_deprecated_insert_after_true_emits_warning(self):
-        """
-        Duplicate(item, insert_after=True) on a top-level category must emit
-        exactly one DeprecationWarning mentioning 'TypesOC'.
-        """
-        cat1 = _MockCat("person")
-        fs = _MockFeatureSystem([cat1])
-
-        with warnings.catch_warnings(record=True) as caught:
-            warnings.simplefilter("always")
-            _simulate_duplicate_toplevel_deprecated(cat1, fs)
-
-        dep = [w for w in caught if issubclass(w.category, DeprecationWarning)]
-        assert len(dep) == 1
-        assert "TypesOC" in str(dep[0].message)
-
-    def test_deprecated_insert_after_true_still_adds_via_add(self):
-        """
-        Even with insert_after=True the duplicate must be added via Add()
-        so the collection count increases by 1 and no AttributeError occurs.
-        """
-        cat1 = _MockCat("person")
-        fs = _MockFeatureSystem([cat1])
-        initial = len(fs.TypesOC)
-
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            dup = _simulate_duplicate_toplevel_deprecated(cat1, fs)
-
-        assert len(fs.TypesOC) == initial + 1
-        assert dup in fs.TypesOC._items
 
     def test_insert_method_absent_on_mock_oc(self):
         """
@@ -238,7 +188,7 @@ class TestGramCatDuplicateTopLevel:
         cat1 = _MockCat("person")
         fs = _MockFeatureSystem([cat1])
 
-        _simulate_duplicate_toplevel_default(cat1, fs)
+        _simulate_duplicate_toplevel(cat1, fs)
 
         assert not fs.TypesOC.clear_called, \
             "Duplicate() must not call Clear() on TypesOC"
@@ -251,7 +201,7 @@ class TestGramCatDuplicateTopLevel:
         fs = _MockFeatureSystem(cats)
         count_before = len(fs.TypesOC)
 
-        _simulate_duplicate_toplevel_default(cats[0], fs)
+        _simulate_duplicate_toplevel(cats[0], fs)
 
         assert len(fs.TypesOC) == count_before + 1
 

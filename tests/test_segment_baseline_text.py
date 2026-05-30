@@ -133,20 +133,18 @@ class TestGetBaselineTextBody:
             # new-style access pattern.
             _ = seg.BaselineText.Text
 
-    def test_deprecation_warning_fired_when_ws_handle_passed(self):
+    def test_ws_handle_rejected(self):
         """
-        The wsHandle parameter is now deprecated and ignored.
-        Passing a non-None value must emit DeprecationWarning.
+        The wsHandle parameter was removed (ISegment.BaselineText is a
+        single-WS ITsString). Passing it must now raise TypeError.
         """
         seg = _make_segment("world")
-        with pytest.warns(DeprecationWarning, match="wsHandle is ignored"):
-            result = self.ops.GetBaselineText(seg, wsHandle=1)
-        assert result == "world"
+        with pytest.raises(TypeError):
+            self.ops.GetBaselineText(seg, wsHandle=1)
 
-    def test_no_warning_when_ws_handle_omitted(self):
+    def test_no_warning_on_normal_call(self):
         """
-        No warning when wsHandle is omitted (the normal call pattern).
-        Confirms we only warn on deprecated usage.
+        Plain GetBaselineText(seg) must not emit any DeprecationWarning.
         """
         seg = _make_segment("world")
         with warnings.catch_warnings():

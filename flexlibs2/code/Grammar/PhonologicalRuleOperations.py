@@ -72,8 +72,7 @@ class PhonologicalRuleOperations(BaseOperations):
         phonRuleOps.SetDescription(rule, "Obstruents become voiced before vowels")
 
         # Wire the rule via WireRule (the supported composer).
-        # AddInputSegment / AddOutputSegment still work for simple cases,
-        # but SetLeftContext / SetRightContext are refused with
+        # SetLeftContext / SetRightContext are refused with
         # NotImplementedError (they wrote to the wrong owner -- see #142).
         from flexlibs2 import Seg, NC
         phonRuleOps.WireRule(rule,
@@ -192,7 +191,7 @@ class PhonologicalRuleOperations(BaseOperations):
             - Must add input/output specifications separately
 
         See Also:
-            Delete, SetDescription, AddInputSegment, AddOutputSegment
+            Delete, SetDescription, WireRule
         """
         self._EnsureWriteEnabled()
 
@@ -618,130 +617,6 @@ class PhonologicalRuleOperations(BaseOperations):
 
         if hasattr(rule, "Direction"):
             rule.Direction = direction
-
-    @OperationsMethod
-    def AddInputSegment(self, rule_or_hvo, phoneme_or_class):
-        """
-        [DEPRECATED] Use WireRule for new code.
-
-        This method writes to a single position (StrucDescOS[0]) and has
-        known limitations with multi-element contexts. Phase 2 fixed its
-        orphan-NPE bug. WireRule supersedes it with proper pattern-element
-        semantics (Seg, NC, Boundary) and Greek-variable agreement.
-
-        Add an input segment or natural class to the rule.
-
-        Args:
-            rule_or_hvo: The IPhPhonRule object or HVO.
-            phoneme_or_class: A phoneme object, natural class object, or HVO.
-
-        Raises:
-            FP_ReadOnlyError: If the project is not opened with write enabled.
-            FP_NullParameterError: If rule_or_hvo or phoneme_or_class is None.
-
-        Example:
-            >>> phonRuleOps = PhonologicalRuleOperations(project)
-            >>> rule = phonRuleOps.Create("Voicing Rule")
-            >>> # Add voiceless stop as input
-            >>> phoneme_t = project.Phonemes.Find("/t/")
-            >>> phonRuleOps.AddInputSegment(rule, phoneme_t)
-
-        Notes:
-            - Input specifies what the rule looks for
-            - Can be a single phoneme or a natural class
-            - Multiple inputs create alternate patterns
-
-        See Also:
-            AddOutputSegment, GetInputSegments
-        """
-        self._EnsureWriteEnabled()
-
-        self._ValidateParam(rule_or_hvo, "rule_or_hvo")
-        self._ValidateParam(phoneme_or_class, "phoneme_or_class")
-
-        rule = self.__ResolveObject(rule_or_hvo)
-
-        # Resolve phoneme/class if HVO
-        if isinstance(phoneme_or_class, int):
-            phoneme_or_class = self.project.Object(phoneme_or_class)
-
-        # Access the rule's input contexts
-        # This requires accessing the StrucDesc (structural description)
-        # which contains the input specification
-        if hasattr(rule, "StrucDescOS") and rule.StrucDescOS.Count == 0:
-            # Create a segment rule for the input
-            seg_factory = self.project.project.ServiceLocator.GetService(IPhSimpleContextSegFactory)
-            input_context = seg_factory.Create()
-            rule.StrucDescOS.Add(input_context)
-
-        # Add the phoneme/class to the input context
-        if hasattr(rule, "StrucDescOS") and rule.StrucDescOS.Count > 0:
-            input_context = rule.StrucDescOS[0]
-            if hasattr(input_context, "FeatureStructureRA"):
-                input_context.FeatureStructureRA = phoneme_or_class
-
-    @OperationsMethod
-    def AddOutputSegment(self, rule_or_hvo, phoneme_or_class):
-        """
-        [DEPRECATED] Use WireRule for new code.
-
-        This method writes to a single position (RightHandSidesOS[0].StrucChangeOS)
-        and has known limitations with multi-element changes. Phase 2 fixed its
-        orphan-NPE bug. WireRule supersedes it with proper pattern-element
-        semantics (Seg, NC, Boundary) and Greek-variable agreement.
-
-        Add an output segment or natural class to the rule.
-
-        Args:
-            rule_or_hvo: The IPhPhonRule object or HVO.
-            phoneme_or_class: A phoneme object, natural class object, or HVO.
-
-        Raises:
-            FP_ReadOnlyError: If the project is not opened with write enabled.
-            FP_NullParameterError: If rule_or_hvo or phoneme_or_class is None.
-
-        Example:
-            >>> phonRuleOps = PhonologicalRuleOperations(project)
-            >>> rule = phonRuleOps.Create("Voicing Rule")
-            >>> # Add voiced stop as output
-            >>> phoneme_d = project.Phonemes.Find("/d/")
-            >>> phonRuleOps.AddOutputSegment(rule, phoneme_d)
-
-        Notes:
-            - Output specifies what the rule produces
-            - Can be a single phoneme or a natural class
-            - Should correspond to input segments
-
-        See Also:
-            AddInputSegment, GetOutputSegments
-        """
-        self._EnsureWriteEnabled()
-
-        self._ValidateParam(rule_or_hvo, "rule_or_hvo")
-        self._ValidateParam(phoneme_or_class, "phoneme_or_class")
-
-        rule = self.__ResolveObject(rule_or_hvo)
-
-        # Resolve phoneme/class if HVO
-        if isinstance(phoneme_or_class, int):
-            phoneme_or_class = self.project.Object(phoneme_or_class)
-
-        # Create RHS (right-hand side) for output if needed
-        if hasattr(rule, "RightHandSidesOS") and rule.RightHandSidesOS.Count == 0:
-            rhs_factory = self.project.project.ServiceLocator.GetService(IPhSegRuleRHSFactory)
-            rhs = rhs_factory.Create()
-            rule.RightHandSidesOS.Add(rhs)
-
-        # Add the phoneme/class to the output
-        if hasattr(rule, "RightHandSidesOS") and rule.RightHandSidesOS.Count > 0:
-            rhs = rule.RightHandSidesOS[0]
-            if hasattr(rhs, "StrucChangeOS") and hasattr(phoneme_or_class, "Hvo"):
-                # Add to structural change specification
-                seg_factory = self.project.project.ServiceLocator.GetService(IPhSimpleContextSegFactory)
-                output_seg = seg_factory.Create()
-                # Attach to owner (must be done before setting properties)
-                rhs.StrucChangeOS.Add(output_seg)
-                output_seg.FeatureStructureRA = phoneme_or_class
 
     @OperationsMethod
     def SetLeftContext(self, rule_or_hvo, context_item):

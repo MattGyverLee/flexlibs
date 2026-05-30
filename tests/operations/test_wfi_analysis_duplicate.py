@@ -3,16 +3,15 @@
 #
 #   Class: TestWfiAnalysisDuplicate
 #          Regression coverage for issue #158 Pattern I:
-#          WfiAnalysisOperations.Duplicate(insert_after=True) called
+#          WfiAnalysisOperations.Duplicate(insert_after=True) used to call
 #          list(parent.AnalysesOC).index(source) [sub-pattern 3] and then
 #          parent.AnalysesOC.Insert(source_index + 1, duplicate)
 #          [sub-pattern 1] on an ILcmOwningCollection (OC). OC collections
 #          are unordered; list(...).index() gives a nondeterministic result
 #          and Insert() does not exist on OC collections.
 #
-#          Fix:
-#            - Duplicate: default changed to insert_after=False; kwarg is
-#              deprecated and ignored; always uses Add() on AnalysesOC.
+#          Fix: Duplicate always uses Add() on AnalysesOC; insert_after is
+#          silently ignored for the OC branch.
 #
 #   Platform: Python.NET
 #             FieldWorks Version 9+
@@ -77,33 +76,15 @@ class _MockWordform:
 
 
 # ---------------------------------------------------------------------------
-# Helpers that mimic the relevant code paths from WfiAnalysisOperations
+# Helper that mimics the relevant code path from WfiAnalysisOperations
 # ---------------------------------------------------------------------------
 
 
-def _simulate_duplicate_default(source_analysis, parent_wordform):
+def _simulate_duplicate(source_analysis, parent_wordform):
     """
-    Simulate Duplicate(item, insert_after=False) -- the fixed default path.
-    No DeprecationWarning; uses Add().
+    Simulate Duplicate() -- AnalysesOC is unordered, so insert_after is
+    ignored and the duplicate is always appended via Add().
     """
-    duplicate = _MockAnalysis(source_analysis.name + "_copy")
-    parent_wordform.AnalysesOC.Add(duplicate)
-    return duplicate
-
-
-def _simulate_duplicate_deprecated(source_analysis, parent_wordform):
-    """
-    Simulate Duplicate(item, insert_after=True) -- the deprecated path.
-    Emits DeprecationWarning; still uses Add(), never Insert().
-    """
-    warnings.warn(
-        "WfiAnalysisOperations.Duplicate: insert_after is deprecated and "
-        "ignored. AnalysesOC is an unordered ILcmOwningCollection; "
-        "positional insertion is not supported. The duplicate is always "
-        "appended via Add().",
-        DeprecationWarning,
-        stacklevel=2,
-    )
     duplicate = _MockAnalysis(source_analysis.name + "_copy")
     parent_wordform.AnalysesOC.Add(duplicate)
     return duplicate
@@ -119,65 +100,34 @@ class TestWfiAnalysisDuplicate:
     Regression tests for issue #158 Pattern I -- Duplicate() path.
     """
 
-    def test_default_path_uses_add_not_insert(self):
+    def test_uses_add_not_insert(self):
         """
-        Duplicate(item) -- default insert_after=False -- must call Add() and
-        must NOT raise AttributeError from a missing Insert().
+        Duplicate() must call Add() and must NOT raise AttributeError from
+        a missing Insert().
         """
         a1 = _MockAnalysis("analysis1")
         wf = _MockWordform([a1])
         assert len(wf.AnalysesOC) == 1
 
-        dup = _simulate_duplicate_default(a1, wf)
+        dup = _simulate_duplicate(a1, wf)
 
         assert len(wf.AnalysesOC) == 2
         assert dup in wf.AnalysesOC._items
 
-    def test_default_path_emits_no_deprecation_warning(self):
+    def test_emits_no_deprecation_warning(self):
         """
-        The default path (insert_after=False) must not emit DeprecationWarning.
+        Duplicate() must not emit any DeprecationWarning, regardless of
+        what value the caller would have passed for insert_after.
         """
         a1 = _MockAnalysis("analysis1")
         wf = _MockWordform([a1])
 
         with warnings.catch_warnings(record=True) as caught:
             warnings.simplefilter("always")
-            _simulate_duplicate_default(a1, wf)
+            _simulate_duplicate(a1, wf)
 
         dep = [w for w in caught if issubclass(w.category, DeprecationWarning)]
         assert dep == [], f"Unexpected DeprecationWarning(s): {dep}"
-
-    def test_deprecated_insert_after_true_emits_warning(self):
-        """
-        Duplicate(item, insert_after=True) must emit exactly one
-        DeprecationWarning mentioning 'AnalysesOC'.
-        """
-        a1 = _MockAnalysis("analysis1")
-        wf = _MockWordform([a1])
-
-        with warnings.catch_warnings(record=True) as caught:
-            warnings.simplefilter("always")
-            _simulate_duplicate_deprecated(a1, wf)
-
-        dep = [w for w in caught if issubclass(w.category, DeprecationWarning)]
-        assert len(dep) == 1
-        assert "AnalysesOC" in str(dep[0].message)
-
-    def test_deprecated_insert_after_true_still_adds_via_add(self):
-        """
-        Even with insert_after=True the duplicate must be added via Add()
-        so the collection count increases by 1 and no AttributeError occurs.
-        """
-        a1 = _MockAnalysis("analysis1")
-        wf = _MockWordform([a1])
-        initial = len(wf.AnalysesOC)
-
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            dup = _simulate_duplicate_deprecated(a1, wf)
-
-        assert len(wf.AnalysesOC) == initial + 1
-        assert dup in wf.AnalysesOC._items
 
     def test_insert_method_absent_on_mock_oc(self):
         """
@@ -188,26 +138,6 @@ class TestWfiAnalysisDuplicate:
         with pytest.raises(AttributeError):
             oc.Insert(0, _MockAnalysis("y"))
 
-    def test_list_index_pattern_not_used(self):
-        """
-        Verify sub-pattern 3 (list(...).index()) is not used on OC.
-        The old code did list(parent.AnalysesOC).index(source) which is
-        nondeterministic on an unordered OC. The fix never calls .index().
-        This test confirms the fixed path does not call list().index().
-        """
-        a1 = _MockAnalysis("analysis1")
-        a2 = _MockAnalysis("analysis2")
-        wf = _MockWordform([a1, a2])
-
-        # If we were still using list().index() + Insert(), the mock would
-        # raise AttributeError on Insert(). The fact that this test passes
-        # without AttributeError confirms .index() + Insert() are not called.
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            dup = _simulate_duplicate_deprecated(a1, wf)
-
-        assert dup in wf.AnalysesOC._items
-
     def test_duplicate_does_not_call_clear(self):
         """
         Duplicate() must never call Clear() on AnalysesOC.
@@ -215,7 +145,7 @@ class TestWfiAnalysisDuplicate:
         a1 = _MockAnalysis("analysis1")
         wf = _MockWordform([a1])
 
-        _simulate_duplicate_default(a1, wf)
+        _simulate_duplicate(a1, wf)
 
         assert not wf.AnalysesOC.clear_called, \
             "Duplicate() must not call Clear() on AnalysesOC"
@@ -228,20 +158,6 @@ class TestWfiAnalysisDuplicate:
         wf = _MockWordform(analyses)
         count_before = len(wf.AnalysesOC)
 
-        _simulate_duplicate_default(analyses[0], wf)
+        _simulate_duplicate(analyses[0], wf)
 
         assert len(wf.AnalysesOC) == count_before + 1
-
-    def test_insert_after_warning_text_mentions_deprecated(self):
-        """
-        The DeprecationWarning message must mention 'insert_after is deprecated'.
-        """
-        a1 = _MockAnalysis("analysis1")
-        wf = _MockWordform([a1])
-
-        with warnings.catch_warnings(record=True) as caught:
-            warnings.simplefilter("always")
-            _simulate_duplicate_deprecated(a1, wf)
-
-        dep = [w for w in caught if issubclass(w.category, DeprecationWarning)]
-        assert "insert_after is deprecated" in str(dep[0].message)

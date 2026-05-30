@@ -9,7 +9,6 @@
 #
 
 import clr
-import warnings
 
 clr.AddReference("System")
 import System
@@ -1048,11 +1047,9 @@ class DiscourseOperations(BaseOperations):
 
         Args:
             item_or_hvo: The chart object or HVO to duplicate.
-            insert_after (bool): Deprecated and ignored. ChartsOC is an
-                unordered ILcmOwningCollection; it has no Insert() method and
-                no concept of positional ordering. The duplicate is always
-                appended via Add(). Passing insert_after=True emits a
-                DeprecationWarning and is otherwise harmless.
+            insert_after (bool): Ignored. ChartsOC is an unordered
+                ILcmOwningCollection with no Insert() method and no concept of
+                positional ordering. The duplicate is always appended via Add().
             deep (bool): If True (default), also duplicate rows (structure only, empty).
                         If False, only copy chart properties. Note: Row contents and
                         cells are not duplicated (requires complex cell mapping logic).
@@ -1100,17 +1097,8 @@ class DiscourseOperations(BaseOperations):
         duplicate = factory.Create()
 
         # ADD TO PARENT FIRST.
-        # ChartsOC is an unordered ILcmOwningCollection; warn callers who
-        # still pass insert_after=True.
-        if insert_after:
-            warnings.warn(
-                "DiscourseOperations.Duplicate: insert_after is deprecated and "
-                "ignored. ChartsOC is an unordered ILcmOwningCollection; "
-                "positional insertion is not supported. The duplicate is always "
-                "appended via Add().",
-                DeprecationWarning,
-                stacklevel=2,
-            )
+        # ChartsOC is an unordered ILcmOwningCollection; insert_after has no
+        # semantic meaning and is ignored.
         if hasattr(parent, "ChartsOC"):
             parent.ChartsOC.Add(duplicate)
 

@@ -11,8 +11,6 @@
 #   Copyright 2025
 #
 
-import warnings
-
 # Import FLEx LCM types
 from SIL.LCModel import (
     IScrScriptureNote,
@@ -468,48 +466,6 @@ class NoteOperations(BaseOperations):
                 differences["properties"][key] = {"source": val1, "target": val2, "type": "modified"}
 
         return is_different, differences
-
-    @OperationsMethod
-    def Reorder(self, owner_object, note_list):
-        """
-        [DEPRECATED - NO-OP] Reorder notes for an object.
-
-        This method is a no-op. AnnotationsOC is an unordered
-        ILcmOwningCollection<ICmBaseAnnotation>; it has no concept of
-        positional ordering and its Clear() method cascade-deletes all owned
-        objects. Calling Clear() followed by Add() would permanently destroy
-        the ICmBaseAnnotation objects, which is P0 data corruption.
-
-        The method signature is preserved so that existing callers do not
-        receive AttributeError. A DeprecationWarning is emitted; no
-        collection methods are called.
-
-        Args:
-            owner_object: The object whose notes to reorder (ignored).
-            note_list (list): List of note objects in desired order (ignored).
-
-        Example:
-            >>> # This call does nothing; the warning explains why.
-            >>> project.Note.Reorder(entry, notes)
-            DeprecationWarning: NoteOperations.Reorder is a no-op ...
-
-        Notes:
-            - AnnotationsOC is unordered; reorder has no semantic meaning.
-            - Clear() on an ILcmOwningCollection cascade-deletes all members.
-            - The previous implementation was P0 data corruption (issue #158).
-
-        See Also:
-            GetAll, GetDateCreated
-        """
-        warnings.warn(
-            "NoteOperations.Reorder is a no-op: AnnotationsOC is an unordered "
-            "ILcmOwningCollection and reorder has no semantic meaning. "
-            "The previous implementation called Clear() which cascade-deletes "
-            "all ICmBaseAnnotation objects (P0 data corruption, issue #158). "
-            "This method does nothing and will be removed in a future release.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
 
     # --- Content Operations ---
 

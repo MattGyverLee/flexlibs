@@ -1055,12 +1055,6 @@ Methods for phonological rule management:
 #### `project.PhonologicalRule.SetDirection(rule_or_hvo, direction)`
 **Replaces:** `IPhPhonRule.Direction` property assignment
 
-#### `project.PhonologicalRule.AddInputSegment(rule_or_hvo, phoneme_or_class)`
-**Replaces:** `IPhSimpleContextSegFactory.Create()`, `IPhPhonRule.StrucDescOS.Add()`, `IPhSimpleContextSeg.FeatureStructureRA` assignment
-
-#### `project.PhonologicalRule.AddOutputSegment(rule_or_hvo, phoneme_or_class)`
-**Replaces:** `IPhSegRuleRHSFactory.Create()`, `IPhPhonRule.RightHandSidesOS.Add()`, output segment configuration
-
 #### `project.PhonologicalRule.SetLeftContext(rule_or_hvo, context)`
 **Replaces:** `IPhPhonRule.StrucDescOS[0].LeftContextOA` assignment
 
@@ -1242,7 +1236,7 @@ Brand new in Phase 5/6+. Wraps the four concrete MoMsa subtypes (kStem / kDeriv 
 
 ### PhonologicalRuleOperations (`project.PhonRules`)
 
-The Phase 13 entries (GetAll, Create, Delete, Find, Exists, GetName/SetName, GetDescription/SetDescription, GetStratum/SetStratum, GetDirection/SetDirection, AddInputSegment, AddOutputSegment, SetLeftContext, SetRightContext) remain accurate. The Phase 5e additions below provide alpha-feature constraints and a high-level rule composer.
+The Phase 13 entries (GetAll, Create, Delete, Find, Exists, GetName/SetName, GetDescription/SetDescription, GetStratum/SetStratum, GetDirection/SetDirection, SetLeftContext, SetRightContext) remain accurate. The Phase 5e additions below provide alpha-feature constraints and a high-level rule composer (`WireRule`), which is the preferred entry point for wiring rule inputs, outputs, and contexts.
 
 #### `project.PhonRules.MakeConstraint(feature_or_hvo)`
 **Replaces:** `ILcmServiceLocator.GetService(IPhFeatureConstraintFactory).Create()`, `ILangProject.PhonologicalDataOA.FeatConstraintsOS.Add()`, `IPhFeatureConstraint.FeatureRA` assignment (ownership-before-property ordering).
@@ -1426,7 +1420,7 @@ Phase 6c added native-XML catalog import plus the OCM-Frame sibling.
 
 ### Phase 13 PhonologicalRule entries — superseded notes
 
-The Phase 13 entries for `Find()`, `Exists()`, `AddInputSegment()`, `AddOutputSegment()`, `SetLeftContext()`, `SetRightContext()` remain accurate but should be understood as the low-level primitives that `WireRule()` composes. For most user code, `WireRule(rule, input_pattern=..., output_change=..., left_context=..., right_context=...)` is the preferred entry point.
+The Phase 13 entries for `Find()`, `Exists()`, `SetLeftContext()`, and `SetRightContext()` remain accurate but should be understood as low-level primitives that `WireRule()` composes. For most user code, `WireRule(rule, input_pattern=..., output_change=..., left_context=..., right_context=...)` is the preferred entry point.
 
 ---
 
