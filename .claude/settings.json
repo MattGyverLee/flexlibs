@@ -17,7 +17,9 @@
       "Bash(git -C \"D:\\\\Github\\\\_Projects\\\\_LEX\\\\flexlibs2\" show **)",
       "Bash(findstr /I \"source scientific residue lexsense lexentry\")",
       "Bash(findstr /I \"sense\")",
-      "Bash(git -C \"d:\\\\Github\\\\_Projects\\\\_LEX\\\\flexlibs2\" show fd4a2d0 --stat)"
+      "Bash(git -C \"d:\\\\Github\\\\_Projects\\\\_LEX\\\\flexlibs2\" show fd4a2d0 --stat)",
+      "PowerShell(& 'D:\\\\Apps\\\\anaconda3\\\\python.exe' -m pytest tests/test_affix_template_wrappers.py tests/test_annotation_wrappers.py tests/test_prohibition_wrappers.py --collect-only 2>&1)",
+      "PowerShell(Get-ChildItem $HOME\\\\.claude\\\\skills -Directory | Select-Object Name; \"---\"; Get-ChildItem $HOME\\\\.claude\\\\skills -File -ErrorAction SilentlyContinue | Select-Object Name -First 20)"
     ]
   }
 }

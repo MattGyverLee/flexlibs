@@ -56,7 +56,7 @@ class TestEnsureWriteEnabledFix:
         # Verify the method checks writeEnabled and raises on False
         assert "if not self.project.writeEnabled:" in content, "Method should check if writeEnabled is False"
 
-        assert "raise Exception(" in content, "Method should raise Exception when write is disabled"
+        assert "raise FP_ReadOnlyError(" in content, "Method should raise FP_ReadOnlyError when write is disabled"
 
         # Verify error message is appropriate
         assert "read-only" in content.lower(), "Error message should mention read-only"

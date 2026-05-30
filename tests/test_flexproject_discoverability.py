@@ -44,6 +44,12 @@ def _try_open_project():
     Returns the open FLExProject instance on success, or None if no FieldWorks
     project is reachable in this environment. Caller is responsible for
     CloseProject() on the returned object.
+
+    NOTE: A sandbox .fwbackup fallback was tried and rejected -- opening
+    the sandbox read-only triggers a modal "Unable to create writing
+    system: en" dialog from liblcm, freezing the suite. These tests
+    require a real installed candidate project; if none is present,
+    they correctly skip.
     """
     try:
         from flexlibs2.code.FLExProject import FLExProject

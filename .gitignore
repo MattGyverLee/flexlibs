@@ -79,6 +79,11 @@ venv.bak/
 # Test artifacts
 *_output.txt
 test_results.txt
+tests/test_results.json
+tests/test_results_persistent.json
+reports/dashboard.html
+tests/contract/snapshots/latest_report.json
+tests/contract/snapshots/liblcm_unknown.json
 
 # Temporary directories
 Temp/
