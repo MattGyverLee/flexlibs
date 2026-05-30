@@ -520,13 +520,16 @@ class PhonFeatureOperations(BaseOperations, CatalogBackedMixin):
 
         val = self.__Unwrap(self.__ResolveObject(value_or_hvo))
         owner = val.Owner
-        if owner is not None and hasattr(owner, "ValuesOC"):
-            # Cast to IFsClosedFeature so the .NET collection accessor is found.
+        if owner is not None:
+            # ValuesOC is declared on IFsClosedFeature; cast unconditionally so
+            # pythonnet surfaces the typed collection accessor. The try/except
+            # guards against the unlikely case that owner is some other type
+            # (should not happen in practice, but preserves robustness).
             try:
                 feat = IFsClosedFeature(owner)
+                feat.ValuesOC.Remove(val)
             except Exception:
-                feat = owner
-            feat.ValuesOC.Remove(val)
+                pass
 
     # ========================================================================
     # COMPOSE - FsFeatStruc

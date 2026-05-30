@@ -696,7 +696,8 @@ class SemanticDomainOperations(BaseOperations, _LCMNativeCatalogImportMixin):
         # Check if owner is a semantic domain (subdomain) or the list (top-level)
         if owner and hasattr(owner, "ClassName"):
             if owner.ClassName == "CmSemanticDomain":
-                return owner
+                # Cast to typed interface; raw owner is ICmObject in LCM.
+                return ICmSemanticDomain(owner)
 
         return None
 

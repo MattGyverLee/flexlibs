@@ -1,0 +1,33 @@
+Pre-state evidence for Pattern A sibling sweep -- 2026-05-30
+Grep: hasattr.*Owner|_GetObject.*Owner\.Hvo|isinstance.*ICmPossibilityList
+Path: flexlibs2/code/
+
+flexlibs2\code\BaseOperations.py:1273:        AttributeError, and `hasattr(obj.Owner, "XxxOS")` returns False even
+flexlibs2\code\BaseOperations.py:1295:        if obj is None or not hasattr(obj, "Owner"):
+flexlibs2\code\BaseOperations.py:1402:        if not hasattr(item1, "Owner") or not hasattr(item2, "Owner"):
+flexlibs2\code\BaseOperations.py:1422:        parent = self._GetObject(item1.Owner.Hvo)
+flexlibs2\code\BaseOperations.py:1780:            ...     if hasattr(item, 'Owner'):
+flexlibs2\code\BaseOperations.py:1801:        if not hasattr(obj, "Owner"):
+flexlibs2\code\FLExProject.py:4117:            if hasattr(obj, "Owner") and obj.Owner:
+flexlibs2\code\lcm_casting.py:476:    if project is None and hasattr(dest, "OwnerOfClass"):
+flexlibs2\code\Grammar\affix_template.py:404:        if not hasattr(self._concrete, "OwnerOfClass"):
+flexlibs2\code\Lists\PossibilityListOperations.py:1454:            if not isinstance(obj, ICmPossibilityList):
+flexlibs2\code\Lists\PossibilityListOperations.py:1507:            if isinstance(owner, ICmPossibilityList):   <-- SITE 11: to fix
+flexlibs2\code\Grammar\GramCatOperations.py:429:        if hasattr(cat, "Owner") and cat.Owner:
+flexlibs2\code\Grammar\MorphRuleOperations.py:455:            owner = self._GetObject(rule.Owner.Hvo)
+flexlibs2\code\Grammar\MorphRuleOperations.py:841:        owner = self._GetObject(source.Owner.Hvo)
+flexlibs2\code\Shared\MediaOperations.py:1179:        if hasattr(media, "Owner") and media.Owner:
+flexlibs2\code\Notebook\annotation.py:436:            if hasattr(self._obj, "Owner"):
+flexlibs2\code\TextsWords\WfiAnalysisOperations.py:468:        parent = self._GetObject(source.Owner.Hvo)   <-- SITE 14: to fix
+flexlibs2\code\TextsWords\WfiGlossOperations.py:397:        parent = self._GetObject(source.Owner.Hvo)   <-- DEFERRED (#158)
+flexlibs2\code\TextsWords\WfiMorphBundleOperations.py:289:        parent = self._GetObject(source.Owner.Hvo)  <-- SITE 15: to fix
+
+Additional sites confirmed by Read tool (not caught by grep pattern):
+- Lexicon/LexSenseOperations.py:354        parent = source.Owner  <-- SITE 1
+- Lexicon/PronunciationOperations.py:310   parent = source.Owner  <-- SITE 2
+- TextsWords/WfiGlossOperations.py:333     analysis = gloss.Owner <-- SITE 3
+- Grammar/PhonFeatureOperations.py:523     hasattr guard on ValuesOC cast <-- SITE 4
+- Notebook/AnthropologyOperations.py:1719  owner = source.Owner (subitem branch uncast) <-- SITE 5
+- System/AnnotationDefOperations.py:1102   parent = source.Owner (hasattr guards) <-- SITE 7
+- System/CheckOperations.py:1370           parent = check_obj.Owner (hasattr guards) <-- SITE 8
+- Lexicon/SemanticDomainOperations.py:699  return owner (untyped) <-- SITE 13

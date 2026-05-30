@@ -1500,12 +1500,14 @@ class PossibilityListOperations(BaseOperations):
         Returns:
             ICmPossibilityList: The owning list.
         """
-        # Traverse up the ownership chain to find the list
+        # Traverse up the ownership chain to find the list.
+        # Use ClassName-based check instead of isinstance() -- pythonnet's
+        # isinstance() on LCM interface types is unreliable.
         current = item
         while current:
             owner = current.Owner
-            if isinstance(owner, ICmPossibilityList):
-                return owner
+            if hasattr(owner, "ClassName") and owner.ClassName == "CmPossibilityList":
+                return ICmPossibilityList(owner)
             elif hasattr(owner, "ClassName") and owner.ClassName == "CmPossibility":
                 current = ICmPossibility(owner)
             else:

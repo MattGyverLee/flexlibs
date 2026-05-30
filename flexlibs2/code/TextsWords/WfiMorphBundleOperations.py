@@ -284,9 +284,10 @@ class WfiMorphBundleOperations(BaseOperations):
 
         self._ValidateParam(item_or_hvo, "item_or_hvo")
 
-        # Get source bundle and parent
+        # Get source bundle and parent; MorphBundlesOS is declared on IWfiAnalysis
+        # so cast directly instead of doing a wasteful Hvo round-trip.
         source = self.__GetBundleObject(item_or_hvo)
-        parent = self._GetObject(source.Owner.Hvo)
+        parent = IWfiAnalysis(source.Owner)
 
         # Create new bundle using factory (auto-generates new GUID)
         factory = self.project.project.ServiceLocator.GetService(IWfiMorphBundleFactory)

@@ -1,0 +1,28 @@
+Post-state evidence for Pattern A sibling sweep -- 2026-05-30
+Grep: hasattr.*Owner|_GetObject.*Owner\.Hvo|isinstance.*ICmPossibilityList
+Path: flexlibs2/code/
+
+All 11 target sites converted. Remaining hits:
+
+flexlibs2\code\BaseOperations.py:1273 -- docstring/comment (not a cast site)
+flexlibs2\code\BaseOperations.py:1295 -- null guard (not a cast site)
+flexlibs2\code\BaseOperations.py:1402 -- null guard (not a cast site)
+flexlibs2\code\BaseOperations.py:1422 -- BaseOperations._GetMergeParent internal helper; not a domain Duplicate method
+flexlibs2\code\BaseOperations.py:1780 -- docstring example (not a cast site)
+flexlibs2\code\BaseOperations.py:1801 -- null guard (not a cast site)
+flexlibs2\code\FLExProject.py:4117   -- null guard (not a cast site)
+flexlibs2\code\lcm_casting.py:476    -- OwnerOfClass (different attr, not Owner)
+flexlibs2\code\Grammar\affix_template.py:404 -- OwnerOfClass (different attr)
+flexlibs2\code\Notebook\annotation.py:436 -- wrapper null guard (not a cast site)
+flexlibs2\code\Lists\PossibilityListOperations.py:1454 -- type-check guard on HVO repo lookup result; correct pattern
+flexlibs2\code\Grammar\MorphRuleOperations.py:455 -- Pattern A residual (AffixTemplatesOS/IPartOfSpeech); Grammar domain, not in 11-site scope
+flexlibs2\code\Grammar\MorphRuleOperations.py:841 -- same as above; deferred to Grammar sweep
+flexlibs2\code\Grammar\GramCatOperations.py:429 -- null guard (not a cast site)
+flexlibs2\code\Shared\MediaOperations.py:1179 -- null guard (not a cast site)
+flexlibs2\code\TextsWords\WfiGlossOperations.py:397 -- DEFERRED: WfiGloss.Duplicate (#158 territory)
+
+Test run (--ignore=tests/contract):
+  1063 passed, 15 skipped, 3 failed (all pre-existing fixture-state failures)
+  - test_semantic_domains (catalog not imported)
+  - test_create_and_delete_text (stale artifact in project)
+  These failures are confirmed pre-existing (unchanged on clean main).

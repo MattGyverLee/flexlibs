@@ -351,7 +351,14 @@ class LexSenseOperations(BaseOperations):
 
         # Get source sense and parent
         source = self.__GetSenseObject(item_or_hvo)
-        parent = source.Owner
+        # SensesOS is declared on both ILexEntry (top-level) and ILexSense
+        # (subsense). Disambiguate by ClassName so pythonnet can surface the
+        # correct typed interface for collection access.
+        raw_parent = source.Owner
+        if raw_parent.ClassName == "LexEntry":
+            parent = ILexEntry(raw_parent)
+        else:
+            parent = ILexSense(raw_parent)
 
         # Create new sense using factory (auto-generates new GUID)
         factory = self.project.project.ServiceLocator.GetService(ILexSenseFactory)
@@ -596,8 +603,8 @@ class LexSenseOperations(BaseOperations):
         # Source - bibliographic source
         # ILexSense.Source is ITsString (single-string), not IMultiString --
         # do NOT iterate ws handles here. (Same field name as
-        # ILexEtymology.Source / ICmBaseAnnotation.Source which ARE
-        # IMultiString -- distinct LCM type.) Issue #40.
+        # ILexEtymology.Source / IStText.Source which ARE IMultiString --
+        # distinct LCM type.) Issue #40, corrected Category 8 ref: commit 3bbbcd9.
         if hasattr(item, "Source"):
             props["Source"] = self._ReadTsString(item.Source)
         else:

@@ -1367,7 +1367,14 @@ class CheckOperations(BaseOperations):
         self._EnsureWriteEnabled()
 
         check_obj = self.__GetCheckObject(item_or_hvo)
-        parent = check_obj.Owner
+        # PossibilitiesOS lives on ICmPossibilityList (top-level) and
+        # SubPossibilitiesOS lives on ICmPossibility (sub-check). Disambiguate
+        # by ClassName so pythonnet surfaces the typed collection accessor.
+        raw_parent = check_obj.Owner
+        if raw_parent.ClassName == "CmPossibilityList":
+            parent = ICmPossibilityList(raw_parent)
+        else:
+            parent = ICmPossibility(raw_parent)
 
         # Create new check using factory (auto-generates new GUID)
         factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)

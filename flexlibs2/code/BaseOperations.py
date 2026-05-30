@@ -1869,7 +1869,7 @@ class BaseOperations:
     #       .get_String(ws); write via .set_String(ws, ts_string).
     #       Examples (NON-exhaustive):
     #         - ILexEtymology.Source           (same name as above, DIFFERENT type)
-    #         - ICmBaseAnnotation.Source       (same name as above, DIFFERENT type)
+    #         - IStText.Source                 (same name as above, DIFFERENT type)
     #         - ILexSense.Definition
     #         - ILexSense.Gloss
     #
