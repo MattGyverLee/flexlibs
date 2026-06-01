@@ -778,6 +778,8 @@ class LexEntryOperations(BaseOperations):
 
         Raises:
             FP_NullParameterError: If entry_or_hvo is None
+            FP_WritingSystemError: If wsHandle refers to a writing system not
+                configured in the project.
 
         Example:
             >>> entry = project.LexEntry.Find("run")
@@ -876,6 +878,8 @@ class LexEntryOperations(BaseOperations):
 
         Raises:
             FP_NullParameterError: If entry_or_hvo is None
+            FP_WritingSystemError: If wsHandle refers to a writing system not
+                configured in the project.
 
         Example:
             >>> entry = project.LexEntry.Find("run")
@@ -1513,6 +1517,74 @@ class LexEntryOperations(BaseOperations):
             return (True, morph_type, is_stem)
 
         return (False, None, None)
+
+    @OperationsMethod
+    def GetAllByMorphType(self, name_or_list, match_allomorphs=False):
+        """
+        Return all entries whose lexeme-form morph type matches the given name(s).
+
+        Comparison is by GUID (not substring), so affix-family names like
+        'suffix' never accidentally match 'circumfix-suffix' or similar.
+        Display markers are stripped before lookup, so '=enclitic' resolves the
+        same as 'enclitic'.
+
+        Args:
+            name_or_list (str | list[str]): Morph type name(s) to match.  A
+                single string matches one type; a list uses OR semantics (useful
+                for affix-family grouping such as
+                ['prefix', 'suffix', 'infix']).
+            match_allomorphs (bool): When False (default) only the lexeme-form
+                morph type is checked.  When True, entries are also included if
+                any AlternateFormsOS allomorph matches.
+
+        Returns:
+            list: ILexEntry objects whose morph type matches.
+
+        Raises:
+            FP_ParameterError: If any name in name_or_list is not found in the
+                project's morph type list.
+
+        Example:
+            >>> affixes = project.LexEntry.GetAllByMorphType(['prefix', 'suffix', 'infix'])
+            >>> stems = project.LexEntry.GetAllByMorphType('stem')
+            >>> enclitics = project.LexEntry.GetAllByMorphType('=enclitic')  # markers OK
+
+        Notes:
+            - An entry's morph type is on its lexeme form; allomorph morph types
+              may differ and are only checked when match_allomorphs=True.
+            - List input uses OR semantics; chain set() operations for AND/exclusion.
+
+        See Also:
+            ValidateMorphType, GetMorphType, GetAvailableMorphTypes
+        """
+        if isinstance(name_or_list, str):
+            name_or_list = [name_or_list]
+
+        # Resolve all names to morph-type GUIDs up front so errors surface early.
+        target_guids = set()
+        for name in name_or_list:
+            mt = self.__FindMorphType(name)
+            if mt is None:
+                raise FP_ParameterError(
+                    f"Morph type '{name}' not found. "
+                    "Use GetAvailableMorphTypes() to see valid names."
+                )
+            target_guids.add(mt.Guid)
+
+        results = []
+        for entry in self.project.lp.LexDbOA.Entries:
+            matched = False
+            if entry.LexemeFormOA and entry.LexemeFormOA.MorphTypeRA:
+                if entry.LexemeFormOA.MorphTypeRA.Guid in target_guids:
+                    matched = True
+            if not matched and match_allomorphs:
+                for alm in entry.AlternateFormsOS:
+                    if alm.MorphTypeRA and alm.MorphTypeRA.Guid in target_guids:
+                        matched = True
+                        break
+            if matched:
+                results.append(entry)
+        return results
 
     # --- Sense Management ---
 
@@ -2978,13 +3050,20 @@ class LexEntryOperations(BaseOperations):
         """
         Find a morph type by name (case-insensitive).
 
+        Display markers (leading/trailing -, =, ~, <, >) are stripped before
+        matching so that UI-copied strings like '=enclitic' or '-suffix' resolve
+        to the same canonical type as 'enclitic' or 'suffix'.
+
         Args:
-            name (str): The morph type name to search for
+            name (str): The morph type name to search for (bare or with display markers)
 
         Returns:
             IMoMorphType or None: The morph type object if found, None otherwise
         """
-        target = normalize_match_key(name, casefold=True)
+        # Strip display markers (prefix '-', '=', '~'; postfix '-', '=', '~', '<', '>')
+        # that FLEx shows in the UI but that are NOT part of the canonical IMoMorphType.Name.
+        bare = name.strip('-=~<>')
+        target = normalize_match_key(bare, casefold=True)
         wsHandle = self.project.project.DefaultAnalWs
 
         morph_types = self.project.lp.LexDbOA.MorphTypesOA

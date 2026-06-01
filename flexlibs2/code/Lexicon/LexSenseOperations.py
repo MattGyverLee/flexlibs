@@ -792,6 +792,9 @@ class LexSenseOperations(BaseOperations):
 
         Raises:
             FP_NullParameterError: If sense_or_hvo is None.
+            FP_WritingSystemError: If wsHandle refers to a writing system not
+                configured in the project.  Callers iterating over writing
+                systems should catch this or verify with project.WSHandle first.
 
         Example:
             >>> entry = list(project.LexiconAllEntries())[0]
@@ -884,6 +887,8 @@ class LexSenseOperations(BaseOperations):
 
         Raises:
             FP_NullParameterError: If sense_or_hvo is None.
+            FP_WritingSystemError: If wsHandle refers to a writing system not
+                configured in the project.
 
         Example:
             >>> entry = list(project.LexiconAllEntries())[0]

@@ -202,9 +202,11 @@ class AllomorphOperations(BaseOperations):
         Args:
             entry_or_hvo: The ILexEntry object or HVO.
             form (str): The allomorph form (e.g., "-ing", "walk", "pre-").
-            morphType (IMoMorphType, optional): The morpheme type object.
-                If None (default), inherits from the entry's LexemeFormOA morph type,
-                matching FLEx GUI behavior.
+            morphType (IMoMorphType | str | None): The morpheme type.  Pass an
+                IMoMorphType object, a name string (e.g. 'suffix', '=enclitic',
+                '-prefix'), or None to inherit from the entry's LexemeFormOA
+                morph type (matching FLEx GUI behaviour).  Display markers are
+                stripped automatically so UI-copied names resolve correctly.
             wsHandle: Optional writing system handle. Defaults to vernacular WS.
 
         Returns:
@@ -251,6 +253,30 @@ class AllomorphOperations(BaseOperations):
 
         entry = self.__GetEntryObject(entry_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
+
+        # Accept morph type as a string name (with or without display markers).
+        if isinstance(morphType, str):
+            bare = morphType.strip('-=~<>')
+            morph_types = self.project.lp.LexDbOA.MorphTypesOA
+            from ..Shared.string_utils import normalize_match_key, best_analysis_text
+            target = normalize_match_key(bare, casefold=True)
+            def _find(possibilities):
+                for mt in possibilities:
+                    mt_name = best_analysis_text(mt.Name)
+                    if mt_name and normalize_match_key(mt_name, casefold=True) == target:
+                        return mt
+                    if mt.SubPossibilitiesOS.Count > 0:
+                        found = _find(mt.SubPossibilitiesOS)
+                        if found:
+                            return found
+                return None
+            resolved = _find(morph_types.PossibilitiesOS) if morph_types else None
+            if resolved is None:
+                raise FP_ParameterError(
+                    f"Morph type '{morphType}' not found. "
+                    "Use project.LexEntry.GetAvailableMorphTypes() to see valid names."
+                )
+            morphType = resolved
 
         # If no morphType provided, inherit from entry's LexemeFormOA (FLEx behavior)
         if morphType is None:
