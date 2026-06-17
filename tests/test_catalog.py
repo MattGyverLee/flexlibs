@@ -492,6 +492,67 @@ class TestCatalog:
         # Canonical positive-value GUID per the MGA catalog.
         assert value.guid.lower() == "ec5800b4-52a8-4859-a976-f3005c53bd5f"
 
+    # --- Issue #192: features nested inside fsType containers -----------
+
+    def test_parse_etic_gloss_list_recurses_into_fstype(self, tmp_path):
+        """
+        Regression for #192: the Bantu agreement features (fBantuSg/Pl/Many)
+        are defined inside an <item type="fsType"> container (tCommonAgr),
+        not a plain group. _walk() must recurse into fsType items, otherwise
+        these features are invisible to the catalog import path and
+        Create(catalogSourceId="INFL:fBantuPl") fails with FP_ParameterError.
+
+        Self-contained: builds a minimal eticGlossList that mirrors the
+        EticGlossList.xml shape so it runs without FieldWorks installed.
+        """
+        from flexlibs2.code.Shared.catalog import (
+            parse_etic_gloss_list,
+            find_catalog_entry,
+        )
+
+        xml = (
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            "<eticGlossList>\n"
+            '  <item type="feature" id="fTop" '
+            'guid="11111111-1111-1111-1111-111111111111">\n'
+            '    <term ws="en">Top-level feature</term>\n'
+            "  </item>\n"
+            '  <item type="fsType" id="tCommonAgr" '
+            'guid="22222222-2222-2222-2222-222222222222">\n'
+            '    <term ws="en">Common agreement</term>\n'
+            '    <item type="feature" id="fBantuPl" '
+            'guid="33333333-3333-3333-3333-333333333333">\n'
+            '      <term ws="en">Bantu plural</term>\n'
+            '      <item type="value" id="vBantuPlYes" '
+            'guid="44444444-4444-4444-4444-444444444444">\n'
+            '        <term ws="en">yes</term>\n'
+            "      </item>\n"
+            "    </item>\n"
+            "  </item>\n"
+            "</eticGlossList>\n"
+        )
+        path = tmp_path / "EticGlossList.xml"
+        path.write_text(xml, encoding="utf-8")
+
+        entries = parse_etic_gloss_list(str(path))
+
+        # The fsType container itself is NOT emitted as a feature, but both
+        # the top-level feature and the nested Bantu feature are.
+        ids = {e.id for e in entries}
+        assert "fTop" in ids
+        assert "tCommonAgr" not in ids, (
+            "fsType containers must not be emitted as features."
+        )
+        assert "fBantuPl" in ids, (
+            "fBantuPl is nested inside the tCommonAgr fsType and must be "
+            "reachable; see issue #192."
+        )
+
+        bantu = find_catalog_entry(entries, "fBantuPl")
+        assert bantu is not None
+        # Its value child survived the recursion too.
+        assert find_catalog_entry(entries, "vBantuPlYes") is not None
+
 
 # ---------------------------------------------------------------------------
 # Phase 6d parser fixture
