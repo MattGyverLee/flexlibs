@@ -359,6 +359,27 @@ class SegmentDefinition:
     feature_pairs: List[tuple] = field(default_factory=list)
 
 
+def _normalize_codepoints(raw):
+    """
+    Canonicalize a ``unicodeCodePoints`` attribute so it is safe to use as
+    a dedup key.
+
+    The attribute is a whitespace-separated list of codepoint tags for
+    multi-codepoint segments (affricates, clicks, pre-nasalized stops,
+    e.g. ``"u0074 u0283"`` for /tʃ/). Raw string comparison breaks on
+    incidental whitespace differences (``"u0074  u0283"`` with a double
+    space) and on codepoint ordering (``"u0283 u0074"`` vs
+    ``"u0074 u0283"``). Splitting on arbitrary whitespace and sorting the
+    tokens makes structurally-equal ids compare equal.
+
+    Single-codepoint ids (the common case) are returned unchanged apart
+    from surrounding-whitespace stripping.
+    """
+    if not raw:
+        return ""
+    return " ".join(sorted(raw.split()))
+
+
 def parse_basic_ipa_info(path):
     """
     Parse a BasicIPAInfo.xml-shaped segment catalog (root
@@ -405,7 +426,10 @@ def parse_basic_ipa_info(path):
             # only matters for user-edited / partial files.
             continue
         rep_text = (rep_elem.text or "").strip()
-        code_id = rep_elem.get("unicodeCodePoints") or ""
+        # Normalize the codepoint id so it is a reliable dedup key:
+        # whitespace-collapsed and token-sorted for multi-codepoint
+        # segments (e.g. affricates "u0074 u0283"). See issue #141.
+        code_id = _normalize_codepoints(rep_elem.get("unicodeCodePoints"))
 
         descs = {}
         for d in sd.findall("Descriptions/Description"):

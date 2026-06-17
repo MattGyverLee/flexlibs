@@ -695,5 +695,55 @@ def test_find_catalog_entry_resolves_fstype_nested_feature(fstype_gloss_list):
     )
 
 
+# ---------------------------------------------------------------------------
+# Issue #141: unicodeCodePoints normalization in parse_basic_ipa_info
+# ---------------------------------------------------------------------------
+#
+# The multi-codepoint unicodeCodePoints id is the dedup key for BasicIPA
+# import. Raw string comparison leaks duplicates across incidental
+# whitespace differences and token ordering. parse_basic_ipa_info now
+# canonicalizes the id via _normalize_codepoints (whitespace-collapsed,
+# token-sorted). These tests are self-contained (no FieldWorks install).
+
+
+def test_normalize_codepoints_collapses_whitespace_and_sorts():
+    from flexlibs2.code.Shared.catalog import _normalize_codepoints
+
+    assert _normalize_codepoints("u0074 u0283") == "u0074 u0283"
+    # Double space collapses.
+    assert _normalize_codepoints("u0074  u0283") == "u0074 u0283"
+    # Token order canonicalized.
+    assert _normalize_codepoints("u0283 u0074") == "u0074 u0283"
+    # Single codepoint and empty inputs.
+    assert _normalize_codepoints("u0061") == "u0061"
+    assert _normalize_codepoints("") == ""
+    assert _normalize_codepoints(None) == ""
+
+
+def test_parse_basic_ipa_info_normalizes_codepoint_id(tmp_path):
+    """
+    A permuted / double-spaced unicodeCodePoints attribute must parse to
+    the same canonical code_point_id as the well-formed form, so the
+    importer's dedup set treats them as the same segment.
+    """
+    from flexlibs2.code.Shared.catalog import parse_basic_ipa_info
+
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<SegmentDefinitions>\n'
+        '  <SegmentDefinition>\n'
+        '    <Representations>\n'
+        '      <Representation unicodeCodePoints="u0283  u0074">tʃ</Representation>\n'
+        '    </Representations>\n'
+        '  </SegmentDefinition>\n'
+        '</SegmentDefinitions>\n'
+    )
+    path = tmp_path / "BasicIPAInfo.xml"
+    path.write_text(xml, encoding="utf-8")
+    segments = parse_basic_ipa_info(str(path))
+    assert len(segments) == 1
+    assert segments[0].code_point_id == "u0074 u0283"
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
