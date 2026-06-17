@@ -675,5 +675,69 @@ def test_basic_ipa_description_in_english(basic_ipa_segments):
     )
 
 
+# ---------------------------------------------------------------------------
+# Issue #141: unicodeCodePoints normalization (no FieldWorks required)
+# ---------------------------------------------------------------------------
+
+
+class TestNormalizeCodepoints:
+    """
+    Pure-Python coverage for _normalize_codepoints and the parser's
+    whitespace-collapse of the unicodeCodePoints attribute. Self-contained
+    (synthetic XML) so it runs without a FieldWorks install.
+    """
+
+    def test_normalize_codepoints_is_order_insensitive(self):
+        from flexlibs2.code.Shared.catalog import _normalize_codepoints
+
+        # A multi-codepoint affricate /tʃ/ in either order must canonicalize
+        # to the same dedup key.
+        assert _normalize_codepoints("u0074 u0283") == _normalize_codepoints(
+            "u0283 u0074"
+        )
+
+    def test_normalize_codepoints_collapses_whitespace(self):
+        from flexlibs2.code.Shared.catalog import _normalize_codepoints
+
+        assert _normalize_codepoints("u0074  u0283") == "u0074 u0283"
+        assert _normalize_codepoints("u0074\tu0283") == "u0074 u0283"
+
+    def test_normalize_codepoints_empty(self):
+        from flexlibs2.code.Shared.catalog import _normalize_codepoints
+
+        assert _normalize_codepoints("") == ""
+        assert _normalize_codepoints(None) == ""
+
+    def test_parse_basic_ipa_info_collapses_codepoint_whitespace(self, tmp_path):
+        """
+        The parser stores a whitespace-collapsed code_point_id (preserving
+        codepoint ORDER) so the stored tag is stable for multi-codepoint
+        segments; see issue #141.
+        """
+        from flexlibs2.code.Shared.catalog import parse_basic_ipa_info
+
+        xml = (
+            "<SegmentDefinitions>\n"
+            "  <SegmentDefinition><Representations>"
+            '<Representation unicodeCodePoints="u0074  u0283">tS</Representation>'
+            "</Representations>"
+            '<Features><FeatureValuePair feature="f1" value="v1"/></Features>'
+            "</SegmentDefinition>\n"
+            "  <SegmentDefinition><Representations>"
+            '<Representation unicodeCodePoints="u0301">tone</Representation>'
+            "</Representations><Features/></SegmentDefinition>\n"
+            "</SegmentDefinitions>\n"
+        )
+        path = tmp_path / "BasicIPAInfo.xml"
+        path.write_text(xml, encoding="utf-8")
+
+        segs = parse_basic_ipa_info(str(path))
+
+        assert segs[0].code_point_id == "u0074 u0283"
+        assert segs[0].feature_pairs == [("f1", "v1")]
+        # Tone entry: empty <Features/> -> no feature pairs.
+        assert segs[1].feature_pairs == []
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

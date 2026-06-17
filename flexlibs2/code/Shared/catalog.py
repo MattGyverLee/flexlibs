@@ -96,6 +96,9 @@ class CatalogImportResult:
         created_count: Number of new POSs created.
         skipped_count: Number of catalog entries skipped because a POS
                        with the same canonical GUID already exists.
+        tones_skipped: Number of suprasegmental (tone) entries skipped
+                       when an importer was asked to filter them out
+                       (e.g. BasicIPAInfo tones via skip_tones=True).
         created_guids: Canonical GUIDs (as strings) for the POSs that
                        were created. Useful for verification and tests.
         warnings:      Human-readable warnings (e.g. WS tags present in
@@ -104,6 +107,7 @@ class CatalogImportResult:
 
     created_count: int = 0
     skipped_count: int = 0
+    tones_skipped: int = 0
     created_guids: List[str] = field(default_factory=list)
     warnings: List[str] = field(default_factory=list)
 
@@ -325,6 +329,35 @@ def parse_etic_gloss_list(path):
 # --- BasicIPAInfo parsing (Phase 6d) ----------------------------------------
 
 
+def _normalize_codepoints(raw):
+    """
+    Canonicalize a ``unicodeCodePoints`` string for dedup comparison.
+
+    ``unicodeCodePoints`` is a space-separated list of codepoint tags
+    (e.g. ``"u0074 u0283"`` for a /tʃ/ affricate). Two equivalent
+    segments can differ by incidental whitespace ("u0074  u0283" with a
+    double space) or by codepoint ordering ("u0283 u0074"). Bare string
+    equality treats these as distinct and lets a duplicate slip past the
+    dedup guard.
+
+    This returns an order- and whitespace-insensitive canonical form:
+    the codepoint tokens split on whitespace, sorted, and rejoined with a
+    single space. Used only as a dedup KEY -- the original (whitespace-
+    collapsed) value is still kept for display/tagging so the segment's
+    real codepoint order is not corrupted.
+
+    Args:
+        raw (str): The raw ``unicodeCodePoints`` attribute value.
+
+    Returns:
+        str: Canonical dedup key (sorted, single-spaced); "" for empty
+        input.
+    """
+    if not raw:
+        return ""
+    return " ".join(sorted(raw.split()))
+
+
 @dataclass
 class SegmentDefinition:
     """
@@ -404,7 +437,11 @@ def parse_basic_ipa_info(path):
             # only matters for user-edited / partial files.
             continue
         rep_text = (rep_elem.text or "").strip()
-        code_id = rep_elem.get("unicodeCodePoints") or ""
+        # Collapse incidental whitespace so the stored id is stable for
+        # multi-codepoint segments ("u0074  u0283" -> "u0074 u0283"); the
+        # importer additionally uses _normalize_codepoints() to build an
+        # order-insensitive dedup key. Codepoint ORDER is preserved here.
+        code_id = " ".join((rep_elem.get("unicodeCodePoints") or "").split())
 
         descs = {}
         for d in sd.findall("Descriptions/Description"):

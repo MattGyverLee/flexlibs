@@ -42,6 +42,7 @@ from ..Shared.catalog import (
     find_catalog_file,
     parse_basic_ipa_info,
     parse_etic_gloss_list,
+    _normalize_codepoints,
 )
 
 
@@ -1419,7 +1420,7 @@ class PhonemeOperations(BaseOperations):
     # refuse-on-non-empty pattern instead.
 
     @OperationsMethod
-    def ImportCatalog(self, progress=None, force=False):
+    def ImportCatalog(self, progress=None, force=False, skip_tones=True):
         """
         Import the BasicIPAInfo segment catalog into this project's
         phoneme set.
@@ -1438,6 +1439,19 @@ class PhonemeOperations(BaseOperations):
                 existing phonemes; the default (force=False) refuses to
                 run on a non-empty set. Pass True to layer additional
                 segments onto an existing inventory.
+            skip_tones (bool): If True (default), the suprasegmental tone
+                entries at the head of BasicIPAInfo.xml are NOT imported
+                as IPhPhonemes. Tones are suprasegmentals, not segmental
+                phonemes: FW models them via IPhBdryMarker and tone-feature
+                contexts, not as members of PhonemeSegmentsOC. Importing
+                them as featureless phonemes pollutes the segment inventory
+                and makes them eligible for natural-class membership where
+                they do not belong (issue #141). Tones are identified as
+                segments whose catalog ``<Features/>`` element is empty
+                (i.e. ``feature_pairs == []``). Pass skip_tones=False to
+                restore the previous behaviour of materializing them as
+                featureless phonemes. The count of skipped tones is
+                reported in ``CatalogImportResult.tones_skipped``.
 
         Returns:
             CatalogImportResult: Created/skipped counts and any warnings.
@@ -1476,9 +1490,11 @@ class PhonemeOperations(BaseOperations):
               FeatureValuePair is skipped. The phoneme is still created
               with whatever pairs DID resolve.
             - Segments with empty ``<Features/>`` (the seven tone entries
-              at the head of BasicIPAInfo.xml) are created without a
-              FeaturesOA struct -- MakeFeatStruc is only invoked when
-              there is at least one resolved spec.
+              at the head of BasicIPAInfo.xml) are skipped by default
+              (``skip_tones=True``) because they are suprasegmentals, not
+              segmental phonemes. With ``skip_tones=False`` they are
+              created without a FeaturesOA struct -- MakeFeatStruc is only
+              invoked when there is at least one resolved spec.
 
         Example:
             >>> project.PhonFeatures.ImportCatalog()    # prerequisite
@@ -1592,12 +1608,24 @@ class PhonemeOperations(BaseOperations):
                 )
                 continue
 
+            # Suprasegmentals (tones) have empty <Features/>. They are not
+            # segmental phonemes and FW models them via IPhBdryMarker, not
+            # PhonemeSegmentsOC; filter them out unless the caller opts in
+            # (issue #141).
+            if skip_tones and not seg.feature_pairs:
+                result.tones_skipped += 1
+                continue
+
             # In-pass dedup: same unicodeCodePoints appearing twice in
-            # the catalog (shouldn't happen but defensive).
-            if seg.code_point_id and seg.code_point_id in seen_code_points:
+            # the catalog (shouldn't happen but defensive). Use an order-
+            # and whitespace-insensitive key so multi-codepoint segments
+            # (affricates/clicks, e.g. "u0074 u0283") can't slip past on
+            # an incidental reordering or double space (issue #141).
+            dedup_key = _normalize_codepoints(seg.code_point_id)
+            if dedup_key and dedup_key in seen_code_points:
                 result.skipped_count += 1
                 continue
-            seen_code_points.add(seg.code_point_id)
+            seen_code_points.add(dedup_key)
 
             # Resolve (feature, value) specs against the project's
             # PhFeatureSystemOA. Missing references are warned and
