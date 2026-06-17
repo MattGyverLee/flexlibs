@@ -614,5 +614,86 @@ def test_basic_ipa_description_in_english(basic_ipa_segments):
     )
 
 
+# ---------------------------------------------------------------------------
+# Issue #192: features nested in <item type="fsType"> containers
+# ---------------------------------------------------------------------------
+#
+# parse_etic_gloss_list previously only recursed into type="group"
+# containers, so feature definitions nested inside agreement
+# feature-structure-type containers (type="fsType", e.g. tCommonAgr
+# holding the Bantu fBantuSg/fBantuPl/fBantuMany features) were silently
+# dropped. These tests use a synthetic eticGlossList tree so they run
+# without a FieldWorks install.
+
+
+@pytest.fixture
+def fstype_gloss_list(tmp_path):
+    """
+    Write a minimal eticGlossList that mirrors EticGlossList.xml's shape:
+    a feature at the top level, plus an fsType container (tCommonAgr)
+    holding a feature (fBantuPl) with a value child. Returns the parsed
+    entries.
+    """
+    from flexlibs2.code.Shared.catalog import parse_etic_gloss_list
+
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<eticGlossList>\n'
+        '  <item type="feature" id="fTopLevel" guid="11111111-1111-1111-1111-111111111111">\n'
+        '    <abbrev ws="en">top</abbrev>\n'
+        '    <term ws="en">Top Level Feature</term>\n'
+        '    <item type="value" id="vTopYes" guid="22222222-2222-2222-2222-222222222222">\n'
+        '      <abbrev ws="en">+</abbrev>\n'
+        '    </item>\n'
+        '  </item>\n'
+        '  <item type="fsType" id="tCommonAgr" guid="33333333-3333-3333-3333-333333333333">\n'
+        '    <term ws="en">Common Agreement</term>\n'
+        '    <item type="feature" id="fBantuPl" guid="44444444-4444-4444-4444-444444444444">\n'
+        '      <abbrev ws="en">BantuPl</abbrev>\n'
+        '      <term ws="en">Bantu Plural</term>\n'
+        '      <item type="value" id="vBantuPlYes" guid="55555555-5555-5555-5555-555555555555">\n'
+        '        <abbrev ws="en">+</abbrev>\n'
+        '      </item>\n'
+        '    </item>\n'
+        '  </item>\n'
+        '</eticGlossList>\n'
+    )
+    path = tmp_path / "EticGlossList.xml"
+    path.write_text(xml, encoding="utf-8")
+    return parse_etic_gloss_list(str(path))
+
+
+def test_parse_etic_gloss_list_recurses_into_fstype(fstype_gloss_list):
+    """
+    Features nested inside an fsType container must be returned. Before the
+    #192 fix the parser only descended into type='group', so fBantuPl was
+    invisible to the catalog-import path.
+    """
+    ids = {e.id for e in fstype_gloss_list}
+    assert "fBantuPl" in ids, (
+        "parse_etic_gloss_list did not recurse into the type='fsType' "
+        "container (tCommonAgr); the nested feature fBantuPl was dropped."
+    )
+    # The fsType container itself is organizational and must NOT be emitted.
+    assert "tCommonAgr" not in ids
+
+
+def test_find_catalog_entry_resolves_fstype_nested_feature(fstype_gloss_list):
+    """
+    The full documented import path looks the feature up by id (optionally
+    prefixed, e.g. 'INFL:fBantuPl'). Confirm the nested feature is findable
+    and that its value children survived the recursion.
+    """
+    from flexlibs2.code.Shared.catalog import find_catalog_entry
+
+    feature = find_catalog_entry(fstype_gloss_list, "fBantuPl")
+    assert feature is not None
+    assert feature.guid.lower() == "44444444-4444-4444-4444-444444444444"
+    child_ids = {c.id for c in feature.children}
+    assert "vBantuPlYes" in child_ids, (
+        "The value child of an fsType-nested feature was not captured."
+    )
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
