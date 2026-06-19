@@ -42,6 +42,7 @@ from SIL.LCModel import (
     IMoEndoCompoundFactory,
     IMoExoCompoundFactory,
     IMoInflAffixTemplateFactory,
+    IPartOfSpeech,
 )
 from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
@@ -216,7 +217,8 @@ class MorphRuleOperations(BaseOperations):
         templates = []
         pos_list = self.project.lp.PartsOfSpeechOA
         if pos_list is not None:
-            for pos in pos_list.PossibilitiesOS:
+            for raw in pos_list.PossibilitiesOS:
+                pos = IPartOfSpeech(raw)
                 templates.extend(self.__WalkPOSForTemplates(pos))
         wrapped = [AffixTemplate(t) for t in templates]
         return AffixTemplateCollection(wrapped)
@@ -966,9 +968,8 @@ class MorphRuleOperations(BaseOperations):
 
     def __WalkPOSForTemplates(self, pos):
         """Recursively yield affix templates from a POS and its subcategories."""
-        if hasattr(pos, "AffixTemplatesOS"):
-            for template in pos.AffixTemplatesOS:
-                yield template
-        if hasattr(pos, "SubPossibilitiesOS"):
-            for sub in pos.SubPossibilitiesOS:
-                yield from self.__WalkPOSForTemplates(sub)
+        for template in pos.AffixTemplatesOS:
+            yield template
+        for raw in pos.SubPossibilitiesOS:
+            sub = IPartOfSpeech(raw)
+            yield from self.__WalkPOSForTemplates(sub)

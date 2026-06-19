@@ -131,7 +131,7 @@ class POSOperations(BaseOperations, CatalogBackedMixin):
             "flat": ("recursive", "semantics inverted: flat=True is now recursive=True"),
         })
         pos_list = self.project.lp.PartsOfSpeechOA
-        if not pos_list:
+        if pos_list is None:
             return
 
         def walk(collection):
@@ -355,14 +355,14 @@ class POSOperations(BaseOperations, CatalogBackedMixin):
             return None
 
         pos_list = self.project.lp.PartsOfSpeechOA
-        if pos_list is not None:
-            found = search_pos_list(pos_list.PossibilitiesOS)
-            # search_pos_list walks Possibilities/SubPossibilities collections
-            # which are typed ICmPossibility; cast the result so callers can
-            # access IPartOfSpeech-specific properties.
-            return IPartOfSpeech(found) if found is not None else None
+        if pos_list is None:
+            return None
 
-        return None
+        found = search_pos_list(pos_list.PossibilitiesOS)
+        # search_pos_list walks Possibilities/SubPossibilities collections
+        # which are typed ICmPossibility; cast the result so callers can
+        # access IPartOfSpeech-specific properties.
+        return IPartOfSpeech(found) if found is not None else None
 
     @OperationsMethod
     def GetName(self, pos_or_hvo, wsHandle=None):

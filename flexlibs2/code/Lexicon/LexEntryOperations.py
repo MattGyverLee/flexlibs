@@ -200,7 +200,7 @@ class LexEntryOperations(BaseOperations):
 
         # Find the morph type
         morph_type = self.__FindMorphType(morph_type_name)
-        if not morph_type:
+        if morph_type is None:
             raise FP_ParameterError(
                 f"Morph type '{morph_type_name}' not found. " f"Use one of: stem, root, prefix, suffix, infix, etc."
             )
@@ -1406,7 +1406,7 @@ class LexEntryOperations(BaseOperations):
         # Resolve morph type
         if isinstance(morph_type_or_name, str):
             morph_type = self.__FindMorphType(morph_type_or_name)
-            if not morph_type:
+            if morph_type is None:
                 raise FP_ParameterError(f"Morph type '{morph_type_or_name}' not found")
         else:
             morph_type = morph_type_or_name
@@ -2172,7 +2172,7 @@ class LexEntryOperations(BaseOperations):
         # Find publication object if string provided
         if isinstance(publication, str):
             pub_obj = self.project.Publications.Find(publication)
-            if not pub_obj:
+            if pub_obj is None:
                 raise FP_ParameterError(f"Publication '{publication}' not found")
             publication = pub_obj
 
@@ -2197,7 +2197,7 @@ class LexEntryOperations(BaseOperations):
         # Find publication object if string provided
         if isinstance(publication, str):
             pub_obj = self.project.Publications.Find(publication)
-            if not pub_obj:
+            if pub_obj is None:
                 raise FP_ParameterError(f"Publication '{publication}' not found")
             publication = pub_obj
 
@@ -2243,7 +2243,7 @@ class LexEntryOperations(BaseOperations):
         # Find publication object if string provided
         if isinstance(publication, str):
             pub_obj = self.project.Publications.Find(publication)
-            if not pub_obj:
+            if pub_obj is None:
                 raise FP_ParameterError(f"Publication '{publication}' not found")
             publication = pub_obj
 
@@ -2268,7 +2268,7 @@ class LexEntryOperations(BaseOperations):
         # Find publication object if string provided
         if isinstance(publication, str):
             pub_obj = self.project.Publications.Find(publication)
-            if not pub_obj:
+            if pub_obj is None:
                 raise FP_ParameterError(f"Publication '{publication}' not found")
             publication = pub_obj
 

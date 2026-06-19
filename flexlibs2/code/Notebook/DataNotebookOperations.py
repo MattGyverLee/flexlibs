@@ -2210,7 +2210,7 @@ class DataNotebookOperations(BaseOperations):
         # If status is a string, find the matching possibility
         if isinstance(status, str):
             status_obj = self.FindStatusByName(status)
-            if not status_obj:
+            if status_obj is None:
                 raise FP_ParameterError(f"Status not found: {status}")
             status = status_obj
 
@@ -2401,7 +2401,7 @@ class DataNotebookOperations(BaseOperations):
         # If string provided, find the person
         if isinstance(person, str):
             person_obj = self.project.Person.Find(person)
-            if not person_obj:
+            if person_obj is None:
                 return []
             person = person_obj
 
@@ -2455,7 +2455,7 @@ class DataNotebookOperations(BaseOperations):
         # If string provided, find the type
         if isinstance(record_type, str):
             type_obj = self.FindRecordTypeByName(record_type)
-            if not type_obj:
+            if type_obj is None:
                 return []
             record_type = type_obj
 
@@ -2776,7 +2776,7 @@ class DataNotebookOperations(BaseOperations):
         # If confidence is a string, find the matching possibility
         if isinstance(confidence, str):
             conf_obj = self.project.Confidence.Find(confidence)
-            if not conf_obj:
+            if conf_obj is None:
                 raise FP_ParameterError(f"Confidence level not found: {confidence}")
             confidence = conf_obj
 
