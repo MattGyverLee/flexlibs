@@ -176,7 +176,7 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
             InflectionClassCreate, InflectionClassGetName
         """
         morph_data = self.project.lp.MorphologicalDataOA
-        if morph_data and hasattr(morph_data, "ProdRestrictOA") and morph_data.ProdRestrictOA:
+        if morph_data is not None and hasattr(morph_data, "ProdRestrictOA") and morph_data.ProdRestrictOA is not None:
             # Inflection classes are stored in the ProdRestrictOA (Production Restrictions)
             infl_classes = morph_data.ProdRestrictOA
             for ic in infl_classes.PossibilitiesOS:
@@ -1648,8 +1648,10 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
         ic = self.__ResolveInflectionClass(item)
 
         # Get all writing systems for MultiString properties
-        ws_factory = self.project.project.WritingSystemFactory
-        all_ws = {ws.Id: ws.Handle for ws in ws_factory.WritingSystems}
+        # Fix: ILgWritingSystemFactory does not expose a .WritingSystems
+        # property; enumerate via the wrapper's WritingSystemOperations.GetAll(),
+        # which returns CoreWritingSystemDefinition objects with .Id / .Handle.
+        all_ws = {ws.Id: ws.Handle for ws in self.project.WritingSystems.GetAll()}
 
         props = {}
 

@@ -107,7 +107,7 @@ class ConstChartOperations(BaseOperations):
         """
         # Get the DsDiscourse object that contains all charts
         discourse = self.project.lp.DiscourseDataOA
-        if discourse and hasattr(discourse, "ChartsOC"):
+        if discourse is not None and hasattr(discourse, "ChartsOC"):
             for chart in discourse.ChartsOC:
                 if isinstance(chart, IDsConstChart):
                     yield chart
@@ -535,7 +535,7 @@ class ConstChartOperations(BaseOperations):
         """
         discourse = self.project.lp.DiscourseDataOA
 
-        if not discourse:
+        if discourse is None:
             # Create DsDiscourseData container
             from SIL.LCModel import IDsDiscourseDataFactory
 

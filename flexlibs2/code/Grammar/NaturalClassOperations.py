@@ -181,7 +181,7 @@ class NaturalClassOperations(BaseOperations):
             Create, GetName, GetPhonemes
         """
         phon_data = self.project.lp.PhonologicalDataOA
-        if phon_data:
+        if phon_data is not None:
             natural_classes = list(phon_data.NaturalClassesOS)
             for nc in natural_classes:
                 yield nc
@@ -1037,8 +1037,10 @@ class NaturalClassOperations(BaseOperations):
         nc = self.__GetNaturalClassObject(item)
 
         # Get all writing systems for MultiString properties
-        ws_factory = self.project.project.WritingSystemFactory
-        all_ws = {ws.Id: ws.Handle for ws in ws_factory.WritingSystems}
+        # Fix: ILgWritingSystemFactory does not expose a .WritingSystems
+        # property; enumerate via the wrapper's WritingSystemOperations.GetAll(),
+        # which returns CoreWritingSystemDefinition objects with .Id / .Handle.
+        all_ws = {ws.Id: ws.Handle for ws in self.project.WritingSystems.GetAll()}
 
         props = {}
 

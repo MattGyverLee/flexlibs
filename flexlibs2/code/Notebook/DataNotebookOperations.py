@@ -832,7 +832,7 @@ class DataNotebookOperations(BaseOperations):
         # Get the record types list from the project
         if hasattr(self.project.lp, "RecTypesOA"):
             rec_types_list = self.project.lp.RecTypesOA
-            if rec_types_list:
+            if rec_types_list is not None:
                 return list(rec_types_list.PossibilitiesOS)
 
         return []

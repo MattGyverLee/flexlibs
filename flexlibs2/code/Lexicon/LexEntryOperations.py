@@ -1456,7 +1456,7 @@ class LexEntryOperations(BaseOperations):
             ),
         })
         morph_types = self.project.lp.LexDbOA.MorphTypesOA
-        if not morph_types:
+        if morph_types is None:
             return []
 
         result = []
@@ -3067,7 +3067,7 @@ class LexEntryOperations(BaseOperations):
         wsHandle = self.project.project.DefaultAnalWs
 
         morph_types = self.project.lp.LexDbOA.MorphTypesOA
-        if not morph_types:
+        if morph_types is None:
             return None
 
         # Search through all morph types (including subcategories)

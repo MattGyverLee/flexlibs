@@ -200,7 +200,7 @@ class AnthropologyOperations(BaseOperations, _LCMNativeCatalogImportMixin):
             "flat": ("recursive", "semantics inverted: flat=True is now recursive=True"),
         })
         anthro_list = self.project.lp.AnthroListOA
-        if not anthro_list:
+        if anthro_list is None:
             return []
 
         return list(self.project.UnpackNestedPossibilityList(
@@ -270,7 +270,7 @@ class AnthropologyOperations(BaseOperations, _LCMNativeCatalogImportMixin):
             raise FP_ParameterError(f"Anthropology item '{name}' already exists")
 
         # Ensure anthropology list exists
-        if not self.project.lp.AnthroListOA:
+        if self.project.lp.AnthroListOA is None:
             from SIL.LCModel import ICmPossibilityListFactory
 
             list_factory = self.project.project.ServiceLocator.GetService(ICmPossibilityListFactory)
@@ -433,7 +433,7 @@ class AnthropologyOperations(BaseOperations, _LCMNativeCatalogImportMixin):
 
         # Get the anthropology list
         anthro_list = self.project.lp.AnthroListOA
-        if anthro_list:
+        if anthro_list is not None:
             # Check if it's a top-level item
             if anthro_list.PossibilitiesOS.Contains(item):
                 anthro_list.PossibilitiesOS.Remove(item)
@@ -1738,7 +1738,7 @@ class AnthropologyOperations(BaseOperations, _LCMNativeCatalogImportMixin):
         else:
             # Parent is the top-level list
             anthro_list = self.project.lp.AnthroListOA
-            if anthro_list:
+            if anthro_list is not None:
                 if insert_after:
                     source_index = anthro_list.PossibilitiesOS.IndexOf(source)
                     anthro_list.PossibilitiesOS.Insert(source_index + 1, duplicate)

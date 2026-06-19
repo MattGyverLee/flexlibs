@@ -320,7 +320,7 @@ class MSAOperations(BaseOperations):
         ServiceLocator.GetService overload needs the System.Type form of
         the interface rather than the raw interface object.
         """
-        factory = self.project.project.Cache.ServiceLocator.GetService(
+        factory = self.project.project.ServiceLocator.GetService(
             clr.GetClrType(factory_interface)
         )
         if factory is None:

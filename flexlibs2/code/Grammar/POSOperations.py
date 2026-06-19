@@ -355,7 +355,7 @@ class POSOperations(BaseOperations, CatalogBackedMixin):
             return None
 
         pos_list = self.project.lp.PartsOfSpeechOA
-        if pos_list:
+        if pos_list is not None:
             found = search_pos_list(pos_list.PossibilitiesOS)
             # search_pos_list walks Possibilities/SubPossibilities collections
             # which are typed ICmPossibility; cast the result so callers can
@@ -1126,8 +1126,10 @@ class POSOperations(BaseOperations, CatalogBackedMixin):
         pos = self.__ResolveObject(item)
 
         # Get all writing systems for MultiString properties
-        ws_factory = self.project.project.WritingSystemFactory
-        all_ws = {ws.Id: ws.Handle for ws in ws_factory.WritingSystems}
+        # Fix: ILgWritingSystemFactory does not expose a .WritingSystems
+        # property; enumerate via the wrapper's WritingSystemOperations.GetAll(),
+        # which returns CoreWritingSystemDefinition objects with .Id / .Handle.
+        all_ws = {ws.Id: ws.Handle for ws in self.project.WritingSystems.GetAll()}
 
         props = {}
 

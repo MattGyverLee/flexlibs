@@ -179,7 +179,7 @@ class MorphRuleOperations(BaseOperations):
             CreateCompoundRule, GetAll, CompoundRuleCollection
         """
         morph_data = self.project.lp.MorphologicalDataOA
-        if morph_data:
+        if morph_data is not None:
             wrapped = [CompoundRule(rule) for rule in morph_data.CompoundRulesOS]
             return CompoundRuleCollection(wrapped)
         return CompoundRuleCollection()
@@ -215,7 +215,7 @@ class MorphRuleOperations(BaseOperations):
         """
         templates = []
         pos_list = self.project.lp.PartsOfSpeechOA
-        if pos_list:
+        if pos_list is not None:
             for pos in pos_list.PossibilitiesOS:
                 templates.extend(self.__WalkPOSForTemplates(pos))
         wrapped = [AffixTemplate(t) for t in templates]
@@ -286,7 +286,7 @@ class MorphRuleOperations(BaseOperations):
             GetAll
         """
         morph_data = self.project.lp.MorphologicalDataOA
-        if morph_data:
+        if morph_data is not None:
             for prohib in morph_data.AdhocCoProhibitionsOC:
                 yield prohib
 
@@ -331,7 +331,7 @@ class MorphRuleOperations(BaseOperations):
             raise FP_ParameterError("Name cannot be empty")
 
         morph_data = self.project.lp.MorphologicalDataOA
-        if not morph_data:
+        if morph_data is None:
             raise FP_ParameterError("Project has no morphological data defined")
 
         wsHandle = self.project.project.DefaultAnalWs
@@ -448,7 +448,7 @@ class MorphRuleOperations(BaseOperations):
         morph_data = self.project.lp.MorphologicalDataOA
 
         if class_name in ("MoEndoCompound", "MoExoCompound"):
-            if morph_data:
+            if morph_data is not None:
                 morph_data.CompoundRulesOS.Remove(rule)
         elif class_name == "MoInflAffixTemplate":
             # Template is owned by a PartOfSpeech
@@ -456,7 +456,7 @@ class MorphRuleOperations(BaseOperations):
             if hasattr(owner, "AffixTemplatesOS"):
                 owner.AffixTemplatesOS.Remove(rule)
         elif class_name in ("MoAdhocProhibGr", "MoAdhocProhibMorph", "MoAdhocProhibAllomorph"):
-            if morph_data:
+            if morph_data is not None:
                 morph_data.AdhocCoProhibitionsOC.Remove(rule)
 
     # ========== PROPERTIES ==========
@@ -874,8 +874,10 @@ class MorphRuleOperations(BaseOperations):
         rule = self.__ResolveObject(item)
 
         # Get all writing systems for MultiString properties
-        ws_factory = self.project.project.WritingSystemFactory
-        all_ws = {ws.Id: ws.Handle for ws in ws_factory.WritingSystems}
+        # Fix: ILgWritingSystemFactory does not expose a .WritingSystems
+        # property; enumerate via the wrapper's WritingSystemOperations.GetAll(),
+        # which returns CoreWritingSystemDefinition objects with .Id / .Handle.
+        all_ws = {ws.Id: ws.Handle for ws in self.project.WritingSystems.GetAll()}
 
         props = {}
 

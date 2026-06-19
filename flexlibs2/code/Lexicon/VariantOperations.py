@@ -142,7 +142,7 @@ class VariantOperations(BaseOperations):
         See Also:
             FindType, GetTypeName, GetTypeDescription
         """
-        if not self.project.lp.LexDbOA.VariantEntryTypesOA:
+        if self.project.lp.LexDbOA.VariantEntryTypesOA is None:
             return
 
         for vtype in self.project.lp.LexDbOA.VariantEntryTypesOA.PossibilitiesOS:
