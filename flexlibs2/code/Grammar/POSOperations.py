@@ -1152,6 +1152,19 @@ class POSOperations(BaseOperations, CatalogBackedMixin):
         return props
 
     @OperationsMethod
+    def ApplySyncableProperties(self, item, props, ws_map=None):
+        """Apply syncable properties (from GetSyncableProperties) onto a POS.
+
+        Inherited from BaseOperations; declared here so static API indexers
+        (e.g. the FLExToolsMCP validator) see it on the concrete class. The
+        BaseOperations implementation handles every property shape that
+        POSOperations.GetSyncableProperties emits (multi-WS Name/Abbreviation/
+        Description + plain-string CatalogSourceId), so no per-class
+        customisation is needed.
+        """
+        return super().ApplySyncableProperties(item, props, ws_map)
+
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two parts of speech and return detailed differences.

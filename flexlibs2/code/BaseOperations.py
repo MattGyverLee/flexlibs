@@ -1025,6 +1025,109 @@ class BaseOperations:
         )
 
     @OperationsMethod
+    def ApplySyncableProperties(self, item, props, ws_map=None):
+        """
+        Apply a syncable-properties dict (from GetSyncableProperties) onto an
+        item. Inverse of GetSyncableProperties.
+
+        Used by cross-project transfer workflows (e.g. GramTrans Phase 0):
+        extract syncable props from a source item, create a target item via
+        the appropriate factory + add to owner + assign Guid, then call
+        ApplySyncableProperties to copy the syncable fields. Caller handles
+        creation and identity; this method only sets values.
+
+        The default implementation handles two value shapes returned by
+        canonical GetSyncableProperties implementations:
+
+        - **dict[str, str]** — a multilingual string field, keyed by source
+          writing-system Id. Each value is applied to the target object's
+          matching multistring field via set_String(), with writing-system
+          handles resolved on the target side. If ws_map is provided, source
+          Id is translated via that mapping; otherwise identity match by Id.
+        - **str** — a plain string attribute. Set directly via setattr.
+
+        Subclasses MAY override to handle category-specific shapes
+        (object references that need cross-project resolution, owning
+        collections, etc.). Subclass overrides typically delegate to
+        super().ApplySyncableProperties for the multistring/string case and
+        then add their own per-field logic.
+
+        Args:
+            item: Target LCM object. MUST already exist and be owned in the
+                target project (callers create + add to owner + assign Guid
+                before calling).
+            props: dict produced by GetSyncableProperties on a source item.
+            ws_map: Optional dict mapping source-project writing-system Id
+                strings to target-project writing-system Id strings. Default
+                is identity (a source 'en' value is applied to target's 'en'
+                writing system if it exists). Source values whose mapped
+                target WS Id does not exist in the target are silently
+                skipped — callers wishing strict matching should validate
+                ws_map against the target's WS inventory before calling.
+
+        Returns:
+            None.
+
+        Raises:
+            FP_NullParameterError: If item is None.
+            FP_ParameterError: If props is not a dict.
+
+        Example (cross-project POS copy):
+            >>> src_pos = source.POS.Find("Verb")
+            >>> props = source.POS.GetSyncableProperties(src_pos)
+            >>> # Create target POS via raw factory pattern.
+            >>> factory = target.GetService(IPartOfSpeechFactory)
+            >>> new_pos = factory.Create()
+            >>> target.Cache.LangProject.PartsOfSpeechOA.PossibilitiesOS.Add(new_pos)
+            >>> new_pos.Guid = source_guid  # GUID preservation
+            >>> target.POS.ApplySyncableProperties(new_pos, props)
+        """
+        if item is None:
+            raise FP_NullParameterError()
+        if not isinstance(props, dict):
+            raise FP_ParameterError(
+                f"ApplySyncableProperties: props must be a dict, got "
+                f"{type(props).__name__}"
+            )
+
+        # Lazy import — avoids burdening module load for users who don't sync.
+        from SIL.LCModel.Core.Text import TsStringUtils
+
+        target_ws_by_id = {
+            ws.Id: ws.Handle for ws in self.project.WritingSystems.GetAll()
+        }
+
+        for prop_name, value in props.items():
+            if value is None:
+                continue
+            if isinstance(value, dict):
+                # Multi-WS multistring property.
+                prop_obj = getattr(item, prop_name, None)
+                if prop_obj is None:
+                    continue
+                for src_ws_id, text in value.items():
+                    if not text:
+                        continue
+                    tgt_ws_id = (
+                        ws_map.get(src_ws_id, src_ws_id) if ws_map else src_ws_id
+                    )
+                    tgt_handle = target_ws_by_id.get(tgt_ws_id)
+                    if tgt_handle is None:
+                        # Target lacks this WS; skip silently. Callers wanting
+                        # strict mapping should pre-validate ws_map.
+                        continue
+                    prop_obj.set_String(
+                        tgt_handle, TsStringUtils.MakeString(text, tgt_handle)
+                    )
+            elif isinstance(value, str):
+                # Plain string attribute.
+                if hasattr(item, prop_name):
+                    setattr(item, prop_name, value)
+            else:
+                # Unknown shape; subclasses override to handle.
+                continue
+
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two items and return detailed differences.

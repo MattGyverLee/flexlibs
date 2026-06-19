@@ -1670,6 +1670,16 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
         return props
 
     @OperationsMethod
+    def ApplySyncableProperties(self, item, props, ws_map=None):
+        """Apply syncable properties (from GetSyncableProperties) onto an item.
+
+        Inherited from BaseOperations; declared on the concrete class so static
+        API indexers see it. The base implementation handles every property
+        shape this class's GetSyncableProperties emits.
+        """
+        return super().ApplySyncableProperties(item, props, ws_map)
+
+    @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
         """
         Compare two inflection classes and return detailed differences.
