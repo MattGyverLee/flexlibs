@@ -35,6 +35,9 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+# Import string utilities
+from ..Shared.string_utils import normalize_text
+
 # Import wrapper classes
 from .allomorph import Allomorph
 from .allomorph_collection import AllomorphCollection
@@ -509,11 +512,10 @@ class AllomorphOperations(BaseOperations):
         # Form - the allomorph form in various writing systems
         form_dict = {}
         if hasattr(item, "Form"):
-            for ws_handle in self.project.GetAllWritingSystems():
-                text = ITsString(item.Form.get_String(ws_handle)).Text
+            for ws_def in self.project.WritingSystems.GetAll():
+                text = normalize_text(ITsString(item.Form.get_String(ws_def.Handle)).Text)
                 if text:
-                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
-                    form_dict[ws_tag] = text
+                    form_dict[ws_def.Id] = text
         props["Form"] = form_dict
 
         # Atomic properties
@@ -744,9 +746,9 @@ class AllomorphOperations(BaseOperations):
         # Find or validate audio writing system
         if wsHandle is None:
             # Auto-detect first audio WS
-            for ws_handle in self.project.GetAllWritingSystems():
-                if self.project.IsAudioWritingSystem(ws_handle):
-                    wsHandle = ws_handle
+            for ws_def in self.project.WritingSystems.GetAll():
+                if self.project.IsAudioWritingSystem(ws_def.Handle):
+                    wsHandle = ws_def.Handle
                     break
 
             if wsHandle is None:
@@ -847,9 +849,9 @@ class AllomorphOperations(BaseOperations):
 
         # Find audio writing system if not provided
         if wsHandle is None:
-            for ws_handle in self.project.GetAllWritingSystems():
-                if self.project.IsAudioWritingSystem(ws_handle):
-                    wsHandle = ws_handle
+            for ws_def in self.project.WritingSystems.GetAll():
+                if self.project.IsAudioWritingSystem(ws_def.Handle):
+                    wsHandle = ws_def.Handle
                     break
 
             if wsHandle is None:

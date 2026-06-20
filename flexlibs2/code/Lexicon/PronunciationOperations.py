@@ -36,6 +36,9 @@ from ..FLExProject import (
     FP_ParameterError,
 )
 
+# Import string utilities
+from ..Shared.string_utils import normalize_text
+
 
 class PronunciationOperations(BaseOperations):
     """
@@ -380,13 +383,10 @@ class PronunciationOperations(BaseOperations):
         # Form - the pronunciation form (typically IPA)
         form_dict = {}
         if hasattr(item, "Form"):
-            for ws_handle in self.project.GetAllWritingSystems():
-                from SIL.LCModel.Core.KernelInterfaces import ITsString
-
-                text = ITsString(item.Form.get_String(ws_handle)).Text
+            for ws_def in self.project.WritingSystems.GetAll():
+                text = normalize_text(ITsString(item.Form.get_String(ws_def.Handle)).Text)
                 if text:
-                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
-                    form_dict[ws_tag] = text
+                    form_dict[ws_def.Id] = text
         props["Form"] = form_dict
 
         # Reference Atomic (RA) properties

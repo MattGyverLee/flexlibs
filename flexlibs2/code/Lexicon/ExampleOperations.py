@@ -338,13 +338,17 @@ class ExampleOperations(BaseOperations):
         if deep:
             # Duplicate translations
             for translation in source.TranslationsOC:
+                if translation.TypeRA is None:
+                    logger.warning(
+                        "Duplicate: skipping translation copy -- source TypeRA is null"
+                    )
+                    continue
                 trans_factory = self.project.project.ServiceLocator.GetService(ICmTranslationFactory)
-                new_trans = trans_factory.Create()
+                new_trans = trans_factory.Create(duplicate, translation.TypeRA)
                 duplicate.TranslationsOC.Add(new_trans)
 
                 # Copy translation properties
                 new_trans.Translation.CopyAlternatives(translation.Translation)
-                new_trans.TypeRA = translation.TypeRA
 
         return duplicate
 
@@ -370,28 +374,175 @@ class ExampleOperations(BaseOperations):
         # Example - the example sentence in various writing systems
         example_dict = {}
         if hasattr(item, "Example"):
-            for ws_handle in self.project.GetAllWritingSystems():
-                from SIL.LCModel.Core.KernelInterfaces import ITsString
-
-                text = ITsString(item.Example.get_String(ws_handle)).Text
+            for ws_def in self.project.WritingSystems.GetAll():
+                text = normalize_text(
+                    ITsString(item.Example.get_String(ws_def.Handle)).Text
+                )
                 if text:
-                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
-                    example_dict[ws_tag] = text
+                    example_dict[ws_def.Id] = text
         props["Example"] = example_dict
 
-        # Reference - bibliographic reference (MultiString)
-        reference_dict = {}
+        # Reference - ILexExampleSentence.Reference is ITsString (single-string),
+        # NOT IMultiString. Treating it as IMultiString with a WS-handle loop would
+        # raise AttributeError at runtime because ITsString has no get_String(handle)
+        # method. Use _ReadTsString instead. (P0 bug fix -- Category 8 same-name
+        # field: ILexEtymology.Reference is IMultiString, ILexExampleSentence.Reference
+        # is ITsString.)
         if hasattr(item, "Reference"):
-            for ws_handle in self.project.GetAllWritingSystems():
-                from SIL.LCModel.Core.KernelInterfaces import ITsString
+            props["Reference"] = self._ReadTsString(item.Reference)
+        else:
+            props["Reference"] = ""
 
-                text = ITsString(item.Reference.get_String(ws_handle)).Text
-                if text:
-                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
-                    reference_dict[ws_tag] = text
-        props["Reference"] = reference_dict
+        # TranslationsOC - owned collection of ICmTranslation objects.
+        # Each ICmTranslation has:
+        #   Translation: IMultiString (text per writing system)
+        #   TypeRA: ICmPossibility (e.g. "Free translation") -- serialized as GUID string
+        # Serialize as a list of dicts (order-preserving, matching TranslationsOC order).
+        translations_list = []
+        if hasattr(item, "TranslationsOC"):
+            for trans in item.TranslationsOC:
+                trans_text_dict = {}
+                if hasattr(trans, "Translation"):
+                    for ws_def in self.project.WritingSystems.GetAll():
+                        text = normalize_text(
+                            ITsString(trans.Translation.get_String(ws_def.Handle)).Text
+                        )
+                        if text:
+                            trans_text_dict[ws_def.Id] = text
+                type_guid = None
+                if hasattr(trans, "TypeRA") and trans.TypeRA is not None:
+                    type_guid = str(trans.TypeRA.Guid)
+                translations_list.append({
+                    "Translation": trans_text_dict,
+                    "TypeRA": type_guid,
+                })
+        props["TranslationsOC"] = translations_list
 
         return props
+
+    @OperationsMethod
+    def ApplySyncableProperties(self, item, props, ws_map=None):
+        """
+        Apply a syncable-properties dict onto an ILexExampleSentence item.
+
+        Extends the base implementation to handle:
+        - Reference: ITsString (not IMultiString) -- set via default analysis WS.
+        - TranslationsOC: owned collection of ICmTranslation objects. Strategy is
+          clear-and-rebuild (v1 choice: simpler than index-based reconciliation;
+          acceptable because the diff layer identifies examples by GUID and replaces
+          them as a unit). A comment marks where v2 could do smarter merging.
+
+        Args:
+            item: Target ILexExampleSentence (must already exist in target project).
+            props: dict produced by GetSyncableProperties on a source example.
+            ws_map: Optional source->target writing-system Id mapping.
+        """
+        import logging as _logging
+        _log = _logging.getLogger(__name__)
+
+        self._EnsureWriteEnabled()
+
+        _special_fields = ("Reference", "TranslationsOC")
+        remaining_props = {}
+        special_props = {}
+        for k, v in props.items():
+            if k in _special_fields:
+                special_props[k] = v
+            else:
+                remaining_props[k] = v
+
+        # Apply plain / multistring fields via base class.
+        super().ApplySyncableProperties(item, remaining_props, ws_map=ws_map)
+
+        # --- Reference (ITsString, single-string) ---
+        if "Reference" in special_props:
+            ref_text = special_props["Reference"] or ""
+            if ref_text:
+                ws_handle = self.project.project.DefaultAnalWs
+                item.Reference = TsStringUtils.MakeString(ref_text, ws_handle)
+
+        # --- TranslationsOC (owned collection -- clear-and-rebuild) ---
+        # V1 choice: clear all existing ICmTranslation objects and recreate from
+        # the serialized list. This is safe for cross-project sync where the target
+        # example was just created. A future v2 could reconcile by TypeRA GUID to
+        # preserve locally-authored translations not present in the source.
+        if "TranslationsOC" in special_props:
+            translations_data = special_props["TranslationsOC"]
+            if not isinstance(translations_data, list):
+                _log.warning(
+                    "[WARN] ApplySyncableProperties: TranslationsOC expected list, "
+                    "got %s -- skipping", type(translations_data).__name__
+                )
+            else:
+                # Resolve target writing systems once.
+                target_ws_by_id = {
+                    ws.Id: ws.Handle
+                    for ws in self.project.WritingSystems.GetAll()
+                }
+
+                # Build a GUID->object map for the translation type possibility list.
+                # Translation types live in LangProject.TranslationTagsOA.
+                type_guid_map = {}
+                try:
+                    for tt in self.project.lp.TranslationTagsOA.PossibilitiesOS:
+                        type_guid_map[str(tt.Guid)] = tt
+                except Exception as exc:
+                    _log.warning(
+                        "[WARN] ApplySyncableProperties: could not enumerate "
+                        "TranslationTagsOA: %s", exc
+                    )
+
+                # Clear existing translations on the target example.
+                item.TranslationsOC.Clear()
+
+                for trans_dict in translations_data:
+                    if not isinstance(trans_dict, dict):
+                        _log.warning(
+                            "[WARN] ApplySyncableProperties: TranslationsOC entry "
+                            "is not a dict -- skipped"
+                        )
+                        continue
+
+                    # Resolve TypeRA by GUID before Create() -- factory requires a non-null possibility.
+                    type_guid_str = trans_dict.get("TypeRA")
+                    type_obj = None
+                    if type_guid_str:
+                        type_obj = type_guid_map.get(type_guid_str)
+                        if type_obj is None:
+                            _log.warning(
+                                "[WARN] ApplySyncableProperties: TranslationsOC "
+                                "TypeRA GUID %s not found in target project's "
+                                "TranslationTagsOA -- translation skipped",
+                                type_guid_str
+                            )
+                    if type_obj is None:
+                        _log.warning(
+                            "[WARN] ApplySyncableProperties: TranslationsOC entry "
+                            "has no resolvable TypeRA -- translation skipped"
+                        )
+                        continue
+
+                    # Create a new ICmTranslation owned by this example.
+                    new_trans = self.project.project.ServiceLocator.GetService(
+                        ICmTranslationFactory
+                    ).Create(item, type_obj)
+                    item.TranslationsOC.Add(new_trans)
+
+                    # Set Translation IMultiString per writing system.
+                    trans_text_dict = trans_dict.get("Translation", {})
+                    for src_ws_id, text in trans_text_dict.items():
+                        if not text:
+                            continue
+                        tgt_ws_id = (
+                            ws_map.get(src_ws_id, src_ws_id) if ws_map else src_ws_id
+                        )
+                        tgt_handle = target_ws_by_id.get(tgt_ws_id)
+                        if tgt_handle is None:
+                            continue
+                        new_trans.Translation.set_String(
+                            tgt_handle,
+                            TsStringUtils.MakeString(text, tgt_handle)
+                        )
 
     @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):

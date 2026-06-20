@@ -13,7 +13,7 @@
 
 # Import BaseOperations parent class
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
-from ..Shared.string_utils import normalize_match_key
+from ..Shared.string_utils import normalize_text, normalize_match_key
 
 # Import FLEx LCM types
 from SIL.LCModel import (
@@ -1293,24 +1293,24 @@ class LexReferenceOperations(BaseOperations):
         # Name - optional name of the relationship
         name_dict = {}
         if hasattr(item, "Name"):
-            for ws_handle in self.project.GetAllWritingSystems():
+            for ws_def in self.project.WritingSystems.GetAll():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
 
-                text = ITsString(item.Name.get_String(ws_handle)).Text
+                text = normalize_text(ITsString(item.Name.get_String(ws_def.Handle)).Text)
                 if text:
-                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
+                    ws_tag = ws_def.Id
                     name_dict[ws_tag] = text
         props["Name"] = name_dict
 
         # Comment - additional notes
         comment_dict = {}
         if hasattr(item, "Comment"):
-            for ws_handle in self.project.GetAllWritingSystems():
+            for ws_def in self.project.WritingSystems.GetAll():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
 
-                text = ITsString(item.Comment.get_String(ws_handle)).Text
+                text = normalize_text(ITsString(item.Comment.get_String(ws_def.Handle)).Text)
                 if text:
-                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
+                    ws_tag = ws_def.Id
                     comment_dict[ws_tag] = text
         props["Comment"] = comment_dict
 

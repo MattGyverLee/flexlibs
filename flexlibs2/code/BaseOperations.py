@@ -1082,6 +1082,8 @@ class BaseOperations:
             >>> new_pos.Guid = source_guid  # GUID preservation
             >>> target.POS.ApplySyncableProperties(new_pos, props)
         """
+        self._EnsureWriteEnabled()
+
         if item is None:
             raise FP_NullParameterError()
         if not isinstance(props, dict):
@@ -1120,9 +1122,51 @@ class BaseOperations:
                         tgt_handle, TsStringUtils.MakeString(text, tgt_handle)
                     )
             elif isinstance(value, str):
-                # Plain string attribute.
-                if hasattr(item, prop_name):
+                # Plain string attribute. LCM properties come in three
+                # shapes from the perspective of "assign a Python str":
+                # (1) plain string properties (works directly with setattr);
+                # (2) ITsString properties (need TsStringUtils wrapping);
+                # (3) object-reference properties typed as some LCM
+                #     interface (e.g. IMoMorphSynAnalysis) — these can't
+                #     be assigned a string at all; they need a cross-project
+                #     object lookup which lives outside this dict-driven
+                #     sync path.
+                # We handle (1) via the bare setattr, (2) via the ITsString
+                # fallback, and (3) by skipping silently — the caller is
+                # responsible for object-reference wiring.
+                if not hasattr(item, prop_name):
+                    continue
+                try:
                     setattr(item, prop_name, value)
+                except TypeError as exc:
+                    msg = str(exc)
+                    if "ITsString" in msg:
+                        try:
+                            default_ws = self.project.GetDefaultAnalysisWSHandle()
+                            setattr(
+                                item,
+                                prop_name,
+                                TsStringUtils.MakeString(value, default_ws),
+                            )
+                        except Exception:
+                            # If wrapping also fails, skip the property
+                            # silently — the sync framework treats this as
+                            # a soft incompatibility rather than a hard error.
+                            continue
+                    elif "cannot be converted to SIL.LCModel." in msg:
+                        # Object-reference property — case (3). Skip; the
+                        # caller wires cross-project references explicitly
+                        # via GUID lookup (e.g. target.MSA.CreateInflAff).
+                        continue
+                    else:
+                        raise
+            elif isinstance(value, bool) or isinstance(value, int):
+                # Bool/int attribute — common on flags like Disabled, Final.
+                if hasattr(item, prop_name):
+                    try:
+                        setattr(item, prop_name, value)
+                    except (TypeError, AttributeError):
+                        continue
             else:
                 # Unknown shape; subclasses override to handle.
                 continue

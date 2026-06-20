@@ -479,57 +479,59 @@ class LexEntryOperations(BaseOperations):
         """
         props = {}
 
+        # Patched 2026-06-19: GramTrans fork — use WritingSystems.GetAll()
+        # (returns CoreWritingSystemDefinition objects with .Handle and .Id)
+        # instead of the nonexistent GetAllWritingSystems() / GetWritingSystemTag()
+        # methods. Matches the patch applied to the Grammar Operations classes
+        # (see STATUS.md "flexlibs2 fork" section).
+        _ws_defs = list(self.project.WritingSystems.GetAll())
+
         # MultiString properties
         # LexemeForm - primary lexeme form
         if hasattr(item, "LexemeFormOA") and item.LexemeFormOA:
             form_dict = {}
-            for ws_handle in self.project.GetAllWritingSystems():
-                text = ITsString(item.LexemeFormOA.Form.get_String(ws_handle)).Text
+            for ws_def in _ws_defs:
+                text = normalize_text(ITsString(item.LexemeFormOA.Form.get_String(ws_def.Handle)).Text)
                 if text:
-                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
-                    form_dict[ws_tag] = text
+                    form_dict[ws_def.Id] = text
             props["LexemeForm"] = form_dict
         else:
             props["LexemeForm"] = {}
 
-        # CitationForm - citation form
+        # CitationForm - citation form (IMultiString)
         citation_dict = {}
         if hasattr(item, "CitationForm"):
-            for ws_handle in self.project.GetAllWritingSystems():
-                text = ITsString(item.CitationForm.get_String(ws_handle)).Text
+            for ws_def in _ws_defs:
+                text = normalize_text(ITsString(item.CitationForm.get_String(ws_def.Handle)).Text)
                 if text:
-                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
-                    citation_dict[ws_tag] = text
+                    citation_dict[ws_def.Id] = text
         props["CitationForm"] = citation_dict
 
-        # Comment - entry-level comment
+        # Comment - entry-level comment (IMultiString)
         comment_dict = {}
         if hasattr(item, "Comment"):
-            for ws_handle in self.project.GetAllWritingSystems():
-                text = ITsString(item.Comment.get_String(ws_handle)).Text
+            for ws_def in _ws_defs:
+                text = normalize_text(ITsString(item.Comment.get_String(ws_def.Handle)).Text)
                 if text:
-                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
-                    comment_dict[ws_tag] = text
+                    comment_dict[ws_def.Id] = text
         props["Comment"] = comment_dict
 
-        # Bibliography - bibliographic reference
+        # Bibliography - bibliographic reference (IMultiString)
         bibliography_dict = {}
         if hasattr(item, "Bibliography"):
-            for ws_handle in self.project.GetAllWritingSystems():
-                text = ITsString(item.Bibliography.get_String(ws_handle)).Text
+            for ws_def in _ws_defs:
+                text = normalize_text(ITsString(item.Bibliography.get_String(ws_def.Handle)).Text)
                 if text:
-                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
-                    bibliography_dict[ws_tag] = text
+                    bibliography_dict[ws_def.Id] = text
         props["Bibliography"] = bibliography_dict
 
-        # LiteralMeaning - literal meaning
+        # LiteralMeaning - literal meaning (IMultiString). (P2: confirmed field name)
         literal_dict = {}
         if hasattr(item, "LiteralMeaning"):
-            for ws_handle in self.project.GetAllWritingSystems():
-                text = ITsString(item.LiteralMeaning.get_String(ws_handle)).Text
+            for ws_def in _ws_defs:
+                text = normalize_text(ITsString(item.LiteralMeaning.get_String(ws_def.Handle)).Text)
                 if text:
-                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
-                    literal_dict[ws_tag] = text
+                    literal_dict[ws_def.Id] = text
         props["LiteralMeaning"] = literal_dict
 
         # Atomic properties
@@ -537,23 +539,118 @@ class LexEntryOperations(BaseOperations):
         if hasattr(item, "HomographNumber"):
             props["HomographNumber"] = item.HomographNumber
 
-        # DoNotPublishInRC - publication exclusion flags
+        # DoNotPublishInRC - publication exclusion reference collection.
+        # ILexEntry.DoNotPublishInRC is a reference collection of ICmPossibility
+        # (publication objects). Serialize as a frozenset of GUID strings so the
+        # sync layer can compare cross-project without object identity.
         if hasattr(item, "DoNotPublishInRC"):
-            props["DoNotPublishInRC"] = item.DoNotPublishInRC
+            props["DoNotPublishInRC"] = frozenset(
+                str(pub.Guid) for pub in item.DoNotPublishInRC
+            )
+        else:
+            props["DoNotPublishInRC"] = frozenset()
 
-        # DoNotShowMainEntryInRC - main entry display flags
+        # DoNotShowMainEntryInRC - main entry display exclusion reference collection.
+        # Same LCM shape as DoNotPublishInRC: reference collection of ICmPossibility.
         if hasattr(item, "DoNotShowMainEntryInRC"):
-            props["DoNotShowMainEntryInRC"] = item.DoNotShowMainEntryInRC
+            props["DoNotShowMainEntryInRC"] = frozenset(
+                str(pub.Guid) for pub in item.DoNotShowMainEntryInRC
+            )
+        else:
+            props["DoNotShowMainEntryInRC"] = frozenset()
 
-        # ImportResidue - import residue from LIFT files
+        # ImportResidue - import residue from LIFT files.
+        # ILexEntry.ImportResidue is ITsString (single-string), not a plain str.
+        # Route through _ReadTsString to extract plain Python str. (P0 fix)
         if hasattr(item, "ImportResidue"):
-            props["ImportResidue"] = item.ImportResidue
+            props["ImportResidue"] = self._ReadTsString(item.ImportResidue)
+        else:
+            props["ImportResidue"] = ""
 
         # Reference Atomic (RA) properties
         # MainEntriesOrSensesRS is a Reference Sequence (not included as it's complex)
         # EntryRefsOS is an Owning Sequence (not included)
 
         return props
+
+    @OperationsMethod
+    def ApplySyncableProperties(self, item, props, ws_map=None):
+        """
+        Apply a syncable-properties dict onto a LexEntry item.
+
+        Extends the base implementation to handle the two reference-collection
+        fields (DoNotPublishInRC, DoNotShowMainEntryInRC) which are serialized
+        as frozensets of GUID strings by GetSyncableProperties. All other fields
+        delegate to the base class.
+
+        Args:
+            item: Target ILexEntry object (must already exist in target project).
+            props: dict produced by GetSyncableProperties on a source entry.
+            ws_map: Optional source->target writing-system Id mapping.
+        """
+        import logging as _logging
+        _log = _logging.getLogger(__name__)
+
+        self._EnsureWriteEnabled()
+
+        # Handle reference-collection fields first; remove them so the base
+        # class does not try to setattr a frozenset onto an LCM object.
+        _rc_fields = ("DoNotPublishInRC", "DoNotShowMainEntryInRC")
+        remaining_props = {}
+        rc_props = {}
+        for k, v in props.items():
+            if k in _rc_fields:
+                rc_props[k] = v
+            else:
+                remaining_props[k] = v
+
+        # Apply plain / multistring fields via base class.
+        super().ApplySyncableProperties(item, remaining_props, ws_map=ws_map)
+
+        # Resolve the target project's publication list once for both RC fields.
+        # Publications live in lp.PublicationsOA.PossibilitiesOS (flat list;
+        # sub-publications are accessed via SubPossibilitiesOS but publication
+        # exclusion flags only reference top-level publications in practice).
+        def _build_pub_guid_map():
+            pub_map = {}
+            try:
+                for pub in self.project.lp.PublicationsOA.PossibilitiesOS:
+                    pub_map[str(pub.Guid)] = pub
+            except Exception as exc:
+                _log.warning(
+                    "[WARN] ApplySyncableProperties: could not enumerate "
+                    "PublicationsOA: %s", exc
+                )
+            return pub_map
+
+        pub_guid_map = None  # Lazy: only built if an RC field is present.
+
+        for field_name, guid_set in rc_props.items():
+            if not hasattr(item, field_name):
+                continue
+            if not isinstance(guid_set, (frozenset, set)):
+                _log.warning(
+                    "[WARN] ApplySyncableProperties: %s expected frozenset, "
+                    "got %s -- skipping", field_name, type(guid_set).__name__
+                )
+                continue
+
+            if pub_guid_map is None:
+                pub_guid_map = _build_pub_guid_map()
+
+            rc_collection = getattr(item, field_name)
+            # Clear-and-rebuild: simpler than diffing, acceptable for v1.
+            rc_collection.Clear()
+            for guid_str in guid_set:
+                pub_obj = pub_guid_map.get(guid_str)
+                if pub_obj is None:
+                    _log.warning(
+                        "[WARN] ApplySyncableProperties: %s GUID %s not found "
+                        "in target project's publication list -- skipped",
+                        field_name, guid_str
+                    )
+                else:
+                    rc_collection.Add(pub_obj)
 
     @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):

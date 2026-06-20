@@ -64,7 +64,7 @@ _AFFIX_MORPH_TYPE_GUIDS = frozenset({
 })
 
 # Import string utilities
-from ..Shared.string_utils import best_analysis_text, normalize_match_key
+from ..Shared.string_utils import best_analysis_text, normalize_match_key, normalize_text
 
 
 class LexSenseOperations(BaseOperations):
@@ -489,113 +489,87 @@ class LexSenseOperations(BaseOperations):
         """
         props = {}
 
-        # MultiString properties
+        # MultiString properties -- all use normalize_text to strip FLEx '***'
+        # null marker before storing. ITsString is imported at module level.
         # Gloss - short definition
         gloss_dict = {}
         if hasattr(item, "Gloss"):
-            for ws_handle in self.project.GetAllWritingSystems():
-                from SIL.LCModel.Core.KernelInterfaces import ITsString
-
-                text = ITsString(item.Gloss.get_String(ws_handle)).Text
+            for ws_def in self.project.WritingSystems.GetAll():
+                text = normalize_text(ITsString(item.Gloss.get_String(ws_def.Handle)).Text)
                 if text:
-                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
-                    gloss_dict[ws_tag] = text
+                    gloss_dict[ws_def.Id] = text
         props["Gloss"] = gloss_dict
 
         # Definition - longer definition
         definition_dict = {}
         if hasattr(item, "Definition"):
-            for ws_handle in self.project.GetAllWritingSystems():
-                from SIL.LCModel.Core.KernelInterfaces import ITsString
-
-                text = ITsString(item.Definition.get_String(ws_handle)).Text
+            for ws_def in self.project.WritingSystems.GetAll():
+                text = normalize_text(ITsString(item.Definition.get_String(ws_def.Handle)).Text)
                 if text:
-                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
-                    definition_dict[ws_tag] = text
+                    definition_dict[ws_def.Id] = text
         props["Definition"] = definition_dict
 
         # DiscourseNote - discourse function notes
         discourse_dict = {}
         if hasattr(item, "DiscourseNote"):
-            for ws_handle in self.project.GetAllWritingSystems():
-                from SIL.LCModel.Core.KernelInterfaces import ITsString
-
-                text = ITsString(item.DiscourseNote.get_String(ws_handle)).Text
+            for ws_def in self.project.WritingSystems.GetAll():
+                text = normalize_text(ITsString(item.DiscourseNote.get_String(ws_def.Handle)).Text)
                 if text:
-                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
-                    discourse_dict[ws_tag] = text
+                    discourse_dict[ws_def.Id] = text
         props["DiscourseNote"] = discourse_dict
 
         # EncyclopedicInfo - encyclopedic information
         encyclo_dict = {}
         if hasattr(item, "EncyclopedicInfo"):
-            for ws_handle in self.project.GetAllWritingSystems():
-                from SIL.LCModel.Core.KernelInterfaces import ITsString
-
-                text = ITsString(item.EncyclopedicInfo.get_String(ws_handle)).Text
+            for ws_def in self.project.WritingSystems.GetAll():
+                text = normalize_text(ITsString(item.EncyclopedicInfo.get_String(ws_def.Handle)).Text)
                 if text:
-                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
-                    encyclo_dict[ws_tag] = text
+                    encyclo_dict[ws_def.Id] = text
         props["EncyclopedicInfo"] = encyclo_dict
 
         # GeneralNote - general notes
         general_dict = {}
         if hasattr(item, "GeneralNote"):
-            for ws_handle in self.project.GetAllWritingSystems():
-                from SIL.LCModel.Core.KernelInterfaces import ITsString
-
-                text = ITsString(item.GeneralNote.get_String(ws_handle)).Text
+            for ws_def in self.project.WritingSystems.GetAll():
+                text = normalize_text(ITsString(item.GeneralNote.get_String(ws_def.Handle)).Text)
                 if text:
-                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
-                    general_dict[ws_tag] = text
+                    general_dict[ws_def.Id] = text
         props["GeneralNote"] = general_dict
 
         # GrammarNote - grammatical notes
         grammar_dict = {}
         if hasattr(item, "GrammarNote"):
-            for ws_handle in self.project.GetAllWritingSystems():
-                from SIL.LCModel.Core.KernelInterfaces import ITsString
-
-                text = ITsString(item.GrammarNote.get_String(ws_handle)).Text
+            for ws_def in self.project.WritingSystems.GetAll():
+                text = normalize_text(ITsString(item.GrammarNote.get_String(ws_def.Handle)).Text)
                 if text:
-                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
-                    grammar_dict[ws_tag] = text
+                    grammar_dict[ws_def.Id] = text
         props["GrammarNote"] = grammar_dict
 
         # PhonologyNote - phonology notes
         phonology_dict = {}
         if hasattr(item, "PhonologyNote"):
-            for ws_handle in self.project.GetAllWritingSystems():
-                from SIL.LCModel.Core.KernelInterfaces import ITsString
-
-                text = ITsString(item.PhonologyNote.get_String(ws_handle)).Text
+            for ws_def in self.project.WritingSystems.GetAll():
+                text = normalize_text(ITsString(item.PhonologyNote.get_String(ws_def.Handle)).Text)
                 if text:
-                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
-                    phonology_dict[ws_tag] = text
+                    phonology_dict[ws_def.Id] = text
         props["PhonologyNote"] = phonology_dict
 
         # SemanticsNote - semantics notes
         semantics_dict = {}
         if hasattr(item, "SemanticsNote"):
-            for ws_handle in self.project.GetAllWritingSystems():
-                from SIL.LCModel.Core.KernelInterfaces import ITsString
-
-                text = ITsString(item.SemanticsNote.get_String(ws_handle)).Text
+            for ws_def in self.project.WritingSystems.GetAll():
+                text = normalize_text(ITsString(item.SemanticsNote.get_String(ws_def.Handle)).Text)
                 if text:
-                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
-                    semantics_dict[ws_tag] = text
+                    semantics_dict[ws_def.Id] = text
         props["SemanticsNote"] = semantics_dict
 
         # SocioLinguisticsNote - sociolinguistics notes
         socio_dict = {}
         if hasattr(item, "SocioLinguisticsNote"):
-            for ws_handle in self.project.GetAllWritingSystems():
-                from SIL.LCModel.Core.KernelInterfaces import ITsString
-
-                text = ITsString(item.SocioLinguisticsNote.get_String(ws_handle)).Text
+            for ws_def in self.project.WritingSystems.GetAll():
+                text = normalize_text(ITsString(item.SocioLinguisticsNote.get_String(ws_def.Handle)).Text)
                 if text:
-                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
-                    socio_dict[ws_tag] = text
+                    socio_dict[ws_def.Id] = text
         props["SocioLinguisticsNote"] = socio_dict
 
         # Source - bibliographic source
@@ -608,28 +582,22 @@ class LexSenseOperations(BaseOperations):
         else:
             props["Source"] = ""
 
-        # Restrictions - usage restrictions
+        # Restrictions - usage restrictions (IMultiString)
         restrictions_dict = {}
         if hasattr(item, "Restrictions"):
-            for ws_handle in self.project.GetAllWritingSystems():
-                from SIL.LCModel.Core.KernelInterfaces import ITsString
-
-                text = ITsString(item.Restrictions.get_String(ws_handle)).Text
+            for ws_def in self.project.WritingSystems.GetAll():
+                text = normalize_text(ITsString(item.Restrictions.get_String(ws_def.Handle)).Text)
                 if text:
-                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
-                    restrictions_dict[ws_tag] = text
+                    restrictions_dict[ws_def.Id] = text
         props["Restrictions"] = restrictions_dict
 
-        # Bibliography - bibliographic reference
+        # Bibliography - bibliographic reference (IMultiString)
         bibliography_dict = {}
         if hasattr(item, "Bibliography"):
-            for ws_handle in self.project.GetAllWritingSystems():
-                from SIL.LCModel.Core.KernelInterfaces import ITsString
-
-                text = ITsString(item.Bibliography.get_String(ws_handle)).Text
+            for ws_def in self.project.WritingSystems.GetAll():
+                text = normalize_text(ITsString(item.Bibliography.get_String(ws_def.Handle)).Text)
                 if text:
-                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
-                    bibliography_dict[ws_tag] = text
+                    bibliography_dict[ws_def.Id] = text
         props["Bibliography"] = bibliography_dict
 
         # Reference Atomic (RA) properties
@@ -663,7 +631,123 @@ class LexSenseOperations(BaseOperations):
         else:
             props["ImportResidue"] = ""
 
+        # SenseTypeRA - sense type (e.g., "main entry", "variant", etc.)
+        # Atomic reference to ICmPossibility. Serialize as GUID string. (P2)
+        if hasattr(item, "SenseTypeRA") and item.SenseTypeRA:
+            props["SenseTypeRA"] = str(item.SenseTypeRA.Guid)
+        else:
+            props["SenseTypeRA"] = None
+
+        # DoNotPublishInRC - publication exclusion reference collection.
+        # ILexSense.DoNotPublishInRC is a reference collection of ICmPossibility.
+        # Serialize as frozenset of GUID strings (same pattern as LexEntry).
+        if hasattr(item, "DoNotPublishInRC"):
+            props["DoNotPublishInRC"] = frozenset(
+                str(pub.Guid) for pub in item.DoNotPublishInRC
+            )
+        else:
+            props["DoNotPublishInRC"] = frozenset()
+
+        # DoNotShowMainEntryInRC - main entry display exclusion reference collection.
+        if hasattr(item, "DoNotShowMainEntryInRC"):
+            props["DoNotShowMainEntryInRC"] = frozenset(
+                str(pub.Guid) for pub in item.DoNotShowMainEntryInRC
+            )
+        else:
+            props["DoNotShowMainEntryInRC"] = frozenset()
+
         return props
+
+    @OperationsMethod
+    def ApplySyncableProperties(self, item, props, ws_map=None):
+        """
+        Apply a syncable-properties dict onto a LexSense item.
+
+        Extends the base implementation to handle:
+        - SenseTypeRA: atomic reference, resolved by GUID in the target project's
+          sense type list (LangProject.LexDbOA.SenseTypesOA).
+        - DoNotPublishInRC / DoNotShowMainEntryInRC: reference collections of
+          ICmPossibility, serialized as frozensets of GUID strings.
+
+        Args:
+            item: Target ILexSense object (must already exist in target project).
+            props: dict produced by GetSyncableProperties on a source sense.
+            ws_map: Optional source->target writing-system Id mapping.
+        """
+        import logging as _logging
+        _log = _logging.getLogger(__name__)
+
+        self._EnsureWriteEnabled()
+
+        _special_fields = ("SenseTypeRA", "DoNotPublishInRC", "DoNotShowMainEntryInRC")
+        remaining_props = {}
+        special_props = {}
+        for k, v in props.items():
+            if k in _special_fields:
+                special_props[k] = v
+            else:
+                remaining_props[k] = v
+
+        # Apply plain / multistring fields via base class.
+        super().ApplySyncableProperties(item, remaining_props, ws_map=ws_map)
+
+        # --- SenseTypeRA ---
+        if "SenseTypeRA" in special_props:
+            guid_str = special_props["SenseTypeRA"]
+            if guid_str:
+                try:
+                    import System
+                    obj = self.project.Object(System.Guid(guid_str))
+                    item.SenseTypeRA = obj
+                except Exception as exc:
+                    _log.warning(
+                        "[WARN] ApplySyncableProperties: SenseTypeRA GUID %s "
+                        "not found in target project -- skipped (%s)",
+                        guid_str, exc
+                    )
+            else:
+                item.SenseTypeRA = None
+
+        # --- Publication RC fields ---
+        def _build_pub_guid_map():
+            pub_map = {}
+            try:
+                for pub in self.project.lp.PublicationsOA.PossibilitiesOS:
+                    pub_map[str(pub.Guid)] = pub
+            except Exception as exc:
+                _log.warning(
+                    "[WARN] ApplySyncableProperties: could not enumerate "
+                    "PublicationsOA: %s", exc
+                )
+            return pub_map
+
+        pub_guid_map = None
+        for field_name in ("DoNotPublishInRC", "DoNotShowMainEntryInRC"):
+            if field_name not in special_props:
+                continue
+            guid_set = special_props[field_name]
+            if not hasattr(item, field_name):
+                continue
+            if not isinstance(guid_set, (frozenset, set)):
+                _log.warning(
+                    "[WARN] ApplySyncableProperties: %s expected frozenset, "
+                    "got %s -- skipping", field_name, type(guid_set).__name__
+                )
+                continue
+            if pub_guid_map is None:
+                pub_guid_map = _build_pub_guid_map()
+            rc_collection = getattr(item, field_name)
+            rc_collection.Clear()
+            for gs in guid_set:
+                pub_obj = pub_guid_map.get(gs)
+                if pub_obj is None:
+                    _log.warning(
+                        "[WARN] ApplySyncableProperties: %s GUID %s not found "
+                        "in target project's publication list -- skipped",
+                        field_name, gs
+                    )
+                else:
+                    rc_collection.Add(pub_obj)
 
     @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):

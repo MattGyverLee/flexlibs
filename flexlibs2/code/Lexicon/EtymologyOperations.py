@@ -385,71 +385,135 @@ class EtymologyOperations(BaseOperations):
         # Form - the etymological form
         form_dict = {}
         if hasattr(item, "Form"):
-            for ws_handle in self.project.GetAllWritingSystems():
+            for ws_def in self.project.WritingSystems.GetAll():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
 
-                text = normalize_text(ITsString(item.Form.get_String(ws_handle)).Text)
+                text = normalize_text(ITsString(item.Form.get_String(ws_def.Handle)).Text)
                 if text:
-                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
+                    ws_tag = ws_def.Id
                     form_dict[ws_tag] = text
         props["Form"] = form_dict
 
         # Gloss - meaning of the etymological form
         gloss_dict = {}
         if hasattr(item, "Gloss"):
-            for ws_handle in self.project.GetAllWritingSystems():
+            for ws_def in self.project.WritingSystems.GetAll():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
 
-                text = normalize_text(ITsString(item.Gloss.get_String(ws_handle)).Text)
+                text = normalize_text(ITsString(item.Gloss.get_String(ws_def.Handle)).Text)
                 if text:
-                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
+                    ws_tag = ws_def.Id
                     gloss_dict[ws_tag] = text
         props["Gloss"] = gloss_dict
 
         # Source - source language or reference
         source_dict = {}
         if hasattr(item, "Source"):
-            for ws_handle in self.project.GetAllWritingSystems():
+            for ws_def in self.project.WritingSystems.GetAll():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
 
-                text = normalize_text(ITsString(item.Source.get_String(ws_handle)).Text)
+                text = normalize_text(ITsString(item.Source.get_String(ws_def.Handle)).Text)
                 if text:
-                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
+                    ws_tag = ws_def.Id
                     source_dict[ws_tag] = text
         props["Source"] = source_dict
 
         # Comment - additional notes
         comment_dict = {}
         if hasattr(item, "Comment"):
-            for ws_handle in self.project.GetAllWritingSystems():
+            for ws_def in self.project.WritingSystems.GetAll():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
 
-                text = normalize_text(ITsString(item.Comment.get_String(ws_handle)).Text)
+                text = normalize_text(ITsString(item.Comment.get_String(ws_def.Handle)).Text)
                 if text:
-                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
+                    ws_tag = ws_def.Id
                     comment_dict[ws_tag] = text
         props["Comment"] = comment_dict
 
         # Bibliography - bibliographic reference
         bibliography_dict = {}
         if hasattr(item, "Bibliography"):
-            for ws_handle in self.project.GetAllWritingSystems():
+            for ws_def in self.project.WritingSystems.GetAll():
                 from SIL.LCModel.Core.KernelInterfaces import ITsString
 
-                text = normalize_text(ITsString(item.Bibliography.get_String(ws_handle)).Text)
+                text = normalize_text(ITsString(item.Bibliography.get_String(ws_def.Handle)).Text)
                 if text:
-                    ws_tag = self.project.GetWritingSystemTag(ws_handle)
+                    ws_tag = ws_def.Id
                     bibliography_dict[ws_tag] = text
         props["Bibliography"] = bibliography_dict
 
         # Reference Atomic (RA) properties
-        # LanguageRA - source language
+        # LanguageRA - source language (ICmPossibility from LangProject.AnalysisWSs
+        # or the languages list). Serialize as GUID string.
         if hasattr(item, "LanguageRA") and item.LanguageRA:
             props["LanguageRA"] = str(item.LanguageRA.Guid)
         else:
             props["LanguageRA"] = None
 
+        # LanguageNotesRA - language notes reference (ICmPossibility). (P2)
+        # This is an atomic reference, same serialization pattern as LanguageRA.
+        # [JUDGMENT CALL] The LCM field name is LanguageNotesRA on ILexEtymology;
+        # this resolves against the same general possibility list as LanguageRA.
+        # Verification requested: confirm LanguageNotesRA is the correct field name
+        # on ILexEtymology and that its possibility list is LangProject.AnthroListOA
+        # or similar (not AnalysisWSs). If the field does not exist at runtime,
+        # the hasattr guard makes this a no-op.
+        if hasattr(item, "LanguageNotesRA") and item.LanguageNotesRA:
+            props["LanguageNotesRA"] = str(item.LanguageNotesRA.Guid)
+        else:
+            props["LanguageNotesRA"] = None
+
         return props
+
+    @OperationsMethod
+    def ApplySyncableProperties(self, item, props, ws_map=None):
+        """
+        Apply a syncable-properties dict onto an ILexEtymology item.
+
+        Extends the base implementation to handle atomic reference fields
+        (LanguageRA, LanguageNotesRA) which are serialized as GUID strings.
+        Resolution uses the generic project.Object(Guid) lookup which works
+        for any LCM object whose GUID is known.
+
+        Args:
+            item: Target ILexEtymology (must already exist in target project).
+            props: dict produced by GetSyncableProperties on a source etymology.
+            ws_map: Optional source->target writing-system Id mapping.
+        """
+        import logging as _logging
+        _log = _logging.getLogger(__name__)
+
+        self._EnsureWriteEnabled()
+
+        _ra_fields = ("LanguageRA", "LanguageNotesRA")
+        remaining_props = {}
+        ra_props = {}
+        for k, v in props.items():
+            if k in _ra_fields:
+                ra_props[k] = v
+            else:
+                remaining_props[k] = v
+
+        # Apply plain / multistring fields via base class.
+        super().ApplySyncableProperties(item, remaining_props, ws_map=ws_map)
+
+        # Resolve atomic reference fields by GUID.
+        for field_name, guid_str in ra_props.items():
+            if not hasattr(item, field_name):
+                continue
+            if not guid_str:
+                setattr(item, field_name, None)
+                continue
+            try:
+                import System
+                obj = self.project.Object(System.Guid(guid_str))
+                setattr(item, field_name, obj)
+            except Exception as exc:
+                _log.warning(
+                    "[WARN] ApplySyncableProperties: %s GUID %s not found "
+                    "in target project -- skipped (%s)",
+                    field_name, guid_str, exc
+                )
 
     @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
