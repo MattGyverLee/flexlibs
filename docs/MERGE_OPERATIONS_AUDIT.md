@@ -13,9 +13,9 @@ Completed comprehensive audit of all merge operations and implemented type-safet
 
 | File | Method | Pattern | Status |
 |------|--------|---------|--------|
-| LexEntryOperations.py | MergeObject() | Delegates to LibLCM | ✅ Updated |
-| LexSenseOperations.py | MergeObject() | Delegates to LibLCM | ✅ Updated |
-| SegmentOperations.py | MergeSegments() | Custom implementation | ✅ Updated |
+| LexEntryOperations.py | MergeObject() | Delegates to LibLCM | [OK] Updated |
+| LexSenseOperations.py | MergeObject() | Delegates to LibLCM | [OK] Updated |
+| SegmentOperations.py | MergeSegments() | Custom implementation (issues #172/#174 rework) | [OK] Updated |
 
 ---
 
@@ -103,40 +103,27 @@ if not is_compatible:
 
 ---
 
-### 4. SegmentOperations.py - New Type Safety Check
+### 4. SegmentOperations.py - MergeSegments() rework (issues #172/#174)
 
-**Added:** Type compatibility validation to MergeSegments() method (lines 899-904)
+**Reworked:** MergeSegments() now follows the correct LCM idiom:
+1. Edits IStTxtPara.Contents first (removes inter-segment terminator)
+2. Assigns Contents (fires AnalysisAdjuster to shift offsets)
+3. Removes seg2 from SegmentsOS only after Contents is updated
 
-**Before:**
-```python
-segment1 = self.__GetSegmentObject(segment1_or_hvo)
-segment2 = self.__GetSegmentObject(segment2_or_hvo)
+**Added:** `translation_policy` parameter ('migrate' | 'discard' | 'reject')
+with default 'migrate' that concatenates seg2's FreeTranslation,
+LiteralTranslation, and Notes into seg1 per WS before removal.
 
-# Check they have the same owner
-if segment1.Owner != segment2.Owner:
-    raise FP_ParameterError("Segments must be in the same paragraph")
-```
+**Removed:** `validate_merge_compatibility()` call -- all ISegment objects share
+one ClassName so the type-safety check was a no-op for segments specifically.
+Same-paragraph and adjacency checks are retained.
 
-**After:**
-```python
-segment1 = self.__GetSegmentObject(segment1_or_hvo)
-segment2 = self.__GetSegmentObject(segment2_or_hvo)
-
-# Validate merge compatibility (same class, same concrete type)
-from ..lcm_casting import validate_merge_compatibility
-is_compatible, error_msg = validate_merge_compatibility(segment1, segment2)
-if not is_compatible:
-    raise FP_ParameterError(error_msg)
-
-# Check they have the same owner
-if segment1.Owner != segment2.Owner:
-    raise FP_ParameterError("Segments must be in the same paragraph")
-```
-
-**Benefits:**
-- First-class type safety (checked before other validations)
-- Prevents invalid segment merges early
-- Custom implementation still benefits from centralized validation
+**Also removed:** `Create()`, `RebuildSegments()`, and `Duplicate()` methods.
+- `Create` replaced by `AppendSentence(paragraph, text, ws_handle=None)`
+- `RebuildSegments` replaced by `ReparseParagraph(paragraph)` (Contents
+  snapshot-reassign idiom; no regex, no manual SegmentsOS.Clear())
+- `Duplicate` removed entirely (semantically incoherent -- segments share
+  an offset space and cannot be duplicated without rewriting Contents)
 
 ---
 
@@ -316,10 +303,13 @@ def validate_merge_compatibility(survivor_obj, victim_obj):
 
 | File | Changes | Status |
 |------|---------|--------|
-| lcm_casting.py | Added validate_merge_compatibility() | ✅ Complete |
-| LexEntryOperations.py | Updated MergeObject() validation | ✅ Complete |
-| LexSenseOperations.py | Updated MergeObject() validation | ✅ Complete |
-| SegmentOperations.py | Added type safety to MergeSegments() | ✅ Complete |
+| lcm_casting.py | Added validate_merge_compatibility() | [OK] Complete |
+| LexEntryOperations.py | Updated MergeObject() validation | [OK] Complete |
+| LexSenseOperations.py | Updated MergeObject() validation | [OK] Complete |
+| SegmentOperations.py | Full write-path rework per issues #172/#174: AppendSentence, SplitSegment, MergeSegments (translation_policy), ReparseParagraph; removed Create/RebuildSegments/Duplicate | [OK] Complete |
+| ParagraphOperations.py | Caller migrated from Segments.Create -> Segments.AppendSentence | [OK] Complete |
+| sync/tests/test_duplicate_operations.py | Removed TestSegmentDuplicate class (8 tests) | [OK] Complete |
+| tests/operations/test_segment_operations.py | New tests for AppendSentence/SplitSegment/MergeSegments/ReparseParagraph | [OK] Complete |
 
 ---
 

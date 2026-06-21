@@ -5,15 +5,15 @@
 #          Segment operations for FieldWorks Language Explorer projects
 #          via SIL Language and Culture Model (LCM) API.
 #
+#   Platform: Python.NET
+#             FieldWorks Version 9+
+#
 #   Copyright 2025
 #
-
-import re
 
 import clr
 
 clr.AddReference("System")
-import System
 
 from SIL.LCModel import (
     ISegment,
@@ -25,7 +25,9 @@ from SIL.LCModel.Core.KernelInterfaces import ITsString
 from SIL.LCModel.Core.Text import TsStringUtils
 
 from ..FLExProject import (
+    FP_NullParameterError,
     FP_ParameterError,
+    FP_ReadOnlyError,
 )
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
 
@@ -37,6 +39,12 @@ class SegmentOperations(BaseOperations):
     Segments represent the units of text analysis in FLEx, typically sentences
     or clauses within paragraphs. Each segment can have baseline text, analyses,
     translations (free and literal), and notes.
+
+    The write path follows the LCM idiom:
+    1. Edit IStTxtPara.Contents (via TsStringBuilder) first.
+    2. Assign builder.GetString() to para.Contents - this fires ContentsSideEffects
+       which triggers AnalysisAdjuster to reconcile segment offsets automatically.
+    3. Then update SegmentsOS (Add/Insert/Remove) as needed.
 
     Usage::
 
@@ -51,9 +59,21 @@ class SegmentOperations(BaseOperations):
             baseline = project.Segments.GetBaselineText(segment)
             print(baseline)
 
-        # Set translations
-        project.Segments.SetFreeTranslation(segment, "In the beginning...")
-        project.Segments.SetLiteralTranslation(segment, "In-the beginning...")
+        # Append a new sentence to a paragraph
+        new_seg = project.Segments.AppendSentence(para, "A new sentence.")
+
+        # Split a segment at a character offset within that segment
+        seg1, seg2 = project.Segments.SplitSegment(new_seg, 5)
+
+        # Merge two adjacent segments (migrates translations by default)
+        merged = project.Segments.MergeSegments(seg1, seg2)
+
+        # Set translations on a segment
+        project.Segments.SetFreeTranslation(merged, "In the beginning...")
+        project.Segments.SetLiteralTranslation(merged, "In-the beginning...")
+
+        # Reparse a paragraph from its Contents (use only to repair corruption)
+        project.Segments.ReparseParagraph(para)
 
         project.CloseProject()
     """
@@ -126,6 +146,12 @@ class SegmentOperations(BaseOperations):
         if isinstance(segment_or_hvo, int):
             return self.project.Object(segment_or_hvo)
         return segment_or_hvo
+
+    def __GetSegmentFactory(self):
+        """Return the ISegmentFactory from the service locator."""
+        return self.project.project.ServiceLocator.GetService(ISegmentFactory)
+
+    # ========== READ METHODS ==========
 
     @wrap_enumerable
     @OperationsMethod
@@ -215,7 +241,7 @@ class SegmentOperations(BaseOperations):
             In the beginning God created the heavens and the earth.
 
         See Also:
-            SetBaselineText, GetFreeTranslation, GetLiteralTranslation
+            GetFreeTranslation, GetLiteralTranslation, GetAnalyses
         """
         self._ValidateParam(segment_or_hvo, "segment_or_hvo")
 
@@ -228,9 +254,11 @@ class SegmentOperations(BaseOperations):
     @OperationsMethod
     def SetBaselineText(self, segment_or_hvo, text, wsHandle=None):
         """
-        Set the baseline text of a segment.
+        Set the baseline text of a segment by editing the owning paragraph Contents.
 
-        Note: Setting baseline text typically requires re-parsing the segment.
+        The correct write idiom is to edit IStTxtPara.Contents via a TsStrBldr;
+        ContentsSideEffects then fires AnalysisAdjuster.AdjustAnalysis which
+        reconciles segment offsets automatically.
 
         Args:
             segment_or_hvo: The ISegment object or HVO.
@@ -240,20 +268,14 @@ class SegmentOperations(BaseOperations):
         Raises:
             FP_ReadOnlyError: If project is not opened with writeEnabled=True.
             FP_NullParameterError: If segment_or_hvo is None.
+            FP_ParameterError: If segment has no owning paragraph.
 
         Example:
             >>> segment = segments[0]
             >>> project.Segments.SetBaselineText(segment, "In the beginning...")
-            >>> # Verify the change
-            >>> print(project.Segments.GetBaselineText(segment))
-            In the beginning...
 
         See Also:
             GetBaselineText, SetFreeTranslation, SetLiteralTranslation
-
-        Notes:
-            Modifying baseline text may affect existing analyses and word glosses.
-            The segment may need to be re-parsed after this operation.
         """
         self._EnsureWriteEnabled()
         self._ValidateParam(segment_or_hvo, "segment_or_hvo")
@@ -261,10 +283,6 @@ class SegmentOperations(BaseOperations):
         segment_obj = self.__GetSegmentObject(segment_or_hvo)
         ws = self.__WSHandleVern(wsHandle)
 
-        # ISegment.BaselineText is a read-only ITsString backed by IStTxtPara.Contents.
-        # The correct write idiom is to edit the paragraph Contents via a TsStrBldr;
-        # ContentsSideEffects then fires AnalysisAdjuster.AdjustAnalysis which reconciles
-        # segment offsets automatically.  set_String() on a computed ITsString is a no-op.
         para = segment_obj.Paragraph
         if para is None:
             raise FP_ParameterError("Segment has no owning paragraph; cannot write BaselineText")
@@ -298,10 +316,6 @@ class SegmentOperations(BaseOperations):
 
         See Also:
             SetFreeTranslation, GetLiteralTranslation, GetBaselineText
-
-        Notes:
-            Free translation is typically a natural, idiomatic translation
-            of the segment, as opposed to a word-for-word literal translation.
         """
         self._ValidateParam(segment_or_hvo, "segment_or_hvo")
 
@@ -330,16 +344,9 @@ class SegmentOperations(BaseOperations):
         Example:
             >>> segment = segments[0]
             >>> project.Segments.SetFreeTranslation(segment, "In the beginning God created...")
-            >>> # Verify the change
-            >>> print(project.Segments.GetFreeTranslation(segment))
-            In the beginning God created...
 
         See Also:
             GetFreeTranslation, SetLiteralTranslation, SetBaselineText
-
-        Notes:
-            Free translation should be a natural, idiomatic translation.
-            This is distinct from literal (word-for-word) translation.
         """
         self._EnsureWriteEnabled()
         self._ValidateParam(segment_or_hvo, "segment_or_hvo")
@@ -373,10 +380,6 @@ class SegmentOperations(BaseOperations):
 
         See Also:
             SetLiteralTranslation, GetFreeTranslation, GetBaselineText
-
-        Notes:
-            Literal translation is typically a word-for-word gloss showing
-            the grammatical structure, using hyphens to show morpheme boundaries.
         """
         self._ValidateParam(segment_or_hvo, "segment_or_hvo")
 
@@ -405,16 +408,9 @@ class SegmentOperations(BaseOperations):
         Example:
             >>> segment = segments[0]
             >>> project.Segments.SetLiteralTranslation(segment, "In-the beginning God created...")
-            >>> # Verify the change
-            >>> print(project.Segments.GetLiteralTranslation(segment))
-            In-the beginning God created...
 
         See Also:
             GetLiteralTranslation, SetFreeTranslation, SetBaselineText
-
-        Notes:
-            Literal translation should be a word-for-word gloss.
-            Use hyphens to show morpheme boundaries within words.
         """
         self._EnsureWriteEnabled()
         self._ValidateParam(segment_or_hvo, "segment_or_hvo")
@@ -447,91 +443,117 @@ class SegmentOperations(BaseOperations):
 
         See Also:
             GetAll, GetBaselineText, GetFreeTranslation
-
-        Notes:
-            Notes in FLEx can include translator notes, consultant notes,
-            and other types of annotations attached to segments.
         """
         self._ValidateParam(segment_or_hvo, "segment_or_hvo")
 
         segment_obj = self.__GetSegmentObject(segment_or_hvo)
 
-        # Get notes from the NotesOS collection if it exists
         if hasattr(segment_obj, "NotesOS"):
             notes = list(segment_obj.NotesOS)
             return notes
         return []
 
-    @OperationsMethod
-    def Create(self, paragraph_or_hvo, baseline_text, wsHandle=None):
-        """
-        Create a new segment and append it to a paragraph.
+    # ========== WRITE METHODS ==========
 
-        Creates a new segment with the specified baseline text and adds it to the
-        end of the paragraph's segment collection.
+    @OperationsMethod
+    def AppendSentence(self, paragraph_or_hvo, text, ws_handle=None):
+        """
+        Append a new sentence to a paragraph, creating a new segment.
+
+        Edits IStTxtPara.Contents first (firing AnalysisAdjuster on existing
+        segments), then adds the new ISegment to SegmentsOS.
+
+        A sentence terminator ('. ') is automatically inserted before the new
+        text when the current paragraph Contents is non-empty and does not
+        already end with one of {. ! ?}. When the paragraph is empty, the
+        text is written directly.
 
         Args:
             paragraph_or_hvo: The IStTxtPara object or HVO.
-            baseline_text: The baseline text for the new segment. Must be non-empty.
-            wsHandle: Optional writing system handle. Defaults to vernacular WS.
+            text: The sentence text to append. Must be non-empty.
+            ws_handle: Optional writing system handle. Defaults to project
+                       default vernacular WS.
 
         Returns:
             ISegment: The newly created segment object.
 
         Raises:
             FP_ReadOnlyError: If project is not opened with writeEnabled=True.
-            FP_NullParameterError: If paragraph_or_hvo or baseline_text is None.
-            FP_ParameterError: If baseline_text is empty.
+            FP_NullParameterError: If paragraph_or_hvo or text is None.
+            FP_ParameterError: If text is empty or paragraph is invalid.
 
         Example:
             >>> para = project.Object(para_hvo)
-            >>> segment = project.Segments.Create(para, "This is a new sentence.", ws)
-            >>> print(project.Segments.GetBaselineText(segment))
-            This is a new sentence.
+            >>> seg = project.Segments.AppendSentence(para, "A new sentence.")
+            >>> print(project.Segments.GetBaselineText(seg))
+            A new sentence.
 
         See Also:
-            Delete, Exists, SetBaselineText
-
-        Notes:
-            The segment will need to be parsed to create wordforms and analyses.
-            Consider calling RebuildSegments after creating segments to ensure
-            proper offsets and structure.
+            SplitSegment, MergeSegments, ReparseParagraph
         """
         self._EnsureWriteEnabled()
         self._ValidateParam(paragraph_or_hvo, "paragraph_or_hvo")
-        self._ValidateParam(baseline_text, "baseline_text")
+        self._ValidateParam(text, "text")
 
-        text_str = baseline_text.strip() if isinstance(baseline_text, str) else str(baseline_text)
+        text_str = text.strip() if isinstance(text, str) else str(text).strip()
         if not text_str:
-            raise FP_ParameterError("baseline_text cannot be empty")
+            raise FP_ParameterError("text cannot be empty")
 
-        para_obj = self.__GetParagraphObject(paragraph_or_hvo)
-        ws = self.__WSHandleVern(wsHandle)
+        para = self.__GetParagraphObject(paragraph_or_hvo)
+        ws = self.__WSHandleVern(ws_handle)
 
-        # Create the new segment using the factory
-        factory = self.project.project.ServiceLocator.GetService(ISegmentFactory)
-        segment = factory.Create()
+        # --- Step 1: edit Contents ---
+        bldr = para.Contents.GetBldr()
+        current_length = para.Contents.Length
 
-        # Workaround: direct SegmentsOS manipulation is incorrect long-term.
-        # The right approach is appending to IStTxtPara.Contents so that
-        # ContentsSideEffects triggers AnalysisAdjuster.AdjustAnalysis.
+        if current_length > 0:
+            # Check the last character of the current contents
+            last_char_pos = current_length - 1
+            last_char = para.Contents.Text[last_char_pos] if para.Contents.Text else ""
+            # Retrieve text properties from the character just before insertion
+            # so the separator uses the same WS/style as the existing text.
+            char_props = para.Contents.get_PropertiesAt(last_char_pos)
 
-        # Add to paragraph's segments collection
-        para_obj.SegmentsOS.Add(segment)
+            if last_char not in (".", "!", "?"):
+                # Insert ". " as sentence terminator
+                terminator = TsStringUtils.MakeString(". ", ws)
+                bldr.ReplaceTsString(current_length, current_length, terminator)
+                # Recalculate insertion point after terminator
+                insert_at = current_length + 2
+            else:
+                # Already terminated — just insert a space separator
+                sep = TsStringUtils.MakeString(" ", ws)
+                bldr.ReplaceTsString(current_length, current_length, sep)
+                insert_at = current_length + 1
 
-        # Set the baseline text
-        mkstr = TsStringUtils.MakeString(text_str, ws)
-        segment.BaselineText.set_String(ws, mkstr)
+            new_text_ts = TsStringUtils.MakeString(text_str, ws)
+            bldr.ReplaceTsString(insert_at, insert_at, new_text_ts)
+        else:
+            # Paragraph is empty — write text directly
+            new_text_ts = TsStringUtils.MakeString(text_str, ws)
+            bldr.ReplaceTsString(0, 0, new_text_ts)
 
-        return segment
+        # Assign Contents — fires ContentsSideEffects -> AnalysisAdjuster on
+        # existing segments, setting their BeginOffset/EndOffset correctly.
+        para.Contents = bldr.GetString()
+
+        # --- Step 2: add new segment to SegmentsOS ---
+        factory = self.__GetSegmentFactory()
+        seg = factory.Create()
+        para.SegmentsOS.Add(seg)
+        # AnalysisAdjuster (fired by the Contents setter above) will set
+        # seg.BeginOffset / seg.EndOffset when the paragraph is re-parsed.
+
+        return seg
 
     @OperationsMethod
     def Delete(self, segment_or_hvo):
         """
         Delete a segment from its paragraph.
 
-        Removes the segment from its parent paragraph's segment collection. This
-        will also delete all analyses, translations, and notes associated with the segment.
+        Removes the segment from its parent paragraph's segment collection.
+        All analyses, translations, and notes associated with the segment
+        are also deleted.
 
         Args:
             segment_or_hvo: The ISegment object or HVO.
@@ -539,250 +561,305 @@ class SegmentOperations(BaseOperations):
         Raises:
             FP_ReadOnlyError: If project is not opened with writeEnabled=True.
             FP_NullParameterError: If segment_or_hvo is None.
+            FP_ParameterError: If segment has no owning paragraph.
 
         Example:
             >>> segment = segments[0]
             >>> project.Segments.Delete(segment)
-            >>> # Segment is now removed from the paragraph
 
         See Also:
-            Create, Exists, MergeSegments
-
-        Notes:
-            This operation cannot be undone. All data associated with the
-            segment will be permanently deleted.
+            AppendSentence, Exists, MergeSegments
         """
         self._EnsureWriteEnabled()
         self._ValidateParam(segment_or_hvo, "segment_or_hvo")
 
         segment_obj = self.__GetSegmentObject(segment_or_hvo)
 
-        # Cast owner to its concrete IStTxtPara so SegmentsOS is reachable.
-        # Raw segment.Owner is typed as ICmObject and
-        # hasattr(...,"SegmentsOS") returns False there, which is why the
-        # prior implementation silently no-opped.
         owner = self._GetTypedOwner(segment_obj)
         if owner is None:
             raise FP_ParameterError("Segment has no owning paragraph")
         owner.SegmentsOS.Remove(segment_obj)
 
     @OperationsMethod
-    def Duplicate(self, item_or_hvo, insert_after=True):
+    def SplitSegment(self, segment_or_hvo, offset_within_segment):
         """
-        Duplicate a segment, creating a new segment with the same content.
+        Split a segment at a character offset measured from the start of the segment.
 
-        This method creates a copy of an existing segment. The baseline text and
-        translations (free and literal) are copied. Analyses are NOT copied as they
-        are complex and context-dependent.
+        Inserts a sentence terminator ('. ') into IStTxtPara.Contents at the
+        absolute position corresponding to the split, then adds the new ISegment
+        to SegmentsOS. AnalysisAdjuster (fired by the Contents setter) shifts
+        all subsequent segment offsets right by 2.
 
         Args:
-            item_or_hvo: Either an ISegment object or its HVO (integer identifier)
-            insert_after (bool): If True, insert the duplicate after the original
-                segment in the paragraph. If False, append to the end of the paragraph.
+            segment_or_hvo: The ISegment object or HVO to split.
+            offset_within_segment: Character offset from the segment's BeginOffset
+                where the split occurs. Must satisfy:
+                0 < offset_within_segment < (seg.EndOffset - seg.BeginOffset).
 
         Returns:
-            ISegment: The newly created duplicate segment
+            tuple: (seg, new_seg) - the original (now shorter) segment and the
+                   newly inserted segment that follows it.
 
         Raises:
             FP_ReadOnlyError: If project is not opened with writeEnabled=True.
-            FP_NullParameterError: If item_or_hvo is None.
-            FP_ParameterError: If the segment does not exist or is invalid, or
-                if the segment has no valid owner paragraph.
+            FP_NullParameterError: If segment_or_hvo is None.
+            FP_ParameterError: If offset_within_segment is out of range or
+                               segment has no owning paragraph.
 
         Example:
-            >>> # Duplicate a segment
-            >>> segment = list(project.Segments.GetAll(para))[0]
-            >>> duplicate = project.Segments.Duplicate(segment, insert_after=True)
-            >>> print(project.Segments.GetBaselineText(duplicate))
-            In the beginning God created the heavens and the earth.
-            >>> print(project.Segments.GetFreeTranslation(duplicate))
-            In the beginning God created the heavens and the earth.
-
-        Warning:
-            - Analyses are NOT copied (would need re-parsing)
-            - Notes are NOT copied
-            - Offsets may need adjustment after duplication
-            - The duplicate will have identical text but a new GUID
-            - insert_after=True inserts immediately after the original segment
-
-        Notes:
-            - Duplicated segment is added to the same paragraph as the original
-            - New GUID is auto-generated for the duplicate
-            - Baseline text is copied in the same writing system
-            - Free translation and literal translation are copied
-            - Analyses are NOT copied (complex and context-dependent)
-            - Segment is inserted after original if insert_after=True
-            - If insert_after=True and positioning fails, segment is appended to end
+            >>> seg = segments[0]
+            >>> print(project.Segments.GetBaselineText(seg))
+            In the beginning God created the heavens.
+            >>> seg1, seg2 = project.Segments.SplitSegment(seg, 17)
+            >>> print(project.Segments.GetBaselineText(seg1))
+            In the beginning
+            >>> print(project.Segments.GetBaselineText(seg2))
+            God created the heavens.
 
         See Also:
-            Create, Delete, GetAll, SetBaselineText
+            MergeSegments, AppendSentence, ReparseParagraph
         """
         self._EnsureWriteEnabled()
-        self._ValidateParam(item_or_hvo, "item_or_hvo")
+        self._ValidateParam(segment_or_hvo, "segment_or_hvo")
 
-        segment_obj = self.__GetSegmentObject(item_or_hvo)
+        seg = self.__GetSegmentObject(segment_or_hvo)
 
-        # Cast owner to its concrete IStTxtPara so SegmentsOS is reachable.
-        # Raw segment_obj.Owner is typed as ICmObject; hasattr(..., "SegmentsOS")
-        # returns False there, which silently no-ops Duplicate.
-        owner = self._GetTypedOwner(segment_obj)
-        if owner is None:
-            raise FP_ParameterError("Segment has no valid owner paragraph")
+        seg_len = seg.EndOffset - seg.BeginOffset
+        if offset_within_segment is None or not (0 < offset_within_segment < seg_len):
+            raise FP_ParameterError(
+                f"offset_within_segment must be between 1 and {seg_len - 1} "
+                f"(exclusive); got {offset_within_segment}"
+            )
 
-        # Workaround: direct SegmentsOS manipulation is incorrect long-term.
-        # Duplication should be driven by editing IStTxtPara.Contents so that
-        # AnalysisAdjuster.AdjustAnalysis manages segments.
+        para = seg.Paragraph
+        if para is None:
+            raise FP_ParameterError("Segment has no owning paragraph")
 
-        # Create the new segment (factory + add to parent)
-        factory = self.project.project.ServiceLocator.GetService(ISegmentFactory)
-        new_segment = factory.Create()
-        owner.SegmentsOS.Add(new_segment)
+        absolute_offset = seg.BeginOffset + offset_within_segment
 
-        # Copy all writing systems of each MultiString property
-        if segment_obj.BaselineText:
-            new_segment.BaselineText.CopyAlternatives(segment_obj.BaselineText)
-        if segment_obj.FreeTranslation:
-            new_segment.FreeTranslation.CopyAlternatives(segment_obj.FreeTranslation)
-        if segment_obj.LiteralTranslation:
-            new_segment.LiteralTranslation.CopyAlternatives(segment_obj.LiteralTranslation)
+        # --- Step 1: edit Contents ---
+        bldr = para.Contents.GetBldr()
+        # Use text properties from the character just before the split point
+        # so the inserted terminator inherits the same WS/style.
+        char_props = para.Contents.get_PropertiesAt(absolute_offset - 1)
+        terminator = TsStringUtils.MakeString(". ", ws=None)
+        # Build the terminator with the properties of the surrounding text
+        bldr.Replace(absolute_offset, absolute_offset, ". ", char_props)
+        # Assign — fires AnalysisAdjuster which shifts seg3+ offsets right by 2
+        para.Contents = bldr.GetString()
 
-        # Copy boolean properties
-        if hasattr(segment_obj, "IsLabel"):
-            new_segment.IsLabel = segment_obj.IsLabel
+        # --- Step 2: insert new segment into SegmentsOS ---
+        idx = para.SegmentsOS.IndexOf(seg)
+        factory = self.__GetSegmentFactory()
+        new_seg = factory.Create()
+        para.SegmentsOS.Insert(idx + 1, new_seg)
 
-        # Handle insert_after positioning
-        if insert_after:
-            # Find the index of the current segment
-            seg_list = list(owner.SegmentsOS)
-            try:
-                current_index = seg_list.index(segment_obj)
-                # The new segment was appended, so we need to move it
-                # Remove from end
-                owner.SegmentsOS.Remove(new_segment)
-                # Insert at correct position (after original)
-                owner.SegmentsOS.Insert(current_index + 1, new_segment)
-            except ValueError:
-                # Segment not found in list - log warning and leave at end
-                import logging
+        return (seg, new_seg)
 
-                logger = logging.getLogger(__name__)
-                logger.warning(
-                    f"Could not find original segment in paragraph SegmentsOS. "
-                    f"Duplicate will be appended to end instead of inserted after original."
+    @OperationsMethod
+    def MergeSegments(self, seg1_or_hvo, seg2_or_hvo, translation_policy="migrate"):
+        """
+        Merge two adjacent segments into one, removing the inter-segment boundary.
+
+        Edits IStTxtPara.Contents first (removing the terminator+whitespace
+        between the two segments), then removes seg2 from SegmentsOS.
+        AnalysisAdjuster (fired by the Contents setter) shifts all subsequent
+        segment offsets left automatically.
+
+        Args:
+            seg1_or_hvo: The first (earlier) ISegment object or HVO.
+            seg2_or_hvo: The second (later) ISegment object or HVO. Must be
+                         immediately after seg1 in SegmentsOS.
+            translation_policy (str): One of:
+                - 'migrate' (default): Concatenate seg2's FreeTranslation,
+                  LiteralTranslation, and Notes into seg1's, joined by ' / '
+                  per writing system that has content. Migration happens BEFORE
+                  seg2 is removed.
+                - 'discard': Drop seg2's translations silently.
+                - 'reject': Raise FP_ParameterError if seg2 has any non-empty
+                  FreeTranslation, LiteralTranslation, or Notes content. Caller
+                  must explicitly pass 'migrate' or 'discard' to proceed.
+
+        Returns:
+            ISegment: seg1 (the survivor segment).
+
+        Raises:
+            FP_ReadOnlyError: If project is not opened with writeEnabled=True.
+            FP_NullParameterError: If either segment is None.
+            FP_ParameterError: If segments are not adjacent, not in the same
+                paragraph, or 'reject' policy triggered.
+
+        Example:
+            >>> seg1 = segments[0]
+            >>> seg2 = segments[1]
+            >>> merged = project.Segments.MergeSegments(seg1, seg2)
+            >>> print(project.Segments.GetBaselineText(merged))
+            In the beginning God created the heavens and the earth.
+
+        See Also:
+            SplitSegment, AppendSentence, ReparseParagraph
+
+        Notes:
+            All wordform analyses on seg2 are lost. Prefer 'migrate' (default)
+            to preserve translations across the merge.
+        """
+        self._EnsureWriteEnabled()
+        self._ValidateParam(seg1_or_hvo, "seg1_or_hvo")
+        self._ValidateParam(seg2_or_hvo, "seg2_or_hvo")
+
+        seg1 = self.__GetSegmentObject(seg1_or_hvo)
+        seg2 = self.__GetSegmentObject(seg2_or_hvo)
+
+        if seg1.Owner != seg2.Owner:
+            raise FP_ParameterError("Segments must be in the same paragraph")
+
+        para = self._GetTypedOwner(seg1)
+        if para is None:
+            raise FP_ParameterError("Segments have no valid owner paragraph")
+
+        segments_list = list(para.SegmentsOS)
+        idx1 = segments_list.index(seg1)
+        idx2 = segments_list.index(seg2)
+
+        # Ensure seg1 is the earlier segment
+        if idx1 > idx2:
+            seg1, seg2 = seg2, seg1
+            idx1, idx2 = idx2, idx1
+
+        if idx2 != idx1 + 1:
+            raise FP_ParameterError(
+                f"Segments must be adjacent; seg1 is at index {idx1}, "
+                f"seg2 is at index {idx2}"
+            )
+
+        # Enforce translation_policy
+        if translation_policy == "reject":
+            ws = self.__WSHandle(None)
+            has_content = False
+            ft = ITsString(seg2.FreeTranslation.get_String(ws)).Text if seg2.FreeTranslation else ""
+            lt = ITsString(seg2.LiteralTranslation.get_String(ws)).Text if seg2.LiteralTranslation else ""
+            notes = list(seg2.NotesOS) if hasattr(seg2, "NotesOS") else []
+            if ft or lt or notes:
+                has_content = True
+            if has_content:
+                raise FP_ParameterError(
+                    "seg2 has non-empty translations/notes and translation_policy='reject'. "
+                    "Pass translation_policy='migrate' to concatenate into seg1, or "
+                    "'discard' to drop them."
                 )
 
-        return new_segment
+        elif translation_policy == "migrate":
+            # Migrate FreeTranslation and LiteralTranslation for all WS that have content
+            self.__MigrateTranslations(seg1, seg2)
 
-    # ========== SYNC INTEGRATION METHODS ==========
+        # translation_policy == 'discard': do nothing — seg2's data is lost on removal
 
-    @OperationsMethod
-    def GetSyncableProperties(self, item):
+        # --- Step 1: edit Contents to remove the inter-segment boundary ---
+        bldr = para.Contents.GetBldr()
+        # Remove characters from end of seg1 (the terminator) through start of seg2
+        # seg1.EndOffset is the position just after seg1's last char (includes terminator)
+        # seg2.BeginOffset is the first char of seg2's text
+        bldr.Replace(seg1.EndOffset, seg2.BeginOffset, "", None)
+        # Assign — fires AnalysisAdjuster which shifts seg3+ offsets left
+        para.Contents = bldr.GetString()
+
+        # --- Step 2: remove seg2 from SegmentsOS if it still exists ---
+        if seg2 in list(para.SegmentsOS):
+            para.SegmentsOS.Remove(seg2)
+
+        return seg1
+
+    def __MigrateTranslations(self, seg1, seg2):
         """
-        Get all syncable properties of a segment.
+        Concatenate seg2's FreeTranslation, LiteralTranslation, and Notes into
+        seg1 per writing system that has content, joined by ' / '.
 
         Args:
-            item: The ISegment object.
-
-        Returns:
-            dict: Dictionary of syncable properties with their values.
-
-        Example:
-            >>> props = project.Segments.GetSyncableProperties(segment)
-            >>> print(props['BaselineText'])
-            {'en': 'In the beginning...'}
-            >>> print(props['IsLabel'])
-            False
-            >>> print(props['BeginOffset'])
-            0
-
-        Notes:
-            - MultiString properties: BaselineText, FreeTranslation, LiteralTranslation
-            - Boolean property: IsLabel
-            - Integer properties: BeginOffset, EndOffset
-            - Does NOT include analyses (those are children)
+            seg1: The survivor segment.
+            seg2: The segment being merged away.
         """
-        props = {}
+        # Collect all WS handles present in either FreeTranslation or LiteralTranslation
+        ws_set = set()
+        for seg in (seg1, seg2):
+            for attr in ("FreeTranslation", "LiteralTranslation"):
+                ms = getattr(seg, attr, None)
+                if ms is not None:
+                    ws_count = ms.StringCount
+                    for i in range(ws_count):
+                        ws_set.add(ms.GetWs(i))
 
-        # BaselineText is ITsString (single-WS, read-only computed from para Contents).
-        # ITsString has no get_WritingSystem(); extract the WS handle from the first
-        # run's text properties via get_Properties(0).GetIntPropValues(1, 0)[0].
-        # Verified live against Sena 3 by /lex-verification (returns e.g. 999000003).
-        if hasattr(item, "BaselineText") and item.BaselineText:
-            bt = item.BaselineText
-            ws_handle = bt.get_Properties(0).GetIntPropValues(1, 0)[0]
-            props["BaselineText"] = {ws_handle: bt.Text or ""}
+        for ws in ws_set:
+            # FreeTranslation
+            if seg1.FreeTranslation and seg2.FreeTranslation:
+                t1 = ITsString(seg1.FreeTranslation.get_String(ws)).Text or ""
+                t2 = ITsString(seg2.FreeTranslation.get_String(ws)).Text or ""
+                if t2:
+                    merged_text = (t1 + " / " + t2) if t1 else t2
+                    mkstr = TsStringUtils.MakeString(merged_text, ws)
+                    seg1.FreeTranslation.set_String(ws, mkstr)
 
-        # FreeTranslation and LiteralTranslation are genuine IMultiString fields.
-        if hasattr(item, "FreeTranslation") and item.FreeTranslation:
-            props["FreeTranslation"] = self.project.GetMultiStringDict(item.FreeTranslation)
-
-        if hasattr(item, "LiteralTranslation") and item.LiteralTranslation:
-            props["LiteralTranslation"] = self.project.GetMultiStringDict(item.LiteralTranslation)
-
-        # Boolean property
-        if hasattr(item, "IsLabel"):
-            props["IsLabel"] = bool(item.IsLabel)
-
-        # Integer properties
-        if hasattr(item, "BeginOffset"):
-            props["BeginOffset"] = int(item.BeginOffset)
-
-        if hasattr(item, "EndOffset"):
-            props["EndOffset"] = int(item.EndOffset)
-
-        return props
+            # LiteralTranslation
+            if seg1.LiteralTranslation and seg2.LiteralTranslation:
+                t1 = ITsString(seg1.LiteralTranslation.get_String(ws)).Text or ""
+                t2 = ITsString(seg2.LiteralTranslation.get_String(ws)).Text or ""
+                if t2:
+                    merged_text = (t1 + " / " + t2) if t1 else t2
+                    mkstr = TsStringUtils.MakeString(merged_text, ws)
+                    seg1.LiteralTranslation.set_String(ws, mkstr)
 
     @OperationsMethod
-    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+    def ReparseParagraph(self, paragraph_or_hvo):
         """
-        Compare two segments for differences.
+        Force LCM to re-derive all segments for a paragraph from its Contents.
+
+        Destroys all wordform analyses and segment translations on this paragraph
+        by forcing LCM to re-derive segments from Contents. Programmatic
+        equivalent of retyping the paragraph. Use only to repair corruption --
+        prefer SplitSegment/MergeSegments for normal edits.
+
+        Implementation: assigns para.Contents back to itself. That single setter
+        assignment fires ContentsSideEffects which re-derives SegmentsOS from
+        punctuation. No regex, no manual SegmentsOS.Clear(), no factory.Create()
+        calls are needed or used.
 
         Args:
-            item1: First segment object (from project 1)
-            item2: Second segment object (from project 2)
-            ops1: Optional SegmentOperations instance for project 1 (defaults to self)
-            ops2: Optional SegmentOperations instance for project 2 (defaults to self)
+            paragraph_or_hvo: The IStTxtPara object or HVO.
 
         Returns:
-            tuple: (is_different, differences_dict)
-                - is_different (bool): True if segments differ, False if identical
-                - differences_dict (dict): Maps property names to (value1, value2) tuples
+            The freshly rebuilt SegmentsOS collection (ILcmOwningSequence).
+
+        Raises:
+            FP_ReadOnlyError: If project is not opened with writeEnabled=True.
+            FP_NullParameterError: If paragraph_or_hvo is None.
 
         Example:
-            >>> is_diff, diffs = ops1.CompareTo(seg1, seg2, ops1, ops2)
-            >>> if is_diff:
-            ...     for prop, (val1, val2) in diffs.items():
-            ...         print(f"{prop}: {val1} != {val2}")
+            >>> para = project.Object(para_hvo)
+            >>> segs = project.Segments.ReparseParagraph(para)
+            >>> print(f"Rebuilt {segs.Count} segments")
+            Rebuilt 3 segments
 
-        Notes:
-            - Compares all syncable properties
-            - MultiStrings are compared across all writing systems
-            - Empty/null values are treated as equivalent
+        See Also:
+            SplitSegment, MergeSegments, AppendSentence
+
+        Warning:
+            This destroys all existing wordform analyses and segment translations
+            (FreeTranslation, LiteralTranslation, Notes) on the paragraph.
+            Use SplitSegment or MergeSegments for non-destructive edits.
         """
-        if ops1 is None:
-            ops1 = self
-        if ops2 is None:
-            ops2 = self
+        self._EnsureWriteEnabled()
+        self._ValidateParam(paragraph_or_hvo, "paragraph_or_hvo")
 
-        props1 = ops1.GetSyncableProperties(item1)
-        props2 = ops2.GetSyncableProperties(item2)
+        para = self.__GetParagraphObject(paragraph_or_hvo)
 
-        differences = {}
+        # Snapshot the current Contents and reassign. The setter fires
+        # ContentsSideEffects -> AnalysisAdjuster which re-derives SegmentsOS
+        # entirely from the punctuation pattern in the text.
+        snapshot = para.Contents
+        para.Contents = snapshot
 
-        # Get all property keys from both items
-        all_keys = set(props1.keys()) | set(props2.keys())
+        return para.SegmentsOS
 
-        for key in all_keys:
-            val1 = props1.get(key)
-            val2 = props2.get(key)
-
-            # Compare values
-            if self.project._CompareValues(val1, val2):
-                # Values are different
-                differences[key] = (val1, val2)
-
-        is_different = len(differences) > 0
-        return (is_different, differences)
+    # ========== QUERY/VALIDATION METHODS ==========
 
     @OperationsMethod
     def Exists(self, paragraph_or_hvo, segment_or_hvo):
@@ -807,7 +884,7 @@ class SegmentOperations(BaseOperations):
             True
 
         See Also:
-            Create, Delete, GetAll
+            AppendSentence, Delete, GetAll
         """
         self._ValidateParam(paragraph_or_hvo, "paragraph_or_hvo")
         self._ValidateParam(segment_or_hvo, "segment_or_hvo")
@@ -815,217 +892,13 @@ class SegmentOperations(BaseOperations):
         para_obj = self.__GetParagraphObject(paragraph_or_hvo)
         segment_obj = self.__GetSegmentObject(segment_or_hvo)
 
-        # Check if segment is in paragraph's segments collection
         segments_list = list(para_obj.SegmentsOS)
         return segment_obj in segments_list
-
-    @OperationsMethod
-    def SplitSegment(self, segment_or_hvo, position):
-        """
-        Split a segment at the specified character position.
-
-        Creates two segments from one by splitting the baseline text at the given
-        position. The first segment will contain text from 0 to position, and the
-        second segment will contain text from position to the end.
-
-        Args:
-            segment_or_hvo: The ISegment object or HVO to split.
-            position: Character position (0-based) where to split the text.
-
-        Returns:
-            tuple: (first_segment, second_segment) - The two resulting segments.
-
-        Raises:
-            FP_ReadOnlyError: If project is not opened with writeEnabled=True.
-            FP_NullParameterError: If segment_or_hvo is None.
-            FP_ParameterError: If position is invalid or out of range.
-
-        Example:
-            >>> segment = segments[0]
-            >>> text = project.Segments.GetBaselineText(segment)
-            >>> print(text)
-            In the beginning God created the heavens.
-            >>> seg1, seg2 = project.Segments.SplitSegment(segment, 17)
-            >>> print(project.Segments.GetBaselineText(seg1))
-            In the beginning
-            >>> print(project.Segments.GetBaselineText(seg2))
-            God created the heavens.
-
-        See Also:
-            MergeSegments, Create, Delete
-
-        Notes:
-            The original segment is deleted and replaced with two new segments.
-            All analyses and translations from the original segment are lost.
-            You will need to re-parse the new segments.
-        """
-        self._EnsureWriteEnabled()
-        self._ValidateParam(segment_or_hvo, "segment_or_hvo")
-
-        if position is None or position < 0:
-            raise FP_ParameterError("position must be a non-negative integer")
-
-        segment_obj = self.__GetSegmentObject(segment_or_hvo)
-
-        # Cast owner to its concrete IStTxtPara so SegmentsOS is reachable.
-        # Raw segment_obj.Owner is typed as ICmObject; hasattr(..., "SegmentsOS")
-        # returns False there, silently no-opping Split.
-        owner = self._GetTypedOwner(segment_obj)
-        if owner is None:
-            raise FP_ParameterError("Segment has no valid owner paragraph")
-
-        # Get baseline text and writing system
-        ws = self.__WSHandleVern(None)
-        baseline_text = self.GetBaselineText(segment_obj)
-
-        if position >= len(baseline_text):
-            raise FP_ParameterError(f"position {position} is beyond text length {len(baseline_text)}")
-
-        # Split the text
-        first_text = baseline_text[:position]
-        second_text = baseline_text[position:]
-
-        if not first_text.strip() or not second_text.strip():
-            raise FP_ParameterError("Split would create an empty segment")
-
-        # Get the segment's index in the paragraph
-        segments_list = list(owner.SegmentsOS)
-        segment_index = segments_list.index(segment_obj)
-
-        # Workaround: direct SegmentsOS manipulation is incorrect long-term.
-        # The right approach is inserting a sentence boundary into IStTxtPara.Contents
-        # so that ContentsSideEffects triggers AnalysisAdjuster.AdjustAnalysis.
-
-        # Create factory for new segments
-        factory = self.project.project.ServiceLocator.GetService(ISegmentFactory)
-
-        # Create first segment
-        first_segment = factory.Create()
-        # Attach to owner (must be done before setting properties)
-        owner.SegmentsOS.Insert(segment_index, first_segment)
-        mkstr1 = TsStringUtils.MakeString(first_text, ws)
-        first_segment.BaselineText.set_String(ws, mkstr1)
-
-        # Create second segment
-        second_segment = factory.Create()
-        # Attach to owner (must be done before setting properties)
-        owner.SegmentsOS.Insert(segment_index + 1, second_segment)
-        mkstr2 = TsStringUtils.MakeString(second_text, ws)
-        second_segment.BaselineText.set_String(ws, mkstr2)
-
-        # Remove the original segment
-        owner.SegmentsOS.Remove(segment_obj)
-
-        return (first_segment, second_segment)
-
-    @OperationsMethod
-    def MergeSegments(self, segment1_or_hvo, segment2_or_hvo):
-        """
-        Merge two adjacent segments into one.
-
-        Combines the baseline text of two segments into a single segment. The segments
-        must be adjacent in the paragraph.
-
-        Args:
-            segment1_or_hvo: The first ISegment object or HVO.
-            segment2_or_hvo: The second ISegment object or HVO (must be adjacent).
-
-        Returns:
-            ISegment: The merged segment containing text from both segments.
-
-        Raises:
-            FP_ReadOnlyError: If project is not opened with writeEnabled=True.
-            FP_NullParameterError: If either segment is None.
-            FP_ParameterError: If segments are not adjacent or not in same paragraph.
-
-        Example:
-            >>> seg1 = segments[0]
-            >>> seg2 = segments[1]
-            >>> merged = project.Segments.MergeSegments(seg1, seg2)
-            >>> print(project.Segments.GetBaselineText(merged))
-            In the beginning God created the heavens and the earth.
-
-        See Also:
-            SplitSegment, Create, Delete
-
-        Notes:
-            Both original segments are deleted and replaced with a new merged segment.
-            All analyses and translations from both segments are lost.
-            You will need to re-parse the merged segment.
-        """
-        self._EnsureWriteEnabled()
-        self._ValidateParam(segment1_or_hvo, "segment1_or_hvo")
-        self._ValidateParam(segment2_or_hvo, "segment2_or_hvo")
-
-        segment1 = self.__GetSegmentObject(segment1_or_hvo)
-        segment2 = self.__GetSegmentObject(segment2_or_hvo)
-
-        # Validate merge compatibility (same class, same concrete type)
-        from ..lcm_casting import validate_merge_compatibility
-
-        is_compatible, error_msg = validate_merge_compatibility(segment1, segment2)
-        if not is_compatible:
-            raise FP_ParameterError(error_msg)
-
-        # Check they have the same owner (HVO comparison is safe on raw ICmObject)
-        if segment1.Owner != segment2.Owner:
-            raise FP_ParameterError("Segments must be in the same paragraph")
-
-        # Cast owner to its concrete IStTxtPara so SegmentsOS is reachable.
-        # Raw segment.Owner is typed as ICmObject; hasattr(..., "SegmentsOS")
-        # returns False there, silently no-opping Merge.
-        owner = self._GetTypedOwner(segment1)
-        if owner is None:
-            raise FP_ParameterError("Segments have no valid owner paragraph")
-
-        # Get indices and check adjacency
-        segments_list = list(owner.SegmentsOS)
-        index1 = segments_list.index(segment1)
-        index2 = segments_list.index(segment2)
-
-        if abs(index1 - index2) != 1:
-            raise FP_ParameterError("Segments must be adjacent")
-
-        # Ensure segment1 comes first
-        if index1 > index2:
-            segment1, segment2 = segment2, segment1
-            index1, index2 = index2, index1
-
-        # Get baseline texts
-        ws = self.__WSHandleVern(None)
-        text1 = self.GetBaselineText(segment1)
-        text2 = self.GetBaselineText(segment2)
-
-        # Merge with a space between
-        merged_text = f"{text1} {text2}"
-
-        # Workaround: direct SegmentsOS manipulation is incorrect long-term.
-        # The right approach is removing the sentence boundary from IStTxtPara.Contents
-        # so that ContentsSideEffects triggers AnalysisAdjuster.AdjustAnalysis.
-
-        # Create merged segment
-        factory = self.project.project.ServiceLocator.GetService(ISegmentFactory)
-        merged_segment = factory.Create()
-
-        # Insert at first position (must be done before setting properties)
-        owner.SegmentsOS.Insert(index1, merged_segment)
-
-        mkstr = TsStringUtils.MakeString(merged_text, ws)
-        merged_segment.BaselineText.set_String(ws, mkstr)
-
-        # Remove original segments
-        owner.SegmentsOS.Remove(segment1)
-        owner.SegmentsOS.Remove(segment2)
-
-        return merged_segment
 
     @OperationsMethod
     def GetBeginOffset(self, segment_or_hvo):
         """
         Get the beginning character offset of a segment within its paragraph.
-
-        The offset indicates where the segment's text starts in the paragraph's
-        baseline text.
 
         Args:
             segment_or_hvo: The ISegment object or HVO.
@@ -1043,12 +916,7 @@ class SegmentOperations(BaseOperations):
             0
 
         See Also:
-            GetEndOffset, SetOffsets
-
-        Notes:
-            Offsets are used internally by FLEx to track segment positions
-            in the paragraph text. They are automatically maintained when
-            using RebuildSegments.
+            GetEndOffset
         """
         self._ValidateParam(segment_or_hvo, "segment_or_hvo")
 
@@ -1062,9 +930,6 @@ class SegmentOperations(BaseOperations):
     def GetEndOffset(self, segment_or_hvo):
         """
         Get the ending character offset of a segment within its paragraph.
-
-        The offset indicates where the segment's text ends in the paragraph's
-        baseline text.
 
         Args:
             segment_or_hvo: The ISegment object or HVO.
@@ -1082,12 +947,7 @@ class SegmentOperations(BaseOperations):
             45
 
         See Also:
-            GetBeginOffset, SetOffsets
-
-        Notes:
-            Offsets are used internally by FLEx to track segment positions
-            in the paragraph text. They are automatically maintained when
-            using RebuildSegments.
+            GetBeginOffset
         """
         self._ValidateParam(segment_or_hvo, "segment_or_hvo")
 
@@ -1098,61 +958,9 @@ class SegmentOperations(BaseOperations):
         return 0
 
     @OperationsMethod
-    def SetOffsets(self, segment_or_hvo, begin_offset, end_offset):
-        """
-        Set the beginning and ending offsets of a segment.
-
-        Manually sets the character offsets that define where the segment's text
-        appears within the paragraph's baseline text.
-
-        Args:
-            segment_or_hvo: The ISegment object or HVO.
-            begin_offset: The beginning offset (0-based character position).
-            end_offset: The ending offset (0-based character position).
-
-        Raises:
-            FP_ReadOnlyError: If project is not opened with writeEnabled=True.
-            FP_NullParameterError: If segment_or_hvo is None.
-            FP_ParameterError: If offsets are invalid (negative or begin >= end).
-
-        Example:
-            >>> segment = segments[0]
-            >>> project.Segments.SetOffsets(segment, 0, 45)
-
-        See Also:
-            GetBeginOffset, GetEndOffset, RebuildSegments
-
-        Notes:
-            Manually setting offsets can lead to inconsistencies. It's generally
-            better to use RebuildSegments to automatically calculate correct offsets.
-            Only use this if you know what you're doing.
-        """
-        self._EnsureWriteEnabled()
-        self._ValidateParam(segment_or_hvo, "segment_or_hvo")
-        self._ValidateParam(begin_offset, "begin_offset")
-        self._ValidateParam(end_offset, "end_offset")
-
-        if begin_offset < 0 or end_offset < 0:
-            raise FP_ParameterError("Offsets cannot be negative")
-
-        if begin_offset >= end_offset:
-            raise FP_ParameterError("begin_offset must be less than end_offset")
-
-        segment_obj = self.__GetSegmentObject(segment_or_hvo)
-
-        if hasattr(segment_obj, "BeginOffset"):
-            segment_obj.BeginOffset = begin_offset
-
-        if hasattr(segment_obj, "EndOffset"):
-            segment_obj.EndOffset = end_offset
-
-    @OperationsMethod
     def IsLabel(self, segment_or_hvo):
         """
         Check if a segment is marked as a label (section header).
-
-        Labels are segments that represent section headers, titles, or other
-        structural markers rather than regular text content.
 
         Args:
             segment_or_hvo: The ISegment object or HVO.
@@ -1171,10 +979,6 @@ class SegmentOperations(BaseOperations):
 
         See Also:
             SetIsLabel
-
-        Notes:
-            Label segments are often used for chapter headings, section titles,
-            and other non-content text in interlinear texts.
         """
         self._ValidateParam(segment_or_hvo, "segment_or_hvo")
 
@@ -1189,9 +993,6 @@ class SegmentOperations(BaseOperations):
         """
         Set whether a segment is a label (section header).
 
-        Marks or unmarks a segment as a label. Labels represent section headers,
-        titles, or other structural markers.
-
         Args:
             segment_or_hvo: The ISegment object or HVO.
             is_label: Boolean value - True to mark as label, False for regular segment.
@@ -1203,15 +1004,9 @@ class SegmentOperations(BaseOperations):
         Example:
             >>> segment = segments[0]
             >>> project.Segments.SetIsLabel(segment, True)
-            >>> print(project.Segments.IsLabel(segment))
-            True
 
         See Also:
             IsLabel
-
-        Notes:
-            Label segments are typically used for chapter headings and section titles.
-            They may be displayed or processed differently than regular content segments.
         """
         self._EnsureWriteEnabled()
         self._ValidateParam(segment_or_hvo, "segment_or_hvo")
@@ -1252,11 +1047,7 @@ class SegmentOperations(BaseOperations):
             ...         print(f"Error: {error}")
 
         See Also:
-            RebuildSegments, GetBeginOffset, GetEndOffset
-
-        Notes:
-            This method performs non-destructive validation. It reports issues
-            but doesn't modify the segments. Use RebuildSegments to fix issues.
+            ReparseParagraph, GetBeginOffset, GetEndOffset
         """
         self._ValidateParam(paragraph_or_hvo, "paragraph_or_hvo")
 
@@ -1270,10 +1061,8 @@ class SegmentOperations(BaseOperations):
             warnings.append("Paragraph has no segments")
             return {"valid": True, "errors": errors, "warnings": warnings, "segment_count": 0}
 
-        # Check each segment
         prev_end = -1
         for i, segment in enumerate(segments_list):
-            # Check if segment has required attributes
             if not hasattr(segment, "BeginOffset") or not hasattr(segment, "EndOffset"):
                 warnings.append(f"Segment {i} missing offset attributes")
                 continue
@@ -1281,21 +1070,24 @@ class SegmentOperations(BaseOperations):
             begin = segment.BeginOffset
             end = segment.EndOffset
 
-            # Validate offset values
             if begin < 0 or end < 0:
                 errors.append(f"Segment {i} has negative offset (begin={begin}, end={end})")
 
             if begin >= end:
                 errors.append(f"Segment {i} has invalid offsets (begin={begin} >= end={end})")
 
-            # Check for gaps or overlaps
             if prev_end >= 0:
                 if begin > prev_end + 1:
-                    warnings.append(f"Gap between segment {i-1} and {i} (prev_end={prev_end}, begin={begin})")
+                    warnings.append(
+                        f"Gap between segment {i-1} and {i} "
+                        f"(prev_end={prev_end}, begin={begin})"
+                    )
                 elif begin < prev_end:
-                    errors.append(f"Overlap between segment {i-1} and {i} (prev_end={prev_end}, begin={begin})")
+                    errors.append(
+                        f"Overlap between segment {i-1} and {i} "
+                        f"(prev_end={prev_end}, begin={begin})"
+                    )
 
-            # Check baseline text exists
             baseline = self.GetBaselineText(segment)
             if not baseline:
                 warnings.append(f"Segment {i} has empty baseline text")
@@ -1306,94 +1098,100 @@ class SegmentOperations(BaseOperations):
 
         return {"valid": valid, "errors": errors, "warnings": warnings, "segment_count": len(segments_list)}
 
-    @OperationsMethod
-    def RebuildSegments(self, paragraph_or_hvo):
-        """
-        Rebuild and regenerate all segments from paragraph baseline text.
+    # ========== SYNC INTEGRATION METHODS ==========
 
-        Analyzes the paragraph's baseline text and recreates segments with proper
-        offsets. This is useful for repairing corrupted segment data or after
-        modifying paragraph text directly.
+    @OperationsMethod
+    def GetSyncableProperties(self, item):
+        """
+        Get all syncable properties of a segment.
 
         Args:
-            paragraph_or_hvo: The IStTxtPara object or HVO.
+            item: The ISegment object.
 
         Returns:
-            int: Number of segments created.
-
-        Raises:
-            FP_ReadOnlyError: If project is not opened with writeEnabled=True.
-            FP_NullParameterError: If paragraph_or_hvo is None.
+            dict: Dictionary of syncable properties with their values.
 
         Example:
-            >>> para = project.Object(para_hvo)
-            >>> count = project.Segments.RebuildSegments(para)
-            >>> print(f"Rebuilt {count} segments")
-            Rebuilt 5 segments
-
-        See Also:
-            ValidateSegments, Create, SetOffsets
+            >>> props = project.Segments.GetSyncableProperties(segment)
+            >>> print(props['BaselineText'])
+            {'en': 'In the beginning...'}
+            >>> print(props['IsLabel'])
+            False
+            >>> print(props['BeginOffset'])
+            0
 
         Notes:
-            This method deletes all existing segments and their data (analyses,
-            translations, notes) and creates new segments based on sentence
-            boundaries in the baseline text. Use with caution.
-
-            Sentence boundaries are detected using basic punctuation rules
-            (periods, question marks, exclamation marks followed by spaces).
+            - MultiString properties: FreeTranslation, LiteralTranslation
+            - BaselineText is ITsString (single-WS, read-only computed from para Contents)
+            - Boolean property: IsLabel
+            - Integer properties: BeginOffset, EndOffset
+            - Does NOT include analyses (those are children)
         """
-        self._EnsureWriteEnabled()
-        self._ValidateParam(paragraph_or_hvo, "paragraph_or_hvo")
+        props = {}
 
-        para_obj = self.__GetParagraphObject(paragraph_or_hvo)
+        # BaselineText is ITsString (single-WS, read-only computed from para Contents).
+        if hasattr(item, "BaselineText") and item.BaselineText:
+            bt = item.BaselineText
+            ws_handle = bt.get_Properties(0).GetIntPropValues(1, 0)[0]
+            props["BaselineText"] = {ws_handle: bt.Text or ""}
 
-        # Get paragraph baseline text
-        ws = self.__WSHandleVern(None)
-        if hasattr(para_obj, "Contents") and para_obj.Contents:
-            para_text = ITsString(para_obj.Contents).Text or ""
-        else:
-            para_text = ""
+        # FreeTranslation and LiteralTranslation are genuine IMultiString fields.
+        if hasattr(item, "FreeTranslation") and item.FreeTranslation:
+            props["FreeTranslation"] = self.project.GetMultiStringDict(item.FreeTranslation)
 
-        # Clear existing segments.
-        # Workaround: direct SegmentsOS manipulation is incorrect long-term.
-        # The right approach is assigning a new value to IStTxtPara.Contents so
-        # that ContentsSideEffects triggers AnalysisAdjuster.AdjustAnalysis.
+        if hasattr(item, "LiteralTranslation") and item.LiteralTranslation:
+            props["LiteralTranslation"] = self.project.GetMultiStringDict(item.LiteralTranslation)
 
-        if hasattr(para_obj, "SegmentsOS"):
-            para_obj.SegmentsOS.Clear()
+        if hasattr(item, "IsLabel"):
+            props["IsLabel"] = bool(item.IsLabel)
 
-        if not para_text.strip():
-            return 0
+        if hasattr(item, "BeginOffset"):
+            props["BeginOffset"] = int(item.BeginOffset)
 
-        # Simple sentence splitting (split on . ! ? followed by space or end)
-        sentence_pattern = r"([^.!?]+[.!?]+(?:\s+|$))"
-        sentences = re.findall(sentence_pattern, para_text)
+        if hasattr(item, "EndOffset"):
+            props["EndOffset"] = int(item.EndOffset)
 
-        # If no sentences found, treat whole text as one segment
-        if not sentences:
-            sentences = [para_text]
+        return props
 
-        factory = self.project.project.ServiceLocator.GetService(ISegmentFactory)
-        offset = 0
+    @OperationsMethod
+    def CompareTo(self, item1, item2, ops1=None, ops2=None):
+        """
+        Compare two segments for differences.
 
-        for sentence_text in sentences:
-            sentence_text = sentence_text.strip()
-            if not sentence_text:
-                continue
+        Args:
+            item1: First segment object (from project 1)
+            item2: Second segment object (from project 2)
+            ops1: Optional SegmentOperations instance for project 1 (defaults to self)
+            ops2: Optional SegmentOperations instance for project 2 (defaults to self)
 
-            # Create segment
-            segment = factory.Create()
-            para_obj.SegmentsOS.Add(segment)
+        Returns:
+            tuple: (is_different, differences_dict)
+                - is_different (bool): True if segments differ, False if identical
+                - differences_dict (dict): Maps property names to (value1, value2) tuples
 
-            # Set baseline text
-            mkstr = TsStringUtils.MakeString(sentence_text, ws)
-            segment.BaselineText.set_String(ws, mkstr)
+        Example:
+            >>> is_diff, diffs = ops1.CompareTo(seg1, seg2, ops1, ops2)
+            >>> if is_diff:
+            ...     for prop, (val1, val2) in diffs.items():
+            ...         print(f"{prop}: {val1} != {val2}")
+        """
+        if ops1 is None:
+            ops1 = self
+        if ops2 is None:
+            ops2 = self
 
-            # Set offsets
-            if hasattr(segment, "BeginOffset") and hasattr(segment, "EndOffset"):
-                segment.BeginOffset = offset
-                segment.EndOffset = offset + len(sentence_text)
+        props1 = ops1.GetSyncableProperties(item1)
+        props2 = ops2.GetSyncableProperties(item2)
 
-            offset += len(sentence_text) + 1  # +1 for space between sentences
+        differences = {}
+        all_keys = set(props1.keys()) | set(props2.keys())
 
-        return len(para_obj.SegmentsOS)
+        for key in all_keys:
+            val1 = props1.get(key)
+            val2 = props2.get(key)
+
+            if self.project._CompareValues(val1, val2):
+                differences[key] = (val1, val2)
+
+        is_different = len(differences) > 0
+        return (is_different, differences)

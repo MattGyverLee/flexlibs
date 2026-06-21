@@ -330,14 +330,14 @@ class ParagraphOperations(BaseOperations):
         if deep:
             segments = self.GetSegments(para_obj)
             for segment in segments:
-                if hasattr(self.project, "Segments") and hasattr(self.project.Segments, "Duplicate"):
-                    # Note: Segments.Duplicate may not exist yet, so we create manually
-                    # Get segment baseline text
-                    if hasattr(segment, "BaselineText"):
-                        seg_text = ITsString(segment.BaselineText).Text or ""
-                        if seg_text and hasattr(self.project, "Segments"):
-                            # Create segment in new paragraph
-                            self.project.Segments.Create(new_para, seg_text, wsHandle)
+                if hasattr(segment, "BaselineText"):
+                    seg_text = ITsString(segment.BaselineText).Text or ""
+                    if seg_text and hasattr(self.project, "Segments"):
+                        # AppendSentence edits Contents first then adds the segment,
+                        # matching the correct LCM idiom. It also auto-inserts a
+                        # sentence terminator when the paragraph does not already
+                        # end with one, so seg_text is passed as-is.
+                        self.project.Segments.AppendSentence(new_para, seg_text, wsHandle)
 
         return new_para
 
