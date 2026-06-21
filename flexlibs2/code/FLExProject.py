@@ -1228,37 +1228,6 @@ class FLExProject(object):
         return self._morphrule_ops
 
     @property
-    def Strata(self):
-        """
-        Access to stratum operations.
-
-        Strata are the ordered morphology/phonology layers owned by
-        ``LangProject.MorphologicalDataOA.StrataOS`` and referenced by
-        ``IMoInflAffixTemplate.StratumRA``, ``IMoDerivAffMsa.StratumRA``,
-        ``IMoStemMsa.StratumRA``, ``IMoCompoundRule.StratumRA``, and
-        ``IPhPhonologicalRule.StratumRA``.
-
-        Returns:
-            StratumOperations: Instance providing stratum management methods.
-
-        Example:
-            >>> project = FLExProject()
-            >>> project.OpenProject("MyProject", writeEnabled=True)
-            >>> # Enumerate strata
-            >>> for stratum in project.Strata.GetAll():
-            ...     print(project.Strata.GetName(stratum))
-            >>> # Create a new stratum
-            >>> new_stratum = project.Strata.Create("Stem", abbreviation="stem")
-            >>> # Round-trip syncable properties
-            >>> props = project.Strata.GetSyncableProperties(new_stratum)
-        """
-        if "_stratum_ops" not in self.__dict__:
-            from .Grammar.StratumOperations import StratumOperations
-
-            self._stratum_ops = StratumOperations(self)
-        return self._stratum_ops
-
-    @property
     def InflectionFeatures(self):
         """
         Access to inflection feature operations.
@@ -1397,6 +1366,37 @@ class FLExProject(object):
 
             self._phonfeature_ops = PhonFeatureOperations(self)
         return self._phonfeature_ops
+
+    @property
+    def Strata(self):
+        """
+        Access to stratum operations.
+
+        Strata are the ordered morphology/phonology layers owned by
+        ``LangProject.MorphologicalDataOA.StrataOS`` and referenced by
+        ``IMoInflAffixTemplate.StratumRA``, ``IMoDerivAffMsa.StratumRA``,
+        ``IMoStemMsa.StratumRA``, ``IMoCompoundRule.StratumRA``, and
+        ``IPhPhonologicalRule.StratumRA``.
+
+        Returns:
+            StratumOperations: Instance providing stratum management methods.
+
+        Example:
+            >>> project = FLExProject()
+            >>> project.OpenProject("MyProject", writeEnabled=True)
+            >>> # Enumerate strata
+            >>> for stratum in project.Strata.GetAll():
+            ...     print(project.Strata.GetName(stratum))
+            >>> # Create a new stratum
+            >>> new_stratum = project.Strata.Create("Stem", abbreviation="stem")
+            >>> # Round-trip syncable properties
+            >>> props = project.Strata.GetSyncableProperties(new_stratum)
+        """
+        if "_stratum_ops" not in self.__dict__:
+            from .Grammar.StratumOperations import StratumOperations
+
+            self._stratum_ops = StratumOperations(self)
+        return self._stratum_ops
 
     @property
     def Senses(self):
