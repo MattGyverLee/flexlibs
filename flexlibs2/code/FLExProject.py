@@ -409,196 +409,6 @@ class FLExProject(object):
             )
         return result
 
-    def ImportLocalizedLists(self, language_code, progress=None):
-        """
-        Import the localized-lists ZIP for a target writing system.
-
-        FieldWorks ships translation packs at
-        ``<FWCodeDir>/Templates/LocalizedLists-<lang>.zip`` (where
-        ``<lang>`` is an ISO code: ``fr``, ``es``, ``ar``, ``zh-CN``,
-        ...). Each ZIP carries one XML document with localized Name
-        and Abbreviation alternatives for the canonical possibility
-        lists shared across LangProject and LexDb (SemanticDomains,
-        AnthroList, DomainTypes, UsageTypes, RestrictionsList, ...).
-
-        Wraps ``XmlTranslatedLists.ImportTranslatedListsForWs`` --
-        LCM's purpose-built importer for translated lists. Unlike
-        ``XmlList.ImportList`` (which appends new items), this method
-        merges Name / Abbreviation alternatives onto existing items
-        by canonical GUID; no duplicates are created, and there is no
-        need for a non-empty-list guard. (issue #29 item 3)
-
-        Args:
-            language_code (str): ISO writing-system code identifying
-                which LocalizedLists-XX.zip to import. Examples:
-                ``"fr"``, ``"es"``, ``"ar"``, ``"zh-CN"``.
-            progress: Optional ``SIL.LCModel.Utils.IProgress`` instance
-                for progress reporting. ``None`` (default) skips
-                reporting.
-
-        Raises:
-            FP_ReadOnlyError: If the project is not opened with
-                writeEnabled=True.
-            FP_NullParameterError: If ``language_code`` is None.
-            FP_ParameterError: If ``language_code`` is empty.
-            FP_FileNotFoundError: If the corresponding ZIP is not
-                found in the FieldWorks Templates directory.
-
-        Example:
-            >>> project.OpenProject("MyProject", writeEnabled=True)
-            >>> # After ImportCatalog has seeded canonical English
-            >>> # SemDom / OCM / etc., layer French alternatives:
-            >>> project.ImportLocalizedLists("fr")
-            >>> # Spanish on top of French is fine -- merge is per-WS.
-            >>> project.ImportLocalizedLists("es")
-
-        Notes:
-            Translation packs match by canonical GUID and silently
-            ignore GUIDs they don't recognise (and silently leave
-            GUIDs they don't carry untranslated). Catalog skew is
-            therefore invisible at the call site. The biggest known
-            case: ``OCM-Frame.xml`` (loaded via
-            ``AnthropologyOperations.ImportFrameCatalog``) carries
-            116 GUIDs that ``OCM.xml`` does not. Pairing the wrong
-            catalog with the wrong pack leaves part of AnthroListOA
-            untranslated without any warning. (issue #82; structured
-            unmatched-GUID diagnostics are filed as #75.)
-        """
-        if language_code is None:
-            raise FP_NullParameterError()
-        if not isinstance(language_code, str) or not language_code.strip():
-            raise FP_ParameterError(
-                f"language_code must be a non-empty string, got {language_code!r}"
-            )
-        if not self.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        if FLExGlobals.FWCodeDir is None:
-            raise FP_FileNotFoundError(
-                f"LocalizedLists-{language_code}.zip",
-                RuntimeError(
-                    "FLExGlobals.FWCodeDir is not set; ensure FLEx "
-                    "initialisation has run."
-                ),
-            )
-
-        templates_dir = os.path.join(FLExGlobals.FWCodeDir, "Templates")
-        expected_zip = os.path.join(
-            templates_dir, f"LocalizedLists-{language_code}.zip"
-        )
-        if not os.path.isfile(expected_zip):
-            raise FP_FileNotFoundError(
-                expected_zip,
-                FileNotFoundError(
-                    f"LocalizedLists-{language_code}.zip not found in "
-                    f"{templates_dir}. Check the language code is a "
-                    f"valid ISO writing-system identifier shipped with "
-                    f"FieldWorks."
-                ),
-            )
-
-        with self.Transaction(f"ImportLocalizedLists({language_code!r})"):
-            XmlTranslatedLists.ImportTranslatedListsForWs(
-                language_code,
-                self.project,
-                templates_dir,
-                progress,
-            )
-
-    def ImportLocalizedListsForEnabledWS(self, progress=None):
-        """
-        Import LocalizedLists translation packs for every writing system
-        in ``CurrentAnalysisWritingSystems`` whose ``IcuLocale`` matches
-        a shipping ``LocalizedLists-<IcuLocale>.zip``, skipping any WS
-        whose ZIP is absent.
-
-        Iterates ``project.ServiceLocator.WritingSystems
-        .CurrentAnalysisWritingSystems`` and dispatches
-        ``ImportLocalizedLists(ws.IcuLocale)`` for each entry. WSes
-        whose ``IcuLocale`` does not map to a shipping ZIP are silently
-        skipped (best-effort); WSes with an empty ``IcuLocale`` are
-        also skipped with a logged warning.
-
-        Convenience wrapper over ``ImportLocalizedLists`` that closes
-        the typical post-ImportCatalog gap: a user enables an analysis
-        WS (Portuguese, French, ...), runs ``SemanticDomains
-        .ImportCatalog`` and then expects the catalog items to carry
-        translations for every WS they've enabled. This method handles
-        the loop and the "no shipping ZIP" case.
-
-        Mirrors FLEx UI behavior at a coarser grain: in the GUI the
-        user explicitly picks each language to translate. Here, the
-        wrapper assumes "every enabled analysis WS whose IcuLocale has a
-        shipping translation pack" is the intent, and the user can use
-        ``ImportLocalizedLists(code)`` directly for finer control.
-
-        Important: this does NOT back-fill translations for analysis
-        WSes that get enabled AFTER catalog content is added. The user
-        must explicitly re-invoke this method (or
-        ``ImportLocalizedLists`` for the new WS) after enabling
-        additional analysis WSes.
-
-        Args:
-            progress: Optional ``SIL.LCModel.Utils.IProgress`` instance
-                passed through to each ``ImportLocalizedLists`` call.
-
-        Returns:
-            list[str]: The language codes whose translation pack was
-            applied. WSes whose ZIP was not present are omitted.
-
-        Raises:
-            FP_ReadOnlyError: If the project is not write-enabled.
-
-        Example:
-            >>> project.OpenProject("MyProject", writeEnabled=True)
-            >>> project.SemanticDomains.ImportCatalog()
-            >>> applied = project.ImportLocalizedListsForEnabledWS()
-            >>> # applied == ["en", "fr"] if those packs ship and both
-            >>> # are enabled analysis WSes; "pt" is skipped if no
-            >>> # LocalizedLists-pt.zip exists.
-        """
-        if not self.writeEnabled:
-            raise FP_ReadOnlyError()
-
-        applied = []
-        analysis_ws_list = (
-            self.project.ServiceLocator.WritingSystems
-            .CurrentAnalysisWritingSystems
-        )
-        templates_dir = (
-            os.path.join(FLExGlobals.FWCodeDir, "Templates")
-            if FLExGlobals.FWCodeDir
-            else None
-        )
-        for ws in analysis_ws_list:
-            code = ws.IcuLocale
-            if not code:
-                logging.getLogger(__name__).warning(
-                    "ImportLocalizedListsForEnabledWS: skipping WS with "
-                    "empty IcuLocale (hvo=%s)", getattr(ws, "Hvo", "?")
-                )
-                continue
-            # Validate that a matching ZIP exists before attempting the
-            # import. LocalizedLists-<IcuLocale>.zip must exist in the
-            # Templates directory; if not, skip with a warning.
-            if templates_dir is not None:
-                expected_zip = os.path.join(
-                    templates_dir, f"LocalizedLists-{code}.zip"
-                )
-                if not os.path.isfile(expected_zip):
-                    logging.getLogger(__name__).warning(
-                        "ImportLocalizedListsForEnabledWS: no translation "
-                        "pack for %r (expected %s); skipping",
-                        code, expected_zip,
-                    )
-                    continue
-            try:
-                self.ImportLocalizedLists(code, progress=progress)
-            except FP_FileNotFoundError:
-                continue
-            applied.append(code)
-        return applied
-
     def Transaction(self, label="transaction"):
         """
         Return a context manager for a safe rollback transaction.
@@ -1756,6 +1566,44 @@ class FLExProject(object):
         return self._possibilitylist_ops
 
     @property
+    def LocalizedLists(self):
+        """
+        Access to localized possibility-list translation-pack imports.
+
+        Localized lists merge translated Name/Abbreviation alternatives
+        onto canonical possibility-list items (SemanticDomains,
+        AnthroList, DomainTypes, ...) by GUID. Translation packs ship
+        at ``<FWCodeDir>/Templates/LocalizedLists-<lang>.zip``.
+
+        Order matters: call after the relevant ``*Operations
+        .ImportCatalog`` (e.g. ``project.SemanticDomains.ImportCatalog``)
+        has seeded canonical items. Without canonical items present,
+        the merger has nothing to land on.
+
+        Returns:
+            LocalizedListsOperations: Instance providing single-WS
+            ``Import(code)`` and project-wide
+            ``ImportForAllAnalysisWritingSystems()``.
+
+        Example:
+            >>> project = FLExProject()
+            >>> project.OpenProject("MyProject", writeEnabled=True)
+            >>> project.SemanticDomains.ImportCatalog()
+            >>> # Single WS:
+            >>> project.LocalizedLists.Import("fr")
+            >>> # Or fan out across every enabled analysis WS:
+            >>> result = project.LocalizedLists.ImportForAllAnalysisWritingSystems()
+            >>> print(result.imported)
+            >>> for code, reason in result.skipped:
+            ...     print(f"  skipped {code}: {reason}")
+        """
+        if "_localizedlists_ops" not in self.__dict__:
+            from .Lists.LocalizedListsOperations import LocalizedListsOperations
+
+            self._localizedlists_ops = LocalizedListsOperations(self)
+        return self._localizedlists_ops
+
+    @property
     def CustomFields(self):
         """
         Access to custom field operations.
@@ -2574,6 +2422,31 @@ class FLExProject(object):
     def Note(self):
         """Alias for Notes (singular form for backward compatibility)."""
         return self.Notes
+
+    def ImportLocalizedLists(self, language_code, progress=None):
+        """Deprecated. Use ``project.LocalizedLists.Import(language_code)``."""
+        import warnings as _warnings
+        _warnings.warn(
+            "FLExProject.ImportLocalizedLists is deprecated; "
+            "use project.LocalizedLists.Import(language_code) instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.LocalizedLists.Import(language_code, progress=progress)
+
+    def ImportLocalizedListsForEnabledWS(self, progress=None):
+        """Deprecated. Use ``project.LocalizedLists.ImportForAllAnalysisWritingSystems()``."""
+        import warnings as _warnings
+        _warnings.warn(
+            "FLExProject.ImportLocalizedListsForEnabledWS is deprecated; "
+            "use project.LocalizedLists"
+            ".ImportForAllAnalysisWritingSystems() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.LocalizedLists.ImportForAllAnalysisWritingSystems(
+            progress=progress
+        )
 
     @property
     def AnnotationDef(self):

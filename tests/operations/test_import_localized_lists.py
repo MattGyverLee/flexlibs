@@ -1,10 +1,12 @@
 #
 #   test_import_localized_lists.py
 #
-#   Class: TestImportLocalizedListsContract
-#          Coverage for FLExProject.ImportLocalizedLists -- the
+#   Class: TestLocalizedListsImportContract
+#          Coverage for FLExProject.LocalizedLists.Import -- the
 #          wrapper around XmlTranslatedLists.ImportTranslatedListsForWs
-#          added to close item 3 of issue #29.
+#          added to close item 3 of issue #29. Methods now live on
+#          LocalizedListsOperations (issue #73) and the enumerator
+#          returns a structured ImportLocalizedListsResult (issue #75).
 #
 #          We deliberately avoid triggering a real import against the
 #          shared Sena 3 test project (the same pollution rationale as
@@ -68,9 +70,9 @@ def writable_project():
         pass
 
 
-class TestImportLocalizedListsContract:
+class TestLocalizedListsImportContract:
     """
-    Static / input-validation coverage for ImportLocalizedLists.
+    Static / input-validation coverage for LocalizedLists.Import.
 
     Live importing is intentionally NOT exercised here: a successful
     import mutates the test project's possibility-list state with
@@ -80,42 +82,56 @@ class TestImportLocalizedListsContract:
     regressions in the surface without seeding state.
     """
 
-    def test_method_is_on_flex_project(self):
+    def test_property_is_on_flex_project(self):
         """
-        ImportLocalizedLists must be a callable method on FLExProject
-        with the documented two-arg signature (language_code, progress).
+        LocalizedLists must be a property on FLExProject that returns
+        a LocalizedListsOperations instance with Import and
+        ImportForAllAnalysisWritingSystems methods.
         """
         from flexlibs2.code.FLExProject import FLExProject
 
-        assert "ImportLocalizedLists" in dir(FLExProject), (
-            "ImportLocalizedLists missing from FLExProject"
+        assert "LocalizedLists" in dir(FLExProject), (
+            "LocalizedLists property missing from FLExProject"
         )
-        method = getattr(FLExProject, "ImportLocalizedLists")
-        assert callable(method), "ImportLocalizedLists is not callable"
+        prop = getattr(FLExProject, "LocalizedLists")
+        assert isinstance(prop, property), (
+            "LocalizedLists must be a property accessor"
+        )
+
+    def test_import_method_signature(self):
+        """
+        LocalizedListsOperations.Import must be callable with the
+        documented (language_code, progress=None) signature.
+        """
+        from flexlibs2.code.Lists.LocalizedListsOperations import (
+            LocalizedListsOperations,
+        )
+
+        method = getattr(LocalizedListsOperations, "Import", None)
+        assert callable(method), (
+            "LocalizedListsOperations.Import is missing or not callable"
+        )
 
         params = inspect.signature(method).parameters
-        # Expect: self, language_code, progress=None
         assert "language_code" in params, (
-            f"ImportLocalizedLists is missing 'language_code'; got: "
-            f"{list(params)}"
+            f"Import is missing 'language_code'; got: {list(params)}"
         )
         assert "progress" in params, (
-            f"ImportLocalizedLists is missing 'progress'; got: "
-            f"{list(params)}"
+            f"Import is missing 'progress'; got: {list(params)}"
         )
         assert params["progress"].default is None, (
-            "ImportLocalizedLists 'progress' must default to None"
+            "Import 'progress' must default to None"
         )
 
     def test_rejects_none_language_code(self, writable_project):
         """
-        ImportLocalizedLists(None) must raise FP_NullParameterError
-        before any FW filesystem access.
+        Import(None) must raise FP_NullParameterError before any FW
+        filesystem access.
         """
         from flexlibs2.code.FLExProject import FP_NullParameterError
 
         with pytest.raises(FP_NullParameterError):
-            writable_project.ImportLocalizedLists(None)
+            writable_project.LocalizedLists.Import(None)
 
     def test_rejects_empty_language_code(self, writable_project):
         """
@@ -126,90 +142,130 @@ class TestImportLocalizedListsContract:
         from flexlibs2.code.FLExProject import FP_ParameterError
 
         with pytest.raises(FP_ParameterError):
-            writable_project.ImportLocalizedLists("")
+            writable_project.LocalizedLists.Import("")
         with pytest.raises(FP_ParameterError):
-            writable_project.ImportLocalizedLists("   ")
+            writable_project.LocalizedLists.Import("   ")
 
     def test_unknown_language_code_raises_file_not_found(
         self, writable_project
     ):
         """
-        For a language code with no shipping translation ZIP, the
-        method must raise FP_FileNotFoundError -- not a generic
-        FileNotFoundError or AttributeError. The error path is the
-        same as the existing ImportCatalog file-locator behavior.
+        For a language code with no shipping translation ZIP, Import
+        must raise FP_FileNotFoundError -- not a generic
+        FileNotFoundError or AttributeError.
         """
-        from flexlibs2.code.exceptions import FP_FileNotFoundError
+        from flexlibs2.code.FLExProject import FP_FileNotFoundError
 
         # "zz-XX" is the standard "unallocated" code; no LocalizedLists
         # ZIP should ever ship for it.
         with pytest.raises(FP_FileNotFoundError):
-            writable_project.ImportLocalizedLists("zz-XX")
+            writable_project.LocalizedLists.Import("zz-XX")
 
 
-class TestImportLocalizedListsForEnabledWS:
+class TestImportForAllAnalysisWritingSystems:
     """
     Coverage for the auto-enumerator that loops over enabled analysis
     writing systems and applies whatever translation packs ship for
     them. Same anti-pollution constraints apply: we don't trigger live
     imports against Sena 3. We verify the method shape, the missing-
-    ZIP skip behavior, and the read-only guard.
+    ZIP skip behavior, and the structured-result contract (#75).
     """
 
-    def test_method_is_on_flex_project(self):
-        """Method exists, is callable, takes progress= and nothing else."""
-        from flexlibs2.code.FLExProject import FLExProject
+    def test_method_signature(self):
+        """
+        ImportForAllAnalysisWritingSystems must exist on
+        LocalizedListsOperations and take only a progress= keyword.
+        """
+        from flexlibs2.code.Lists.LocalizedListsOperations import (
+            LocalizedListsOperations,
+        )
 
-        assert "ImportLocalizedListsForEnabledWS" in dir(FLExProject)
-        method = getattr(FLExProject, "ImportLocalizedListsForEnabledWS")
-        assert callable(method)
+        method = getattr(
+            LocalizedListsOperations,
+            "ImportForAllAnalysisWritingSystems",
+            None,
+        )
+        assert callable(method), (
+            "ImportForAllAnalysisWritingSystems missing or not callable"
+        )
 
         params = inspect.signature(method).parameters
         assert "progress" in params
         # No language_code: this is the project-wide enumerator.
         assert "language_code" not in params, (
             "Enumerator must not require a language_code; "
-            "use ImportLocalizedLists(code) for the single-WS form"
+            "use LocalizedLists.Import(code) for the single-WS form"
         )
 
     def test_iterates_enabled_ws_and_dispatches(self, writable_project):
         """
         Verify the enumerator's iteration + dispatch logic WITHOUT
         actually mutating the project's possibility lists. We
-        monkey-patch the underlying per-WS importer with a recorder
-        and confirm:
+        monkey-patch the underlying per-WS Import with a recorder and
+        confirm:
           - Each enabled analysis WS got its IcuLocale forwarded to
-            ImportLocalizedLists, in iteration order.
-          - The returned list of applied codes matches the recorder.
-          - The method's return is always a list[str].
-
-        This keeps the project's list state untouched while still
-        exercising the loop, the IcuLocale lookup, and the return
-        contract -- the parts of the code that can regress.
+            Import, in iteration order.
+          - The returned ImportLocalizedListsResult.imported matches
+            the recorder.
+          - .imported is a list[str]; .skipped is a list of
+            SkippedWS(code, reason) entries.
         """
+        from flexlibs2.code.Lists.LocalizedListsOperations import (
+            ImportLocalizedListsResult,
+            LocalizedListsOperations,
+            SkippedWS,
+        )
+
         recorded_calls = []
 
         def _recording_stub(self_arg, language_code, progress=None):
             # Capture what the enumerator dispatched; do NOT touch LCM.
             recorded_calls.append(language_code)
 
-        flex_project_obj = writable_project
-        target = f"{type(flex_project_obj).__module__}.{type(flex_project_obj).__qualname__}.ImportLocalizedLists"
-        with patch(target, _recording_stub):
-            result = flex_project_obj.ImportLocalizedListsForEnabledWS()
-
-        assert isinstance(result, list), (
-            f"Enumerator must return list, got {type(result).__name__}"
+        target = (
+            f"{LocalizedListsOperations.__module__}."
+            f"{LocalizedListsOperations.__qualname__}.Import"
         )
-        # Each applied code in the result must be a non-empty string.
-        for code in result:
-            assert isinstance(code, str) and code, (
-                f"Applied entries must be non-empty strings; got {code!r}"
+        with patch(target, _recording_stub):
+            result = (
+                writable_project.LocalizedLists
+                .ImportForAllAnalysisWritingSystems()
             )
-        # Result must mirror the dispatch order.
-        assert result == recorded_calls, (
-            "Enumerator's return value did not match the dispatched "
-            f"calls: returned {result!r}, dispatched {recorded_calls!r}"
+
+        assert isinstance(result, ImportLocalizedListsResult), (
+            f"Enumerator must return ImportLocalizedListsResult, got "
+            f"{type(result).__name__}"
+        )
+        assert isinstance(result.imported, list), (
+            f".imported must be a list, got {type(result.imported).__name__}"
+        )
+        assert isinstance(result.skipped, list), (
+            f".skipped must be a list, got {type(result.skipped).__name__}"
+        )
+        # Each imported code must be a non-empty string.
+        for code in result.imported:
+            assert isinstance(code, str) and code, (
+                f"Imported entries must be non-empty strings; got {code!r}"
+            )
+        # Each skipped entry must be a SkippedWS(code, reason) with
+        # string fields.
+        for entry in result.skipped:
+            assert isinstance(entry, SkippedWS), (
+                f"Skipped entries must be SkippedWS instances; got "
+                f"{type(entry).__name__}"
+            )
+            assert isinstance(entry.code, str) and entry.code, (
+                f"SkippedWS.code must be a non-empty string; got {entry.code!r}"
+            )
+            assert isinstance(entry.reason, str) and entry.reason, (
+                f"SkippedWS.reason must be a non-empty string; "
+                f"got {entry.reason!r}"
+            )
+        # Imported codes must mirror the dispatch order.
+        assert result.imported == recorded_calls, (
+            "Enumerator's .imported did not match the dispatched "
+            f"calls: imported {result.imported!r}, dispatched "
+            f"{recorded_calls!r}"
         )
         # Iteration touched at least one enabled analysis WS (Sena 3
         # and the standard test projects all have English enabled).
