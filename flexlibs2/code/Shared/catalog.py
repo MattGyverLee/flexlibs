@@ -267,10 +267,16 @@ def parse_etic_gloss_list(path):
     Parse a PhonFeatsEticGlossList-shaped catalog (root <eticGlossList>)
     into a flat list of feature CatalogEntry objects.
 
-    Items have type="group" | "feature" | "value":
+    Items have type="group" | "fsType" | "feature" | "value":
         - "group" entries are organizational only (not representable in
           LCM). They are skipped at every level, but the parser recurses
           INTO them so any features they contain still get returned.
+        - "fsType" entries are agreement-category containers (e.g.
+          ``tCommonAgr`` holds the Bantu number features ``fBantuSg``,
+          ``fBantuPl``, ``fBantuMany``). Like "group" they are
+          organizational and are not themselves CatalogEntry items, but
+          the parser recurses INTO them so the features they hold get
+          returned. (issue #192)
         - "feature" entries become CatalogEntry items in the returned
           list. Each feature's value children are attached to its
           `.children` list.
@@ -304,9 +310,12 @@ def parse_etic_gloss_list(path):
             t = item.get("type")
             if t == "feature":
                 features.append(_parse_gloss_item(item, "value"))
-            elif t == "group":
-                # Groups are organizational only; descend into their
-                # children but don't emit a CatalogEntry for the group.
+            elif t in ("group", "fsType"):
+                # Organizational containers; descend into their
+                # children but don't emit a CatalogEntry for the
+                # container itself. fsType wraps agreement-category
+                # feature sets (e.g. tCommonAgr holds the Bantu number
+                # features). (issue #192)
                 _walk(item.findall("item"))
             # Any other top-level type is silently ignored.
 

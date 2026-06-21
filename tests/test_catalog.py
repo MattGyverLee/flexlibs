@@ -421,6 +421,71 @@ class TestCatalog:
             f"are {first.guid!r}."
         )
 
+    # --- Issue #192: fsType containers (Bantu features) ---------------
+
+    def test_parse_etic_gloss_list_recurses_into_fstype(self, tmp_path):
+        """
+        Features nested inside <item type="fsType"> containers (e.g.
+        ``tCommonAgr`` holds the Bantu number features ``fBantuSg`` /
+        ``fBantuPl`` / ``fBantuMany`` in the shipping EticGlossList.xml)
+        must be returned by the parser. Prior to issue #192 the
+        ``_walk`` recursion only descended into ``type="group"`` and
+        silently skipped ``type="fsType"``, making catalog import of
+        Bantu noun-agreement features impossible.
+        """
+        from flexlibs2.code.Shared.catalog import parse_etic_gloss_list
+
+        # Minimal EticGlossList-shape document with one fsType wrapper
+        # around a single feature + value, mirroring the real
+        # tCommonAgr/fBantuPl structure.
+        xml = """<?xml version="1.0" encoding="utf-8"?>
+<eticGlossList>
+  <item id="tCommonAgr" type="fsType" guid="00000000-0000-0000-0000-000000000001">
+    <abbrev ws="en">CommonAgr</abbrev>
+    <term ws="en">Common Agreement</term>
+    <item id="fBantuPl" type="feature" guid="00000000-0000-0000-0000-000000000002">
+      <abbrev ws="en">BantuPl</abbrev>
+      <term ws="en">Bantu Plural</term>
+      <def ws="en">Bantu noun-class plural agreement.</def>
+      <item id="vBantuPlPos" type="value" guid="00000000-0000-0000-0000-000000000003">
+        <abbrev ws="en">+</abbrev>
+        <term ws="en">positive</term>
+      </item>
+    </item>
+  </item>
+  <item id="fTopLevel" type="feature" guid="00000000-0000-0000-0000-000000000004">
+    <abbrev ws="en">Top</abbrev>
+    <term ws="en">Top-level feature</term>
+  </item>
+</eticGlossList>"""
+
+        path = tmp_path / "EticGlossListLite.xml"
+        path.write_text(xml, encoding="utf-8")
+
+        entries = parse_etic_gloss_list(str(path))
+
+        ids = [e.id for e in entries]
+        assert "fBantuPl" in ids, (
+            f"parse_etic_gloss_list should recurse into fsType containers "
+            f"to surface nested features; got entry ids {ids}"
+        )
+        assert "fTopLevel" in ids, (
+            f"top-level features outside fsType must still be returned; "
+            f"got entry ids {ids}"
+        )
+        # fsType wrapper itself must NOT be emitted as a CatalogEntry.
+        assert "tCommonAgr" not in ids, (
+            f"fsType containers should remain organizational (not emitted "
+            f"as CatalogEntry items); got entry ids {ids}"
+        )
+        # The nested feature's value children must be reachable too.
+        bantu = next(e for e in entries if e.id == "fBantuPl")
+        value_ids = [v.id for v in bantu.children]
+        assert "vBantuPlPos" in value_ids, (
+            f"Nested feature's value children must be attached; "
+            f"got value ids {value_ids}"
+        )
+
     # --- Phase 5b: _strip_catalog_prefix dual-prefix --------------------
 
     def test_strip_catalog_prefix_accepts_phon_and_gold(self):
