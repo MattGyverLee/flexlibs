@@ -527,6 +527,65 @@ Category 8 and Category 9 are the same trap at different levels:
 - **Category 8**: Same *field name*, different *LCM type* (e.g., `Source` is `ITsString` on `ILexSense` but `IMultiString` on `ILexEtymology`).
 - **Category 9**: Same *variable name convention*, different *collection contract* (e.g., `FooOC` is unordered while `FooOS` is ordered).
 
+---
+
+## Category 10: SegmentOperations API changes (issues #172 / #174)
+### [DONE] RESOLVED - SegmentOperations rework, June 2026
+
+**Status**: Implemented in Cycle 3 of the issue #172 / #174 rework.
+
+**Summary of changes** that downstream callers must know about:
+
+| Change | Old API | New API |
+|---|---|---|
+| Segment enumeration | `GetAll()` (no args, project-wide) | `GetAll(paragraph)` — paragraph argument is **required** |
+| Segment creation | `Create(paragraph, text)` | **Removed.** Use `AppendSentence(paragraph, text)` instead. |
+| Paragraph reparse | `RebuildSegments(paragraph)` | Renamed to `ReparseParagraph(paragraph)` |
+| Merge translation control | Not available | `MergeSegments(seg1, seg2, translation_policy='migrate'|'discard'|'reject')` |
+| Duplicate | `Duplicate(segment)` | **Removed.** No safe LCM idiom for cloning a segment in isolation. |
+
+**Why `Create` was removed**: Segments in LCM are not created independently. The correct idiom is to call `AppendSentence` (which edits `IStTxtPara.Contents` first, then calls `SegmentsOS.Add`). Calling `factory.Create()` and adding to `SegmentsOS` without first editing `Contents` produces a segment with no text backing, which AnalysisAdjuster cannot reconcile.
+
+**Why `GetAll` now requires a paragraph**: Segments are strictly owned by paragraphs (`IStTxtPara.SegmentsOS`). There is no project-wide segment repository in LCM; a no-arg `GetAll()` would require iterating every text -> every paragraph, which is a hidden O(n) scan with no signalling to the caller. Explicit paragraph scope is correct.
+
+**Write path ordering invariant** (applies to all mutators in this class):
+1. Edit `IStTxtPara.Contents` via `TsStringBuilder` first.
+2. Assign `builder.GetString()` back to `para.Contents` — this fires `ContentsSideEffects` -> `AnalysisAdjuster.AdjustAnalysis`, which reconciles all existing segment `BeginOffset` / `EndOffset` values automatically.
+3. Then update `SegmentsOS` (`Add` / `Insert` / `Remove`).
+
+**MergeSegments translation_policy constants** (use instead of bare strings):
+
+```python
+from flexlibs2.code.TextsWords.SegmentOperations import (
+    TRANSLATION_POLICY_MIGRATE,   # 'migrate' — concatenate translations/notes into seg1
+    TRANSLATION_POLICY_DISCARD,   # 'discard' — silently drop seg2 content
+    TRANSLATION_POLICY_REJECT,    # 'reject'  — raise FP_ParameterError if seg2 has content
+)
+```
+
+Bare string `'Migrate'` (wrong capitalisation) previously routed silently to the discard branch. The validation guard now raises `FP_ParameterError` for any unrecognised policy string.
+
+**Migration guide for callers**:
+
+```python
+# OLD (broken):
+segs = project.Segments.GetAll()
+new_seg = project.Segments.Create(para, "New sentence.")
+
+# NEW (correct):
+# 1. Get a paragraph first (e.g. from ParagraphOperations or directly):
+para = list(text.ContentsOA.ParagraphsOS)[0]
+segs = list(project.Segments.GetAll(para))
+new_seg = project.Segments.AppendSentence(para, "New sentence.")
+
+# Merge with explicit policy:
+from flexlibs2.code.TextsWords.SegmentOperations import TRANSLATION_POLICY_MIGRATE
+merged = project.Segments.MergeSegments(seg1, seg2, translation_policy=TRANSLATION_POLICY_MIGRATE)
+
+# Full reparse (destructive — wipes analyses and translations):
+project.Segments.ReparseParagraph(para)
+```
+
 Both bugs share the root cause: a pattern that works correctly for one LCM type is copied to a different type without verifying the type contract.
 
 ### Affected sites table

@@ -1,311 +1,242 @@
 #!/usr/bin/env python3
 """
-Full CRUD Demo: SegmentOperations for flexlibs
+SegmentOperations Demo - flexlibs2
 
-This script demonstrates complete CRUD operations for segment.
-Performs actual create, read, update, and delete operations on test data.
+Demonstrates the SegmentOperations public API introduced in issues #172 / #174.
 
-Author: FlexTools Development Team
-Date: 2026-02-28
-Version: 2.3.0
+Key changes from the old CRUD template (auto-generated):
+- GetAll(paragraph) requires a paragraph argument - segments are owned by paragraphs.
+- Create() was removed - segments are created implicitly via AppendSentence().
+- ReparseParagraph() replaces the old RebuildSegments() for full reparse from Contents.
+
+Operations demonstrated:
+    AppendSentence  -- append a sentence to a paragraph (creates the new segment)
+    SplitSegment    -- split a segment at a character offset
+    MergeSegments   -- merge two adjacent segments (with translation_policy control)
+    ReparseParagraph -- force re-derive all segments from paragraph Contents
+    GetAll          -- enumerate segments in a paragraph
+    GetBaselineText -- read back the segment text
+    SetFreeTranslation / GetFreeTranslation -- per-segment translation round-trip
+    Delete          -- remove a segment from its paragraph
+
+Requirements:
+  - FieldWorks installed with SIL.LCModel available
+  - A writable project (tries "Sena 3" by default)
+  - Python.NET runtime
 """
 
 from flexlibs2 import FLExProject, FLExInitialize, FLExCleanup
 
+_CANDIDATE_PROJECTS = ("Sena 3", "Test", "SampleLexicon", "SampleLexicon3")
 
-def demo_segment_crud():
-    """
-    Demonstrate full CRUD operations for segment.
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
 
-    Tests:
-    - CREATE: Create new test segment
-    - READ: Get all segments, find by name/identifier
-    - UPDATE: Modify segment properties
-    - DELETE: Remove test segment
-    """
-
-    print("=" * 70)
-    print("SEGMENT OPERATIONS - FULL CRUD TEST")
-    print("=" * 70)
-
-    # Initialize FieldWorks
-    FLExInitialize()
-
-    # Open project with write enabled
+def _open_project():
     project = FLExProject()
+    for name in _CANDIDATE_PROJECTS:
+        try:
+            project.OpenProject(name, writeEnabled=True)
+            print(f"  Opened project: {name}")
+            return project
+        except Exception:
+            continue
+    return None
+
+
+def _make_throwaway_text(project, title="zz_seg_demo"):
+    """Create a fresh IStText with one empty paragraph for demo use."""
+    text = project.Texts.Create(title)
+    para_list = list(text.ContentsOA.ParagraphsOS) if text.ContentsOA else []
+    if not para_list:
+        project.Paragraphs.Create(text.ContentsOA, "")
+        para_list = list(text.ContentsOA.ParagraphsOS)
+    return text, para_list[0]
+
+
+def _cleanup_text(project, text):
     try:
-        project.OpenProject("Sena 3", writeEnabled=True)
-    except Exception as e:
-        print(f"Cannot run demo - FLEx project not available: {e}")
+        project.Texts.Delete(text)
+    except Exception:
+        pass
+
+
+# ---------------------------------------------------------------------------
+# Demo
+# ---------------------------------------------------------------------------
+
+def demo_segment_operations():
+    print("=" * 70)
+    print("SEGMENT OPERATIONS DEMO")
+    print("=" * 70)
+
+    FLExInitialize()
+    project = _open_project()
+    if project is None:
+        print("  Cannot run demo - no writable FLEx project available.")
+        print(f"  Tried: {', '.join(_CANDIDATE_PROJECTS)}")
         FLExCleanup()
         return
 
-    test_obj = None
-    test_name = "crud_test_segment"
-
+    demo_text = None
     try:
-        # ==================== READ: Initial state ====================
+        # ------------------------------------------------------------------ #
+        # STEP 1: Setup - create a throwaway text + paragraph                #
+        # ------------------------------------------------------------------ #
         print("\n" + "=" * 70)
-        print("STEP 1: READ - Get existing segments")
+        print("STEP 1: Setup - create throwaway text")
+        print("=" * 70)
+        demo_text, para = _make_throwaway_text(project, "zz_seg_demo")
+        print(f"  Created text with HVO: {demo_text.Hvo}")
+        print(f"  Working paragraph HVO: {para.Hvo}")
+
+        # ------------------------------------------------------------------ #
+        # STEP 2: AppendSentence (replaces the old Create)                   #
+        # ------------------------------------------------------------------ #
+        print("\n" + "=" * 70)
+        print("STEP 2: AppendSentence - add sentences to paragraph")
         print("=" * 70)
 
-        print("\nGetting all segments...")
-        initial_count = 0
-        for obj in project.Segments.GetAll():
-            # Display first few objects
-            try:
-                name = project.Segments.GetName(obj) if hasattr(project.Segments, "GetName") else str(obj)
-                print(f"  - {name}")
-            except:
-                print(f"  - [Object {initial_count + 1}]")
-            initial_count += 1
-            if initial_count >= 5:
-                break
+        seg1 = project.Segments.AppendSentence(para, "In the beginning God created.")
+        print(f"  Appended seg1, HVO: {seg1.Hvo}")
 
-        print(f"\nTotal segments (showing first 5): {initial_count}")
+        seg2 = project.Segments.AppendSentence(para, "Now the earth was formless.")
+        print(f"  Appended seg2, HVO: {seg2.Hvo}")
 
-        # ==================== CREATE ====================
+        seg3 = project.Segments.AppendSentence(para, "Darkness covered the deep.")
+        print(f"  Appended seg3, HVO: {seg3.Hvo}")
+
+        para_text = para.Contents.Text or ""
+        print(f"  Paragraph Contents: {para_text!r}")
+
+        # ------------------------------------------------------------------ #
+        # STEP 3: GetAll - enumerate segments (requires paragraph arg)       #
+        # ------------------------------------------------------------------ #
         print("\n" + "=" * 70)
-        print("STEP 2: CREATE - Create new test segment")
+        print("STEP 3: GetAll(paragraph) - list segments")
         print("=" * 70)
 
-        # Check if test object already exists
-        try:
-            if hasattr(project.Segments, "Exists") and project.Segments.Exists(test_name):
-                print(f"\nTest segment '{test_name}' already exists")
-                print("Deleting existing one first...")
-                existing = project.Segments.Find(test_name) if hasattr(project.Segments, "Find") else None
-                if existing:
-                    project.Segments.Delete(existing)
-                    print("  Deleted existing test segment")
-        except:
-            pass
+        segments = list(project.Segments.GetAll(para))
+        print(f"  Segment count: {len(segments)}")
+        for i, seg in enumerate(segments):
+            baseline = project.Segments.GetBaselineText(seg)
+            print(f"  [{i}] {baseline!r}")
 
-        # Create new object
-        print(f"\nCreating new segment: '{test_name}'")
-
-        try:
-            # Attempt to create with common parameters
-            test_obj = project.Segments.Create(test_name)
-        except TypeError:
-            try:
-                # Try without parameters if that fails
-                test_obj = project.Segments.Create()
-                if hasattr(project.Segments, "SetName"):
-                    project.Segments.SetName(test_obj, test_name)
-            except Exception as e:
-                print(f"  Note: Create method may require specific parameters: {e}")
-                test_obj = None
-
-        if test_obj:
-            print(f"  SUCCESS: Segment created!")
-            try:
-                if hasattr(project.Segments, "GetName"):
-                    print(f"  Name: {project.Segments.GetName(test_obj)}")
-            except:
-                pass
-        else:
-            print(f"  Note: Could not create segment (may require special parameters)")
-            print("  Skipping remaining tests...")
-            return
-
-        # ==================== READ: Verify creation ====================
+        # ------------------------------------------------------------------ #
+        # STEP 4: SetFreeTranslation / GetFreeTranslation                    #
+        # ------------------------------------------------------------------ #
         print("\n" + "=" * 70)
-        print("STEP 3: READ - Verify segment was created")
+        print("STEP 4: SetFreeTranslation / GetFreeTranslation")
         print("=" * 70)
 
-        # Test Exists
-        if hasattr(project.Segments, "Exists"):
-            print(f"\nChecking if '{test_name}' exists...")
-            exists = project.Segments.Exists(test_name)
-            print(f"  Exists: {exists}")
+        project.Segments.SetFreeTranslation(seg1, "At the start, God made everything.")
+        project.Segments.SetFreeTranslation(seg2, "The earth had no shape.")
+        trans = project.Segments.GetFreeTranslation(seg1)
+        print(f"  seg1 FreeTranslation: {trans!r}")
 
-        # Test Find
-        if hasattr(project.Segments, "Find"):
-            print(f"\nFinding segment by name...")
-            found_obj = project.Segments.Find(test_name)
-            if found_obj:
-                print(f"  FOUND: segment")
-                try:
-                    if hasattr(project.Segments, "GetName"):
-                        print(f"  Name: {project.Segments.GetName(found_obj)}")
-                except:
-                    pass
-            else:
-                print("  NOT FOUND")
-
-        # Count after creation
-        print("\nCounting all segments after creation...")
-        current_count = sum(1 for _ in project.Segments.GetAll())
-        print(f"  Count before: {initial_count}")
-        print(f"  Count after:  {current_count}")
-        print(f"  Difference:   +{current_count - initial_count}")
-
-        # ==================== UPDATE ====================
+        # ------------------------------------------------------------------ #
+        # STEP 5: MergeSegments (default policy='migrate')                   #
+        # ------------------------------------------------------------------ #
         print("\n" + "=" * 70)
-        print("STEP 4: UPDATE - Modify segment properties")
+        print("STEP 5: MergeSegments - merge seg1 + seg2 (policy='migrate')")
         print("=" * 70)
 
-        if test_obj:
-            updated = False
+        count_before = len(list(para.SegmentsOS))
+        merged = project.Segments.MergeSegments(seg1, seg2)
+        count_after = len(list(para.SegmentsOS))
+        print(f"  Segment count: {count_before} -> {count_after}")
+        merged_baseline = project.Segments.GetBaselineText(merged)
+        merged_trans = project.Segments.GetFreeTranslation(merged)
+        print(f"  Merged baseline: {merged_baseline!r}")
+        print(f"  Merged translation: {merged_trans!r}")
 
-            # Try common update methods
-            if hasattr(project.Segments, "SetName"):
-                try:
-                    new_name = "crud_test_segment_modified"
-                    print(f"\nUpdating name to: '{new_name}'")
-                    old_name = project.Segments.GetName(test_obj) if hasattr(project.Segments, "GetName") else test_name
-                    project.Segments.SetName(test_obj, new_name)
-                    updated_name = (
-                        project.Segments.GetName(test_obj) if hasattr(project.Segments, "GetName") else new_name
-                    )
-                    print(f"  Old name: {old_name}")
-                    print(f"  New name: {updated_name}")
-                    test_name = new_name  # Update for cleanup
-                    updated = True
-                except Exception as e:
-                    print(f"  Note: SetName failed: {e}")
-
-            # Try other Set methods
-            for method_name in dir(project.Segments):
-                if method_name.startswith("Set") and method_name != "SetName" and not updated:
-                    print(f"\nFound update method: {method_name}")
-                    print("  (Method available but not tested in this demo)")
-                    break
-
-            if updated:
-                print("\n  UPDATE: SUCCESS")
-            else:
-                print("\n  Note: No standard update methods found or tested")
-
-        # ==================== READ: Verify updates ====================
+        # ------------------------------------------------------------------ #
+        # STEP 6: SplitSegment                                               #
+        # ------------------------------------------------------------------ #
         print("\n" + "=" * 70)
-        print("STEP 5: READ - Verify updates persisted")
+        print("STEP 6: SplitSegment - split merged segment at offset 10")
         print("=" * 70)
 
-        if hasattr(project.Segments, "Find"):
-            print(f"\nFinding segment after update...")
-            updated_obj = project.Segments.Find(test_name)
-            if updated_obj:
-                print(f"  FOUND: segment")
-                try:
-                    if hasattr(project.Segments, "GetName"):
-                        print(f"  Name: {project.Segments.GetName(updated_obj)}")
-                except:
-                    pass
-            else:
-                print("  NOT FOUND - Update may not have persisted")
+        count_before = len(list(para.SegmentsOS))
+        s_a, s_b = project.Segments.SplitSegment(merged, 10)
+        count_after = len(list(para.SegmentsOS))
+        print(f"  Segment count: {count_before} -> {count_after}")
+        print(f"  s_a baseline: {project.Segments.GetBaselineText(s_a)!r}")
+        print(f"  s_b baseline: {project.Segments.GetBaselineText(s_b)!r}")
 
-        # ==================== DELETE ====================
+        # ------------------------------------------------------------------ #
+        # STEP 7: ReparseParagraph                                           #
+        # ------------------------------------------------------------------ #
         print("\n" + "=" * 70)
-        print("STEP 6: DELETE - Remove test segment")
+        print("STEP 7: ReparseParagraph - re-derive segments from Contents")
         print("=" * 70)
 
-        if test_obj:
-            print(f"\nDeleting test segment...")
-            try:
-                obj_name = project.Segments.GetName(test_obj) if hasattr(project.Segments, "GetName") else test_name
-            except:
-                obj_name = test_name
+        segs_os = project.Segments.ReparseParagraph(para)
+        print(f"  Rebuilt {segs_os.Count} segments from Contents")
 
-            project.Segments.Delete(test_obj)
-            print(f"  Deleted: {obj_name}")
+        # Re-enumerate after reparse
+        segments_after = list(project.Segments.GetAll(para))
+        print(f"  Segments after reparse: {len(segments_after)}")
+        for i, seg in enumerate(segments_after):
+            baseline = project.Segments.GetBaselineText(seg)
+            print(f"  [{i}] {baseline!r}")
 
-            # Verify deletion
-            print("\nVerifying deletion...")
-            if hasattr(project.Segments, "Exists"):
-                still_exists = project.Segments.Exists(test_name)
-                print(f"  Still exists: {still_exists}")
-
-                if not still_exists:
-                    print("  DELETE: SUCCESS")
-                else:
-                    print("  DELETE: FAILED - Segment still exists")
-
-            # Count after deletion
-            final_count = sum(1 for _ in project.Segments.GetAll())
-            print(f"\n  Count after delete: {final_count}")
-            print(f"  Back to initial:    {final_count == initial_count}")
-
-        # ==================== SUMMARY ====================
+        # ------------------------------------------------------------------ #
+        # STEP 8: Delete a segment                                           #
+        # ------------------------------------------------------------------ #
         print("\n" + "=" * 70)
-        print("CRUD TEST SUMMARY")
+        print("STEP 8: Delete - remove last segment")
         print("=" * 70)
-        print("\nOperations tested:")
-        print("  [CREATE] Create new segment")
-        print("  [READ]   GetAll, Find, Exists, Get methods")
-        print("  [UPDATE] Set methods")
-        print("  [DELETE] Delete segment")
-        print("\nTest completed successfully!")
+
+        if segments_after:
+            last_seg = segments_after[-1]
+            count_before = len(list(para.SegmentsOS))
+            project.Segments.Delete(last_seg)
+            count_after = len(list(para.SegmentsOS))
+            print(f"  Segment count: {count_before} -> {count_after}")
+
+        print("\n" + "=" * 70)
+        print("DEMO COMPLETE - All operations exercised successfully")
+        print("=" * 70)
 
     except Exception as e:
-        print(f"\n\nERROR during CRUD test: {e}")
+        print(f"\n[ERROR] during demo: {e}")
         import traceback
-
         traceback.print_exc()
 
     finally:
-        # Cleanup: Ensure test object is removed
-        print("\n" + "=" * 70)
-        print("CLEANUP")
-        print("=" * 70)
-
-        try:
-            for name in ["crud_test_segment", "crud_test_segment_modified"]:
-                if hasattr(project.Segments, "Exists") and project.Segments.Exists(name):
-                    obj = project.Segments.Find(name) if hasattr(project.Segments, "Find") else None
-                    if obj:
-                        project.Segments.Delete(obj)
-                        print(f"  Cleaned up: {name}")
-        except:
-            pass
-
-        print("\nClosing project...")
+        print("\nCleaning up demo text...")
+        if demo_text is not None:
+            _cleanup_text(project, demo_text)
+        print("Closing project...")
         project.CloseProject()
         FLExCleanup()
-
-    print("\n" + "=" * 70)
-    print("DEMO COMPLETE")
-    print("=" * 70)
 
 
 if __name__ == "__main__":
     print(
         """
-Segment Operations - Full CRUD Demo
-=====================================================
+Segment Operations Demo
+=======================
 
-This demonstrates COMPLETE CRUD operations for segment.
-
-Operations Tested:
-==================
-
-CREATE: Create new segment
-READ:   GetAll(), Find(), Exists(), Get...() methods
-UPDATE: Set...() methods
-DELETE: Delete()
-
-Test Flow:
-==========
-1. READ initial state
-2. CREATE new test segment
-3. READ to verify creation
-4. UPDATE segment properties
-5. READ to verify updates
-6. DELETE test segment
-7. Verify deletion
+Demonstrates the SegmentOperations API (issues #172 / #174):
+  - AppendSentence (replaces removed Create)
+  - GetAll(paragraph)  -- paragraph argument is required
+  - SplitSegment, MergeSegments (with translation_policy)
+  - ReparseParagraph (replaces removed RebuildSegments)
+  - SetFreeTranslation / GetFreeTranslation
+  - Delete
 
 Requirements:
-  - FLEx project with write access
-  - Python.NET runtime
+  - FieldWorks installed
+  - A writable project (tries Sena 3, Test, SampleLexicon, SampleLexicon3)
 
-WARNING: This demo modifies the database!
-         Test segment is created and deleted during the demo.
+WARNING: Creates and deletes a temporary text in the database.
     """
     )
-
-    response = input("\nRun CRUD demo? (y/N): ")
+    response = input("\nRun demo? (y/N): ")
     if response.lower() == "y":
-        demo_segment_crud()
+        demo_segment_operations()
     else:
         print("\nDemo skipped.")

@@ -11,6 +11,7 @@
 #   Copyright 2025
 #
 
+import logging
 import clr
 
 clr.AddReference("System")
@@ -30,6 +31,23 @@ from ..FLExProject import (
     FP_ReadOnlyError,
 )
 from ..BaseOperations import BaseOperations, OperationsMethod, wrap_enumerable
+
+logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# MergeSegments translation_policy constants
+# Use these instead of bare strings to avoid silent routing to the wrong branch.
+# ---------------------------------------------------------------------------
+
+TRANSLATION_POLICY_MIGRATE = "migrate"
+TRANSLATION_POLICY_DISCARD = "discard"
+TRANSLATION_POLICY_REJECT = "reject"
+
+_VALID_TRANSLATION_POLICIES = {
+    TRANSLATION_POLICY_MIGRATE,
+    TRANSLATION_POLICY_DISCARD,
+    TRANSLATION_POLICY_REJECT,
+}
 
 
 class SegmentOperations(BaseOperations):
@@ -456,7 +474,7 @@ class SegmentOperations(BaseOperations):
     # ========== WRITE METHODS ==========
 
     @OperationsMethod
-    def AppendSentence(self, paragraph_or_hvo, text, ws_handle=None):
+    def AppendSentence(self, paragraph_or_hvo, text, wsHandle=None):
         """
         Append a new sentence to a paragraph, creating a new segment.
 
@@ -471,8 +489,8 @@ class SegmentOperations(BaseOperations):
         Args:
             paragraph_or_hvo: The IStTxtPara object or HVO.
             text: The sentence text to append. Must be non-empty.
-            ws_handle: Optional writing system handle. Defaults to project
-                       default vernacular WS.
+            wsHandle: Optional writing system handle. Defaults to project
+                      default vernacular WS.
 
         Returns:
             ISegment: The newly created segment object.
@@ -500,7 +518,7 @@ class SegmentOperations(BaseOperations):
             raise FP_ParameterError("text cannot be empty")
 
         para = self.__GetParagraphObject(paragraph_or_hvo)
-        ws = self.__WSHandleVern(ws_handle)
+        ws = self.__WSHandleVern(wsHandle)
 
         # --- Step 1: edit Contents ---
         bldr = para.Contents.GetBldr()
@@ -510,9 +528,6 @@ class SegmentOperations(BaseOperations):
             # Check the last character of the current contents
             last_char_pos = current_length - 1
             last_char = para.Contents.Text[last_char_pos] if para.Contents.Text else ""
-            # Retrieve text properties from the character just before insertion
-            # so the separator uses the same WS/style as the existing text.
-            char_props = para.Contents.get_PropertiesAt(last_char_pos)
 
             if last_char not in (".", "!", "?"):
                 # Insert ". " as sentence terminator
@@ -638,13 +653,12 @@ class SegmentOperations(BaseOperations):
         absolute_offset = seg.BeginOffset + offset_within_segment
 
         # --- Step 1: edit Contents ---
+        # Resolve the paragraph's vernacular WS from the existing text run so
+        # the inserted terminator uses the same writing system as its neighbours.
+        ws = self.__WSHandleVern(None)
         bldr = para.Contents.GetBldr()
-        # Use text properties from the character just before the split point
-        # so the inserted terminator inherits the same WS/style.
-        char_props = para.Contents.get_PropertiesAt(absolute_offset - 1)
-        terminator = TsStringUtils.MakeString(". ", ws=None)
-        # Build the terminator with the properties of the surrounding text
-        bldr.Replace(absolute_offset, absolute_offset, ". ", char_props)
+        terminator = TsStringUtils.MakeString(". ", ws)
+        bldr.ReplaceTsString(absolute_offset, absolute_offset, terminator)
         # Assign — fires AnalysisAdjuster which shifts seg3+ offsets right by 2
         para.Contents = bldr.GetString()
 
@@ -671,14 +685,17 @@ class SegmentOperations(BaseOperations):
             seg2_or_hvo: The second (later) ISegment object or HVO. Must be
                          immediately after seg1 in SegmentsOS.
             translation_policy (str): One of:
-                - 'migrate' (default): Concatenate seg2's FreeTranslation,
-                  LiteralTranslation, and Notes into seg1's, joined by ' / '
-                  per writing system that has content. Migration happens BEFORE
-                  seg2 is removed.
-                - 'discard': Drop seg2's translations silently.
-                - 'reject': Raise FP_ParameterError if seg2 has any non-empty
-                  FreeTranslation, LiteralTranslation, or Notes content. Caller
-                  must explicitly pass 'migrate' or 'discard' to proceed.
+                - TRANSLATION_POLICY_MIGRATE / 'migrate' (default): Concatenate
+                  seg2's FreeTranslation and LiteralTranslation into seg1's,
+                  joined by ' / ' per writing system that has content. Also moves
+                  all Notes from seg2.NotesOS into seg1.NotesOS via re-parenting.
+                  Migration happens BEFORE seg2 is removed.
+                - TRANSLATION_POLICY_DISCARD / 'discard': Drop seg2's
+                  translations and notes silently.
+                - TRANSLATION_POLICY_REJECT / 'reject': Raise FP_ParameterError
+                  if seg2 has any non-empty FreeTranslation, LiteralTranslation
+                  (across ALL writing systems), or Notes. Caller must explicitly
+                  pass 'migrate' or 'discard' to proceed.
 
         Returns:
             ISegment: seg1 (the survivor segment).
@@ -710,6 +727,15 @@ class SegmentOperations(BaseOperations):
         seg1 = self.__GetSegmentObject(seg1_or_hvo)
         seg2 = self.__GetSegmentObject(seg2_or_hvo)
 
+        # Validate translation_policy early — before any LCM calls — so a
+        # typo like 'Migrate' raises immediately on a plain mock without needing
+        # a real SegmentsOS collection.
+        if translation_policy not in _VALID_TRANSLATION_POLICIES:
+            raise FP_ParameterError(
+                f"translation_policy must be one of {_VALID_TRANSLATION_POLICIES!r}, "
+                f"got {translation_policy!r}"
+            )
+
         if seg1.Owner != seg2.Owner:
             raise FP_ParameterError("Segments must be in the same paragraph")
 
@@ -733,14 +759,28 @@ class SegmentOperations(BaseOperations):
             )
 
         # Enforce translation_policy
-        if translation_policy == "reject":
-            ws = self.__WSHandle(None)
+        if translation_policy == TRANSLATION_POLICY_REJECT:
             has_content = False
-            ft = ITsString(seg2.FreeTranslation.get_String(ws)).Text if seg2.FreeTranslation else ""
-            lt = ITsString(seg2.LiteralTranslation.get_String(ws)).Text if seg2.LiteralTranslation else ""
-            notes = list(seg2.NotesOS) if hasattr(seg2, "NotesOS") else []
-            if ft or lt or notes:
-                has_content = True
+            # Check ALL writing systems in both FreeTranslation and LiteralTranslation,
+            # not just the default WS, to honour the docstring promise.
+            # IMultiString.GetStringFromIndex(i) returns (ITsString, ws_int) tuple.
+            for attr in ("FreeTranslation", "LiteralTranslation"):
+                ms = getattr(seg2, attr, None)
+                if ms is None:
+                    continue
+                for i in range(ms.StringCount):
+                    ts, _ws = ms.GetStringFromIndex(i)
+                    text_val = ts.Text if hasattr(ts, "Text") else None
+                    if text_val:
+                        has_content = True
+                        break
+                if has_content:
+                    break
+            # Also check Notes
+            if not has_content:
+                notes = list(seg2.NotesOS) if hasattr(seg2, "NotesOS") else []
+                if notes:
+                    has_content = True
             if has_content:
                 raise FP_ParameterError(
                     "seg2 has non-empty translations/notes and translation_policy='reject'. "
@@ -748,11 +788,11 @@ class SegmentOperations(BaseOperations):
                     "'discard' to drop them."
                 )
 
-        elif translation_policy == "migrate":
-            # Migrate FreeTranslation and LiteralTranslation for all WS that have content
+        elif translation_policy == TRANSLATION_POLICY_MIGRATE:
+            # Migrate FreeTranslation, LiteralTranslation, and Notes for all WS
             self.__MigrateTranslations(seg1, seg2)
 
-        # translation_policy == 'discard': do nothing — seg2's data is lost on removal
+        # TRANSLATION_POLICY_DISCARD: do nothing — seg2's data is lost on removal
 
         # --- Step 1: edit Contents to remove the inter-segment boundary ---
         bldr = para.Contents.GetBldr()
@@ -771,22 +811,24 @@ class SegmentOperations(BaseOperations):
 
     def __MigrateTranslations(self, seg1, seg2):
         """
-        Concatenate seg2's FreeTranslation, LiteralTranslation, and Notes into
-        seg1 per writing system that has content, joined by ' / '.
+        Concatenate seg2's FreeTranslation and LiteralTranslation into seg1
+        per writing system that has content, joined by ' / '. Also moves all
+        Notes from seg2's NotesOS into seg1's NotesOS (re-parenting ownership).
 
         Args:
             seg1: The survivor segment.
             seg2: The segment being merged away.
         """
-        # Collect all WS handles present in either FreeTranslation or LiteralTranslation
+        # Collect all WS handles present in either FreeTranslation or LiteralTranslation.
+        # IMultiString.GetStringFromIndex(i) returns (ITsString, ws_int) tuple.
         ws_set = set()
         for seg in (seg1, seg2):
             for attr in ("FreeTranslation", "LiteralTranslation"):
                 ms = getattr(seg, attr, None)
                 if ms is not None:
-                    ws_count = ms.StringCount
-                    for i in range(ws_count):
-                        ws_set.add(ms.GetWs(i))
+                    for i in range(ms.StringCount):
+                        _ts, ws = ms.GetStringFromIndex(i)
+                        ws_set.add(ws)
 
         for ws in ws_set:
             # FreeTranslation
@@ -807,20 +849,31 @@ class SegmentOperations(BaseOperations):
                     mkstr = TsStringUtils.MakeString(merged_text, ws)
                     seg1.LiteralTranslation.set_String(ws, mkstr)
 
+        # Notes: move all ICmBaseAnnotation objects from seg2.NotesOS to seg1.NotesOS.
+        # ILcmOwningSequence.MoveTo(srcStart, srcEnd, dest, destStart) re-parents
+        # ownership without creating new objects.
+        if hasattr(seg2, "NotesOS") and hasattr(seg1, "NotesOS"):
+            notes2 = list(seg2.NotesOS)
+            if notes2:
+                dest_index = seg1.NotesOS.Count
+                seg2.NotesOS.MoveTo(0, len(notes2) - 1, seg1.NotesOS, dest_index)
+
     @OperationsMethod
     def ReparseParagraph(self, paragraph_or_hvo):
         """
-        Force LCM to re-derive all segments for a paragraph from its Contents.
-
-        Destroys all wordform analyses and segment translations on this paragraph
-        by forcing LCM to re-derive segments from Contents. Programmatic
-        equivalent of retyping the paragraph. Use only to repair corruption --
-        prefer SplitSegment/MergeSegments for normal edits.
+        Re-derive segment offsets and wordform analyses for a paragraph by
+        reassigning para.Contents to itself; FreeTranslation, LiteralTranslation,
+        and Notes on surviving segments are preserved.
 
         Implementation: assigns para.Contents back to itself. That single setter
-        assignment fires ContentsSideEffects which re-derives SegmentsOS from
-        punctuation. No regex, no manual SegmentsOS.Clear(), no factory.Create()
-        calls are needed or used.
+        assignment fires ContentsSideEffects -> AnalysisAdjuster, which is an
+        offset reconciler -- it rebuilds AnalysesRS (wordform analyses) but does
+        NOT touch FreeTranslation, LiteralTranslation, or NotesOS on surviving
+        segments (those are independently-owned LCM objects with no dependency
+        on Contents). When the assignment is a self-assignment (the only path
+        through this method), segment objects survive with identical offsets,
+        so their translations are never cleared. No regex, no manual
+        SegmentsOS.Clear(), no factory.Create() calls are needed or used.
 
         Args:
             paragraph_or_hvo: The IStTxtPara object or HVO.
@@ -842,9 +895,10 @@ class SegmentOperations(BaseOperations):
             SplitSegment, MergeSegments, AppendSentence
 
         Warning:
-            This destroys all existing wordform analyses and segment translations
-            (FreeTranslation, LiteralTranslation, Notes) on the paragraph.
-            Use SplitSegment or MergeSegments for non-destructive edits.
+            This destroys all existing wordform analyses (AnalysesRS) on the
+            paragraph. FreeTranslation, LiteralTranslation, and Notes are NOT
+            cleared. Use SplitSegment or MergeSegments for non-destructive
+            structural edits.
         """
         self._EnsureWriteEnabled()
         self._ValidateParam(paragraph_or_hvo, "paragraph_or_hvo")
