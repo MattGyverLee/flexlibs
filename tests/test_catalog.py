@@ -679,5 +679,69 @@ def test_basic_ipa_description_in_english(basic_ipa_segments):
     )
 
 
+# ---------------------------------------------------------------------------
+# Issue #141 part 2 -- codepoint normalization
+# ---------------------------------------------------------------------------
+
+
+class TestCodepointNormalization:
+    """
+    Defensive dedup safety for ``unicodeCodePoints``: multi-codepoint
+    segments (affricates, clicks, pre-nasalized stops) are encoded as
+    whitespace-separated codepoint tokens in the catalog. Without
+    normalization, dedup by raw string would leak on whitespace runs,
+    token ordering, or trailing whitespace. (issue #141 part 2)
+    """
+
+    def test_parse_normalizes_multi_codepoint_order(self, tmp_path):
+        """
+        Two SegmentDefinitions with identical codepoint sets but
+        different token orders should parse to identical
+        ``code_point_id`` values, enabling the importer's dedup to
+        catch them as the same segment.
+        """
+        from flexlibs2.code.Shared.catalog import parse_basic_ipa_info
+
+        xml = """<?xml version="1.0" encoding="utf-8"?>
+<SegmentDefinitions>
+  <SegmentDefinition>
+    <Representations>
+      <Representation unicodeCodePoints="u0074 u0283">tS</Representation>
+    </Representations>
+  </SegmentDefinition>
+  <SegmentDefinition>
+    <Representations>
+      <Representation unicodeCodePoints="u0283 u0074">tS-reversed</Representation>
+    </Representations>
+  </SegmentDefinition>
+  <SegmentDefinition>
+    <Representations>
+      <Representation unicodeCodePoints="u0074  u0283">tS-doublespace</Representation>
+    </Representations>
+  </SegmentDefinition>
+</SegmentDefinitions>"""
+
+        path = tmp_path / "BasicIPAInfoLite.xml"
+        path.write_text(xml, encoding="utf-8")
+
+        segs = parse_basic_ipa_info(str(path))
+        ids = [s.code_point_id for s in segs]
+        assert ids == ["u0074 u0283"] * 3, (
+            "All three SegmentDefinitions should normalize to the same "
+            f"canonical code_point_id; got {ids!r}"
+        )
+
+    def test_normalize_codepoints_helper(self):
+        """Unit coverage on the helper directly."""
+        from flexlibs2.code.Shared.catalog import _normalize_codepoints
+
+        assert _normalize_codepoints("u0061") == "u0061"
+        assert _normalize_codepoints("u0074 u0283") == "u0074 u0283"
+        assert _normalize_codepoints("u0283 u0074") == "u0074 u0283"
+        assert _normalize_codepoints("u0074  u0283") == "u0074 u0283"
+        assert _normalize_codepoints(" u0074 u0283 ") == "u0074 u0283"
+        assert _normalize_codepoints("") == ""
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

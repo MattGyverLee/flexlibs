@@ -326,6 +326,27 @@ def parse_etic_gloss_list(path):
 # --- BasicIPAInfo parsing (Phase 6d) ----------------------------------------
 
 
+def _normalize_codepoints(raw):
+    """
+    Canonicalise a ``unicodeCodePoints`` attribute value for use as a
+    stable dedup key.
+
+    The catalog format encodes multi-codepoint segments (affricates,
+    clicks, pre-nasalized stops) as a whitespace-separated list, e.g.
+    ``"u0074 u0283"`` for /tʃ/. Without normalization the raw string is
+    fragile as a dedup key: extra whitespace ("u0074  u0283"), variant
+    ordering ("u0283 u0074"), or trailing spaces would all produce
+    distinct keys for what is the same segment.
+
+    Canonicalises by splitting on whitespace (collapsing runs), sorting
+    the codepoint tokens lexicographically, and joining back with single
+    spaces. Single-codepoint ids ("u0061") round-trip unchanged.
+
+    (issue #141 part 2)
+    """
+    return " ".join(sorted(raw.split()))
+
+
 @dataclass
 class SegmentDefinition:
     """
@@ -405,7 +426,7 @@ def parse_basic_ipa_info(path):
             # only matters for user-edited / partial files.
             continue
         rep_text = (rep_elem.text or "").strip()
-        code_id = rep_elem.get("unicodeCodePoints") or ""
+        code_id = _normalize_codepoints(rep_elem.get("unicodeCodePoints") or "")
 
         descs = {}
         for d in sd.findall("Descriptions/Description"):
