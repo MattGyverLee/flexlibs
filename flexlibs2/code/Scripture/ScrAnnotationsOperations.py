@@ -119,14 +119,15 @@ class ScrAnnotationsOperations(BaseOperations):
         if book.FootnotesOS.Count > 0:
             raise FP_ParameterError("Book already has annotations container. Use GetForBook() instead.")
 
-        # Create the new annotations using the factory
-        factory = self.project.project.ServiceLocator.GetService(IScrBookAnnotationsFactory)
-        new_annotations = factory.Create()
+        with self._TransactionCM("Create annotations"):
+            # Create the new annotations using the factory
+            factory = self.project.project.ServiceLocator.GetService(IScrBookAnnotationsFactory)
+            new_annotations = factory.Create()
 
-        # Add to book's footnotes (annotations are stored in FootnotesOS)
-        book.FootnotesOS.Add(new_annotations)
+            # Add to book's footnotes (annotations are stored in FootnotesOS)
+            book.FootnotesOS.Add(new_annotations)
 
-        return new_annotations
+            return new_annotations
 
     @OperationsMethod
     def Delete(self, annotations_or_hvo):

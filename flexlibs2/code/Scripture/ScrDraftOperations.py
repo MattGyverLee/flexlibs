@@ -157,24 +157,25 @@ class ScrDraftOperations(BaseOperations):
         if not scripture:
             raise FP_ParameterError("Project does not have Scripture enabled")
 
-        # Create the new draft using the factory
-        factory = self.project.project.ServiceLocator.GetService(IScrDraftFactory)
-        new_draft = factory.Create()
+        with self._TransactionCM("Create draft"):
+            # Create the new draft using the factory
+            factory = self.project.project.ServiceLocator.GetService(IScrDraftFactory)
+            new_draft = factory.Create()
 
-        # Add to Scripture's archived drafts
-        scripture.ArchivedDraftsOC.Add(new_draft)
+            # Add to Scripture's archived drafts
+            scripture.ArchivedDraftsOC.Add(new_draft)
 
-        # Set description
-        wsHandle = self.project.project.DefaultAnalWs
-        mkstr = TsStringUtils.MakeString(description, wsHandle)
-        new_draft.Description.set_String(wsHandle, mkstr)
+            # Set description
+            wsHandle = self.project.project.DefaultAnalWs
+            mkstr = TsStringUtils.MakeString(description, wsHandle)
+            new_draft.Description.set_String(wsHandle, mkstr)
 
-        # Set type (stored as a string property for reference)
-        # Note: IScrDraft doesn't have a Type property in the schema,
-        # so this is stored in the description or as metadata
-        # For now, we just use description
+            # Set type (stored as a string property for reference)
+            # Note: IScrDraft doesn't have a Type property in the schema,
+            # so this is stored in the description or as metadata
+            # For now, we just use description
 
-        return new_draft
+            return new_draft
 
     @OperationsMethod
     def Delete(self, draft_or_hvo):

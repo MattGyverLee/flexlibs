@@ -181,22 +181,23 @@ class ReversalIndexEntryOperations(BaseOperations):
             ws_str = index.WritingSystem
             wsHandle = self.project.WSHandle(ws_str)
 
-        # Create the reversal entry using factory
-        factory = self.project.project.ServiceLocator.GetService(IReversalIndexEntryFactory)
-        new_entry = factory.Create()
+        with self._TransactionCM(f"Create reversal entry '{form}'"):
+            # Create the reversal entry using factory
+            factory = self.project.project.ServiceLocator.GetService(IReversalIndexEntryFactory)
+            new_entry = factory.Create()
 
-        # Add to index's entries collection
-        index.EntriesOC.Add(new_entry)
+            # Add to index's entries collection
+            index.EntriesOC.Add(new_entry)
 
-        # Set the reversal form
-        mkstr = TsStringUtils.MakeString(form, wsHandle)
-        new_entry.ReversalForm.set_String(wsHandle, mkstr)
+            # Set the reversal form
+            mkstr = TsStringUtils.MakeString(form, wsHandle)
+            new_entry.ReversalForm.set_String(wsHandle, mkstr)
 
-        # Link to sense if provided
-        if sense:
-            new_entry.SensesRS.Add(sense)
+            # Link to sense if provided
+            if sense:
+                new_entry.SensesRS.Add(sense)
 
-        return new_entry
+            return new_entry
 
     @OperationsMethod
     def Delete(self, entry_or_hvo):

@@ -117,21 +117,22 @@ class ConstChartClauseMarkerOperations(BaseOperations):
         if not isinstance(word_group, IConstChartWordGroup):
             raise FP_ParameterError("word_group must be an IConstChartWordGroup object")
 
-        # Create the new clause marker using the factory
-        factory = self.project.project.ServiceLocator.GetService(IConstChartClauseMarkerFactory)
-        new_marker = factory.Create()
+        with self._TransactionCM("Create clause marker"):
+            # Create the new clause marker using the factory
+            factory = self.project.project.ServiceLocator.GetService(IConstChartClauseMarkerFactory)
+            new_marker = factory.Create()
 
-        # Add to row's clause markers collection
-        # Note: In FLEx, clause markers may be stored in different collections
-        # depending on the chart structure. This assumes a ClauseMarkersOS collection.
-        if hasattr(row, "ClauseMarkersOS"):
-            row.ClauseMarkersOS.Add(new_marker)
+            # Add to row's clause markers collection
+            # Note: In FLEx, clause markers may be stored in different collections
+            # depending on the chart structure. This assumes a ClauseMarkersOS collection.
+            if hasattr(row, "ClauseMarkersOS"):
+                row.ClauseMarkersOS.Add(new_marker)
 
-        # Set the word group reference
-        if hasattr(new_marker, "WordGroupRA"):
-            new_marker.WordGroupRA = word_group
+            # Set the word group reference
+            if hasattr(new_marker, "WordGroupRA"):
+                new_marker.WordGroupRA = word_group
 
-        return new_marker
+            return new_marker
 
     @OperationsMethod
     def Delete(self, marker_or_hvo):

@@ -158,22 +158,23 @@ class ReversalIndexOperations(BaseOperations):
         if existing:
             raise FP_ParameterError(f"Reversal index already exists for writing system {writing_system}")
 
-        # Create the reversal index using factory
-        factory = self.project.project.ServiceLocator.GetService(IReversalIndexFactory)
-        new_index = factory.Create()
+        with self._TransactionCM(f"Create reversal index '{name}'"):
+            # Create the reversal index using factory
+            factory = self.project.project.ServiceLocator.GetService(IReversalIndexFactory)
+            new_index = factory.Create()
 
-        # Add to language project's reversal indexes
-        self.project.lp.LexDbOA.ReversalIndexesOC.Add(new_index)
+            # Add to language project's reversal indexes
+            self.project.lp.LexDbOA.ReversalIndexesOC.Add(new_index)
 
-        # Set the writing system
-        new_index.WritingSystem = str(writing_system)
+            # Set the writing system
+            new_index.WritingSystem = str(writing_system)
 
-        # Set the name
-        wsHandle = self.project.project.DefaultAnalWs
-        mkstr = TsStringUtils.MakeString(name, wsHandle)
-        new_index.Name.set_String(wsHandle, mkstr)
+            # Set the name
+            wsHandle = self.project.project.DefaultAnalWs
+            mkstr = TsStringUtils.MakeString(name, wsHandle)
+            new_index.Name.set_String(wsHandle, mkstr)
 
-        return new_index
+            return new_index
 
     @OperationsMethod
     def Delete(self, index_or_hvo):

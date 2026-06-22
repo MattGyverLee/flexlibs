@@ -119,17 +119,18 @@ class ConstChartMovedTextOperations(BaseOperations):
 
         word_group = self.__ResolveWordGroup(word_group_or_hvo)
 
-        # Create the new moved text marker using the factory
-        factory = self.project.project.ServiceLocator.GetService(IConstChartMovedTextMarkerFactory)
-        new_marker = factory.Create()
+        with self._TransactionCM("Create moved text marker"):
+            # Create the new moved text marker using the factory
+            factory = self.project.project.ServiceLocator.GetService(IConstChartMovedTextMarkerFactory)
+            new_marker = factory.Create()
 
-        # Set as owned by the word group
-        word_group.MovedTextMarkerOA = new_marker
+            # Set as owned by the word group
+            word_group.MovedTextMarkerOA = new_marker
 
-        # Set preposed flag
-        new_marker.Preposed = bool(preposed)
+            # Set preposed flag
+            new_marker.Preposed = bool(preposed)
 
-        return new_marker
+            return new_marker
 
     @OperationsMethod
     def Delete(self, marker_or_hvo):

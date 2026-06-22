@@ -144,58 +144,59 @@ class ScrNoteOperations(BaseOperations):
         book = self.__ResolveBook(book_or_hvo)
         paragraph = self.__ResolveParagraph(paragraph_or_hvo)
 
-        # Ensure book has annotations container
-        if book.FootnotesOS.Count == 0:
-            from SIL.LCModel import IScrBookAnnotationsFactory
+        with self._TransactionCM("Create note"):
+            # Ensure book has annotations container
+            if book.FootnotesOS.Count == 0:
+                from SIL.LCModel import IScrBookAnnotationsFactory
 
-            annotations_factory = self.project.project.ServiceLocator.GetService(IScrBookAnnotationsFactory)
-            annotations = annotations_factory.Create()
-            book.FootnotesOS.Add(annotations)
-        else:
-            annotations = book.FootnotesOS[0]
-
-        # Create the new note using the factory
-        factory = self.project.project.ServiceLocator.GetService(IScrScriptureNoteFactory)
-        new_note = factory.Create()
-
-        # Add to annotations container
-        annotations.NotesOS.Add(new_note)
-
-        # Set the note text
-        wsHandle = self.project.project.DefaultAnalWs
-        mkstr = TsStringUtils.MakeString(text, wsHandle)
-
-        # Create discussion paragraph if needed
-        # Note: Contents is ITsString, assign directly
-        if new_note.DiscussionOA:
-            if new_note.DiscussionOA.ParagraphsOS.Count > 0:
-                para_obj = new_note.DiscussionOA.ParagraphsOS[0]
-                para_obj.Contents = mkstr
+                annotations_factory = self.project.project.ServiceLocator.GetService(IScrBookAnnotationsFactory)
+                annotations = annotations_factory.Create()
+                book.FootnotesOS.Add(annotations)
             else:
-                # Create paragraph
-                from SIL.LCModel import IStTxtParaFactory
+                annotations = book.FootnotesOS[0]
 
+            # Create the new note using the factory
+            factory = self.project.project.ServiceLocator.GetService(IScrScriptureNoteFactory)
+            new_note = factory.Create()
+
+            # Add to annotations container
+            annotations.NotesOS.Add(new_note)
+
+            # Set the note text
+            wsHandle = self.project.project.DefaultAnalWs
+            mkstr = TsStringUtils.MakeString(text, wsHandle)
+
+            # Create discussion paragraph if needed
+            # Note: Contents is ITsString, assign directly
+            if new_note.DiscussionOA:
+                if new_note.DiscussionOA.ParagraphsOS.Count > 0:
+                    para_obj = new_note.DiscussionOA.ParagraphsOS[0]
+                    para_obj.Contents = mkstr
+                else:
+                    # Create paragraph
+                    from SIL.LCModel import IStTxtParaFactory
+
+                    para_factory = self.project.project.ServiceLocator.GetService(IStTxtParaFactory)
+                    para_obj = para_factory.Create()
+                    new_note.DiscussionOA.ParagraphsOS.Add(para_obj)
+                    para_obj.Contents = mkstr
+            else:
+                # Create discussion StText
+                from SIL.LCModel import IStTextFactory, IStTxtParaFactory
+
+                text_factory = self.project.project.ServiceLocator.GetService(IStTextFactory)
+                new_note.DiscussionOA = text_factory.Create()
                 para_factory = self.project.project.ServiceLocator.GetService(IStTxtParaFactory)
                 para_obj = para_factory.Create()
                 new_note.DiscussionOA.ParagraphsOS.Add(para_obj)
                 para_obj.Contents = mkstr
-        else:
-            # Create discussion StText
-            from SIL.LCModel import IStTextFactory, IStTxtParaFactory
 
-            text_factory = self.project.project.ServiceLocator.GetService(IStTextFactory)
-            new_note.DiscussionOA = text_factory.Create()
-            para_factory = self.project.project.ServiceLocator.GetService(IStTxtParaFactory)
-            para_obj = para_factory.Create()
-            new_note.DiscussionOA.ParagraphsOS.Add(para_obj)
-            para_obj.Contents = mkstr
+            # Set beginning reference to the paragraph
+            # Note: This is a simplified approach - full implementation would set
+            # BeginRef and EndRef properly with BCVRef references
+            # For now, we just create the note without precise reference
 
-        # Set beginning reference to the paragraph
-        # Note: This is a simplified approach - full implementation would set
-        # BeginRef and EndRef properly with BCVRef references
-        # For now, we just create the note without precise reference
-
-        return new_note
+            return new_note
 
     @OperationsMethod
     def Delete(self, note_or_hvo):
@@ -426,25 +427,26 @@ class ScrNoteOperations(BaseOperations):
         note = self.__ResolveObject(note_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
 
-        # Ensure DiscussionOA exists
-        if not note.DiscussionOA:
-            from SIL.LCModel import IStTextFactory
+        with self._TransactionCM("Set note text"):
+            # Ensure DiscussionOA exists
+            if not note.DiscussionOA:
+                from SIL.LCModel import IStTextFactory
 
-            text_factory = self.project.project.ServiceLocator.GetService(IStTextFactory)
-            note.DiscussionOA = text_factory.Create()
+                text_factory = self.project.project.ServiceLocator.GetService(IStTextFactory)
+                note.DiscussionOA = text_factory.Create()
 
-        # Ensure discussion has at least one paragraph
-        if note.DiscussionOA.ParagraphsOS.Count == 0:
-            from SIL.LCModel import IStTxtParaFactory
+            # Ensure discussion has at least one paragraph
+            if note.DiscussionOA.ParagraphsOS.Count == 0:
+                from SIL.LCModel import IStTxtParaFactory
 
-            para_factory = self.project.project.ServiceLocator.GetService(IStTxtParaFactory)
-            para = para_factory.Create()
-            note.DiscussionOA.ParagraphsOS.Add(para)
+                para_factory = self.project.project.ServiceLocator.GetService(IStTxtParaFactory)
+                para = para_factory.Create()
+                note.DiscussionOA.ParagraphsOS.Add(para)
 
-        # Set the discussion text (Contents is ITsString, assign directly)
-        para = note.DiscussionOA.ParagraphsOS[0]
-        mkstr = TsStringUtils.MakeString(text, wsHandle)
-        para.Contents = mkstr
+            # Set the discussion text (Contents is ITsString, assign directly)
+            para = note.DiscussionOA.ParagraphsOS[0]
+            mkstr = TsStringUtils.MakeString(text, wsHandle)
+            para.Contents = mkstr
 
     @OperationsMethod
     def GetType(self, note_or_hvo):

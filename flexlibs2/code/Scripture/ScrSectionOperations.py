@@ -350,23 +350,24 @@ class ScrSectionOperations(BaseOperations):
         section = self.__ResolveObject(section_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
 
-        # Ensure HeadingOA exists
-        if not section.HeadingOA:
-            text_factory = self.project.project.ServiceLocator.GetService(IStTextFactory)
-            section.HeadingOA = text_factory.Create()
+        with self._TransactionCM("Set section heading"):
+            # Ensure HeadingOA exists
+            if not section.HeadingOA:
+                text_factory = self.project.project.ServiceLocator.GetService(IStTextFactory)
+                section.HeadingOA = text_factory.Create()
 
-        # Ensure heading has at least one paragraph
-        if section.HeadingOA.ParagraphsOS.Count == 0:
-            from SIL.LCModel import IStTxtParaFactory
+            # Ensure heading has at least one paragraph
+            if section.HeadingOA.ParagraphsOS.Count == 0:
+                from SIL.LCModel import IStTxtParaFactory
 
-            para_factory = self.project.project.ServiceLocator.GetService(IStTxtParaFactory)
-            para = para_factory.Create()
-            section.HeadingOA.ParagraphsOS.Add(para)
+                para_factory = self.project.project.ServiceLocator.GetService(IStTxtParaFactory)
+                para = para_factory.Create()
+                section.HeadingOA.ParagraphsOS.Add(para)
 
-        # Set the heading text (Contents is ITsString, assign directly)
-        para = section.HeadingOA.ParagraphsOS[0]
-        mkstr = TsStringUtils.MakeString(text, wsHandle)
-        para.Contents = mkstr
+            # Set the heading text (Contents is ITsString, assign directly)
+            para = section.HeadingOA.ParagraphsOS[0]
+            mkstr = TsStringUtils.MakeString(text, wsHandle)
+            para.Contents = mkstr
 
     @OperationsMethod
     def GetContent(self, section_or_hvo):
@@ -459,12 +460,13 @@ class ScrSectionOperations(BaseOperations):
             if current_index < index:
                 index -= 1
 
-        # Remove from current location
-        if current_book:
-            current_book.SectionsOS.Remove(section)
+        with self._TransactionCM("Move section"):
+            # Remove from current location
+            if current_book:
+                current_book.SectionsOS.Remove(section)
 
-        # Insert at new location
-        target_book.SectionsOS.Insert(index, section)
+            # Insert at new location
+            target_book.SectionsOS.Insert(index, section)
 
     # --- Private Helper Methods ---
 

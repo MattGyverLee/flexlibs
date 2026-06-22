@@ -130,18 +130,19 @@ class ConstChartWordGroupOperations(BaseOperations):
         if not isinstance(end_segment, ISegment):
             raise FP_ParameterError("end_segment must be an ISegment object")
 
-        # Create the new word group using the factory
-        factory = self.project.project.ServiceLocator.GetService(IConstChartWordGroupFactory)
-        new_word_group = factory.Create()
+        with self._TransactionCM("Create word group"):
+            # Create the new word group using the factory
+            factory = self.project.project.ServiceLocator.GetService(IConstChartWordGroupFactory)
+            new_word_group = factory.Create()
 
-        # Add to row's cells collection
-        row.CellsOS.Add(new_word_group)
+            # Add to row's cells collection
+            row.CellsOS.Add(new_word_group)
 
-        # Set the segment references
-        new_word_group.BeginSegmentRA = begin_segment
-        new_word_group.EndSegmentRA = end_segment
+            # Set the segment references
+            new_word_group.BeginSegmentRA = begin_segment
+            new_word_group.EndSegmentRA = end_segment
 
-        return new_word_group
+            return new_word_group
 
     @OperationsMethod
     def Delete(self, group_or_hvo):

@@ -118,24 +118,25 @@ class ConstChartRowOperations(BaseOperations):
         chart = self.__ResolveChart(chart_or_hvo)
         wsHandle = self.__WSHandleAnalysis()
 
-        # Create the new row using the factory
-        factory = self.project.project.ServiceLocator.GetService(IConstChartRowFactory)
-        new_row = factory.Create()
+        with self._TransactionCM("Create chart row"):
+            # Create the new row using the factory
+            factory = self.project.project.ServiceLocator.GetService(IConstChartRowFactory)
+            new_row = factory.Create()
 
-        # Add to chart's rows collection
-        chart.RowsOS.Add(new_row)
+            # Add to chart's rows collection
+            chart.RowsOS.Add(new_row)
 
-        # Set label if provided
-        if label:
-            mkstr = TsStringUtils.MakeString(label, wsHandle)
-            new_row.Label.set_String(wsHandle, mkstr)
+            # Set label if provided
+            if label:
+                mkstr = TsStringUtils.MakeString(label, wsHandle)
+                new_row.Label.set_String(wsHandle, mkstr)
 
-        # Set notes if provided
-        if notes:
-            mkstr = TsStringUtils.MakeString(notes, wsHandle)
-            new_row.Notes.set_String(wsHandle, mkstr)
+            # Set notes if provided
+            if notes:
+                mkstr = TsStringUtils.MakeString(notes, wsHandle)
+                new_row.Notes.set_String(wsHandle, mkstr)
 
-        return new_row
+            return new_row
 
     @OperationsMethod
     def Delete(self, row_or_hvo):
@@ -502,25 +503,26 @@ class ConstChartRowOperations(BaseOperations):
         if source_chart is None:
             raise FP_ParameterError("Row has no owning chart")
 
-        # If moving within same chart, use reordering
-        if source_chart == target_chart:
-            current_index = -1
-            for i in range(source_chart.RowsOS.Count):
-                if source_chart.RowsOS[i] == row:
-                    current_index = i
-                    break
+        with self._TransactionCM(f"Move row to index {index}"):
+            # If moving within same chart, use reordering
+            if source_chart == target_chart:
+                current_index = -1
+                for i in range(source_chart.RowsOS.Count):
+                    if source_chart.RowsOS[i] == row:
+                        current_index = i
+                        break
 
-            if current_index != -1 and current_index != index:
-                if current_index < index:
-                    # Moving forward - use index + 1
-                    source_chart.RowsOS.MoveTo(current_index, current_index, source_chart.RowsOS, index + 1)
-                else:
-                    # Moving backward - use index directly
-                    source_chart.RowsOS.MoveTo(current_index, current_index, source_chart.RowsOS, index)
-        else:
-            # Moving to different chart - remove from source and add to target
-            source_chart.RowsOS.Remove(row)
-            target_chart.RowsOS.Insert(index, row)
+                if current_index != -1 and current_index != index:
+                    if current_index < index:
+                        # Moving forward - use index + 1
+                        source_chart.RowsOS.MoveTo(current_index, current_index, source_chart.RowsOS, index + 1)
+                    else:
+                        # Moving backward - use index directly
+                        source_chart.RowsOS.MoveTo(current_index, current_index, source_chart.RowsOS, index)
+            else:
+                # Moving to different chart - remove from source and add to target
+                source_chart.RowsOS.Remove(row)
+                target_chart.RowsOS.Insert(index, row)
 
     # --- Private Helper Methods ---
 

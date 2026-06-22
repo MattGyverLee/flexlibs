@@ -173,17 +173,18 @@ class ScrBookOperations(BaseOperations):
         if existing:
             raise FP_ParameterError(f"Book with canonical number {canonical_num} already exists")
 
-        # Create the new book using the factory
-        factory = self.project.project.ServiceLocator.GetService(IScrBookFactory)
-        new_book = factory.Create(scripture.ScriptureBooksOS, canonical_num)
+        with self._TransactionCM(f"Create book {canonical_num}"):
+            # Create the new book using the factory
+            factory = self.project.project.ServiceLocator.GetService(IScrBookFactory)
+            new_book = factory.Create(scripture.ScriptureBooksOS, canonical_num)
 
-        # Set title if provided
-        if title:
-            wsHandle = self.project.project.DefaultVernWs
-            mkstr = TsStringUtils.MakeString(title, wsHandle)
-            new_book.Title.set_String(wsHandle, mkstr)
+            # Set title if provided
+            if title:
+                wsHandle = self.project.project.DefaultVernWs
+                mkstr = TsStringUtils.MakeString(title, wsHandle)
+                new_book.Title.set_String(wsHandle, mkstr)
 
-        return new_book
+            return new_book
 
     @OperationsMethod
     def Delete(self, book_or_hvo):
