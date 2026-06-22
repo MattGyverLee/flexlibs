@@ -226,13 +226,15 @@ class PossibilityListOperations(BaseOperations):
 
         # Create the new list using the factory
         factory = self.project.project.ServiceLocator.GetInstance(ICmPossibilityListFactory)
-        new_list = factory.Create()
 
-        # Set name
-        mkstr = TsStringUtils.MakeString(name, wsHandle)
-        new_list.Name.set_String(wsHandle, mkstr)
+        with self._TransactionCM(f"Create list {name!r}"):
+            new_list = factory.Create()
 
-        return new_list
+            # Set name
+            mkstr = TsStringUtils.MakeString(name, wsHandle)
+            new_list.Name.set_String(wsHandle, mkstr)
+
+            return new_list
 
     @OperationsMethod
     def DeleteList(self, list_or_hvo):
@@ -505,26 +507,32 @@ class PossibilityListOperations(BaseOperations):
         poss_list = self.__ResolveList(list_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
 
-        # Create the new possibility using the factory
-        factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
-        new_item = factory.Create()
-
-        # Add to parent or top-level list (must be done before setting properties)
+        # Resolve and validate parent (if any) before any mutation.
+        parent_obj = None
         if parent:
             parent_obj = self.__ResolveItem(parent)
             # Verify parent belongs to the same list
             parent_list = self.__GetListOwner(parent_obj)
             if parent_list.Guid != poss_list.Guid:
                 raise FP_ParameterError("Parent item does not belong to the specified list")
-            parent_obj.SubPossibilitiesOS.Add(new_item)
-        else:
-            poss_list.PossibilitiesOS.Add(new_item)
 
-        # Set name
-        mkstr = TsStringUtils.MakeString(name, wsHandle)
-        new_item.Name.set_String(wsHandle, mkstr)
+        # Create the new possibility using the factory
+        factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
 
-        return new_item
+        with self._TransactionCM(f"Create list item {name!r}"):
+            new_item = factory.Create()
+
+            # Add to parent or top-level list (must be done before setting properties)
+            if parent_obj is not None:
+                parent_obj.SubPossibilitiesOS.Add(new_item)
+            else:
+                poss_list.PossibilitiesOS.Add(new_item)
+
+            # Set name
+            mkstr = TsStringUtils.MakeString(name, wsHandle)
+            new_item.Name.set_String(wsHandle, mkstr)
+
+            return new_item
 
     @OperationsMethod
     def DeleteItem(self, item_or_hvo):
@@ -638,51 +646,53 @@ class PossibilityListOperations(BaseOperations):
 
         # Create new item using factory (auto-generates new GUID)
         factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
-        duplicate = factory.Create()
 
-        # ADD TO PARENT FIRST before copying properties (CRITICAL)
-        if parent:
-            # Insert into parent's subitems
-            if insert_after:
-                source_index = parent.SubPossibilitiesOS.IndexOf(source)
-                parent.SubPossibilitiesOS.Insert(source_index + 1, duplicate)
+        with self._TransactionCM("Duplicate list item"):
+            duplicate = factory.Create()
+
+            # ADD TO PARENT FIRST before copying properties (CRITICAL)
+            if parent:
+                # Insert into parent's subitems
+                if insert_after:
+                    source_index = parent.SubPossibilitiesOS.IndexOf(source)
+                    parent.SubPossibilitiesOS.Insert(source_index + 1, duplicate)
+                else:
+                    parent.SubPossibilitiesOS.Add(duplicate)
             else:
-                parent.SubPossibilitiesOS.Add(duplicate)
-        else:
-            # Insert into top-level list
-            owner = self.__GetListOwner(source)
-            if insert_after:
-                source_index = owner.PossibilitiesOS.IndexOf(source)
-                owner.PossibilitiesOS.Insert(source_index + 1, duplicate)
-            else:
-                owner.PossibilitiesOS.Add(duplicate)
+                # Insert into top-level list
+                owner = self.__GetListOwner(source)
+                if insert_after:
+                    source_index = owner.PossibilitiesOS.IndexOf(source)
+                    owner.PossibilitiesOS.Insert(source_index + 1, duplicate)
+                else:
+                    owner.PossibilitiesOS.Add(duplicate)
 
-        # Copy MultiString properties using CopyAlternatives
-        duplicate.Name.CopyAlternatives(source.Name)
-        duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)
-        # Description is also a MultiString but needs special handling
-        if hasattr(source, "Description") and hasattr(duplicate, "Description"):
-            duplicate.Description.CopyAlternatives(source.Description)
+            # Copy MultiString properties using CopyAlternatives
+            duplicate.Name.CopyAlternatives(source.Name)
+            duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)
+            # Description is also a MultiString but needs special handling
+            if hasattr(source, "Description") and hasattr(duplicate, "Description"):
+                duplicate.Description.CopyAlternatives(source.Description)
 
-        # Deep copy: duplicate owned subitems recursively
-        if deep and hasattr(source, "SubPossibilitiesOS") and source.SubPossibilitiesOS.Count > 0:
-            for sub_item in source.SubPossibilitiesOS:
-                # Recursively duplicate each subitem
-                sub_factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
-                sub_dup = sub_factory.Create()
-                duplicate.SubPossibilitiesOS.Add(sub_dup)
+            # Deep copy: duplicate owned subitems recursively
+            if deep and hasattr(source, "SubPossibilitiesOS") and source.SubPossibilitiesOS.Count > 0:
+                for sub_item in source.SubPossibilitiesOS:
+                    # Recursively duplicate each subitem
+                    sub_factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
+                    sub_dup = sub_factory.Create()
+                    duplicate.SubPossibilitiesOS.Add(sub_dup)
 
-                # Copy sub-item properties
-                sub_dup.Name.CopyAlternatives(sub_item.Name)
-                sub_dup.Abbreviation.CopyAlternatives(sub_item.Abbreviation)
-                if hasattr(sub_item, "Description"):
-                    sub_dup.Description.CopyAlternatives(sub_item.Description)
+                    # Copy sub-item properties
+                    sub_dup.Name.CopyAlternatives(sub_item.Name)
+                    sub_dup.Abbreviation.CopyAlternatives(sub_item.Abbreviation)
+                    if hasattr(sub_item, "Description"):
+                        sub_dup.Description.CopyAlternatives(sub_item.Description)
 
-                # Recursively copy deeper levels if they exist
-                if sub_item.SubPossibilitiesOS.Count > 0:
-                    self.__DuplicateSubitemsRecursive(sub_item, sub_dup)
+                    # Recursively copy deeper levels if they exist
+                    if sub_item.SubPossibilitiesOS.Count > 0:
+                        self.__DuplicateSubitemsRecursive(sub_item, sub_dup)
 
-        return duplicate
+            return duplicate
 
     # ========== SYNC INTEGRATION METHODS ==========
 
@@ -1224,18 +1234,19 @@ class PossibilityListOperations(BaseOperations):
         else:
             new_parent = None
 
-        # Remove from current location
-        old_parent = self.GetParentItem(item)
-        if old_parent:
-            old_parent.SubPossibilitiesOS.Remove(item)
-        else:
-            item_list.PossibilitiesOS.Remove(item)
+        with self._TransactionCM("Move list item"):
+            # Remove from current location
+            old_parent = self.GetParentItem(item)
+            if old_parent:
+                old_parent.SubPossibilitiesOS.Remove(item)
+            else:
+                item_list.PossibilitiesOS.Remove(item)
 
-        # Add to new location
-        if new_parent:
-            new_parent.SubPossibilitiesOS.Add(item)
-        else:
-            item_list.PossibilitiesOS.Add(item)
+            # Add to new location
+            if new_parent:
+                new_parent.SubPossibilitiesOS.Add(item)
+            else:
+                item_list.PossibilitiesOS.Add(item)
 
     @OperationsMethod
     def GetDepth(self, item_or_hvo):

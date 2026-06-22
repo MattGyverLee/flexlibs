@@ -189,16 +189,18 @@ class PossibilityItemOperations(BaseOperations):
 
         # Create the new item using the factory
         factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
-        new_item = factory.Create()
 
-        # Add to list (must be done before setting properties)
-        list_obj.PossibilitiesOS.Add(new_item)
+        with self._TransactionCM(f"Create {self._get_item_class_name()} {name!r}"):
+            new_item = factory.Create()
 
-        # Set name
-        mkstr = TsStringUtils.MakeString(name, wsHandle)
-        new_item.Name.set_String(wsHandle, mkstr)
+            # Add to list (must be done before setting properties)
+            list_obj.PossibilitiesOS.Add(new_item)
 
-        return new_item
+            # Set name
+            mkstr = TsStringUtils.MakeString(name, wsHandle)
+            new_item.Name.set_String(wsHandle, mkstr)
+
+            return new_item
 
     @OperationsMethod
     def Delete(self, item_or_hvo):
@@ -252,22 +254,24 @@ class PossibilityItemOperations(BaseOperations):
 
         # Create new item using factory (auto-generates new GUID)
         factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
-        duplicate = factory.Create()
 
-        # ADD TO PARENT FIRST before copying properties (CRITICAL)
-        if insert_after:
-            # Insert after source item
-            source_index = list_obj.PossibilitiesOS.IndexOf(source)
-            list_obj.PossibilitiesOS.Insert(source_index + 1, duplicate)
-        else:
-            # Insert at end
-            list_obj.PossibilitiesOS.Add(duplicate)
+        with self._TransactionCM(f"Duplicate {self._get_item_class_name()}"):
+            duplicate = factory.Create()
 
-        # Copy MultiString properties using CopyAlternatives
-        duplicate.Name.CopyAlternatives(source.Name)
-        duplicate.Description.CopyAlternatives(source.Description)
+            # ADD TO PARENT FIRST before copying properties (CRITICAL)
+            if insert_after:
+                # Insert after source item
+                source_index = list_obj.PossibilitiesOS.IndexOf(source)
+                list_obj.PossibilitiesOS.Insert(source_index + 1, duplicate)
+            else:
+                # Insert at end
+                list_obj.PossibilitiesOS.Add(duplicate)
 
-        return duplicate
+            # Copy MultiString properties using CopyAlternatives
+            duplicate.Name.CopyAlternatives(source.Name)
+            duplicate.Description.CopyAlternatives(source.Description)
+
+            return duplicate
 
     @OperationsMethod
     def Find(self, name):
