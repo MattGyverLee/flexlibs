@@ -240,30 +240,31 @@ class WritingSystemOperations(BaseOperations):
 
         ws_manager = self.project.project.ServiceLocator.WritingSystemManager
 
-        # Create + register the WS with the manager. Set() stores it in the
-        # repository, assigns a runtime Handle, and persists the .ldml
-        # backing file on Save. Without Set(), Create() returns a detached
-        # object -- adding the tag to CurXxxWss would yield an orphan
-        # reference and the next OpenProject would hit a modal
-        # "Unable to create writing system: <tag>" dialog from liblcm.
-        ws = ws_manager.Create(language_tag)
-        ws.Abbreviation = language_tag
-        try:
-            ws.DisplayLabel = name
-        except Exception:
-            pass
-        ws_manager.Set(ws)
+        with self._TransactionCM(f"Create writing system '{language_tag}'"):
+            # Create + register the WS with the manager. Set() stores it in the
+            # repository, assigns a runtime Handle, and persists the .ldml
+            # backing file on Save. Without Set(), Create() returns a detached
+            # object -- adding the tag to CurXxxWss would yield an orphan
+            # reference and the next OpenProject would hit a modal
+            # "Unable to create writing system: <tag>" dialog from liblcm.
+            ws = ws_manager.Create(language_tag)
+            ws.Abbreviation = language_tag
+            try:
+                ws.DisplayLabel = name
+            except Exception:
+                pass
+            ws_manager.Set(ws)
 
-        # AddToCurrent* updates BOTH the full XxxWss list AND the current
-        # list via the proper change-notification path. Raw assignment to
-        # CurXxxWss (the previous implementation) bypassed the WS-list
-        # collection bookkeeping and left the full list out of sync.
-        if is_vernacular:
-            self.project.lp.AddToCurrentVernacularWritingSystems(ws)
-        else:
-            self.project.lp.AddToCurrentAnalysisWritingSystems(ws)
+            # AddToCurrent* updates BOTH the full XxxWss list AND the current
+            # list via the proper change-notification path. Raw assignment to
+            # CurXxxWss (the previous implementation) bypassed the WS-list
+            # collection bookkeeping and left the full list out of sync.
+            if is_vernacular:
+                self.project.lp.AddToCurrentVernacularWritingSystems(ws)
+            else:
+                self.project.lp.AddToCurrentAnalysisWritingSystems(ws)
 
-        return ws
+            return ws
 
     @OperationsMethod
     def Delete(self, ws_handle_or_tag):
@@ -324,20 +325,21 @@ class WritingSystemOperations(BaseOperations):
         if ws.Handle == default_anal.Handle:
             raise FP_ParameterError("Cannot delete the default analysis writing system")
 
-        # Removal contract from IWritingSystemContainer: "first remove from
-        # AnalysisWritingSystems [the full list], then from
-        # CurrentAnalysisWritingSystems [the current list]." Same for
-        # vernacular. Going through the collections (rather than
-        # rewriting the CurXxxWss space-delimited string) keeps the full
-        # list and current list in sync.
-        for full_list, current_list in (
-            (self.project.lp.VernacularWritingSystems, self.project.lp.CurrentVernacularWritingSystems),
-            (self.project.lp.AnalysisWritingSystems, self.project.lp.CurrentAnalysisWritingSystems),
-        ):
-            if full_list.Contains(ws):
-                full_list.Remove(ws)
-            if current_list.Contains(ws):
-                current_list.Remove(ws)
+        with self._TransactionCM(f"Delete writing system '{language_tag}'"):
+            # Removal contract from IWritingSystemContainer: "first remove from
+            # AnalysisWritingSystems [the full list], then from
+            # CurrentAnalysisWritingSystems [the current list]." Same for
+            # vernacular. Going through the collections (rather than
+            # rewriting the CurXxxWss space-delimited string) keeps the full
+            # list and current list in sync.
+            for full_list, current_list in (
+                (self.project.lp.VernacularWritingSystems, self.project.lp.CurrentVernacularWritingSystems),
+                (self.project.lp.AnalysisWritingSystems, self.project.lp.CurrentAnalysisWritingSystems),
+            ):
+                if full_list.Contains(ws):
+                    full_list.Remove(ws)
+                if current_list.Contains(ws):
+                    current_list.Remove(ws)
 
     # --- Configuration Methods ---
 
