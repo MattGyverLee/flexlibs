@@ -8,7 +8,7 @@
 #   Platform: Python.NET
 #             FieldWorks Version 9+
 #
-#   Copyright 2025
+#   Copyright 2026
 #
 
 import logging
@@ -1180,8 +1180,17 @@ class LexSenseOperations(BaseOperations):
             return None
         return getattr(msa, "PartOfSpeechRA", None)
 
+    # Map msa_kind strings to the LCM ClassName strings used for
+    # subtype comparison.
+    _MSA_KIND_TO_CLASS = {
+        "infl": "MoInflAffMsa",
+        "deriv": "MoDerivAffMsa",
+        "unclassified": "MoUnclassifiedAffixMsa",
+    }
+
     @OperationsMethod
-    def SetPartOfSpeech(self, sense_or_hvo, pos):
+    def SetPartOfSpeech(self, sense_or_hvo, pos, msa_kind="auto",
+                        from_pos=None, to_pos=None):
         """
         Set the part of speech for a sense.
 
@@ -1191,11 +1200,53 @@ class LexSenseOperations(BaseOperations):
         Args:
             sense_or_hvo: The ILexSense object or HVO.
             pos: The IPartOfSpeech object or HVO to set.
+            msa_kind: Optional affix-MSA subtype selector. One of:
+
+                'auto' (default)
+                    Preserves current behavior. The family-match
+                    short-circuit and family-mismatch fresh-mint paths
+                    behave as they always have. For affix entries, fresh
+                    mint uses CreateInflAff (the FLEx UI / HermitCrab
+                    default).
+
+                'infl' | 'deriv' | 'unclassified'
+                    Only legal when the entry has an affix morph type.
+                    The fresh-mint path uses CreateInflAff / CreateDerivAff
+                    / CreateUnclassifiedAffix respectively. The
+                    family-match short-circuit still runs first; it wins
+                    only if the existing MSA's concrete subtype already
+                    equals msa_kind. If the subtype differs from msa_kind,
+                    the short-circuit is skipped and a fresh MSA of the
+                    requested kind is minted.
+
+                Raises FP_ParameterError if msa_kind != 'auto' and the
+                entry is a stem-morphtype entry.
+
+            from_pos: Only consulted when msa_kind='deriv' AND a fresh
+                MoDerivAffMsa is being minted (i.e. no short-circuit).
+                Sets FromPartOfSpeechRA (the input category). Defaults to
+                ``pos`` when omitted. Ignored for all other msa_kind values.
+            to_pos: Only consulted when msa_kind='deriv' AND a fresh
+                MoDerivAffMsa is being minted. Sets ToPartOfSpeechRA (the
+                output category). Defaults to None (unset) when omitted,
+                which is the correct state for an incompletely specified
+                derivational affix -- the user can supply it later via
+                MSA.SetDerivAffMsaPos(sense, to_pos=X). Ignored for all
+                other msa_kind values.
+
+                BEHAVIOR CHANGE (Cycle 4, issue #91 Option D): Previously
+                omitting to_pos caused the deriv mint path to copy pos
+                into both FromPartOfSpeechRA and ToPartOfSpeechRA,
+                producing a linguistically invalid "derivation" that does
+                not change category. The new default is to_pos=None (unset).
+                Pass to_pos explicitly if you need a specific output POS.
 
         Raises:
             FP_ReadOnlyError: If the project is not opened with write enabled.
             FP_NullParameterError: If sense_or_hvo or pos is None.
-            FP_ParameterError: If pos is invalid.
+            FP_ParameterError: If pos is invalid, or msa_kind is not one of
+                the recognised values, or msa_kind != 'auto' is used on a
+                stem-morphtype entry.
 
         Example:
             >>> entry = list(project.LexiconAllEntries())[0]
@@ -1206,29 +1257,57 @@ class LexSenseOperations(BaseOperations):
             ...     if verb_pos:
             ...         project.Senses.SetPartOfSpeech(senses[0], verb_pos)
 
+            # Explicitly request a derivational-affix MSA on a suffix entry:
+            >>> project.Senses.SetPartOfSpeech(sense, verb_pos, msa_kind='deriv')
+
+            # Deriv with explicit from/to POS (verb -> noun derivation):
+            >>> project.Senses.SetPartOfSpeech(
+            ...     sense, verb_pos, msa_kind='deriv',
+            ...     from_pos=verb_pos, to_pos=noun_pos)
+
+            # Deriv with from_pos only; to_pos left unset (fill in later):
+            >>> project.Senses.SetPartOfSpeech(
+            ...     sense, verb_pos, msa_kind='deriv', from_pos=verb_pos)
+
         Notes:
             - MSA factory is chosen based on the entry's morph type
               (issue #33):
                 - Stem morphs (root, stem, clitic, particle, ...) ->
                   IMoStemMsa.
                 - Affix morphs (prefix, suffix, infix, circumfix, ...)
-                  -> IMoInflAffMsa, matching the FLEx UI default and
-                  the type HermitCrab/the parser expect.
+                  -> IMoInflAffMsa by default, matching the FLEx UI
+                  default and the type HermitCrab/the parser expect.
             - When the existing MSA is of the wrong family for the
               entry's morph type, a new MSA is created and the sense
               is repointed at it. The wrong-type MSA is detached from
               this sense but left in the entry's MorphoSyntaxAnalysesOC
               collection (it may still be referenced by other senses
               or morph bundles).
-            - When the existing MSA already matches the family, only
-              PartOfSpeechRA is updated -- the specific affix variant
-              (MoInflAffMsa vs MoDerivAffMsa vs MoUnclassifiedAffixMsa)
-              is preserved.
+            - When msa_kind='auto' and the existing MSA already matches
+              the family, only PartOfSpeechRA is updated -- the specific
+              affix variant (MoInflAffMsa vs MoDerivAffMsa vs
+              MoUnclassifiedAffixMsa) is preserved.
+            - When msa_kind is explicit ('infl'/'deriv'/'unclassified'),
+              the short-circuit only fires if the existing subtype also
+              matches msa_kind. A mismatched subtype skips the
+              short-circuit; the caller should use
+              MSAOperations.ChangeAffixVariant to migrate an existing MSA.
+            - from_pos and to_pos are silently ignored when msa_kind is
+              not 'deriv', or when the deriv short-circuit fires (existing
+              MSA is already MoDerivAffMsa and subtype matches).
             - POS must be from the project's parts of speech list.
 
         See Also:
-            GetPartOfSpeech, SetGrammaticalInfo
+            GetPartOfSpeech, SetGrammaticalInfo,
+            MSAOperations.ChangeAffixVariant
         """
+        _VALID_MSA_KINDS = {"auto", "infl", "deriv", "unclassified"}
+        if msa_kind not in _VALID_MSA_KINDS:
+            raise FP_ParameterError(
+                f"msa_kind must be one of {sorted(_VALID_MSA_KINDS)}; "
+                f"got {msa_kind!r}"
+            )
+
         self._EnsureWriteEnabled()
 
         self._ValidateParam(sense_or_hvo, "sense_or_hvo")
@@ -1255,6 +1334,17 @@ class LexSenseOperations(BaseOperations):
         # when the entry was a prefix/suffix/infix/circumfix.
         entry_is_affix = self.__EntryHasAffixMorphType(entry)
 
+        # msa_kind != 'auto' is only meaningful for affix entries.
+        if msa_kind != "auto" and not entry_is_affix:
+            raise FP_ParameterError(
+                f"msa_kind={msa_kind!r} is only valid for affix morph-type "
+                "entries; this entry has a stem morph type. Use msa_kind='auto' "
+                "or omit msa_kind for stem entries."
+            )
+
+        # When msa_kind is explicit, determine which LCM ClassName it maps to.
+        requested_class = self._MSA_KIND_TO_CLASS.get(msa_kind)  # None when 'auto'
+
         existing_msa = sense.MorphoSyntaxAnalysisRA
         if existing_msa is not None:
             existing_class = existing_msa.ClassName
@@ -1276,7 +1366,15 @@ class LexSenseOperations(BaseOperations):
                 or (not entry_is_affix and existing_is_stem_msa)
             )
 
-            if family_matches:
+            # For an explicit msa_kind, also require the subtype to match.
+            # If it doesn't, we skip the short-circuit to mint a fresh MSA
+            # of the requested kind instead. (issue #91)
+            subtype_matches = (
+                requested_class is None
+                or existing_class == requested_class
+            )
+
+            if family_matches and subtype_matches:
                 # Update POS in place and preserve the specific MSA
                 # subtype the user (or earlier code) chose.
                 #
@@ -1296,18 +1394,50 @@ class LexSenseOperations(BaseOperations):
                 if hasattr(msa, "PartOfSpeechRA"):
                     msa.PartOfSpeechRA = pos_obj
                     return
-            # Family mismatch (or unrecognized class): detach the
-            # wrong-type MSA from this sense. We do not remove it from
-            # entry.MorphoSyntaxAnalysesOC because other senses /
-            # morph bundles may still reference it; that cleanup is
-            # the caller's responsibility.
+            # Family mismatch, subtype mismatch (explicit kind), or
+            # unrecognized class: detach the wrong-type MSA from this
+            # sense. We do not remove it from entry.MorphoSyntaxAnalysesOC
+            # because other senses / morph bundles may still reference it;
+            # that cleanup is the caller's responsibility.
             sense.MorphoSyntaxAnalysisRA = None
 
         # Create a fresh MSA of the correct family via MSAOperations so
         # ownership, factory dispatch, and sense attachment are handled
-        # in one place. (issue #90)
+        # in one place. (issue #90, #91)
         if entry_is_affix:
-            self.project.MSA.CreateInflAff(sense, pos_obj)
+            effective_kind = msa_kind if msa_kind != "auto" else "infl"
+            if effective_kind == "infl":
+                self.project.MSA.CreateInflAff(sense, pos_obj)
+            elif effective_kind == "deriv":
+                # Resolve the from/to POS for the deriv mint path (Option D,
+                # issue #91). from_pos defaults to pos_obj when not supplied;
+                # to_pos defaults to None (unset) -- NOT a copy of from_pos.
+                # Passing from_pos==to_pos was a linguistic error (a
+                # "derivation" that doesn't change category is actually
+                # inflection). Callers who need a specific output POS should
+                # supply to_pos= explicitly or call
+                # MSA.SetDerivAffMsaPos(sense, to_pos=X) afterward.
+                # Resolve from_pos / to_pos using the same HVO-or-object
+                # pattern applied to pos earlier in this method.
+                if from_pos is not None:
+                    resolved_from = (
+                        self.project.project.ServiceLocator.GetObject(from_pos)
+                        if isinstance(from_pos, int) else from_pos
+                    )
+                else:
+                    resolved_from = pos_obj
+                if to_pos is not None:
+                    resolved_to = (
+                        self.project.project.ServiceLocator.GetObject(to_pos)
+                        if isinstance(to_pos, int) else to_pos
+                    )
+                else:
+                    resolved_to = None
+                self.project.MSA.CreateDerivAff(
+                    sense, from_pos=resolved_from, to_pos=resolved_to
+                )
+            else:  # unclassified
+                self.project.MSA.CreateUnclassifiedAffix(sense, pos_obj)
         else:
             self.project.MSA.CreateStem(sense, pos_obj)
 
