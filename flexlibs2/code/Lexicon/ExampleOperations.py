@@ -194,16 +194,18 @@ class ExampleOperations(BaseOperations):
 
         # Create the new example using the factory
         factory = self.project.project.ServiceLocator.GetService(ILexExampleSentenceFactory)
-        example = factory.Create()
 
-        # Add to sense's examples collection (must be done before setting properties)
-        sense.ExamplesOS.Add(example)
+        with self._TransactionCM("Create example"):
+            example = factory.Create()
 
-        # Set example text
-        mkstr = TsStringUtils.MakeString(example_text, wsHandle)
-        example.Example.set_String(wsHandle, mkstr)
+            # Add to sense's examples collection (must be done before setting properties)
+            sense.ExamplesOS.Add(example)
 
-        return example
+            # Set example text
+            mkstr = TsStringUtils.MakeString(example_text, wsHandle)
+            example.Example.set_String(wsHandle, mkstr)
+
+            return example
 
     @OperationsMethod
     def Delete(self, example_or_hvo):
@@ -316,41 +318,43 @@ class ExampleOperations(BaseOperations):
 
         # Create new example using factory (auto-generates new GUID)
         factory = self.project.project.ServiceLocator.GetService(ILexExampleSentenceFactory)
-        duplicate = factory.Create()
 
-        # Determine insertion position
-        if insert_after:
-            # Insert after source example
-            source_index = parent.ExamplesOS.IndexOf(source)
-            parent.ExamplesOS.Insert(source_index + 1, duplicate)
-        else:
-            # Insert at end
-            parent.ExamplesOS.Add(duplicate)
+        with self._TransactionCM("Duplicate example"):
+            duplicate = factory.Create()
 
-        # Copy simple MultiString properties (AFTER adding to parent)
-        duplicate.Example.CopyAlternatives(source.Example)
+            # Determine insertion position
+            if insert_after:
+                # Insert after source example
+                source_index = parent.ExamplesOS.IndexOf(source)
+                parent.ExamplesOS.Insert(source_index + 1, duplicate)
+            else:
+                # Insert at end
+                parent.ExamplesOS.Add(duplicate)
 
-        # Skip copying Reference - it's complex and often empty
-        # Reference is an ITsString pointing to the source text location
-        # For duplicates, this reference doesn't make sense to copy
+            # Copy simple MultiString properties (AFTER adding to parent)
+            duplicate.Example.CopyAlternatives(source.Example)
 
-        # Handle owned objects if deep=True
-        if deep:
-            # Duplicate translations
-            for translation in source.TranslationsOC:
-                if translation.TypeRA is None:
-                    logger.warning(
-                        "Duplicate: skipping translation copy -- source TypeRA is null"
-                    )
-                    continue
-                trans_factory = self.project.project.ServiceLocator.GetService(ICmTranslationFactory)
-                new_trans = trans_factory.Create(duplicate, translation.TypeRA)
-                duplicate.TranslationsOC.Add(new_trans)
+            # Skip copying Reference - it's complex and often empty
+            # Reference is an ITsString pointing to the source text location
+            # For duplicates, this reference doesn't make sense to copy
 
-                # Copy translation properties
-                new_trans.Translation.CopyAlternatives(translation.Translation)
+            # Handle owned objects if deep=True
+            if deep:
+                # Duplicate translations
+                for translation in source.TranslationsOC:
+                    if translation.TypeRA is None:
+                        logger.warning(
+                            "Duplicate: skipping translation copy -- source TypeRA is null"
+                        )
+                        continue
+                    trans_factory = self.project.project.ServiceLocator.GetService(ICmTranslationFactory)
+                    new_trans = trans_factory.Create(duplicate, translation.TypeRA)
+                    duplicate.TranslationsOC.Add(new_trans)
 
-        return duplicate
+                    # Copy translation properties
+                    new_trans.Translation.CopyAlternatives(translation.Translation)
+
+            return duplicate
 
     # ========== SYNC INTEGRATION METHODS ==========
 
@@ -451,98 +455,99 @@ class ExampleOperations(BaseOperations):
             else:
                 remaining_props[k] = v
 
-        # Apply plain / multistring fields via base class.
-        super().ApplySyncableProperties(item, remaining_props, ws_map=ws_map)
+        with self._TransactionCM("Apply example sync properties"):
+            # Apply plain / multistring fields via base class.
+            super().ApplySyncableProperties(item, remaining_props, ws_map=ws_map)
 
-        # --- Reference (ITsString, single-string) ---
-        if "Reference" in special_props:
-            ref_text = special_props["Reference"] or ""
-            if ref_text:
-                ws_handle = self.project.project.DefaultAnalWs
-                item.Reference = TsStringUtils.MakeString(ref_text, ws_handle)
+            # --- Reference (ITsString, single-string) ---
+            if "Reference" in special_props:
+                ref_text = special_props["Reference"] or ""
+                if ref_text:
+                    ws_handle = self.project.project.DefaultAnalWs
+                    item.Reference = TsStringUtils.MakeString(ref_text, ws_handle)
 
-        # --- TranslationsOC (owned collection -- clear-and-rebuild) ---
-        # V1 choice: clear all existing ICmTranslation objects and recreate from
-        # the serialized list. This is safe for cross-project sync where the target
-        # example was just created. A future v2 could reconcile by TypeRA GUID to
-        # preserve locally-authored translations not present in the source.
-        if "TranslationsOC" in special_props:
-            translations_data = special_props["TranslationsOC"]
-            if not isinstance(translations_data, list):
-                _log.warning(
-                    "[WARN] ApplySyncableProperties: TranslationsOC expected list, "
-                    "got %s -- skipping", type(translations_data).__name__
-                )
-            else:
-                # Resolve target writing systems once.
-                target_ws_by_id = {
-                    ws.Id: ws.Handle
-                    for ws in self.project.WritingSystems.GetAll()
-                }
-
-                # Build a GUID->object map for the translation type possibility list.
-                # Translation types live in LangProject.TranslationTagsOA.
-                type_guid_map = {}
-                try:
-                    for tt in self.project.lp.TranslationTagsOA.PossibilitiesOS:
-                        type_guid_map[str(tt.Guid)] = tt
-                except Exception as exc:
+            # --- TranslationsOC (owned collection -- clear-and-rebuild) ---
+            # V1 choice: clear all existing ICmTranslation objects and recreate from
+            # the serialized list. This is safe for cross-project sync where the target
+            # example was just created. A future v2 could reconcile by TypeRA GUID to
+            # preserve locally-authored translations not present in the source.
+            if "TranslationsOC" in special_props:
+                translations_data = special_props["TranslationsOC"]
+                if not isinstance(translations_data, list):
                     _log.warning(
-                        "[WARN] ApplySyncableProperties: could not enumerate "
-                        "TranslationTagsOA: %s", exc
+                        "[WARN] ApplySyncableProperties: TranslationsOC expected list, "
+                        "got %s -- skipping", type(translations_data).__name__
                     )
+                else:
+                    # Resolve target writing systems once.
+                    target_ws_by_id = {
+                        ws.Id: ws.Handle
+                        for ws in self.project.WritingSystems.GetAll()
+                    }
 
-                # Clear existing translations on the target example.
-                item.TranslationsOC.Clear()
-
-                for trans_dict in translations_data:
-                    if not isinstance(trans_dict, dict):
+                    # Build a GUID->object map for the translation type possibility list.
+                    # Translation types live in LangProject.TranslationTagsOA.
+                    type_guid_map = {}
+                    try:
+                        for tt in self.project.lp.TranslationTagsOA.PossibilitiesOS:
+                            type_guid_map[str(tt.Guid)] = tt
+                    except Exception as exc:
                         _log.warning(
-                            "[WARN] ApplySyncableProperties: TranslationsOC entry "
-                            "is not a dict -- skipped"
+                            "[WARN] ApplySyncableProperties: could not enumerate "
+                            "TranslationTagsOA: %s", exc
                         )
-                        continue
 
-                    # Resolve TypeRA by GUID before Create() -- factory requires a non-null possibility.
-                    type_guid_str = trans_dict.get("TypeRA")
-                    type_obj = None
-                    if type_guid_str:
-                        type_obj = type_guid_map.get(type_guid_str)
+                    # Clear existing translations on the target example.
+                    item.TranslationsOC.Clear()
+
+                    for trans_dict in translations_data:
+                        if not isinstance(trans_dict, dict):
+                            _log.warning(
+                                "[WARN] ApplySyncableProperties: TranslationsOC entry "
+                                "is not a dict -- skipped"
+                            )
+                            continue
+
+                        # Resolve TypeRA by GUID before Create() -- factory requires a non-null possibility.
+                        type_guid_str = trans_dict.get("TypeRA")
+                        type_obj = None
+                        if type_guid_str:
+                            type_obj = type_guid_map.get(type_guid_str)
+                            if type_obj is None:
+                                _log.warning(
+                                    "[WARN] ApplySyncableProperties: TranslationsOC "
+                                    "TypeRA GUID %s not found in target project's "
+                                    "TranslationTagsOA -- translation skipped",
+                                    type_guid_str
+                                )
                         if type_obj is None:
                             _log.warning(
-                                "[WARN] ApplySyncableProperties: TranslationsOC "
-                                "TypeRA GUID %s not found in target project's "
-                                "TranslationTagsOA -- translation skipped",
-                                type_guid_str
+                                "[WARN] ApplySyncableProperties: TranslationsOC entry "
+                                "has no resolvable TypeRA -- translation skipped"
                             )
-                    if type_obj is None:
-                        _log.warning(
-                            "[WARN] ApplySyncableProperties: TranslationsOC entry "
-                            "has no resolvable TypeRA -- translation skipped"
-                        )
-                        continue
-
-                    # Create a new ICmTranslation owned by this example.
-                    new_trans = self.project.project.ServiceLocator.GetService(
-                        ICmTranslationFactory
-                    ).Create(item, type_obj)
-                    item.TranslationsOC.Add(new_trans)
-
-                    # Set Translation IMultiString per writing system.
-                    trans_text_dict = trans_dict.get("Translation", {})
-                    for src_ws_id, text in trans_text_dict.items():
-                        if not text:
                             continue
-                        tgt_ws_id = (
-                            ws_map.get(src_ws_id, src_ws_id) if ws_map else src_ws_id
-                        )
-                        tgt_handle = target_ws_by_id.get(tgt_ws_id)
-                        if tgt_handle is None:
-                            continue
-                        new_trans.Translation.set_String(
-                            tgt_handle,
-                            TsStringUtils.MakeString(text, tgt_handle)
-                        )
+
+                        # Create a new ICmTranslation owned by this example.
+                        new_trans = self.project.project.ServiceLocator.GetService(
+                            ICmTranslationFactory
+                        ).Create(item, type_obj)
+                        item.TranslationsOC.Add(new_trans)
+
+                        # Set Translation IMultiString per writing system.
+                        trans_text_dict = trans_dict.get("Translation", {})
+                        for src_ws_id, text in trans_text_dict.items():
+                            if not text:
+                                continue
+                            tgt_ws_id = (
+                                ws_map.get(src_ws_id, src_ws_id) if ws_map else src_ws_id
+                            )
+                            tgt_handle = target_ws_by_id.get(tgt_ws_id)
+                            if tgt_handle is None:
+                                continue
+                            new_trans.Translation.set_String(
+                                tgt_handle,
+                                TsStringUtils.MakeString(text, tgt_handle)
+                            )
 
     @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
@@ -627,10 +632,11 @@ class ExampleOperations(BaseOperations):
         if current_examples != new_examples:
             raise FP_ParameterError("Example list must contain exactly the same examples as the sense")
 
-        # Clear and re-add in new order
-        sense.ExamplesOS.Clear()
-        for example in examples:
-            sense.ExamplesOS.Add(example)
+        with self._TransactionCM("Reorder examples"):
+            # Clear and re-add in new order
+            sense.ExamplesOS.Clear()
+            for example in examples:
+                sense.ExamplesOS.Add(example)
 
     @OperationsMethod
     def GetExample(self, example_or_hvo, wsHandle=None):
@@ -873,15 +879,16 @@ class ExampleOperations(BaseOperations):
                 translation = trans
                 break
 
-        if translation is None:
-            # Create new translation
-            factory = self.project.project.ServiceLocator.GetService(ICmTranslationFactory)
-            translation = factory.Create()
-            example.TranslationsOC.Add(translation)
+        with self._TransactionCM("Set translation"):
+            if translation is None:
+                # Create new translation
+                factory = self.project.project.ServiceLocator.GetService(ICmTranslationFactory)
+                translation = factory.Create()
+                example.TranslationsOC.Add(translation)
 
-        # Set the translation text
-        mkstr = TsStringUtils.MakeString(text, wsHandle)
-        translation.Translation.set_String(wsHandle, mkstr)
+            # Set the translation text
+            mkstr = TsStringUtils.MakeString(text, wsHandle)
+            translation.Translation.set_String(wsHandle, mkstr)
 
     @OperationsMethod
     def AddTranslation(self, example_or_hvo, text, wsHandle=None):
@@ -1196,17 +1203,18 @@ class ExampleOperations(BaseOperations):
 
         example = self.__GetExampleObject(example_or_hvo)
 
-        # Use MediaOperations to properly copy file and create ICmFile
-        # Copy file to project and get ICmFile reference
-        media_file = self.project.Media.CopyToProject(file_path, internal_subdir="AudioVisual", label=label)
+        with self._TransactionCM("Add media file"):
+            # Use MediaOperations to properly copy file and create ICmFile
+            # Copy file to project and get ICmFile reference
+            media_file = self.project.Media.CopyToProject(file_path, internal_subdir="AudioVisual", label=label)
 
-        # Add to example's media collection
-        if hasattr(example, "MediaFilesOS"):
-            example.MediaFilesOS.Add(media_file)
-        else:
-            raise FP_ParameterError("Example does not support media files")
+            # Add to example's media collection
+            if hasattr(example, "MediaFilesOS"):
+                example.MediaFilesOS.Add(media_file)
+            else:
+                raise FP_ParameterError("Example does not support media files")
 
-        return media_file
+            return media_file
 
     @OperationsMethod
     def RemoveMediaFile(self, example_or_hvo, media_or_hvo):
@@ -1365,13 +1373,14 @@ class ExampleOperations(BaseOperations):
         if not hasattr(to_example, "MediaFilesOS"):
             raise FP_ParameterError("Destination example does not support media files")
 
-        # Move the media (remove from source, add to destination)
-        from_example.MediaFilesOS.Remove(media)
-        to_example.MediaFilesOS.Add(media)
+        with self._TransactionCM("Move media file"):
+            # Move the media (remove from source, add to destination)
+            from_example.MediaFilesOS.Remove(media)
+            to_example.MediaFilesOS.Add(media)
 
-        logger.info(f"Moved media from example {from_example.Guid} to example {to_example.Guid}")
+            logger.info(f"Moved media from example {from_example.Guid} to example {to_example.Guid}")
 
-        return True
+            return True
 
     @OperationsMethod
     def GetOwningSense(self, example_or_hvo):

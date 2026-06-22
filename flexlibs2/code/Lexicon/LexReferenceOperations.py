@@ -245,36 +245,37 @@ class LexReferenceOperations(BaseOperations):
 
         wsHandle = self.__WSHandleAnalysis(wsHandle)
 
-        # Create the new reference type using the factory
-        factory = self.project.project.ServiceLocator.GetService(ILexRefTypeFactory)
-        new_ref_type = factory.Create()
+        with self._TransactionCM(f"Create reference type '{name}'"):
+            # Create the new reference type using the factory
+            factory = self.project.project.ServiceLocator.GetService(ILexRefTypeFactory)
+            new_ref_type = factory.Create()
 
-        # Add to project's lexical relation types (must be done before setting properties)
-        ref_types_list = self.project.lexDB.ReferencesOA
-        if ref_types_list:
-            ref_types_list.PossibilitiesOS.Add(new_ref_type)
+            # Add to project's lexical relation types (must be done before setting properties)
+            ref_types_list = self.project.lexDB.ReferencesOA
+            if ref_types_list:
+                ref_types_list.PossibilitiesOS.Add(new_ref_type)
 
-        # Set the name
-        mkstr = TsStringUtils.MakeString(name, wsHandle)
-        new_ref_type.Name.set_String(wsHandle, mkstr)
+            # Set the name
+            mkstr = TsStringUtils.MakeString(name, wsHandle)
+            new_ref_type.Name.set_String(wsHandle, mkstr)
 
-        # Set the mapping type
-        new_ref_type.MappingType = mapping_value
+            # Set the mapping type
+            new_ref_type.MappingType = mapping_value
 
-        # Set reverse name for asymmetric relations
-        if reverse_name and mapping_value == LexRefMappingTypes.ASYMMETRIC:
-            rev_mkstr = TsStringUtils.MakeString(reverse_name, wsHandle)
-            new_ref_type.ReverseName.set_String(wsHandle, rev_mkstr)
-        else:
-            # Create the reference list if it doesn't exist
-            from SIL.LCModel import ICmPossibilityListFactory
+            # Set reverse name for asymmetric relations
+            if reverse_name and mapping_value == LexRefMappingTypes.ASYMMETRIC:
+                rev_mkstr = TsStringUtils.MakeString(reverse_name, wsHandle)
+                new_ref_type.ReverseName.set_String(wsHandle, rev_mkstr)
+            else:
+                # Create the reference list if it doesn't exist
+                from SIL.LCModel import ICmPossibilityListFactory
 
-            list_factory = self.project.project.ServiceLocator.GetService(ICmPossibilityListFactory)
-            new_list = list_factory.Create()
-            self.project.lexDB.ReferencesOA = new_list
-            new_list.PossibilitiesOS.Add(new_ref_type)
+                list_factory = self.project.project.ServiceLocator.GetService(ICmPossibilityListFactory)
+                new_list = list_factory.Create()
+                self.project.lexDB.ReferencesOA = new_list
+                new_list.PossibilitiesOS.Add(new_ref_type)
 
-        return new_ref_type
+            return new_ref_type
 
     @OperationsMethod
     def DeleteType(self, ref_type_or_hvo):
@@ -759,18 +760,19 @@ class LexReferenceOperations(BaseOperations):
         if not all(t.ClassName == first_class for t in resolved_targets):
             raise FP_ParameterError("All targets must be the same type (all LexSense or all LexEntry)")
 
-        # Create the new reference using the factory
-        factory = self.project.project.ServiceLocator.GetService(ILexReferenceFactory)
-        new_ref = factory.Create()
+        with self._TransactionCM("Create reference"):
+            # Create the new reference using the factory
+            factory = self.project.project.ServiceLocator.GetService(ILexReferenceFactory)
+            new_ref = factory.Create()
 
-        # Add reference to the type's members (must be done before setting properties)
-        ref_type.MembersOC.Add(new_ref)
+            # Add reference to the type's members (must be done before setting properties)
+            ref_type.MembersOC.Add(new_ref)
 
-        # Add targets to the reference
-        for target in resolved_targets:
-            new_ref.TargetsRS.Add(target)
+            # Add targets to the reference
+            for target in resolved_targets:
+                new_ref.TargetsRS.Add(target)
 
-        return new_ref
+            return new_ref
 
     @OperationsMethod
     def Delete(self, lex_ref_or_hvo):
@@ -1137,17 +1139,19 @@ class LexReferenceOperations(BaseOperations):
         component = self.__ResolveEntry(entry)
         complex_form = self.__ResolveEntry(complex_entry)
 
-        # Find or create "Complex Forms" reference type
+        # Find "Complex Forms" reference type (read-only lookup)
         complex_type = self.FindType("Complex Forms")
-        if not complex_type:
-            # Create it as a tree relation
-            complex_type = self.CreateType("Complex Forms", "Tree", reverse_name="Components")
 
-        # Create reference with complex form as parent, component as child
-        # In tree relations, first target is typically the parent
-        ref = self.Create(complex_type, [complex_form, component])
+        with self._TransactionCM("Show complex forms in"):
+            if not complex_type:
+                # Create it as a tree relation
+                complex_type = self.CreateType("Complex Forms", "Tree", reverse_name="Components")
 
-        return ref
+            # Create reference with complex form as parent, component as child
+            # In tree relations, first target is typically the parent
+            ref = self.Create(complex_type, [complex_form, component])
+
+            return ref
 
     @OperationsMethod
     def GetComplexFormEntries(self, entry):

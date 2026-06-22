@@ -956,27 +956,28 @@ class SemanticDomainOperations(BaseOperations, _LCMNativeCatalogImportMixin):
 
         wsHandle = self.__WSHandle(wsHandle)
 
-        # Create the new domain using the factory
-        factory = self.project.project.ServiceLocator.GetService(ICmSemanticDomainFactory)
-        new_domain = factory.Create()
+        with self._TransactionCM(f"Create semantic domain {number}"):
+            # Create the new domain using the factory
+            factory = self.project.project.ServiceLocator.GetService(ICmSemanticDomainFactory)
+            new_domain = factory.Create()
 
-        # Add to parent or top-level list (must be done before setting properties)
-        if parent:
-            parent_obj = self.__ResolveObject(parent)
-            parent_obj.SubPossibilitiesOS.Add(new_domain)
-        else:
-            domain_list = self.project.lp.SemanticDomainListOA
-            domain_list.PossibilitiesOS.Add(new_domain)
+            # Add to parent or top-level list (must be done before setting properties)
+            if parent:
+                parent_obj = self.__ResolveObject(parent)
+                parent_obj.SubPossibilitiesOS.Add(new_domain)
+            else:
+                domain_list = self.project.lp.SemanticDomainListOA
+                domain_list.PossibilitiesOS.Add(new_domain)
 
-        # Set name
-        mkstr_name = TsStringUtils.MakeString(name, wsHandle)
-        new_domain.Name.set_String(wsHandle, mkstr_name)
+            # Set name
+            mkstr_name = TsStringUtils.MakeString(name, wsHandle)
+            new_domain.Name.set_String(wsHandle, mkstr_name)
 
-        # Set abbreviation (domain number)
-        mkstr_num = TsStringUtils.MakeString(number, wsHandle)
-        new_domain.Abbreviation.set_String(wsHandle, mkstr_num)
+            # Set abbreviation (domain number)
+            mkstr_num = TsStringUtils.MakeString(number, wsHandle)
+            new_domain.Abbreviation.set_String(wsHandle, mkstr_num)
 
-        return new_domain
+            return new_domain
 
     @OperationsMethod
     def Delete(self, domain_or_hvo):
@@ -1084,45 +1085,46 @@ class SemanticDomainOperations(BaseOperations, _LCMNativeCatalogImportMixin):
         source = self.__ResolveObject(item_or_hvo)
         parent = self.GetParent(source)
 
-        # Create new domain using factory (auto-generates new GUID)
-        factory = self.project.project.ServiceLocator.GetService(ICmSemanticDomainFactory)
-        duplicate = factory.Create()
+        with self._TransactionCM("Duplicate semantic domain"):
+            # Create new domain using factory (auto-generates new GUID)
+            factory = self.project.project.ServiceLocator.GetService(ICmSemanticDomainFactory)
+            duplicate = factory.Create()
 
-        # Determine insertion position - ADD TO PARENT FIRST
-        if parent:
-            # Has a parent - add to parent's subdomains
-            if insert_after:
-                source_index = parent.SubPossibilitiesOS.IndexOf(source)
-                parent.SubPossibilitiesOS.Insert(source_index + 1, duplicate)
+            # Determine insertion position - ADD TO PARENT FIRST
+            if parent:
+                # Has a parent - add to parent's subdomains
+                if insert_after:
+                    source_index = parent.SubPossibilitiesOS.IndexOf(source)
+                    parent.SubPossibilitiesOS.Insert(source_index + 1, duplicate)
+                else:
+                    parent.SubPossibilitiesOS.Add(duplicate)
             else:
-                parent.SubPossibilitiesOS.Add(duplicate)
-        else:
-            # Top-level domain - add to main list
-            domain_list = self.project.lp.SemanticDomainListOA
-            if insert_after:
-                source_index = domain_list.PossibilitiesOS.IndexOf(source)
-                domain_list.PossibilitiesOS.Insert(source_index + 1, duplicate)
-            else:
-                domain_list.PossibilitiesOS.Add(duplicate)
+                # Top-level domain - add to main list
+                domain_list = self.project.lp.SemanticDomainListOA
+                if insert_after:
+                    source_index = domain_list.PossibilitiesOS.IndexOf(source)
+                    domain_list.PossibilitiesOS.Insert(source_index + 1, duplicate)
+                else:
+                    domain_list.PossibilitiesOS.Add(duplicate)
 
-        # Copy simple MultiString properties (AFTER adding to parent)
-        duplicate.Name.CopyAlternatives(source.Name)
-        duplicate.Description.CopyAlternatives(source.Description)
-        duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)
-        duplicate.Questions.CopyAlternatives(source.Questions)
-        duplicate.OcmCodes.CopyAlternatives(source.OcmCodes)
+            # Copy simple MultiString properties (AFTER adding to parent)
+            duplicate.Name.CopyAlternatives(source.Name)
+            duplicate.Description.CopyAlternatives(source.Description)
+            duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)
+            duplicate.Questions.CopyAlternatives(source.Questions)
+            duplicate.OcmCodes.CopyAlternatives(source.OcmCodes)
 
-        # Handle owned objects if deep=True
-        if deep:
-            # Duplicate subdomains recursively
-            for subdomain in source.SubPossibilitiesOS:
-                self.Duplicate(subdomain, insert_after=False, deep=True)
+            # Handle owned objects if deep=True
+            if deep:
+                # Duplicate subdomains recursively
+                for subdomain in source.SubPossibilitiesOS:
+                    self.Duplicate(subdomain, insert_after=False, deep=True)
 
-            # Copy OccurrencesRS (references to examples in the semantic domain)
-            for occurrence in source.OccurrencesRS:
-                duplicate.OccurrencesRS.Add(occurrence)
+                # Copy OccurrencesRS (references to examples in the semantic domain)
+                for occurrence in source.OccurrencesRS:
+                    duplicate.OccurrencesRS.Add(occurrence)
 
-        return duplicate
+            return duplicate
 
     # ========== CATALOG IMPORT METHODS ==========
     #

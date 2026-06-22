@@ -225,18 +225,19 @@ class LexSenseOperations(BaseOperations):
         entry = self.__GetEntryObject(entry_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
 
-        # Create the new sense using the factory
-        factory = self.project.project.ServiceLocator.GetService(ILexSenseFactory)
-        new_sense = factory.Create()
+        with self._TransactionCM("Create sense"):
+            # Create the new sense using the factory
+            factory = self.project.project.ServiceLocator.GetService(ILexSenseFactory)
+            new_sense = factory.Create()
 
-        # Add to entry (must be done before setting properties)
-        entry.SensesOS.Add(new_sense)
+            # Add to entry (must be done before setting properties)
+            entry.SensesOS.Add(new_sense)
 
-        # Set gloss
-        mkstr = TsStringUtils.MakeString(gloss, wsHandle)
-        new_sense.Gloss.set_String(wsHandle, mkstr)
+            # Set gloss
+            mkstr = TsStringUtils.MakeString(gloss, wsHandle)
+            new_sense.Gloss.set_String(wsHandle, mkstr)
 
-        return new_sense
+            return new_sense
 
     @OperationsMethod
     def Delete(self, sense_or_hvo):
@@ -358,25 +359,26 @@ class LexSenseOperations(BaseOperations):
         else:
             parent = ILexSense(raw_parent)
 
-        # Create new sense using factory (auto-generates new GUID)
-        factory = self.project.project.ServiceLocator.GetService(ILexSenseFactory)
-        duplicate = factory.Create()
+        with self._TransactionCM("Duplicate sense"):
+            # Create new sense using factory (auto-generates new GUID)
+            factory = self.project.project.ServiceLocator.GetService(ILexSenseFactory)
+            duplicate = factory.Create()
 
-        # Determine insertion position
-        if insert_after:
-            # Insert after source sense
-            if hasattr(parent, "SensesOS"):
-                source_index = parent.SensesOS.IndexOf(source)
-                parent.SensesOS.Insert(source_index + 1, duplicate)
-        else:
-            # Insert at end
-            if hasattr(parent, "SensesOS"):
-                parent.SensesOS.Add(duplicate)
+            # Determine insertion position
+            if insert_after:
+                # Insert after source sense
+                if hasattr(parent, "SensesOS"):
+                    source_index = parent.SensesOS.IndexOf(source)
+                    parent.SensesOS.Insert(source_index + 1, duplicate)
+            else:
+                # Insert at end
+                if hasattr(parent, "SensesOS"):
+                    parent.SensesOS.Add(duplicate)
 
-        # Copy all content from source to duplicate (including owned objects if deep)
-        self.__copy_sense_content(source, duplicate, deep)
+            # Copy all content from source to duplicate (including owned objects if deep)
+            self.__copy_sense_content(source, duplicate, deep)
 
-        return duplicate
+            return duplicate
 
     def _deep_copy_sense_to(self, source, target_parent):
         """
@@ -688,66 +690,67 @@ class LexSenseOperations(BaseOperations):
             else:
                 remaining_props[k] = v
 
-        # Apply plain / multistring fields via base class.
-        super().ApplySyncableProperties(item, remaining_props, ws_map=ws_map)
+        with self._TransactionCM("Apply sense properties"):
+            # Apply plain / multistring fields via base class.
+            super().ApplySyncableProperties(item, remaining_props, ws_map=ws_map)
 
-        # --- SenseTypeRA ---
-        if "SenseTypeRA" in special_props:
-            guid_str = special_props["SenseTypeRA"]
-            if guid_str:
+            # --- SenseTypeRA ---
+            if "SenseTypeRA" in special_props:
+                guid_str = special_props["SenseTypeRA"]
+                if guid_str:
+                    try:
+                        import System
+                        obj = self.project.Object(System.Guid(guid_str))
+                        item.SenseTypeRA = obj
+                    except Exception as exc:
+                        _log.warning(
+                            "[WARN] ApplySyncableProperties: SenseTypeRA GUID %s "
+                            "not found in target project -- skipped (%s)",
+                            guid_str, exc
+                        )
+                else:
+                    item.SenseTypeRA = None
+
+            # --- Publication RC fields ---
+            def _build_pub_guid_map():
+                pub_map = {}
                 try:
-                    import System
-                    obj = self.project.Object(System.Guid(guid_str))
-                    item.SenseTypeRA = obj
+                    for pub in self.project.lp.PublicationsOA.PossibilitiesOS:
+                        pub_map[str(pub.Guid)] = pub
                 except Exception as exc:
                     _log.warning(
-                        "[WARN] ApplySyncableProperties: SenseTypeRA GUID %s "
-                        "not found in target project -- skipped (%s)",
-                        guid_str, exc
+                        "[WARN] ApplySyncableProperties: could not enumerate "
+                        "PublicationsOA: %s", exc
                     )
-            else:
-                item.SenseTypeRA = None
+                return pub_map
 
-        # --- Publication RC fields ---
-        def _build_pub_guid_map():
-            pub_map = {}
-            try:
-                for pub in self.project.lp.PublicationsOA.PossibilitiesOS:
-                    pub_map[str(pub.Guid)] = pub
-            except Exception as exc:
-                _log.warning(
-                    "[WARN] ApplySyncableProperties: could not enumerate "
-                    "PublicationsOA: %s", exc
-                )
-            return pub_map
-
-        pub_guid_map = None
-        for field_name in ("DoNotPublishInRC", "DoNotShowMainEntryInRC"):
-            if field_name not in special_props:
-                continue
-            guid_set = special_props[field_name]
-            if not hasattr(item, field_name):
-                continue
-            if not isinstance(guid_set, (frozenset, set)):
-                _log.warning(
-                    "[WARN] ApplySyncableProperties: %s expected frozenset, "
-                    "got %s -- skipping", field_name, type(guid_set).__name__
-                )
-                continue
-            if pub_guid_map is None:
-                pub_guid_map = _build_pub_guid_map()
-            rc_collection = getattr(item, field_name)
-            rc_collection.Clear()
-            for gs in guid_set:
-                pub_obj = pub_guid_map.get(gs)
-                if pub_obj is None:
+            pub_guid_map = None
+            for field_name in ("DoNotPublishInRC", "DoNotShowMainEntryInRC"):
+                if field_name not in special_props:
+                    continue
+                guid_set = special_props[field_name]
+                if not hasattr(item, field_name):
+                    continue
+                if not isinstance(guid_set, (frozenset, set)):
                     _log.warning(
-                        "[WARN] ApplySyncableProperties: %s GUID %s not found "
-                        "in target project's publication list -- skipped",
-                        field_name, gs
+                        "[WARN] ApplySyncableProperties: %s expected frozenset, "
+                        "got %s -- skipping", field_name, type(guid_set).__name__
                     )
-                else:
-                    rc_collection.Add(pub_obj)
+                    continue
+                if pub_guid_map is None:
+                    pub_guid_map = _build_pub_guid_map()
+                rc_collection = getattr(item, field_name)
+                rc_collection.Clear()
+                for gs in guid_set:
+                    pub_obj = pub_guid_map.get(gs)
+                    if pub_obj is None:
+                        _log.warning(
+                            "[WARN] ApplySyncableProperties: %s GUID %s not found "
+                            "in target project's publication list -- skipped",
+                            field_name, gs
+                        )
+                    else:
+                        rc_collection.Add(pub_obj)
 
     @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
@@ -828,12 +831,13 @@ class LexSenseOperations(BaseOperations):
             sense = self.__GetSenseObject(sense_or_hvo)
             resolved_senses.append(sense)
 
-        # Clear current senses
-        entry.SensesOS.Clear()
+        with self._TransactionCM("Reorder senses"):
+            # Clear current senses
+            entry.SensesOS.Clear()
 
-        # Add in new order
-        for sense in resolved_senses:
-            entry.SensesOS.Add(sense)
+            # Add in new order
+            for sense in resolved_senses:
+                entry.SensesOS.Add(sense)
 
     # --- Lookup ---
 
@@ -1345,101 +1349,102 @@ class LexSenseOperations(BaseOperations):
         # When msa_kind is explicit, determine which LCM ClassName it maps to.
         requested_class = self._MSA_KIND_TO_CLASS.get(msa_kind)  # None when 'auto'
 
-        existing_msa = sense.MorphoSyntaxAnalysisRA
-        if existing_msa is not None:
-            existing_class = existing_msa.ClassName
-            # Classify against the known LCM whitelist instead of
-            # "not stem". The four concrete MSA subtypes are MoStemMsa,
-            # MoInflAffMsa, MoDerivAffMsa, MoUnclassifiedAffixMsa; an
-            # unrecognized class (abstract base, future subtype, stray
-            # value) is treated as wrong-family and triggers recreate
-            # rather than silently being agreed with. (issue #89)
-            existing_is_stem_msa = (existing_class == "MoStemMsa")
-            existing_is_affix_msa = existing_class in (
-                "MoInflAffMsa",
-                "MoDerivAffMsa",
-                "MoUnclassifiedAffixMsa",
-            )
-
-            family_matches = (
-                (entry_is_affix and existing_is_affix_msa)
-                or (not entry_is_affix and existing_is_stem_msa)
-            )
-
-            # For an explicit msa_kind, also require the subtype to match.
-            # If it doesn't, we skip the short-circuit to mint a fresh MSA
-            # of the requested kind instead. (issue #91)
-            subtype_matches = (
-                requested_class is None
-                or existing_class == requested_class
-            )
-
-            if family_matches and subtype_matches:
-                # Update POS in place and preserve the specific MSA
-                # subtype the user (or earlier code) chose.
-                #
-                # MoDerivAffMsa is the special case: it has no
-                # PartOfSpeechRA -- only FromPartOfSpeechRA and
-                # ToPartOfSpeechRA. ToPartOfSpeechRA is the canonical
-                # "output POS" for a derivational affix and matches
-                # what SetPartOfSpeech logically means. The previous
-                # hasattr-guarded write silently no-op'd on
-                # MoDerivAffMsa and fell through to recreate, breaking
-                # the docstring's "specific affix variant is preserved"
-                # contract. (issue #87)
-                msa = cast_to_concrete(existing_msa)
-                if existing_class == "MoDerivAffMsa":
-                    msa.ToPartOfSpeechRA = pos_obj
-                    return
-                if hasattr(msa, "PartOfSpeechRA"):
-                    msa.PartOfSpeechRA = pos_obj
-                    return
-            # Family mismatch, subtype mismatch (explicit kind), or
-            # unrecognized class: detach the wrong-type MSA from this
-            # sense. We do not remove it from entry.MorphoSyntaxAnalysesOC
-            # because other senses / morph bundles may still reference it;
-            # that cleanup is the caller's responsibility.
-            sense.MorphoSyntaxAnalysisRA = None
-
-        # Create a fresh MSA of the correct family via MSAOperations so
-        # ownership, factory dispatch, and sense attachment are handled
-        # in one place. (issue #90, #91)
-        if entry_is_affix:
-            effective_kind = msa_kind if msa_kind != "auto" else "infl"
-            if effective_kind == "infl":
-                self.project.MSA.CreateInflAff(sense, pos_obj)
-            elif effective_kind == "deriv":
-                # Resolve the from/to POS for the deriv mint path (Option D,
-                # issue #91). from_pos defaults to pos_obj when not supplied;
-                # to_pos defaults to None (unset) -- NOT a copy of from_pos.
-                # Passing from_pos==to_pos was a linguistic error (a
-                # "derivation" that doesn't change category is actually
-                # inflection). Callers who need a specific output POS should
-                # supply to_pos= explicitly or call
-                # MSA.SetDerivAffMsaPos(sense, to_pos=X) afterward.
-                # Resolve from_pos / to_pos using the same HVO-or-object
-                # pattern applied to pos earlier in this method.
-                if from_pos is not None:
-                    resolved_from = (
-                        self.project.project.ServiceLocator.GetObject(from_pos)
-                        if isinstance(from_pos, int) else from_pos
-                    )
-                else:
-                    resolved_from = pos_obj
-                if to_pos is not None:
-                    resolved_to = (
-                        self.project.project.ServiceLocator.GetObject(to_pos)
-                        if isinstance(to_pos, int) else to_pos
-                    )
-                else:
-                    resolved_to = None
-                self.project.MSA.CreateDerivAff(
-                    sense, from_pos=resolved_from, to_pos=resolved_to
+        with self._TransactionCM("Set part of speech"):
+            existing_msa = sense.MorphoSyntaxAnalysisRA
+            if existing_msa is not None:
+                existing_class = existing_msa.ClassName
+                # Classify against the known LCM whitelist instead of
+                # "not stem". The four concrete MSA subtypes are MoStemMsa,
+                # MoInflAffMsa, MoDerivAffMsa, MoUnclassifiedAffixMsa; an
+                # unrecognized class (abstract base, future subtype, stray
+                # value) is treated as wrong-family and triggers recreate
+                # rather than silently being agreed with. (issue #89)
+                existing_is_stem_msa = (existing_class == "MoStemMsa")
+                existing_is_affix_msa = existing_class in (
+                    "MoInflAffMsa",
+                    "MoDerivAffMsa",
+                    "MoUnclassifiedAffixMsa",
                 )
-            else:  # unclassified
-                self.project.MSA.CreateUnclassifiedAffix(sense, pos_obj)
-        else:
-            self.project.MSA.CreateStem(sense, pos_obj)
+
+                family_matches = (
+                    (entry_is_affix and existing_is_affix_msa)
+                    or (not entry_is_affix and existing_is_stem_msa)
+                )
+
+                # For an explicit msa_kind, also require the subtype to match.
+                # If it doesn't, we skip the short-circuit to mint a fresh MSA
+                # of the requested kind instead. (issue #91)
+                subtype_matches = (
+                    requested_class is None
+                    or existing_class == requested_class
+                )
+
+                if family_matches and subtype_matches:
+                    # Update POS in place and preserve the specific MSA
+                    # subtype the user (or earlier code) chose.
+                    #
+                    # MoDerivAffMsa is the special case: it has no
+                    # PartOfSpeechRA -- only FromPartOfSpeechRA and
+                    # ToPartOfSpeechRA. ToPartOfSpeechRA is the canonical
+                    # "output POS" for a derivational affix and matches
+                    # what SetPartOfSpeech logically means. The previous
+                    # hasattr-guarded write silently no-op'd on
+                    # MoDerivAffMsa and fell through to recreate, breaking
+                    # the docstring's "specific affix variant is preserved"
+                    # contract. (issue #87)
+                    msa = cast_to_concrete(existing_msa)
+                    if existing_class == "MoDerivAffMsa":
+                        msa.ToPartOfSpeechRA = pos_obj
+                        return
+                    if hasattr(msa, "PartOfSpeechRA"):
+                        msa.PartOfSpeechRA = pos_obj
+                        return
+                # Family mismatch, subtype mismatch (explicit kind), or
+                # unrecognized class: detach the wrong-type MSA from this
+                # sense. We do not remove it from entry.MorphoSyntaxAnalysesOC
+                # because other senses / morph bundles may still reference it;
+                # that cleanup is the caller's responsibility.
+                sense.MorphoSyntaxAnalysisRA = None
+
+            # Create a fresh MSA of the correct family via MSAOperations so
+            # ownership, factory dispatch, and sense attachment are handled
+            # in one place. (issue #90, #91)
+            if entry_is_affix:
+                effective_kind = msa_kind if msa_kind != "auto" else "infl"
+                if effective_kind == "infl":
+                    self.project.MSA.CreateInflAff(sense, pos_obj)
+                elif effective_kind == "deriv":
+                    # Resolve the from/to POS for the deriv mint path (Option D,
+                    # issue #91). from_pos defaults to pos_obj when not supplied;
+                    # to_pos defaults to None (unset) -- NOT a copy of from_pos.
+                    # Passing from_pos==to_pos was a linguistic error (a
+                    # "derivation" that doesn't change category is actually
+                    # inflection). Callers who need a specific output POS should
+                    # supply to_pos= explicitly or call
+                    # MSA.SetDerivAffMsaPos(sense, to_pos=X) afterward.
+                    # Resolve from_pos / to_pos using the same HVO-or-object
+                    # pattern applied to pos earlier in this method.
+                    if from_pos is not None:
+                        resolved_from = (
+                            self.project.project.ServiceLocator.GetObject(from_pos)
+                            if isinstance(from_pos, int) else from_pos
+                        )
+                    else:
+                        resolved_from = pos_obj
+                    if to_pos is not None:
+                        resolved_to = (
+                            self.project.project.ServiceLocator.GetObject(to_pos)
+                            if isinstance(to_pos, int) else to_pos
+                        )
+                    else:
+                        resolved_to = None
+                    self.project.MSA.CreateDerivAff(
+                        sense, from_pos=resolved_from, to_pos=resolved_to
+                    )
+                else:  # unclassified
+                    self.project.MSA.CreateUnclassifiedAffix(sense, pos_obj)
+            else:
+                self.project.MSA.CreateStem(sense, pos_obj)
 
     def __EntryHasAffixMorphType(self, entry):
         """
@@ -1778,18 +1783,19 @@ class LexSenseOperations(BaseOperations):
         sense = self.__GetSenseObject(sense_or_hvo)
         wsHandle = self.__WSHandleVernacular(wsHandle)
 
-        # Create the new example using the factory
-        factory = self.project.project.ServiceLocator.GetService(ILexExampleSentenceFactory)
-        new_example = factory.Create()
+        with self._TransactionCM("Add example"):
+            # Create the new example using the factory
+            factory = self.project.project.ServiceLocator.GetService(ILexExampleSentenceFactory)
+            new_example = factory.Create()
 
-        # Add to sense (must be done before setting properties)
-        sense.ExamplesOS.Add(new_example)
+            # Add to sense (must be done before setting properties)
+            sense.ExamplesOS.Add(new_example)
 
-        # Set example text
-        mkstr = TsStringUtils.MakeString(text, wsHandle)
-        new_example.Example.set_String(wsHandle, mkstr)
+            # Set example text
+            mkstr = TsStringUtils.MakeString(text, wsHandle)
+            new_example.Example.set_String(wsHandle, mkstr)
 
-        return new_example
+            return new_example
 
     # --- Subsense Operations ---
 
@@ -1881,18 +1887,19 @@ class LexSenseOperations(BaseOperations):
         parent_sense = self.__GetSenseObject(parent_sense_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
 
-        # Create the new subsense using the factory
-        factory = self.project.project.ServiceLocator.GetService(ILexSenseFactory)
-        new_subsense = factory.Create()
+        with self._TransactionCM("Create subsense"):
+            # Create the new subsense using the factory
+            factory = self.project.project.ServiceLocator.GetService(ILexSenseFactory)
+            new_subsense = factory.Create()
 
-        # Add to parent sense (must be done before setting properties)
-        parent_sense.SensesOS.Add(new_subsense)
+            # Add to parent sense (must be done before setting properties)
+            parent_sense.SensesOS.Add(new_subsense)
 
-        # Set gloss
-        mkstr = TsStringUtils.MakeString(gloss, wsHandle)
-        new_subsense.Gloss.set_String(wsHandle, mkstr)
+            # Set gloss
+            mkstr = TsStringUtils.MakeString(gloss, wsHandle)
+            new_subsense.Gloss.set_String(wsHandle, mkstr)
 
-        return new_subsense
+            return new_subsense
 
     @OperationsMethod
     def GetParentSense(self, sense_or_hvo):
@@ -2332,28 +2339,29 @@ class LexSenseOperations(BaseOperations):
         if not os.path.exists(image_path):
             raise FP_ParameterError(f"Image file not found: {image_path}")
 
-        # Copy image to Pictures folder using Media operations
-        media_file = self.project.Media.CopyToProject(image_path, internal_subdir="Pictures")
+        with self._TransactionCM("Add picture"):
+            # Copy image to Pictures folder using Media operations
+            media_file = self.project.Media.CopyToProject(image_path, internal_subdir="Pictures")
 
-        # Create ICmPicture object
-        factory = self.project.project.ServiceLocator.GetService(ICmPictureFactory)
-        picture = factory.Create()
+            # Create ICmPicture object
+            factory = self.project.project.ServiceLocator.GetService(ICmPictureFactory)
+            picture = factory.Create()
 
-        # Add to sense (must be done before setting properties)
-        sense.PicturesOS.Add(picture)
+            # Add to sense (must be done before setting properties)
+            sense.PicturesOS.Add(picture)
 
-        # Set the picture file reference
-        picture.PictureFileRA = media_file
+            # Set the picture file reference
+            picture.PictureFileRA = media_file
 
-        # Set caption if provided
-        if caption:
-            wsHandle = self.__WSHandleVernacular(wsHandle)
-            mkstr = TsStringUtils.MakeString(caption, wsHandle)
-            picture.Caption.set_String(wsHandle, mkstr)
+            # Set caption if provided
+            if caption:
+                wsHandle = self.__WSHandleVernacular(wsHandle)
+                mkstr = TsStringUtils.MakeString(caption, wsHandle)
+                picture.Caption.set_String(wsHandle, mkstr)
 
-        logger.info(f"Added picture to sense: {os.path.basename(image_path)}")
+            logger.info(f"Added picture to sense: {os.path.basename(image_path)}")
 
-        return picture
+            return picture
 
     @OperationsMethod
     def RemovePicture(self, sense_or_hvo, picture, delete_file=False):
@@ -2504,13 +2512,14 @@ class LexSenseOperations(BaseOperations):
         if picture not in from_sense.PicturesOS:
             raise FP_ParameterError("Picture not found in source sense's picture collection")
 
-        # Move the picture (remove from source, add to destination)
-        from_sense.PicturesOS.Remove(picture)
-        to_sense.PicturesOS.Add(picture)
+        with self._TransactionCM("Move picture"):
+            # Move the picture (remove from source, add to destination)
+            from_sense.PicturesOS.Remove(picture)
+            to_sense.PicturesOS.Add(picture)
 
-        logger.info(f"Moved picture from sense {from_sense.Guid} to sense {to_sense.Guid}")
+            logger.info(f"Moved picture from sense {from_sense.Guid} to sense {to_sense.Guid}")
 
-        return True
+            return True
 
     @OperationsMethod
     def SetCaption(self, picture, caption, wsHandle=None):
@@ -3646,14 +3655,15 @@ class LexSenseOperations(BaseOperations):
         if survivor.Hvo == victim.Hvo:
             raise FP_ParameterError("Cannot merge sense into itself")
 
-        # Delegate to LibLCM's battle-tested merge implementation
-        logger.info(f"Merging sense (HVO: {victim.Hvo}) into survivor (HVO: {survivor.Hvo})")
-        survivor.MergeObject(victim, fLoseNoStringData)
+        with self._TransactionCM("Merge sense"):
+            # Delegate to LibLCM's battle-tested merge implementation
+            logger.info(f"Merging sense (HVO: {victim.Hvo}) into survivor (HVO: {survivor.Hvo})")
+            survivor.MergeObject(victim, fLoseNoStringData)
 
-        # Optional deduplication layer (NEW value added by FlexLibs2)
-        if auto_deduplicate:
-            logger.debug(f"Running auto-deduplication on merged sense (HVO: {survivor.Hvo})")
-            self.__DeduplicateExamplesInSense(survivor)
+            # Optional deduplication layer (NEW value added by FlexLibs2)
+            if auto_deduplicate:
+                logger.debug(f"Running auto-deduplication on merged sense (HVO: {survivor.Hvo})")
+                self.__DeduplicateExamplesInSense(survivor)
 
     # --- Private Helper Methods for Deduplication ---
 

@@ -200,19 +200,21 @@ class PronunciationOperations(BaseOperations):
 
         # Create the new pronunciation using the factory
         factory = self.project.project.ServiceLocator.GetService(ILexPronunciationFactory)
-        pronunciation = factory.Create()
 
-        # Add to entry's pronunciations collection (must be done before setting properties)
-        if hasattr(entry, "PronunciationsOS"):
-            entry.PronunciationsOS.Add(pronunciation)
-        else:
-            raise FP_ParameterError("Entry does not support pronunciations")
+        with self._TransactionCM("Create pronunciation"):
+            pronunciation = factory.Create()
 
-        # Set pronunciation form
-        mkstr = TsStringUtils.MakeString(form, wsHandle)
-        pronunciation.Form.set_String(wsHandle, mkstr)
+            # Add to entry's pronunciations collection (must be done before setting properties)
+            if hasattr(entry, "PronunciationsOS"):
+                entry.PronunciationsOS.Add(pronunciation)
+            else:
+                raise FP_ParameterError("Entry does not support pronunciations")
 
-        return pronunciation
+            # Set pronunciation form
+            mkstr = TsStringUtils.MakeString(form, wsHandle)
+            pronunciation.Form.set_String(wsHandle, mkstr)
+
+            return pronunciation
 
     @OperationsMethod
     def Delete(self, pronunciation_or_hvo):
@@ -316,53 +318,55 @@ class PronunciationOperations(BaseOperations):
 
         # Create new pronunciation using factory (auto-generates new GUID)
         factory = self.project.project.ServiceLocator.GetService(ILexPronunciationFactory)
-        duplicate = factory.Create()
 
-        # Determine insertion position
-        if insert_after and hasattr(parent, "PronunciationsOS"):
-            # Insert after source pronunciation
-            source_index = parent.PronunciationsOS.IndexOf(source)
-            parent.PronunciationsOS.Insert(source_index + 1, duplicate)
-        else:
-            # Insert at end
-            if hasattr(parent, "PronunciationsOS"):
-                parent.PronunciationsOS.Add(duplicate)
+        with self._TransactionCM("Duplicate pronunciation"):
+            duplicate = factory.Create()
 
-        # Copy simple MultiString properties (AFTER adding to parent)
-        # Use GetString/SetString instead of CopyAlternatives for safer copying
-        try:
-            duplicate.Form.CopyAlternatives(source.Form)
-        except (System.NullReferenceException, AttributeError):
-            # Fallback: copy string by string if CopyAlternatives fails
-            if hasattr(source, "Form") and source.Form:
-                for ws_id in source.Form.AvailableWritingSystems:
-                    try:
-                        form_string = source.Form.get_String(ws_id)
-                        if form_string:
-                            duplicate.Form.set_String(ws_id, form_string)
-                    except Exception:
-                        # Skip individual strings that fail to copy
-                        pass
+            # Determine insertion position
+            if insert_after and hasattr(parent, "PronunciationsOS"):
+                # Insert after source pronunciation
+                source_index = parent.PronunciationsOS.IndexOf(source)
+                parent.PronunciationsOS.Insert(source_index + 1, duplicate)
+            else:
+                # Insert at end
+                if hasattr(parent, "PronunciationsOS"):
+                    parent.PronunciationsOS.Add(duplicate)
 
-        # Copy Reference Atomic (RA) properties
-        if hasattr(source, "LocationRA"):
-            duplicate.LocationRA = source.LocationRA
+            # Copy simple MultiString properties (AFTER adding to parent)
+            # Use GetString/SetString instead of CopyAlternatives for safer copying
+            try:
+                duplicate.Form.CopyAlternatives(source.Form)
+            except (System.NullReferenceException, AttributeError):
+                # Fallback: copy string by string if CopyAlternatives fails
+                if hasattr(source, "Form") and source.Form:
+                    for ws_id in source.Form.AvailableWritingSystems:
+                        try:
+                            form_string = source.Form.get_String(ws_id)
+                            if form_string:
+                                duplicate.Form.set_String(ws_id, form_string)
+                        except Exception:
+                            # Skip individual strings that fail to copy
+                            pass
 
-        # Handle owned objects if deep=True
-        if deep and hasattr(source, "MediaFilesOS"):
-            # Duplicate media files
-            for media in source.MediaFilesOS:
-                media_factory = self.project.project.ServiceLocator.GetService(ICmFileFactory)
-                new_media = media_factory.Create()
-                duplicate.MediaFilesOS.Add(new_media)
+            # Copy Reference Atomic (RA) properties
+            if hasattr(source, "LocationRA"):
+                duplicate.LocationRA = source.LocationRA
 
-                # Copy media file properties
-                new_media.InternalPath = media.InternalPath
-                new_media.Description.CopyAlternatives(media.Description)
-                if hasattr(media, "Copyright"):
-                    new_media.Copyright.CopyAlternatives(media.Copyright)
+            # Handle owned objects if deep=True
+            if deep and hasattr(source, "MediaFilesOS"):
+                # Duplicate media files
+                for media in source.MediaFilesOS:
+                    media_factory = self.project.project.ServiceLocator.GetService(ICmFileFactory)
+                    new_media = media_factory.Create()
+                    duplicate.MediaFilesOS.Add(new_media)
 
-        return duplicate
+                    # Copy media file properties
+                    new_media.InternalPath = media.InternalPath
+                    new_media.Description.CopyAlternatives(media.Description)
+                    if hasattr(media, "Copyright"):
+                        new_media.Copyright.CopyAlternatives(media.Copyright)
+
+            return duplicate
 
     # ========== SYNC INTEGRATION METHODS ==========
 
@@ -478,9 +482,10 @@ class PronunciationOperations(BaseOperations):
             raise FP_ParameterError(f"Pronunciation list must contain all {current_count} pronunciations")
 
         # Clear and re-add in new order
-        entry.PronunciationsOS.Clear()
-        for pron in pronunciation_list:
-            entry.PronunciationsOS.Add(pron)
+        with self._TransactionCM("Reorder pronunciations"):
+            entry.PronunciationsOS.Clear()
+            for pron in pronunciation_list:
+                entry.PronunciationsOS.Add(pron)
 
     # --- Form Management ---
 
@@ -835,12 +840,13 @@ class PronunciationOperations(BaseOperations):
             raise FP_ParameterError("Media file not found in source pronunciation's media collection")
 
         # Move the media (remove from source, add to destination)
-        from_pron.MediaFilesOS.Remove(media)
-        to_pron.MediaFilesOS.Add(media)
+        with self._TransactionCM("Move media file"):
+            from_pron.MediaFilesOS.Remove(media)
+            to_pron.MediaFilesOS.Add(media)
 
-        logger.info(f"Moved media from pronunciation {from_pron.Guid} to pronunciation {to_pron.Guid}")
+            logger.info(f"Moved media from pronunciation {from_pron.Guid} to pronunciation {to_pron.Guid}")
 
-        return True
+            return True
 
     # --- CV Pattern/Location ---
 
