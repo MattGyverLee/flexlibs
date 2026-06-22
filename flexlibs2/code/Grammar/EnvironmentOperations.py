@@ -159,22 +159,24 @@ class EnvironmentOperations(BaseOperations):
 
         # Create the new environment using the factory
         factory = self.project.project.ServiceLocator.GetService(IPhEnvironmentFactory)
-        new_env = factory.Create()
 
-        # Add to the environments list (must be done before setting properties)
-        phon_data = self.project.lp.PhonologicalDataOA
-        phon_data.EnvironmentsOS.Add(new_env)
+        with self._TransactionCM("Create environment"):
+            new_env = factory.Create()
 
-        # Set name
-        mkstr_name = TsStringUtils.MakeString(name, wsHandle)
-        new_env.Name.set_String(wsHandle, mkstr_name)
+            # Add to the environments list (must be done before setting properties)
+            phon_data = self.project.lp.PhonologicalDataOA
+            phon_data.EnvironmentsOS.Add(new_env)
 
-        # Set description if provided
-        if description:
-            mkstr_desc = TsStringUtils.MakeString(description, wsHandle)
-            new_env.Description.set_String(wsHandle, mkstr_desc)
+            # Set name
+            mkstr_name = TsStringUtils.MakeString(name, wsHandle)
+            new_env.Name.set_String(wsHandle, mkstr_name)
 
-        return new_env
+            # Set description if provided
+            if description:
+                mkstr_desc = TsStringUtils.MakeString(description, wsHandle)
+                new_env.Description.set_String(wsHandle, mkstr_desc)
+
+            return new_env
 
     @OperationsMethod
     def Delete(self, env_or_hvo):
@@ -583,56 +585,58 @@ class EnvironmentOperations(BaseOperations):
 
         # Create new environment using factory (auto-generates new GUID)
         factory = self.project.project.ServiceLocator.GetService(IPhEnvironmentFactory)
-        duplicate = factory.Create()
 
-        # Add to environments list
-        phon_data = self.project.lp.PhonologicalDataOA
-        if insert_after:
-            source_index = phon_data.EnvironmentsOS.IndexOf(source)
-            phon_data.EnvironmentsOS.Insert(source_index + 1, duplicate)
-        else:
-            phon_data.EnvironmentsOS.Add(duplicate)
+        with self._TransactionCM("Duplicate environment"):
+            duplicate = factory.Create()
 
-        # Copy simple MultiString properties (AFTER adding to parent)
-        duplicate.Name.CopyAlternatives(source.Name)
-        duplicate.Description.CopyAlternatives(source.Description)
+            # Add to environments list
+            phon_data = self.project.lp.PhonologicalDataOA
+            if insert_after:
+                source_index = phon_data.EnvironmentsOS.IndexOf(source)
+                phon_data.EnvironmentsOS.Insert(source_index + 1, duplicate)
+            else:
+                phon_data.EnvironmentsOS.Add(duplicate)
 
-        # Copy StringRepresentation (ITsString, not MultiString)
-        if source.StringRepresentation:
-            notation = source.StringRepresentation.Text
-            wsHandle = self.__WSHandle(None)
-            mkstr = TsStringUtils.MakeString(notation, wsHandle)
-            duplicate.StringRepresentation = mkstr
+            # Copy simple MultiString properties (AFTER adding to parent)
+            duplicate.Name.CopyAlternatives(source.Name)
+            duplicate.Description.CopyAlternatives(source.Description)
 
-        # Deep copy: owned context objects
-        if deep:
-            from ..lcm_casting import clone_properties
+            # Copy StringRepresentation (ITsString, not MultiString)
+            if source.StringRepresentation:
+                notation = source.StringRepresentation.Text
+                wsHandle = self.__WSHandle(None)
+                mkstr = TsStringUtils.MakeString(notation, wsHandle)
+                duplicate.StringRepresentation = mkstr
 
-            # Copy LeftContextOA if exists
-            if hasattr(source, "LeftContextOA") and source.LeftContextOA:
-                try:
-                    # Create new context object of the same type
-                    src_context = source.LeftContextOA
-                    new_context = self.project.project.ServiceLocator.ObjectRepository.NewObject(src_context.ClassID)
-                    # Deep clone all properties
-                    clone_properties(src_context, new_context, self.project)
-                    duplicate.LeftContextOA = new_context
-                except Exception:
-                    pass
+            # Deep copy: owned context objects
+            if deep:
+                from ..lcm_casting import clone_properties
 
-            # Copy RightContextOA if exists
-            if hasattr(source, "RightContextOA") and source.RightContextOA:
-                try:
-                    # Create new context object of the same type
-                    src_context = source.RightContextOA
-                    new_context = self.project.project.ServiceLocator.ObjectRepository.NewObject(src_context.ClassID)
-                    # Deep clone all properties
-                    clone_properties(src_context, new_context, self.project)
-                    duplicate.RightContextOA = new_context
-                except Exception:
-                    pass
+                # Copy LeftContextOA if exists
+                if hasattr(source, "LeftContextOA") and source.LeftContextOA:
+                    try:
+                        # Create new context object of the same type
+                        src_context = source.LeftContextOA
+                        new_context = self.project.project.ServiceLocator.ObjectRepository.NewObject(src_context.ClassID)
+                        # Deep clone all properties
+                        clone_properties(src_context, new_context, self.project)
+                        duplicate.LeftContextOA = new_context
+                    except Exception:
+                        pass
 
-        return duplicate
+                # Copy RightContextOA if exists
+                if hasattr(source, "RightContextOA") and source.RightContextOA:
+                    try:
+                        # Create new context object of the same type
+                        src_context = source.RightContextOA
+                        new_context = self.project.project.ServiceLocator.ObjectRepository.NewObject(src_context.ClassID)
+                        # Deep clone all properties
+                        clone_properties(src_context, new_context, self.project)
+                        duplicate.RightContextOA = new_context
+                    except Exception:
+                        pass
+
+            return duplicate
 
     # --- Private Helper Methods ---
 

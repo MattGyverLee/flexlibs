@@ -322,12 +322,13 @@ class PhonFeatureOperations(BaseOperations, CatalogBackedMixin):
         # user or a prior programmatic call) would be silently
         # overwritten. (issue #138)
         if catalogSourceId and catalogSourceId.upper().startswith(CATALOG_PREFIX + ":"):
-            wsHandle = self.project.project.DefaultAnalWs
-            new_feat = self.CreateFromCatalog(catalogSourceId)
-            self.__OverlayCanonicalLabels(
-                new_feat, name, abbreviation, wsHandle, force, catalogSourceId
-            )
-            return new_feat
+            with self._TransactionCM(f"Create phonological feature '{name}'"):
+                wsHandle = self.project.project.DefaultAnalWs
+                new_feat = self.CreateFromCatalog(catalogSourceId)
+                self.__OverlayCanonicalLabels(
+                    new_feat, name, abbreviation, wsHandle, force, catalogSourceId
+                )
+                return new_feat
 
         # Uniqueness check by name within the feature system.
         if self.Exists(name):
@@ -351,21 +352,22 @@ class PhonFeatureOperations(BaseOperations, CatalogBackedMixin):
         factory = self.project.project.ServiceLocator.GetService(
             IFsClosedFeatureFactory
         )
-        new_feat = factory.Create()
-        feature_system.FeaturesOC.Add(new_feat)
-        new_feat = IFsClosedFeature(new_feat)
+        with self._TransactionCM(f"Create phonological feature '{name}'"):
+            new_feat = factory.Create()
+            feature_system.FeaturesOC.Add(new_feat)
+            new_feat = IFsClosedFeature(new_feat)
 
-        # Set name + abbreviation in default analysis WS.
-        mkstr_name = TsStringUtils.MakeString(name, wsHandle)
-        new_feat.Name.set_String(wsHandle, mkstr_name)
-        mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
-        new_feat.Abbreviation.set_String(wsHandle, mkstr_abbr)
+            # Set name + abbreviation in default analysis WS.
+            mkstr_name = TsStringUtils.MakeString(name, wsHandle)
+            new_feat.Name.set_String(wsHandle, mkstr_name)
+            mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
+            new_feat.Abbreviation.set_String(wsHandle, mkstr_abbr)
 
-        # Verbatim CatalogSourceId for non-PHON: prefixes (and bare ids).
-        if catalogSourceId:
-            new_feat.CatalogSourceId = catalogSourceId
+            # Verbatim CatalogSourceId for non-PHON: prefixes (and bare ids).
+            if catalogSourceId:
+                new_feat.CatalogSourceId = catalogSourceId
 
-        return new_feat
+            return new_feat
 
     @OperationsMethod
     def SetName(self, feature_or_hvo, name, wsHandle=None):
@@ -491,22 +493,23 @@ class PhonFeatureOperations(BaseOperations, CatalogBackedMixin):
         factory = self.project.project.ServiceLocator.GetService(
             IFsSymFeatValFactory
         )
-        new_val = factory.Create()
-        # Ownership-first: attach to feature.ValuesOC before mutating strings.
-        feature.ValuesOC.Add(new_val)
-        new_val = IFsSymFeatVal(new_val)
+        with self._TransactionCM(f"Create feature value '{name}'"):
+            new_val = factory.Create()
+            # Ownership-first: attach to feature.ValuesOC before mutating strings.
+            feature.ValuesOC.Add(new_val)
+            new_val = IFsSymFeatVal(new_val)
 
-        mkstr_name = TsStringUtils.MakeString(name, wsHandle)
-        new_val.Name.set_String(wsHandle, mkstr_name)
-        mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
-        new_val.Abbreviation.set_String(wsHandle, mkstr_abbr)
+            mkstr_name = TsStringUtils.MakeString(name, wsHandle)
+            new_val.Name.set_String(wsHandle, mkstr_name)
+            mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
+            new_val.Abbreviation.set_String(wsHandle, mkstr_abbr)
 
-        # value_marker is reserved for a future strict-mode check (e.g.
-        # enforce that abbreviation == value_marker when both supplied).
-        # Phase 5b deliberately leaves it informational only.
-        _ = value_marker
+            # value_marker is reserved for a future strict-mode check (e.g.
+            # enforce that abbreviation == value_marker when both supplied).
+            # Phase 5b deliberately leaves it informational only.
+            _ = value_marker
 
-        return new_val
+            return new_val
 
     @OperationsMethod
     def DeleteValue(self, value_or_hvo):
@@ -605,25 +608,26 @@ class PhonFeatureOperations(BaseOperations, CatalogBackedMixin):
         factory = self.project.project.ServiceLocator.GetService(
             IFsFeatStrucFactory
         )
-        struct = factory.Create()
-        owner_unwrapped.FeaturesOA = struct
-        # Re-fetch via the owning property to hold the LCM view of the
-        # now-owned struct.
-        struct = IFsFeatStruc(owner_unwrapped.FeaturesOA)
+        with self._TransactionCM("Make feature structure"):
+            struct = factory.Create()
+            owner_unwrapped.FeaturesOA = struct
+            # Re-fetch via the owning property to hold the LCM view of the
+            # now-owned struct.
+            struct = IFsFeatStruc(owner_unwrapped.FeaturesOA)
 
-        # Populate FeatureSpecsOC. Each spec is an IFsClosedValue with
-        # FeatureRA -> feature and ValueRA -> value.
-        cv_factory = self.project.project.ServiceLocator.GetService(
-            IFsClosedValueFactory
-        )
-        for feat, val in normalized:
-            closed_value = cv_factory.Create()
-            struct.FeatureSpecsOC.Add(closed_value)
-            cv = IFsClosedValue(closed_value)
-            cv.FeatureRA = feat
-            cv.ValueRA = val
+            # Populate FeatureSpecsOC. Each spec is an IFsClosedValue with
+            # FeatureRA -> feature and ValueRA -> value.
+            cv_factory = self.project.project.ServiceLocator.GetService(
+                IFsClosedValueFactory
+            )
+            for feat, val in normalized:
+                closed_value = cv_factory.Create()
+                struct.FeatureSpecsOC.Add(closed_value)
+                cv = IFsClosedValue(closed_value)
+                cv.FeatureRA = feat
+                cv.ValueRA = val
 
-        return struct
+            return struct
 
     # ========================================================================
     # CATALOG (eticGlossList) IMPORT METHODS

@@ -190,22 +190,23 @@ class GramCatOperations(BaseOperations):
         # top-level new categories go through IFsFeatStrucTypeFactory,
         # subcategories stay with ICmPossibilityFactory.
         # (issue #163)
-        if parent:
-            parent_obj = self.__ResolveObject(parent)
-            factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
-            new_cat = factory.Create()
-            parent_obj.SubPossibilitiesOS.Add(new_cat)
-        else:
-            feature_system = self.project.lp.MsFeatureSystemOA
-            factory = self.project.project.ServiceLocator.GetService(IFsFeatStrucTypeFactory)
-            new_cat = factory.Create()
-            feature_system.TypesOC.Add(new_cat)
+        with self._TransactionCM(f"Create category '{name}'"):
+            if parent:
+                parent_obj = self.__ResolveObject(parent)
+                factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
+                new_cat = factory.Create()
+                parent_obj.SubPossibilitiesOS.Add(new_cat)
+            else:
+                feature_system = self.project.lp.MsFeatureSystemOA
+                factory = self.project.project.ServiceLocator.GetService(IFsFeatStrucTypeFactory)
+                new_cat = factory.Create()
+                feature_system.TypesOC.Add(new_cat)
 
-        # Set name
-        mkstr_name = TsStringUtils.MakeString(name, wsHandle)
-        new_cat.Name.set_String(wsHandle, mkstr_name)
+            # Set name
+            mkstr_name = TsStringUtils.MakeString(name, wsHandle)
+            new_cat.Name.set_String(wsHandle, mkstr_name)
 
-        return new_cat
+            return new_cat
 
     @OperationsMethod
     def Delete(self, cat_or_hvo):
@@ -507,37 +508,38 @@ class GramCatOperations(BaseOperations):
         except Exception:
             parent_is_possibility = False
 
-        if parent_is_possibility:
-            # Source is a subcategory
-            parent_cat = ICmPossibility(source.Owner)
-            factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
-            duplicate = factory.Create()
-            if insert_after:
-                source_index = parent_cat.SubPossibilitiesOS.IndexOf(source)
-                parent_cat.SubPossibilitiesOS.Insert(source_index + 1, duplicate)
+        with self._TransactionCM("Duplicate category"):
+            if parent_is_possibility:
+                # Source is a subcategory
+                parent_cat = ICmPossibility(source.Owner)
+                factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
+                duplicate = factory.Create()
+                if insert_after:
+                    source_index = parent_cat.SubPossibilitiesOS.IndexOf(source)
+                    parent_cat.SubPossibilitiesOS.Insert(source_index + 1, duplicate)
+                else:
+                    parent_cat.SubPossibilitiesOS.Add(duplicate)
             else:
-                parent_cat.SubPossibilitiesOS.Add(duplicate)
-        else:
-            # Source is top-level -- TypesOC requires IFsFeatStrucType.
-            # TypesOC is an unordered ILcmOwningCollection; insert_after has
-            # no semantic meaning here and is ignored.
-            feature_system = self.project.lp.MsFeatureSystemOA
-            factory = self.project.project.ServiceLocator.GetService(IFsFeatStrucTypeFactory)
-            duplicate = factory.Create()
-            feature_system.TypesOC.Add(duplicate)
+                # Source is top-level -- TypesOC requires IFsFeatStrucType.
+                # TypesOC is an unordered ILcmOwningCollection; insert_after has
+                # no semantic meaning here and is ignored.
+                feature_system = self.project.lp.MsFeatureSystemOA
+                factory = self.project.project.ServiceLocator.GetService(IFsFeatStrucTypeFactory)
+                duplicate = factory.Create()
+                feature_system.TypesOC.Add(duplicate)
 
-        # Copy simple MultiString properties (AFTER adding to parent)
-        duplicate.Name.CopyAlternatives(source.Name)
-        duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)
-        duplicate.Description.CopyAlternatives(source.Description)
+            # Copy simple MultiString properties (AFTER adding to parent)
+            duplicate.Name.CopyAlternatives(source.Name)
+            duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)
+            duplicate.Description.CopyAlternatives(source.Description)
 
-        # Deep copy: recursively duplicate subcategories
-        if deep and source.SubPossibilitiesOS.Count > 0:
-            for sub_cat in source.SubPossibilitiesOS:
-                # Recursively duplicate each subcategory
-                self.__DuplicateSubcategory(sub_cat, duplicate)
+            # Deep copy: recursively duplicate subcategories
+            if deep and source.SubPossibilitiesOS.Count > 0:
+                for sub_cat in source.SubPossibilitiesOS:
+                    # Recursively duplicate each subcategory
+                    self.__DuplicateSubcategory(sub_cat, duplicate)
 
-        return duplicate
+            return duplicate
 
     def __DuplicateSubcategory(self, source_sub, parent_duplicate):
         """
