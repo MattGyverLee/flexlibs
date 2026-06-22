@@ -1637,6 +1637,57 @@ class BaseOperations:
         if not self.project.writeEnabled:
             raise FP_ReadOnlyError()
 
+    def _TransactionCM(self, label):
+        """
+        Return a transaction context manager appropriate to the project mode.
+
+        Auto-selects Phase 2 (``UndoableOperation``, visible in the FLEx
+        Ctrl+Z menu) when the project was opened with ``undoable=True``,
+        otherwise Phase 1 (``Transaction``, programmatic rollback-only). Use
+        this to wrap the body of any write method that performs two or more
+        LCM mutations, so a failure partway through does not leave a
+        partially-constructed object persisted in the cache with no rollback.
+
+        Wrap only the mutation portion of a method: call validation helpers
+        (``_EnsureWriteEnabled``, ``_Validate*``) and any lookups that may
+        raise BEFORE entering this context, so input errors never mark the
+        undo stack. Keep the method's ``return`` inside the ``with`` block.
+
+        Args:
+            label (str): Human-readable description used for logging and, in
+                Phase 2, the FLEx undo menu (e.g. "Create entry 'famba'").
+
+        Returns:
+            A context manager (``_FLExTransaction`` in Phase 1, or
+            ``_FLExUndoableOperation`` in Phase 2).
+
+        Example::
+
+            def Create(self, form, ws=None):
+                self._EnsureWriteEnabled()
+                self._ValidateStringNotEmpty(form, "form")
+                with self._TransactionCM(f"Create entry '{form}'"):
+                    entry = entry_factory.Create()
+                    entry.LexemeFormOA = allomorph_factory.Create()
+                    entry.LexemeFormOA.Form.set_String(ws_handle, tss)
+                    return entry
+
+        Notes:
+            - Phase 1 (``Transaction``) rolls back to a mark on exception.
+            - Phase 2 (``UndoableOperation``) wraps the changes in a single
+              named undo task; it does NOT auto-rollback on exception, but
+              the partial work is undoable by the FLEx user via Ctrl+Z.
+            - ``_undoable`` is only ever True when the project is also
+              write-enabled, so Phase 2 selection cannot collide with the
+              read-only guard already enforced by ``_EnsureWriteEnabled``.
+            - Nesting is safe: an outer caller-supplied
+              ``project.Transaction()`` block captures everything done by the
+              inner ``_TransactionCM`` blocks of individual methods.
+        """
+        if getattr(self.project, "_undoable", False):
+            return self.project.UndoableOperation(label)
+        return self.project.Transaction(label)
+
     def _ValidateParam(self, param: any, param_name: str = "parameter") -> None:
         """
         Validate that a parameter is not None.

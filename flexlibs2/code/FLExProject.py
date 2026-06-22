@@ -443,8 +443,17 @@ class FLExProject(object):
             project.CloseProject()
 
         Note:
-            Nesting transactions is allowed but not recommended.
-            Inner rollbacks also roll back the outer transaction state.
+            Nesting is supported and safe. Each ``with`` block calls
+            ``Mark()`` independently, creating a separate mark token on the
+            LCM undo stack. An inner rollback rolls back only to the inner
+            mark; an outer rollback rolls back everything done inside it --
+            including work done by inner blocks that already exited cleanly
+            (there is no two-phase commit; "commit" is simply not rolling
+            back). This is the desired semantics for batch operations: a
+            caller's outer ``with project.Transaction("batch"):`` captures
+            every write made inside it, including the per-method
+            ``_TransactionCM`` blocks that individual Operations methods use
+            internally.
 
         See Also:
             UndoableOperation() - Phase 2 (pending research), adds to FLEx Ctrl+Z menu
