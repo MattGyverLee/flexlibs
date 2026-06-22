@@ -175,14 +175,15 @@ class WfiMorphBundleOperations(BaseOperations):
 
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
 
-        # Create the new morph bundle using the factory
-        factory = self.project.project.ServiceLocator.GetService(IWfiMorphBundleFactory)
-        bundle = factory.Create()
+        with self._TransactionCM("Create morph bundle"):
+            # Create the new morph bundle using the factory
+            factory = self.project.project.ServiceLocator.GetService(IWfiMorphBundleFactory)
+            bundle = factory.Create()
 
-        # Add to analysis's morph bundles collection
-        analysis.MorphBundlesOS.Add(bundle)
+            # Add to analysis's morph bundles collection
+            analysis.MorphBundlesOS.Add(bundle)
 
-        return bundle
+            return bundle
 
     @OperationsMethod
     def Delete(self, bundle_or_hvo):
@@ -289,41 +290,42 @@ class WfiMorphBundleOperations(BaseOperations):
         source = self.__GetBundleObject(item_or_hvo)
         parent = IWfiAnalysis(source.Owner)
 
-        # Create new bundle using factory (auto-generates new GUID)
-        factory = self.project.project.ServiceLocator.GetService(IWfiMorphBundleFactory)
-        duplicate = factory.Create()
+        with self._TransactionCM("Duplicate morph bundle"):
+            # Create new bundle using factory (auto-generates new GUID)
+            factory = self.project.project.ServiceLocator.GetService(IWfiMorphBundleFactory)
+            duplicate = factory.Create()
 
-        # Determine insertion position
-        if insert_after:
-            # Insert after source bundle
-            source_index = list(parent.MorphBundlesOS).index(source)
-            parent.MorphBundlesOS.Insert(source_index + 1, duplicate)
-        else:
-            # Insert at end
-            parent.MorphBundlesOS.Add(duplicate)
+            # Determine insertion position
+            if insert_after:
+                # Insert after source bundle
+                source_index = list(parent.MorphBundlesOS).index(source)
+                parent.MorphBundlesOS.Insert(source_index + 1, duplicate)
+            else:
+                # Insert at end
+                parent.MorphBundlesOS.Add(duplicate)
 
-        # Copy MultiString properties. IWfiMorphBundle has Form but
-        # NOT Gloss -- the displayed gloss comes from SenseRA.Gloss,
-        # which the SenseRA assignment below preserves automatically.
-        # The previous duplicate.Gloss.CopyAlternatives line raised
-        # AttributeError on every call (same root bug as #16 / #108);
-        # 4319886 fixed GetGloss/SetGloss but missed this site.
-        # (issue #107)
-        duplicate.Form.CopyAlternatives(source.Form)
+            # Copy MultiString properties. IWfiMorphBundle has Form but
+            # NOT Gloss -- the displayed gloss comes from SenseRA.Gloss,
+            # which the SenseRA assignment below preserves automatically.
+            # The previous duplicate.Gloss.CopyAlternatives line raised
+            # AttributeError on every call (same root bug as #16 / #108);
+            # 4319886 fixed GetGloss/SetGloss but missed this site.
+            # (issue #107)
+            duplicate.Form.CopyAlternatives(source.Form)
 
-        # Copy Reference Atomic (RA) properties
-        if hasattr(source, "SenseRA") and source.SenseRA:
-            duplicate.SenseRA = source.SenseRA
-        if hasattr(source, "MsaRA") and source.MsaRA:
-            duplicate.MsaRA = source.MsaRA
-        if hasattr(source, "MorphRA") and source.MorphRA:
-            duplicate.MorphRA = source.MorphRA
-        if hasattr(source, "InflClassRA") and source.InflClassRA:
-            duplicate.InflClassRA = source.InflClassRA
+            # Copy Reference Atomic (RA) properties
+            if hasattr(source, "SenseRA") and source.SenseRA:
+                duplicate.SenseRA = source.SenseRA
+            if hasattr(source, "MsaRA") and source.MsaRA:
+                duplicate.MsaRA = source.MsaRA
+            if hasattr(source, "MorphRA") and source.MorphRA:
+                duplicate.MorphRA = source.MorphRA
+            if hasattr(source, "InflClassRA") and source.InflClassRA:
+                duplicate.InflClassRA = source.InflClassRA
 
-        # Note: WfiMorphBundle has no owned objects (OS collections), so deep has no effect
+            # Note: WfiMorphBundle has no owned objects (OS collections), so deep has no effect
 
-        return duplicate
+            return duplicate
 
     # ========== SYNC INTEGRATION METHODS ==========
 
@@ -477,10 +479,11 @@ class WfiMorphBundleOperations(BaseOperations):
         if current_bundles != new_bundles:
             raise FP_ParameterError("Bundle list must contain exactly the same bundles as the analysis")
 
-        # Clear and re-add in new order
-        analysis.MorphBundlesOS.Clear()
-        for bundle in bundle_list:
-            analysis.MorphBundlesOS.Add(bundle)
+        with self._TransactionCM("Reorder morph bundles"):
+            # Clear and re-add in new order
+            analysis.MorphBundlesOS.Clear()
+            for bundle in bundle_list:
+                analysis.MorphBundlesOS.Add(bundle)
 
     # ==================== FORM & GLOSS OPERATIONS ====================
 

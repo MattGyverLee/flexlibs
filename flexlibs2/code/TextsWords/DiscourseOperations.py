@@ -331,25 +331,26 @@ class DiscourseOperations(BaseOperations):
         if not text_obj.ContentsOA:
             raise FP_ParameterError("Text has no StText contents")
 
-        # Create the chart using the factory
-        factory = self.project.project.ServiceLocator.GetService(IConstChartFactory)
-        chart = factory.Create()
+        with self._TransactionCM(f"Create chart '{name}'"):
+            # Create the chart using the factory
+            factory = self.project.project.ServiceLocator.GetService(IConstChartFactory)
+            chart = factory.Create()
 
-        # Add to the text's chart collection
-        # Charts are stored in ContentsOA.ChartsOC
-        if hasattr(text_obj.ContentsOA, "ChartsOC"):
-            text_obj.ContentsOA.ChartsOC.Add(chart)
-        else:
-            # Alternative: If charts are stored differently, adjust accordingly
-            # For now, assume standard structure
-            raise FP_ParameterError("Text contents does not support charts")
+            # Add to the text's chart collection
+            # Charts are stored in ContentsOA.ChartsOC
+            if hasattr(text_obj.ContentsOA, "ChartsOC"):
+                text_obj.ContentsOA.ChartsOC.Add(chart)
+            else:
+                # Alternative: If charts are stored differently, adjust accordingly
+                # For now, assume standard structure
+                raise FP_ParameterError("Text contents does not support charts")
 
-        # Set the chart name
-        wsHandle = self.__WSHandle(None)
-        name_str = TsStringUtils.MakeString(name, wsHandle)
-        chart.Name.set_String(wsHandle, name_str)
+            # Set the chart name
+            wsHandle = self.__WSHandle(None)
+            name_str = TsStringUtils.MakeString(name, wsHandle)
+            chart.Name.set_String(wsHandle, name_str)
 
-        return chart
+            return chart
 
     @OperationsMethod
     def DeleteChart(self, chart_or_hvo):
@@ -688,17 +689,18 @@ class DiscourseOperations(BaseOperations):
 
         chart_obj = self.__GetChartObject(chart_or_hvo)
 
-        # Create the new row using the factory
-        factory = self.project.project.ServiceLocator.GetService(IConstChartRowFactory)
-        row = factory.Create()
+        with self._TransactionCM("Add chart row"):
+            # Create the new row using the factory
+            factory = self.project.project.ServiceLocator.GetService(IConstChartRowFactory)
+            row = factory.Create()
 
-        # Add to chart's row collection
-        if hasattr(chart_obj, "RowsOS"):
-            chart_obj.RowsOS.Add(row)
-        else:
-            raise FP_ParameterError("Chart does not support rows")
+            # Add to chart's row collection
+            if hasattr(chart_obj, "RowsOS"):
+                chart_obj.RowsOS.Add(row)
+            else:
+                raise FP_ParameterError("Chart does not support rows")
 
-        return row
+            return row
 
     @OperationsMethod
     def DeleteRow(self, row_or_hvo):
@@ -1092,33 +1094,34 @@ class DiscourseOperations(BaseOperations):
         source = self.__GetChartObject(item_or_hvo)
         parent = source.Owner  # This is the StText
 
-        # Create new chart using factory (auto-generates new GUID)
-        factory = self.project.project.ServiceLocator.GetService(IDsConstChartFactory)
-        duplicate = factory.Create()
+        with self._TransactionCM("Duplicate chart"):
+            # Create new chart using factory (auto-generates new GUID)
+            factory = self.project.project.ServiceLocator.GetService(IDsConstChartFactory)
+            duplicate = factory.Create()
 
-        # ADD TO PARENT FIRST.
-        # ChartsOC is an unordered ILcmOwningCollection; insert_after has no
-        # semantic meaning and is ignored.
-        if hasattr(parent, "ChartsOC"):
-            parent.ChartsOC.Add(duplicate)
+            # ADD TO PARENT FIRST.
+            # ChartsOC is an unordered ILcmOwningCollection; insert_after has no
+            # semantic meaning and is ignored.
+            if hasattr(parent, "ChartsOC"):
+                parent.ChartsOC.Add(duplicate)
 
-        # Copy MultiString properties (AFTER adding to parent)
-        if hasattr(source, "Name") and source.Name:
-            duplicate.Name.CopyAlternatives(source.Name)
+            # Copy MultiString properties (AFTER adding to parent)
+            if hasattr(source, "Name") and source.Name:
+                duplicate.Name.CopyAlternatives(source.Name)
 
-        # Deep copy: duplicate rows
-        if deep and hasattr(source, "RowsOS") and source.RowsOS.Count > 0:
-            for row in source.RowsOS:
-                # Create new row
-                row_factory = self.project.project.ServiceLocator.GetService(IConstChartRowFactory)
-                dup_row = row_factory.Create()
-                duplicate.RowsOS.Add(dup_row)
+            # Deep copy: duplicate rows
+            if deep and hasattr(source, "RowsOS") and source.RowsOS.Count > 0:
+                for row in source.RowsOS:
+                    # Create new row
+                    row_factory = self.project.project.ServiceLocator.GetService(IConstChartRowFactory)
+                    dup_row = row_factory.Create()
+                    duplicate.RowsOS.Add(dup_row)
 
-                # Note: Full row/cell duplication is complex and would require
-                # additional logic to copy cell contents, word groups, markers, etc.
-                # For now, we create empty rows
+                    # Note: Full row/cell duplication is complex and would require
+                    # additional logic to copy cell contents, word groups, markers, etc.
+                    # For now, we create empty rows
 
-        return duplicate
+            return duplicate
 
     # ========== SYNC INTEGRATION METHODS ==========
 

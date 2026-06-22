@@ -278,14 +278,15 @@ class WfiAnalysisOperations(BaseOperations):
 
         wordform = self.__GetWordformObject(wordform_or_hvo)
 
-        # Create the analysis using the factory
-        factory = self.project.project.ServiceLocator.GetService(IWfiAnalysisFactory)
-        new_analysis = factory.Create()
+        with self._TransactionCM("Create analysis"):
+            # Create the analysis using the factory
+            factory = self.project.project.ServiceLocator.GetService(IWfiAnalysisFactory)
+            new_analysis = factory.Create()
 
-        # Add to wordform's analysis collection
-        wordform.AnalysesOC.Add(new_analysis)
+            # Add to wordform's analysis collection
+            wordform.AnalysesOC.Add(new_analysis)
 
-        return new_analysis
+            return new_analysis
 
     # ========== SYNC INTEGRATION METHODS ==========
 
@@ -469,51 +470,52 @@ class WfiAnalysisOperations(BaseOperations):
         source = self.__GetAnalysisObject(item_or_hvo)
         parent = IWfiWordform(source.Owner)
 
-        # Create new analysis using factory (auto-generates new GUID)
-        factory = self.project.project.ServiceLocator.GetService(IWfiAnalysisFactory)
-        duplicate = factory.Create()
+        with self._TransactionCM("Duplicate analysis"):
+            # Create new analysis using factory (auto-generates new GUID)
+            factory = self.project.project.ServiceLocator.GetService(IWfiAnalysisFactory)
+            duplicate = factory.Create()
 
-        # AnalysesOC is an unordered ILcmOwningCollection; insert_after has
-        # no semantic meaning and is ignored.
-        parent.AnalysesOC.Add(duplicate)
+            # AnalysesOC is an unordered ILcmOwningCollection; insert_after has
+            # no semantic meaning and is ignored.
+            parent.AnalysesOC.Add(duplicate)
 
-        # Copy Reference Atomic (RA) properties
-        if hasattr(source, "CategoryRA") and source.CategoryRA:
-            duplicate.CategoryRA = source.CategoryRA
+            # Copy Reference Atomic (RA) properties
+            if hasattr(source, "CategoryRA") and source.CategoryRA:
+                duplicate.CategoryRA = source.CategoryRA
 
-        # Note: We intentionally do NOT copy EvaluationsRC (approval status)
-        # New duplicate should start as unapproved
+            # Note: We intentionally do NOT copy EvaluationsRC (approval status)
+            # New duplicate should start as unapproved
 
-        # Handle owned objects if deep=True
-        if deep:
-            # Duplicate glosses (MeaningsOC)
-            for gloss in source.MeaningsOC:
-                # Use WfiGlossOperations.Duplicate if available, otherwise manually copy
-                gloss_factory = self.project.project.ServiceLocator.GetService(IWfiGlossFactory)
-                new_gloss = gloss_factory.Create()
-                duplicate.MeaningsOC.Add(new_gloss)
-                # Copy gloss form
-                new_gloss.Form.CopyAlternatives(gloss.Form)
+            # Handle owned objects if deep=True
+            if deep:
+                # Duplicate glosses (MeaningsOC)
+                for gloss in source.MeaningsOC:
+                    # Use WfiGlossOperations.Duplicate if available, otherwise manually copy
+                    gloss_factory = self.project.project.ServiceLocator.GetService(IWfiGlossFactory)
+                    new_gloss = gloss_factory.Create()
+                    duplicate.MeaningsOC.Add(new_gloss)
+                    # Copy gloss form
+                    new_gloss.Form.CopyAlternatives(gloss.Form)
 
-            # Duplicate morph bundles (MorphBundlesOS)
-            for bundle in source.MorphBundlesOS:
-                # Use WfiMorphBundleOperations.Duplicate if available, otherwise manually copy
-                bundle_factory = self.project.project.ServiceLocator.GetService(IWfiMorphBundleFactory)
-                new_bundle = bundle_factory.Create()
-                duplicate.MorphBundlesOS.Add(new_bundle)
-                # Copy bundle properties
-                new_bundle.Form.CopyAlternatives(bundle.Form)
-                new_bundle.Gloss.CopyAlternatives(bundle.Gloss)
-                if hasattr(bundle, "SenseRA") and bundle.SenseRA:
-                    new_bundle.SenseRA = bundle.SenseRA
-                if hasattr(bundle, "MsaRA") and bundle.MsaRA:
-                    new_bundle.MsaRA = bundle.MsaRA
-                if hasattr(bundle, "MorphRA") and bundle.MorphRA:
-                    new_bundle.MorphRA = bundle.MorphRA
-                if hasattr(bundle, "InflClassRA") and bundle.InflClassRA:
-                    new_bundle.InflClassRA = bundle.InflClassRA
+                # Duplicate morph bundles (MorphBundlesOS)
+                for bundle in source.MorphBundlesOS:
+                    # Use WfiMorphBundleOperations.Duplicate if available, otherwise manually copy
+                    bundle_factory = self.project.project.ServiceLocator.GetService(IWfiMorphBundleFactory)
+                    new_bundle = bundle_factory.Create()
+                    duplicate.MorphBundlesOS.Add(new_bundle)
+                    # Copy bundle properties
+                    new_bundle.Form.CopyAlternatives(bundle.Form)
+                    new_bundle.Gloss.CopyAlternatives(bundle.Gloss)
+                    if hasattr(bundle, "SenseRA") and bundle.SenseRA:
+                        new_bundle.SenseRA = bundle.SenseRA
+                    if hasattr(bundle, "MsaRA") and bundle.MsaRA:
+                        new_bundle.MsaRA = bundle.MsaRA
+                    if hasattr(bundle, "MorphRA") and bundle.MorphRA:
+                        new_bundle.MorphRA = bundle.MorphRA
+                    if hasattr(bundle, "InflClassRA") and bundle.InflClassRA:
+                        new_bundle.InflClassRA = bundle.InflClassRA
 
-        return duplicate
+            return duplicate
 
     @OperationsMethod
     def Exists(self, wordform_or_hvo, analysis_or_hvo):
@@ -1063,18 +1065,19 @@ class WfiAnalysisOperations(BaseOperations):
         analysis = self.__GetAnalysisObject(analysis_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
 
-        # Create the gloss using the factory
-        factory = self.project.project.ServiceLocator.GetService(IWfiGlossFactory)
-        new_gloss = factory.Create()
+        with self._TransactionCM("Add gloss"):
+            # Create the gloss using the factory
+            factory = self.project.project.ServiceLocator.GetService(IWfiGlossFactory)
+            new_gloss = factory.Create()
 
-        # Add to analysis's meanings collection (must be done before setting properties)
-        analysis.MeaningsOC.Add(new_gloss)
+            # Add to analysis's meanings collection (must be done before setting properties)
+            analysis.MeaningsOC.Add(new_gloss)
 
-        # Set the gloss text
-        mkstr = TsStringUtils.MakeString(gloss_text, wsHandle)
-        new_gloss.Form.set_String(wsHandle, mkstr)
+            # Set the gloss text
+            mkstr = TsStringUtils.MakeString(gloss_text, wsHandle)
+            new_gloss.Form.set_String(wsHandle, mkstr)
 
-        return new_gloss
+            return new_gloss
 
     # --- Morph Bundle Operations ---
 

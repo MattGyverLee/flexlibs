@@ -163,15 +163,16 @@ class WordformOperations(BaseOperations):
 
         wsHandle = self.__WSHandle(wsHandle)
 
-        # Factory.Create() owns the wordform automatically in FLEx 9 LCM
-        factory = self.project.project.ServiceLocator.GetService(IWfiWordformFactory)
-        new_wf = factory.Create()
+        with self._TransactionCM("Create wordform"):
+            # Factory.Create() owns the wordform automatically in FLEx 9 LCM
+            factory = self.project.project.ServiceLocator.GetService(IWfiWordformFactory)
+            new_wf = factory.Create()
 
-        # Set the form
-        mkstr = TsStringUtils.MakeString(form, wsHandle)
-        new_wf.Form.set_String(wsHandle, mkstr)
+            # Set the form
+            mkstr = TsStringUtils.MakeString(form, wsHandle)
+            new_wf.Form.set_String(wsHandle, mkstr)
 
-        return new_wf
+            return new_wf
 
     @OperationsMethod
     def Delete(self, wordform_or_hvo):
@@ -800,72 +801,73 @@ class WordformOperations(BaseOperations):
         else:
             source = item_or_hvo
 
-        # Create new wordform using factory (auto-generates new GUID)
-        factory = self.project.project.ServiceLocator.GetService(IWfiWordformFactory)
-        duplicate = factory.Create()
+        with self._TransactionCM("Duplicate wordform"):
+            # Create new wordform using factory (auto-generates new GUID)
+            factory = self.project.project.ServiceLocator.GetService(IWfiWordformFactory)
+            duplicate = factory.Create()
 
-        # Copy MultiString properties
-        duplicate.Form.CopyAlternatives(source.Form)
+            # Copy MultiString properties
+            duplicate.Form.CopyAlternatives(source.Form)
 
-        # Copy simple properties
-        duplicate.SpellingStatus = source.SpellingStatus
+            # Copy simple properties
+            duplicate.SpellingStatus = source.SpellingStatus
 
-        # Deep copy: duplicate analyses
-        if deep and hasattr(source, "AnalysesOC") and source.AnalysesOC.Count > 0:
-            # Get factories (retrieve once, reuse for all objects)
-            analysis_factory = self.project.project.ServiceLocator.GetService(IWfiAnalysisFactory)
-            gloss_factory = self.project.project.ServiceLocator.GetService(IWfiGlossFactory)
-            bundle_factory = self.project.project.ServiceLocator.GetService(IWfiMorphBundleFactory)
+            # Deep copy: duplicate analyses
+            if deep and hasattr(source, "AnalysesOC") and source.AnalysesOC.Count > 0:
+                # Get factories (retrieve once, reuse for all objects)
+                analysis_factory = self.project.project.ServiceLocator.GetService(IWfiAnalysisFactory)
+                gloss_factory = self.project.project.ServiceLocator.GetService(IWfiGlossFactory)
+                bundle_factory = self.project.project.ServiceLocator.GetService(IWfiMorphBundleFactory)
 
-            # Iterate through all analyses in the source wordform
-            for source_analysis in source.AnalysesOC:
-                # Create new analysis with auto-generated GUID
-                new_analysis = analysis_factory.Create()
+                # Iterate through all analyses in the source wordform
+                for source_analysis in source.AnalysesOC:
+                    # Create new analysis with auto-generated GUID
+                    new_analysis = analysis_factory.Create()
 
-                # Add to duplicate wordform BEFORE copying properties (critical for MultiStrings)
-                duplicate.AnalysesOC.Add(new_analysis)
+                    # Add to duplicate wordform BEFORE copying properties (critical for MultiStrings)
+                    duplicate.AnalysesOC.Add(new_analysis)
 
-                # Copy Reference Atomic (RA) properties
-                if hasattr(source_analysis, "CategoryRA") and source_analysis.CategoryRA:
-                    new_analysis.CategoryRA = source_analysis.CategoryRA
+                    # Copy Reference Atomic (RA) properties
+                    if hasattr(source_analysis, "CategoryRA") and source_analysis.CategoryRA:
+                        new_analysis.CategoryRA = source_analysis.CategoryRA
 
-                # Note: We intentionally do NOT copy EvaluationsRC (approval status)
-                # New duplicate analysis should start as unapproved
+                    # Note: We intentionally do NOT copy EvaluationsRC (approval status)
+                    # New duplicate analysis should start as unapproved
 
-                # Deep copy glosses (MeaningsOC - owned collection)
-                if hasattr(source_analysis, "MeaningsOC"):
-                    for gloss in source_analysis.MeaningsOC:
-                        new_gloss = gloss_factory.Create()
-                        new_analysis.MeaningsOC.Add(new_gloss)
-                        # Copy MultiString form
-                        new_gloss.Form.CopyAlternatives(gloss.Form)
+                    # Deep copy glosses (MeaningsOC - owned collection)
+                    if hasattr(source_analysis, "MeaningsOC"):
+                        for gloss in source_analysis.MeaningsOC:
+                            new_gloss = gloss_factory.Create()
+                            new_analysis.MeaningsOC.Add(new_gloss)
+                            # Copy MultiString form
+                            new_gloss.Form.CopyAlternatives(gloss.Form)
 
-                # Deep copy morph bundles (MorphBundlesOS - owned sequence)
-                if hasattr(source_analysis, "MorphBundlesOS"):
-                    for bundle in source_analysis.MorphBundlesOS:
-                        new_bundle = bundle_factory.Create()
-                        new_analysis.MorphBundlesOS.Add(new_bundle)
+                    # Deep copy morph bundles (MorphBundlesOS - owned sequence)
+                    if hasattr(source_analysis, "MorphBundlesOS"):
+                        for bundle in source_analysis.MorphBundlesOS:
+                            new_bundle = bundle_factory.Create()
+                            new_analysis.MorphBundlesOS.Add(new_bundle)
 
-                        # Copy MultiString properties
-                        new_bundle.Form.CopyAlternatives(bundle.Form)
-                        new_bundle.Gloss.CopyAlternatives(bundle.Gloss)
+                            # Copy MultiString properties
+                            new_bundle.Form.CopyAlternatives(bundle.Form)
+                            new_bundle.Gloss.CopyAlternatives(bundle.Gloss)
 
-                        # Copy Reference Atomic (RA) properties
-                        if hasattr(bundle, "SenseRA") and bundle.SenseRA:
-                            new_bundle.SenseRA = bundle.SenseRA
-                        if hasattr(bundle, "MsaRA") and bundle.MsaRA:
-                            new_bundle.MsaRA = bundle.MsaRA
-                        if hasattr(bundle, "MorphRA") and bundle.MorphRA:
-                            new_bundle.MorphRA = bundle.MorphRA
-                        if hasattr(bundle, "InflClassRA") and bundle.InflClassRA:
-                            new_bundle.InflClassRA = bundle.InflClassRA
+                            # Copy Reference Atomic (RA) properties
+                            if hasattr(bundle, "SenseRA") and bundle.SenseRA:
+                                new_bundle.SenseRA = bundle.SenseRA
+                            if hasattr(bundle, "MsaRA") and bundle.MsaRA:
+                                new_bundle.MsaRA = bundle.MsaRA
+                            if hasattr(bundle, "MorphRA") and bundle.MorphRA:
+                                new_bundle.MorphRA = bundle.MorphRA
+                            if hasattr(bundle, "InflClassRA") and bundle.InflClassRA:
+                                new_bundle.InflClassRA = bundle.InflClassRA
 
-            logger.info(f"Deep copied {source.AnalysesOC.Count} analyses with nested structures")
+                logger.info(f"Deep copied {source.AnalysesOC.Count} analyses with nested structures")
 
-        # Note: Occurrences (OccurrencesRS) are NOT copied as they reference
-        # specific text segments in the corpus
+            # Note: Occurrences (OccurrencesRS) are NOT copied as they reference
+            # specific text segments in the corpus
 
-        return duplicate
+            return duplicate
 
     # ========== SYNC INTEGRATION METHODS ==========
 
