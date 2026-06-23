@@ -635,10 +635,20 @@ def _make_infl_project(features=None, write_enabled=True):
     ``features`` is a list of (name_text, hvo) pairs that will be visible as
     mock IFsFeatDefn objects in MsFeatureSystemOA.FeaturesOC.
     """
+    import contextlib
     from unittest.mock import Mock, MagicMock
 
     project = Mock()
     project.writeEnabled = write_enabled
+
+    # _TransactionCM reads these as real values (not auto-vivified Mocks) so it
+    # can choose Phase 1 and maintain the nesting-depth counter. Phase 1
+    # (non-undoable) is used here; Transaction()/UndoableOperation() return real
+    # no-op context managers so `with self._TransactionCM(...)` enters cleanly.
+    project._undoable = False
+    project._transaction_depth = 0
+    project.Transaction = Mock(side_effect=lambda label="transaction": contextlib.nullcontext())
+    project.UndoableOperation = Mock(side_effect=lambda label: contextlib.nullcontext())
 
     # project.project is the internal LCM cache accessor
     project.project = Mock()
