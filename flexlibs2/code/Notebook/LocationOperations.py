@@ -184,25 +184,26 @@ class LocationOperations(BaseOperations):
             raise FP_ParameterError("Locations list not found in project")
 
         # Create the new location using the factory
-        factory = self.project.project.ServiceLocator.GetService(ICmLocationFactory)
-        new_location = factory.Create()
+        with self._TransactionCM('Create Location'):
+            factory = self.project.project.ServiceLocator.GetService(ICmLocationFactory)
+            new_location = factory.Create()
 
-        # Add to top-level list (must be done before setting properties)
-        location_list.PossibilitiesOS.Add(new_location)
+            # Add to top-level list (must be done before setting properties)
+            location_list.PossibilitiesOS.Add(new_location)
 
-        # Set name
-        mkstr_name = TsStringUtils.MakeString(name, wsHandle)
-        new_location.Name.set_String(wsHandle, mkstr_name)
+            # Set name
+            mkstr_name = TsStringUtils.MakeString(name, wsHandle)
+            new_location.Name.set_String(wsHandle, mkstr_name)
 
-        # Set alias if provided
-        if alias:
-            mkstr_alias = TsStringUtils.MakeString(alias, wsHandle)
-            new_location.Abbreviation.set_String(wsHandle, mkstr_alias)
+            # Set alias if provided
+            if alias:
+                mkstr_alias = TsStringUtils.MakeString(alias, wsHandle)
+                new_location.Abbreviation.set_String(wsHandle, mkstr_alias)
 
-        # Set creation date
-        new_location.DateCreated = DateTime.Now
+            # Set creation date
+            new_location.DateCreated = DateTime.Now
 
-        return new_location
+            return new_location
 
     @OperationsMethod
     def Delete(self, location_or_hvo):
@@ -250,14 +251,15 @@ class LocationOperations(BaseOperations):
         # Get the parent or top-level list
         parent = self.GetRegion(location)
 
-        if parent:
-            # Remove from parent's sublocations
-            parent.SubPossibilitiesOS.Remove(location)
-        else:
-            # Remove from top-level list
-            location_list = self.project.lp.LocationsOA
-            if location_list:
-                location_list.PossibilitiesOS.Remove(location)
+        with self._TransactionCM('Delete Location'):
+            if parent:
+                # Remove from parent's sublocations
+                parent.SubPossibilitiesOS.Remove(location)
+            else:
+                # Remove from top-level list
+                location_list = self.project.lp.LocationsOA
+                if location_list:
+                    location_list.PossibilitiesOS.Remove(location)
 
     @OperationsMethod
     def Find(self, name):
@@ -439,11 +441,12 @@ class LocationOperations(BaseOperations):
         location = self.__ResolveObject(location_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
 
-        mkstr = TsStringUtils.MakeString(name, wsHandle)
-        location.Name.set_String(wsHandle, mkstr)
+        with self._TransactionCM('Set Location Name'):
+            mkstr = TsStringUtils.MakeString(name, wsHandle)
+            location.Name.set_String(wsHandle, mkstr)
 
-        # Update modification date
-        location.DateModified = DateTime.Now
+            # Update modification date
+            location.DateModified = DateTime.Now
 
     @OperationsMethod
     def GetAlias(self, location_or_hvo, wsHandle=None):
@@ -532,11 +535,12 @@ class LocationOperations(BaseOperations):
         location = self.__ResolveObject(location_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
 
-        mkstr = TsStringUtils.MakeString(alias, wsHandle)
-        location.Abbreviation.set_String(wsHandle, mkstr)
+        with self._TransactionCM('Set Location Alias'):
+            mkstr = TsStringUtils.MakeString(alias, wsHandle)
+            location.Abbreviation.set_String(wsHandle, mkstr)
 
-        # Update modification date
-        location.DateModified = DateTime.Now
+            # Update modification date
+            location.DateModified = DateTime.Now
 
     # --- Geographic Properties ---
 
@@ -657,21 +661,22 @@ class LocationOperations(BaseOperations):
         location = self.__ResolveObject(location_or_hvo)
 
         # Create or update GenDate for coordinates
-        if not hasattr(location, "DateOfEvent") or not location.DateOfEvent:
-            # Need to create GenDate - this may require factory
-            # For now, set directly if property exists
-            if hasattr(location, "DateOfEvent"):
-                # Try to initialize the GenDate object
-                from SIL.LCModel import GenDate
+        with self._TransactionCM('Set Location Coordinates'):
+            if not hasattr(location, "DateOfEvent") or not location.DateOfEvent:
+                # Need to create GenDate - this may require factory
+                # For now, set directly if property exists
+                if hasattr(location, "DateOfEvent"):
+                    # Try to initialize the GenDate object
+                    from SIL.LCModel import GenDate
 
-                location.DateOfEvent = GenDate()
+                    location.DateOfEvent = GenDate()
 
-        if hasattr(location, "DateOfEvent") and location.DateOfEvent:
-            location.DateOfEvent.GenDateVal1 = int(lat * 10000)  # Store with precision
-            location.DateOfEvent.GenDateVal2 = int(lon * 10000)
+            if hasattr(location, "DateOfEvent") and location.DateOfEvent:
+                location.DateOfEvent.GenDateVal1 = int(lat * 10000)  # Store with precision
+                location.DateOfEvent.GenDateVal2 = int(lon * 10000)
 
-        # Update modification date
-        location.DateModified = DateTime.Now
+            # Update modification date
+            location.DateModified = DateTime.Now
 
     @OperationsMethod
     def GetElevation(self, location_or_hvo):
@@ -779,13 +784,14 @@ class LocationOperations(BaseOperations):
         location = self.__ResolveObject(location_or_hvo)
 
         # Set elevation if field exists
-        if hasattr(location, "Elevation"):
-            location.Elevation = elev
-        else:
-            logger.warning("Elevation field not available on ICmLocation")
+        with self._TransactionCM('Set Location Elevation'):
+            if hasattr(location, "Elevation"):
+                location.Elevation = elev
+            else:
+                logger.warning("Elevation field not available on ICmLocation")
 
-        # Update modification date
-        location.DateModified = DateTime.Now
+            # Update modification date
+            location.DateModified = DateTime.Now
 
     # --- Description ---
 
@@ -875,12 +881,13 @@ class LocationOperations(BaseOperations):
         location = self.__ResolveObject(location_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
 
-        if hasattr(location, "Description"):
-            mkstr = TsStringUtils.MakeString(description, wsHandle)
-            location.Description.set_String(wsHandle, mkstr)
+        with self._TransactionCM('Set Location Description'):
+            if hasattr(location, "Description"):
+                mkstr = TsStringUtils.MakeString(description, wsHandle)
+                location.Description.set_String(wsHandle, mkstr)
 
-            # Update modification date
-            location.DateModified = DateTime.Now
+                # Update modification date
+                location.DateModified = DateTime.Now
 
     # --- Hierarchical Operations ---
 
@@ -1004,25 +1011,26 @@ class LocationOperations(BaseOperations):
         old_parent = self.GetRegion(location)
 
         # Remove from old parent
-        if old_parent:
-            old_parent.SubPossibilitiesOS.Remove(location)
-        else:
-            # Remove from top-level list
-            location_list = self.project.lp.LocationsOA
-            if location_list and location in location_list.PossibilitiesOS:
-                location_list.PossibilitiesOS.Remove(location)
+        with self._TransactionCM('Set Location Region'):
+            if old_parent:
+                old_parent.SubPossibilitiesOS.Remove(location)
+            else:
+                # Remove from top-level list
+                location_list = self.project.lp.LocationsOA
+                if location_list and location in location_list.PossibilitiesOS:
+                    location_list.PossibilitiesOS.Remove(location)
 
-        # Add to new parent
-        if new_parent:
-            new_parent.SubPossibilitiesOS.Add(location)
-        else:
-            # Add to top-level list
-            location_list = self.project.lp.LocationsOA
-            if location_list:
-                location_list.PossibilitiesOS.Add(location)
+            # Add to new parent
+            if new_parent:
+                new_parent.SubPossibilitiesOS.Add(location)
+            else:
+                # Add to top-level list
+                location_list = self.project.lp.LocationsOA
+                if location_list:
+                    location_list.PossibilitiesOS.Add(location)
 
-        # Update modification date
-        location.DateModified = DateTime.Now
+            # Update modification date
+            location.DateModified = DateTime.Now
 
     @OperationsMethod
     def GetSublocations(self, location_or_hvo, recursive=True):
