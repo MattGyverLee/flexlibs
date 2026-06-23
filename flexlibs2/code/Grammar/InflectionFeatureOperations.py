@@ -239,18 +239,26 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
 
         # Create the new inflection class using the factory
         factory = self.project.project.ServiceLocator.GetService(IMoInflClassFactory)
-        new_ic = factory.Create()
 
-        # Add to the inflection classes list (must be done before setting properties)
+        # Pre-flight: ensure the morphological data container and production
+        # restrictions list exist before creating any object.
         morph_data = self.project.lp.MorphologicalDataOA
-        if morph_data.ProdRestrictOA:
+        if morph_data is None or morph_data.ProdRestrictOA is None:
+            raise FP_ParameterError(
+                "Project has no morphological data / production restrictions list defined"
+            )
+
+        with self._TransactionCM(f"Create inflection class '{name}'"):
+            new_ic = factory.Create()
+
+            # Add to the inflection classes list (must be done before setting properties)
             morph_data.ProdRestrictOA.PossibilitiesOS.Add(new_ic)
 
-        # Set name
-        mkstr_name = TsStringUtils.MakeString(name, wsHandle)
-        new_ic.Name.set_String(wsHandle, mkstr_name)
+            # Set name
+            mkstr_name = TsStringUtils.MakeString(name, wsHandle)
+            new_ic.Name.set_String(wsHandle, mkstr_name)
 
-        return new_ic
+            return new_ic
 
     @OperationsMethod
     def InflectionClassDelete(self, ic_or_hvo):
@@ -680,18 +688,20 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
             IFsFeatStrucTypeFactory
         )
         new_guid = System.Guid.NewGuid()
-        new_type = factory.Create(new_guid)
-        feature_system.TypesOC.Add(new_type)
 
-        ws_handle = self.__WSHandle(None)
-        new_type.Name.set_String(
-            ws_handle, TsStringUtils.MakeString(name, ws_handle)
-        )
-        new_type.Abbreviation.set_String(
-            ws_handle, TsStringUtils.MakeString(abbreviation, ws_handle)
-        )
+        with self._TransactionCM(f"Create feature-struct type '{name}'"):
+            new_type = factory.Create(new_guid)
+            feature_system.TypesOC.Add(new_type)
 
-        return new_type
+            ws_handle = self.__WSHandle(None)
+            new_type.Name.set_String(
+                ws_handle, TsStringUtils.MakeString(name, ws_handle)
+            )
+            new_type.Abbreviation.set_String(
+                ws_handle, TsStringUtils.MakeString(abbreviation, ws_handle)
+            )
+
+            return new_type
 
     @OperationsMethod
     def Create(self, name, abbreviation, type="closed", catalogSourceId=None, force=False):
@@ -751,11 +761,12 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
         # programmatic call) would be silently overwritten. (issue #138)
         if catalogSourceId and catalogSourceId.upper().startswith(CATALOG_PREFIX + ":"):
             wsHandle = self.project.project.DefaultAnalWs
-            new_feat = self.CreateFromCatalog(catalogSourceId)
-            self.__OverlayCanonicalLabels(
-                new_feat, name, abbreviation, wsHandle, force, catalogSourceId
-            )
-            return new_feat
+            with self._TransactionCM(f"Create inflection feature '{name}'"):
+                new_feat = self.CreateFromCatalog(catalogSourceId)
+                self.__OverlayCanonicalLabels(
+                    new_feat, name, abbreviation, wsHandle, force, catalogSourceId
+                )
+                return new_feat
 
         # Uniqueness by name.
         if self.Exists(name):
@@ -773,32 +784,34 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
         # Phase 2 ownership-ordering rule: attach to the owning collection
         # FIRST, then mutate properties.
         type_normalized = (type or "closed").strip().lower()
-        if type_normalized == "complex":
-            factory = self.project.project.ServiceLocator.GetService(
-                IFsComplexFeatureFactory
-            )
-            new_feat = factory.Create()
-            feature_system.FeaturesOC.Add(new_feat)
-            new_feat = IFsComplexFeature(new_feat)
-        else:
-            factory = self.project.project.ServiceLocator.GetService(
-                IFsClosedFeatureFactory
-            )
-            new_feat = factory.Create()
-            feature_system.FeaturesOC.Add(new_feat)
-            new_feat = IFsClosedFeature(new_feat)
 
-        # Set name + abbreviation in default analysis WS.
-        mkstr_name = TsStringUtils.MakeString(name, wsHandle)
-        new_feat.Name.set_String(wsHandle, mkstr_name)
-        mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
-        new_feat.Abbreviation.set_String(wsHandle, mkstr_abbr)
+        with self._TransactionCM(f"Create inflection feature '{name}'"):
+            if type_normalized == "complex":
+                factory = self.project.project.ServiceLocator.GetService(
+                    IFsComplexFeatureFactory
+                )
+                new_feat = factory.Create()
+                feature_system.FeaturesOC.Add(new_feat)
+                new_feat = IFsComplexFeature(new_feat)
+            else:
+                factory = self.project.project.ServiceLocator.GetService(
+                    IFsClosedFeatureFactory
+                )
+                new_feat = factory.Create()
+                feature_system.FeaturesOC.Add(new_feat)
+                new_feat = IFsClosedFeature(new_feat)
 
-        # Verbatim CatalogSourceId for non-INFL: prefixes (and bare ids).
-        if catalogSourceId:
-            new_feat.CatalogSourceId = catalogSourceId
+            # Set name + abbreviation in default analysis WS.
+            mkstr_name = TsStringUtils.MakeString(name, wsHandle)
+            new_feat.Name.set_String(wsHandle, mkstr_name)
+            mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
+            new_feat.Abbreviation.set_String(wsHandle, mkstr_abbr)
 
-        return new_feat
+            # Verbatim CatalogSourceId for non-INFL: prefixes (and bare ids).
+            if catalogSourceId:
+                new_feat.CatalogSourceId = catalogSourceId
+
+            return new_feat
 
     @OperationsMethod
     def CreateValue(self, feature_or_hvo, name, abbreviation, value_marker=None):
@@ -846,18 +859,20 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
         factory = self.project.project.ServiceLocator.GetService(
             IFsSymFeatValFactory
         )
-        new_val = factory.Create()
-        # Ownership-first: attach to feature.ValuesOC before mutating strings.
-        feature.ValuesOC.Add(new_val)
-        new_val = IFsSymFeatVal(new_val)
 
-        mkstr_name = TsStringUtils.MakeString(name, wsHandle)
-        new_val.Name.set_String(wsHandle, mkstr_name)
-        mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
-        new_val.Abbreviation.set_String(wsHandle, mkstr_abbr)
+        with self._TransactionCM(f"Create feature value '{name}'"):
+            new_val = factory.Create()
+            # Ownership-first: attach to feature.ValuesOC before mutating strings.
+            feature.ValuesOC.Add(new_val)
+            new_val = IFsSymFeatVal(new_val)
 
-        _ = value_marker  # reserved for future strict-mode check
-        return new_val
+            mkstr_name = TsStringUtils.MakeString(name, wsHandle)
+            new_val.Name.set_String(wsHandle, mkstr_name)
+            mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
+            new_val.Abbreviation.set_String(wsHandle, mkstr_abbr)
+
+            _ = value_marker  # reserved for future strict-mode check
+            return new_val
 
     @OperationsMethod
     def CreateClosedFeatureWithValues(
@@ -916,33 +931,34 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
                 )
             normalized.append((str(vname), str(vabbr)))
 
-        feature = self.Create(
-            name=name,
-            abbreviation=abbreviation,
-            type="closed",
-            catalogSourceId=catalogSourceId,
-        )
-        # Roll the feature back if any CreateValue fails mid-loop, so a
-        # downstream LCM exception (WS issue, GUID collision, etc.)
-        # doesn't leave a partially-populated feature behind. Up-front
-        # tuple-shape validation above already covers the cheap-fail
-        # cases; this guards the LCM-call slice. (issue #127)
-        created_values = []
-        try:
-            for vname, vabbr in normalized:
-                created_values.append(self.CreateValue(feature, vname, vabbr))
-        except Exception:
+        with self._TransactionCM(f"Create closed feature '{name}' with values"):
+            feature = self.Create(
+                name=name,
+                abbreviation=abbreviation,
+                type="closed",
+                catalogSourceId=catalogSourceId,
+            )
+            # Roll the feature back if any CreateValue fails mid-loop, so a
+            # downstream LCM exception (WS issue, GUID collision, etc.)
+            # doesn't leave a partially-populated feature behind. Up-front
+            # tuple-shape validation above already covers the cheap-fail
+            # cases; this guards the LCM-call slice. (issue #127)
+            created_values = []
             try:
-                self.FeatureDelete(feature)
+                for vname, vabbr in normalized:
+                    created_values.append(self.CreateValue(feature, vname, vabbr))
             except Exception:
-                # Best-effort rollback; if FeatureDelete also fails
-                # (read-only transaction, weird LCM state), let the
-                # original exception propagate -- it carries the real
-                # failure.
-                pass
-            raise
+                try:
+                    self.FeatureDelete(feature)
+                except Exception:
+                    # Best-effort rollback; if FeatureDelete also fails
+                    # (read-only transaction, weird LCM state), let the
+                    # original exception propagate -- it carries the real
+                    # failure.
+                    pass
+                raise
 
-        return feature, created_values
+            return feature, created_values
 
     @OperationsMethod
     def MakeFeatStruc(self, specs, owner=None):
@@ -1014,25 +1030,27 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
         factory = self.project.project.ServiceLocator.GetService(
             IFsFeatStrucFactory
         )
-        struct = factory.Create()
-        owner_unwrapped.FeaturesOA = struct
-        # Re-fetch via the owning property to hold the LCM view of the
-        # now-owned struct.
-        struct = IFsFeatStruc(owner_unwrapped.FeaturesOA)
 
-        # Populate FeatureSpecsOC. Each spec is an IFsClosedValue with
-        # FeatureRA -> feature and ValueRA -> value.
-        cv_factory = self.project.project.ServiceLocator.GetService(
-            IFsClosedValueFactory
-        )
-        for feat, val in normalized:
-            closed_value = cv_factory.Create()
-            struct.FeatureSpecsOC.Add(closed_value)
-            cv = IFsClosedValue(closed_value)
-            cv.FeatureRA = feat
-            cv.ValueRA = val
+        with self._TransactionCM("Make feature structure"):
+            struct = factory.Create()
+            owner_unwrapped.FeaturesOA = struct
+            # Re-fetch via the owning property to hold the LCM view of the
+            # now-owned struct.
+            struct = IFsFeatStruc(owner_unwrapped.FeaturesOA)
 
-        return struct
+            # Populate FeatureSpecsOC. Each spec is an IFsClosedValue with
+            # FeatureRA -> feature and ValueRA -> value.
+            cv_factory = self.project.project.ServiceLocator.GetService(
+                IFsClosedValueFactory
+            )
+            for feat, val in normalized:
+                closed_value = cv_factory.Create()
+                struct.FeatureSpecsOC.Add(closed_value)
+                cv = IFsClosedValue(closed_value)
+                cv.FeatureRA = feat
+                cv.ValueRA = val
+
+            return struct
 
     @OperationsMethod
     def FeatureCreate(self, name, type):
@@ -1089,18 +1107,20 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
         # Create the new feature using the factory
         # Using complex feature factory as it's the most common type
         factory = self.project.project.ServiceLocator.GetService(IFsComplexFeatureFactory)
-        new_feature = factory.Create()
 
-        # Add to the feature system (must be done before setting properties)
-        feature_system = self.project.lp.MsFeatureSystemOA
-        if feature_system:
-            feature_system.FeaturesOC.Add(new_feature)
+        with self._TransactionCM(f"Create feature '{name}'"):
+            new_feature = factory.Create()
 
-        # Set name
-        mkstr_name = TsStringUtils.MakeString(name, wsHandle)
-        new_feature.Name.set_String(wsHandle, mkstr_name)
+            # Add to the feature system (must be done before setting properties)
+            feature_system = self.project.lp.MsFeatureSystemOA
+            if feature_system:
+                feature_system.FeaturesOC.Add(new_feature)
 
-        return new_feature
+            # Set name
+            mkstr_name = TsStringUtils.MakeString(name, wsHandle)
+            new_feature.Name.set_String(wsHandle, mkstr_name)
+
+            return new_feature
 
     @OperationsMethod
     def FeatureDelete(self, feature_or_hvo):

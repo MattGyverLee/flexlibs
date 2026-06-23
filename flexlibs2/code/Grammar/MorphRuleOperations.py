@@ -343,17 +343,18 @@ class MorphRuleOperations(BaseOperations):
         else:
             factory = self.project.project.ServiceLocator.GetService(IMoExoCompoundFactory)
 
-        new_rule = factory.Create()
-        morph_data.CompoundRulesOS.Add(new_rule)
+        with self._TransactionCM(f"Create compound rule '{name}'"):
+            new_rule = factory.Create()
+            morph_data.CompoundRulesOS.Add(new_rule)
 
-        mkstr_name = TsStringUtils.MakeString(name, wsHandle)
-        new_rule.Name.set_String(wsHandle, mkstr_name)
+            mkstr_name = TsStringUtils.MakeString(name, wsHandle)
+            new_rule.Name.set_String(wsHandle, mkstr_name)
 
-        if description:
-            mkstr_desc = TsStringUtils.MakeString(description, wsHandle)
-            new_rule.Description.set_String(wsHandle, mkstr_desc)
+            if description:
+                mkstr_desc = TsStringUtils.MakeString(description, wsHandle)
+                new_rule.Description.set_String(wsHandle, mkstr_desc)
 
-        return new_rule
+            return new_rule
 
     @OperationsMethod
     def CreateAffixTemplate(self, pos_or_hvo, name, description=None):
@@ -399,18 +400,20 @@ class MorphRuleOperations(BaseOperations):
         wsHandle = self.project.project.DefaultAnalWs
 
         factory = self.project.project.ServiceLocator.GetService(IMoInflAffixTemplateFactory)
-        new_template = factory.Create()
 
-        pos.AffixTemplatesOS.Add(new_template)
+        with self._TransactionCM(f"Create affix template '{name}'"):
+            new_template = factory.Create()
 
-        mkstr_name = TsStringUtils.MakeString(name, wsHandle)
-        new_template.Name.set_String(wsHandle, mkstr_name)
+            pos.AffixTemplatesOS.Add(new_template)
 
-        if description:
-            mkstr_desc = TsStringUtils.MakeString(description, wsHandle)
-            new_template.Description.set_String(wsHandle, mkstr_desc)
+            mkstr_name = TsStringUtils.MakeString(name, wsHandle)
+            new_template.Name.set_String(wsHandle, mkstr_name)
 
-        return new_template
+            if description:
+                mkstr_desc = TsStringUtils.MakeString(description, wsHandle)
+                new_template.Description.set_String(wsHandle, mkstr_desc)
+
+            return new_template
 
     # ========== DELETION ==========
 
@@ -782,40 +785,41 @@ class MorphRuleOperations(BaseOperations):
         source = self.__ResolveObject(item_or_hvo)
         class_name = source.ClassName
 
-        # Create duplicate and add to owning collection
-        if class_name in ("MoEndoCompound", "MoExoCompound"):
-            duplicate = self.__DuplicateCompoundRule(source, class_name, insert_after)
-        elif class_name == "MoInflAffixTemplate":
-            duplicate = self.__DuplicateAffixTemplate(source, insert_after)
-        else:
-            raise FP_ParameterError(f"Unsupported rule type for duplication: {class_name}")
+        with self._TransactionCM(f"Duplicate {class_name}"):
+            # Create duplicate and add to owning collection
+            if class_name in ("MoEndoCompound", "MoExoCompound"):
+                duplicate = self.__DuplicateCompoundRule(source, class_name, insert_after)
+            elif class_name == "MoInflAffixTemplate":
+                duplicate = self.__DuplicateAffixTemplate(source, insert_after)
+            else:
+                raise FP_ParameterError(f"Unsupported rule type for duplication: {class_name}")
 
-        # Copy MultiString properties (AFTER adding to parent)
-        duplicate.Name.CopyAlternatives(source.Name)
-        duplicate.Description.CopyAlternatives(source.Description)
+            # Copy MultiString properties (AFTER adding to parent)
+            duplicate.Name.CopyAlternatives(source.Name)
+            duplicate.Description.CopyAlternatives(source.Description)
 
-        # Copy Reference Atomic (RA) properties
-        if hasattr(source, "StratumRA") and source.StratumRA:
-            duplicate.StratumRA = source.StratumRA
+            # Copy Reference Atomic (RA) properties
+            if hasattr(source, "StratumRA") and source.StratumRA:
+                duplicate.StratumRA = source.StratumRA
 
-        # Copy boolean properties (where applicable)
-        if hasattr(source, "Disabled"):
-            duplicate.Disabled = source.Disabled
-        if hasattr(source, "HeadLast"):
-            duplicate.HeadLast = source.HeadLast
-        if hasattr(source, "Final"):
-            duplicate.Final = source.Final
+            # Copy boolean properties (where applicable)
+            if hasattr(source, "Disabled"):
+                duplicate.Disabled = source.Disabled
+            if hasattr(source, "HeadLast"):
+                duplicate.HeadLast = source.HeadLast
+            if hasattr(source, "Final"):
+                duplicate.Final = source.Final
 
-        # Deep copy: reference sequences for affix templates
-        if deep and class_name == "MoInflAffixTemplate":
-            for slot_prop in ("PrefixSlotsRS", "SuffixSlotsRS", "ProcliticSlotsRS", "EncliticSlotsRS"):
-                if hasattr(source, slot_prop) and hasattr(duplicate, slot_prop):
-                    src_slots = getattr(source, slot_prop)
-                    dst_slots = getattr(duplicate, slot_prop)
-                    for slot in src_slots:
-                        dst_slots.Add(slot)
+            # Deep copy: reference sequences for affix templates
+            if deep and class_name == "MoInflAffixTemplate":
+                for slot_prop in ("PrefixSlotsRS", "SuffixSlotsRS", "ProcliticSlotsRS", "EncliticSlotsRS"):
+                    if hasattr(source, slot_prop) and hasattr(duplicate, slot_prop):
+                        src_slots = getattr(source, slot_prop)
+                        dst_slots = getattr(duplicate, slot_prop)
+                        for slot in src_slots:
+                            dst_slots.Add(slot)
 
-        return duplicate
+            return duplicate
 
     def __DuplicateCompoundRule(self, source, class_name, insert_after):
         """Create and insert a duplicate compound rule."""

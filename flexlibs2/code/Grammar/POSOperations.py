@@ -198,14 +198,15 @@ class POSOperations(BaseOperations, CatalogBackedMixin):
         # name/abbreviation on top so explicit args still win.
         if catalogSourceId and catalogSourceId.upper().startswith("GOLD:"):
             wsHandle = self.project.project.DefaultAnalWs
-            new_pos = self.CreateFromCatalog(catalogSourceId)
-            # Overlay user-supplied name and abbreviation in the
-            # analysis WS (catalog values stay in other WSes).
-            mkstr_name = TsStringUtils.MakeString(name, wsHandle)
-            new_pos.Name.set_String(wsHandle, mkstr_name)
-            mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
-            new_pos.Abbreviation.set_String(wsHandle, mkstr_abbr)
-            return new_pos
+            with self._TransactionCM(f"Create part of speech '{name}'"):
+                new_pos = self.CreateFromCatalog(catalogSourceId)
+                # Overlay user-supplied name and abbreviation in the
+                # analysis WS (catalog values stay in other WSes).
+                mkstr_name = TsStringUtils.MakeString(name, wsHandle)
+                new_pos.Name.set_String(wsHandle, mkstr_name)
+                mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
+                new_pos.Abbreviation.set_String(wsHandle, mkstr_abbr)
+                return new_pos
 
         # Check if POS already exists
         if self.Exists(name):
@@ -216,24 +217,25 @@ class POSOperations(BaseOperations, CatalogBackedMixin):
 
         # Create the new POS using the factory
         factory = self.project.project.ServiceLocator.GetService(IPartOfSpeechFactory)
-        new_pos = factory.Create()
+        with self._TransactionCM(f"Create part of speech '{name}'"):
+            new_pos = factory.Create()
 
-        # Add to the POS list (must be done before setting properties)
-        pos_list = self.project.lp.PartsOfSpeechOA
-        pos_list.PossibilitiesOS.Add(new_pos)
+            # Add to the POS list (must be done before setting properties)
+            pos_list = self.project.lp.PartsOfSpeechOA
+            pos_list.PossibilitiesOS.Add(new_pos)
 
-        # Set name and abbreviation
-        mkstr_name = TsStringUtils.MakeString(name, wsHandle)
-        new_pos.Name.set_String(wsHandle, mkstr_name)
+            # Set name and abbreviation
+            mkstr_name = TsStringUtils.MakeString(name, wsHandle)
+            new_pos.Name.set_String(wsHandle, mkstr_name)
 
-        mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
-        new_pos.Abbreviation.set_String(wsHandle, mkstr_abbr)
+            mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
+            new_pos.Abbreviation.set_String(wsHandle, mkstr_abbr)
 
-        # Set catalog source ID if provided
-        if catalogSourceId:
-            new_pos.CatalogSourceId = catalogSourceId
+            # Set catalog source ID if provided
+            if catalogSourceId:
+                new_pos.CatalogSourceId = catalogSourceId
 
-        return new_pos
+            return new_pos
 
     @OperationsMethod
     def Delete(self, pos_or_hvo):
@@ -611,19 +613,20 @@ class POSOperations(BaseOperations, CatalogBackedMixin):
 
         # Create the subcategory using the factory
         factory = self.project.project.ServiceLocator.GetService(IPartOfSpeechFactory)
-        subcat = factory.Create()
+        with self._TransactionCM(f"Add subcategory '{name}'"):
+            subcat = factory.Create()
 
-        # Add to parent's SubPossibilitiesOS (must be done before setting properties)
-        pos.SubPossibilitiesOS.Add(subcat)
+            # Add to parent's SubPossibilitiesOS (must be done before setting properties)
+            pos.SubPossibilitiesOS.Add(subcat)
 
-        # Set name and abbreviation
-        mkstr_name = TsStringUtils.MakeString(name, wsHandle)
-        subcat.Name.set_String(wsHandle, mkstr_name)
+            # Set name and abbreviation
+            mkstr_name = TsStringUtils.MakeString(name, wsHandle)
+            subcat.Name.set_String(wsHandle, mkstr_name)
 
-        mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
-        subcat.Abbreviation.set_String(wsHandle, mkstr_abbr)
+            mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
+            subcat.Abbreviation.set_String(wsHandle, mkstr_abbr)
 
-        return subcat
+            return subcat
 
     @OperationsMethod
     def RemoveSubcategory(self, pos_or_hvo, subcat_or_hvo):
@@ -904,50 +907,51 @@ class POSOperations(BaseOperations, CatalogBackedMixin):
 
         # Create new POS using factory (auto-generates new GUID)
         factory = self.project.project.ServiceLocator.GetService(IPartOfSpeechFactory)
-        duplicate = factory.Create()
+        with self._TransactionCM("Duplicate POS"):
+            duplicate = factory.Create()
 
-        # Determine parent and insertion position
-        # Check if source is a subcategory or top-level
-        parent_is_possibility = False
-        try:
-            parent_pos = IPartOfSpeech(source.Owner)
-            parent_is_possibility = True
-        except Exception:
+            # Determine parent and insertion position
+            # Check if source is a subcategory or top-level
             parent_is_possibility = False
+            try:
+                parent_pos = IPartOfSpeech(source.Owner)
+                parent_is_possibility = True
+            except Exception:
+                parent_is_possibility = False
 
-        if parent_is_possibility:
-            # Source is a subcategory
-            parent_pos = IPartOfSpeech(source.Owner)
-            if insert_after:
-                source_index = parent_pos.SubPossibilitiesOS.IndexOf(source)
-                parent_pos.SubPossibilitiesOS.Insert(source_index + 1, duplicate)
+            if parent_is_possibility:
+                # Source is a subcategory
+                parent_pos = IPartOfSpeech(source.Owner)
+                if insert_after:
+                    source_index = parent_pos.SubPossibilitiesOS.IndexOf(source)
+                    parent_pos.SubPossibilitiesOS.Insert(source_index + 1, duplicate)
+                else:
+                    parent_pos.SubPossibilitiesOS.Add(duplicate)
             else:
-                parent_pos.SubPossibilitiesOS.Add(duplicate)
-        else:
-            # Source is top-level
-            pos_list = self.project.lp.PartsOfSpeechOA
-            if insert_after:
-                source_index = pos_list.PossibilitiesOS.IndexOf(source)
-                pos_list.PossibilitiesOS.Insert(source_index + 1, duplicate)
-            else:
-                pos_list.PossibilitiesOS.Add(duplicate)
+                # Source is top-level
+                pos_list = self.project.lp.PartsOfSpeechOA
+                if insert_after:
+                    source_index = pos_list.PossibilitiesOS.IndexOf(source)
+                    pos_list.PossibilitiesOS.Insert(source_index + 1, duplicate)
+                else:
+                    pos_list.PossibilitiesOS.Add(duplicate)
 
-        # Copy simple MultiString properties (AFTER adding to parent)
-        duplicate.Name.CopyAlternatives(source.Name)
-        duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)
-        duplicate.Description.CopyAlternatives(source.Description)
+            # Copy simple MultiString properties (AFTER adding to parent)
+            duplicate.Name.CopyAlternatives(source.Name)
+            duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)
+            duplicate.Description.CopyAlternatives(source.Description)
 
-        # Copy string property
-        if source.CatalogSourceId:
-            duplicate.CatalogSourceId = source.CatalogSourceId
+            # Copy string property
+            if source.CatalogSourceId:
+                duplicate.CatalogSourceId = source.CatalogSourceId
 
-        # Deep copy: recursively duplicate subcategories
-        if deep and source.SubPossibilitiesOS.Count > 0:
-            for sub_pos in source.SubPossibilitiesOS:
-                # Recursively duplicate each subcategory
-                self.__DuplicateSubcategory(sub_pos, duplicate)
+            # Deep copy: recursively duplicate subcategories
+            if deep and source.SubPossibilitiesOS.Count > 0:
+                for sub_pos in source.SubPossibilitiesOS:
+                    # Recursively duplicate each subcategory
+                    self.__DuplicateSubcategory(sub_pos, duplicate)
 
-        return duplicate
+            return duplicate
 
     def __DuplicateSubcategory(self, source_sub, parent_duplicate):
         """

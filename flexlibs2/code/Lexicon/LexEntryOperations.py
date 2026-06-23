@@ -205,38 +205,39 @@ class LexEntryOperations(BaseOperations):
                 f"Morph type '{morph_type_name}' not found. " f"Use one of: stem, root, prefix, suffix, infix, etc."
             )
 
-        # Create the new entry using the factory
-        factory = self.project.project.ServiceLocator.GetService(ILexEntryFactory)
-        new_entry = factory.Create()
+        with self._TransactionCM(f"Create entry '{lexeme_form}'"):
+            # Create the new entry using the factory
+            factory = self.project.project.ServiceLocator.GetService(ILexEntryFactory)
+            new_entry = factory.Create()
 
-        # Create the lexeme form allomorph using the appropriate factory
-        # Stems use IMoStemAllomorphFactory, affixes use IMoAffixAllomorphFactory
-        if self.__IsStemType(morph_type):
-            allomorph_factory = self.project.project.ServiceLocator.GetService(IMoStemAllomorphFactory)
-        else:
-            allomorph_factory = self.project.project.ServiceLocator.GetService(IMoAffixAllomorphFactory)
-        lexeme_form_obj = allomorph_factory.Create()
+            # Create the lexeme form allomorph using the appropriate factory
+            # Stems use IMoStemAllomorphFactory, affixes use IMoAffixAllomorphFactory
+            if self.__IsStemType(morph_type):
+                allomorph_factory = self.project.project.ServiceLocator.GetService(IMoStemAllomorphFactory)
+            else:
+                allomorph_factory = self.project.project.ServiceLocator.GetService(IMoAffixAllomorphFactory)
+            lexeme_form_obj = allomorph_factory.Create()
 
-        # Attach lexeme form to entry FIRST (must be done before setting properties)
-        new_entry.LexemeFormOA = lexeme_form_obj
+            # Attach lexeme form to entry FIRST (must be done before setting properties)
+            new_entry.LexemeFormOA = lexeme_form_obj
 
-        # Set the form text
-        mkstr = TsStringUtils.MakeString(lexeme_form, wsHandle)
-        lexeme_form_obj.Form.set_String(wsHandle, mkstr)
+            # Set the form text
+            mkstr = TsStringUtils.MakeString(lexeme_form, wsHandle)
+            lexeme_form_obj.Form.set_String(wsHandle, mkstr)
 
-        # Set the morph type
-        lexeme_form_obj.MorphTypeRA = morph_type
+            # Set the morph type
+            lexeme_form_obj.MorphTypeRA = morph_type
 
-        # Create a blank sense by default (matches FLEx GUI behavior)
-        if create_blank_sense:
-            sense_factory = self.project.project.ServiceLocator.GetService(ILexSenseFactory)
-            blank_sense = sense_factory.Create()
-            new_entry.SensesOS.Add(blank_sense)
+            # Create a blank sense by default (matches FLEx GUI behavior)
+            if create_blank_sense:
+                sense_factory = self.project.project.ServiceLocator.GetService(ILexSenseFactory)
+                blank_sense = sense_factory.Create()
+                new_entry.SensesOS.Add(blank_sense)
 
-        # Note: Factory.Create() automatically adds the entry to the repository
-        # No explicit Add() call needed - the entry is already in the database
+            # Note: Factory.Create() automatically adds the entry to the repository
+            # No explicit Add() call needed - the entry is already in the database
 
-        return new_entry
+            return new_entry
 
     @OperationsMethod
     def Delete(self, entry_or_hvo):
@@ -371,98 +372,99 @@ class LexEntryOperations(BaseOperations):
             if morph_type_name_ts:
                 morph_type_name = ITsString(morph_type_name_ts).Text or "stem"
 
-        # Create the new entry (skip blank sense when deep copying — we copy source senses)
-        new_entry = self.Create(lexeme_form, morph_type_name, wsHandle, create_blank_sense=(not deep))
+        with self._TransactionCM("Duplicate entry"):
+            # Create the new entry (skip blank sense when deep copying — we copy source senses)
+            new_entry = self.Create(lexeme_form, morph_type_name, wsHandle, create_blank_sense=(not deep))
 
-        # Copy lexeme form for all writing systems (Create only sets default vernacular)
-        if source_entry.LexemeFormOA and new_entry.LexemeFormOA:
-            new_entry.LexemeFormOA.Form.CopyAlternatives(source_entry.LexemeFormOA.Form)
+            # Copy lexeme form for all writing systems (Create only sets default vernacular)
+            if source_entry.LexemeFormOA and new_entry.LexemeFormOA:
+                new_entry.LexemeFormOA.Form.CopyAlternatives(source_entry.LexemeFormOA.Form)
 
-        # Copy citation form (all writing systems)
-        new_entry.CitationForm.CopyAlternatives(source_entry.CitationForm)
+            # Copy citation form (all writing systems)
+            new_entry.CitationForm.CopyAlternatives(source_entry.CitationForm)
 
-        # Copy entry-level MultiString properties
-        new_entry.Comment.CopyAlternatives(source_entry.Comment)
-        new_entry.Bibliography.CopyAlternatives(source_entry.Bibliography)
-        new_entry.LiteralMeaning.CopyAlternatives(source_entry.LiteralMeaning)
-        new_entry.Restrictions.CopyAlternatives(source_entry.Restrictions)
-        new_entry.SummaryDefinition.CopyAlternatives(source_entry.SummaryDefinition)
+            # Copy entry-level MultiString properties
+            new_entry.Comment.CopyAlternatives(source_entry.Comment)
+            new_entry.Bibliography.CopyAlternatives(source_entry.Bibliography)
+            new_entry.LiteralMeaning.CopyAlternatives(source_entry.LiteralMeaning)
+            new_entry.Restrictions.CopyAlternatives(source_entry.Restrictions)
+            new_entry.SummaryDefinition.CopyAlternatives(source_entry.SummaryDefinition)
 
-        # Copy boolean properties
-        new_entry.DoNotUseForParsing = source_entry.DoNotUseForParsing
-        if hasattr(source_entry, "ExcludeAsHeadword"):
-            new_entry.ExcludeAsHeadword = source_entry.ExcludeAsHeadword
+            # Copy boolean properties
+            new_entry.DoNotUseForParsing = source_entry.DoNotUseForParsing
+            if hasattr(source_entry, "ExcludeAsHeadword"):
+                new_entry.ExcludeAsHeadword = source_entry.ExcludeAsHeadword
 
-        # Copy reference collections
-        for pub in source_entry.DoNotPublishInRC:
-            new_entry.DoNotPublishInRC.Add(pub)
-        for pub in source_entry.DoNotShowMainEntryInRC:
-            new_entry.DoNotShowMainEntryInRC.Add(pub)
+            # Copy reference collections
+            for pub in source_entry.DoNotPublishInRC:
+                new_entry.DoNotPublishInRC.Add(pub)
+            for pub in source_entry.DoNotShowMainEntryInRC:
+                new_entry.DoNotShowMainEntryInRC.Add(pub)
 
-        # Copy import residue if present
-        residue = self.GetImportResidue(source_entry)
-        if residue:
-            self.SetImportResidue(new_entry, residue)
+            # Copy import residue if present
+            residue = self.GetImportResidue(source_entry)
+            if residue:
+                self.SetImportResidue(new_entry, residue)
 
-        # Deep duplication: duplicate all owned objects
-        if deep:
-            # Duplicate senses (with all sub-objects: examples, subsenses, pictures)
-            for sense in source_entry.SensesOS:
-                self.project.Senses._deep_copy_sense_to(sense, new_entry)
+            # Deep duplication: duplicate all owned objects
+            if deep:
+                # Duplicate senses (with all sub-objects: examples, subsenses, pictures)
+                for sense in source_entry.SensesOS:
+                    self.project.Senses._deep_copy_sense_to(sense, new_entry)
 
-            # Duplicate alternate forms (allomorphs) using correct factory type
-            for allomorph in source_entry.AlternateFormsOS:
-                class_name = allomorph.ClassName
-                if class_name == "MoAffixAllomorph":
-                    allomorph_factory = self.project.project.ServiceLocator.GetService(IMoAffixAllomorphFactory)
-                else:
-                    allomorph_factory = self.project.project.ServiceLocator.GetService(IMoStemAllomorphFactory)
-                new_allomorph = allomorph_factory.Create()
-                new_entry.AlternateFormsOS.Add(new_allomorph)
-                new_allomorph.Form.CopyAlternatives(allomorph.Form)
-                if hasattr(allomorph, "MorphTypeRA"):
-                    new_allomorph.MorphTypeRA = allomorph.MorphTypeRA
-                for env in allomorph.PhoneEnvRC:
-                    new_allomorph.PhoneEnvRC.Add(env)
+                # Duplicate alternate forms (allomorphs) using correct factory type
+                for allomorph in source_entry.AlternateFormsOS:
+                    class_name = allomorph.ClassName
+                    if class_name == "MoAffixAllomorph":
+                        allomorph_factory = self.project.project.ServiceLocator.GetService(IMoAffixAllomorphFactory)
+                    else:
+                        allomorph_factory = self.project.project.ServiceLocator.GetService(IMoStemAllomorphFactory)
+                    new_allomorph = allomorph_factory.Create()
+                    new_entry.AlternateFormsOS.Add(new_allomorph)
+                    new_allomorph.Form.CopyAlternatives(allomorph.Form)
+                    if hasattr(allomorph, "MorphTypeRA"):
+                        new_allomorph.MorphTypeRA = allomorph.MorphTypeRA
+                    for env in allomorph.PhoneEnvRC:
+                        new_allomorph.PhoneEnvRC.Add(env)
 
-            # Duplicate pronunciations (with media files)
-            for pronunciation in source_entry.PronunciationsOS:
-                pron_factory = self.project.project.ServiceLocator.GetService(ILexPronunciationFactory)
-                new_pron = pron_factory.Create()
-                new_entry.PronunciationsOS.Add(new_pron)
-                new_pron.Form.CopyAlternatives(pronunciation.Form)
-                if hasattr(pronunciation, "LocationRA"):
-                    new_pron.LocationRA = pronunciation.LocationRA
-                # Copy media files
-                if hasattr(pronunciation, "MediaFilesOS"):
-                    for media in pronunciation.MediaFilesOS:
-                        media_factory = self.project.project.ServiceLocator.GetService(ICmFileFactory)
-                        new_media = media_factory.Create()
-                        new_pron.MediaFilesOS.Add(new_media)
-                        new_media.InternalPath = media.InternalPath
-                        new_media.Description.CopyAlternatives(media.Description)
-                        if hasattr(media, "Copyright"):
-                            new_media.Copyright.CopyAlternatives(media.Copyright)
+                # Duplicate pronunciations (with media files)
+                for pronunciation in source_entry.PronunciationsOS:
+                    pron_factory = self.project.project.ServiceLocator.GetService(ILexPronunciationFactory)
+                    new_pron = pron_factory.Create()
+                    new_entry.PronunciationsOS.Add(new_pron)
+                    new_pron.Form.CopyAlternatives(pronunciation.Form)
+                    if hasattr(pronunciation, "LocationRA"):
+                        new_pron.LocationRA = pronunciation.LocationRA
+                    # Copy media files
+                    if hasattr(pronunciation, "MediaFilesOS"):
+                        for media in pronunciation.MediaFilesOS:
+                            media_factory = self.project.project.ServiceLocator.GetService(ICmFileFactory)
+                            new_media = media_factory.Create()
+                            new_pron.MediaFilesOS.Add(new_media)
+                            new_media.InternalPath = media.InternalPath
+                            new_media.Description.CopyAlternatives(media.Description)
+                            if hasattr(media, "Copyright"):
+                                new_media.Copyright.CopyAlternatives(media.Copyright)
 
-            # Duplicate etymologies
-            for etymology in source_entry.EtymologyOS:
-                etym_factory = self.project.project.ServiceLocator.GetService(ILexEtymologyFactory)
-                new_etym = etym_factory.Create()
-                new_entry.EtymologyOS.Add(new_etym)
-                new_etym.Source.CopyAlternatives(etymology.Source)
-                new_etym.Form.CopyAlternatives(etymology.Form)
-                new_etym.Gloss.CopyAlternatives(etymology.Gloss)
-                new_etym.Comment.CopyAlternatives(etymology.Comment)
-                new_etym.Bibliography.CopyAlternatives(etymology.Bibliography)
-                if hasattr(etymology, "LanguageNotesRA") and etymology.LanguageNotesRA:
-                    new_etym.LanguageNotesRA = etymology.LanguageNotesRA
+                # Duplicate etymologies
+                for etymology in source_entry.EtymologyOS:
+                    etym_factory = self.project.project.ServiceLocator.GetService(ILexEtymologyFactory)
+                    new_etym = etym_factory.Create()
+                    new_entry.EtymologyOS.Add(new_etym)
+                    new_etym.Source.CopyAlternatives(etymology.Source)
+                    new_etym.Form.CopyAlternatives(etymology.Form)
+                    new_etym.Gloss.CopyAlternatives(etymology.Gloss)
+                    new_etym.Comment.CopyAlternatives(etymology.Comment)
+                    new_etym.Bibliography.CopyAlternatives(etymology.Bibliography)
+                    if hasattr(etymology, "LanguageNotesRA") and etymology.LanguageNotesRA:
+                        new_etym.LanguageNotesRA = etymology.LanguageNotesRA
 
-            # Note: EntryRefsOS (variant/complex form references) are NOT copied.
-            # These describe relationships between entries (variant-of, complex-form-of)
-            # which don't apply to a duplicate — the copy will likely become a
-            # homograph, not an actual variant or complex form of the same components.
+                # Note: EntryRefsOS (variant/complex form references) are NOT copied.
+                # These describe relationships between entries (variant-of, complex-form-of)
+                # which don't apply to a duplicate — the copy will likely become a
+                # homograph, not an actual variant or complex form of the same components.
 
-        return new_entry
+            return new_entry
 
     # ========== SYNC INTEGRATION METHODS ==========
 
@@ -604,9 +606,6 @@ class LexEntryOperations(BaseOperations):
             else:
                 remaining_props[k] = v
 
-        # Apply plain / multistring fields via base class.
-        super().ApplySyncableProperties(item, remaining_props, ws_map=ws_map)
-
         # Resolve the target project's publication list once for both RC fields.
         # Publications live in lp.PublicationsOA.PossibilitiesOS (flat list;
         # sub-publications are accessed via SubPossibilitiesOS but publication
@@ -623,34 +622,38 @@ class LexEntryOperations(BaseOperations):
                 )
             return pub_map
 
-        pub_guid_map = None  # Lazy: only built if an RC field is present.
+        with self._TransactionCM("Apply entry properties"):
+            # Apply plain / multistring fields via base class.
+            super().ApplySyncableProperties(item, remaining_props, ws_map=ws_map)
 
-        for field_name, guid_set in rc_props.items():
-            if not hasattr(item, field_name):
-                continue
-            if not isinstance(guid_set, (frozenset, set)):
-                _log.warning(
-                    "[WARN] ApplySyncableProperties: %s expected frozenset, "
-                    "got %s -- skipping", field_name, type(guid_set).__name__
-                )
-                continue
+            pub_guid_map = None  # Lazy: only built if an RC field is present.
 
-            if pub_guid_map is None:
-                pub_guid_map = _build_pub_guid_map()
-
-            rc_collection = getattr(item, field_name)
-            # Clear-and-rebuild: simpler than diffing, acceptable for v1.
-            rc_collection.Clear()
-            for guid_str in guid_set:
-                pub_obj = pub_guid_map.get(guid_str)
-                if pub_obj is None:
+            for field_name, guid_set in rc_props.items():
+                if not hasattr(item, field_name):
+                    continue
+                if not isinstance(guid_set, (frozenset, set)):
                     _log.warning(
-                        "[WARN] ApplySyncableProperties: %s GUID %s not found "
-                        "in target project's publication list -- skipped",
-                        field_name, guid_str
+                        "[WARN] ApplySyncableProperties: %s expected frozenset, "
+                        "got %s -- skipping", field_name, type(guid_set).__name__
                     )
-                else:
-                    rc_collection.Add(pub_obj)
+                    continue
+
+                if pub_guid_map is None:
+                    pub_guid_map = _build_pub_guid_map()
+
+                rc_collection = getattr(item, field_name)
+                # Clear-and-rebuild: simpler than diffing, acceptable for v1.
+                rc_collection.Clear()
+                for guid_str in guid_set:
+                    pub_obj = pub_guid_map.get(guid_str)
+                    if pub_obj is None:
+                        _log.warning(
+                            "[WARN] ApplySyncableProperties: %s GUID %s not found "
+                            "in target project's publication list -- skipped",
+                            field_name, guid_str
+                        )
+                    else:
+                        rc_collection.Add(pub_obj)
 
     @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
@@ -1810,18 +1813,19 @@ class LexEntryOperations(BaseOperations):
         entry = self.__ResolveObject(entry_or_hvo)
         wsHandle = self.__WSHandleAnalysis(wsHandle)
 
-        # Create the new sense using the factory
-        factory = self.project.project.ServiceLocator.GetService(ILexSenseFactory)
-        new_sense = factory.Create()
+        with self._TransactionCM("Add sense"):
+            # Create the new sense using the factory
+            factory = self.project.project.ServiceLocator.GetService(ILexSenseFactory)
+            new_sense = factory.Create()
 
-        # Add to entry's sense list (must be done before setting properties)
-        entry.SensesOS.Add(new_sense)
+            # Add to entry's sense list (must be done before setting properties)
+            entry.SensesOS.Add(new_sense)
 
-        # Set the gloss
-        mkstr = TsStringUtils.MakeString(gloss, wsHandle)
-        new_sense.Gloss.set_String(wsHandle, mkstr)
+            # Set the gloss
+            mkstr = TsStringUtils.MakeString(gloss, wsHandle)
+            new_sense.Gloss.set_String(wsHandle, mkstr)
 
-        return new_sense
+            return new_sense
 
     # --- Additional Properties ---
 
@@ -2697,25 +2701,26 @@ class LexEntryOperations(BaseOperations):
                 entry_ref = ref
                 break
 
-        if entry_ref is None:
-            # Create new LexEntryRef for complex form
-            factory = self.project.project.ServiceLocator.GetInstance(ILexEntryRefFactory)
-            entry_ref = factory.Create()
-            complex_entry.EntryRefsOS.Add(entry_ref)
-            entry_ref.RefType = LexEntryRefTags.krtComplexForm
-            entry_ref.HideMinorEntry = 0  # Show the complex form
+        with self._TransactionCM("Add complex form component"):
+            if entry_ref is None:
+                # Create new LexEntryRef for complex form
+                factory = self.project.project.ServiceLocator.GetInstance(ILexEntryRefFactory)
+                entry_ref = factory.Create()
+                complex_entry.EntryRefsOS.Add(entry_ref)
+                entry_ref.RefType = LexEntryRefTags.krtComplexForm
+                entry_ref.HideMinorEntry = 0  # Show the complex form
 
-        # Add to ComponentLexemesRS if not already present
-        if not any(item.Hvo == component.Hvo for item in entry_ref.ComponentLexemesRS):
-            entry_ref.ComponentLexemesRS.Add(component)
+            # Add to ComponentLexemesRS if not already present
+            if not any(item.Hvo == component.Hvo for item in entry_ref.ComponentLexemesRS):
+                entry_ref.ComponentLexemesRS.Add(component)
 
-        # Add to PrimaryLexemesRS if empty (first component = primary)
-        if entry_ref.PrimaryLexemesRS.Count == 0:
-            entry_ref.PrimaryLexemesRS.Add(component)
+            # Add to PrimaryLexemesRS if empty (first component = primary)
+            if entry_ref.PrimaryLexemesRS.Count == 0:
+                entry_ref.PrimaryLexemesRS.Add(component)
 
-        # Add to ShowComplexFormsInRS for visibility
-        if not any(item.Hvo == component.Hvo for item in entry_ref.ShowComplexFormsInRS):
-            entry_ref.ShowComplexFormsInRS.Add(component)
+            # Add to ShowComplexFormsInRS for visibility
+            if not any(item.Hvo == component.Hvo for item in entry_ref.ShowComplexFormsInRS):
+                entry_ref.ShowComplexFormsInRS.Add(component)
 
     @OperationsMethod
     def RemoveComplexFormComponent(self, complex_entry_or_hvo, component_or_hvo):
@@ -2750,22 +2755,23 @@ class LexEntryOperations(BaseOperations):
         complex_entry = self.__ResolveObject(complex_entry_or_hvo)
         component = self.__ResolveObject(component_or_hvo)
 
-        # Find complex form EntryRef
-        for entry_ref in complex_entry.EntryRefsOS:
-            if entry_ref.RefType == LexEntryRefTags.krtComplexForm:
-                # Remove from all collections
-                to_remove = [item for item in entry_ref.ComponentLexemesRS if item.Hvo == component.Hvo]
-                for item in to_remove:
-                    entry_ref.ComponentLexemesRS.Remove(item)
+        with self._TransactionCM("Remove complex form component"):
+            # Find complex form EntryRef
+            for entry_ref in complex_entry.EntryRefsOS:
+                if entry_ref.RefType == LexEntryRefTags.krtComplexForm:
+                    # Remove from all collections
+                    to_remove = [item for item in entry_ref.ComponentLexemesRS if item.Hvo == component.Hvo]
+                    for item in to_remove:
+                        entry_ref.ComponentLexemesRS.Remove(item)
 
-                to_remove = [item for item in entry_ref.PrimaryLexemesRS if item.Hvo == component.Hvo]
-                for item in to_remove:
-                    entry_ref.PrimaryLexemesRS.Remove(item)
+                    to_remove = [item for item in entry_ref.PrimaryLexemesRS if item.Hvo == component.Hvo]
+                    for item in to_remove:
+                        entry_ref.PrimaryLexemesRS.Remove(item)
 
-                to_remove = [item for item in entry_ref.ShowComplexFormsInRS if item.Hvo == component.Hvo]
-                for item in to_remove:
-                    entry_ref.ShowComplexFormsInRS.Remove(item)
-                break
+                    to_remove = [item for item in entry_ref.ShowComplexFormsInRS if item.Hvo == component.Hvo]
+                    for item in to_remove:
+                        entry_ref.ShowComplexFormsInRS.Remove(item)
+                    break
 
     @OperationsMethod
     def GetComplexFormComponents(self, complex_entry_or_hvo):
@@ -2887,16 +2893,17 @@ class LexEntryOperations(BaseOperations):
         if survivor.Hvo == victim.Hvo:
             raise FP_ParameterError("Cannot merge entry into itself")
 
-        # Delegate to LibLCM's battle-tested merge implementation
-        logger.info(f"Merging entry (HVO: {victim.Hvo}) into survivor (HVO: {survivor.Hvo})")
-        survivor.MergeObject(victim, fLoseNoStringData)
+        with self._TransactionCM("Merge entries"):
+            # Delegate to LibLCM's battle-tested merge implementation
+            logger.info(f"Merging entry (HVO: {victim.Hvo}) into survivor (HVO: {survivor.Hvo})")
+            survivor.MergeObject(victim, fLoseNoStringData)
 
-        # Optional deduplication layer (NEW value added by FlexLibs2)
-        if auto_deduplicate:
-            logger.debug(f"Running auto-deduplication on merged entry (HVO: {survivor.Hvo})")
-            self.__DeduplicateSensesInEntry(survivor)
-            self.__DeduplicatePronunciationsInEntry(survivor)
-            self.__DeduplicateAllomorphsInEntry(survivor)
+            # Optional deduplication layer (NEW value added by FlexLibs2)
+            if auto_deduplicate:
+                logger.debug(f"Running auto-deduplication on merged entry (HVO: {survivor.Hvo})")
+                self.__DeduplicateSensesInEntry(survivor)
+                self.__DeduplicatePronunciationsInEntry(survivor)
+                self.__DeduplicateAllomorphsInEntry(survivor)
 
     # --- Private Helper Methods for Deduplication ---
 

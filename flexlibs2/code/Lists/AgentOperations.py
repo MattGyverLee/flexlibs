@@ -146,15 +146,17 @@ class AgentOperations(PossibilityItemOperations):
             wsHandle = self.project.project.DefaultAnalWs
 
         factory = self.project.project.ServiceLocator.GetService(ICmAgentFactory)
-        new_agent = factory.Create()
 
-        # Add to collection before setting properties
-        agents_oc.Add(new_agent)
+        with self._TransactionCM(f"Create agent {name!r}"):
+            new_agent = factory.Create()
 
-        mkstr = TsStringUtils.MakeString(name, wsHandle)
-        new_agent.Name.set_String(wsHandle, mkstr)
+            # Add to collection before setting properties
+            agents_oc.Add(new_agent)
 
-        return new_agent
+            mkstr = TsStringUtils.MakeString(name, wsHandle)
+            new_agent.Name.set_String(wsHandle, mkstr)
+
+            return new_agent
 
     @OperationsMethod
     def Delete(self, agent_or_hvo):
@@ -213,17 +215,19 @@ class AgentOperations(PossibilityItemOperations):
             raise FP_ParameterError("AnalyzingAgentsOC not found in project")
 
         factory = self.project.project.ServiceLocator.GetService(ICmAgentFactory)
-        duplicate = factory.Create()
 
-        agents_oc.Add(duplicate)
+        with self._TransactionCM("Duplicate agent"):
+            duplicate = factory.Create()
 
-        # Copy MultiString name alternatives
-        duplicate.Name.CopyAlternatives(source.Name)
+            agents_oc.Add(duplicate)
 
-        # Copy Human flag (True = human analyst)
-        duplicate.Human = source.Human
+            # Copy MultiString name alternatives
+            duplicate.Name.CopyAlternatives(source.Name)
 
-        return duplicate
+            # Copy Human flag (True = human analyst)
+            duplicate.Human = source.Human
+
+            return duplicate
 
     @OperationsMethod
     def Find(self, name):

@@ -195,19 +195,21 @@ class StratumOperations(BaseOperations):
         ws = self.__WSHandle(wsHandle)
 
         factory = self.project.project.ServiceLocator.GetService(IMoStratumFactory)
-        new_stratum = factory.Create()
 
-        # Owner first, then set MultiString properties (LCM MultiString
-        # setters can NPE on free-floating objects).
-        container.Add(new_stratum)
+        with self._TransactionCM(f"Create stratum '{name}'"):
+            new_stratum = factory.Create()
 
-        new_stratum.Name.set_String(ws, TsStringUtils.MakeString(name, ws))
-        if abbreviation:
-            new_stratum.Abbreviation.set_String(
-                ws, TsStringUtils.MakeString(abbreviation, ws)
-            )
+            # Owner first, then set MultiString properties (LCM MultiString
+            # setters can NPE on free-floating objects).
+            container.Add(new_stratum)
 
-        return new_stratum
+            new_stratum.Name.set_String(ws, TsStringUtils.MakeString(name, ws))
+            if abbreviation:
+                new_stratum.Abbreviation.set_String(
+                    ws, TsStringUtils.MakeString(abbreviation, ws)
+                )
+
+            return new_stratum
 
     @OperationsMethod
     def Delete(self, stratum_or_hvo):

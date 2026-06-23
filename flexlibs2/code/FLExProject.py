@@ -228,6 +228,10 @@ class FLExProject(object):
 
         self.writeEnabled = writeEnabled
         self._undoable = undoable and writeEnabled  # Only meaningful if write-enabled
+        # Nesting depth of active _TransactionCM blocks. Used to guard against
+        # nested Phase 2 UndoableOperation tasks (BeginUndoTask/EndUndoTask
+        # cannot nest); only the outermost block opens an undo task.
+        self._transaction_depth = 0
 
         if self.writeEnabled and not self._undoable:
             # Phase 1 behavior: whole session is non-undoable (rollback transactions only)
@@ -443,8 +447,17 @@ class FLExProject(object):
             project.CloseProject()
 
         Note:
-            Nesting transactions is allowed but not recommended.
-            Inner rollbacks also roll back the outer transaction state.
+            Nesting is supported and safe. Each ``with`` block calls
+            ``Mark()`` independently, creating a separate mark token on the
+            LCM undo stack. An inner rollback rolls back only to the inner
+            mark; an outer rollback rolls back everything done inside it --
+            including work done by inner blocks that already exited cleanly
+            (there is no two-phase commit; "commit" is simply not rolling
+            back). This is the desired semantics for batch operations: a
+            caller's outer ``with project.Transaction("batch"):`` captures
+            every write made inside it, including the per-method
+            ``_TransactionCM`` blocks that individual Operations methods use
+            internally.
 
         See Also:
             UndoableOperation() - Phase 2 (pending research), adds to FLEx Ctrl+Z menu
@@ -571,6 +584,14 @@ class FLExProject(object):
         Note:
             Phase 2 feature. Requires research-verified LCM APIs.
             See docs/RESEARCH_NEEDED.md and docs/TRANSACTION_GUIDE.md.
+
+            Atomicity caveat (Phase 2): ``BeginUndoTask``/``EndUndoTask`` is NOT
+            transactional. If an exception is raised inside the block, partial
+            mutations already committed to the LCM cache are NOT automatically
+            rolled back. The FLEx Ctrl+Z undo entry may be absent or incomplete.
+            Rollback/atomicity applies only to the Phase-1 ``Transaction()``
+            (mark + ``RollbackToMark``) path. Callers that require atomic
+            all-or-nothing semantics should use ``Transaction()`` instead.
         """
         from .undoable_operation import _FLExUndoableOperation
 

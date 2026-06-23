@@ -289,16 +289,18 @@ class NaturalClassOperations(BaseOperations):
 
         # Create the new natural class using the factory
         factory = self.project.project.ServiceLocator.GetService(IPhNCSegmentsFactory)
-        nc = factory.Create()
 
-        # Add to the natural classes collection (must be done before setting properties)
-        phon_data = self.project.lp.PhonologicalDataOA
-        phon_data.NaturalClassesOS.Add(nc)
+        with self._TransactionCM("Create natural class"):
+            nc = factory.Create()
 
-        # Set Name + Abbreviation (default analysis WS)
-        self.__SetNameAndAbbreviation(nc, name, abbreviation)
+            # Add to the natural classes collection (must be done before setting properties)
+            phon_data = self.project.lp.PhonologicalDataOA
+            phon_data.NaturalClassesOS.Add(nc)
 
-        return nc
+            # Set Name + Abbreviation (default analysis WS)
+            self.__SetNameAndAbbreviation(nc, name, abbreviation)
+
+            return nc
 
     @OperationsMethod
     def Delete(self, nc_or_hvo):
@@ -420,40 +422,42 @@ class NaturalClassOperations(BaseOperations):
             factory = self.project.project.ServiceLocator.GetService(
                 IPhNCSegmentsFactory
             )
-        duplicate = factory.Create()
 
-        # Determine insertion position.
-        if insert_after:
-            source_index = list(phon_data.NaturalClassesOS).index(source)
-            phon_data.NaturalClassesOS.Insert(source_index + 1, duplicate)
-        else:
-            phon_data.NaturalClassesOS.Add(duplicate)
+        with self._TransactionCM("Duplicate natural class"):
+            duplicate = factory.Create()
 
-        # Copy simple MultiString properties.
-        duplicate.Name.CopyAlternatives(source.Name)
-        duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)
-        duplicate.Description.CopyAlternatives(source.Description)
+            # Determine insertion position.
+            if insert_after:
+                source_index = list(phon_data.NaturalClassesOS).index(source)
+                phon_data.NaturalClassesOS.Insert(source_index + 1, duplicate)
+            else:
+                phon_data.NaturalClassesOS.Add(duplicate)
 
-        # Copy the type-specific membership data.
-        if is_features:
-            # Extract source feature specs and rebuild via MakeFeatStruc.
-            # MakeFeatStruc attaches the new struct to duplicate.FeaturesOA
-            # BEFORE populating FeatureSpecsOC (Phase 2 ownership rule).
-            specs = []
-            source_struct = source.FeaturesOA
-            if source_struct is not None:
-                for raw in source_struct.FeatureSpecsOC:
-                    cv = IFsClosedValue(raw)
-                    specs.append((cv.FeatureRA, cv.ValueRA))
-            if specs:
-                self.project.PhonFeatures.MakeFeatStruc(specs, owner=duplicate)
-        else:
-            # Reference-collection copy of phoneme members (shallow:
-            # both classes reference the same IPhPhoneme objects).
-            for phoneme in source.SegmentsRC:
-                duplicate.SegmentsRC.Add(phoneme)
+            # Copy simple MultiString properties.
+            duplicate.Name.CopyAlternatives(source.Name)
+            duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)
+            duplicate.Description.CopyAlternatives(source.Description)
 
-        return duplicate
+            # Copy the type-specific membership data.
+            if is_features:
+                # Extract source feature specs and rebuild via MakeFeatStruc.
+                # MakeFeatStruc attaches the new struct to duplicate.FeaturesOA
+                # BEFORE populating FeatureSpecsOC (Phase 2 ownership rule).
+                specs = []
+                source_struct = source.FeaturesOA
+                if source_struct is not None:
+                    for raw in source_struct.FeatureSpecsOC:
+                        cv = IFsClosedValue(raw)
+                        specs.append((cv.FeatureRA, cv.ValueRA))
+                if specs:
+                    self.project.PhonFeatures.MakeFeatStruc(specs, owner=duplicate)
+            else:
+                # Reference-collection copy of phoneme members (shallow:
+                # both classes reference the same IPhPhoneme objects).
+                for phoneme in source.SegmentsRC:
+                    duplicate.SegmentsRC.Add(phoneme)
+
+            return duplicate
 
     @OperationsMethod
     def GetName(self, nc_or_hvo, wsHandle=None):
@@ -824,24 +828,26 @@ class NaturalClassOperations(BaseOperations):
         factory = self.project.project.ServiceLocator.GetService(
             IPhNCFeaturesFactory
         )
-        nc = factory.Create()
 
-        # Add to the natural classes collection (must be done before
-        # setting properties -- LCM property setters can NPE on
-        # free-floating objects)
-        phon_data = self.project.lp.PhonologicalDataOA
-        phon_data.NaturalClassesOS.Add(nc)
+        with self._TransactionCM("Create feature-based natural class"):
+            nc = factory.Create()
 
-        # Set Name + Abbreviation (default analysis WS)
-        self.__SetNameAndAbbreviation(nc, name, abbreviation)
+            # Add to the natural classes collection (must be done before
+            # setting properties -- LCM property setters can NPE on
+            # free-floating objects)
+            phon_data = self.project.lp.PhonologicalDataOA
+            phon_data.NaturalClassesOS.Add(nc)
 
-        # Populate FeaturesOA via the Phase 5b primitive, which attaches the
-        # struct to nc.FeaturesOA BEFORE populating FeatureSpecsOC (Phase 2
-        # ownership rule).
-        if specs:
-            self.project.PhonFeatures.MakeFeatStruc(specs, owner=nc)
+            # Set Name + Abbreviation (default analysis WS)
+            self.__SetNameAndAbbreviation(nc, name, abbreviation)
 
-        return nc
+            # Populate FeaturesOA via the Phase 5b primitive, which attaches the
+            # struct to nc.FeaturesOA BEFORE populating FeatureSpecsOC (Phase 2
+            # ownership rule).
+            if specs:
+                self.project.PhonFeatures.MakeFeatStruc(specs, owner=nc)
+
+            return nc
 
     @OperationsMethod
     def GetType(self, nc_or_hvo):

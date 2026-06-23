@@ -302,23 +302,21 @@ class DataNotebookOperations(BaseOperations):
         factory = self.project.project.ServiceLocator.GetService(IRnGenericRecFactory)
 
         # Create the record in the RecordsOC collection
-        self.project.project.UndoableUnitOfWorkHelper.Do(
-            "Create Notebook Record", "Undo Create Notebook Record", lambda: None
-        )
+        with self._TransactionCM(f"Create notebook record '{title}'"):
 
-        record = factory.Create()
-        repos.RecordsOC.Add(record)
+            record = factory.Create()
+            repos.RecordsOC.Add(record)
 
-        # Set title
-        mkstr = TsStringUtils.MakeString(title, wsHandle)
-        record.Title.set_String(wsHandle, mkstr)
+            # Set title
+            mkstr = TsStringUtils.MakeString(title, wsHandle)
+            record.Title.set_String(wsHandle, mkstr)
 
-        # Set content if provided
-        if content:
-            mkstr = TsStringUtils.MakeString(content, wsHandle)
-            record.Text.set_String(wsHandle, mkstr)
+            # Set content if provided
+            if content:
+                mkstr = TsStringUtils.MakeString(content, wsHandle)
+                record.Text.set_String(wsHandle, mkstr)
 
-        return record
+            return record
 
     @OperationsMethod
     def Delete(self, record_or_hvo):
@@ -372,24 +370,22 @@ class DataNotebookOperations(BaseOperations):
         # Get the repository and remove the record
         repos = self.project.project.ServiceLocator.GetService(IRnResearchNbkRepository)
 
-        self.project.project.UndoableUnitOfWorkHelper.Do(
-            "Delete Notebook Record", "Undo Delete Notebook Record", lambda: None
-        )
+        with self._TransactionCM("Delete notebook record"):
 
-        # SubRecordsOS lives on IRnGenericRec (the parent record's concrete
-        # interface), not on the base ICmObject that pythonnet returns from
-        # .Owner. The prior hasattr(owner, "SubRecordsOS") was therefore
-        # always False on a real sub-record -- execution fell through to
-        # repos.RecordsOC.Remove(record), which removes from the top-level
-        # records collection (where the sub-record never lived). Sub-record
-        # deletes either silently no-op'd or removed the wrong row.
-        # Route through _GetTypedOwner to recover IRnGenericRec before
-        # checking the slot. (issue #133, same class as #98/#116)
-        parent = self._GetTypedOwner(record)
-        if parent is not None and hasattr(parent, "SubRecordsOS"):
-            parent.SubRecordsOS.Remove(record)
-        else:
-            repos.RecordsOC.Remove(record)
+            # SubRecordsOS lives on IRnGenericRec (the parent record's concrete
+            # interface), not on the base ICmObject that pythonnet returns from
+            # .Owner. The prior hasattr(owner, "SubRecordsOS") was therefore
+            # always False on a real sub-record -- execution fell through to
+            # repos.RecordsOC.Remove(record), which removes from the top-level
+            # records collection (where the sub-record never lived). Sub-record
+            # deletes either silently no-op'd or removed the wrong row.
+            # Route through _GetTypedOwner to recover IRnGenericRec before
+            # checking the slot. (issue #133, same class as #98/#116)
+            parent = self._GetTypedOwner(record)
+            if parent is not None and hasattr(parent, "SubRecordsOS"):
+                parent.SubRecordsOS.Remove(record)
+            else:
+                repos.RecordsOC.Remove(record)
 
     @OperationsMethod
     def Exists(self, title, wsHandle=None):
@@ -585,8 +581,6 @@ class DataNotebookOperations(BaseOperations):
 
         mkstr = TsStringUtils.MakeString(title, wsHandle)
 
-        self.project.project.UndoableUnitOfWorkHelper.Do("Set Notebook Record Title", "Undo Set Title", lambda: None)
-
         record.Title.set_String(wsHandle, mkstr)
 
     # --- Property Operations: Content ---
@@ -688,10 +682,6 @@ class DataNotebookOperations(BaseOperations):
 
         mkstr = TsStringUtils.MakeString(content, wsHandle)
 
-        self.project.project.UndoableUnitOfWorkHelper.Do(
-            "Set Notebook Record Content", "Undo Set Content", lambda: None
-        )
-
         record.Text.set_String(wsHandle, mkstr)
 
     # --- Record Type Operations ---
@@ -786,8 +776,6 @@ class DataNotebookOperations(BaseOperations):
         self._ValidateParam(record_type, "record_type")
 
         record = self.__GetRecordObject(record_or_hvo)
-
-        self.project.project.UndoableUnitOfWorkHelper.Do("Set Record Type", "Undo Set Record Type", lambda: None)
 
         record.Type = record_type
 
@@ -1058,8 +1046,6 @@ class DataNotebookOperations(BaseOperations):
             except (System.FormatException, ValueError, TypeError) as e:
                 raise FP_ParameterError(f"Invalid date format: {date}. Use 'YYYY-MM-DD' or 'YYYY-MM-DD HH:MM:SS' - {e}")
 
-        self.project.project.UndoableUnitOfWorkHelper.Do("Set Event Date", "Undo Set Event Date", lambda: None)
-
         record.DateOfEvent = date
 
     # --- Hierarchy Operations ---
@@ -1185,21 +1171,21 @@ class DataNotebookOperations(BaseOperations):
         # Create the sub-record
         factory = self.project.project.ServiceLocator.GetService(IRnGenericRecFactory)
 
-        self.project.project.UndoableUnitOfWorkHelper.Do("Create Sub-Record", "Undo Create Sub-Record", lambda: None)
+        with self._TransactionCM(f"Create sub-record '{title}'"):
 
-        subrecord = factory.Create()
-        parent.SubRecordsOS.Add(subrecord)
+            subrecord = factory.Create()
+            parent.SubRecordsOS.Add(subrecord)
 
-        # Set title
-        mkstr = TsStringUtils.MakeString(title, wsHandle)
-        subrecord.Title.set_String(wsHandle, mkstr)
+            # Set title
+            mkstr = TsStringUtils.MakeString(title, wsHandle)
+            subrecord.Title.set_String(wsHandle, mkstr)
 
-        # Set content if provided
-        if content:
-            mkstr = TsStringUtils.MakeString(content, wsHandle)
-            subrecord.Text.set_String(wsHandle, mkstr)
+            # Set content if provided
+            if content:
+                mkstr = TsStringUtils.MakeString(content, wsHandle)
+                subrecord.Text.set_String(wsHandle, mkstr)
 
-        return subrecord
+            return subrecord
 
     @OperationsMethod
     def GetParentRecord(self, record_or_hvo):
@@ -1353,8 +1339,6 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        self.project.project.UndoableUnitOfWorkHelper.Do("Add Researcher", "Undo Add Researcher", lambda: None)
-
         if hasattr(record, "Researchers"):
             if person not in record.Researchers:
                 record.Researchers.Add(person)
@@ -1393,8 +1377,6 @@ class DataNotebookOperations(BaseOperations):
         self._ValidateParam(person, "person")
 
         record = self.__GetRecordObject(record_or_hvo)
-
-        self.project.project.UndoableUnitOfWorkHelper.Do("Remove Researcher", "Undo Remove Researcher", lambda: None)
 
         if hasattr(record, "Researchers"):
             if person in record.Researchers:
@@ -1492,8 +1474,6 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        self.project.project.UndoableUnitOfWorkHelper.Do("Add Participant", "Undo Add Participant", lambda: None)
-
         if hasattr(record, "Participants"):
             if person not in record.Participants:
                 record.Participants.Add(person)
@@ -1532,8 +1512,6 @@ class DataNotebookOperations(BaseOperations):
         self._ValidateParam(person, "person")
 
         record = self.__GetRecordObject(record_or_hvo)
-
-        self.project.project.UndoableUnitOfWorkHelper.Do("Remove Participant", "Undo Remove Participant", lambda: None)
 
         if hasattr(record, "Participants"):
             if person in record.Participants:
@@ -1638,8 +1616,6 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        self.project.project.UndoableUnitOfWorkHelper.Do("Add Location", "Undo Add Location", lambda: None)
-
         if hasattr(record, "LocationsRC"):
             if location not in record.LocationsRC:
                 record.LocationsRC.Add(location)
@@ -1678,8 +1654,6 @@ class DataNotebookOperations(BaseOperations):
         self._ValidateParam(location, "location")
 
         record = self.__GetRecordObject(record_or_hvo)
-
-        self.project.project.UndoableUnitOfWorkHelper.Do("Remove Location", "Undo Remove Location", lambda: None)
 
         if hasattr(record, "LocationsRC"):
             if location in record.LocationsRC:
@@ -1784,8 +1758,6 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        self.project.project.UndoableUnitOfWorkHelper.Do("Add Source", "Undo Add Source", lambda: None)
-
         if hasattr(record, "SourcesRC"):
             if source not in record.SourcesRC:
                 record.SourcesRC.Add(source)
@@ -1824,8 +1796,6 @@ class DataNotebookOperations(BaseOperations):
         self._ValidateParam(source, "source")
 
         record = self.__GetRecordObject(record_or_hvo)
-
-        self.project.project.UndoableUnitOfWorkHelper.Do("Remove Source", "Undo Remove Source", lambda: None)
 
         if hasattr(record, "SourcesRC"):
             if source in record.SourcesRC:
@@ -1923,8 +1893,6 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        self.project.project.UndoableUnitOfWorkHelper.Do("Link to Text", "Undo Link to Text", lambda: None)
-
         if hasattr(record, "TextsRC"):
             if text not in record.TextsRC:
                 record.TextsRC.Add(text)
@@ -1964,8 +1932,6 @@ class DataNotebookOperations(BaseOperations):
         self._ValidateParam(text, "text")
 
         record = self.__GetRecordObject(record_or_hvo)
-
-        self.project.project.UndoableUnitOfWorkHelper.Do("Unlink from Text", "Undo Unlink from Text", lambda: None)
 
         if hasattr(record, "TextsRC"):
             if text in record.TextsRC:
@@ -2065,8 +2031,6 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        self.project.project.UndoableUnitOfWorkHelper.Do("Add Media File", "Undo Add Media File", lambda: None)
-
         if hasattr(record, "MediaFilesOS"):
             if media_file not in record.MediaFilesOS:
                 record.MediaFilesOS.Add(media_file)
@@ -2106,8 +2070,6 @@ class DataNotebookOperations(BaseOperations):
         self._ValidateParam(media_file, "media_file")
 
         record = self.__GetRecordObject(record_or_hvo)
-
-        self.project.project.UndoableUnitOfWorkHelper.Do("Remove Media File", "Undo Remove Media File", lambda: None)
 
         if hasattr(record, "MediaFilesOS"):
             if media_file in record.MediaFilesOS:
@@ -2213,8 +2175,6 @@ class DataNotebookOperations(BaseOperations):
             if status_obj is None:
                 raise FP_ParameterError(f"Status not found: {status}")
             status = status_obj
-
-        self.project.project.UndoableUnitOfWorkHelper.Do("Set Status", "Undo Set Status", lambda: None)
 
         record.Status = status
 
@@ -2780,6 +2740,6 @@ class DataNotebookOperations(BaseOperations):
                 raise FP_ParameterError(f"Confidence level not found: {confidence}")
             confidence = conf_obj
 
-        self.project.project.UndoableUnitOfWorkHelper.Do("Set Confidence", "Undo Set Confidence", lambda: None)
+        with self._TransactionCM('Set Confidence'):
 
-        record.Confidence = confidence
+            record.Confidence = confidence

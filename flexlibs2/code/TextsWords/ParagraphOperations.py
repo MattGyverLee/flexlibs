@@ -177,18 +177,19 @@ class ParagraphOperations(BaseOperations):
         # Get the writing system handle
         wsHandle = self.__WSHandle(wsHandle)
 
-        # Create the new paragraph using the factory
-        factory = self.project.project.ServiceLocator.GetService(IStTxtParaFactory)
-        para = factory.Create()
+        with self._TransactionCM("Create paragraph"):
+            # Create the new paragraph using the factory
+            factory = self.project.project.ServiceLocator.GetService(IStTxtParaFactory)
+            para = factory.Create()
 
-        # Add to text's paragraphs collection
-        text_obj.ContentsOA.ParagraphsOS.Add(para)
+            # Add to text's paragraphs collection
+            text_obj.ContentsOA.ParagraphsOS.Add(para)
 
-        # Set the content
-        mkstr = TsStringUtils.MakeString(content_str, wsHandle)
-        para.Contents = mkstr
+            # Set the content
+            mkstr = TsStringUtils.MakeString(content_str, wsHandle)
+            para.Contents = mkstr
 
-        return para
+            return para
 
     @OperationsMethod
     def Delete(self, paragraph_or_hvo):
@@ -309,37 +310,38 @@ class ParagraphOperations(BaseOperations):
         wsHandle = self.__WSHandle(None)
         para_text = self.GetText(para_obj, wsHandle)
 
-        # Determine insertion position
-        if insert_after:
-            # Find the index of the current paragraph
-            para_list = list(owner.ParagraphsOS)
-            try:
-                current_index = para_list.index(para_obj)
-                insert_index = current_index + 1
-            except ValueError:
-                # Paragraph not found in list, append to end
-                insert_index = len(para_list)
+        with self._TransactionCM("Duplicate paragraph"):
+            # Determine insertion position
+            if insert_after:
+                # Find the index of the current paragraph
+                para_list = list(owner.ParagraphsOS)
+                try:
+                    current_index = para_list.index(para_obj)
+                    insert_index = current_index + 1
+                except ValueError:
+                    # Paragraph not found in list, append to end
+                    insert_index = len(para_list)
 
-            # Insert at position
-            new_para = self.InsertAt(parent_text, insert_index, para_text, wsHandle)
-        else:
-            # Append to end
-            new_para = self.Create(parent_text, para_text, wsHandle)
+                # Insert at position
+                new_para = self.InsertAt(parent_text, insert_index, para_text, wsHandle)
+            else:
+                # Append to end
+                new_para = self.Create(parent_text, para_text, wsHandle)
 
-        # Deep duplication: duplicate all segments
-        if deep:
-            segments = self.GetSegments(para_obj)
-            for segment in segments:
-                if hasattr(segment, "BaselineText"):
-                    seg_text = ITsString(segment.BaselineText).Text or ""
-                    if seg_text and hasattr(self.project, "Segments"):
-                        # AppendSentence edits Contents first then adds the segment,
-                        # matching the correct LCM idiom. It also auto-inserts a
-                        # sentence terminator when the paragraph does not already
-                        # end with one, so seg_text is passed as-is.
-                        self.project.Segments.AppendSentence(new_para, seg_text, wsHandle)
+            # Deep duplication: duplicate all segments
+            if deep:
+                segments = self.GetSegments(para_obj)
+                for segment in segments:
+                    if hasattr(segment, "BaselineText"):
+                        seg_text = ITsString(segment.BaselineText).Text or ""
+                        if seg_text and hasattr(self.project, "Segments"):
+                            # AppendSentence edits Contents first then adds the segment,
+                            # matching the correct LCM idiom. It also auto-inserts a
+                            # sentence terminator when the paragraph does not already
+                            # end with one, so seg_text is passed as-is.
+                            self.project.Segments.AppendSentence(new_para, seg_text, wsHandle)
 
-        return new_para
+            return new_para
 
     # ========== SYNC INTEGRATION METHODS ==========
 
@@ -720,15 +722,16 @@ class ParagraphOperations(BaseOperations):
         # Get the writing system handle
         wsHandle = self.__WSHandle(wsHandle)
 
-        # Create the new paragraph using the factory
-        factory = self.project.project.ServiceLocator.GetService(IStTxtParaFactory)
-        para = factory.Create()
+        with self._TransactionCM(f"Insert paragraph at {index}"):
+            # Create the new paragraph using the factory
+            factory = self.project.project.ServiceLocator.GetService(IStTxtParaFactory)
+            para = factory.Create()
 
-        # Insert at the specified index
-        text_obj.ContentsOA.ParagraphsOS.Insert(index, para)
+            # Insert at the specified index
+            text_obj.ContentsOA.ParagraphsOS.Insert(index, para)
 
-        # Set the content
-        mkstr = TsStringUtils.MakeString(content_str, wsHandle)
-        para.Contents = mkstr
+            # Set the content
+            mkstr = TsStringUtils.MakeString(content_str, wsHandle)
+            para.Contents = mkstr
 
-        return para
+            return para

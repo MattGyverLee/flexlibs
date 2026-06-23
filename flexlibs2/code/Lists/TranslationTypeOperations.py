@@ -250,15 +250,16 @@ class TranslationTypeOperations(PossibilityItemOperations):
 
         trans_type = self._PossibilityItemOperations__ResolveObject(type_or_hvo)
 
-        # Set name if provided
-        if name is not None:
-            mkstr_name = TsStringUtils.MakeString(name, wsHandle)
-            trans_type.Name.set_String(wsHandle, mkstr_name)
+        with self._TransactionCM("Set translation type writing system"):
+            # Set name if provided
+            if name is not None:
+                mkstr_name = TsStringUtils.MakeString(name, wsHandle)
+                trans_type.Name.set_String(wsHandle, mkstr_name)
 
-        # Set abbreviation if provided
-        if abbreviation is not None:
-            mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
-            trans_type.Abbreviation.set_String(wsHandle, mkstr_abbr)
+            # Set abbreviation if provided
+            if abbreviation is not None:
+                mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
+                trans_type.Abbreviation.set_String(wsHandle, mkstr_abbr)
 
     # --- Usage Tracking ---
 

@@ -208,27 +208,28 @@ class EtymologyOperations(BaseOperations):
         entry = self.__GetEntryObject(entry_or_hvo)
         wsHandle = self.__WSHandleAnalysis(ws)
 
-        # Create the new etymology using the factory
-        factory = self.project.project.ServiceLocator.GetService(ILexEtymologyFactory)
-        new_etymology = factory.Create()
+        with self._TransactionCM("Create etymology"):
+            # Create the new etymology using the factory
+            factory = self.project.project.ServiceLocator.GetService(ILexEtymologyFactory)
+            new_etymology = factory.Create()
 
-        # Add to entry's etymology collection (must be done before setting properties)
-        entry.EtymologyOS.Add(new_etymology)
+            # Add to entry's etymology collection (must be done before setting properties)
+            entry.EtymologyOS.Add(new_etymology)
 
-        # Set optional fields if provided
-        if source:
-            mkstr = TsStringUtils.MakeString(source, wsHandle)
-            new_etymology.Source.set_String(wsHandle, mkstr)
+            # Set optional fields if provided
+            if source:
+                mkstr = TsStringUtils.MakeString(source, wsHandle)
+                new_etymology.Source.set_String(wsHandle, mkstr)
 
-        if form:
-            mkstr = TsStringUtils.MakeString(form, wsHandle)
-            new_etymology.Form.set_String(wsHandle, mkstr)
+            if form:
+                mkstr = TsStringUtils.MakeString(form, wsHandle)
+                new_etymology.Form.set_String(wsHandle, mkstr)
 
-        if gloss:
-            mkstr = TsStringUtils.MakeString(gloss, wsHandle)
-            new_etymology.Gloss.set_String(wsHandle, mkstr)
+            if gloss:
+                mkstr = TsStringUtils.MakeString(gloss, wsHandle)
+                new_etymology.Gloss.set_String(wsHandle, mkstr)
 
-        return new_etymology
+            return new_etymology
 
     @OperationsMethod
     def Delete(self, etymology_or_hvo):
@@ -338,33 +339,34 @@ class EtymologyOperations(BaseOperations):
         if parent is None:
             raise FP_ParameterError("Etymology has no owning entry")
 
-        # Create new etymology using factory (auto-generates new GUID)
-        factory = self.project.project.ServiceLocator.GetService(ILexEtymologyFactory)
-        duplicate = factory.Create()
+        with self._TransactionCM("Duplicate etymology"):
+            # Create new etymology using factory (auto-generates new GUID)
+            factory = self.project.project.ServiceLocator.GetService(ILexEtymologyFactory)
+            duplicate = factory.Create()
 
-        # Determine insertion position
-        if insert_after:
-            # Insert after source etymology
-            source_index = parent.EtymologyOS.IndexOf(source)
-            parent.EtymologyOS.Insert(source_index + 1, duplicate)
-        else:
-            # Insert at end
-            parent.EtymologyOS.Add(duplicate)
+            # Determine insertion position
+            if insert_after:
+                # Insert after source etymology
+                source_index = parent.EtymologyOS.IndexOf(source)
+                parent.EtymologyOS.Insert(source_index + 1, duplicate)
+            else:
+                # Insert at end
+                parent.EtymologyOS.Add(duplicate)
 
-        # Copy simple MultiString properties (AFTER adding to parent)
-        duplicate.Source.CopyAlternatives(source.Source)
-        duplicate.Form.CopyAlternatives(source.Form)
-        duplicate.Gloss.CopyAlternatives(source.Gloss)
-        duplicate.Comment.CopyAlternatives(source.Comment)
-        duplicate.Bibliography.CopyAlternatives(source.Bibliography)
+            # Copy simple MultiString properties (AFTER adding to parent)
+            duplicate.Source.CopyAlternatives(source.Source)
+            duplicate.Form.CopyAlternatives(source.Form)
+            duplicate.Gloss.CopyAlternatives(source.Gloss)
+            duplicate.Comment.CopyAlternatives(source.Comment)
+            duplicate.Bibliography.CopyAlternatives(source.Bibliography)
 
-        # Copy Reference Atomic (RA) properties
-        if hasattr(source, "LanguageNotesRA") and source.LanguageNotesRA:
-            duplicate.LanguageNotesRA = source.LanguageNotesRA
+            # Copy Reference Atomic (RA) properties
+            if hasattr(source, "LanguageNotesRA") and source.LanguageNotesRA:
+                duplicate.LanguageNotesRA = source.LanguageNotesRA
 
-        # Note: Etymology has no owned objects (OS collections), so deep has no effect
+            # Note: Etymology has no owned objects (OS collections), so deep has no effect
 
-        return duplicate
+            return duplicate
 
     # ========== SYNC INTEGRATION METHODS ==========
 
@@ -494,26 +496,27 @@ class EtymologyOperations(BaseOperations):
             else:
                 remaining_props[k] = v
 
-        # Apply plain / multistring fields via base class.
-        super().ApplySyncableProperties(item, remaining_props, ws_map=ws_map)
+        with self._TransactionCM("Apply etymology properties"):
+            # Apply plain / multistring fields via base class.
+            super().ApplySyncableProperties(item, remaining_props, ws_map=ws_map)
 
-        # Resolve atomic reference fields by GUID.
-        for field_name, guid_str in ra_props.items():
-            if not hasattr(item, field_name):
-                continue
-            if not guid_str:
-                setattr(item, field_name, None)
-                continue
-            try:
-                import System
-                obj = self.project.Object(System.Guid(guid_str))
-                setattr(item, field_name, obj)
-            except Exception as exc:
-                _log.warning(
-                    "[WARN] ApplySyncableProperties: %s GUID %s not found "
-                    "in target project -- skipped (%s)",
-                    field_name, guid_str, exc
-                )
+            # Resolve atomic reference fields by GUID.
+            for field_name, guid_str in ra_props.items():
+                if not hasattr(item, field_name):
+                    continue
+                if not guid_str:
+                    setattr(item, field_name, None)
+                    continue
+                try:
+                    import System
+                    obj = self.project.Object(System.Guid(guid_str))
+                    setattr(item, field_name, obj)
+                except Exception as exc:
+                    _log.warning(
+                        "[WARN] ApplySyncableProperties: %s GUID %s not found "
+                        "in target project -- skipped (%s)",
+                        field_name, guid_str, exc
+                    )
 
     @OperationsMethod
     def CompareTo(self, item1, item2, ops1=None, ops2=None):
@@ -600,10 +603,11 @@ class EtymologyOperations(BaseOperations):
         if current_etymologies != new_etymologies:
             raise FP_ParameterError("Etymology list must contain exactly the same etymologies as the entry")
 
-        # Clear and re-add in new order
-        entry.EtymologyOS.Clear()
-        for etymology in etymologies:
-            entry.EtymologyOS.Add(etymology)
+        with self._TransactionCM("Reorder etymologies"):
+            # Clear and re-add in new order
+            entry.EtymologyOS.Clear()
+            for etymology in etymologies:
+                entry.EtymologyOS.Add(etymology)
 
     # --- Source Language Operations ---
 

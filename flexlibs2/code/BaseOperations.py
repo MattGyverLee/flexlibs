@@ -1637,6 +1637,79 @@ class BaseOperations:
         if not self.project.writeEnabled:
             raise FP_ReadOnlyError()
 
+    def _TransactionCM(self, label):
+        """
+        Return a transaction context manager appropriate to the project mode.
+
+        Intended for methods that perform **two or more distinct LCM mutations**
+        (e.g. ``factory.Create()``, ``OS.Add()``, and one or more property
+        writes).  Single-mutation methods (one ``OS.Add`` or one property set)
+        do not need this wrapper -- the LCM write is already atomic.
+
+        Auto-selects Phase 2 (``UndoableOperation``, visible in the FLEx
+        Ctrl+Z menu) when the project was opened with ``undoable=True``,
+        otherwise Phase 1 (``Transaction``, programmatic rollback-only). Use
+        this to wrap the body of any write method that performs two or more
+        LCM mutations, so a failure partway through does not leave a
+        partially-constructed object persisted in the cache with no rollback.
+
+        Wrap only the mutation portion of a method: call validation helpers
+        (``_EnsureWriteEnabled``, ``_Validate*``) and any lookups that may
+        raise BEFORE entering this context, so input errors never mark the
+        undo stack. Keep the method's ``return`` inside the ``with`` block.
+
+        Args:
+            label (str): Human-readable description used for logging and, in
+                Phase 2, the FLEx undo menu (e.g. "Create entry 'famba'").
+
+        Returns:
+            A ``_NestingAwareTransaction`` context manager that delegates to
+            ``_FLExTransaction`` (Phase 1) or ``_FLExUndoableOperation``
+            (Phase 2), or becomes a no-op when nested inside another
+            ``_TransactionCM`` block in Phase 2 (see Notes).
+
+        Example::
+
+            def Create(self, form, ws=None):
+                self._EnsureWriteEnabled()
+                self._ValidateStringNotEmpty(form, "form")
+                with self._TransactionCM(f"Create entry '{form}'"):
+                    entry = entry_factory.Create()
+                    entry.LexemeFormOA = allomorph_factory.Create()
+                    entry.LexemeFormOA.Form.set_String(ws_handle, tss)
+                    return entry
+
+        Notes:
+            - Phase 1 (``Transaction``) rolls back to a mark on exception.
+            - Phase 2 (``UndoableOperation``) wraps the changes in a single
+              named undo task; it does NOT auto-rollback on exception, but
+              the partial work is undoable by the FLEx user via Ctrl+Z.
+            - ``_undoable`` is only ever True when the project is also
+              write-enabled, so Phase 2 selection cannot collide with the
+              read-only guard already enforced by ``_EnsureWriteEnabled``.
+            - Nesting differs by phase:
+
+              * Phase 1 (``Transaction``) nests safely. Each ``with`` block
+                marks an independent rollback point; an inner rollback rolls
+                back to the inner mark, an outer rollback rolls back
+                everything. A caller-supplied outer
+                ``with project.Transaction("batch"):`` therefore captures
+                every write made by the inner ``_TransactionCM`` blocks.
+              * Phase 2 (``UndoableOperation``) does NOT nest at the LCM level:
+                ``BeginUndoTask``/``EndUndoTask`` cannot be nested without
+                corrupting the undo stack. ``_TransactionCM`` guards against
+                this automatically using ``project._transaction_depth``: only
+                the OUTERMOST block opens an undo task; any ``_TransactionCM``
+                entered while one is already active becomes a no-op and lets
+                the outer task group all of its mutations into the single
+                named undo entry (the desired Phase 2 behavior). This means an
+                inner method's mutations are not separately undoable in Phase 2
+                - they are absorbed into the enclosing operation's undo task.
+        """
+        from .transaction import _NestingAwareTransaction
+
+        return _NestingAwareTransaction(self.project, label)
+
     def _ValidateParam(self, param: any, param_name: str = "parameter") -> None:
         """
         Validate that a parameter is not None.

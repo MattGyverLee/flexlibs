@@ -269,7 +269,9 @@ class AnthropologyOperations(BaseOperations, _LCMNativeCatalogImportMixin):
         if self.Exists(name):
             raise FP_ParameterError(f"Anthropology item '{name}' already exists")
 
-        # Ensure anthropology list exists
+        # Ensure anthropology list exists. List creation/assignment is project-state
+        # setup; resolve it before opening the per-item transaction so a missing
+        # list never leaves an orphaned ICmAnthroItem.
         if self.project.lp.AnthroListOA is None:
             from SIL.LCModel import ICmPossibilityListFactory
 
@@ -279,30 +281,31 @@ class AnthropologyOperations(BaseOperations, _LCMNativeCatalogImportMixin):
         else:
             anthro_list = self.project.lp.AnthroListOA
 
-        # Get the writing system handle
-        wsHandle = self.project.project.DefaultAnalWs
+        with self._TransactionCM('Create Anthropology Item'):
+            # Get the writing system handle
+            wsHandle = self.project.project.DefaultAnalWs
 
-        # Create the new item using the factory
-        factory = self.project.project.ServiceLocator.GetService(ICmAnthroItemFactory)
-        new_item = factory.Create()
+            # Create the new item using the factory
+            factory = self.project.project.ServiceLocator.GetService(ICmAnthroItemFactory)
+            new_item = factory.Create()
 
-        # Add to the anthropology list (must be done before setting properties)
-        anthro_list.PossibilitiesOS.Add(new_item)
+            # Add to the anthropology list (must be done before setting properties)
+            anthro_list.PossibilitiesOS.Add(new_item)
 
-        # Set name
-        mkstr_name = TsStringUtils.MakeString(name, wsHandle)
-        new_item.Name.set_String(wsHandle, mkstr_name)
+            # Set name
+            mkstr_name = TsStringUtils.MakeString(name, wsHandle)
+            new_item.Name.set_String(wsHandle, mkstr_name)
 
-        # Set abbreviation if provided
-        if abbreviation:
-            mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
-            new_item.Abbreviation.set_String(wsHandle, mkstr_abbr)
+            # Set abbreviation if provided
+            if abbreviation:
+                mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
+                new_item.Abbreviation.set_String(wsHandle, mkstr_abbr)
 
-        # Set OCM code if provided (note: AnthroCode may not exist on CmAnthroItem)
-        if anthro_code and hasattr(new_item, "AnthroCode"):
-            new_item.AnthroCode = anthro_code
+            # Set OCM code if provided (note: AnthroCode may not exist on CmAnthroItem)
+            if anthro_code and hasattr(new_item, "AnthroCode"):
+                new_item.AnthroCode = anthro_code
 
-        return new_item
+            return new_item
 
     @OperationsMethod
     def CreateSubitem(self, parent_item, name, abbreviation=None, anthro_code=None):
@@ -369,29 +372,30 @@ class AnthropologyOperations(BaseOperations, _LCMNativeCatalogImportMixin):
         parent = self.__GetItemObject(parent_item)
 
         # Get the writing system handle
-        wsHandle = self.project.project.DefaultAnalWs
+        with self._TransactionCM('Create Anthropology Subitem'):
+            wsHandle = self.project.project.DefaultAnalWs
 
-        # Create the new item using the factory
-        factory = self.project.project.ServiceLocator.GetService(ICmAnthroItemFactory)
-        new_item = factory.Create()
+            # Create the new item using the factory
+            factory = self.project.project.ServiceLocator.GetService(ICmAnthroItemFactory)
+            new_item = factory.Create()
 
-        # Add to parent's subitems (must be done before setting properties)
-        parent.SubPossibilitiesOS.Add(new_item)
+            # Add to parent's subitems (must be done before setting properties)
+            parent.SubPossibilitiesOS.Add(new_item)
 
-        # Set name
-        mkstr_name = TsStringUtils.MakeString(name, wsHandle)
-        new_item.Name.set_String(wsHandle, mkstr_name)
+            # Set name
+            mkstr_name = TsStringUtils.MakeString(name, wsHandle)
+            new_item.Name.set_String(wsHandle, mkstr_name)
 
-        # Set abbreviation if provided
-        if abbreviation:
-            mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
-            new_item.Abbreviation.set_String(wsHandle, mkstr_abbr)
+            # Set abbreviation if provided
+            if abbreviation:
+                mkstr_abbr = TsStringUtils.MakeString(abbreviation, wsHandle)
+                new_item.Abbreviation.set_String(wsHandle, mkstr_abbr)
 
-        # Set OCM code if provided (note: AnthroCode may not exist on CmAnthroItem)
-        if anthro_code and hasattr(new_item, "AnthroCode"):
-            new_item.AnthroCode = anthro_code
+            # Set OCM code if provided (note: AnthroCode may not exist on CmAnthroItem)
+            if anthro_code and hasattr(new_item, "AnthroCode"):
+                new_item.AnthroCode = anthro_code
 
-        return new_item
+            return new_item
 
     @OperationsMethod
     def Delete(self, item_or_hvo):
@@ -1717,55 +1721,56 @@ class AnthropologyOperations(BaseOperations, _LCMNativeCatalogImportMixin):
         source = self.__GetItemObject(item_or_hvo)
 
         # Determine parent (owner)
-        raw_owner = source.Owner
+        with self._TransactionCM('Duplicate Anthropology Item'):
+            raw_owner = source.Owner
 
-        # Create new item using factory (auto-generates new GUID)
-        factory = self.project.project.ServiceLocator.GetService(ICmAnthroItemFactory)
-        duplicate = factory.Create()
+            # Create new item using factory (auto-generates new GUID)
+            factory = self.project.project.ServiceLocator.GetService(ICmAnthroItemFactory)
+            duplicate = factory.Create()
 
-        # Determine insertion position and add to parent FIRST
-        # SubPossibilitiesOS is declared on ICmAnthroItem; cast by ClassName so
-        # pythonnet surfaces the typed collection accessor. The top-level branch
-        # bypasses the owner entirely via lp.AnthroListOA — no cast needed there.
-        if hasattr(raw_owner, "ClassName") and raw_owner.ClassName == "CmAnthroItem":
-            owner = ICmAnthroItem(raw_owner)
-            # Parent is another anthropology item
-            if insert_after:
-                source_index = owner.SubPossibilitiesOS.IndexOf(source)
-                owner.SubPossibilitiesOS.Insert(source_index + 1, duplicate)
-            else:
-                owner.SubPossibilitiesOS.Add(duplicate)
-        else:
-            # Parent is the top-level list
-            anthro_list = self.project.lp.AnthroListOA
-            if anthro_list is not None:
+            # Determine insertion position and add to parent FIRST
+            # SubPossibilitiesOS is declared on ICmAnthroItem; cast by ClassName so
+            # pythonnet surfaces the typed collection accessor. The top-level branch
+            # bypasses the owner entirely via lp.AnthroListOA — no cast needed there.
+            if hasattr(raw_owner, "ClassName") and raw_owner.ClassName == "CmAnthroItem":
+                owner = ICmAnthroItem(raw_owner)
+                # Parent is another anthropology item
                 if insert_after:
-                    source_index = anthro_list.PossibilitiesOS.IndexOf(source)
-                    anthro_list.PossibilitiesOS.Insert(source_index + 1, duplicate)
+                    source_index = owner.SubPossibilitiesOS.IndexOf(source)
+                    owner.SubPossibilitiesOS.Insert(source_index + 1, duplicate)
                 else:
-                    anthro_list.PossibilitiesOS.Add(duplicate)
+                    owner.SubPossibilitiesOS.Add(duplicate)
+            else:
+                # Parent is the top-level list
+                anthro_list = self.project.lp.AnthroListOA
+                if anthro_list is not None:
+                    if insert_after:
+                        source_index = anthro_list.PossibilitiesOS.IndexOf(source)
+                        anthro_list.PossibilitiesOS.Insert(source_index + 1, duplicate)
+                    else:
+                        anthro_list.PossibilitiesOS.Add(duplicate)
 
-        # Copy simple MultiString properties
-        duplicate.Name.CopyAlternatives(source.Name)
-        duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)
-        duplicate.Description.CopyAlternatives(source.Description)
+            # Copy simple MultiString properties
+            duplicate.Name.CopyAlternatives(source.Name)
+            duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)
+            duplicate.Description.CopyAlternatives(source.Description)
 
-        # Copy simple string property
-        if hasattr(source, "AnthroCode") and source.AnthroCode:
-            duplicate.AnthroCode = source.AnthroCode
+            # Copy simple string property
+            if hasattr(source, "AnthroCode") and source.AnthroCode:
+                duplicate.AnthroCode = source.AnthroCode
 
-        # Copy Reference Atomic (RA) properties
-        if hasattr(source, "CategoryRA") and source.CategoryRA:
-            duplicate.CategoryRA = source.CategoryRA
+            # Copy Reference Atomic (RA) properties
+            if hasattr(source, "CategoryRA") and source.CategoryRA:
+                duplicate.CategoryRA = source.CategoryRA
 
-        # Handle owned objects if deep=True
-        if deep:
-            # Duplicate subitems into the NEW duplicate (not the original's parent)
-            if hasattr(source, "SubPossibilitiesOS"):
-                for subitem in source.SubPossibilitiesOS:
-                    self._DuplicateSubitemInto(subitem, duplicate, deep=True)
+            # Handle owned objects if deep=True
+            if deep:
+                # Duplicate subitems into the NEW duplicate (not the original's parent)
+                if hasattr(source, "SubPossibilitiesOS"):
+                    for subitem in source.SubPossibilitiesOS:
+                        self._DuplicateSubitemInto(subitem, duplicate, deep=True)
 
-        return duplicate
+            return duplicate
 
     def _DuplicateSubitemInto(self, source_item, parent_dup, deep=True):
         """Duplicate an anthropology subitem into the specified parent's SubPossibilitiesOS."""

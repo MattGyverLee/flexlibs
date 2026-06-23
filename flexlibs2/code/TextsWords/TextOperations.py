@@ -149,30 +149,31 @@ class TextOperations(BaseOperations):
         if self.Exists(name):
             raise FP_ParameterError(f"A text with the name '{name}' already exists.")
 
-        # Create the text object
-        text_factory = self.project.project.ServiceLocator.GetService(ITextFactory)
-        new_text = text_factory.Create()
+        with self._TransactionCM(f"Create text '{name}'"):
+            # Create the text object
+            text_factory = self.project.project.ServiceLocator.GetService(ITextFactory)
+            new_text = text_factory.Create()
 
-        # Add to the texts collection. In newer LCM builds ILangProject's
-        # texts accessor is `Texts` (not `TextsOC` -- the latter has been
-        # renamed/removed). See issue #22.
-        self.project.lp.Texts.Add(new_text)
+            # Add to the texts collection. In newer LCM builds ILangProject's
+            # texts accessor is `Texts` (not `TextsOC` -- the latter has been
+            # renamed/removed). See issue #22.
+            self.project.lp.Texts.Add(new_text)
 
-        # Set the name
-        wsHandle = self.project.project.DefaultAnalWs
-        name_str = TsStringUtils.MakeString(name, wsHandle)
-        new_text.Name.set_String(wsHandle, name_str)
+            # Set the name
+            wsHandle = self.project.project.DefaultAnalWs
+            name_str = TsStringUtils.MakeString(name, wsHandle)
+            new_text.Name.set_String(wsHandle, name_str)
 
-        # Create the contents (StText)
-        sttext_factory = self.project.project.ServiceLocator.GetService(IStTextFactory)
-        contents = sttext_factory.Create()
-        new_text.ContentsOA = contents
+            # Create the contents (StText)
+            sttext_factory = self.project.project.ServiceLocator.GetService(IStTextFactory)
+            contents = sttext_factory.Create()
+            new_text.ContentsOA = contents
 
-        # Set genre if provided
-        if genre is not None:
-            self.SetGenre(new_text, genre)
+            # Set genre if provided
+            if genre is not None:
+                self.SetGenre(new_text, genre)
 
-        return new_text
+            return new_text
 
     @OperationsMethod
     def Delete(self, text_or_hvo):
@@ -282,31 +283,32 @@ class TextOperations(BaseOperations):
             new_name = f"{source_name} (copy {counter})"
             counter += 1
 
-        # Create the new text (sets Name and Genre via Create helper)
-        new_text = self.Create(new_name, genre=source_genre)
+        with self._TransactionCM("Duplicate text"):
+            # Create the new text (sets Name and Genre via Create helper)
+            new_text = self.Create(new_name, genre=source_genre)
 
-        # Copy remaining MultiString properties (all writing systems)
-        if hasattr(text_obj, "Abbreviation") and text_obj.Abbreviation:
-            new_text.Abbreviation.CopyAlternatives(text_obj.Abbreviation)
-        if hasattr(text_obj, "Title") and text_obj.Title:
-            new_text.Title.CopyAlternatives(text_obj.Title)
-        if hasattr(text_obj, "Description") and text_obj.Description:
-            new_text.Description.CopyAlternatives(text_obj.Description)
-        if hasattr(text_obj, "Source") and text_obj.Source:
-            new_text.Source.CopyAlternatives(text_obj.Source)
+            # Copy remaining MultiString properties (all writing systems)
+            if hasattr(text_obj, "Abbreviation") and text_obj.Abbreviation:
+                new_text.Abbreviation.CopyAlternatives(text_obj.Abbreviation)
+            if hasattr(text_obj, "Title") and text_obj.Title:
+                new_text.Title.CopyAlternatives(text_obj.Title)
+            if hasattr(text_obj, "Description") and text_obj.Description:
+                new_text.Description.CopyAlternatives(text_obj.Description)
+            if hasattr(text_obj, "Source") and text_obj.Source:
+                new_text.Source.CopyAlternatives(text_obj.Source)
 
-        # Deep duplication: copy paragraph contents
-        if deep:
-            paragraphs = self.GetParagraphs(text_obj)
-            for para in paragraphs:
-                if para.Contents:
-                    # Copy the full TsString (preserves formatting and all WS runs)
-                    para_factory = self.project.project.ServiceLocator.GetService(IStTxtParaFactory)
-                    new_para = para_factory.Create()
-                    new_text.ContentsOA.ParagraphsOS.Add(new_para)
-                    new_para.Contents = para.Contents
+            # Deep duplication: copy paragraph contents
+            if deep:
+                paragraphs = self.GetParagraphs(text_obj)
+                for para in paragraphs:
+                    if para.Contents:
+                        # Copy the full TsString (preserves formatting and all WS runs)
+                        para_factory = self.project.project.ServiceLocator.GetService(IStTxtParaFactory)
+                        new_para = para_factory.Create()
+                        new_text.ContentsOA.ParagraphsOS.Add(new_para)
+                        new_para.Contents = para.Contents
 
-        return new_text
+            return new_text
 
     # ========== SYNC INTEGRATION METHODS ==========
 
@@ -679,17 +681,18 @@ class TextOperations(BaseOperations):
 
         text_obj = self.__GetTextObject(text_or_hvo)
 
-        # Clear existing genres
-        text_obj.GenresRC.Clear()
+        with self._TransactionCM("Set text genre"):
+            # Clear existing genres
+            text_obj.GenresRC.Clear()
 
-        # Add new genre if provided
-        if genre is not None:
-            try:
-                # Validate it's a possibility
-                genre_poss = ICmPossibility(genre)
-                text_obj.GenresRC.Add(genre_poss)
-            except (TypeError, System.InvalidCastException, AttributeError):
-                raise FP_ParameterError("genre must be a valid ICmPossibility object")
+            # Add new genre if provided
+            if genre is not None:
+                try:
+                    # Validate it's a possibility
+                    genre_poss = ICmPossibility(genre)
+                    text_obj.GenresRC.Add(genre_poss)
+                except (TypeError, System.InvalidCastException, AttributeError):
+                    raise FP_ParameterError("genre must be a valid ICmPossibility object")
 
     # --- Advanced Text Content Operations ---
 
@@ -879,27 +882,28 @@ class TextOperations(BaseOperations):
 
         text_obj = self.__GetTextObject(text_or_hvo)
 
-        # Create media container if needed
-        if not text_obj.MediaFilesOA:
-            folder_factory = self.project.project.ServiceLocator.GetService(ICmFolderFactory)
-            container = folder_factory.Create()
-            text_obj.MediaFilesOA = container
+        with self._TransactionCM("Add media file"):
+            # Create media container if needed
+            if not text_obj.MediaFilesOA:
+                folder_factory = self.project.project.ServiceLocator.GetService(ICmFolderFactory)
+                container = folder_factory.Create()
+                text_obj.MediaFilesOA = container
 
-        # Use MediaOperations to properly copy file and create ICmFile
-        # Copy file to project and get ICmFile reference
-        cm_file = self.project.Media.CopyToProject(filepath, internal_subdir="AudioVisual", label=label)
+            # Use MediaOperations to properly copy file and create ICmFile
+            # Copy file to project and get ICmFile reference
+            cm_file = self.project.Media.CopyToProject(filepath, internal_subdir="AudioVisual", label=label)
 
-        # Create ICmMedia object
-        media_factory = self.project.project.ServiceLocator.GetService(ICmMediaFactory)
-        media = media_factory.Create()
+            # Create ICmMedia object
+            media_factory = self.project.project.ServiceLocator.GetService(ICmMediaFactory)
+            media = media_factory.Create()
 
-        # Add to text's media collection (must be done before setting properties)
-        text_obj.MediaFilesOA.MediaFilesOC.Add(media)
+            # Add to text's media collection (must be done before setting properties)
+            text_obj.MediaFilesOA.MediaFilesOC.Add(media)
 
-        # Link the ICmFile to ICmMedia
-        media.MediaFileRA = cm_file
+            # Link the ICmFile to ICmMedia
+            media.MediaFileRA = cm_file
 
-        return media
+            return media
 
     @OperationsMethod
     def GetAbbreviation(self, text_or_hvo, wsHandle=None):

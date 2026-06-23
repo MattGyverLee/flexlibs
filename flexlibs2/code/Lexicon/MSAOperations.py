@@ -217,17 +217,18 @@ class MSAOperations(BaseOperations):
         sandbox.MsaType = MsaType.kInfl
         sandbox.MainPOS = pos_obj
 
-        new_msa = self.__CreateAndAttach(
-            sense_obj, sandbox, IMoInflAffMsaFactory
-        )
-        new_msa = IMoInflAffMsa(new_msa)
+        with self._TransactionCM("Create inflectional affix MSA"):
+            new_msa = self.__CreateAndAttach(
+                sense_obj, sandbox, IMoInflAffMsaFactory
+            )
+            new_msa = IMoInflAffMsa(new_msa)
 
-        if slots:
-            for slot in slots:
-                resolved = self.__Resolve(slot)
-                new_msa.SlotsRC.Add(resolved)
+            if slots:
+                for slot in slots:
+                    resolved = self.__Resolve(slot)
+                    new_msa.SlotsRC.Add(resolved)
 
-        return new_msa
+            return new_msa
 
     @OperationsMethod
     def CreateUnclassifiedAffix(self, sense, pos):
@@ -334,10 +335,11 @@ class MSAOperations(BaseOperations):
                 "Create* method."
             )
 
-        if from_pos is not None:
-            deriv.FromPartOfSpeechRA = self.__Resolve(from_pos)
-        if to_pos is not None:
-            deriv.ToPartOfSpeechRA = self.__Resolve(to_pos)
+        with self._TransactionCM("Set derivational affix MSA POS"):
+            if from_pos is not None:
+                deriv.FromPartOfSpeechRA = self.__Resolve(from_pos)
+            if to_pos is not None:
+                deriv.ToPartOfSpeechRA = self.__Resolve(to_pos)
 
     # ------------------------------------------------------------------
     # Affix MSA variant conversion
@@ -604,9 +606,10 @@ class MSAOperations(BaseOperations):
         # LexSenseOperations.SetPartOfSpeech uses to resolve the owning
         # entry. (issue #129)
         entry = ILexEntry(sense.OwnerOfClass(LexEntryTags.kClassId))
-        new_msa = factory.Create(entry, sandbox)
-        sense.MorphoSyntaxAnalysisRA = new_msa
-        return new_msa
+        with self._TransactionCM("Create and attach MSA"):
+            new_msa = factory.Create(entry, sandbox)
+            sense.MorphoSyntaxAnalysisRA = new_msa
+            return new_msa
 
     def __ResolveSense(self, sense_or_hvo):
         """Resolve a sense parameter, accepting either an object or HVO."""

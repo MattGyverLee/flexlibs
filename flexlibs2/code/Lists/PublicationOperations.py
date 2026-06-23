@@ -255,11 +255,12 @@ class PublicationOperations(PossibilityItemOperations):
         wsHandle = self._PossibilityItemOperations__WSHandle(wsHandle)
 
         if hasattr(publication, "Abbreviation"):
-            mkstr = TsStringUtils.MakeString(layout, wsHandle)
-            publication.Abbreviation.set_String(wsHandle, mkstr)
+            with self._TransactionCM("Set publication page layout"):
+                mkstr = TsStringUtils.MakeString(layout, wsHandle)
+                publication.Abbreviation.set_String(wsHandle, mkstr)
 
-            # Update modification date
-            publication.DateModified = DateTime.Now
+                # Update modification date
+                publication.DateModified = DateTime.Now
 
     @OperationsMethod
     def GetIsDefault(self, publication_or_hvo):
@@ -357,19 +358,20 @@ class PublicationOperations(PossibilityItemOperations):
             return
 
         # To make a publication default, move it to the first position
-        if is_default:
-            # Remove from current position
-            if publication in pub_list.PossibilitiesOS:
-                pub_list.PossibilitiesOS.Remove(publication)
-            # Insert at first position
-            pub_list.PossibilitiesOS.Insert(0, publication)
-        else:
-            # If removing default status, move to end
-            if publication in pub_list.PossibilitiesOS:
-                current_index = pub_list.PossibilitiesOS.IndexOf(publication)
-                if current_index == 0:  # Is currently default
+        with self._TransactionCM("Set default publication"):
+            if is_default:
+                # Remove from current position
+                if publication in pub_list.PossibilitiesOS:
                     pub_list.PossibilitiesOS.Remove(publication)
-                    pub_list.PossibilitiesOS.Add(publication)
+                # Insert at first position
+                pub_list.PossibilitiesOS.Insert(0, publication)
+            else:
+                # If removing default status, move to end
+                if publication in pub_list.PossibilitiesOS:
+                    current_index = pub_list.PossibilitiesOS.IndexOf(publication)
+                    if current_index == 0:  # Is currently default
+                        pub_list.PossibilitiesOS.Remove(publication)
+                        pub_list.PossibilitiesOS.Add(publication)
 
     # --- Formatting Properties ---
 
@@ -470,10 +472,11 @@ class PublicationOperations(PossibilityItemOperations):
 
         # Store in SortKey2 field (multiply by 1000 to store as integer)
         if hasattr(publication, "SortKey2"):
-            publication.SortKey2 = int(h * 1000)
+            with self._TransactionCM("Set publication page height"):
+                publication.SortKey2 = int(h * 1000)
 
-            # Update modification date
-            publication.DateModified = DateTime.Now
+                # Update modification date
+                publication.DateModified = DateTime.Now
 
     @OperationsMethod
     def GetPageWidth(self, publication_or_hvo):
@@ -573,10 +576,11 @@ class PublicationOperations(PossibilityItemOperations):
 
         # Store in SortKey field (multiply by 1000 to store as integer)
         if hasattr(publication, "SortKey"):
-            publication.SortKey = int(w * 1000)
+            with self._TransactionCM("Set publication page width"):
+                publication.SortKey = int(w * 1000)
 
-            # Update modification date
-            publication.DateModified = DateTime.Now
+                # Update modification date
+                publication.DateModified = DateTime.Now
 
     # --- Divisions and Structure ---
 
@@ -674,20 +678,22 @@ class PublicationOperations(PossibilityItemOperations):
 
         # Create the new division using the factory
         factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
-        new_division = factory.Create()
 
-        # Add to publication's sub-possibilities (must be done before setting properties)
-        if hasattr(publication, "SubPossibilitiesOS"):
-            publication.SubPossibilitiesOS.Add(new_division)
+        with self._TransactionCM(f"Add division {division_name!r}"):
+            new_division = factory.Create()
 
-        # Set name
-        mkstr_name = TsStringUtils.MakeString(division_name, wsHandle)
-        new_division.Name.set_String(wsHandle, mkstr_name)
+            # Add to publication's sub-possibilities (must be done before setting properties)
+            if hasattr(publication, "SubPossibilitiesOS"):
+                publication.SubPossibilitiesOS.Add(new_division)
 
-        # Set creation date
-        new_division.DateCreated = DateTime.Now
+            # Set name
+            mkstr_name = TsStringUtils.MakeString(division_name, wsHandle)
+            new_division.Name.set_String(wsHandle, mkstr_name)
 
-        return new_division
+            # Set creation date
+            new_division.DateCreated = DateTime.Now
+
+            return new_division
 
     @OperationsMethod
     def GetHeaderFooter(self, publication_or_hvo, wsHandle=None):

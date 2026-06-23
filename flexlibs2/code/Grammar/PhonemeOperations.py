@@ -201,27 +201,29 @@ class PhonemeOperations(BaseOperations):
 
         # Create the new phoneme using the factory
         factory = self.project.project.ServiceLocator.GetService(IPhPhonemeFactory)
-        new_phoneme = factory.Create()
 
-        # Add to the phoneme set (must be done before setting properties)
-        phoneme_set.PhonemesOC.Add(new_phoneme)
+        with self._TransactionCM(f"Create phoneme {representation}"):
+            new_phoneme = factory.Create()
 
-        # Set representation
-        mkstr = TsStringUtils.MakeString(representation, wsHandle)
-        new_phoneme.Name.set_String(wsHandle, mkstr)
+            # Add to the phoneme set (must be done before setting properties)
+            phoneme_set.PhonemesOC.Add(new_phoneme)
 
-        # The IPhPhoneme factory autocreates one IPhCode whose Representation
-        # is the FLEx null marker ('***'). Clean it up here so that Create()
-        # always returns a phoneme with no junk placeholder allophone.
-        # AddCode reuses the placeholder slot on the first call, but if the
-        # caller never calls AddCode the phoneme would otherwise carry a
-        # spurious '***' code that breaks HermitCrab parser loading.
-        # (issue #113 -- cleanup moved here from AddCode)
-        existing_codes = list(new_phoneme.CodesOS)
-        if len(existing_codes) == 1 and self.__is_placeholder_code(existing_codes[0]):
-            new_phoneme.CodesOS.Remove(existing_codes[0])
+            # Set representation
+            mkstr = TsStringUtils.MakeString(representation, wsHandle)
+            new_phoneme.Name.set_String(wsHandle, mkstr)
 
-        return new_phoneme
+            # The IPhPhoneme factory autocreates one IPhCode whose Representation
+            # is the FLEx null marker ('***'). Clean it up here so that Create()
+            # always returns a phoneme with no junk placeholder allophone.
+            # AddCode reuses the placeholder slot on the first call, but if the
+            # caller never calls AddCode the phoneme would otherwise carry a
+            # spurious '***' code that breaks HermitCrab parser loading.
+            # (issue #113 -- cleanup moved here from AddCode)
+            existing_codes = list(new_phoneme.CodesOS)
+            if len(existing_codes) == 1 and self.__is_placeholder_code(existing_codes[0]):
+                new_phoneme.CodesOS.Remove(existing_codes[0])
+
+            return new_phoneme
 
     @OperationsMethod
     def Delete(self, phoneme_or_hvo):
@@ -327,59 +329,61 @@ class PhonemeOperations(BaseOperations):
 
         # Create new phoneme using factory (auto-generates new GUID)
         factory = self.project.project.ServiceLocator.GetService(IPhPhonemeFactory)
-        duplicate = factory.Create()
 
-        # Add to phoneme set (OC types use Add only, no Insert)
-        phoneme_set.PhonemesOC.Add(duplicate)
+        with self._TransactionCM("Duplicate phoneme"):
+            duplicate = factory.Create()
 
-        # Copy simple MultiString properties
-        duplicate.Name.CopyAlternatives(source.Name)
-        duplicate.Description.CopyAlternatives(source.Description)
-        if hasattr(source, "BasicIPASymbol") and source.BasicIPASymbol:
-            duplicate.BasicIPASymbol.CopyAlternatives(source.BasicIPASymbol)
+            # Add to phoneme set (OC types use Add only, no Insert)
+            phoneme_set.PhonemesOC.Add(duplicate)
 
-        # Note: FeaturesOA is an owned atomic object (OA), NOT a reference.
-        # Assigning it directly would TRANSFER ownership from source, corrupting it.
-        # Feature structures are complex (recursive), so we skip them in shallow
-        # copy and handle via deep copy below using LCM's SetCloneProperties.
+            # Copy simple MultiString properties
+            duplicate.Name.CopyAlternatives(source.Name)
+            duplicate.Description.CopyAlternatives(source.Description)
+            if hasattr(source, "BasicIPASymbol") and source.BasicIPASymbol:
+                duplicate.BasicIPASymbol.CopyAlternatives(source.BasicIPASymbol)
 
-        # Handle owned objects if deep=True
-        if deep:
-            from ..lcm_casting import clone_properties
+            # Note: FeaturesOA is an owned atomic object (OA), NOT a reference.
+            # Assigning it directly would TRANSFER ownership from source, corrupting it.
+            # Feature structures are complex (recursive), so we skip them in shallow
+            # copy and handle via deep copy below using LCM's SetCloneProperties.
 
-            # Deep copy FeaturesOA (feature structure)
-            if hasattr(source, "FeaturesOA") and source.FeaturesOA:
-                # Create new feature structure and copy all properties
-                try:
-                    source_features = source.FeaturesOA
-                    # Create new object of same type
-                    new_features = self.project.project.ServiceLocator.ObjectRepository.NewObject(
-                        source_features.ClassID
-                    )
+            # Handle owned objects if deep=True
+            if deep:
+                from ..lcm_casting import clone_properties
 
-                    # Set as the feature structure for this phoneme
-                    duplicate.FeaturesOA = new_features
-
-                    # Deep clone all properties using clone_properties
-                    clone_properties(source_features, new_features, self.project)
-                except Exception:
-                    # Cannot copy complex feature structure - skip
-                    pass
-
-            # Duplicate codes (allophonic representations)
-            if hasattr(source, "CodesOS") and source.CodesOS.Count > 0:
-                for code in source.CodesOS:
+                # Deep copy FeaturesOA (feature structure)
+                if hasattr(source, "FeaturesOA") and source.FeaturesOA:
+                    # Create new feature structure and copy all properties
                     try:
-                        code_factory = self.project.project.ServiceLocator.GetService(IPhCodeFactory)
-                        new_code = code_factory.Create()
-                        duplicate.CodesOS.Add(new_code)
-                        # Deep clone code properties using clone_properties
-                        clone_properties(code, new_code, self.project)
+                        source_features = source.FeaturesOA
+                        # Create new object of same type
+                        new_features = self.project.project.ServiceLocator.ObjectRepository.NewObject(
+                            source_features.ClassID
+                        )
+
+                        # Set as the feature structure for this phoneme
+                        duplicate.FeaturesOA = new_features
+
+                        # Deep clone all properties using clone_properties
+                        clone_properties(source_features, new_features, self.project)
                     except Exception:
-                        # Skip any code that fails to copy
+                        # Cannot copy complex feature structure - skip
                         pass
 
-        return duplicate
+                # Duplicate codes (allophonic representations)
+                if hasattr(source, "CodesOS") and source.CodesOS.Count > 0:
+                    for code in source.CodesOS:
+                        try:
+                            code_factory = self.project.project.ServiceLocator.GetService(IPhCodeFactory)
+                            new_code = code_factory.Create()
+                            duplicate.CodesOS.Add(new_code)
+                            # Deep clone code properties using clone_properties
+                            clone_properties(code, new_code, self.project)
+                        except Exception:
+                            # Skip any code that fails to copy
+                            pass
+
+            return duplicate
 
     @OperationsMethod
     def Exists(self, representation, wsHandle=None):
@@ -794,15 +798,17 @@ class PhonemeOperations(BaseOperations):
         # AddCode always operates on a clean CodesOS and can unconditionally
         # append. (issue #113 -- placeholder cleanup moved to Create)
         factory = self.project.project.ServiceLocator.GetService(IPhCodeFactory)
-        code = factory.Create()
 
-        # Add to phoneme's codes (must be done before setting properties)
-        phoneme.CodesOS.Add(code)
+        with self._TransactionCM("Add phoneme code"):
+            code = factory.Create()
 
-        # Set representation
-        code.Representation.set_String(wsHandle, mkstr)
+            # Add to phoneme's codes (must be done before setting properties)
+            phoneme.CodesOS.Add(code)
 
-        return code
+            # Set representation
+            code.Representation.set_String(wsHandle, mkstr)
+
+            return code
 
     @OperationsMethod
     def RemoveCode(self, phoneme_or_hvo, code_or_hvo):
@@ -970,8 +976,9 @@ class PhonemeOperations(BaseOperations):
         else:
             target = old_code_or_repr
 
-        self.RemoveCode(phoneme, target)
-        return self.AddCode(phoneme, new_representation, wsHandle)
+        with self._TransactionCM("Replace phoneme code"):
+            self.RemoveCode(phoneme, target)
+            return self.AddCode(phoneme, new_representation, wsHandle)
 
     @OperationsMethod
     def GetBasicIPASymbol(self, phoneme_or_hvo, wsHandle=None):
@@ -1592,108 +1599,109 @@ class PhonemeOperations(BaseOperations):
                 values_by_feat_and_term[key] = v
 
         # --- Import loop -----------------------------------------------
-        result = CatalogImportResult()
-        seen_code_points = set()  # in-pass dedup against malformed catalogs
+        with self._TransactionCM("Import phoneme catalog"):
+            result = CatalogImportResult()
+            seen_code_points = set()  # in-pass dedup against malformed catalogs
 
-        total = len(segments)
+            total = len(segments)
 
-        for idx, seg in enumerate(segments, start=1):
-            if not seg.representation:
-                result.warnings.append(
-                    f"Segment '{seg.code_point_id}' has empty representation; skipping."
-                )
-                continue
-
-            # In-pass dedup: same unicodeCodePoints appearing twice in
-            # the catalog (shouldn't happen but defensive).
-            if seg.code_point_id and seg.code_point_id in seen_code_points:
-                result.skipped_count += 1
-                continue
-            seen_code_points.add(seg.code_point_id)
-
-            # Resolve (feature, value) specs against the project's
-            # PhFeatureSystemOA. Missing references are warned and
-            # skipped; the phoneme is still created.
-            specs = []
-            for feat_id, val_id in seg.feature_pairs:
-                cat_feat_id, val_term = value_id_to_info.get(val_id, (None, None))
-                if cat_feat_id is None:
+            for idx, seg in enumerate(segments, start=1):
+                if not seg.representation:
                     result.warnings.append(
-                        f"Segment '{seg.representation}': PhonFeats value "
-                        f"'{val_id}' not found in catalog; skipping pair."
+                        f"Segment '{seg.code_point_id}' has empty representation; skipping."
                     )
                     continue
-                # The pair's feature attribute and the value's catalog
-                # parent should agree; honour whichever is non-empty.
-                lookup_feat_id = feat_id or cat_feat_id
-                feature_obj = features_by_source_id.get(lookup_feat_id)
-                if feature_obj is None:
-                    result.warnings.append(
-                        f"Segment '{seg.representation}': PhonFeats feature "
-                        f"'{lookup_feat_id}' not imported into project; "
-                        f"skipping value '{val_id}'."
-                    )
+
+                # In-pass dedup: same unicodeCodePoints appearing twice in
+                # the catalog (shouldn't happen but defensive).
+                if seg.code_point_id and seg.code_point_id in seen_code_points:
+                    result.skipped_count += 1
                     continue
-                # Match value by NFD-normalized analysis-WS Name. Lookup
-                # is O(1) per pair via the precomputed map; bare equality
-                # is unsafe across NFC/NFD encodings.
-                value_obj = values_by_feat_and_term.get(
-                    (lookup_feat_id, normalize_match_key(val_term, casefold=False))
-                )
-                if value_obj is None:
-                    result.warnings.append(
-                        f"Segment '{seg.representation}': value '{val_term}' "
-                        f"not found on feature '{lookup_feat_id}'.ValuesOC; "
-                        f"skipping pair."
+                seen_code_points.add(seg.code_point_id)
+
+                # Resolve (feature, value) specs against the project's
+                # PhFeatureSystemOA. Missing references are warned and
+                # skipped; the phoneme is still created.
+                specs = []
+                for feat_id, val_id in seg.feature_pairs:
+                    cat_feat_id, val_term = value_id_to_info.get(val_id, (None, None))
+                    if cat_feat_id is None:
+                        result.warnings.append(
+                            f"Segment '{seg.representation}': PhonFeats value "
+                            f"'{val_id}' not found in catalog; skipping pair."
+                        )
+                        continue
+                    # The pair's feature attribute and the value's catalog
+                    # parent should agree; honour whichever is non-empty.
+                    lookup_feat_id = feat_id or cat_feat_id
+                    feature_obj = features_by_source_id.get(lookup_feat_id)
+                    if feature_obj is None:
+                        result.warnings.append(
+                            f"Segment '{seg.representation}': PhonFeats feature "
+                            f"'{lookup_feat_id}' not imported into project; "
+                            f"skipping value '{val_id}'."
+                        )
+                        continue
+                    # Match value by NFD-normalized analysis-WS Name. Lookup
+                    # is O(1) per pair via the precomputed map; bare equality
+                    # is unsafe across NFC/NFD encodings.
+                    value_obj = values_by_feat_and_term.get(
+                        (lookup_feat_id, normalize_match_key(val_term, casefold=False))
                     )
-                    continue
-                specs.append((feature_obj, value_obj))
+                    if value_obj is None:
+                        result.warnings.append(
+                            f"Segment '{seg.representation}': value '{val_term}' "
+                            f"not found on feature '{lookup_feat_id}'.ValuesOC; "
+                            f"skipping pair."
+                        )
+                        continue
+                    specs.append((feature_obj, value_obj))
 
-            # Create the phoneme. Create() handles ownership-ordering
-            # (Phase 2): attach to PhonemesOC, then set Name.
-            try:
-                phoneme = self.Create(seg.representation, wsHandle=vern_ws)
-            except FP_ParameterError as e:
-                # Duplicate representation (only possible under force=True
-                # with an overlapping pre-existing inventory) -- skip and
-                # warn.
-                result.warnings.append(
-                    f"Segment '{seg.representation}': {e}; skipping."
-                )
-                continue
-
-            # BasicIPASymbol (dual-shape MultiString/ITsString aware).
-            self.SetBasicIPASymbol(phoneme, seg.representation, wsHandle=vern_ws)
-
-            # Description (English; other langs in the catalog may be sparse).
-            desc_en = seg.descriptions.get("en", "")
-            if desc_en:
-                self.SetDescription(phoneme, desc_en, wsHandle=analysis_ws)
-
-            # FeaturesOA atomic-owning attach. MakeFeatStruc attaches FIRST
-            # (Phase 2) then populates FeatureSpecsOC -- pass owner=phoneme.
-            if specs:
+                # Create the phoneme. Create() handles ownership-ordering
+                # (Phase 2): attach to PhonemesOC, then set Name.
                 try:
-                    self.project.PhonFeatures.MakeFeatStruc(specs, owner=phoneme)
-                except Exception as e:
+                    phoneme = self.Create(seg.representation, wsHandle=vern_ws)
+                except FP_ParameterError as e:
+                    # Duplicate representation (only possible under force=True
+                    # with an overlapping pre-existing inventory) -- skip and
+                    # warn.
                     result.warnings.append(
-                        f"Segment '{seg.representation}': failed to build "
-                        f"FeaturesOA ({e}); phoneme created without features."
+                        f"Segment '{seg.representation}': {e}; skipping."
                     )
+                    continue
 
-            # Synthetic catalog tag (BasicIPAInfo has no real GUIDs).
-            synthetic_tag = (
-                f"BasicIPA:{seg.code_point_id}" if seg.code_point_id else
-                f"BasicIPA:{seg.representation}"
-            )
-            result.created_count += 1
-            result.created_guids.append(synthetic_tag)
+                # BasicIPASymbol (dual-shape MultiString/ITsString aware).
+                self.SetBasicIPASymbol(phoneme, seg.representation, wsHandle=vern_ws)
 
-            if progress:
-                try:
-                    progress(idx, total, seg.representation)
-                except Exception:
-                    # Progress callbacks must never break the import.
-                    pass
+                # Description (English; other langs in the catalog may be sparse).
+                desc_en = seg.descriptions.get("en", "")
+                if desc_en:
+                    self.SetDescription(phoneme, desc_en, wsHandle=analysis_ws)
 
-        return result
+                # FeaturesOA atomic-owning attach. MakeFeatStruc attaches FIRST
+                # (Phase 2) then populates FeatureSpecsOC -- pass owner=phoneme.
+                if specs:
+                    try:
+                        self.project.PhonFeatures.MakeFeatStruc(specs, owner=phoneme)
+                    except Exception as e:
+                        result.warnings.append(
+                            f"Segment '{seg.representation}': failed to build "
+                            f"FeaturesOA ({e}); phoneme created without features."
+                        )
+
+                # Synthetic catalog tag (BasicIPAInfo has no real GUIDs).
+                synthetic_tag = (
+                    f"BasicIPA:{seg.code_point_id}" if seg.code_point_id else
+                    f"BasicIPA:{seg.representation}"
+                )
+                result.created_count += 1
+                result.created_guids.append(synthetic_tag)
+
+                if progress:
+                    try:
+                        progress(idx, total, seg.representation)
+                    except Exception:
+                        # Progress callbacks must never break the import.
+                        pass
+
+            return result

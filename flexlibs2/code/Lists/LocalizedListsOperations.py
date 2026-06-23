@@ -186,7 +186,7 @@ class LocalizedListsOperations(BaseOperations):
                 ),
             )
 
-        with self.project.Transaction(
+        with self._TransactionCM(
             f"LocalizedLists.Import({language_code!r})"
         ):
             XmlTranslatedLists.ImportTranslatedListsForWs(

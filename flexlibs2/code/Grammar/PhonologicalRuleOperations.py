@@ -205,25 +205,28 @@ class PhonologicalRuleOperations(BaseOperations):
 
         # Create the new phonological rule using the factory
         factory = self.project.project.ServiceLocator.GetService(IPhRegularRuleFactory)
-        new_rule = factory.Create()
 
-        # Add to the phonological rules collection (must be done before setting properties)
+        # Pre-flight: ensure the phonological data container exists before creating any object.
         phon_data = self.project.lp.PhonologicalDataOA
         if not phon_data:
             raise FP_ParameterError("Project has no phonological data defined")
 
-        phon_data.PhonRulesOS.Add(new_rule)
+        with self._TransactionCM(f"Create phonological rule {name!r}"):
+            new_rule = factory.Create()
 
-        # Set name
-        mkstr_name = TsStringUtils.MakeString(name, wsHandle)
-        new_rule.Name.set_String(wsHandle, mkstr_name)
+            # Add to the phonological rules collection (must be done before setting properties)
+            phon_data.PhonRulesOS.Add(new_rule)
 
-        # Set description if provided
-        if description:
-            mkstr_desc = TsStringUtils.MakeString(description, wsHandle)
-            new_rule.Description.set_String(wsHandle, mkstr_desc)
+            # Set name
+            mkstr_name = TsStringUtils.MakeString(name, wsHandle)
+            new_rule.Name.set_String(wsHandle, mkstr_name)
 
-        return new_rule
+            # Set description if provided
+            if description:
+                mkstr_desc = TsStringUtils.MakeString(description, wsHandle)
+                new_rule.Description.set_String(wsHandle, mkstr_desc)
+
+            return new_rule
 
     @OperationsMethod
     def Delete(self, rule_or_hvo):
@@ -738,13 +741,14 @@ class PhonologicalRuleOperations(BaseOperations):
         if not phon_data:
             raise FP_ParameterError("Project has no phonological data defined")
 
-        constraint = factory.Create()
-        # Phase 2 ownership rule: attach BEFORE setting FeatureRA so the
-        # LCM property setter doesn't NPE on an unowned constraint.
-        phon_data.FeatConstraintsOS.Add(constraint)
-        constraint.FeatureRA = feature
+        with self._TransactionCM("Make feature constraint"):
+            constraint = factory.Create()
+            # Phase 2 ownership rule: attach BEFORE setting FeatureRA so the
+            # LCM property setter doesn't NPE on an unowned constraint.
+            phon_data.FeatConstraintsOS.Add(constraint)
+            constraint.FeatureRA = feature
 
-        return constraint
+            return constraint
 
     @OperationsMethod
     def DeleteConstraint(self, constraint_or_hvo):
@@ -915,6 +919,9 @@ class PhonologicalRuleOperations(BaseOperations):
             raise FP_ParameterError(
                 "Rule has no RightHandSidesOS; not a structural rule type."
             )
+        # Pre-flight: if the rule has no RHS yet, verify the factory is available
+        # before opening the transaction (avoids an orphaned mid-clear state on
+        # mode="replace" when the factory is missing).
         if rule.RightHandSidesOS.Count == 0:
             rhs_factory = self.project.project.ServiceLocator.GetService(
                 IPhSegRuleRHSFactory
@@ -924,74 +931,79 @@ class PhonologicalRuleOperations(BaseOperations):
                     "IPhSegRuleRHSFactory service is unavailable; "
                     "cannot create RHS for rule."
                 )
-            rhs = rhs_factory.Create()
-            # Attach BEFORE further property writes (Phase 2 ownership rule).
-            rule.RightHandSidesOS.Add(rhs)
-        rhs = rule.RightHandSidesOS[0]
+        else:
+            rhs_factory = None  # existing RHS will be reused; factory not needed
 
-        # --- Clear existing slots if mode == 'replace' ---
-        if mode == "replace":
-            self.__ClearSequence(rule.StrucDescOS)
-            self.__ClearSequence(rhs.StrucChangeOS)
-            # For multi-element contexts the members live in
-            # PhPhonData.ContextsOS (the project-wide owner pool) and
-            # are merely *referenced* by the sequence's MembersRS.
-            # Nulling rhs.LeftContextOA / rhs.RightContextOA detaches
-            # only the sequence container; the members would otherwise
-            # leak into ContextsOS, accumulating across every re-wire
-            # of the same rule. Clean those up first. (issue #134)
-            self.__CleanupSequenceContextMembers(rhs.LeftContextOA)
-            self.__CleanupSequenceContextMembers(rhs.RightContextOA)
-            if rhs.LeftContextOA is not None:
-                rhs.LeftContextOA = None
-            if rhs.RightContextOA is not None:
-                rhs.RightContextOA = None
+        with self._TransactionCM("Wire phonological rule"):
+            if rule.RightHandSidesOS.Count == 0:
+                rhs = rhs_factory.Create()
+                # Attach BEFORE further property writes (Phase 2 ownership rule).
+                rule.RightHandSidesOS.Add(rhs)
+            rhs = rule.RightHandSidesOS[0]
 
-        # --- Wire input pattern -> rule.StrucDescOS ---
-        if input_pattern:
-            for elem in input_pattern:
-                ctx = self.__BuildSimpleContext(elem, slot_name="input_pattern")
-                rule.StrucDescOS.Add(ctx)
-                self.__PopulateSimpleContext(ctx, elem)
+            # --- Clear existing slots if mode == 'replace' ---
+            if mode == "replace":
+                self.__ClearSequence(rule.StrucDescOS)
+                self.__ClearSequence(rhs.StrucChangeOS)
+                # For multi-element contexts the members live in
+                # PhPhonData.ContextsOS (the project-wide owner pool) and
+                # are merely *referenced* by the sequence's MembersRS.
+                # Nulling rhs.LeftContextOA / rhs.RightContextOA detaches
+                # only the sequence container; the members would otherwise
+                # leak into ContextsOS, accumulating across every re-wire
+                # of the same rule. Clean those up first. (issue #134)
+                self.__CleanupSequenceContextMembers(rhs.LeftContextOA)
+                self.__CleanupSequenceContextMembers(rhs.RightContextOA)
+                if rhs.LeftContextOA is not None:
+                    rhs.LeftContextOA = None
+                if rhs.RightContextOA is not None:
+                    rhs.RightContextOA = None
 
-        # --- Wire output change -> rhs.StrucChangeOS ---
-        if output_change:
-            for elem in output_change:
-                if isinstance(elem, Boundary):
-                    raise FP_ParameterError(
-                        "Boundary elements cannot appear in the structural "
-                        "change -- only in left/right contexts."
-                    )
-                ctx = self.__BuildSimpleContext(elem, slot_name="output_change")
-                rhs.StrucChangeOS.Add(ctx)
-                self.__PopulateSimpleContext(ctx, elem)
+            # --- Wire input pattern -> rule.StrucDescOS ---
+            if input_pattern:
+                for elem in input_pattern:
+                    ctx = self.__BuildSimpleContext(elem, slot_name="input_pattern")
+                    rule.StrucDescOS.Add(ctx)
+                    self.__PopulateSimpleContext(ctx, elem)
 
-        # --- Wire left context -> rhs.LeftContextOA ---
-        if left_context:
-            ctx, deferred_elem = self.__WireContext(
-                left_context, slot_name="left_context"
-            )
-            # OwningAtomic: assignment IS the attach. Do NOT re-fetch via
-            # rhs.LeftContextOA -- pythonnet narrows the proxy to the
-            # IPhPhonContext base interface, losing access to concrete-type
-            # properties like PlusConstrRS / MinusConstrRS. The local `ctx`
-            # already points at the same LCM object with the concrete type.
-            rhs.LeftContextOA = ctx
-            if deferred_elem is not None:
-                # Single-element path: ctx is now owned by rhs; populate
-                # FeatureStructureRA / alpha constraints after the attach
-                # so LCM's validity check via Owner passes.
-                self.__PopulateSimpleContext(ctx, deferred_elem)
+            # --- Wire output change -> rhs.StrucChangeOS ---
+            if output_change:
+                for elem in output_change:
+                    if isinstance(elem, Boundary):
+                        raise FP_ParameterError(
+                            "Boundary elements cannot appear in the structural "
+                            "change -- only in left/right contexts."
+                        )
+                    ctx = self.__BuildSimpleContext(elem, slot_name="output_change")
+                    rhs.StrucChangeOS.Add(ctx)
+                    self.__PopulateSimpleContext(ctx, elem)
 
-        # --- Wire right context -> rhs.RightContextOA ---
-        if right_context:
-            ctx, deferred_elem = self.__WireContext(
-                right_context, slot_name="right_context"
-            )
-            # See note on LeftContextOA above -- skip the defensive re-fetch.
-            rhs.RightContextOA = ctx
-            if deferred_elem is not None:
-                self.__PopulateSimpleContext(ctx, deferred_elem)
+            # --- Wire left context -> rhs.LeftContextOA ---
+            if left_context:
+                ctx, deferred_elem = self.__WireContext(
+                    left_context, slot_name="left_context"
+                )
+                # OwningAtomic: assignment IS the attach. Do NOT re-fetch via
+                # rhs.LeftContextOA -- pythonnet narrows the proxy to the
+                # IPhPhonContext base interface, losing access to concrete-type
+                # properties like PlusConstrRS / MinusConstrRS. The local `ctx`
+                # already points at the same LCM object with the concrete type.
+                rhs.LeftContextOA = ctx
+                if deferred_elem is not None:
+                    # Single-element path: ctx is now owned by rhs; populate
+                    # FeatureStructureRA / alpha constraints after the attach
+                    # so LCM's validity check via Owner passes.
+                    self.__PopulateSimpleContext(ctx, deferred_elem)
+
+            # --- Wire right context -> rhs.RightContextOA ---
+            if right_context:
+                ctx, deferred_elem = self.__WireContext(
+                    right_context, slot_name="right_context"
+                )
+                # See note on LeftContextOA above -- skip the defensive re-fetch.
+                rhs.RightContextOA = ctx
+                if deferred_elem is not None:
+                    self.__PopulateSimpleContext(ctx, deferred_elem)
 
     # ------------------------------------------------------------------
     # WireRule internals
@@ -1323,33 +1335,34 @@ class PhonologicalRuleOperations(BaseOperations):
                 f"phonological rule types are PhRegularRule, "
                 f"PhMetathesisRule, PhReduplicationRule."
             )
-        duplicate = factory.Create()
-        if insert_after:
-            source_index = phon_data.PhonRulesOS.IndexOf(source)
-            phon_data.PhonRulesOS.Insert(source_index + 1, duplicate)
-        else:
-            phon_data.PhonRulesOS.Add(duplicate)
+        with self._TransactionCM("Duplicate phonological rule"):
+            duplicate = factory.Create()
+            if insert_after:
+                source_index = phon_data.PhonRulesOS.IndexOf(source)
+                phon_data.PhonRulesOS.Insert(source_index + 1, duplicate)
+            else:
+                phon_data.PhonRulesOS.Add(duplicate)
 
-        # Clone all properties (simple, reference, and owned objects)
-        if deep:
-            # Deep clone using the LCM cloning utilities
-            from ..lcm_casting import clone_properties
+            # Clone all properties (simple, reference, and owned objects)
+            if deep:
+                # Deep clone using the LCM cloning utilities
+                from ..lcm_casting import clone_properties
 
-            clone_properties(source, duplicate, self.project)
-        else:
-            # Shallow copy - only simple properties
-            duplicate.Name.CopyAlternatives(source.Name)
-            duplicate.Description.CopyAlternatives(source.Description)
+                clone_properties(source, duplicate, self.project)
+            else:
+                # Shallow copy - only simple properties
+                duplicate.Name.CopyAlternatives(source.Name)
+                duplicate.Description.CopyAlternatives(source.Description)
 
-            # Copy Reference Atomic (RA) properties
-            if hasattr(source, "StratumRA") and source.StratumRA:
-                duplicate.StratumRA = source.StratumRA
+                # Copy Reference Atomic (RA) properties
+                if hasattr(source, "StratumRA") and source.StratumRA:
+                    duplicate.StratumRA = source.StratumRA
 
-            # Copy integer properties
-            if hasattr(source, "Direction"):
-                duplicate.Direction = source.Direction
+                # Copy integer properties
+                if hasattr(source, "Direction"):
+                    duplicate.Direction = source.Direction
 
-        return duplicate
+            return duplicate
 
     def __ResolveObject(self, rule_or_hvo):
         """

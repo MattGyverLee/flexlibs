@@ -520,46 +520,47 @@ class SegmentOperations(BaseOperations):
         para = self.__GetParagraphObject(paragraph_or_hvo)
         ws = self.__WSHandleVern(wsHandle)
 
-        # --- Step 1: edit Contents ---
-        bldr = para.Contents.GetBldr()
-        current_length = para.Contents.Length
+        with self._TransactionCM("Append sentence"):
+            # --- Step 1: edit Contents ---
+            bldr = para.Contents.GetBldr()
+            current_length = para.Contents.Length
 
-        if current_length > 0:
-            # Check the last character of the current contents
-            last_char_pos = current_length - 1
-            last_char = para.Contents.Text[last_char_pos] if para.Contents.Text else ""
+            if current_length > 0:
+                # Check the last character of the current contents
+                last_char_pos = current_length - 1
+                last_char = para.Contents.Text[last_char_pos] if para.Contents.Text else ""
 
-            if last_char not in (".", "!", "?"):
-                # Insert ". " as sentence terminator
-                terminator = TsStringUtils.MakeString(". ", ws)
-                bldr.ReplaceTsString(current_length, current_length, terminator)
-                # Recalculate insertion point after terminator
-                insert_at = current_length + 2
+                if last_char not in (".", "!", "?"):
+                    # Insert ". " as sentence terminator
+                    terminator = TsStringUtils.MakeString(". ", ws)
+                    bldr.ReplaceTsString(current_length, current_length, terminator)
+                    # Recalculate insertion point after terminator
+                    insert_at = current_length + 2
+                else:
+                    # Already terminated — just insert a space separator
+                    sep = TsStringUtils.MakeString(" ", ws)
+                    bldr.ReplaceTsString(current_length, current_length, sep)
+                    insert_at = current_length + 1
+
+                new_text_ts = TsStringUtils.MakeString(text_str, ws)
+                bldr.ReplaceTsString(insert_at, insert_at, new_text_ts)
             else:
-                # Already terminated — just insert a space separator
-                sep = TsStringUtils.MakeString(" ", ws)
-                bldr.ReplaceTsString(current_length, current_length, sep)
-                insert_at = current_length + 1
+                # Paragraph is empty — write text directly
+                new_text_ts = TsStringUtils.MakeString(text_str, ws)
+                bldr.ReplaceTsString(0, 0, new_text_ts)
 
-            new_text_ts = TsStringUtils.MakeString(text_str, ws)
-            bldr.ReplaceTsString(insert_at, insert_at, new_text_ts)
-        else:
-            # Paragraph is empty — write text directly
-            new_text_ts = TsStringUtils.MakeString(text_str, ws)
-            bldr.ReplaceTsString(0, 0, new_text_ts)
+            # Assign Contents — fires ContentsSideEffects -> AnalysisAdjuster on
+            # existing segments, setting their BeginOffset/EndOffset correctly.
+            para.Contents = bldr.GetString()
 
-        # Assign Contents — fires ContentsSideEffects -> AnalysisAdjuster on
-        # existing segments, setting their BeginOffset/EndOffset correctly.
-        para.Contents = bldr.GetString()
+            # --- Step 2: add new segment to SegmentsOS ---
+            factory = self.__GetSegmentFactory()
+            seg = factory.Create()
+            para.SegmentsOS.Add(seg)
+            # AnalysisAdjuster (fired by the Contents setter above) will set
+            # seg.BeginOffset / seg.EndOffset when the paragraph is re-parsed.
 
-        # --- Step 2: add new segment to SegmentsOS ---
-        factory = self.__GetSegmentFactory()
-        seg = factory.Create()
-        para.SegmentsOS.Add(seg)
-        # AnalysisAdjuster (fired by the Contents setter above) will set
-        # seg.BeginOffset / seg.EndOffset when the paragraph is re-parsed.
-
-        return seg
+            return seg
 
     @OperationsMethod
     def Delete(self, segment_or_hvo):
@@ -656,19 +657,20 @@ class SegmentOperations(BaseOperations):
         # Resolve the paragraph's vernacular WS from the existing text run so
         # the inserted terminator uses the same writing system as its neighbours.
         ws = self.__WSHandleVern(None)
-        bldr = para.Contents.GetBldr()
-        terminator = TsStringUtils.MakeString(". ", ws)
-        bldr.ReplaceTsString(absolute_offset, absolute_offset, terminator)
-        # Assign — fires AnalysisAdjuster which shifts seg3+ offsets right by 2
-        para.Contents = bldr.GetString()
+        with self._TransactionCM("Split segment"):
+            bldr = para.Contents.GetBldr()
+            terminator = TsStringUtils.MakeString(". ", ws)
+            bldr.ReplaceTsString(absolute_offset, absolute_offset, terminator)
+            # Assign — fires AnalysisAdjuster which shifts seg3+ offsets right by 2
+            para.Contents = bldr.GetString()
 
-        # --- Step 2: insert new segment into SegmentsOS ---
-        idx = para.SegmentsOS.IndexOf(seg)
-        factory = self.__GetSegmentFactory()
-        new_seg = factory.Create()
-        para.SegmentsOS.Insert(idx + 1, new_seg)
+            # --- Step 2: insert new segment into SegmentsOS ---
+            idx = para.SegmentsOS.IndexOf(seg)
+            factory = self.__GetSegmentFactory()
+            new_seg = factory.Create()
+            para.SegmentsOS.Insert(idx + 1, new_seg)
 
-        return (seg, new_seg)
+            return (seg, new_seg)
 
     @OperationsMethod
     def MergeSegments(self, seg1_or_hvo, seg2_or_hvo, translation_policy="migrate"):
@@ -788,26 +790,27 @@ class SegmentOperations(BaseOperations):
                     "'discard' to drop them."
                 )
 
-        elif translation_policy == TRANSLATION_POLICY_MIGRATE:
-            # Migrate FreeTranslation, LiteralTranslation, and Notes for all WS
-            self.__MigrateTranslations(seg1, seg2)
+        with self._TransactionCM("Merge segments"):
+            if translation_policy == TRANSLATION_POLICY_MIGRATE:
+                # Migrate FreeTranslation, LiteralTranslation, and Notes for all WS
+                self.__MigrateTranslations(seg1, seg2)
 
-        # TRANSLATION_POLICY_DISCARD: do nothing — seg2's data is lost on removal
+            # TRANSLATION_POLICY_DISCARD: do nothing — seg2's data is lost on removal
 
-        # --- Step 1: edit Contents to remove the inter-segment boundary ---
-        bldr = para.Contents.GetBldr()
-        # Remove characters from end of seg1 (the terminator) through start of seg2
-        # seg1.EndOffset is the position just after seg1's last char (includes terminator)
-        # seg2.BeginOffset is the first char of seg2's text
-        bldr.Replace(seg1.EndOffset, seg2.BeginOffset, "", None)
-        # Assign — fires AnalysisAdjuster which shifts seg3+ offsets left
-        para.Contents = bldr.GetString()
+            # --- Step 1: edit Contents to remove the inter-segment boundary ---
+            bldr = para.Contents.GetBldr()
+            # Remove characters from end of seg1 (the terminator) through start of seg2
+            # seg1.EndOffset is the position just after seg1's last char (includes terminator)
+            # seg2.BeginOffset is the first char of seg2's text
+            bldr.Replace(seg1.EndOffset, seg2.BeginOffset, "", None)
+            # Assign — fires AnalysisAdjuster which shifts seg3+ offsets left
+            para.Contents = bldr.GetString()
 
-        # --- Step 2: remove seg2 from SegmentsOS if it still exists ---
-        if seg2 in list(para.SegmentsOS):
-            para.SegmentsOS.Remove(seg2)
+            # --- Step 2: remove seg2 from SegmentsOS if it still exists ---
+            if seg2 in list(para.SegmentsOS):
+                para.SegmentsOS.Remove(seg2)
 
-        return seg1
+            return seg1
 
     def __MigrateTranslations(self, seg1, seg2):
         """

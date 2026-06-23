@@ -98,17 +98,18 @@ class ConstChartMarkerOperations(BaseOperations):
         markers = self.__GetOrCreateChartMarkers()
         ws_handle = self.__WSHandle(None)
 
-        factory = self.project.project.ServiceLocator.GetService(
-            ICmPossibilityFactory
-        )
-        new_marker = factory.Create()
-        # Attach to the owning sequence BEFORE the property write so
-        # the LCM property setter never runs against an orphan object.
-        markers.Add(new_marker)
-        new_marker.Name.set_String(
-            ws_handle, TsStringUtils.MakeString(name, ws_handle)
-        )
-        return new_marker
+        with self._TransactionCM(f"Create chart marker '{name}'"):
+            factory = self.project.project.ServiceLocator.GetService(
+                ICmPossibilityFactory
+            )
+            new_marker = factory.Create()
+            # Attach to the owning sequence BEFORE the property write so
+            # the LCM property setter never runs against an orphan object.
+            markers.Add(new_marker)
+            new_marker.Name.set_String(
+                ws_handle, TsStringUtils.MakeString(name, ws_handle)
+            )
+            return new_marker
 
     @OperationsMethod
     def Delete(self, marker_or_hvo):

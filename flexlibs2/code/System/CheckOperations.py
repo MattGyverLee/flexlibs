@@ -206,24 +206,26 @@ class CheckOperations(BaseOperations):
 
         # Create the new check type using the factory
         factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
-        new_check = factory.Create()
 
-        # Add to check list (must be done before setting properties)
-        check_list.PossibilitiesOS.Add(new_check)
+        with self._TransactionCM(f"Create check type '{name}'"):
+            new_check = factory.Create()
 
-        # Set name
-        mkstr = TsStringUtils.MakeString(name, wsHandle)
-        new_check.Name.set_String(wsHandle, mkstr)
+            # Add to check list (must be done before setting properties)
+            check_list.PossibilitiesOS.Add(new_check)
 
-        # Set description if provided
-        if description:
-            desc_str = TsStringUtils.MakeString(description, wsHandle)
-            new_check.Description.set_String(wsHandle, desc_str)
+            # Set name
+            mkstr = TsStringUtils.MakeString(name, wsHandle)
+            new_check.Name.set_String(wsHandle, mkstr)
 
-        # Initialize as disabled by default
-        self._check_enabled[new_check.Guid] = False
+            # Set description if provided
+            if description:
+                desc_str = TsStringUtils.MakeString(description, wsHandle)
+                new_check.Description.set_String(wsHandle, desc_str)
 
-        return new_check
+            # Initialize as disabled by default
+            self._check_enabled[new_check.Guid] = False
+
+            return new_check
 
     @OperationsMethod
     def DeleteCheckType(self, check_or_hvo):
@@ -1378,38 +1380,40 @@ class CheckOperations(BaseOperations):
 
         # Create new check using factory (auto-generates new GUID)
         factory = self.project.project.ServiceLocator.GetService(ICmPossibilityFactory)
-        duplicate = factory.Create()
 
-        # ADD TO PARENT FIRST
-        if insert_after:
-            # Insert after source
-            if hasattr(parent, "PossibilitiesOS"):
-                source_index = parent.PossibilitiesOS.IndexOf(check_obj)
-                parent.PossibilitiesOS.Insert(source_index + 1, duplicate)
-            elif hasattr(parent, "SubPossibilitiesOS"):
-                source_index = parent.SubPossibilitiesOS.IndexOf(check_obj)
-                parent.SubPossibilitiesOS.Insert(source_index + 1, duplicate)
-        else:
-            # Insert at end
-            if hasattr(parent, "PossibilitiesOS"):
-                parent.PossibilitiesOS.Add(duplicate)
-            elif hasattr(parent, "SubPossibilitiesOS"):
-                parent.SubPossibilitiesOS.Add(duplicate)
+        with self._TransactionCM("Duplicate check type"):
+            duplicate = factory.Create()
 
-        # Copy MultiString properties (AFTER adding to parent)
-        duplicate.Name.CopyAlternatives(check_obj.Name)
-        if hasattr(check_obj, "Description") and check_obj.Description:
-            duplicate.Description.CopyAlternatives(check_obj.Description)
+            # ADD TO PARENT FIRST
+            if insert_after:
+                # Insert after source
+                if hasattr(parent, "PossibilitiesOS"):
+                    source_index = parent.PossibilitiesOS.IndexOf(check_obj)
+                    parent.PossibilitiesOS.Insert(source_index + 1, duplicate)
+                elif hasattr(parent, "SubPossibilitiesOS"):
+                    source_index = parent.SubPossibilitiesOS.IndexOf(check_obj)
+                    parent.SubPossibilitiesOS.Insert(source_index + 1, duplicate)
+            else:
+                # Insert at end
+                if hasattr(parent, "PossibilitiesOS"):
+                    parent.PossibilitiesOS.Add(duplicate)
+                elif hasattr(parent, "SubPossibilitiesOS"):
+                    parent.SubPossibilitiesOS.Add(duplicate)
 
-        # Note: Check state and results are not copied
-        # The duplicate starts as disabled with no results
+            # Copy MultiString properties (AFTER adding to parent)
+            duplicate.Name.CopyAlternatives(check_obj.Name)
+            if hasattr(check_obj, "Description") and check_obj.Description:
+                duplicate.Description.CopyAlternatives(check_obj.Description)
 
-        # Deep copy: duplicate sub-checks into the NEW duplicate
-        if deep and hasattr(check_obj, "SubPossibilitiesOS") and check_obj.SubPossibilitiesOS.Count > 0:
-            for sub in check_obj.SubPossibilitiesOS:
-                self._DuplicateSubCheckInto(sub, duplicate, deep=True)
+            # Note: Check state and results are not copied
+            # The duplicate starts as disabled with no results
 
-        return duplicate
+            # Deep copy: duplicate sub-checks into the NEW duplicate
+            if deep and hasattr(check_obj, "SubPossibilitiesOS") and check_obj.SubPossibilitiesOS.Count > 0:
+                for sub in check_obj.SubPossibilitiesOS:
+                    self._DuplicateSubCheckInto(sub, duplicate, deep=True)
+
+            return duplicate
 
     def _DuplicateSubCheckInto(self, source_check, parent_dup, deep=True):
         """Duplicate a sub-check into the specified parent's SubPossibilitiesOS."""

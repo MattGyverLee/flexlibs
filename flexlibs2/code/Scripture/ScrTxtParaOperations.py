@@ -128,34 +128,35 @@ class ScrTxtParaOperations(BaseOperations):
         # Resolve to section object
         section = self.__ResolveSection(section_or_hvo)
 
-        # Ensure section has content StText
-        if not section.ContentOA:
-            from SIL.LCModel import IStTextFactory
+        with self._TransactionCM("Create paragraph"):
+            # Ensure section has content StText
+            if not section.ContentOA:
+                from SIL.LCModel import IStTextFactory
 
-            text_factory = self.project.project.ServiceLocator.GetService(IStTextFactory)
-            section.ContentOA = text_factory.Create()
+                text_factory = self.project.project.ServiceLocator.GetService(IStTextFactory)
+                section.ContentOA = text_factory.Create()
 
-        # Find the style
-        style = self.__FindStyle(style_name)
-        if not style:
-            raise FP_ParameterError(f"Paragraph style '{style_name}' not found")
+            # Find the style
+            style = self.__FindStyle(style_name)
+            if not style:
+                raise FP_ParameterError(f"Paragraph style '{style_name}' not found")
 
-        # Create the new paragraph using the factory
-        factory = self.project.project.ServiceLocator.GetService(IScrTxtParaFactory)
-        new_para = factory.Create()
+            # Create the new paragraph using the factory
+            factory = self.project.project.ServiceLocator.GetService(IScrTxtParaFactory)
+            new_para = factory.Create()
 
-        # Add to section content (must be done before setting properties)
-        section.ContentOA.ParagraphsOS.Add(new_para)
+            # Add to section content (must be done before setting properties)
+            section.ContentOA.ParagraphsOS.Add(new_para)
 
-        # Set the text (Contents is ITsString, assign directly)
-        wsHandle = self.project.project.DefaultVernWs
-        mkstr = TsStringUtils.MakeString(text, wsHandle)
-        new_para.Contents = mkstr
+            # Set the text (Contents is ITsString, assign directly)
+            wsHandle = self.project.project.DefaultVernWs
+            mkstr = TsStringUtils.MakeString(text, wsHandle)
+            new_para.Contents = mkstr
 
-        # Set the style
-        new_para.StyleRules = style
+            # Set the style
+            new_para.StyleRules = style
 
-        return new_para
+            return new_para
 
     @OperationsMethod
     def Delete(self, para_or_hvo):

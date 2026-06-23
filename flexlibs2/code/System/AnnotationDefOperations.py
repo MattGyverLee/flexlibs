@@ -200,32 +200,33 @@ class AnnotationDefOperations(BaseOperations):
 
         wsHandle = self.__WSHandle(wsHandle)
 
-        # Get the factory
-        factory = self.project.project.ServiceLocator.GetService(ICmAnnotationDefnFactory)
+        with self._TransactionCM(f"Create annotation definition '{name}'"):
+            # Get the factory
+            factory = self.project.project.ServiceLocator.GetService(ICmAnnotationDefnFactory)
 
-        # Create the annotation definition
-        anno_def = factory.Create()
+            # Create the annotation definition
+            anno_def = factory.Create()
 
-        # Add to the annotation definitions list (must be done before setting properties)
-        anno_list = self.project.lp.AnnotationDefsOA
-        if anno_list:
-            if parent:
-                # Add as sub-possibility under parent
-                if hasattr(parent, "SubPossibilitiesOS"):
-                    parent.SubPossibilitiesOS.Add(anno_def)
-            else:
-                # Add as top-level possibility
-                anno_list.PossibilitiesOS.Add(anno_def)
+            # Add to the annotation definitions list (must be done before setting properties)
+            anno_list = self.project.lp.AnnotationDefsOA
+            if anno_list:
+                if parent:
+                    # Add as sub-possibility under parent
+                    if hasattr(parent, "SubPossibilitiesOS"):
+                        parent.SubPossibilitiesOS.Add(anno_def)
+                else:
+                    # Add as top-level possibility
+                    anno_list.PossibilitiesOS.Add(anno_def)
 
-        # Set the name
-        mkstr = TsStringUtils.MakeString(name, wsHandle)
-        anno_def.Name.set_String(wsHandle, mkstr)
+            # Set the name
+            mkstr = TsStringUtils.MakeString(name, wsHandle)
+            anno_def.Name.set_String(wsHandle, mkstr)
 
-        # Set the annotation type
-        if hasattr(anno_def, "AnnotationType"):
-            anno_def.AnnotationType = int(annotation_type)
+            # Set the annotation type
+            if hasattr(anno_def, "AnnotationType"):
+                anno_def.AnnotationType = int(annotation_type)
 
-        return anno_def
+            return anno_def
 
     @OperationsMethod
     def Delete(self, anno_def):
@@ -266,18 +267,19 @@ class AnnotationDefOperations(BaseOperations):
 
         self._ValidateParam(anno_def, "anno_def")
 
-        # Remove from parent's collection
-        owner = anno_def.Owner
-        if hasattr(owner, "PossibilitiesOS"):
-            if anno_def in owner.PossibilitiesOS:
-                owner.PossibilitiesOS.Remove(anno_def)
-        elif hasattr(owner, "SubPossibilitiesOS"):
-            if anno_def in owner.SubPossibilitiesOS:
-                owner.SubPossibilitiesOS.Remove(anno_def)
+        with self._TransactionCM("Delete annotation definition"):
+            # Remove from parent's collection
+            owner = anno_def.Owner
+            if hasattr(owner, "PossibilitiesOS"):
+                if anno_def in owner.PossibilitiesOS:
+                    owner.PossibilitiesOS.Remove(anno_def)
+            elif hasattr(owner, "SubPossibilitiesOS"):
+                if anno_def in owner.SubPossibilitiesOS:
+                    owner.SubPossibilitiesOS.Remove(anno_def)
 
-        # Delete the object
-        if hasattr(anno_def, "Delete"):
-            anno_def.Delete()
+            # Delete the object
+            if hasattr(anno_def, "Delete"):
+                anno_def.Delete()
 
     @OperationsMethod
     def Find(self, name, wsHandle=None):
@@ -1109,49 +1111,50 @@ class AnnotationDefOperations(BaseOperations):
         else:
             parent = ICmAnnotationDefn(raw_parent)
 
-        # Create new annotation definition using factory (auto-generates new GUID)
-        factory = self.project.project.ServiceLocator.GetService(ICmAnnotationDefnFactory)
-        duplicate = factory.Create()
+        with self._TransactionCM("Duplicate annotation definition"):
+            # Create new annotation definition using factory (auto-generates new GUID)
+            factory = self.project.project.ServiceLocator.GetService(ICmAnnotationDefnFactory)
+            duplicate = factory.Create()
 
-        # ADD TO PARENT FIRST
-        if insert_after:
-            # Insert after source
-            if hasattr(parent, "PossibilitiesOS"):
-                source_index = parent.PossibilitiesOS.IndexOf(source)
-                parent.PossibilitiesOS.Insert(source_index + 1, duplicate)
-            elif hasattr(parent, "SubPossibilitiesOS"):
-                source_index = parent.SubPossibilitiesOS.IndexOf(source)
-                parent.SubPossibilitiesOS.Insert(source_index + 1, duplicate)
-        else:
-            # Insert at end
-            if hasattr(parent, "PossibilitiesOS"):
-                parent.PossibilitiesOS.Add(duplicate)
-            elif hasattr(parent, "SubPossibilitiesOS"):
-                parent.SubPossibilitiesOS.Add(duplicate)
+            # ADD TO PARENT FIRST
+            if insert_after:
+                # Insert after source
+                if hasattr(parent, "PossibilitiesOS"):
+                    source_index = parent.PossibilitiesOS.IndexOf(source)
+                    parent.PossibilitiesOS.Insert(source_index + 1, duplicate)
+                elif hasattr(parent, "SubPossibilitiesOS"):
+                    source_index = parent.SubPossibilitiesOS.IndexOf(source)
+                    parent.SubPossibilitiesOS.Insert(source_index + 1, duplicate)
+            else:
+                # Insert at end
+                if hasattr(parent, "PossibilitiesOS"):
+                    parent.PossibilitiesOS.Add(duplicate)
+                elif hasattr(parent, "SubPossibilitiesOS"):
+                    parent.SubPossibilitiesOS.Add(duplicate)
 
-        # Copy MultiString properties (AFTER adding to parent)
-        duplicate.Name.CopyAlternatives(source.Name)
-        if hasattr(source, "HelpString") and source.HelpString:
-            duplicate.HelpString.CopyAlternatives(source.HelpString)
-        if hasattr(source, "Prompt") and source.Prompt:
-            duplicate.Prompt.CopyAlternatives(source.Prompt)
+            # Copy MultiString properties (AFTER adding to parent)
+            duplicate.Name.CopyAlternatives(source.Name)
+            if hasattr(source, "HelpString") and source.HelpString:
+                duplicate.HelpString.CopyAlternatives(source.HelpString)
+            if hasattr(source, "Prompt") and source.Prompt:
+                duplicate.Prompt.CopyAlternatives(source.Prompt)
 
-        # Copy simple properties
-        if hasattr(source, "AnnotationType"):
-            duplicate.AnnotationType = source.AnnotationType
-        if hasattr(source, "InstanceOf"):
-            duplicate.InstanceOf = source.InstanceOf
-        if hasattr(source, "UserCanCreate"):
-            duplicate.UserCanCreate = source.UserCanCreate
-        if hasattr(source, "AllowsMultiple"):
-            duplicate.AllowsMultiple = source.AllowsMultiple
+            # Copy simple properties
+            if hasattr(source, "AnnotationType"):
+                duplicate.AnnotationType = source.AnnotationType
+            if hasattr(source, "InstanceOf"):
+                duplicate.InstanceOf = source.InstanceOf
+            if hasattr(source, "UserCanCreate"):
+                duplicate.UserCanCreate = source.UserCanCreate
+            if hasattr(source, "AllowsMultiple"):
+                duplicate.AllowsMultiple = source.AllowsMultiple
 
-        # Deep copy: duplicate sub-possibilities into the NEW duplicate
-        if deep and hasattr(source, "SubPossibilitiesOS") and source.SubPossibilitiesOS.Count > 0:
-            for sub in source.SubPossibilitiesOS:
-                self._DuplicateSubDefInto(sub, duplicate, deep=True)
+            # Deep copy: duplicate sub-possibilities into the NEW duplicate
+            if deep and hasattr(source, "SubPossibilitiesOS") and source.SubPossibilitiesOS.Count > 0:
+                for sub in source.SubPossibilitiesOS:
+                    self._DuplicateSubDefInto(sub, duplicate, deep=True)
 
-        return duplicate
+            return duplicate
 
     def _DuplicateSubDefInto(self, source_def, parent_dup, deep=True):
         """Duplicate an annotation sub-definition into the specified parent."""

@@ -413,24 +413,25 @@ class VariantOperations(BaseOperations):
         # LexEntryRef.VariantEntryTypesRS returns null until the ref is
         # owned, so accessing it before EntryRefsOS.Add raises a
         # System.NullReferenceException from native LCM (#165).
-        factory = self.project.project.ServiceLocator.GetService(ILexEntryRefFactory)
-        entry_ref = factory.Create()
-        entry.EntryRefsOS.Add(entry_ref)
+        with self._TransactionCM("Create variant"):
+            factory = self.project.project.ServiceLocator.GetService(ILexEntryRefFactory)
+            entry_ref = factory.Create()
+            entry.EntryRefsOS.Add(entry_ref)
 
-        # Set as variant type (RefType = 0) and add the variant type
-        entry_ref.RefType = 0
-        entry_ref.VariantEntryTypesRS.Add(variant_type)
+            # Set as variant type (RefType = 0) and add the variant type
+            entry_ref.RefType = 0
+            entry_ref.VariantEntryTypesRS.Add(variant_type)
 
-        # The variant form itself is typically the entry's lexeme form.
-        # We don't set a separate form on the ILexEntryRef; instead make
-        # sure the entry's lexeme form matches the requested variant_form.
-        if entry.LexemeFormOA:
-            current_form = ITsString(entry.LexemeFormOA.Form.get_String(wsHandle)).Text
-            if not current_form or current_form != variant_form:
-                mkstr = TsStringUtils.MakeString(variant_form, wsHandle)
-                entry.LexemeFormOA.Form.set_String(wsHandle, mkstr)
+            # The variant form itself is typically the entry's lexeme form.
+            # We don't set a separate form on the ILexEntryRef; instead make
+            # sure the entry's lexeme form matches the requested variant_form.
+            if entry.LexemeFormOA:
+                current_form = ITsString(entry.LexemeFormOA.Form.get_String(wsHandle)).Text
+                if not current_form or current_form != variant_form:
+                    mkstr = TsStringUtils.MakeString(variant_form, wsHandle)
+                    entry.LexemeFormOA.Form.set_String(wsHandle, mkstr)
 
-        return entry_ref
+            return entry_ref
 
     @OperationsMethod
     def Delete(self, variant_or_hvo):
@@ -537,47 +538,48 @@ class VariantOperations(BaseOperations):
             raise FP_ParameterError("Variant ref has no owning entry")
 
         # Create new variant reference using factory (auto-generates new GUID)
-        factory = self.project.project.ServiceLocator.GetService(ILexEntryRefFactory)
-        duplicate = factory.Create()
+        with self._TransactionCM("Duplicate variant"):
+            factory = self.project.project.ServiceLocator.GetService(ILexEntryRefFactory)
+            duplicate = factory.Create()
 
-        # Determine insertion position
-        if insert_after:
-            # Insert after source variant
-            source_index = parent.EntryRefsOS.IndexOf(source)
-            parent.EntryRefsOS.Insert(source_index + 1, duplicate)
-        else:
-            # Insert at end
-            parent.EntryRefsOS.Add(duplicate)
+            # Determine insertion position
+            if insert_after:
+                # Insert after source variant
+                source_index = parent.EntryRefsOS.IndexOf(source)
+                parent.EntryRefsOS.Insert(source_index + 1, duplicate)
+            else:
+                # Insert at end
+                parent.EntryRefsOS.Add(duplicate)
 
-        # Copy simple properties
-        duplicate.RefType = source.RefType
+            # Copy simple properties
+            duplicate.RefType = source.RefType
 
-        if hasattr(source, "HideMinorEntry"):
-            duplicate.HideMinorEntry = source.HideMinorEntry
+            if hasattr(source, "HideMinorEntry"):
+                duplicate.HideMinorEntry = source.HideMinorEntry
 
-        if hasattr(source, "ShowComplexFormsIn"):
-            duplicate.ShowComplexFormsIn = source.ShowComplexFormsIn
+            if hasattr(source, "ShowComplexFormsIn"):
+                duplicate.ShowComplexFormsIn = source.ShowComplexFormsIn
 
-        # Copy Reference Sequence (RS) properties
-        # Copy variant entry types
-        for vtype in source.VariantEntryTypesRS:
-            duplicate.VariantEntryTypesRS.Add(vtype)
+            # Copy Reference Sequence (RS) properties
+            # Copy variant entry types
+            for vtype in source.VariantEntryTypesRS:
+                duplicate.VariantEntryTypesRS.Add(vtype)
 
-        # Copy component lexemes (for irregularly inflected forms)
-        for component in source.ComponentLexemesRS:
-            duplicate.ComponentLexemesRS.Add(component)
+            # Copy component lexemes (for irregularly inflected forms)
+            for component in source.ComponentLexemesRS:
+                duplicate.ComponentLexemesRS.Add(component)
 
-        # Copy complex entry types (if applicable)
-        if hasattr(source, "ComplexEntryTypesRS"):
-            for ctype in source.ComplexEntryTypesRS:
-                duplicate.ComplexEntryTypesRS.Add(ctype)
+            # Copy complex entry types (if applicable)
+            if hasattr(source, "ComplexEntryTypesRS"):
+                for ctype in source.ComplexEntryTypesRS:
+                    duplicate.ComplexEntryTypesRS.Add(ctype)
 
-        # Copy primary lexemes (if applicable)
-        if hasattr(source, "PrimaryLexemesRS"):
-            for plex in source.PrimaryLexemesRS:
-                duplicate.PrimaryLexemesRS.Add(plex)
+            # Copy primary lexemes (if applicable)
+            if hasattr(source, "PrimaryLexemesRS"):
+                for plex in source.PrimaryLexemesRS:
+                    duplicate.PrimaryLexemesRS.Add(plex)
 
-        return duplicate
+            return duplicate
 
     # ========== SYNC INTEGRATION METHODS ==========
 
@@ -828,11 +830,12 @@ class VariantOperations(BaseOperations):
 
         variant = self.__GetVariantObject(variant_or_hvo)
 
-        # Clear existing types
-        variant.VariantEntryTypesRS.Clear()
+        with self._TransactionCM("Set variant type"):
+            # Clear existing types
+            variant.VariantEntryTypesRS.Clear()
 
-        # Add the new type
-        variant.VariantEntryTypesRS.Add(variant_type)
+            # Add the new type
+            variant.VariantEntryTypesRS.Add(variant_type)
 
     # --- Component Management (for irregularly inflected forms) ---
 

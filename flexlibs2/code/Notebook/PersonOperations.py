@@ -167,17 +167,18 @@ class PersonOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the new person using the factory
-        factory = self.project.project.ServiceLocator.GetService(ICmPersonFactory)
-        new_person = factory.Create()
+        with self._TransactionCM(f"Create person '{name}'"):
+            factory = self.project.project.ServiceLocator.GetService(ICmPersonFactory)
+            new_person = factory.Create()
 
-        # Add person to the language project's people collection (must be done before setting properties)
-        self.project.lp.PeopleOA.PossibilitiesOS.Add(new_person)
+            # Add person to the language project's people collection (must be done before setting properties)
+            self.project.lp.PeopleOA.PossibilitiesOS.Add(new_person)
 
-        # Set the name
-        mkstr = TsStringUtils.MakeString(name, wsHandle)
-        new_person.Name.set_String(wsHandle, mkstr)
+            # Set the name
+            mkstr = TsStringUtils.MakeString(name, wsHandle)
+            new_person.Name.set_String(wsHandle, mkstr)
 
-        return new_person
+            return new_person
 
     @OperationsMethod
     def Delete(self, person_or_hvo):
@@ -1020,45 +1021,46 @@ class PersonOperations(BaseOperations):
         source = self.__ResolveObject(person_or_hvo)
 
         # Create new person using factory (auto-generates new GUID)
-        factory = self.project.project.ServiceLocator.GetService(ICmPersonFactory)
-        duplicate = factory.Create()
+        with self._TransactionCM("Duplicate person"):
+            factory = self.project.project.ServiceLocator.GetService(ICmPersonFactory)
+            duplicate = factory.Create()
 
-        # Determine insertion position and add to parent FIRST
-        if insert_after:
-            source_index = self.project.lp.PeopleOA.PossibilitiesOS.IndexOf(source)
-            self.project.lp.PeopleOA.PossibilitiesOS.Insert(source_index + 1, duplicate)
-        else:
-            self.project.lp.PeopleOA.PossibilitiesOS.Add(duplicate)
+            # Determine insertion position and add to parent FIRST
+            if insert_after:
+                source_index = self.project.lp.PeopleOA.PossibilitiesOS.IndexOf(source)
+                self.project.lp.PeopleOA.PossibilitiesOS.Insert(source_index + 1, duplicate)
+            else:
+                self.project.lp.PeopleOA.PossibilitiesOS.Add(duplicate)
 
-        # Copy simple MultiString properties
-        duplicate.Name.CopyAlternatives(source.Name)
-        duplicate.Gender.CopyAlternatives(source.Gender)
-        duplicate.Email.CopyAlternatives(source.Email)
-        duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)  # Address
-        duplicate.Description.CopyAlternatives(source.Description)  # Education
-        duplicate.Comment.CopyAlternatives(source.Comment)  # Notes
-        duplicate.PlaceOfBirth.CopyAlternatives(source.PlaceOfBirth)  # Phone
+            # Copy simple MultiString properties
+            duplicate.Name.CopyAlternatives(source.Name)
+            duplicate.Gender.CopyAlternatives(source.Gender)
+            duplicate.Email.CopyAlternatives(source.Email)
+            duplicate.Abbreviation.CopyAlternatives(source.Abbreviation)  # Address
+            duplicate.Description.CopyAlternatives(source.Description)  # Education
+            duplicate.Comment.CopyAlternatives(source.Comment)  # Notes
+            duplicate.PlaceOfBirth.CopyAlternatives(source.PlaceOfBirth)  # Phone
 
-        # Copy DateOfBirth (GenDate field)
-        if hasattr(source, "DateOfBirth") and source.DateOfBirth:
-            duplicate.DateOfBirth = source.DateOfBirth
+            # Copy DateOfBirth (GenDate field)
+            if hasattr(source, "DateOfBirth") and source.DateOfBirth:
+                duplicate.DateOfBirth = source.DateOfBirth
 
-        # Copy Reference Collection (RC) properties
-        if hasattr(source, "PositionsRC"):
-            for position in source.PositionsRC:
-                duplicate.PositionsRC.Add(position)
+            # Copy Reference Collection (RC) properties
+            if hasattr(source, "PositionsRC"):
+                for position in source.PositionsRC:
+                    duplicate.PositionsRC.Add(position)
 
-        if hasattr(source, "PlacesOfResidenceRC"):
-            for residence in source.PlacesOfResidenceRC:
-                duplicate.PlacesOfResidenceRC.Add(residence)
+            if hasattr(source, "PlacesOfResidenceRC"):
+                for residence in source.PlacesOfResidenceRC:
+                    duplicate.PlacesOfResidenceRC.Add(residence)
 
-        if hasattr(source, "LanguagesRC"):
-            for language in source.LanguagesRC:
-                duplicate.LanguagesRC.Add(language)
+            if hasattr(source, "LanguagesRC"):
+                for language in source.LanguagesRC:
+                    duplicate.LanguagesRC.Add(language)
 
-        # Note: deep parameter has no effect for persons (no owned objects)
+            # Note: deep parameter has no effect for persons (no owned objects)
 
-        return duplicate
+            return duplicate
 
     # ========== SYNC INTEGRATION METHODS ==========
 

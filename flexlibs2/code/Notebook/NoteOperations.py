@@ -181,25 +181,26 @@ class NoteOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the annotation using the factory
-        factory = self.project.project.ServiceLocator.GetService(ICmBaseAnnotationFactory)
-        note = factory.Create()
+        with self._TransactionCM("Create note"):
+            factory = self.project.project.ServiceLocator.GetService(ICmBaseAnnotationFactory)
+            note = factory.Create()
 
-        # Add to the annotations collection (must be done before setting properties)
-        if hasattr(owner_object, "AnnotationsOC"):
-            owner_object.AnnotationsOC.Add(note)
+            # Add to the annotations collection (must be done before setting properties)
+            if hasattr(owner_object, "AnnotationsOC"):
+                owner_object.AnnotationsOC.Add(note)
 
-        # Set the content
-        mkstr = TsStringUtils.MakeString(content, wsHandle)
-        note.Comment.set_String(wsHandle, mkstr)
+            # Set the content
+            mkstr = TsStringUtils.MakeString(content, wsHandle)
+            note.Comment.set_String(wsHandle, mkstr)
 
-        # Set the reference to the annotated object
-        if hasattr(note, "BeginObjectRA"):
-            note.BeginObjectRA = owner_object
+            # Set the reference to the annotated object
+            if hasattr(note, "BeginObjectRA"):
+                note.BeginObjectRA = owner_object
 
-        # Set creation date
-        note.DateCreated = DateTime.Now
+            # Set creation date
+            note.DateCreated = DateTime.Now
 
-        return note
+            return note
 
     @OperationsMethod
     def Delete(self, note):
@@ -241,16 +242,17 @@ class NoteOperations(BaseOperations):
         # to the concrete owner so the typed collection is reachable
         # (the previous hasattr check silently no-opped for notes owned
         # by IRnGenericRec or by a parent note).
-        owner = self._GetTypedOwner(note)
-        if owner is not None:
-            if hasattr(owner, "AnnotationsOC") and note in owner.AnnotationsOC:
-                owner.AnnotationsOC.Remove(note)
-            elif hasattr(owner, "RepliesOS") and note in owner.RepliesOS:
-                owner.RepliesOS.Remove(note)
+        with self._TransactionCM("Delete note"):
+            owner = self._GetTypedOwner(note)
+            if owner is not None:
+                if hasattr(owner, "AnnotationsOC") and note in owner.AnnotationsOC:
+                    owner.AnnotationsOC.Remove(note)
+                elif hasattr(owner, "RepliesOS") and note in owner.RepliesOS:
+                    owner.RepliesOS.Remove(note)
 
-        # Delete the note object
-        if hasattr(note, "Delete"):
-            note.Delete()
+            # Delete the note object
+            if hasattr(note, "Delete"):
+                note.Delete()
 
     @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True, deep=True):
@@ -312,50 +314,51 @@ class NoteOperations(BaseOperations):
             raise FP_ParameterError("Note has no owning record or parent note")
 
         # Create new note using factory (auto-generates new GUID)
-        factory = self.project.project.ServiceLocator.GetService(ICmBaseAnnotationFactory)
-        duplicate = factory.Create()
+        with self._TransactionCM("Duplicate note"):
+            factory = self.project.project.ServiceLocator.GetService(ICmBaseAnnotationFactory)
+            duplicate = factory.Create()
 
-        # Determine insertion position
-        # Notes can be in AnnotationsOC (when parent is owner object) or RepliesOS (when parent is another note)
-        if insert_after:
-            # Insert after source note
-            if hasattr(parent, "RepliesOS"):
-                source_index = parent.RepliesOS.IndexOf(source)
-                parent.RepliesOS.Insert(source_index + 1, duplicate)
-            elif hasattr(parent, "AnnotationsOC"):
-                # AnnotationsOC is unordered (OC); insert_after is a no-op, add at end
-                parent.AnnotationsOC.Add(duplicate)
-        else:
-            # Insert at end
-            if hasattr(parent, "RepliesOS"):
-                parent.RepliesOS.Add(duplicate)
-            elif hasattr(parent, "AnnotationsOC"):
-                parent.AnnotationsOC.Add(duplicate)
+            # Determine insertion position
+            # Notes can be in AnnotationsOC (when parent is owner object) or RepliesOS (when parent is another note)
+            if insert_after:
+                # Insert after source note
+                if hasattr(parent, "RepliesOS"):
+                    source_index = parent.RepliesOS.IndexOf(source)
+                    parent.RepliesOS.Insert(source_index + 1, duplicate)
+                elif hasattr(parent, "AnnotationsOC"):
+                    # AnnotationsOC is unordered (OC); insert_after is a no-op, add at end
+                    parent.AnnotationsOC.Add(duplicate)
+            else:
+                # Insert at end
+                if hasattr(parent, "RepliesOS"):
+                    parent.RepliesOS.Add(duplicate)
+                elif hasattr(parent, "AnnotationsOC"):
+                    parent.AnnotationsOC.Add(duplicate)
 
-        # Copy simple MultiString properties
-        duplicate.Comment.CopyAlternatives(source.Comment)
-        duplicate.Source.CopyAlternatives(source.Source)
+            # Copy simple MultiString properties
+            duplicate.Comment.CopyAlternatives(source.Comment)
+            duplicate.Source.CopyAlternatives(source.Source)
 
-        # Copy Reference Atomic (RA) properties
-        if hasattr(source, "AnnotationTypeRA"):
-            duplicate.AnnotationTypeRA = source.AnnotationTypeRA
-        if hasattr(source, "BeginObjectRA"):
-            duplicate.BeginObjectRA = source.BeginObjectRA
+            # Copy Reference Atomic (RA) properties
+            if hasattr(source, "AnnotationTypeRA"):
+                duplicate.AnnotationTypeRA = source.AnnotationTypeRA
+            if hasattr(source, "BeginObjectRA"):
+                duplicate.BeginObjectRA = source.BeginObjectRA
 
-        # Copy datetime properties
-        if hasattr(source, "DateCreated"):
-            duplicate.DateCreated = source.DateCreated
-        if hasattr(source, "DateModified"):
-            duplicate.DateModified = source.DateModified
+            # Copy datetime properties
+            if hasattr(source, "DateCreated"):
+                duplicate.DateCreated = source.DateCreated
+            if hasattr(source, "DateModified"):
+                duplicate.DateModified = source.DateModified
 
-        # Handle owned objects if deep=True
-        if deep:
-            # Duplicate replies into the NEW duplicate (not the original's parent)
-            if hasattr(source, "RepliesOS"):
-                for reply in source.RepliesOS:
-                    self._DuplicateReplyInto(reply, duplicate, deep=True)
+            # Handle owned objects if deep=True
+            if deep:
+                # Duplicate replies into the NEW duplicate (not the original's parent)
+                if hasattr(source, "RepliesOS"):
+                    for reply in source.RepliesOS:
+                        self._DuplicateReplyInto(reply, duplicate, deep=True)
 
-        return duplicate
+            return duplicate
 
     def _DuplicateReplyInto(self, source_reply, parent_note, deep=True):
         """Duplicate a reply note into the specified parent note's RepliesOS."""
@@ -550,12 +553,13 @@ class NoteOperations(BaseOperations):
 
         wsHandle = self.__WSHandle(wsHandle)
 
-        if hasattr(note, "Comment"):
-            mkstr = TsStringUtils.MakeString(text, wsHandle)
-            note.Comment.set_String(wsHandle, mkstr)
+        with self._TransactionCM("Set note content"):
+            if hasattr(note, "Comment"):
+                mkstr = TsStringUtils.MakeString(text, wsHandle)
+                note.Comment.set_String(wsHandle, mkstr)
 
-            # Update modification date
-            note.DateModified = DateTime.Now
+                # Update modification date
+                note.DateModified = DateTime.Now
 
     # --- Note Type Operations ---
 
@@ -913,21 +917,22 @@ class NoteOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the reply annotation using the factory
-        factory = self.project.project.ServiceLocator.GetService(ICmBaseAnnotationFactory)
-        reply = factory.Create()
+        with self._TransactionCM("Add reply"):
+            factory = self.project.project.ServiceLocator.GetService(ICmBaseAnnotationFactory)
+            reply = factory.Create()
 
-        # Add as reply to parent note (must be done before setting properties)
-        if hasattr(parent_note, "RepliesOS"):
-            parent_note.RepliesOS.Add(reply)
+            # Add as reply to parent note (must be done before setting properties)
+            if hasattr(parent_note, "RepliesOS"):
+                parent_note.RepliesOS.Add(reply)
 
-        # Set the content
-        mkstr = TsStringUtils.MakeString(content, wsHandle)
-        reply.Comment.set_String(wsHandle, mkstr)
+            # Set the content
+            mkstr = TsStringUtils.MakeString(content, wsHandle)
+            reply.Comment.set_String(wsHandle, mkstr)
 
-        # Set creation date
-        reply.DateCreated = DateTime.Now
+            # Set creation date
+            reply.DateCreated = DateTime.Now
 
-        return reply
+            return reply
 
     # --- Utility Operations ---
 

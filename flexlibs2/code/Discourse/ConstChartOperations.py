@@ -160,23 +160,24 @@ class ConstChartOperations(BaseOperations):
         # Get or create the DsDiscourse container
         discourse = self.__GetOrCreateDiscourse()
 
-        # Create the new chart using the factory
-        factory = self.project.project.ServiceLocator.GetService(IDsConstChartFactory)
-        new_chart = factory.Create()
+        with self._TransactionCM(f"Create chart '{name}'"):
+            # Create the new chart using the factory
+            factory = self.project.project.ServiceLocator.GetService(IDsConstChartFactory)
+            new_chart = factory.Create()
 
-        # Add to discourse charts collection
-        discourse.ChartsOC.Add(new_chart)
+            # Add to discourse charts collection
+            discourse.ChartsOC.Add(new_chart)
 
-        # Set the name
-        wsHandle = self.__WSHandleAnalysis()
-        mkstr = TsStringUtils.MakeString(name, wsHandle)
-        new_chart.Name.set_String(wsHandle, mkstr)
+            # Set the name
+            wsHandle = self.__WSHandleAnalysis()
+            mkstr = TsStringUtils.MakeString(name, wsHandle)
+            new_chart.Name.set_String(wsHandle, mkstr)
 
-        # Set template if provided
-        if template:
-            new_chart.TemplateRA = template
+            # Set template if provided
+            if template:
+                new_chart.TemplateRA = template
 
-        return new_chart
+            return new_chart
 
     @OperationsMethod
     def Delete(self, chart_or_hvo):

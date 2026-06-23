@@ -295,23 +295,25 @@ class AllomorphOperations(BaseOperations):
             factory = self.project.project.ServiceLocator.GetService(IMoStemAllomorphFactory)
         else:
             factory = self.project.project.ServiceLocator.GetService(IMoAffixAllomorphFactory)
-        allomorph = factory.Create()
 
-        # Add to entry (must be done before setting properties)
-        # If no lexeme form, set as lexeme, else add as alternate
-        if not entry.LexemeFormOA:
-            entry.LexemeFormOA = allomorph
-        else:
-            entry.AlternateFormsOS.Add(allomorph)
+        with self._TransactionCM(f"Create allomorph '{form}'"):
+            allomorph = factory.Create()
 
-        # Set form
-        mkstr = TsStringUtils.MakeString(form, wsHandle)
-        allomorph.Form.set_String(wsHandle, mkstr)
+            # Add to entry (must be done before setting properties)
+            # If no lexeme form, set as lexeme, else add as alternate
+            if not entry.LexemeFormOA:
+                entry.LexemeFormOA = allomorph
+            else:
+                entry.AlternateFormsOS.Add(allomorph)
 
-        # Set morph type
-        allomorph.MorphTypeRA = morphType
+            # Set form
+            mkstr = TsStringUtils.MakeString(form, wsHandle)
+            allomorph.Form.set_String(wsHandle, mkstr)
 
-        return allomorph
+            # Set morph type
+            allomorph.MorphTypeRA = morphType
+
+            return allomorph
 
     @OperationsMethod
     def Delete(self, allomorph_or_hvo):
@@ -361,19 +363,20 @@ class AllomorphOperations(BaseOperations):
             raise FP_ParameterError("Allomorph has no owning entry")
 
         # Check if this is the lexeme form or an alternate
-        if hasattr(owner, "LexemeFormOA") and owner.LexemeFormOA == allomorph:
-            # Deleting the lexeme form
-            # If there are alternates, promote the first one to lexeme
-            if owner.AlternateFormsOS.Count > 0:
-                new_lexeme = owner.AlternateFormsOS[0]
-                owner.AlternateFormsOS.RemoveAt(0)
-                owner.LexemeFormOA = new_lexeme
-            else:
-                # No alternates, just clear the lexeme form
-                owner.LexemeFormOA = None
-        elif hasattr(owner, "AlternateFormsOS"):
-            # Deleting an alternate form
-            owner.AlternateFormsOS.Remove(allomorph)
+        with self._TransactionCM("Delete allomorph"):
+            if hasattr(owner, "LexemeFormOA") and owner.LexemeFormOA == allomorph:
+                # Deleting the lexeme form
+                # If there are alternates, promote the first one to lexeme
+                if owner.AlternateFormsOS.Count > 0:
+                    new_lexeme = owner.AlternateFormsOS[0]
+                    owner.AlternateFormsOS.RemoveAt(0)
+                    owner.LexemeFormOA = new_lexeme
+                else:
+                    # No alternates, just clear the lexeme form
+                    owner.LexemeFormOA = None
+            elif hasattr(owner, "AlternateFormsOS"):
+                # Deleting an alternate form
+                owner.AlternateFormsOS.Remove(allomorph)
 
     @OperationsMethod
     def Duplicate(self, item_or_hvo, insert_after=True):
@@ -451,35 +454,36 @@ class AllomorphOperations(BaseOperations):
             )
 
         # Create new allomorph using factory (auto-generates new GUID)
-        duplicate = factory.Create()
+        with self._TransactionCM("Duplicate allomorph"):
+            duplicate = factory.Create()
 
-        # Determine insertion position
-        # Note: Allomorphs can be lexeme forms or alternate forms
-        if hasattr(parent, "LexemeFormOA") and parent.LexemeFormOA == source:
-            # Source is lexeme form - add duplicate as alternate form
-            if insert_after:
-                parent.AlternateFormsOS.Insert(0, duplicate)
-            else:
-                parent.AlternateFormsOS.Add(duplicate)
-        elif hasattr(parent, "AlternateFormsOS"):
-            # Source is alternate form
-            if insert_after:
-                source_index = parent.AlternateFormsOS.IndexOf(source)
-                parent.AlternateFormsOS.Insert(source_index + 1, duplicate)
-            else:
-                parent.AlternateFormsOS.Add(duplicate)
+            # Determine insertion position
+            # Note: Allomorphs can be lexeme forms or alternate forms
+            if hasattr(parent, "LexemeFormOA") and parent.LexemeFormOA == source:
+                # Source is lexeme form - add duplicate as alternate form
+                if insert_after:
+                    parent.AlternateFormsOS.Insert(0, duplicate)
+                else:
+                    parent.AlternateFormsOS.Add(duplicate)
+            elif hasattr(parent, "AlternateFormsOS"):
+                # Source is alternate form
+                if insert_after:
+                    source_index = parent.AlternateFormsOS.IndexOf(source)
+                    parent.AlternateFormsOS.Insert(source_index + 1, duplicate)
+                else:
+                    parent.AlternateFormsOS.Add(duplicate)
 
-        # Copy simple MultiString properties (AFTER adding to parent)
-        duplicate.Form.CopyAlternatives(source.Form)
+            # Copy simple MultiString properties (AFTER adding to parent)
+            duplicate.Form.CopyAlternatives(source.Form)
 
-        # Copy Reference Atomic (RA) properties
-        duplicate.MorphTypeRA = source.MorphTypeRA
+            # Copy Reference Atomic (RA) properties
+            duplicate.MorphTypeRA = source.MorphTypeRA
 
-        # Copy Reference Collection (RC) properties
-        for env in source.PhoneEnvRC:
-            duplicate.PhoneEnvRC.Add(env)
+            # Copy Reference Collection (RC) properties
+            for env in source.PhoneEnvRC:
+                duplicate.PhoneEnvRC.Add(env)
 
-        return duplicate
+            return duplicate
 
     # ========== SYNC INTEGRATION METHODS ==========
 
