@@ -240,13 +240,19 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
         # Create the new inflection class using the factory
         factory = self.project.project.ServiceLocator.GetService(IMoInflClassFactory)
 
+        # Pre-flight: ensure the morphological data container and production
+        # restrictions list exist before creating any object.
+        morph_data = self.project.lp.MorphologicalDataOA
+        if morph_data is None or morph_data.ProdRestrictOA is None:
+            raise FP_ParameterError(
+                "Project has no morphological data / production restrictions list defined"
+            )
+
         with self._TransactionCM(f"Create inflection class '{name}'"):
             new_ic = factory.Create()
 
             # Add to the inflection classes list (must be done before setting properties)
-            morph_data = self.project.lp.MorphologicalDataOA
-            if morph_data.ProdRestrictOA:
-                morph_data.ProdRestrictOA.PossibilitiesOS.Add(new_ic)
+            morph_data.ProdRestrictOA.PossibilitiesOS.Add(new_ic)
 
             # Set name
             mkstr_name = TsStringUtils.MakeString(name, wsHandle)

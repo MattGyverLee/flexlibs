@@ -206,14 +206,15 @@ class PhonologicalRuleOperations(BaseOperations):
         # Create the new phonological rule using the factory
         factory = self.project.project.ServiceLocator.GetService(IPhRegularRuleFactory)
 
+        # Pre-flight: ensure the phonological data container exists before creating any object.
+        phon_data = self.project.lp.PhonologicalDataOA
+        if not phon_data:
+            raise FP_ParameterError("Project has no phonological data defined")
+
         with self._TransactionCM(f"Create phonological rule {name!r}"):
             new_rule = factory.Create()
 
             # Add to the phonological rules collection (must be done before setting properties)
-            phon_data = self.project.lp.PhonologicalDataOA
-            if not phon_data:
-                raise FP_ParameterError("Project has no phonological data defined")
-
             phon_data.PhonRulesOS.Add(new_rule)
 
             # Set name
@@ -918,16 +919,23 @@ class PhonologicalRuleOperations(BaseOperations):
             raise FP_ParameterError(
                 "Rule has no RightHandSidesOS; not a structural rule type."
             )
+        # Pre-flight: if the rule has no RHS yet, verify the factory is available
+        # before opening the transaction (avoids an orphaned mid-clear state on
+        # mode="replace" when the factory is missing).
+        if rule.RightHandSidesOS.Count == 0:
+            rhs_factory = self.project.project.ServiceLocator.GetService(
+                IPhSegRuleRHSFactory
+            )
+            if rhs_factory is None:
+                raise FP_ParameterError(
+                    "IPhSegRuleRHSFactory service is unavailable; "
+                    "cannot create RHS for rule."
+                )
+        else:
+            rhs_factory = None  # existing RHS will be reused; factory not needed
+
         with self._TransactionCM("Wire phonological rule"):
             if rule.RightHandSidesOS.Count == 0:
-                rhs_factory = self.project.project.ServiceLocator.GetService(
-                    IPhSegRuleRHSFactory
-                )
-                if rhs_factory is None:
-                    raise FP_ParameterError(
-                        "IPhSegRuleRHSFactory service is unavailable; "
-                        "cannot create RHS for rule."
-                    )
                 rhs = rhs_factory.Create()
                 # Attach BEFORE further property writes (Phase 2 ownership rule).
                 rule.RightHandSidesOS.Add(rhs)

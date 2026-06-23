@@ -196,6 +196,8 @@ class ExampleOperations(BaseOperations):
         factory = self.project.project.ServiceLocator.GetService(ILexExampleSentenceFactory)
 
         with self._TransactionCM("Create example"):
+            # factory.Create() is the first mutation; kept inside the transaction
+            # so the object is owned atomically with its Add() and property writes.
             example = factory.Create()
 
             # Add to sense's examples collection (must be done before setting properties)

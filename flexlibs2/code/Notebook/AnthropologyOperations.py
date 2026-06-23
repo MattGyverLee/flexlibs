@@ -269,17 +269,19 @@ class AnthropologyOperations(BaseOperations, _LCMNativeCatalogImportMixin):
         if self.Exists(name):
             raise FP_ParameterError(f"Anthropology item '{name}' already exists")
 
-        # Ensure anthropology list exists
+        # Ensure anthropology list exists. List creation/assignment is project-state
+        # setup; resolve it before opening the per-item transaction so a missing
+        # list never leaves an orphaned ICmAnthroItem.
+        if self.project.lp.AnthroListOA is None:
+            from SIL.LCModel import ICmPossibilityListFactory
+
+            list_factory = self.project.project.ServiceLocator.GetService(ICmPossibilityListFactory)
+            anthro_list = list_factory.Create()
+            self.project.lp.AnthroListOA = anthro_list
+        else:
+            anthro_list = self.project.lp.AnthroListOA
+
         with self._TransactionCM('Create Anthropology Item'):
-            if self.project.lp.AnthroListOA is None:
-                from SIL.LCModel import ICmPossibilityListFactory
-
-                list_factory = self.project.project.ServiceLocator.GetService(ICmPossibilityListFactory)
-                anthro_list = list_factory.Create()
-                self.project.lp.AnthroListOA = anthro_list
-            else:
-                anthro_list = self.project.lp.AnthroListOA
-
             # Get the writing system handle
             wsHandle = self.project.project.DefaultAnalWs
 
