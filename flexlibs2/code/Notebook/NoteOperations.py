@@ -181,7 +181,7 @@ class NoteOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the annotation using the factory
-        with self._TransactionCM('Create Note'):
+        with self._TransactionCM("Create note"):
             factory = self.project.project.ServiceLocator.GetService(ICmBaseAnnotationFactory)
             note = factory.Create()
 
@@ -242,7 +242,7 @@ class NoteOperations(BaseOperations):
         # to the concrete owner so the typed collection is reachable
         # (the previous hasattr check silently no-opped for notes owned
         # by IRnGenericRec or by a parent note).
-        with self._TransactionCM('Delete Note'):
+        with self._TransactionCM("Delete note"):
             owner = self._GetTypedOwner(note)
             if owner is not None:
                 if hasattr(owner, "AnnotationsOC") and note in owner.AnnotationsOC:
@@ -314,7 +314,7 @@ class NoteOperations(BaseOperations):
             raise FP_ParameterError("Note has no owning record or parent note")
 
         # Create new note using factory (auto-generates new GUID)
-        with self._TransactionCM('Duplicate Note'):
+        with self._TransactionCM("Duplicate note"):
             factory = self.project.project.ServiceLocator.GetService(ICmBaseAnnotationFactory)
             duplicate = factory.Create()
 
@@ -553,7 +553,7 @@ class NoteOperations(BaseOperations):
 
         wsHandle = self.__WSHandle(wsHandle)
 
-        with self._TransactionCM('Set Note Content'):
+        with self._TransactionCM("Set note content"):
             if hasattr(note, "Comment"):
                 mkstr = TsStringUtils.MakeString(text, wsHandle)
                 note.Comment.set_String(wsHandle, mkstr)
@@ -917,7 +917,7 @@ class NoteOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the reply annotation using the factory
-        with self._TransactionCM('Add Reply'):
+        with self._TransactionCM("Add reply"):
             factory = self.project.project.ServiceLocator.GetService(ICmBaseAnnotationFactory)
             reply = factory.Create()
 

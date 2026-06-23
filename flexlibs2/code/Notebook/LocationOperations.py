@@ -184,7 +184,7 @@ class LocationOperations(BaseOperations):
             raise FP_ParameterError("Locations list not found in project")
 
         # Create the new location using the factory
-        with self._TransactionCM('Create Location'):
+        with self._TransactionCM(f"Create location '{name}'"):
             factory = self.project.project.ServiceLocator.GetService(ICmLocationFactory)
             new_location = factory.Create()
 
@@ -251,7 +251,7 @@ class LocationOperations(BaseOperations):
         # Get the parent or top-level list
         parent = self.GetRegion(location)
 
-        with self._TransactionCM('Delete Location'):
+        with self._TransactionCM("Delete location"):
             if parent:
                 # Remove from parent's sublocations
                 parent.SubPossibilitiesOS.Remove(location)
@@ -441,7 +441,7 @@ class LocationOperations(BaseOperations):
         location = self.__ResolveObject(location_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
 
-        with self._TransactionCM('Set Location Name'):
+        with self._TransactionCM(f"Set location name '{name}'"):
             mkstr = TsStringUtils.MakeString(name, wsHandle)
             location.Name.set_String(wsHandle, mkstr)
 
@@ -535,7 +535,7 @@ class LocationOperations(BaseOperations):
         location = self.__ResolveObject(location_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
 
-        with self._TransactionCM('Set Location Alias'):
+        with self._TransactionCM(f"Set location alias '{alias}'"):
             mkstr = TsStringUtils.MakeString(alias, wsHandle)
             location.Abbreviation.set_String(wsHandle, mkstr)
 
@@ -661,7 +661,7 @@ class LocationOperations(BaseOperations):
         location = self.__ResolveObject(location_or_hvo)
 
         # Create or update GenDate for coordinates
-        with self._TransactionCM('Set Location Coordinates'):
+        with self._TransactionCM("Set location coordinates"):
             if not hasattr(location, "DateOfEvent") or not location.DateOfEvent:
                 # Need to create GenDate - this may require factory
                 # For now, set directly if property exists
@@ -784,7 +784,7 @@ class LocationOperations(BaseOperations):
         location = self.__ResolveObject(location_or_hvo)
 
         # Set elevation if field exists
-        with self._TransactionCM('Set Location Elevation'):
+        with self._TransactionCM("Set location elevation"):
             if hasattr(location, "Elevation"):
                 location.Elevation = elev
             else:
@@ -881,7 +881,7 @@ class LocationOperations(BaseOperations):
         location = self.__ResolveObject(location_or_hvo)
         wsHandle = self.__WSHandle(wsHandle)
 
-        with self._TransactionCM('Set Location Description'):
+        with self._TransactionCM("Set location description"):
             if hasattr(location, "Description"):
                 mkstr = TsStringUtils.MakeString(description, wsHandle)
                 location.Description.set_String(wsHandle, mkstr)
@@ -1011,7 +1011,7 @@ class LocationOperations(BaseOperations):
         old_parent = self.GetRegion(location)
 
         # Remove from old parent
-        with self._TransactionCM('Set Location Region'):
+        with self._TransactionCM("Set location region"):
             if old_parent:
                 old_parent.SubPossibilitiesOS.Remove(location)
             else:

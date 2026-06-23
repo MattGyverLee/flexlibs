@@ -167,7 +167,7 @@ class PersonOperations(BaseOperations):
         wsHandle = self.__WSHandle(wsHandle)
 
         # Create the new person using the factory
-        with self._TransactionCM('Create Person'):
+        with self._TransactionCM(f"Create person '{name}'"):
             factory = self.project.project.ServiceLocator.GetService(ICmPersonFactory)
             new_person = factory.Create()
 
@@ -1021,7 +1021,7 @@ class PersonOperations(BaseOperations):
         source = self.__ResolveObject(person_or_hvo)
 
         # Create new person using factory (auto-generates new GUID)
-        with self._TransactionCM('Duplicate Person'):
+        with self._TransactionCM("Duplicate person"):
             factory = self.project.project.ServiceLocator.GetService(ICmPersonFactory)
             duplicate = factory.Create()
 

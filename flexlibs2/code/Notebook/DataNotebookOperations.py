@@ -302,7 +302,7 @@ class DataNotebookOperations(BaseOperations):
         factory = self.project.project.ServiceLocator.GetService(IRnGenericRecFactory)
 
         # Create the record in the RecordsOC collection
-        with self._TransactionCM('Create Notebook Record'):
+        with self._TransactionCM(f"Create notebook record '{title}'"):
 
             record = factory.Create()
             repos.RecordsOC.Add(record)
@@ -370,7 +370,7 @@ class DataNotebookOperations(BaseOperations):
         # Get the repository and remove the record
         repos = self.project.project.ServiceLocator.GetService(IRnResearchNbkRepository)
 
-        with self._TransactionCM('Delete Notebook Record'):
+        with self._TransactionCM("Delete notebook record"):
 
             # SubRecordsOS lives on IRnGenericRec (the parent record's concrete
             # interface), not on the base ICmObject that pythonnet returns from
@@ -581,9 +581,7 @@ class DataNotebookOperations(BaseOperations):
 
         mkstr = TsStringUtils.MakeString(title, wsHandle)
 
-        with self._TransactionCM('Set Notebook Record Title'):
-
-            record.Title.set_String(wsHandle, mkstr)
+        record.Title.set_String(wsHandle, mkstr)
 
     # --- Property Operations: Content ---
 
@@ -684,9 +682,7 @@ class DataNotebookOperations(BaseOperations):
 
         mkstr = TsStringUtils.MakeString(content, wsHandle)
 
-        with self._TransactionCM('Set Notebook Record Content'):
-
-            record.Text.set_String(wsHandle, mkstr)
+        record.Text.set_String(wsHandle, mkstr)
 
     # --- Record Type Operations ---
 
@@ -781,9 +777,7 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        with self._TransactionCM('Set Record Type'):
-
-            record.Type = record_type
+        record.Type = record_type
 
     @OperationsMethod
     def GetAllRecordTypes(self):
@@ -1052,9 +1046,7 @@ class DataNotebookOperations(BaseOperations):
             except (System.FormatException, ValueError, TypeError) as e:
                 raise FP_ParameterError(f"Invalid date format: {date}. Use 'YYYY-MM-DD' or 'YYYY-MM-DD HH:MM:SS' - {e}")
 
-        with self._TransactionCM('Set Event Date'):
-
-            record.DateOfEvent = date
+        record.DateOfEvent = date
 
     # --- Hierarchy Operations ---
 
@@ -1179,7 +1171,7 @@ class DataNotebookOperations(BaseOperations):
         # Create the sub-record
         factory = self.project.project.ServiceLocator.GetService(IRnGenericRecFactory)
 
-        with self._TransactionCM('Create Sub-Record'):
+        with self._TransactionCM(f"Create sub-record '{title}'"):
 
             subrecord = factory.Create()
             parent.SubRecordsOS.Add(subrecord)
@@ -1347,11 +1339,9 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        with self._TransactionCM('Add Researcher'):
-
-            if hasattr(record, "Researchers"):
-                if person not in record.Researchers:
-                    record.Researchers.Add(person)
+        if hasattr(record, "Researchers"):
+            if person not in record.Researchers:
+                record.Researchers.Add(person)
 
     @OperationsMethod
     def RemoveResearcher(self, record_or_hvo, person):
@@ -1388,11 +1378,9 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        with self._TransactionCM('Remove Researcher'):
-
-            if hasattr(record, "Researchers"):
-                if person in record.Researchers:
-                    record.Researchers.Remove(person)
+        if hasattr(record, "Researchers"):
+            if person in record.Researchers:
+                record.Researchers.Remove(person)
 
     # --- Linking Operations: Participants ---
 
@@ -1486,11 +1474,9 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        with self._TransactionCM('Add Participant'):
-
-            if hasattr(record, "Participants"):
-                if person not in record.Participants:
-                    record.Participants.Add(person)
+        if hasattr(record, "Participants"):
+            if person not in record.Participants:
+                record.Participants.Add(person)
 
     @OperationsMethod
     def RemoveParticipant(self, record_or_hvo, person):
@@ -1527,11 +1513,9 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        with self._TransactionCM('Remove Participant'):
-
-            if hasattr(record, "Participants"):
-                if person in record.Participants:
-                    record.Participants.Remove(person)
+        if hasattr(record, "Participants"):
+            if person in record.Participants:
+                record.Participants.Remove(person)
 
     # --- Linking Operations: Locations ---
 
@@ -1632,11 +1616,9 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        with self._TransactionCM('Add Location'):
-
-            if hasattr(record, "LocationsRC"):
-                if location not in record.LocationsRC:
-                    record.LocationsRC.Add(location)
+        if hasattr(record, "LocationsRC"):
+            if location not in record.LocationsRC:
+                record.LocationsRC.Add(location)
 
     @OperationsMethod
     def RemoveLocation(self, record_or_hvo, location):
@@ -1673,11 +1655,9 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        with self._TransactionCM('Remove Location'):
-
-            if hasattr(record, "LocationsRC"):
-                if location in record.LocationsRC:
-                    record.LocationsRC.Remove(location)
+        if hasattr(record, "LocationsRC"):
+            if location in record.LocationsRC:
+                record.LocationsRC.Remove(location)
 
     # --- Linking Operations: Sources ---
 
@@ -1778,11 +1758,9 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        with self._TransactionCM('Add Source'):
-
-            if hasattr(record, "SourcesRC"):
-                if source not in record.SourcesRC:
-                    record.SourcesRC.Add(source)
+        if hasattr(record, "SourcesRC"):
+            if source not in record.SourcesRC:
+                record.SourcesRC.Add(source)
 
     @OperationsMethod
     def RemoveSource(self, record_or_hvo, source):
@@ -1819,11 +1797,9 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        with self._TransactionCM('Remove Source'):
-
-            if hasattr(record, "SourcesRC"):
-                if source in record.SourcesRC:
-                    record.SourcesRC.Remove(source)
+        if hasattr(record, "SourcesRC"):
+            if source in record.SourcesRC:
+                record.SourcesRC.Remove(source)
 
     # --- Text Linking Operations ---
 
@@ -1917,11 +1893,9 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        with self._TransactionCM('Link to Text'):
-
-            if hasattr(record, "TextsRC"):
-                if text not in record.TextsRC:
-                    record.TextsRC.Add(text)
+        if hasattr(record, "TextsRC"):
+            if text not in record.TextsRC:
+                record.TextsRC.Add(text)
 
     @OperationsMethod
     def UnlinkFromText(self, record_or_hvo, text):
@@ -1959,11 +1933,9 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        with self._TransactionCM('Unlink from Text'):
-
-            if hasattr(record, "TextsRC"):
-                if text in record.TextsRC:
-                    record.TextsRC.Remove(text)
+        if hasattr(record, "TextsRC"):
+            if text in record.TextsRC:
+                record.TextsRC.Remove(text)
 
     # --- Media File Operations ---
 
@@ -2059,11 +2031,9 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        with self._TransactionCM('Add Media File'):
-
-            if hasattr(record, "MediaFilesOS"):
-                if media_file not in record.MediaFilesOS:
-                    record.MediaFilesOS.Add(media_file)
+        if hasattr(record, "MediaFilesOS"):
+            if media_file not in record.MediaFilesOS:
+                record.MediaFilesOS.Add(media_file)
 
     @OperationsMethod
     def RemoveMediaFile(self, record_or_hvo, media_file):
@@ -2101,11 +2071,9 @@ class DataNotebookOperations(BaseOperations):
 
         record = self.__GetRecordObject(record_or_hvo)
 
-        with self._TransactionCM('Remove Media File'):
-
-            if hasattr(record, "MediaFilesOS"):
-                if media_file in record.MediaFilesOS:
-                    record.MediaFilesOS.Remove(media_file)
+        if hasattr(record, "MediaFilesOS"):
+            if media_file in record.MediaFilesOS:
+                record.MediaFilesOS.Remove(media_file)
 
     # --- Status Operations ---
 
@@ -2208,9 +2176,7 @@ class DataNotebookOperations(BaseOperations):
                 raise FP_ParameterError(f"Status not found: {status}")
             status = status_obj
 
-        with self._TransactionCM('Set Status'):
-
-            record.Status = status
+        record.Status = status
 
     @OperationsMethod
     def GetAllStatuses(self):
