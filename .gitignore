@@ -98,3 +98,4 @@ tests/fixtures/*.fwdata
 # committed human-readable view).
 tests/live_status.json
 .claude/worktrees/
+.claude/settings.local.json
