@@ -164,7 +164,7 @@ jobs:
         continue-on-error: true
         run: |
           # Run the full test suite
-          pytest flexlibs/tests/ -v --tb=short
+          pytest tests/ -v --tb=short
 
       - name: Record test results
         if: steps.check_tested.outputs.skip_tests != 'true'

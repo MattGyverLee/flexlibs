@@ -5,7 +5,7 @@
 #               FlexLibs 3.0 - Consolidated API with PossibilityItemOperations base class
 # ----------------------------------------------------------------------------
 
-version = "3.0.0"
+version = "4.0.0"
 
 # Define exported classes, etc. at the top level of the package
 

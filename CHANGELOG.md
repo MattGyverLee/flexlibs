@@ -11,6 +11,12 @@ Future breaking changes go under `[Unreleased]` until the next version cut.
 
 ## [Unreleased]
 
+_Nothing yet. Non-breaking fixes and breaking changes accumulate here until the next version cut._
+
+---
+
+## [4.0.0] - 2026-06-23
+
 ### Changed (Breaking)
 
 - **`flat=` parameter renamed to `recursive=` (inverted semantics) on every hierarchical-list `GetAll()` accessor.** Collection queries default to `recursive=True` (returns every descendant). Passing `flat=` raises `TypeError`. Affected modules:
@@ -71,8 +77,6 @@ Future breaking changes go under `[Unreleased]` until the next version cut.
 - Note: 5 entangled methods (Create, Duplicate, SplitSegment, MergeSegments,
   RebuildSegments) still manually mutate `SegmentsOS`; these require
   architectural rework tracked at #174. **#172 remains open.**
-
-This section will accumulate non-breaking fixes that ship before the next version cut.
 
 ---
 

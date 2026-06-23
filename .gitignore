@@ -59,7 +59,7 @@ coverage.xml
 *.pot
 
 # Sphinx documentation
-flexlibs/docs/flexlibsAPI/
+flexlibs2/docs/flexlibsAPI/
 
 # PyBuilder
 target/

@@ -33,12 +33,18 @@ FOR %%C IN ("Init"
 :DoClean
     rmdir /s /q ".\build"
     rmdir /s /q ".\dist"
-    rmdir /s /q ".\flexlibs\docs"
+    rmdir /s /q ".\flexlibs2\docs"
+    rmdir /s /q ".\flexlibs2.egg-info"
+    rmdir /s /q ".\flexlibs.egg-info"
+    rmdir /s /q ".\.pytest_cache"
+    del /q ".\pytest_output.txt" 2>nul
+    del /q ".\pytest_operations.txt" 2>nul
+    del /q ".\test_run_output.txt" 2>nul
     goto :End
     
 :DoBuild
     @REM Build the Sphinx docs
-    sphinx-build docs/sphinx flexlibs/docs/flexlibsAPI
+    sphinx-build docs/sphinx flexlibs2/docs/flexlibsAPI
 
     @REM Build the wheel with setuptools
     %PYTHON% -m build -w -nx
@@ -49,7 +55,7 @@ FOR %%C IN ("Init"
     
 :DoPublish
     echo Publishing wheel to PyPI
-    %PYTHON% -m twine upload .\dist\flexlibs*
+    %PYTHON% -m twine upload .\dist\flexlibs2*
     goto :End
 
 
