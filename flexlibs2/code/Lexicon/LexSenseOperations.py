@@ -3391,9 +3391,14 @@ class LexSenseOperations(BaseOperations):
         # OwnerOfClass takes an Int32 class ID, not a .NET Type -- passing
         # ILexEntry directly raised ArgumentException at runtime. (issue #26)
         result = []
-        owner_entry = ILexEntry(sense.OwnerOfClass(LexEntryTags.kClassId))
-        if not owner_entry:
+        _raw_owner = sense.OwnerOfClass(LexEntryTags.kClassId)
+        if _raw_owner is None:
             return result
+        try:
+            owner_entry = ILexEntry(_raw_owner)
+        except TypeError:
+            # _raw_owner is already the concrete entry (e.g. in tests with mocks)
+            owner_entry = _raw_owner
 
         for lex_ref in all_complex_forms:
             try:
