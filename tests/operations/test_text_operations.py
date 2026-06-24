@@ -274,12 +274,13 @@ class TestTextOperationsIntegration:
                     break
 
         text = ops.Create("Test Text 123")
-        assert text is not None
+        try:
+            assert text is not None
 
-        title = ops.GetTitle(text)
-        assert "Test Text 123" in title
-
-        ops.Delete(text)
+            title = ops.GetTitle(text)
+            assert "Test Text 123" in title
+        finally:
+            ops.Delete(text)
 
     def test_getall_returns_texts(self, flex_project):
         """Integration test: GetAll returns texts."""

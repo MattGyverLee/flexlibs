@@ -7,10 +7,10 @@
 #          CreateFeatureBased, GetType, GetFeatures, SetFeatures.
 #
 #          Mirrors the writable-project fixture pattern used by
-#          tests/operations/test_phon_features.py. Created natural
-#          classes and any ad-hoc phonological features are removed
-#          in finally blocks so re-running the suite never leaves
-#          test artefacts behind.
+#          tests/operations/test_phon_features.py. Self-restoring
+#          round-trips: each test deletes what it created as an in-body
+#          tested step (green path only), so residue is a diagnostic
+#          signal on failure rather than hidden state.
 #
 #   Platform: Python.NET
 #             FieldWorks Version 9+
@@ -87,7 +87,7 @@ CONSONANTAL_NEGATIVE_VALUE_GUID = "81c50b82-83ff-4f73-8e27-6ff9217b810a"
 
 
 # ---------------------------------------------------------------------------
-# Cleanup helpers
+# Helpers (still used for post-delete verification and catalog guard)
 # ---------------------------------------------------------------------------
 
 
@@ -103,7 +103,10 @@ def _find_feature_by_guid(project, guid_str):
     if fs is None:
         return None
     for raw in fs.FeaturesOC:
-        feat = IFsClosedFeature(raw)
+        try:
+            feat = IFsClosedFeature(raw)
+        except Exception:
+            continue
         if str(feat.Guid).lower() == target:
             return feat
     return None
@@ -165,6 +168,11 @@ class TestNaturalClassFeatureBased:
     """
     Phase 5d coverage for feature-based natural class operations:
     CreateFeatureBased, GetType, GetFeatures, SetFeatures.
+
+    Round-trip design: each test creates an object, exercises the API,
+    then deletes the object IN THE TEST BODY and asserts it is gone.
+    On green the DB is net-zero. On failure the created object stays as
+    a diagnostic signal (no finally-cleanup on the main object).
     """
 
     # --- CreateFeatureBased ----------------------------------------------
@@ -177,24 +185,27 @@ class TestNaturalClassFeatureBased:
         IPhNCFeatures whose FeaturesOA is None (no struct attached
         yet) so the caller can later populate via SetFeatures.
         """
-        nc = None
-        try:
-            nc = writable_project.NaturalClasses.CreateFeatureBased(
-                "test", "t"
-            )
-            assert nc is not None, "CreateFeatureBased returned None"
+        nc = writable_project.NaturalClasses.CreateFeatureBased(
+            "test", "t"
+        )
+        assert nc is not None, "CreateFeatureBased returned None"
 
-            # Concrete LCM ClassName must be IPhNCFeatures.
-            assert nc.ClassName == "PhNCFeatures", (
-                f"Expected ClassName 'PhNCFeatures', got {nc.ClassName!r}"
-            )
-            # No specs provided => FeaturesOA must remain None.
-            assert nc.FeaturesOA is None, (
-                "CreateFeatureBased(specs=None) should leave FeaturesOA "
-                "unset; got a non-None struct."
-            )
-        finally:
-            _delete_nc(writable_project, nc)
+        # Concrete LCM ClassName must be IPhNCFeatures.
+        assert nc.ClassName == "PhNCFeatures", (
+            f"Expected ClassName 'PhNCFeatures', got {nc.ClassName!r}"
+        )
+        # No specs provided => FeaturesOA must remain None.
+        assert nc.FeaturesOA is None, (
+            "CreateFeatureBased(specs=None) should leave FeaturesOA "
+            "unset; got a non-None struct."
+        )
+
+        # --- round-trip teardown (in body, tested) ---
+        nc_hvo = nc.Hvo
+        _delete_nc(writable_project, nc)
+        assert writable_project.NaturalClasses.Find("test") is None, (
+            "Natural class still findable after Delete - round-trip not net-zero"
+        )
 
     def test_create_feature_based_with_specs_populates_featuresoa(
         self, writable_project
@@ -213,36 +224,42 @@ class TestNaturalClassFeatureBased:
             )
             is not None
         )
-        created_feat_guid = None
-        nc = None
-        try:
-            feat = writable_project.PhonFeatures.CreateFromCatalog(
-                "fPAConsonantal"
-            )
-            if not pre_existing:
-                created_feat_guid = CONSONANTAL_FEATURE_GUID
 
-            plus = _get_consonantal_positive(writable_project, feat)
-            assert plus is not None, (
-                "Could not locate +consonantal value under fPAConsonantal"
-            )
+        feat = writable_project.PhonFeatures.CreateFromCatalog(
+            "fPAConsonantal"
+        )
 
-            nc = writable_project.NaturalClasses.CreateFeatureBased(
-                "voiced", "v", specs=[(feat, plus)]
+        plus = _get_consonantal_positive(writable_project, feat)
+        assert plus is not None, (
+            "Could not locate +consonantal value under fPAConsonantal"
+        )
+
+        nc = writable_project.NaturalClasses.CreateFeatureBased(
+            "voiced", "v", specs=[(feat, plus)]
+        )
+        assert nc is not None
+        assert nc.FeaturesOA is not None, (
+            "CreateFeatureBased(specs=[...]) did not attach FeaturesOA"
+        )
+        fs = IFsFeatStruc(nc.FeaturesOA)
+        assert fs.FeatureSpecsOC.Count == 1, (
+            f"Expected FeatureSpecsOC.Count == 1, "
+            f"got {fs.FeatureSpecsOC.Count}"
+        )
+
+        # --- round-trip teardown (in body, tested) ---
+        _delete_nc(writable_project, nc)
+        assert writable_project.NaturalClasses.Find("voiced") is None, (
+            "Natural class still findable after Delete - round-trip not net-zero"
+        )
+        if not pre_existing:
+            _delete_feature_by_guid(writable_project, CONSONANTAL_FEATURE_GUID)
+            assert _find_feature_by_guid(
+                writable_project, CONSONANTAL_FEATURE_GUID
+            ) is None, (
+                "Catalog feature still present after delete - "
+                "round-trip not net-zero"
             )
-            assert nc is not None
-            assert nc.FeaturesOA is not None, (
-                "CreateFeatureBased(specs=[...]) did not attach FeaturesOA"
-            )
-            fs = IFsFeatStruc(nc.FeaturesOA)
-            assert fs.FeatureSpecsOC.Count == 1, (
-                f"Expected FeatureSpecsOC.Count == 1, "
-                f"got {fs.FeatureSpecsOC.Count}"
-            )
-        finally:
-            _delete_nc(writable_project, nc)
-            if created_feat_guid is not None:
-                _delete_feature_by_guid(writable_project, created_feat_guid)
 
     # --- GetType ---------------------------------------------------------
 
@@ -250,31 +267,37 @@ class TestNaturalClassFeatureBased:
         self, writable_project
     ):
         """GetType on an IPhNCFeatures must return 'features'."""
-        nc = None
-        try:
-            nc = writable_project.NaturalClasses.CreateFeatureBased(
-                "test_feat_type", "tft"
-            )
-            assert (
-                writable_project.NaturalClasses.GetType(nc) == "features"
-            ), "GetType did not return 'features' for IPhNCFeatures"
-        finally:
-            _delete_nc(writable_project, nc)
+        nc = writable_project.NaturalClasses.CreateFeatureBased(
+            "test_feat_type", "tft"
+        )
+
+        assert (
+            writable_project.NaturalClasses.GetType(nc) == "features"
+        ), "GetType did not return 'features' for IPhNCFeatures"
+
+        # --- round-trip teardown (in body, tested) ---
+        _delete_nc(writable_project, nc)
+        assert writable_project.NaturalClasses.Find("test_feat_type") is None, (
+            "Natural class still findable after Delete - round-trip not net-zero"
+        )
 
     def test_get_type_returns_segments_for_segment_based(
         self, writable_project
     ):
         """GetType on an IPhNCSegments (Create) must return 'segments'."""
-        nc = None
-        try:
-            nc = writable_project.NaturalClasses.Create(
-                "test_seg_type", "tst"
-            )
-            assert (
-                writable_project.NaturalClasses.GetType(nc) == "segments"
-            ), "GetType did not return 'segments' for IPhNCSegments"
-        finally:
-            _delete_nc(writable_project, nc)
+        nc = writable_project.NaturalClasses.Create(
+            "test_seg_type", "tst"
+        )
+
+        assert (
+            writable_project.NaturalClasses.GetType(nc) == "segments"
+        ), "GetType did not return 'segments' for IPhNCSegments"
+
+        # --- round-trip teardown (in body, tested) ---
+        _delete_nc(writable_project, nc)
+        assert writable_project.NaturalClasses.Find("test_seg_type") is None, (
+            "Natural class still findable after Delete - round-trip not net-zero"
+        )
 
     # --- GetFeatures -----------------------------------------------------
 
@@ -285,33 +308,39 @@ class TestNaturalClassFeatureBased:
         """
         from flexlibs2.code.FLExProject import FP_ParameterError
 
-        nc = None
-        try:
-            nc = writable_project.NaturalClasses.Create(
-                "test_seg_getf", "tsg"
-            )
-            with pytest.raises(FP_ParameterError):
-                writable_project.NaturalClasses.GetFeatures(nc)
-        finally:
-            _delete_nc(writable_project, nc)
+        nc = writable_project.NaturalClasses.Create(
+            "test_seg_getf", "tsg"
+        )
+
+        with pytest.raises(FP_ParameterError):
+            writable_project.NaturalClasses.GetFeatures(nc)
+
+        # --- round-trip teardown (in body, tested) ---
+        _delete_nc(writable_project, nc)
+        assert writable_project.NaturalClasses.Find("test_seg_getf") is None, (
+            "Natural class still findable after Delete - round-trip not net-zero"
+        )
 
     def test_get_features_returns_none_when_unset(self, writable_project):
         """
         GetFeatures on a feature-based NC with no struct attached must
         return None (the underlying FeaturesOA).
         """
-        nc = None
-        try:
-            nc = writable_project.NaturalClasses.CreateFeatureBased(
-                "test_no_specs", "tns"
-            )
-            result = writable_project.NaturalClasses.GetFeatures(nc)
-            assert result is None, (
-                f"GetFeatures on unset feature-based NC should return "
-                f"None; got {result!r}"
-            )
-        finally:
-            _delete_nc(writable_project, nc)
+        nc = writable_project.NaturalClasses.CreateFeatureBased(
+            "test_no_specs", "tns"
+        )
+
+        result = writable_project.NaturalClasses.GetFeatures(nc)
+        assert result is None, (
+            f"GetFeatures on unset feature-based NC should return "
+            f"None; got {result!r}"
+        )
+
+        # --- round-trip teardown (in body, tested) ---
+        _delete_nc(writable_project, nc)
+        assert writable_project.NaturalClasses.Find("test_no_specs") is None, (
+            "Natural class still findable after Delete - round-trip not net-zero"
+        )
 
     def test_get_features_returns_featstruc_when_set(
         self, writable_project
@@ -328,36 +357,42 @@ class TestNaturalClassFeatureBased:
             )
             is not None
         )
-        created_feat_guid = None
-        nc = None
-        try:
-            feat = writable_project.PhonFeatures.CreateFromCatalog(
-                "fPAConsonantal"
-            )
-            if not pre_existing:
-                created_feat_guid = CONSONANTAL_FEATURE_GUID
 
-            plus = _get_consonantal_positive(writable_project, feat)
-            assert plus is not None
+        feat = writable_project.PhonFeatures.CreateFromCatalog(
+            "fPAConsonantal"
+        )
 
-            nc = writable_project.NaturalClasses.CreateFeatureBased(
-                "test_getf_set", "tgs", specs=[(feat, plus)]
-            )
+        plus = _get_consonantal_positive(writable_project, feat)
+        assert plus is not None
 
-            fs = writable_project.NaturalClasses.GetFeatures(nc)
-            assert fs is not None, (
-                "GetFeatures returned None for a feature-based NC "
-                "created with specs."
+        nc = writable_project.NaturalClasses.CreateFeatureBased(
+            "test_getf_set", "tgs", specs=[(feat, plus)]
+        )
+
+        fs = writable_project.NaturalClasses.GetFeatures(nc)
+        assert fs is not None, (
+            "GetFeatures returned None for a feature-based NC "
+            "created with specs."
+        )
+        fs_cast = IFsFeatStruc(fs)
+        assert fs_cast.FeatureSpecsOC.Count == 1, (
+            f"Expected FeatureSpecsOC.Count == 1, "
+            f"got {fs_cast.FeatureSpecsOC.Count}"
+        )
+
+        # --- round-trip teardown (in body, tested) ---
+        _delete_nc(writable_project, nc)
+        assert writable_project.NaturalClasses.Find("test_getf_set") is None, (
+            "Natural class still findable after Delete - round-trip not net-zero"
+        )
+        if not pre_existing:
+            _delete_feature_by_guid(writable_project, CONSONANTAL_FEATURE_GUID)
+            assert _find_feature_by_guid(
+                writable_project, CONSONANTAL_FEATURE_GUID
+            ) is None, (
+                "Catalog feature still present after delete - "
+                "round-trip not net-zero"
             )
-            fs_cast = IFsFeatStruc(fs)
-            assert fs_cast.FeatureSpecsOC.Count == 1, (
-                f"Expected FeatureSpecsOC.Count == 1, "
-                f"got {fs_cast.FeatureSpecsOC.Count}"
-            )
-        finally:
-            _delete_nc(writable_project, nc)
-            if created_feat_guid is not None:
-                _delete_feature_by_guid(writable_project, created_feat_guid)
 
     # --- SetFeatures -----------------------------------------------------
 
@@ -377,58 +412,64 @@ class TestNaturalClassFeatureBased:
             )
             is not None
         )
-        created_feat_guid = None
-        nc = None
-        try:
-            feat = writable_project.PhonFeatures.CreateFromCatalog(
-                "fPAConsonantal"
-            )
-            if not pre_existing:
-                created_feat_guid = CONSONANTAL_FEATURE_GUID
 
-            plus = _get_consonantal_positive(writable_project, feat)
-            minus = _get_consonantal_negative(writable_project, feat)
-            assert plus is not None and minus is not None
+        feat = writable_project.PhonFeatures.CreateFromCatalog(
+            "fPAConsonantal"
+        )
 
-            # Create with +consonantal.
-            nc = writable_project.NaturalClasses.CreateFeatureBased(
-                "test_setf_replace", "tsr", specs=[(feat, plus)]
-            )
-            initial_fs = IFsFeatStruc(nc.FeaturesOA)
-            assert initial_fs.FeatureSpecsOC.Count == 1
+        plus = _get_consonantal_positive(writable_project, feat)
+        minus = _get_consonantal_negative(writable_project, feat)
+        assert plus is not None and minus is not None
 
-            # Replace with -consonantal.
-            writable_project.NaturalClasses.SetFeatures(
-                nc, [(feat, minus)]
-            )
+        # Create with +consonantal.
+        nc = writable_project.NaturalClasses.CreateFeatureBased(
+            "test_setf_replace", "tsr", specs=[(feat, plus)]
+        )
+        initial_fs = IFsFeatStruc(nc.FeaturesOA)
+        assert initial_fs.FeatureSpecsOC.Count == 1
 
-            replaced = writable_project.NaturalClasses.GetFeatures(nc)
-            assert replaced is not None, (
-                "After SetFeatures, FeaturesOA is None"
-            )
-            replaced_fs = IFsFeatStruc(replaced)
-            assert replaced_fs.FeatureSpecsOC.Count == 1, (
-                f"Expected FeatureSpecsOC.Count == 1 after replacement, "
-                f"got {replaced_fs.FeatureSpecsOC.Count}"
-            )
+        # Replace with -consonantal.
+        writable_project.NaturalClasses.SetFeatures(
+            nc, [(feat, minus)]
+        )
 
-            # Confirm the spec now references the -consonantal value.
-            value_guids = set()
-            for spec in replaced_fs.FeatureSpecsOC:
-                cv = IFsClosedValue(spec)
-                if cv.ValueRA is not None:
-                    value_guids.add(str(cv.ValueRA.Guid).lower())
-            assert CONSONANTAL_NEGATIVE_VALUE_GUID in value_guids, (
-                f"Replacement spec does not reference -consonantal value; "
-                f"got {sorted(value_guids)}"
+        replaced = writable_project.NaturalClasses.GetFeatures(nc)
+        assert replaced is not None, (
+            "After SetFeatures, FeaturesOA is None"
+        )
+        replaced_fs = IFsFeatStruc(replaced)
+        assert replaced_fs.FeatureSpecsOC.Count == 1, (
+            f"Expected FeatureSpecsOC.Count == 1 after replacement, "
+            f"got {replaced_fs.FeatureSpecsOC.Count}"
+        )
+
+        # Confirm the spec now references the -consonantal value.
+        value_guids = set()
+        for spec in replaced_fs.FeatureSpecsOC:
+            cv = IFsClosedValue(spec)
+            if cv.ValueRA is not None:
+                value_guids.add(str(cv.ValueRA.Guid).lower())
+        assert CONSONANTAL_NEGATIVE_VALUE_GUID in value_guids, (
+            f"Replacement spec does not reference -consonantal value; "
+            f"got {sorted(value_guids)}"
+        )
+        assert CONSONANTAL_POSITIVE_VALUE_GUID not in value_guids, (
+            "Original +consonantal spec was not discarded on replacement"
+        )
+
+        # --- round-trip teardown (in body, tested) ---
+        _delete_nc(writable_project, nc)
+        assert writable_project.NaturalClasses.Find("test_setf_replace") is None, (
+            "Natural class still findable after Delete - round-trip not net-zero"
+        )
+        if not pre_existing:
+            _delete_feature_by_guid(writable_project, CONSONANTAL_FEATURE_GUID)
+            assert _find_feature_by_guid(
+                writable_project, CONSONANTAL_FEATURE_GUID
+            ) is None, (
+                "Catalog feature still present after delete - "
+                "round-trip not net-zero"
             )
-            assert CONSONANTAL_POSITIVE_VALUE_GUID not in value_guids, (
-                "Original +consonantal spec was not discarded on replacement"
-            )
-        finally:
-            _delete_nc(writable_project, nc)
-            if created_feat_guid is not None:
-                _delete_feature_by_guid(writable_project, created_feat_guid)
 
     def test_set_features_raises_on_segment_nc(self, writable_project):
         """
@@ -443,28 +484,35 @@ class TestNaturalClassFeatureBased:
             )
             is not None
         )
-        created_feat_guid = None
-        nc = None
-        try:
-            feat = writable_project.PhonFeatures.CreateFromCatalog(
-                "fPAConsonantal"
-            )
-            if not pre_existing:
-                created_feat_guid = CONSONANTAL_FEATURE_GUID
-            plus = _get_consonantal_positive(writable_project, feat)
-            assert plus is not None
 
-            nc = writable_project.NaturalClasses.Create(
-                "test_seg_setf", "tss"
+        feat = writable_project.PhonFeatures.CreateFromCatalog(
+            "fPAConsonantal"
+        )
+        plus = _get_consonantal_positive(writable_project, feat)
+        assert plus is not None
+
+        nc = writable_project.NaturalClasses.Create(
+            "test_seg_setf", "tss"
+        )
+
+        with pytest.raises(FP_ParameterError):
+            writable_project.NaturalClasses.SetFeatures(
+                nc, [(feat, plus)]
             )
-            with pytest.raises(FP_ParameterError):
-                writable_project.NaturalClasses.SetFeatures(
-                    nc, [(feat, plus)]
-                )
-        finally:
-            _delete_nc(writable_project, nc)
-            if created_feat_guid is not None:
-                _delete_feature_by_guid(writable_project, created_feat_guid)
+
+        # --- round-trip teardown (in body, tested) ---
+        _delete_nc(writable_project, nc)
+        assert writable_project.NaturalClasses.Find("test_seg_setf") is None, (
+            "Natural class still findable after Delete - round-trip not net-zero"
+        )
+        if not pre_existing:
+            _delete_feature_by_guid(writable_project, CONSONANTAL_FEATURE_GUID)
+            assert _find_feature_by_guid(
+                writable_project, CONSONANTAL_FEATURE_GUID
+            ) is None, (
+                "Catalog feature still present after delete - "
+                "round-trip not net-zero"
+            )
 
 
 class TestNaturalClassDuplicateDispatch:
@@ -474,6 +522,10 @@ class TestNaturalClassDuplicateDispatch:
     loop, silently producing a wrong-type empty clone from a
     feature-based source. The fix dispatches on the concrete source
     type and clones FeaturesOA for IPhNCFeatures sources.
+
+    Round-trip design: each test creates objects, exercises the API,
+    then deletes IN THE TEST BODY and asserts gone. On failure residue
+    is left as a diagnostic signal.
     """
 
     def test_duplicate_segments_returns_segments_clone(
@@ -488,25 +540,27 @@ class TestNaturalClassDuplicateDispatch:
         source = writable_project.NaturalClasses.Create(
             "qZ_dup_segments_src", "qZs"
         )
-        duplicate = None
-        try:
-            duplicate = writable_project.NaturalClasses.Duplicate(source)
-            assert duplicate is not None, "Duplicate returned None"
-            assert (
-                writable_project.NaturalClasses.GetType(duplicate)
-                == "segments"
-            ), (
-                "Segment-based source produced a non-segments duplicate: "
-                f"{writable_project.NaturalClasses.GetType(duplicate)!r}"
-            )
-            # Sanity: distinct Hvo from source.
-            assert duplicate.Hvo != source.Hvo, (
-                "Duplicate returned the source object itself"
-            )
-        finally:
-            if duplicate is not None:
-                _delete_nc(writable_project, duplicate)
-            _delete_nc(writable_project, source)
+
+        duplicate = writable_project.NaturalClasses.Duplicate(source)
+        assert duplicate is not None, "Duplicate returned None"
+        assert (
+            writable_project.NaturalClasses.GetType(duplicate)
+            == "segments"
+        ), (
+            "Segment-based source produced a non-segments duplicate: "
+            f"{writable_project.NaturalClasses.GetType(duplicate)!r}"
+        )
+        # Sanity: distinct Hvo from source.
+        assert duplicate.Hvo != source.Hvo, (
+            "Duplicate returned the source object itself"
+        )
+
+        # --- round-trip teardown (in body, tested) ---
+        _delete_nc(writable_project, duplicate)
+        _delete_nc(writable_project, source)
+        assert writable_project.NaturalClasses.Find("qZ_dup_segments_src") is None, (
+            "Source NC still findable after Delete - round-trip not net-zero"
+        )
 
     def test_duplicate_features_returns_features_clone(
         self, writable_project
@@ -521,56 +575,59 @@ class TestNaturalClassDuplicateDispatch:
             _find_feature_by_guid(writable_project, CONSONANTAL_FEATURE_GUID)
             is not None
         )
-        created_feat_guid = None
-        source = None
-        duplicate = None
-        try:
-            feat = writable_project.PhonFeatures.CreateFromCatalog(
-                "fPAConsonantal"
-            )
-            if not pre_existing:
-                created_feat_guid = CONSONANTAL_FEATURE_GUID
-            plus = _get_consonantal_positive(writable_project, feat)
-            assert plus is not None, "Could not find +consonantal value"
 
-            source = writable_project.NaturalClasses.CreateFeatureBased(
-                "qZ_dup_features_src", "qZf", specs=[(feat, plus)]
-            )
+        feat = writable_project.PhonFeatures.CreateFromCatalog(
+            "fPAConsonantal"
+        )
+        plus = _get_consonantal_positive(writable_project, feat)
+        assert plus is not None, "Could not find +consonantal value"
 
-            duplicate = writable_project.NaturalClasses.Duplicate(source)
+        source = writable_project.NaturalClasses.CreateFeatureBased(
+            "qZ_dup_features_src", "qZf", specs=[(feat, plus)]
+        )
 
-            # Core assertion: duplicate is feature-based, not segments.
-            assert (
-                writable_project.NaturalClasses.GetType(duplicate)
-                == "features"
-            ), (
-                "Feature-based source produced a non-features duplicate: "
-                f"{writable_project.NaturalClasses.GetType(duplicate)!r} "
-                "(this is exactly the issue #27 bug)"
-            )
+        duplicate = writable_project.NaturalClasses.Duplicate(source)
 
-            # FeaturesOA must be populated with the cloned spec.
-            dup_struct = duplicate.FeaturesOA
-            assert dup_struct is not None, (
-                "Duplicate has no FeaturesOA - spec clone path didn't run"
+        # Core assertion: duplicate is feature-based, not segments.
+        assert (
+            writable_project.NaturalClasses.GetType(duplicate)
+            == "features"
+        ), (
+            "Feature-based source produced a non-features duplicate: "
+            f"{writable_project.NaturalClasses.GetType(duplicate)!r} "
+            "(this is exactly the issue #27 bug)"
+        )
+
+        # FeaturesOA must be populated with the cloned spec.
+        dup_struct = duplicate.FeaturesOA
+        assert dup_struct is not None, (
+            "Duplicate has no FeaturesOA - spec clone path didn't run"
+        )
+        spec_count = sum(1 for _ in dup_struct.FeatureSpecsOC)
+        assert spec_count == 1, (
+            f"Duplicate FeaturesOA should have 1 spec, "
+            f"got {spec_count}"
+        )
+
+        # --- round-trip teardown (in body, tested) ---
+        _delete_nc(writable_project, duplicate)
+        _delete_nc(writable_project, source)
+        assert writable_project.NaturalClasses.Find("qZ_dup_features_src") is None, (
+            "Source NC still findable after Delete - round-trip not net-zero"
+        )
+        if not pre_existing:
+            _delete_feature_by_guid(writable_project, CONSONANTAL_FEATURE_GUID)
+            assert _find_feature_by_guid(
+                writable_project, CONSONANTAL_FEATURE_GUID
+            ) is None, (
+                "Catalog feature still present after delete - "
+                "round-trip not net-zero"
             )
-            spec_count = sum(1 for _ in dup_struct.FeatureSpecsOC)
-            assert spec_count == 1, (
-                f"Duplicate FeaturesOA should have 1 spec, "
-                f"got {spec_count}"
-            )
-        finally:
-            if duplicate is not None:
-                _delete_nc(writable_project, duplicate)
-            if source is not None:
-                _delete_nc(writable_project, source)
-            if created_feat_guid is not None:
-                _delete_feature_by_guid(writable_project, created_feat_guid)
 
 
 class TestNaturalClassFindExists:
     """
-    Coverage for `NaturalClassOperations.Find()` and `Exists()` — closes
+    Coverage for `NaturalClassOperations.Find()` and `Exists()` - closes
     the API-parity gap reported in issue #30. Sister classes
     (POSOperations, PhonemeOperations, PhonFeatureOperations,
     PhonRuleOperations) already expose Find/Exists; this verifies the
@@ -578,32 +635,34 @@ class TestNaturalClassFindExists:
 
     The implementations are NFD-aware casefold matchers, so coverage
     includes both segment-based (IPhNCSegments) and feature-based
-    (IPhNCFeatures) variants — Find must succeed for both because it
+    (IPhNCFeatures) variants - Find must succeed for both because it
     iterates GetAll() which yields IPhNaturalClass regardless of
     concrete type.
+
+    Round-trip design: each test creates an object, exercises the API,
+    then deletes IN THE TEST BODY and asserts gone. On failure residue
+    is left as a diagnostic signal (no pre-clean at test start).
     """
 
     def test_find_returns_segment_class_when_present(self, writable_project):
         """Round-trip: Create -> Find -> identity match."""
         name = "qZ_find_roundtrip_segments"
 
-        # Pre-clean if a previous run left the NC behind.
-        leftover = writable_project.NaturalClasses.Find(name)
-        if leftover is not None:
-            _delete_nc(writable_project, leftover)
-
         nc = writable_project.NaturalClasses.Create(name, "qZf")
-        try:
-            found = writable_project.NaturalClasses.Find(name)
-            assert found is not None, (
-                f"Find({name!r}) returned None for a just-created NC"
-            )
-            assert found.Hvo == nc.Hvo, (
-                "Find returned a different NC than was just created "
-                f"(found Hvo={found.Hvo}, created Hvo={nc.Hvo})"
-            )
-        finally:
-            _delete_nc(writable_project, nc)
+        found = writable_project.NaturalClasses.Find(name)
+        assert found is not None, (
+            f"Find({name!r}) returned None for a just-created NC"
+        )
+        assert found.Hvo == nc.Hvo, (
+            "Find returned a different NC than was just created "
+            f"(found Hvo={found.Hvo}, created Hvo={nc.Hvo})"
+        )
+
+        # --- round-trip teardown (in body, tested) ---
+        _delete_nc(writable_project, nc)
+        assert writable_project.NaturalClasses.Find(name) is None, (
+            "NC still findable after Delete - round-trip not net-zero"
+        )
 
     def test_find_returns_none_for_missing(self, writable_project):
         """Find for a name that doesn't exist must return None, not raise."""
@@ -621,35 +680,35 @@ class TestNaturalClassFindExists:
         even though FLEx stores them NFD. POSOperations.Find behaves
         this way; NaturalClassOperations.Find must match.
         """
-        # 'négatif' in NFC (single é) vs NFD (e + ́). Both
-        # must resolve to the same NC.
+        # 'négatif' in NFC (single é) vs NFD (e + combining acute).
+        # Both must resolve to the same NC.
         nfc_name = "qZ_négatif"           # composed: é
-        nfd_name = "qZ_négatif"          # decomposed: e + combining acute
-
-        leftover = writable_project.NaturalClasses.Find(nfc_name)
-        if leftover is not None:
-            _delete_nc(writable_project, leftover)
+        nfd_name = "qZ_négatif"          # decomposed: e + combining acute
 
         nc = writable_project.NaturalClasses.Create(nfc_name, "qZn")
-        try:
-            # Find via the alternate normalisation form must hit the
-            # same NC. Which form FLEx stores internally is an LCM
-            # implementation detail; the wrapper must hide it.
-            found_via_nfc = writable_project.NaturalClasses.Find(nfc_name)
-            found_via_nfd = writable_project.NaturalClasses.Find(nfd_name)
 
-            assert found_via_nfc is not None, (
-                "Find(NFC) failed for a name created from an NFC string"
-            )
-            assert found_via_nfd is not None, (
-                "Find(NFD) failed for a name created from an NFC string - "
-                "Find is not NFD-aware, contrary to the issue #30 contract"
-            )
-            assert found_via_nfc.Hvo == found_via_nfd.Hvo, (
-                "Find(NFC) and Find(NFD) resolved to different NCs"
-            )
-        finally:
-            _delete_nc(writable_project, nc)
+        # Find via the alternate normalisation form must hit the
+        # same NC. Which form FLEx stores internally is an LCM
+        # implementation detail; the wrapper must hide it.
+        found_via_nfc = writable_project.NaturalClasses.Find(nfc_name)
+        found_via_nfd = writable_project.NaturalClasses.Find(nfd_name)
+
+        assert found_via_nfc is not None, (
+            "Find(NFC) failed for a name created from an NFC string"
+        )
+        assert found_via_nfd is not None, (
+            "Find(NFD) failed for a name created from an NFC string - "
+            "Find is not NFD-aware, contrary to the issue #30 contract"
+        )
+        assert found_via_nfc.Hvo == found_via_nfd.Hvo, (
+            "Find(NFC) and Find(NFD) resolved to different NCs"
+        )
+
+        # --- round-trip teardown (in body, tested) ---
+        _delete_nc(writable_project, nc)
+        assert writable_project.NaturalClasses.Find(nfc_name) is None, (
+            "NC still findable after Delete - round-trip not net-zero"
+        )
 
     def test_exists_mirrors_find(self, writable_project):
         """
@@ -658,22 +717,24 @@ class TestNaturalClassFindExists:
         """
         name = "qZ_exists_roundtrip"
 
-        leftover = writable_project.NaturalClasses.Find(name)
-        if leftover is not None:
-            _delete_nc(writable_project, leftover)
-
         # Before creation, Exists must be False.
         assert writable_project.NaturalClasses.Exists(name) is False, (
             "Exists returned True for a non-existent NC"
         )
 
         nc = writable_project.NaturalClasses.Create(name, "qZe")
-        try:
-            assert writable_project.NaturalClasses.Exists(name) is True, (
-                "Exists returned False for an NC that was just created"
-            )
-        finally:
-            _delete_nc(writable_project, nc)
+        assert writable_project.NaturalClasses.Exists(name) is True, (
+            "Exists returned False for an NC that was just created"
+        )
+
+        # --- round-trip teardown (in body, tested) ---
+        _delete_nc(writable_project, nc)
+        assert writable_project.NaturalClasses.Find(name) is None, (
+            "NC still findable after Delete - round-trip not net-zero"
+        )
+        assert writable_project.NaturalClasses.Exists(name) is False, (
+            "Exists still True after Delete - round-trip not net-zero"
+        )
 
 
 if __name__ == "__main__":
