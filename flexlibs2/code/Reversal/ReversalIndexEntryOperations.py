@@ -619,5 +619,10 @@ class ReversalIndexEntryOperations(BaseOperations):
         """
         # Get the owning reversal index
         index = entry.ReversalIndex
+        if index is None:
+            raise FP_ParameterError(
+                f"ReversalIndex is None for entry '{entry.Hvo}' -- "
+                "entry may be orphaned or cascade-deleted."
+            )
         ws_str = index.WritingSystem
         return self.project.WSHandle(ws_str)

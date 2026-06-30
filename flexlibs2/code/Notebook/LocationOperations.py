@@ -1077,7 +1077,7 @@ class LocationOperations(BaseOperations):
             for raw in collection:
                 child = ICmLocation(raw)
                 result.append(child)
-                if hasattr(child, "SubPossibilitiesOS") and child.SubPossibilitiesOS.Count > 0:
+                if child.SubPossibilitiesOS.Count > 0:
                     walk(child.SubPossibilitiesOS)
         walk(location.SubPossibilitiesOS)
         return result

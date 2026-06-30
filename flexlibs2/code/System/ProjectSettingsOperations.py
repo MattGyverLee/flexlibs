@@ -865,7 +865,7 @@ class ProjectSettingsOperations(BaseOperations):
         Get the project GUID as a string.
 
         Returns:
-            str: The project GUID (e.g., "a1b2c3d4-e5f6-..."), or empty string if unavailable.
+            str: The project GUID (e.g., 'a1b2c3d4-e5f6-...'), or empty string if unavailable.
 
         Example:
             >>> guid = project.ProjectSettings.GetProjectGuid()
@@ -924,7 +924,7 @@ class ProjectSettingsOperations(BaseOperations):
         Get the default analysis writing system object.
 
         Returns:
-            IWritingSystem: The default analysis writing system for this project.
+            IWritingSystem: The default analysis writing system for this project, or None if the language project is unavailable.
 
         Example:
             >>> ws = project.ProjectSettings.GetAnalysisWritingSystem()
@@ -939,6 +939,8 @@ class ProjectSettingsOperations(BaseOperations):
         See Also:
             GetAnalysisWritingSystems, GetVernacularWritingSystem
         """
+        if self.project.lp is None:
+            return None
         return self.project.lp.DefaultAnalysisWritingSystem
 
     @OperationsMethod
@@ -947,7 +949,7 @@ class ProjectSettingsOperations(BaseOperations):
         Get the default vernacular writing system object.
 
         Returns:
-            IWritingSystem: The default vernacular writing system for this project.
+            IWritingSystem: The default vernacular writing system for this project, or None if the language project is unavailable.
 
         Example:
             >>> ws = project.ProjectSettings.GetVernacularWritingSystem()
@@ -962,6 +964,8 @@ class ProjectSettingsOperations(BaseOperations):
         See Also:
             GetVernacularWritingSystems, GetAnalysisWritingSystem
         """
+        if self.project.lp is None:
+            return None
         return self.project.lp.DefaultVernacularWritingSystem
 
     # --- Project Metadata ---

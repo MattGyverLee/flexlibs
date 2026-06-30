@@ -650,7 +650,7 @@ class SemanticDomainOperations(BaseOperations, _LCMNativeCatalogImportMixin):
             for raw in collection:
                 child = ICmSemanticDomain(raw)
                 result.append(child)
-                if hasattr(child, "SubPossibilitiesOS") and child.SubPossibilitiesOS.Count > 0:
+                if child.SubPossibilitiesOS.Count > 0:
                     walk(child.SubPossibilitiesOS)
         walk(domain.SubPossibilitiesOS)
         return result
