@@ -643,11 +643,12 @@ class SemanticDomainOperations(BaseOperations, _LCMNativeCatalogImportMixin):
         domain = self.__ResolveObject(domain_or_hvo)
 
         if not recursive:
-            return list(domain.SubPossibilitiesOS)
+            return [ICmSemanticDomain(child) for child in domain.SubPossibilitiesOS]
 
         result = []
         def walk(collection):
-            for child in collection:
+            for raw in collection:
+                child = ICmSemanticDomain(raw)
                 result.append(child)
                 if hasattr(child, "SubPossibilitiesOS") and child.SubPossibilitiesOS.Count > 0:
                     walk(child.SubPossibilitiesOS)

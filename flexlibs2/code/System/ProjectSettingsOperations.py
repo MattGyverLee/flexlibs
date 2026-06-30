@@ -859,6 +859,111 @@ class ProjectSettingsOperations(BaseOperations):
             return self.project.lp.CurVernWss.split()
         return []
 
+    @OperationsMethod
+    def GetProjectGuid(self):
+        """
+        Get the project GUID as a string.
+
+        Returns:
+            str: The project GUID (e.g., "a1b2c3d4-e5f6-..."), or empty string if unavailable.
+
+        Example:
+            >>> guid = project.ProjectSettings.GetProjectGuid()
+            >>> print(f"Project GUID: {guid}")
+            Project GUID: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+
+        Notes:
+            - Derived from ILangProject.Guid
+            - Stable identifier for this project instance
+            - READ-ONLY
+
+        See Also:
+            GetProjectName
+        """
+        if hasattr(self.project.lp, "Guid"):
+            return str(self.project.lp.Guid)
+        return ""
+
+    @OperationsMethod
+    def GetProjectDescription(self, ws_handle_or_tag=None):
+        """
+        Get the project description in the specified writing system.
+
+        Alias for GetDescription(). See GetDescription() for full documentation.
+
+        Args:
+            ws_handle_or_tag: Writing system handle (int), language tag (str),
+                or None for default analysis WS.
+
+        Returns:
+            str: The project description text.
+
+        See Also:
+            GetDescription
+        """
+        return self.GetDescription(ws_handle_or_tag)
+
+    @OperationsMethod
+    def GetExternalLink(self):
+        """
+        Get the external (linked files) root directory path.
+
+        Alias for GetExtLinkRootDir(). See GetExtLinkRootDir() for full documentation.
+
+        Returns:
+            str: The external link root directory path, or empty string if not set.
+
+        See Also:
+            GetExtLinkRootDir
+        """
+        return self.GetExtLinkRootDir()
+
+    @OperationsMethod
+    def GetAnalysisWritingSystem(self):
+        """
+        Get the default analysis writing system object.
+
+        Returns:
+            IWritingSystem: The default analysis writing system for this project.
+
+        Example:
+            >>> ws = project.ProjectSettings.GetAnalysisWritingSystem()
+            >>> print(ws.Id)
+            en
+
+        Notes:
+            - Returns the IWritingSystem object, not a string tag
+            - For a list of all analysis writing system tags, use GetAnalysisWritingSystems()
+            - READ-ONLY
+
+        See Also:
+            GetAnalysisWritingSystems, GetVernacularWritingSystem
+        """
+        return self.project.lp.DefaultAnalysisWritingSystem
+
+    @OperationsMethod
+    def GetVernacularWritingSystem(self):
+        """
+        Get the default vernacular writing system object.
+
+        Returns:
+            IWritingSystem: The default vernacular writing system for this project.
+
+        Example:
+            >>> ws = project.ProjectSettings.GetVernacularWritingSystem()
+            >>> print(ws.Id)
+            qaa-x-kal
+
+        Notes:
+            - Returns the IWritingSystem object, not a string tag
+            - For a list of all vernacular writing system tags, use GetVernacularWritingSystems()
+            - READ-ONLY
+
+        See Also:
+            GetVernacularWritingSystems, GetAnalysisWritingSystem
+        """
+        return self.project.lp.DefaultVernacularWritingSystem
+
     # --- Project Metadata ---
 
     @OperationsMethod

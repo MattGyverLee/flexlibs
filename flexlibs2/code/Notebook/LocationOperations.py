@@ -1070,11 +1070,12 @@ class LocationOperations(BaseOperations):
             return []
 
         if not recursive:
-            return list(location.SubPossibilitiesOS)
+            return [ICmLocation(child) for child in location.SubPossibilitiesOS]
 
         result = []
         def walk(collection):
-            for child in collection:
+            for raw in collection:
+                child = ICmLocation(raw)
                 result.append(child)
                 if hasattr(child, "SubPossibilitiesOS") and child.SubPossibilitiesOS.Count > 0:
                     walk(child.SubPossibilitiesOS)

@@ -180,7 +180,7 @@ class InflectionFeatureOperations(BaseOperations, CatalogBackedMixin):
             # Inflection classes are stored in the ProdRestrictOA (Production Restrictions)
             infl_classes = morph_data.ProdRestrictOA
             for ic in infl_classes.PossibilitiesOS:
-                yield ic
+                yield IMoInflClass(ic)
 
     @OperationsMethod
     def InflectionClassCreate(self, name):
