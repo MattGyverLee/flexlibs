@@ -15,6 +15,64 @@ _Nothing yet. Non-breaking fixes and breaking changes accumulate here until the 
 
 ---
 
+## [4.0.1] - 2026-06-30
+
+### Fixed
+
+- **`LexEntryOperations.GetComplexFormsNotSubentries`** — none-guard the
+  `sense.OwnerOfClass(LexEntryTags.kClassId)` cast. When `OwnerOfClass`
+  returns `None` (orphaned sense or test-double context), the unconditional
+  `ILexEntry()` cast raised `TypeError`; now returns an empty result,
+  mirroring the safer cast pattern already used elsewhere in that file.
+  (66b8eb3)
+
+- **`sync/tests/test_base_operations.py`** — corrected a stale import from
+  the nonexistent `flexlibs2.flexlibs` module (v1 leftover). The bad import
+  raised `ModuleNotFoundError` at collection time and aborted the entire
+  pytest session. Corrected to import from the package root `flexlibs2`.
+  (742b9b4)
+
+- **`SemanticDomainOperations.GetSubdomains`** — yield `ICmSemanticDomain`
+  (typed cast) instead of the base `ICmPossibility` object, for both the
+  fast path and the recursive walk.
+
+- **`LocationOperations.GetSublocations`** — yield `ICmLocation` (typed
+  cast) for both fast path and recursive walk.
+
+- **`InflectionFeatureOperations.InflectionClassGetAll`** — yield
+  `IMoInflClass` (typed cast) instead of the raw base-interface object.
+  These three close the Category 5 cast-on-yield gaps. (92762fa)
+
+- **`ProjectSettingsOperations`** — added LCM-backed accessors:
+  `GetProjectGuid`, `GetProjectDescription`, `GetExternalLink`,
+  `GetAnalysisWritingSystem`, `GetVernacularWritingSystem`. Both WS getters
+  return `None` safely when `project.lp` is unavailable. (92762fa, fd156ee)
+
+- **`ReversalIndexEntryOperations.__GetEntryWS`** — raises
+  `FP_ParameterError` (naming `entry.Hvo`) when `entry.ReversalIndex` is
+  `None`, replacing the `NullReferenceException` that previously surfaced
+  during reversal cleanup of orphaned or cascade-deleted entries
+  (Category 7). (fd156ee)
+
+### Tests
+
+- **Grammar live tests** (phon-feature, natural-class, phon-rule) refactored
+  as self-restoring round-trips. Removed top-of-test pre-clean calls that
+  masked incremental failures; each test now follows create -> assert ->
+  delete -> assert-gone so a failed test leaves evidence rather than being
+  silently swept. 18 tests verified to pass twice back-to-back without a
+  DB restore in between. (ddbfe3c)
+
+### Docs
+
+- **`docs/API_ISSUES_CATEGORIZED.md`**: Category 5 marked RESOLVED;
+  Category 4 / ProjectSettings table updated to reflect new accessors;
+  Category 7 reversal NullReferenceException entry updated with the
+  `__GetEntryWS` null-guard fix; additional latent-gap notes added to
+  Category 3. (a1d4bb3, 57ed7a0)
+
+---
+
 ## [4.0.0] - 2026-06-23
 
 ### Changed (Breaking)

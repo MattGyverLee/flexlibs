@@ -6,6 +6,56 @@ None
 
 ## History
 
+### 2026-06-24 to 2026-06-30 — v4.0.1 patch: null-guards, cast-on-yield fixes, test hygiene
+
+**`LexEntryOperations.GetComplexFormsNotSubentries` null-guard** (`66b8eb3`)
+
+None-guarded the `sense.OwnerOfClass(LexEntryTags.kClassId)` cast to
+`ILexEntry`. Unconditional cast raised `TypeError` when `OwnerOfClass`
+returns `None`; now returns empty result, mirroring the safer pattern at
+line 2789.
+
+Also regenerated the LCM contract baseline snapshot to admit the
+`IMoStratum`/`IMoStratumFactory` dependencies introduced by
+`StratumOperations` (672f292); the previous baseline predated that module
+and failed `test_no_new_type_dependencies`.
+
+**Grammar live-test self-restore refactor** (`ddbfe3c`)
+
+18 phon-feature, natural-class, and phon-rule live tests restructured as
+self-restoring round-trips. Removed pre-clean calls (crash surface +
+failure-masking); each test now follows create -> assert -> delete ->
+assert-gone. Verified: two consecutive runs with no DB restore both
+returned 33 passed / 1 skipped.
+
+**Category 5 cast-on-yield sweep (closes Category 5)** (`92762fa`)
+
+- `SemanticDomainOperations.GetSubdomains`: yield `ICmSemanticDomain`
+- `LocationOperations.GetSublocations`: yield `ICmLocation`
+- `InflectionFeatureOperations.InflectionClassGetAll`: yield `IMoInflClass`
+
+All three previously yielded raw base-interface objects.
+
+Added `ProjectSettingsOperations` LCM-backed accessors: `GetProjectGuid`,
+`GetProjectDescription`, `GetExternalLink`, `GetAnalysisWritingSystem`,
+`GetVernacularWritingSystem`. `GetProjectStatus` omitted — no LCM backing.
+
+**Reversal NRE null-guard (Category 7)** (`fd156ee`)
+
+`ReversalIndexEntryOperations.__GetEntryWS` now raises `FP_ParameterError`
+(naming `entry.Hvo`) when `entry.ReversalIndex` is `None`, replacing the
+`NullReferenceException` that surfaced during cleanup of orphaned entries.
+
+WS getters in `ProjectSettingsOperations` return `None` when `project.lp`
+is unavailable (defensive follow-up to the accessors added in `92762fa`).
+
+**API Issues doc updates** (`a1d4bb3`, `57ed7a0`)
+
+Category 5 marked RESOLVED; Category 4 ProjectSettings table updated;
+Category 7 reversal entry updated; Category 3 latent-gap notes added.
+
+---
+
 ### 2026-05-30 — /lex-lead cycle: Pattern A sweep + Category 8 doc fix + #172 BaselineText partial
 
 **Pattern A sweep — typed Owner casts (closes #166, #168, #159)** (`295f613`)
