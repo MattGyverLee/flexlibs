@@ -270,12 +270,20 @@ The design of scoped operations (objects inherently belonging to parent objects 
    ERROR: 'LcmCache' object has no attribute 'CanEdit'
    ```
    - Interface doesn't have expected properties
+   - NOTE: `LcmCache.CanEdit` does not exist in the LCM API. The correct
+     write-gate pattern for all Operations classes is
+     `self._EnsureWriteEnabled()` (from `BaseOperations`). A sweep of all
+     `*Operations.py` files confirmed no live caller uses raw `.CanEdit`.
 
 6. **grammar_pos_operations_demo.py** (1 additional)
    ```
    ERROR: 'IMoMorphType' object has no attribute 'PartOfSpeechRAHvo'
    ```
-   - MoMorphType interface missing expected property
+   - `PartOfSpeechRAHvo` does not exist on `IMoMorphType`. The correct
+     field is `PartOfSpeechRA` (reference field, not Hvo). A sweep of all
+     source and demo `.py` files confirmed zero live callers use the
+     incorrect `PartOfSpeechRAHvo` name; the only occurrence is in this
+     doc file.
 
 ### Root Cause:
 FLEx LCM API returns objects as base interfaces when casting isn't done properly, or when the specific interface doesn't expose expected properties.
@@ -299,14 +307,21 @@ FLEx LCM API returns objects as base interfaces when casting isn't done properly
    ERROR: 'PersonOperations' object has no attribute 'GetAllPositions'
    ERROR: PersonOperations.GetAll() got an unexpected keyword argument 'flat'
    ```
-   - Missing `GetAllPositions()` method
-   - `GetAll()` doesn't accept `flat` parameter
+   - [DONE] RESOLVED via demo regeneration: `GetAllPositions()` has no LCM
+     backing -- `ICmPerson` has no Positions collection in the LCM model, so
+     the assumed API does not exist and the method was not implemented.
+   - [DONE] RESOLVED via demo regeneration: `flat=` parameter not supported
+     because `PersonOperations.GetAll()` returns a flat list (no hierarchy
+     to flatten); the parameter had no LCM-backed semantic.
 
 2. **lists_confidence_operations_demo.py** (2 errors)
    ```
    ERROR: ConfidenceOperations.GetAll() got an unexpected keyword argument 'flat'
    ```
-   - `GetAll()` doesn't accept `flat` parameter
+   - [DONE] RESOLVED via demo regeneration: `flat=` parameter not supported
+     because `ConfidenceOperations.GetAll()` returns a flat list (confidence
+     items are not hierarchical in LCM); the parameter had no LCM-backed
+     semantic.
 
 3. **system_projectsettings_operations_demo.py** (previously 7 errors, now RESOLVED)
 
@@ -405,7 +420,25 @@ ImportError: cannot import name 'IMoMorphRule' from 'SIL.LCModel'
    ```
    ERROR in Cleanup: Object reference not set to an instance of an object.
    ```
-   - NullReferenceException during cleanup (possible deletion order issue)
+   - [DONE] FIXED: `ReversalIndexEntryOperations.__GetEntryWS` (~line 621)
+     accessed `entry.ReversalIndex.WritingSystem` without a null guard.
+     On cascade-deleted or orphaned entries, `ReversalIndex` is `None`,
+     producing a NullReferenceException. Fixed by inserting a null check:
+     if `index is None`, raise `FP_ParameterError` with a message naming
+     the orphaned entry (callers require a WS, so silent return is wrong).
+     File: `flexlibs2/code/Reversal/ReversalIndexEntryOperations.py`
+
+   Iterate-and-delete snapshot sweep (Cat 7 companion):
+   - `ConstChartOperations.py` (~line 111): `for chart in discourse.ChartsOC`
+     -- loop only yields (read-only generator). No change needed.
+   - `DataNotebookOperations.py` SubRecordsOS loops -- all add to a new
+     parent or read-only iterate. Single-item `.Remove()` calls are not
+     inside loops over the same collection. No change needed.
+   - `NoteOperations.py` RepliesOS/AnnotationsOC loops -- same: add-to-new-
+     parent or read-only yield. Single `.Remove()` at delete site is not
+     inside a collection loop. No change needed.
+   Reference good pattern: `ReversalIndexEntryOperations.py:566`
+   `list(entry.SubentriesOS)`.
 
 ---
 
