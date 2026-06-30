@@ -24,7 +24,7 @@ Originally, 28 out of 43 demos (65%) showed WARN status. These warnings were **N
 | **2. GetAll Signatures** | 7 demos | [OK] VERIFIED | Optional parameters already implemented correctly |
 | **3. Wrong Interface Returns** | 6 demos | [WARN] MEDIUM | Objects returned as generic interface |
 | **4. Missing Methods** | 5 demos | [WARN] MEDIUM | Operations classes missing documented methods |
-| **5. Import Error** | 1 demo | [ERROR] CRITICAL | IMoMorphRule interface doesn't exist |
+| **5. Import Error** | 1 demo | [DONE] RESOLVED | IMoMorphRule has no LCM backing; compound/template/adhoc rules route via MoMorphData/PartOfSpeech collections |
 | **6. Unicode Console Errors** | 2 demos | [INFO] LOW | Windows console can't display IPA symbols |
 | **7. API Signature Issues** | 3 demos | [WARN] MEDIUM | Method signatures don't match expectations |
 
@@ -308,17 +308,20 @@ FLEx LCM API returns objects as base interfaces when casting isn't done properly
    ```
    - `GetAll()` doesn't accept `flat` parameter
 
-3. **system_projectsettings_operations_demo.py** (7 errors)
-   ```
-   ERROR: 'ProjectSettingsOperations' object has no attribute 'GetAnalysisWritingSystem'
-   ERROR: 'ProjectSettingsOperations' object has no attribute 'GetAnalysisWritingSystems'
-   ERROR: 'ProjectSettingsOperations' object has no attribute 'GetExternalLink'
-   ERROR: 'ProjectSettingsOperations' object has no attribute 'GetProjectDescription'
-   ERROR: 'ProjectSettingsOperations' object has no attribute 'GetProjectGuid'
-   ERROR: 'ProjectSettingsOperations' object has no attribute 'GetProjectStatus'
-   ERROR: 'ProjectSettingsOperations' object has no attribute 'GetVernacularWritingSystem'
-   ```
-   - Multiple missing getter methods
+3. **system_projectsettings_operations_demo.py** (previously 7 errors, now RESOLVED)
+
+   The following methods previously missing from `ProjectSettingsOperations` have been added:
+   - `GetAnalysisWritingSystem()` - returns `DefaultAnalysisWritingSystem` object
+   - `GetAnalysisWritingSystems()` - already existed (returns list of WS tags)
+   - `GetExternalLink()` - alias for `GetExtLinkRootDir()`
+   - `GetProjectDescription(ws_handle_or_tag)` - alias for `GetDescription()`
+   - `GetProjectGuid()` - returns `str(lp.Guid)`
+   - `GetVernacularWritingSystem()` - returns `DefaultVernacularWritingSystem` object
+   - `GetVernacularWritingSystems()` - already existed (returns list of WS tags)
+
+   `GetProjectStatus` was intentionally NOT implemented: `ILangProject` has no `Status`
+   property in the LCM API. Callers needing a project status should use a custom field
+   or external metadata. (No LCM concept; use a custom field/external metadata.)
 
 ### Root Cause:
 - Demos assume methods exist that weren't implemented
@@ -327,29 +330,27 @@ FLEx LCM API returns objects as base interfaces when casting isn't done properly
 ---
 
 ## Category 5: Import Error
-### [ERROR] CRITICAL Priority - 1 demo affected
+### [DONE] RESOLVED - 1 demo affected
 
-**Issue**: MorphRuleOperations.py tries to import `IMoMorphRule` interface that doesn't exist in the FLEx LCM API.
+**Issue**: MorphRuleOperations.py previously attempted to import `IMoMorphRule`, an interface that has no direct LCM backing in FLEx 9.x.
 
-### Affected Demo:
+### Resolution:
 
-**grammar_morphrule_operations_demo.py**
+`IMoMorphRule` does not exist in `SIL.LCModel`. The correct routing for morphological rule types is:
+- Compound rules: `MoMorphData.CompoundRulesOS`
+- Affix templates: `PartOfSpeech.AffixTemplatesOS`
+- Ad-hoc co-prohibition rules: `MoMorphData.AdhocCoProhibitionsOC`
+
+`IMoMorphRule` remains only as an unused `= Any` stub in `core/types.py`. No import of this name should appear in production code.
+
+### Previous Demo Error:
 ```
 ImportError: cannot import name 'IMoMorphRule' from 'SIL.LCModel'
 ```
 
 ### Current Status:
-- Import line is commented out in MorphRuleOperations.py
-- Class can now import but functionality is limited
-- Demo documents the issue gracefully
-
-### Fix Required:
-- Research correct interface name for morphological rules in FLEx 9.x
-- Possible alternatives:
-  - `IMoAffixProcess`
-  - `IMoMorphType`
-  - `IMoAffixAllomorph`
-- Rewrite class to use correct interfaces
+- RESOLVED: MorphRuleOperations.py routes via the correct LCM collections above
+- The `= Any` stub in `core/types.py` is an inert annotation placeholder only
 
 ---
 
@@ -658,10 +659,9 @@ Both bugs share the root cause: a pattern that works correctly for one LCM type 
 
 ### High Priority (Remaining)
 
-5. **Fix Category 5**: Resolve MorphRuleOperations import error
-   - Research correct interface names in FLEx 9.x
-   - May require significant refactoring
-   - Status: OPEN
+5. [DONE] **Fix Category 5**: MorphRuleOperations import error RESOLVED
+   - `IMoMorphRule` has no LCM backing; routing now uses correct collections
+   - Status: RESOLVED
 
 ### Medium Priority (Design Decisions Needed)
 
@@ -671,9 +671,11 @@ Both bugs share the root cause: a pattern that works correctly for one LCM type 
    - Status: PENDING
 
 7. **Address Category 4**: Implement missing methods or remove from docs
-   - Review ProjectSettingsOperations missing methods
-   - Document expected vs actual API surface
-   - Status: PENDING
+   - [DONE] ProjectSettingsOperations: 5 methods added (GetProjectGuid, GetProjectDescription,
+     GetExternalLink, GetAnalysisWritingSystem, GetVernacularWritingSystem);
+     GetProjectStatus intentionally dropped (no LCM backing)
+   - Plural forms GetAnalysisWritingSystems / GetVernacularWritingSystems already existed
+   - Status: PARTIALLY RESOLVED (remaining Category 4 items are separate)
 
 ### Low Priority (Documentation/Polish)
 
